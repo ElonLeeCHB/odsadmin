@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Models\Localization;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Division extends Model
+{
+    use HasFactory;
+    
+    public $timestamps = false;
+
+    public function parentDivision()
+    {
+        return $this->belongsTo(Division::class, 'parent_id', 'id');
+    }
+
+    public function subDivisions()
+    {
+        return $this->hasMany(Division::class, 'parent_id', 'id');
+    }
+
+    public function roads()
+    {
+        return $this->hasMany(Road::class, 'division_id', 'id');
+    }
+
+    public function scopeStates($query, $country_code)
+    {
+        $query->where('country_code', $country_code)->where('level',1);
+    }
+}

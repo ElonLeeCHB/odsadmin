@@ -1,0 +1,11 @@
+﻿id,code,type,model,sort_order,is_active,created_at,updated_at,
+1001,how_to_find_us,select,Order,1,1,2023/3/8 00:00,2023/3/8 00:00,如何發現我們
+1002,vegetable,radio,Product,1,1,2023/3/8 00:00,2023/3/8 00:00,素食
+1003,main_meal,options_with_qty,Product,2,1,2023/3/8 00:00,2023/3/8 00:00,主餐
+1004,drink,options_with_qty,Product,3,1,2023/3/8 00:00,2023/3/8 00:00,飲料
+1005,side_dish,options_with_qty,Product,4,1,2023/3/8 00:00,2023/3/8 00:00,配菜
+1006,op001,checkbox,Product,5,1,2023/3/8 00:00,2023/3/8 00:00,任搭選項
+1007,bento_main,options_with_qty,Product,6,1,2023/3/8 00:00,2023/3/8 00:00,第二主餐
+1008,extra_buy,options_with_qty,Product,7,1,2023/3/8 00:00,2023/3/8 00:00,加價購
+1009,burrito_6inch,options_with_qty,Product,8,1,2023/3/8 00:00,2023/3/8 00:00,
+1010,eco_bag,options_with_qty,Product,9,1,2023/3/8 00:00,2023/3/8 00:00,

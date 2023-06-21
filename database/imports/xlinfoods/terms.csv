@@ -1,0 +1,7 @@
+﻿id,code,taxonomy,parent_id,is_active,sort_order,
+1001,bento,product_category,0,1,1,便當
+1002,lunchbox,product_category,0,1,2,盒餐
+1003,burrito,product_category,0,1,3,飲料
+1004,main,product_category,0,1,4,單點潤餅
+1005,side_dish,product_category,0,1,5,配菜
+1006,other_combo,product_category,0,1,6,其它

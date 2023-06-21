@@ -1,0 +1,34 @@
+#laravel default
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+!/vendor/barryvdh/laravel-translation-manager
+.env
+.env.backup
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/.idea
+/.vscode
+#laravel default end
+
+/storage/framework/cache/*
+
+*.code-workspace
+phpinfo.php
+php.bat
+composer.bat
+*.bak 
+*.bak.php 
+*_bak.php 
+*.old 
+*.old.php 
+*_old.php
+*copy.php
+*.new.php
+public/tests/*
+

@@ -1,0 +1,6 @@
+﻿id,code,type,model,sort_order,is_active,created_at,updated_at
+1,color,select,Product,1,0,2022/12/31 00:00,2022/12/31 00:00
+2,size,select,Product,2,0,2022/12/31 00:00,2022/12/31 00:00
+3,salutation,select,User,,1,2022/12/31 00:00,2022/12/31 00:00
+101,order_status,select,Order,,1,2022/12/31 00:00,2022/12/31 00:00
+102,order_closed,select,Order,,1,2022/12/31 00:00,2022/12/31 00:00

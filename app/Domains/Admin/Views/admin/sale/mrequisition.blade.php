@@ -1,0 +1,224 @@
+@extends('admin.app')
+
+@section('pageJsCss')
+@endsection
+
+@section('columnLeft')
+	@include('admin.common.column_left')
+@endsection
+
+@section('content')
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<div class="float-end">
+				<button type="button" data-bs-toggle="tooltip" title="Filter" onclick="$('#filter-member').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fas fa-filter" style="font-size:18px"></i></button>
+			</div>
+			<h1>{{ $lang->heading_title }}</h1>
+			@include('admin.common.breadcumb')
+		</div>
+	</div>
+  <div class="container-fluid">
+	<div class="row">
+	  <div id="filter-member" class="col-lg-3 col-md-12 order-lg-last d-none d-lg-block mb-3">
+		<form id="filter-form">
+		<div class="card">
+		  <div class="card-header"><i class="fas fa-filter"></i> {{ $lang->text_filter }}</div>
+		  <div class="card-body">
+					<div class="mb-3">
+						<label class="form-label">{{ $lang->column_required_date }}</label>
+						<input type="text" name="filter_name" value="" placeholder="{{ $lang->column_required_date }}" id="input-name" list="list-name" class="form-control"/>
+						<datalist id="list-name"></datalist>
+					</div>
+					<div class="mb-3">
+						<label class="form-label">{{ $lang->column_required_month }}</label>
+						<input type="text" name="filter_phone" value="" placeholder="{{ $lang->column_required_month }}" id="input-phone" list="list-phone" class="form-control"/>
+						<datalist id="list-phone"></datalist>
+					</div>
+					<div class="mb-3">
+						<label class="form-label">{{ $lang->column_required_year }}</label>
+						<input type="text" name="filter_email" value="" placeholder="{{ $lang->column_required_year }}" id="input-email" list="list-email" class="form-control"/>
+						<datalist id="list-email"></datalist>
+					</div>
+          <div class="text-end">
+            <button type="reset" id="button-clear" class="btn btn-light"><i class="fa fa-refresh" aria-hidden="true"></i> {{ $lang->button_reset }}</button>
+			<button type="button" id="button-filter" class="btn btn-light"><i class="fas fa-filter"></i> {{ $lang->button_filter }}</button>
+          </div>
+		  </div>
+		</div>
+		</form>
+	  </div>
+	  <div class="col-lg-9 col-md-12">
+		<div class="card">
+		  <div class="card-header"><i class="fas fa-list"></i> {{ $lang->text_list }}</div>
+		  <div id="mrequisition" class="card-body">{!! $list !!}</div>
+		</div>
+	  </div>
+	</div>
+  </div>
+</div>
+@endsection
+
+@section('buttom')
+<script type="text/javascript"><!--
+
+//Export: Show window
+$('#button-export').on('click', function () {
+	$('#modal-option').modal('show');
+	
+});
+
+
+//Export: Download
+/*
+$('#button-export-save').on('click', function () {
+	var dataString = $('form').serialize();
+	var ext = $('#input-excel-format').val();
+
+    $.ajax
+    ({
+        type: "POST",
+        url: "{{ route('lang.admin.member.members.index') }}",
+        data: dataString,
+        cache: false,
+        xhrFields:{
+            responseType: 'blob'
+        },
+		beforeSend: function () {
+			console.log('beforeSend');
+            $('#loading').css("display", "");
+            $('#button-export-save').attr("disabled", true);
+		},
+        success: function(data)
+        {
+			console.log('success');
+            var link = document.createElement('a');
+            link.href = window.URL.createObjectURL(data);
+			link.download = 'members.' + ext;
+
+            link.click();
+			$('#modal-option').modal('hide');
+        },
+		complete: function () {
+			console.log('complete');
+			$('#loading').css("display", "none");
+            $('#button-export-save').attr("disabled", false);
+		},
+        fail: function(data) {
+			console.log('fail');
+            alert('Not downloaded');
+        }
+    });
+});
+
+
+$('#button-export-cancel').on('click', function () {
+	$('#loading').css("display", "none");
+	$('#button-export-save').attr("disabled", false);
+});
+*/
+$('#mrequisition').on('click', 'thead a, .pagination a', function(e) {
+	e.preventDefault();
+
+	$('#mrequisition').load(this.href);
+});
+
+$('#button-filter').on('click', function() {
+	url = '';
+
+	var filter_name = $('#input-name').val();
+
+	if (filter_name) {
+		url += '&filter_name=' + encodeURIComponent(filter_name);
+	}
+
+	var filter_mobile = $('#input-mobile').val();
+
+	if (filter_mobile) {
+		url += '&filter_mobile=' + encodeURIComponent(filter_mobile);
+	}
+
+	var filter_mobile = $('#input-telephone').val();
+
+	if (filter_mobile) {
+		url += '&filter_telephone=' + encodeURIComponent(filter_mobile);
+	}
+
+	var filter_mobile = $('#input-phone').val();
+
+	if (filter_mobile) {
+		url += '&filter_phone=' + encodeURIComponent(filter_mobile);
+	}
+
+	var filter_email = $('#input-email').val();
+
+	if (filter_email) {
+		url += '&filter_email=' + encodeURIComponent(filter_email);
+	}
+
+	/*
+	var filter_status = $('#input-status').val();
+
+	if (filter_status) {
+		url += '&filter_status=' + filter_status;
+	}
+
+	var filter_ip = $('#input-ip').val();
+
+	if (filter_ip) {
+		url += '&filter_ip=' + encodeURIComponent(filter_ip);
+	}
+
+	var filter_date_added = $('#input-date-added').val();
+
+	if (filter_date_added) {
+		url += '&filter_date_added=' + encodeURIComponent(filter_date_added);
+	}
+	*/
+
+	url = "{{ route('lang.admin.member.members.list') }}?" + url;
+
+	$('#member').load(url);
+});
+
+/*
+$('#input-name').autocomplete({
+	'source': function(request, response) {
+		$.ajax({
+			url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_last_name=" + encodeURIComponent(request),
+			dataType: 'json',
+			success: function(json) {
+				response($.map(json, function(item) {
+					return {
+						label: item['last_name'],
+						value: item['member_id']
+					}
+				}));
+			}
+		});
+	},
+	'select': function(item) {}
+});
+
+$('#input-phone').autocomplete({
+	'source': function(request, response) {
+		$.ajax({
+			//url: 'index.php?route=customer/customer|autocomplete&user_token=5bb02794973e438e69f86e04c7730815&filter_name=' + encodeURIComponent(request),
+			url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_mobile=" + encodeURIComponent(request),
+			dataType: 'json',
+			success: function(json) {
+				response($.map(json, function(item) {
+					return {
+						label: item['last_name'],
+						value: item['member_id']
+					}
+				}));
+			}
+		});
+	},
+	'select': function(item) {}
+});
+*/
+
+//--></script>
+@endsection

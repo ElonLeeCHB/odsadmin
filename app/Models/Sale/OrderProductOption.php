@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Models\Sale;
+
+use Illuminate\Database\Eloquent\Model;
+use App\Models\Sale\OrderProduct;
+use App\Models\Catalog\ProductOptionValue;
+use App\Models\Catalog\ProductOption;
+use App\Models\Common\Option;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+
+class OrderProductOption extends Model
+{
+    protected $guarded = [];
+    //public $timestamps = false;
+
+    /*
+OrderProduct
+    id,product_id
+
+OrderProductOption
+    id,order_id,product_id,product_option_value_id
+
+ProductOption
+    id,option
+
+ProductOptionValue
+    id,product_option_id,product_id,option_id,option_value_id
+    */
+
+
+    // Relationship
+    /*
+    order_product_option
+        product_options
+            product_option_values
+                options
+                    option_values
+    */
+
+    public function product_option()
+    {
+        return $this->hasOne(ProductOption::class, 'id', 'product_option_id');
+    }
+
+    public function product_option_value()
+    {
+        return $this->hasOne(ProductOptionValue::class, 'id', 'product_option_value_id');
+    }    
+    
+
+    protected function quantity(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value, $attributes) => number_format($attributes['quantity']),
+            set: fn ($value, $attributes) => str_replace(',','',$attributes['quantity']),
+        );
+    }
+}

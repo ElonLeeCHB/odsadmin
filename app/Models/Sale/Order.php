@@ -1,0 +1,242 @@
+<?php
+
+namespace App\Models\Sale;
+
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Model;
+use App\Models\Catalog\Product;
+use App\Models\Catalog\ProductOption;
+use App\Models\Sale\OrderProduct;
+use App\Models\Localization\Division;
+use App\Models\Member\Organization;
+use App\Models\Common\OptionValue;
+use DateTimeInterface;
+//use Staudenmeir\EloquentHasManyDeep\HasRelationships;
+
+class Order extends Model
+{
+    //use HasRelationships;
+    use \Staudenmeir\EloquentHasManyDeep\HasRelationships;
+
+    protected $guarded = [];
+
+    protected $appends = ['delivery_date_ymd', 'delivery_date_hi', 'delivery_weekday'];
+
+    protected $casts = [
+        'is_closed' => 'boolean',
+        'is_payed_off' => 'boolean',
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+
+    protected static function booted()
+    {
+        parent::boot();
+
+        static::observe(\App\Observers\OrderObserver::class);
+    }
+
+    // Relationships
+    /*
+    orders
+        order_products
+            order_product_option
+                product_options
+                    product_option_values
+                        options
+                            option_values
+    */
+
+    public function order_products()
+    {
+        return $this->hasMany(OrderProduct::class, 'order_id', 'id');
+    }
+
+    public function order_product_options()
+    {
+        return $this->hasManyThrough(OrderProductOption::class, OrderProduct::class);
+    }
+
+    // public function product_options()
+    // {
+    //     //return $this->product_options($this->order_product_options(), (new OrderProductOption())->product_option()
+        
+    //     // no product_options.order_product_option_id
+    //     //return $this->hasManyDeep(ProductOption::class, [OrderProduct::class, OrderProductOption::class]);
+
+    //     return $this->hasManyDeep(ProductOption::class, 
+    //         [OrderProduct::class, OrderProductOption::class],
+    //         ['order_id','order_product_id', ],
+    //         []);
+    // }
+
+    // public function options()
+    // {
+    //     return $this->hasManyDeepFromRelations($this->posts(), (new Post())->comments());
+    // }
+
+
+    // public function option_values()
+    // {
+    // }
+
+
+    // 
+
+    public function shipping_state()
+    {
+        return $this->belongsTo(Division::class, 'shipping_state_id', 'id');
+    }
+
+    public function shipping_city()
+    {
+        return $this->belongsTo(Division::class, 'shipping_city_id', 'id');
+    }
+
+    // public function shipping_state_name()
+    // {
+    //     return $this->belongsTo(Division::class, 'shipping_state_id', 'id')->name;
+    // }
+
+    public function store()
+    {
+        return $this->belongsTo(Organization::class, 'store_id', 'id');
+    }
+
+    public function status()
+    {
+        return $this->belongsTo(OptionValue::class, 'status_id', 'id');
+    }
+
+
+    // Attribute
+
+
+    // Mobile or Telephone
+
+    protected function parsePhone($phone)
+    {
+		$phone = str_replace('-', '', $phone);
+        $part3 = '';
+        $new_phone = '';
+
+        //Taiwan's mobile
+        if(str_starts_with($phone, '09')){
+            $new_phone = substr($phone, 0, 4) . '-' . substr($phone, 4) ;
+        }
+        // Telephone
+        else{
+            preg_match('/(\d+)#?(\d+)?/', $phone, $matches);
+
+            if(!empty($matches[0])){
+                $part1 = substr($matches[1],0,-4);
+                $part2 = substr($matches[1],-4);
+                if(!empty($matches[2])){
+                    $part3 = '#' . $matches[2];
+                }
+                $new_phone = $part1 . '-' . $part2 . $part3;
+            }
+        }
+
+        if(empty($new_phone)){
+            $new_phone = '';
+        }
+
+        return $new_phone;
+    }
+
+    protected function mobile(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $this->parsePhone($value),
+        );
+    }
+
+    protected function telephone(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $this->parsePhone($value),
+        );
+    }
+
+    protected function shippingPhone(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $this->parsePhone($value),
+        );
+    }
+
+    protected function shippingDate(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => Carbon::parse($value)->format('Y-m-d'),
+        );
+    }
+    
+
+    protected function deliveryDateYmd(): Attribute
+    {
+        if(!empty($this->delivery_date)){
+            $newValue = Carbon::parse($this->delivery_date)->format('Y-m-d');
+        }
+        return Attribute::make(
+            get: fn ($value) => $newValue ?? '',
+        );
+    }
+
+    protected function deliveryDateHi(): Attribute
+    {
+        if(!empty($this->delivery_date)){
+            $newValue = Carbon::parse($this->delivery_date)->format('H:i');
+        }
+
+        if(empty($newValue) || $newValue == '00:00'){
+            $newValue = '';
+        }
+        
+        return Attribute::make(
+            get: fn ($value) => $newValue,
+        );
+    }
+
+
+    protected function deliveryWeekday(): Attribute
+    {
+        if(!empty($this->delivery_date)){
+            $dayofweek = date('w', strtotime($this->delivery_date));
+            $newValue = ['日', '一', '二', '三', '四', '五', '六'][$dayofweek];
+        }else{
+            $newValue = '';
+        }
+
+        return Attribute::make(
+            get: fn ($value) => $newValue,
+        );
+    }
+
+    protected function paymentTotal(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => number_format($value),
+            set: fn ($value) => str_replace(',', '', $value),
+        );
+    }
+
+    protected function paymentPaid(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => number_format($value),
+            set: fn ($value) => str_replace(',', '', $value),
+        );
+    }
+
+    protected function paymentUnpaid(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => number_format($value),
+            set: fn ($value) => str_replace(',', '', $value),
+        );
+    }
+}

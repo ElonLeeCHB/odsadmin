@@ -1,0 +1,80 @@
+input{
+  font-size: 1.0em;
+}
+#table-order-header .form-control{
+    padding: 2px;
+    font-size: 1.0em;
+}
+select, .form-select{
+    padding: 2px 2px;
+    font-size: 1.0em;
+}
+
+input[readonly]
+{
+  background-color:#ccc;
+}
+
+.colname-font{
+  font-weight: bolder;
+  font-size: 1.2em;
+}
+.colname{
+    width: 105px;
+}
+.width1char{
+  width:20px;
+}
+.width2char{
+  width:50px;
+}
+.width4char{
+  width:80px;
+}
+.width5char{
+  width:100px;
+}
+.width6char{
+  width:120px;
+}
+.width7char{
+  width:140px;
+}
+.width8char{
+  width:160px;
+}
+.width10char{
+  width:180px;
+}
+.width11char{
+  width:200px;
+}
+#order_products table{
+  margin: 0;
+}
+
+/* app\Domains\Ocadmin\Views\Ocadmin\sale\order_product_detail.blade.php */
+.table-product-content {
+  border-collapse: collapse;
+  border-style: hidden;
+  margin: 0px;
+}
+.table-product-content td {
+  border-collapse: collapse;
+  border: 1px solid grey;  
+  padding: 5px 5px;
+}
+.tr_main_meal td{
+  width: 100px;
+}
+
+.shipping input{
+  border:#ccc solid 1px;
+}
+button{
+  border:#ccc solid 1px;
+}
+.orderTotal input{
+  padding: 0px;
+  margin: 0px;
+}

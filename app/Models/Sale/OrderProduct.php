@@ -1,0 +1,79 @@
+<?php
+
+namespace App\Models\Sale;
+
+use Illuminate\Database\Eloquent\Model;
+use App\Models\Catalog\Product;
+use App\Models\Catalog\ProductTranslation;
+use App\Models\Catalog\ProductOption;
+use App\Models\Sale\Order;
+use App\Models\Sale\OrderProductOption;
+use App\Models\Common\Option;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+
+class OrderProduct extends Model
+{    
+    protected $guarded = [];
+
+    public function translations()
+    {
+        return $this->hasMany(
+            ProductTranslation::class, 'product_id', 'product_id'
+        );
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id', 'id');
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id', 'id');
+    }
+
+    public function order_product_options()
+    {
+        return $this->hasMany(OrderProductOption::class, 'order_product_id', 'id');
+    }
+
+    public function product_options()
+    {
+        return $this->hasMany(ProductOption::class, 'product_id','product_id')->where('is_active',1);
+    }
+
+    protected function quantity(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => number_format($value),
+        );
+    }
+
+    protected function price(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => number_format($value),
+        );
+    }
+
+    protected function total(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => number_format($value),
+        );
+    }
+
+    protected function optionsTotal(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => number_format($value),
+        );
+    }
+
+    protected function finalTotal(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => number_format($value),
+        );
+    }
+}

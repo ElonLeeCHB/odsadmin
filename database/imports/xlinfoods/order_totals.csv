@@ -1,0 +1,5 @@
+﻿id,order_id,code,title,value,sort_order
+1,1001,sub_total,商品合計,34100,1
+2,1001,discount,優惠折扣,50,2
+3,1001,shipping_fee,運費,100,3
+4,1001,total,總計,34150,4
