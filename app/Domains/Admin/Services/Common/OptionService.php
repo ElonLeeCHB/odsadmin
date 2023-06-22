@@ -2,17 +2,18 @@
 
 namespace App\Domains\Admin\Services\Common;
 
+use Illuminate\Support\Facades\DB;
 use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Service;
 use App\Repositories\Eloquent\Common\OptionRepository;
 use App\Repositories\Eloquent\Common\OptionValueRepository;
 use App\Models\Common\OptionTranslation;
 use App\Models\Common\OptionValueTranslation;
-use Illuminate\Support\Facades\Validator;
-use DB;
 
 class OptionService extends Service
 {
+    protected $modelName = "\App\Models\Common\Option";
+
 	public function __construct(public OptionRepository $repository
         , private OptionValueRepository $OptionValueRepository)
 	{        
@@ -177,7 +178,7 @@ class OptionService extends Service
             $msg = [];
 
             $filter_data = [
-                'filter_ids' => $ids,
+                'whereIn' => $ids,
                 'limit' => 0,
                 'pagination' => false,
             ];
@@ -236,15 +237,4 @@ class OptionService extends Service
     }
 
 
-    public function validator(array $data)
-    {
-        foreach ($data['option_translations'] as $lang_code => $value) {
-            $key = 'name-'.$lang_code;
-            $arr[$key] = $value['name'];
-            $arr1[$key] = 'required|max:200';
-            $arr2[$key] = $this->lang->error_name;
-        }
-
-        return Validator::make($arr, $arr1,$arr2);
-    }
 }

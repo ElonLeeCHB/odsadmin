@@ -2,18 +2,16 @@
 
 namespace App\Domains\Admin\Services\Admin;
 
-use App\Domains\Admin\Services\Service;
 use Illuminate\Support\Facades\DB;
-use Validator;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
+use App\Domains\Admin\Services\Service;
+use App\Models\User\UserMeta;
 
 class PermissionService extends Service
 {
+    protected $modelName = "\App\Models\User\Permission";
     private $lang;
-
-	public function __construct()
-    {
-        $this->modelName = "\App\Models\User\Permission";
-	}
 
     public function getPermissions($data, $debug=0)
     {
@@ -27,7 +25,7 @@ class PermissionService extends Service
         DB::beginTransaction();
 
         try {
-            $user = $this->findOrFailOrNew(id:$data['user_id']);
+            $user = $this->findIdOrFailOrNew(id:$data['user_id']);
 
             $user->username = $data['username'] ?? null;
             $user->name = $data['name'] ?? '';

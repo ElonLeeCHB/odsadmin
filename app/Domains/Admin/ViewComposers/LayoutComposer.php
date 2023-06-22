@@ -110,18 +110,18 @@ class LayoutComposer
 
         if(1) {
             $Catalog[] = [
-                'name'	   => $this->lang->text_product,
+                'name'	   => $this->lang->text_option,
                 'icon'	   => '',
-                'href'     => route('lang.admin.catalog.products.index'),
+                'href'     => route('lang.admin.catalog.options.index'),
                 'children' => []
             ];
         }
 
         if(1) {
             $Catalog[] = [
-                'name'	   => $this->lang->text_option,
+                'name'	   => $this->lang->text_product,
                 'icon'	   => '',
-                'href'     => route('lang.admin.catalog.options.index'),
+                'href'     => route('lang.admin.catalog.products.index'),
                 'children' => []
             ];
         }
@@ -187,6 +187,15 @@ class LayoutComposer
             ];
         }
 
+        if(1) {
+            $sale[] = [
+                'name'	   => $this->lang->text_sales_phrase,
+                'icon'	   => '',
+                'href'     => route('lang.admin.sale.phrases.index'),
+                'children' => []
+            ];
+        }
+
         //備料單
         if(1) {
             $sale[] = [
@@ -239,21 +248,22 @@ class LayoutComposer
             ];
         }
 
-        if(1) {
-            $common[] = [
-                'name'	   => $this->lang->text_phrase,
-                'icon'	   => '',
-                'href'     => route('lang.admin.common.phrases.index'),
-                'children' => []
-            ];
-        }
-
         // 付款條件
         if(1) {
             $common[] = [
                 'name'	   => $this->lang->text_common_payment_term,
                 'icon'	   => '',
                 'href'     => route('lang.admin.common.payment_terms.index'),
+                'children' => []
+            ];
+        }
+
+        //金融機構
+        if(1) {
+            $common[] = [
+                'name'	   => $this->lang->text_financial_institution,
+                'icon'	   => '',
+                'href'     => route('lang.admin.common.financial_institutions.index'),
                 'children' => []
             ];
         }
@@ -276,7 +286,7 @@ class LayoutComposer
 
         if(1) {
             $inventory[] = [
-                'name'	   => $this->lang->text_inventory_suppliers,
+                'name'	   => $this->lang->text_inventory_supplier,
                 'icon'	   => '',
                 'href'     => route('lang.admin.inventory.suppliers.index'),
                 'children' => []
@@ -285,7 +295,7 @@ class LayoutComposer
 
         if(1) {
             $inventory[] = [
-                'name'	   => $this->lang->text_inventory_warehouses,
+                'name'	   => $this->lang->text_inventory_warehouse,
                 'icon'	   => '',
                 'href'     => route('lang.admin.inventory.warehouses.index'),
                 'children' => []
@@ -295,7 +305,7 @@ class LayoutComposer
         // 料件分類建立作業
         if(1) {
             $inventory[] = [
-                'name'	   => $this->lang->text_inventory_categories,
+                'name'	   => $this->lang->text_inventory_category,
                 'icon'	   => '',
                 'href'     => route('lang.admin.inventory.categories.index'),
                 'children' => []

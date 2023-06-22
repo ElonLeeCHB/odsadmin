@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Validator;
 
 class AddressService extends Service
 {
-    private $modelName = "\App\Models\Localization\Address";
+    protected $modelName = "\App\Models\Localization\Address";
 	private $lang;
 
 	public function __construct(public AddressRepository $repository

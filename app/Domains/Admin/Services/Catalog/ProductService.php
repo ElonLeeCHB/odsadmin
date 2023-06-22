@@ -3,36 +3,16 @@
 namespace App\Domains\Admin\Services\Catalog;
 
 use App\Domains\Admin\Services\Service;
-use App\Libraries\TranslationLibrary;
-use App\Repositories\Eloquent\Catalog\ProductRepository;
-use App\Repositories\Eloquent\Catalog\CategoryRepository;
-use App\Repositories\Eloquent\Catalog\ProductOptionRepository;
-use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
-use App\Repositories\Eloquent\Common\OptionRepository;
-use App\Repositories\Eloquent\Common\OptionValueRepository;
-use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Common\TermRelation;
-use Illuminate\Support\Facades\Validator;
-use DB;
-use Cache;
+use App\Models\Catalog\ProductOption;
+use App\Models\Catalog\ProductOptionValue;
+use Illuminate\Support\Facades\DB;
 
 class ProductService extends Service
 {
-    private $lang;
+    public $modelName = "\App\Models\Catalog\Product";
 
-	public function __construct(public ProductRepository $repository
-        , private CategoryRepository $categoryRepository
-        , private ProductOptionRepository $ProductOptionRepository
-        , private ProductOptionValueRepository $ProductOptionValueRepository
-        , private TermRepository $TermRepository
-        , private OptionRepository $OptionRepository
-        , private OptionValueRepository $OptionValueRepository
-        )
-	{
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/member/member',]);
-	}
-
-    public function getRows($data=[], $debug = 0)
+    public function getProducts($data=[], $debug = 0)
     {
         if(!empty($data['filter_keyword'])){
             $arr['filter_name'] = $data['filter_keyword'];
@@ -45,7 +25,7 @@ class ProductService extends Service
             $data['whereHas']['translation'] = $arr;
         }
 
-        $rows = $this->repository->getRows($data,$debug);
+        $rows = $this->getRows($data,$debug);
 
         return $rows;
 
@@ -57,7 +37,7 @@ class ProductService extends Service
         DB::beginTransaction();
 
         try {
-            $product = $this->repository->findIdOrFailOrNew($data['product_id']);
+            $product = $this->findIdOrFailOrNew($data['product_id']);
 
             $product->model = $data['model'] ?? 'model';
             $product->main_category_id = $data['main_category_id'] ?? null;
@@ -75,7 +55,7 @@ class ProductService extends Service
             $product_id = $product->id;
 
             if(!empty($data['product_translations'])){
-                $this->repository->saveTranslationData($product, $data['product_translations']);
+                $this->saveTranslationData($product, $data['product_translations']);
             }
 
             // Product Categories - many to many
@@ -100,8 +80,8 @@ class ProductService extends Service
 
             // Product Options
             // Delete all
-            $this->ProductOptionRepository->newModel()->where('product_id', $product->id)->delete();
-            $this->ProductOptionValueRepository->newModel()->where('product_id', $product->id)->delete();
+            ProductOption::where('product_id', $product->id)->delete();
+            ProductOptionValue::where('product_id', $product->id)->delete();
 
             if(!empty($data['product_options'])){
 
@@ -121,7 +101,7 @@ class ProductService extends Service
                                     'product_id' => $product->id,
                                     'type' => $product_option['type'],
                                 ];
-                                $product_option_model = $this->ProductOptionRepository->newModel()->create($arr);
+                                $product_option_model = ProductOption::create($arr);
 
                                 foreach ($product_option['product_option_values'] as $product_option_value) {
                                     $arr = [
@@ -136,7 +116,7 @@ class ProductService extends Service
                                         'is_active' => $product_option_value['is_active'] ?? 1,
                                         'is_default' => $product_option_value['is_default'] ?? 0,
                                     ];
-                                    $product_option_value_model = $this->ProductOptionValueRepository->model->create($arr);
+                                    $product_option_value_model = ProductOptionValue::create($arr);
 
                                     $cacheName = 'ProductId_' . $product->id . '_ProductOptionId_' . $product_option_model->id . '_ ProductOptionValues';
                                     cache()->forget($cacheName);
@@ -155,7 +135,7 @@ class ProductService extends Service
                                 'value' => $product_option['value'],
                                 'type' => $product_option['type'],
                             ];
-                            $product_option = $this->ProductOptionRepository->newModel()->create($arr);
+                            $product_option = ProductOption::create($arr);
                         }
                     }
                 }
@@ -191,81 +171,6 @@ class ProductService extends Service
         }
 
         return $result;
-    }
-
-
-    public function getCategories(int $product_id)
-    {
-        $queries = [
-            'filter_product_id' => $product_id,
-            'with' => [
-                'products' => [
-                    'filter_object_id' => $product_id,
-                    'regx' => false,
-                ],
-            ],
-            'regx' => false,
-            'pagination' => false,
-        ];
-        $terms = $this->TermRepository->getRows($queries,0);
-
-        return $terms;
-    }
-
-
-    public function getProductOptions($data,$debug=0)
-    {
-        $filter_data['filter_model'] = 'Product';
-        $filter_data['filter_product_id'] = $data['filter_product_id'];
-
-        if(!empty($data['with'])){
-            $filter_data['with'] = $data['with'];
-        }
-
-        if(!empty($data['sort'])){
-            $filter_data['sort'] = $data['sort'];
-        }else{
-            $filter_data['sort'] = 'sort_order';
-        }
-
-        if(!empty($data['order'])){
-            $filter_data['order'] = $data['order'];
-        }else{
-            $filter_data['order'] = 'ASC';
-        }
-
-        if(isset($data['pagination'])){
-            $filter_data['pagination'] = $data['pagination'];
-        }else{
-            $filter_data['pagination'] = false;
-        }
-
-        if(isset($data['limit'])){
-            $filter_data['limit'] = $data['limit'];
-        }else{
-            $filter_data['limit'] = 0;
-        }
-
-        if(isset($data['regexp'])){
-            $filter_data['regexp'] = $data['regexp'];
-        }else{
-            $filter_data['regexp'] = false;
-        }
-
-        $product_options = $this->ProductOptionRepository->getRows($filter_data,$debug);
-
-        return $product_options;
-    }
-
-
-    public function getTotalProductsByOptionId($option_id)
-    {
-        $filter_data = [
-            'filter_option_id' => $option_id,
-            'regexp' => false,
-        ];
-
-        return $this->ProductOptionRepository->getCount($filter_data);
     }
 
     public function resetCachedSalableProducts($filter_data = [])
@@ -308,20 +213,6 @@ class ProductService extends Service
         }
 
         return $result;
-    }
-
-
-    public function validator(array $data)
-    {
-        return Validator::make($data, [
-                'organization_id' =>'nullable|integer',
-                'name' =>'nullable|max:10',
-                'short_name' =>'nullable|max:10',
-            ],[
-                'organization_id.integer' => $this->lang->error_organization_id,
-                'name.*' => $this->lang->error_name,
-                'short_name.*' => $this->lang->error_short_name,
-        ]);
     }
 
 }

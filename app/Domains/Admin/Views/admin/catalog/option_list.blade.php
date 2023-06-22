@@ -1,6 +1,6 @@
 <form id="form-option" method="post" data-oc-toggle="ajax" data-oc-load="{{ $action }}" data-oc-target="#option">
   @csrf
-  @method($method)
+  @method('POST')
   <div class="table-responsive">
     <table class="table table-bordered table-hover">
       <thead>

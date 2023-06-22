@@ -3,6 +3,7 @@
 namespace App\Domains\Admin\Http\Controllers\Catalog;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
 use App\Libraries\TranslationLibrary;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
@@ -217,7 +218,7 @@ class OptionController extends Controller
         $data['languages'] = $languages;
 
         // Get Record
-        $option = $this->OptionService->findIdOrNew($option_id);
+        $option = $this->OptionService->findIdOrFailOrNew($option_id);
 
         $data['option']  = $option;
 
@@ -461,5 +462,18 @@ class OptionController extends Controller
             return response(json_encode($json))->header('Content-Type','application/json');
         }
 
+    }
+
+
+    public function validator(array $data)
+    {
+        foreach ($data['option_translations'] as $lang_code => $value) {
+            $key = 'name-'.$lang_code;
+            $arr[$key] = $value['name'];
+            $arr1[$key] = 'required|max:200';
+            $arr2[$key] = $this->lang->error_name;
+        }
+
+        return Validator::make($arr, $arr1,$arr2);
     }
 }

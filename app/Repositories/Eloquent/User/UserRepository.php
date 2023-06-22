@@ -2,18 +2,22 @@
 
 namespace App\Repositories\Eloquent\User;
 
+use App\Domains\Admin\Traits\Eloquent;
 use App\Repositories\Eloquent\Repository;
+use App\Models\User\User;
+use App\Models\Common\Option;
 
 class UserRepository extends Repository
 {
+    use Eloquent;
+
     public $modelName = "\App\Models\User\User";
     
     public function getAdminUsers($data,$debug=0)
     {
-        $data['filter_is_active'] = '-1';
-        $data['whereHas']['userMeta'] = ['meta_key' => '=is_admin', 'meta_value' => '=1'];
-
-        $users = $this->getRows($data, $debug);
+        $users = User::whereHas('userMeta', function($query) {
+            $query->where('meta_key', 'is_admin')->where('meta_value', '1');
+        });
 
         return $users;
     }
@@ -25,11 +29,7 @@ class UserRepository extends Repository
 
         $salutations = cache()->remember($cacheName, 60*60*24*365, function(){
             // Option
-            $filter_data = [
-                'filter_code' => 'salutation',
-                'with' => 'option_values.translation'
-            ];
-            $option = $this->OptionService->getRow($filter_data);
+            $option = Option::where('code', 'salutation')->with('option_values.translation')->first();
 
             // Option Values
             $option_values = $option->option_values;

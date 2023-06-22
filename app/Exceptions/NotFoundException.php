@@ -2,12 +2,9 @@
 
 namespace App\Exceptions;
 
-use Illuminate\Http\Request;
-use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Illuminate\Database\Eloquent\ModelNotFoundException; 
-use Throwable;
+use Exception;
 
-class Handler extends ExceptionHandler
+class NotFoundException extends Exception
 {
     /**
      * A list of exception types with their corresponding custom log levels.
@@ -50,11 +47,6 @@ class Handler extends ExceptionHandler
         });
 
         $this->renderable(function (\Exception $e, $request) {
-
-            if ($e->getPrevious() instanceof ModelNotFoundException) {
-                return response()->json('資源不存在', 404);
-            };
-            
             if ($e->getPrevious() instanceof \Illuminate\Session\TokenMismatchException) {
                 return redirect()->route('lang.admin.login');
             };

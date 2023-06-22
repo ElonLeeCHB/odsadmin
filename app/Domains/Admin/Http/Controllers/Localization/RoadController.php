@@ -72,9 +72,7 @@ class RoadController extends Controller
         }
 
 		if(!empty($city_ids)){
-			$filter_data['whereIn'] = [
-				'city_id' => $city_ids,
-			];
+			$filter_data['whereIn'] = ['city_id' => $city_ids,];
 		} 
         
 		$roads = $this->RoadService->getRows($filter_data);

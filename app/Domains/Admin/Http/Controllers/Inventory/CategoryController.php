@@ -98,7 +98,6 @@ class CategoryController extends Controller
 
         foreach ($terms as $row) {
             $row->edit_url = route('lang.admin.inventory.categories.form', array_merge([$row->id], $queries));
-            //$row->taxonomy
         }
         $data['terms'] = $terms->withPath(route('lang.admin.inventory.categories.list'))->appends($queries);
 
@@ -115,7 +114,6 @@ class CategoryController extends Controller
         unset($queries['sort']);
         unset($queries['order']);
         unset($queries['with']);
-        unset($queries['whereEquals']);
 
         $url = '';
 

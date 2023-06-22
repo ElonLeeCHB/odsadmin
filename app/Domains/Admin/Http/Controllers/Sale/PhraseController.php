@@ -1,33 +1,40 @@
 <?php
 
-namespace App\Domains\Admin\Http\Controllers\Catalog;
+namespace App\Domains\Admin\Http\Controllers\Sale;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
 use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Common\TermService;
 use App\Traits\InitController;
 
-class CategoryController extends Controller
+class PhraseController extends Controller
 {
     use InitController;
 
     private $request;
-    private $lang;
     private $LanguageRepository;
     private $TermService;
+    private $lang;
 
-    public function __construct(Request $request, LanguageRepository $LanguageRepository, TermService $TermService)
+    public function __construct(
+        Request $request
+        , TermService $TermService
+        , LanguageRepository $LanguageRepository
+        )
     {
         $this->request = $request;
-        $this->LanguageRepository = $LanguageRepository;
         $this->TermService = $TermService;
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/common/term','admin/catalog/category']);
+        $this->LanguageRepository = $LanguageRepository;
+        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/common/phrase']);
     }
-    
 
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function index()
     {
         $data['lang'] = $this->lang;
@@ -39,34 +46,41 @@ class CategoryController extends Controller
         ];
         
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_product,
+            'text' => $this->lang->text_phrase,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
         
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.catalog.categories.index'),
+            'href' => route('lang.admin.sale.phrases.index'),
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
-
+        
         $data['list'] = $this->getList();
 
-        $data['list_url'] =route('lang.admin.catalog.categories.list');
-        $data['add_url'] = route('lang.admin.catalog.categories.form');
-        $data['delete_url'] = route('lang.admin.catalog.categories.delete');
+        $data['list_url'] =route('lang.admin.sale.phrases.list');
+        $data['add_url'] = route('lang.admin.sale.phrases.form');
+        $data['delete_url'] = route('lang.admin.sale.phrases.delete');
 
-        return view('admin.common.term', $data);
+        return view('admin.sale.phrase', $data);
     }
-
 
     public function list()
     {
+        $data['lang'] = $this->lang;
+        
+        $data['form_action'] = route('lang.admin.sale.phrases.list');
+
         return $this->getList();
     }
 
-
+    /**
+     * Show the list table.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
     public function getList()
     {
         $data['lang'] = $this->lang;
@@ -74,17 +88,18 @@ class CategoryController extends Controller
         // Prepare link for action
         $queries = $this->getQueries($this->request->query());
 
-        $queries['whereIn'] = ['taxonomy_code' => ['product_category']];
+        $queries['whereIn'] = ['taxonomy_code' => ['phrase_order_comment', 'phrase_order_extra_comment']];
 
-        // rows
-        $terms = $this->TermService->getRows($queries);
-        if(!empty($terms)){
-            foreach ($terms as $row) {
-                $row->edit_url = route('lang.admin.catalog.categories.form', array_merge([$row->id], $queries));
+        // Rows
+        $phrases = $this->TermService->getRows($queries);
+
+        if(count($phrases)>0){
+            foreach ($phrases as $key => $phrase) {
+                $phrase->edit_url = route('lang.admin.sale.phrases.form', array_merge([$phrase->id], $queries));
             }
         }
 
-        $data['terms'] = $terms->withPath(route('lang.admin.catalog.categories.list'))->appends($queries);
+        $data['phrases'] = $phrases->withPath(route('lang.admin.sale.phrases.list'))->appends($queries);
 
         // Prepare links for list table's header
         if($queries['order'] == 'ASC'){
@@ -108,19 +123,16 @@ class CategoryController extends Controller
         }
         
         // link of table header for sorting        
-        $route = route('lang.admin.catalog.products.list');
+        $route = route('lang.admin.sale.phrases.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
-        $data['sort_code'] = $route . "?sort=code&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
-        $data['sort_short_name'] = $route . "?sort=name&order=$order" .$url;
-        $data['sort_taxonomy_name'] = $route . "?sort=taxonomy_name&order=$order" .$url;
-        $data['sort_is_active'] = $route . "?sort=is_active&order=$order" .$url;
+        $data['sort_email'] = $route . "?sort=email&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
 
-        $data['list_url'] =route('lang.admin.catalog.categories.list');
+        $data['list_url'] = route('lang.admin.sale.phrases.list');
 
-        return view('admin.common.term_list', $data);
+        return view('admin.sale.phrase_list', $data);
     }
 
 
@@ -128,7 +140,7 @@ class CategoryController extends Controller
     {
         $data['lang'] = $this->lang;
   
-        $this->lang->text_form = empty($product_id) ? $this->lang->trans('text_add') : $this->lang->trans('text_edit');
+        $this->lang->text_form = empty($catalog_id) ? $this->lang->trans('text_add') : $this->lang->trans('text_edit');
 
         // Languages
         $data['languages'] = $this->LanguageRepository->newModel()->active()->get();
@@ -140,14 +152,14 @@ class CategoryController extends Controller
         ];
         
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_product,
+            'text' => $this->lang->text_catalog,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
         
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.catalog.products.index'),
+            'href' => route('lang.admin.sale.phrases.index'),
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
@@ -155,21 +167,21 @@ class CategoryController extends Controller
         // Prepare link for save, back
         $queries = $this->getQueries($this->request->query());
 
-        $data['save_url'] = route('lang.admin.catalog.categories.save');
-        $data['back_url'] = route('lang.admin.catalog.categories.index', $queries);
-        $data['autocomplete_url'] = route('lang.admin.catalog.categories.autocomplete');
+        $data['save_url'] = route('lang.admin.sale.phrases.save');
+        $data['back_url'] = route('lang.admin.sale.phrases.index', $queries);
+        $data['autocomplete_url'] = route('lang.admin.sale.phrases.autocomplete');
 
         // Get Record
         $term = $this->TermService->findIdOrFailOrNew($term_id);
 
-        $data['term']  = $term;
-        
-        if(!empty($data['term']) && $term_id == $term->id){
+        if(!empty($term)){
             $data['term_id'] = $term_id;
         }else{
             $data['term_id'] = null;
         }
-
+        
+        $data['term']  = $term;
+        
         // translations
         if($term->translations->isEmpty()){
             $translations = [];
@@ -179,48 +191,83 @@ class CategoryController extends Controller
             }
         }
         $data['translations'] = $translations;
-        
-        $data['taxonomy_code'] = 'product_category';
-        
-        return view('admin.common.term_form', $data);
+
+        return view('admin.sale.phrase_form', $data);
     }
-
-
+    
     public function save()
     {
         $data = $this->request->all();
 
         $json = [];
 
-        if (isset($json['error']) && !isset($json['error']['warning'])) {
+        // Check catalog
+        // $validator = $this->TermService->validator($this->request->post());
+
+        // if($validator->fails()){
+        //     $messages = $validator->errors()->toArray();
+        //     foreach ($messages as $key => $rows) {
+        //         $json['error'][$key] = $rows[0];
+        //     }
+        // }
+
+        if(isset($json['error']) && !isset($json['error']['warning'])) {
             $json['error']['warning'] = $this->lang->error_warning;
         }
 
         if(!$json) {
+            $data['term_id'] = $data['term_id'] ?? '';
             $result = $this->TermService->updateOrCreate($data);
-            if(empty($result['error'])){
+
+            if(empty($result['error']) && !empty($result['term_id'])){
                 $json = [
                     'term_id' => $result['term_id'],
                     'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.catalog.categories.form', $result['term_id']),
+                    'redirectUrl' => route('lang.admin.sale.phrases.form', $result['term_id']),
                 ];
-            }else if(auth()->user()->username == 'admin'){
-                $json['warning'] = $result['error'];
             }else{
-                $json['warning'] = $this->lang->text_fail;
+                if(config('app.debug')){
+                    $json['error'] = $result['error'];
+                }else{
+                    $json['error'] = $this->lang->text_fail;
+                }
+            }
+        }
+
+
+
+
+
+
+        if(!$json) {
+
+            $data['id'] = $data['term_id'];            
+            $result = $this->TermService->updateOrCreate($data);
+            
+            if(empty($result['error'])){
+                $json['redirectUrl'] = route('lang.admin.sale.phrases.form', $result['data']['record_id']);
+                $json['term_id'] = $result['data']['record_id'];
+                $json['success'] = $this->lang->text_success;
+            }else{
+                $username = auth()->user()->username;
+                if($username == 'admin'){
+                    $json['error'] = $result['error'];
+                }else{
+                    $json['error'] = $this->lang->text_fail;
+                }
             }
         }
         
-        return response(json_encode($json))->header('Content-Type','application/json');
-
+       return response(json_encode($json))->header('Content-Type','application/json');
     }
+    
 
     public function autocomplete()
     {
         $queries = $this->getQueries($this->request->query());
 
         $queries['pagination'] = false;
-        $queries['whereIn'] = ['taxonomy_code' => ['product_category']];
+        $queries['whereIn'] = ['taxonomy_code' => ['phrase_order_comment','phrase_order_extra_comment']];
 
         // Rows
         $rows = $this->TermService->getRows($queries);
@@ -238,23 +285,5 @@ class CategoryController extends Controller
         }
 
         return response(json_encode($json))->header('Content-Type','application/json');
-    }
-
-    public function delete()
-    {
-
-    }
-
-    public function validator(array $data)
-    {
-        return Validator::make($data, [
-                'organization_id' =>'nullable|integer',
-                'name' =>'nullable|max:10',
-                'short_name' =>'nullable|max:10',
-            ],[
-                'organization_id.integer' => $this->lang->error_organization_id,
-                'name.*' => $this->lang->error_name,
-                'short_name.*' => $this->lang->error_short_name,
-        ]);
     }
 }

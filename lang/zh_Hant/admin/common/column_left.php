@@ -9,11 +9,11 @@ return [
 'text_catalog_category' => '分類',
 'text_catalog_tag' => '標籤',
 'text_product' => '商品',
-'text_phrase' => '常用片語',
 'text_attribute' => '商品屬性',
 'text_attribute_group' => '屬性群組',
 'text_sale' => '銷售管理',
 'text_order' => '訂單',
+'text_sales_phrase' => '常用片語',
 'text_material_requisition' => '備料表',
 'text_material_requisition_setting' => '備料設定',
 
@@ -23,9 +23,10 @@ return [
 'text_common_payment_term' => '付款條件',
 
 'text_inventory' => '庫存管理',
-'text_inventory_suppliers' => '廠商設定',
-'text_inventory_warehouses' => '倉庫設定',
-'text_inventory_categories' => '品號分類設定',
+'text_financial_institution' => '金融機構設定',
+'text_inventory_supplier' => '廠商設定',
+'text_inventory_warehouse' => '倉庫設定',
+'text_inventory_category' => '品號分類設定',
 'text_inventory_products' => '品號建立作業',
 
 'text_member' => '客戶管理',

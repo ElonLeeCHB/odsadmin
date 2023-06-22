@@ -17,6 +17,9 @@ class Organization extends Model
         'supplier_contact_jobtitle',
         'supplier_contact_telephone',
         'supplier_contact_mobile',
+        'supplier_bank_name',
+        'supplier_bank_code',
+        'supplier_bank_account',
     ];
 
     public function meta_dataset()

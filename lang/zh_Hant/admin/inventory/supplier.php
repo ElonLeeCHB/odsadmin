@@ -18,6 +18,9 @@ return [
 'column_short_name' => '簡稱',
 'column_contact_name' => '聯絡人',
 'column_contact_title' => '職稱',
+'column_supplier_bank_name' => '銀行名稱',
+'column_supplier_bank_code' => '銀行代號',
+'column_supplier_bank_account' => '銀行帳號',
 
 ];
 

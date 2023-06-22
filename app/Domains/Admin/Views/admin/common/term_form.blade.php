@@ -96,19 +96,19 @@
                   </div>
                 </div>
 
-{{-- parent_name --}}
-<div class="row mb-3">
-  <label class="col-sm-2 col-form-label">{{ $lang->column_parent_name }}</label>
-  <div class="col-sm-10">
-    <div class="input-group">
-      <input type="text" id="input-parent_name" name="parent_name" value="{{ $term->parent->name ?? ''}}" data-oc-target="autocomplete-parent_name" class="form-control" />
-    </div>
-    <div id="error-parent_name" class="invalid-feedback"></div>
-    <input type="hidden" id="input-parent_id" name="parent_id" value="{{ $term->parent_id }}" />
-    <ul id="autocomplete-parent_name" class="dropdown-menu"></ul>
-    <div class="form-text"></div><?php /* help text */ ?>
-  </div>
-</div>
+                {{-- parent_name --}}
+                <div class="row mb-3">
+                  <label class="col-sm-2 col-form-label">{{ $lang->column_parent_name }}</label>
+                  <div class="col-sm-10">
+                    <div class="input-group">
+                      <input type="text" id="input-parent_name" name="parent_name" value="{{ $term->parent->name ?? ''}}" data-oc-target="autocomplete-parent_name" class="form-control" />
+                    </div>
+                    <div id="error-parent_name" class="invalid-feedback"></div>
+                    <input type="hidden" id="input-parent_id" name="parent_id" value="{{ $term->parent_id }}" />
+                    <ul id="autocomplete-parent_name" class="dropdown-menu"></ul>
+                    <div class="form-text"></div><?php /* help text */ ?>
+                  </div>
+                </div>
 
                 {{-- is_active --}}
                 <div class="row mb-3">

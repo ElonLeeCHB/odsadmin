@@ -8,7 +8,7 @@ use App\Repositories\Eloquent\Localization\DivisionRepository;
 
 class RoadService extends Service
 {
-    private $modelName = "\App\Models\Localization\Road";
+    protected $modelName = "\App\Models\Localization\Road";
 	private $lang;
 
 	public function __construct(protected RoadRepository $repository

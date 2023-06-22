@@ -8,7 +8,7 @@ use App\Repositories\Eloquent\Setting\LocationRepository;
 
 class LocationService extends Service
 {
-    private $modelName = "\App\Models\Setting\Location";
+    protected $modelName = "\App\Models\Setting\Location";
 	public $repository;
 
 	public function __construct()

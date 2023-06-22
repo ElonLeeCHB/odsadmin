@@ -45,18 +45,6 @@ class Repository
     }
 
 
-    public function findId($id)
-    {
-        $record = $this->newModel()->where('id', $id)->first();
-
-        if(!empty($record)){
-            $record = $this->setTranslatedAttributes($record);
-        }
-
-        return $record;
-    }
-
-
     // Use only id to search
     public function findIdOrNew($id)
     {
@@ -72,19 +60,14 @@ class Repository
     {
         //find
         if(!empty($id)){
-            $record = $this->newModel()->where('id', $id)->first();
-
-            if(empty($record)){ //fail
-                $error = 'Record not found!';
-                throw new \Exception($error);
-            }
+            $row = $this->newModel()->where('id', $id)->firstOrFail();
         }
         //new
         else{
-            $record = $this->newModel();
+            $row = $this->newModel();
         }
 
-        return $record;
+        return $row;
     }
 
 
@@ -250,28 +233,21 @@ class Repository
     }
 
 
-    public function getCount($data=[],$debug=0)
-    {
-        $query = $this->newModel()->query();
-
-        // Filters - model's table
-        $this->setFiltersQuery($query, $data, $debug);
-
-        // see the sql statement
-        if(!empty($debug)){
-            $this->getQueries($query);
-        }
-
-        return $query->count();
-    }
-
-
     private function setEqualsQuery($query, $data)
     {
-        // $data['whereEquals'] is array
+        // $data['whereEquals'] is multi dimension array
         if(!empty($data['whereEquals'])){
-            foreach ($data['whereEquals'] as $column => $value) {
-                $query->where($column, $value);
+            foreach ($data['whereEquals'] as $column => $tmpdata) {
+                if(is_array($tmpdata)){
+                    $query->where(function ($query) use($column, $tmpdata) {
+                        foreach ($tmpdata as $value) {
+                            $query->orWhere($column, $value);
+                        }
+                    });
+
+                }else{
+                    $query->where($column, $tmpdata);
+                }
             }
         }
 
@@ -284,7 +260,7 @@ class Repository
                 continue;
             }
 
-            // Must Start with filter_
+            // Must Start with equals_
             if(str_starts_with($key, 'equals_')){
                 $column = str_replace('equals_', '', $key);
             }else{
@@ -295,7 +271,7 @@ class Repository
                 continue;
             }
 
-            if(is_array($value)){ // Filter value can not be array
+            if(is_array($value)){ // value can not be array
                 continue;
             }
 

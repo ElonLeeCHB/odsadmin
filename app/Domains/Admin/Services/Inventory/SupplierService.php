@@ -8,7 +8,7 @@ use App\Repositories\Eloquent\Organization\OrganizationRepository;
 
 class SupplierService extends Service
 {
-    private $modelName = "\App\Models\Organization\Organization";
+    protected $modelName = "\App\Models\Organization\Organization";
 	protected $repository;
 
 	public function __construct()

@@ -3,6 +3,7 @@
 namespace App\Domains\Admin\Http\Controllers\Catalog;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
 use App\Libraries\TranslationLibrary;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
@@ -224,7 +225,7 @@ class ProductController extends Controller
         $data['back'] = route('lang.admin.catalog.products.index', $queries);
 
         // Get Record
-        $product = $this->ProductService->findIdOrNew($product_id);
+        $product = $this->ProductService->findIdOrFailOrNew($product_id);
 
         $data['product']  = $product;
 
@@ -236,24 +237,24 @@ class ProductController extends Controller
             $data['product_id'] = null;
         }
 
-        // product_translations
+        // translations
         if($product->translations->isEmpty()){
-            $product_translations = [];
+            $translations = [];
         }else{
             foreach ($product->translations as $translation) {
-                $product_translations[$translation->locale] = $translation->toArray();
+                $translations[$translation->locale] = $translation->toArray();
                 // locale is like zh-something, the hyphen can't be as the key. 
-                // This won't work: $product_translations->zh-Hant->name
+                // This won't work: $translations->zh-Hant->name
             }
         }
-        $data['product_translations'] = $product_translations;
+        $data['translations'] = $translations;
 
         // product_categories
 		if ($product_id) {
-            $filter_ids = $product->categories->pluck('id')->toArray();
-            if(!empty($filter_ids)){
+            $ids = $product->categories->pluck('id')->toArray();
+            if(!empty($ids)){
                 $cat_filters = [
-                    'filter_ids' => $filter_ids,
+                    'whereIn' => $ids,
                     'pagination' => false
                 ];
                 $product_categories = $this->CategoryService->getRows($cat_filters);
@@ -451,7 +452,7 @@ class ProductController extends Controller
             'pagination'   => false,
         );
 
-        $rows = $this->ProductService->getRows($filter_data);
+        $rows = $this->ProductService->getProducts($filter_data);
 
         foreach ($rows as $row) {
             $json[] = array(
@@ -465,6 +466,19 @@ class ProductController extends Controller
     }
 
 
+    public function validator(array $data)
+    {
+        return Validator::make($data, [
+                'organization_id' =>'nullable|integer',
+                'name' =>'nullable|max:10',
+                'short_name' =>'nullable|max:10',
+            ],[
+                'organization_id.integer' => $this->lang->error_organization_id,
+                'name.*' => $this->lang->error_name,
+                'short_name.*' => $this->lang->error_short_name,
+        ]);
+    }
+    
     //即將移到 OrderController
     /*
     public function options()

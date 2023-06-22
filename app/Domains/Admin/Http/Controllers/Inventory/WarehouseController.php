@@ -196,7 +196,7 @@ class WarehouseController extends Controller
         $data['back_url'] = route('lang.admin.inventory.warehouses.index', $queries);        
 
         // Get Record
-        $warehouse = $this->service->findIdOrNew($warehouse_id);
+        $warehouse = $this->service->findIdOrFailOrNew($warehouse_id);
 
         $data['warehouse']  = $warehouse;
 

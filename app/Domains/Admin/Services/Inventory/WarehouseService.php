@@ -2,27 +2,19 @@
 
 namespace App\Domains\Admin\Services\Inventory;
 
-use DB;
+use Illuminate\Support\Facades\DB;
 use App\Domains\Admin\Services\Service;
-use App\Repositories\Eloquent\Inventory\WarehouseRepository;
 
 class WarehouseService extends Service
 {
-    private $modelName = "\App\Models\Inventory\Warehouse";
-	public $repository;
-
-	public function __construct()
-	{
-        $this->repository = new WarehouseRepository;
-	}
-
+    protected $modelName = "\App\Models\Inventory\Warehouse";
 
 	public function updateOrCreate($data)
 	{
         DB::beginTransaction();
 
         try {
-            $warehouse = $this->repository->findIdOrFailOrNew($data['warehouse_id']);
+            $warehouse = $this->findIdOrFailOrNew($data['warehouse_id']);
 
 			//$warehouse->code = $data['code'];
 			$warehouse->name = $data['name'];

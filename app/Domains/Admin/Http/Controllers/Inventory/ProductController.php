@@ -223,7 +223,7 @@ class ProductController extends Controller
         $data['back'] = route('lang.admin.inventory.products.index', $queries);
 
         // Get Record
-        $product = $this->ProductService->findIdOrNew($product_id);
+        $product = $this->ProductService->findIdOrFailOrNew($product_id);
 
         $product_stdobj = $this->ProductService->toStdObj($product);
 
@@ -250,10 +250,10 @@ class ProductController extends Controller
 
         // product_categories
 		if ($product_id) {
-            $filter_ids = $product->categories->pluck('id')->toArray();
-            if(!empty($filter_ids)){
+            $ids = $product->categories->pluck('id')->toArray();
+            if(!empty($ids)){
                 $cat_filters = [
-                    'filter_ids' => $filter_ids,
+                    'whereIn' => $ids,
                     'pagination' => false
                 ];
                 $product_categories = $this->CategoryService->getRows($cat_filters);

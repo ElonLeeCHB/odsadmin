@@ -2,25 +2,13 @@
 
 namespace App\Domains\Admin\Services\Organization;
 
-use App\Domains\Admin\Services\Service;
-use App\Repositories\Eloquent\Organization\OrganizationRepository;
-use App\Repositories\Eloquent\Organization\OrganizationMetaRepository;
-use App\Repositories\Eloquent\Member\MemberRepository;
-use App\Libraries\TranslationLibrary;
 use Illuminate\Support\Facades\DB;
+use App\Domains\Admin\Services\Service;
+use App\Models\Organization\OrganizationMeta;
 
 class OrganizationService extends Service
 {
-    public $repository;
-    private $organizationMetaRepository;
-    private $lang;
-    
-	public function __construct(OrganizationRepository $repository)
-	{
-        $this->repository = new OrganizationRepository;
-        $this->organizationMetaRepository = new organizationMetaRepository;
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/organization/organization',]);
-	}
+    protected $modelName = "\App\Models\Organization\Organization";
 
 	public function getRows($data=[], $debug = 0)
 	{
@@ -34,7 +22,7 @@ class OrganizationService extends Service
 
         $data['with'] = ['company', 'corporation'];
 		
-		$rows = $this->repository->getRows($data);
+		$rows = $this->getRows($data);
 
 		if(!empty($rows)){
             foreach ($rows as $row) {
@@ -61,11 +49,14 @@ class OrganizationService extends Service
                 $data[$key] = trim($value);
             }
 
-            $organization = $this->repository->findIdOrFailOrNew(['id' => $data['organization_id']]);
+            $organization = $this->findIdOrFailOrNew(['id' => $data['organization_id']]);
+
             $organization->parent_id = $data['parent_id'] ?? 0;
             $organization->code = $data['code'];
             $organization->name = $data['name'];
             $organization->short_name = $data['short_name'] ?? null;
+            $organization->tax_id_num = $data['tax_id_num'] ?? null;
+
             $organization->save();
 
             $this->saveMetaDataset($organization, $data);
@@ -82,7 +73,7 @@ class OrganizationService extends Service
 
 	public function add($data)
 	{
-        $organization = $this->repository->newModel();
+        $organization = $this->newModel();
         $organization->code = $data['code'] ?? null;
         $organization->parent_id = $data['parent_id'] ?? 0;
         $organization->name = $data['name'];
@@ -96,7 +87,7 @@ class OrganizationService extends Service
         $organization->save();
 
         if(!empty($data['tin'])){
-            $organization_meta = $this->organizationMetaRepository->newModel();
+            $organization_meta = new OrganizationMeta;
             $organization_meta->organization_id = $organization->id;
             $organization_meta->meta_key = 'tin';
             $organization_meta->meta_value = $data['tin'];
@@ -108,7 +99,7 @@ class OrganizationService extends Service
 
 	public function edit($id, $data)
     {
-        $organization = $this->repository->newModel()->find($id);
+        $organization = $this->newModel()->find($id);
 
         $organization->code = $data['code'] ?? null;
         $organization->parent_id = $data['parent_id'] ?? 0;
@@ -123,7 +114,7 @@ class OrganizationService extends Service
         $organization->save();
 
         if(!empty($data['tin'])){
-            $organization_meta = $this->organizationMetaRepository->newModel();
+            $organization_meta = new OrganizationMeta;
             $organization_meta->organization_id = $organization->id;
             $organization_meta->meta_key = 'tin';
             $organization_meta->meta_value = $data['tin'];

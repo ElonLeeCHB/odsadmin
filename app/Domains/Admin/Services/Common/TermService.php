@@ -2,21 +2,12 @@
 
 namespace App\Domains\Admin\Services\Common;
 
-use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Service;
-use App\Repositories\Eloquent\Common\TermRepository;
-use Illuminate\Support\Facades\Validator;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 class TermService extends Service
 {
-    public $repository;
-
-	public function __construct(TermRepository $repository)
-	{
-        $this->repository = $repository;
-	}
-
+    protected $modelName = "\App\Models\Common\Term";
 
     /**
      * 
@@ -28,7 +19,7 @@ class TermService extends Service
         try {
             //echo '<pre>', print_r($data, 1), "</pre>"; exit;
             // 儲存主記錄
-            $term = $this->repository->findIdOrFailOrNew($data['term_id']);
+            $term = $this->findIdOrFailOrNew($data['term_id']);
 
             $term->parent_id = $data['parent_id'] ?? 0;
             $term->code = $data['code'] ?? '';
@@ -41,7 +32,7 @@ class TermService extends Service
 
             // 儲存多語資料
             if(!empty($data['translations'])){
-                $this->repository->saveTranslationData($term, $data['translations']);
+                $this->saveTranslationData($term, $data['translations']);
             }
 
             DB::commit();
@@ -64,7 +55,7 @@ class TermService extends Service
             'taxonomy_code' => ['inventory_category','accounting_category'],
         ];
 
-        $rows = $this->repository->getRows($data);
+        $rows = $this->getRows($data);
         return $rows;
 
     }
@@ -73,13 +64,11 @@ class TermService extends Service
     {
         
 
-        $data['whereIn'] = [
-            'taxonomy_id' => [5,6],
-        ];
+        $data['whereIn'] = ['taxonomy_id' => [5,6],];
 
         $data['with'] = 'taxonomy';
 
-        $rows = $this->repository->getRows($data);
+        $rows = $this->getRows($data);
 
         //echo '<pre>', print_r($rows->toArray(), 1), "</pre>"; exit;
 

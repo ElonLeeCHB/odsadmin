@@ -3,19 +3,17 @@
 namespace App\Domains\Admin\Http\Controllers\Member;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
 use App\Libraries\TranslationLibrary;
-use App\Domains\Admin\Services\Member\MemberService;
-use App\Domains\Admin\Services\Member\OrganizationService;
-use Auth;
+use App\Domains\Admin\Services\Common\OrganizationService;
+use Illuminate\Support\Facades\Auth;
 
 class OrganizationController extends Controller
 {
     private $lang;
 
-    public function __construct(private Request $request
-        , private MemberService $MemberService
-        , private OrganizationService $OrganizationService)
+    public function __construct(private Request $request, private OrganizationService $OrganizationService)
     {
 
         $groups = [
@@ -202,7 +200,7 @@ class OrganizationController extends Controller
         $data['back'] = route('lang.admin.member.organizations.index', $queries);
 
         // Get Record
-        $organization = $this->OrganizationService->findIdOrNew($organization_id);
+        $organization = $this->OrganizationService->findIdOrFailOrNew($organization_id);
         
         $data['organization']  = $organization;
 
@@ -291,6 +289,25 @@ class OrganizationController extends Controller
         }
 
         return response(json_encode($json))->header('Content-Type','application/json');
+    }
+
+    public function validator(array $data)
+    {
+        return Validator::make($data, [
+                'organization_id' =>'nullable|integer',
+                'code' =>'nullable|unique:organizations,code,'.$data['organization_id'],
+                'name' =>'nullable|max:10',
+                'short_name' =>'nullable|max:10',
+                'mobile' =>'nullable|min:9|max:15',
+                'telephone' =>'nullable|min:7|max:15',
+            ],[
+                'organization_id.*' => $this->lang->error_organization_id,
+                'code.*' => $this->lang->error_code,
+                'name.*' => $this->lang->error_name,
+                'short_name.*' => $this->lang->error_short_name,
+                'mobile.*' => $this->lang->error_mobile,
+                'telephone.*' => $this->lang->error_telephone,
+        ]);
     }
 
 }

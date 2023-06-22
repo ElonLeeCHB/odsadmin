@@ -195,7 +195,7 @@ class OrganizationController extends Controller
         $data['back_url'] = route('lang.admin.common.organizations.index', $queries);        
 
         // Get Record
-        $supplier = $this->OrganizationService->findIdOrNew($supplier_id);
+        $supplier = $this->OrganizationService->findIdOrFailOrNew($supplier_id);
 
         $data['supplier']  = $supplier;
 

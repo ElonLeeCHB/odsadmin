@@ -3,32 +3,25 @@
 namespace App\Domains\Admin\Services\Common;
 
 use App\Domains\Admin\Services\Service;
-use App\Repositories\Eloquent\Common\TaxonomyRepository;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 class TaxonomyService extends Service
 {
-    public $repository;
-
-	public function __construct(TaxonomyRepository $repository)
-	{
-        $this->repository = $repository;
-	}
-
+    protected $modelName = "\App\Models\Common\Taxonomy";
 
     public function updateOrCreate($data)
     {
         DB::beginTransaction();
 
         try {
-            $taxonomy = $this->repository->findIdOrFailOrNew($data['taxonomy_id']);
+            $taxonomy = $this->findIdOrFailOrNew($data['taxonomy_id']);
             $taxonomy->code = $data['code'] ?? '';
             $taxonomy->is_active = $data['is_active'] ?? '';
 
             $taxonomy->save();
 
             if(!empty($data['taxonomy_translations'])){
-                $this->repository->saveTranslationData($taxonomy, $data['taxonomy_translations']);
+                $this->saveTranslationData($taxonomy, $data['taxonomy_translations']);
             }
 
             DB::commit();

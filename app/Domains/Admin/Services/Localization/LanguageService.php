@@ -7,7 +7,7 @@ use App\Repositories\Eloquent\Localization\LanguageRepository;
 
 class LanguageService extends Service
 {
-    public $modelName = "\App\Models\Localization\Language";
+    protected $modelName = "\App\Models\Localization\Language";
 	private $lang;
 
 	public function __construct(public LanguageRepository $repository)

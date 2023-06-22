@@ -6,6 +6,6 @@ use App\Repositories\Eloquent\Repository;
 
 class AddressRepository extends Repository
 {
-    public $modelName = "\App\Models\USer\UserAddress";
+    public $modelName = "\App\Models\User\UserAddress";
 }
 

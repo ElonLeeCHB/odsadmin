@@ -1,4 +1,4 @@
-<form id="form-category" method="post" data-oc-toggle="ajax" data-oc-load="{{ route('lang.admin.catalog.categories.list') }}" data-oc-target="#category">
+<form id="form-phrase" method="post" data-oc-toggle="ajax" data-oc-load="{{ $list_url }}" data-oc-target="#phrase">
 	@csrf
 	@method('POST')
 	<div class="table-responsive">

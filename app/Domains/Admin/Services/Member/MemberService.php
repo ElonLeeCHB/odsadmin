@@ -2,15 +2,10 @@
 
 namespace App\Domains\Admin\Services\Member;
 
-use App\Domains\Admin\Services\Service;
-use App\Libraries\TranslationLibrary;
-use App\Repositories\Eloquent\User\UserRepository;
-use App\Repositories\Eloquent\Member\MemberRepository;
-use App\Repositories\Eloquent\Sale\OrderRepository;
-use App\Repositories\Eloquent\Localization\DivisionRepository;
-use App\Repositories\Eloquent\Localization\AddressRepository;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use App\Domains\Admin\Services\Service;
+use App\Repositories\Eloquent\User\UserRepository;
+use App\Models\User\UserAddress;
 
 class MemberService extends Service
 {
@@ -18,14 +13,11 @@ class MemberService extends Service
 
     private $lang;
 
-	public function __construct(protected MemberRepository $repository
-    , private OrderRepository $OrderRepository
-    , private DivisionRepository $DivisionRepository
-    , private AddressRepository $AddressRepository)
+    public function __construct(
+    )
 	{
         
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/member/member',]);
-	}
+    }
 
     public function getSalutations()
     {
@@ -33,19 +25,7 @@ class MemberService extends Service
         return $UserRepository->getSalutations();
     }
 
-    // Use only id to search
-    public function findOrNew($data)
-    {
-        $member = $this->repository->findOrNew($data);
-
-        if(!empty($member)){
-            $member = $this->parseShippingAddress($member);
-        }
-
-        return $member;
-    }
-
-	public function getRows($data=[], $debug = 0)
+	public function getMembers($data=[], $debug = 0)
 	{
         if(!empty($data['filter_phone'])){
             $data['filter_phone'] = str_replace('-','',$data['filter_phone']);
@@ -75,13 +55,7 @@ class MemberService extends Service
             unset($data['filter_company']);
         }
 
-        $members = $this->repository->getRows($data, $debug);
-
-        if(!empty($members)){
-            foreach ($members as $row) {
-                $row->edit_url = route('lang.admin.member.members.form', array_merge([$row->id], $data));
-            }
-        }
+        $members = $this->getRows($data, $debug);
 
         return $members;
 	}
@@ -96,7 +70,7 @@ class MemberService extends Service
 
             $member_id = $data['member_id'] ?? null;
 
-            $member = $this->repository->findIdOrFailOrNew($member_id);
+            $member = $this->findIdOrFailOrNew($member_id);
             $member->name = $data['name'];
             $member->salutation_id = $data['salutation_id'] ?? null;
             $member->email = $data['email'] ?? null;
@@ -148,7 +122,7 @@ class MemberService extends Service
             $member->save();
 
             if (isset($data['addresses'])) {
-                $this->AddressRepository->newModel()->where('user_id', $member->id)->delete();
+                UserAddress::where('user_id', $member->id)->delete();
     
                 foreach ($data['addresses'] as $key => $address){
                     if(empty($address['is_enabled'])){
@@ -161,81 +135,20 @@ class MemberService extends Service
                         $address['is_default'] = 1;
                     }
                     
-                    $this->AddressRepository->create($address);
+                    UserAddress::create($address);
                 }
             }
 
             DB::commit();
 
-            $result['data']['member_id'] = $member->id;
+            $result['member_id'] = $member->id;
     
             return $result;
 
         } catch (\Exception $ex) {
             DB::rollback();
-            $result['error'] = $ex->getMessage();
-            return $result;
+            return ['error' =>$ex->getMessage()];
         }
-    }
-
-
-    public function parseShippingAddress($row)
-    {
-        $names =[
-            'shipping_lane' => $this->lang->text_address_lane,
-            'shipping_alley' => $this->lang->text_address_alley,
-            'shipping_no' => $this->lang->text_address_no,
-            'shipping_floor' => $this->lang->text_address_floor,
-            'shipping_room' => $this->lang->text_address_room,
-        ];
-
-        foreach ($names as $key => $val) {
-            $pattern = '/(?<'.$key.'>\d+)'.$val.'/';
-            preg_match($pattern, $row->shipping_address1,$matches);
-            if(!empty($matches[$key])){
-                $row->$key = $matches[$key];
-            }
-        }
-
-        if(!empty($row->shipping_city_id)){
-            $city = $this->DivisionRepository->newModel()->find($row->shipping_city_id);
-            if(!empty($city)){
-                $row->shipping_city_name = $city->name;
-            }
-        }
-
-        return $row;
-    }
-
-
-    public function validator(array $data)
-    {
-        return Validator::make($data, [
-                //code' =>'nullable|unique:users,code,'.$data['member_id'],
-                //'username' =>'nullable|unique:users,username,'.$data['member_id'],
-                //'email' =>'nullable|required|unique:users,email,'.$data['member_id'],
-                //'mobile' =>'nullable|min:9|max:15|unique:users,mobile,'.$data['member_id'],
-                'name' =>'nullable|min:2|max:20',
-                // 'first_name' =>'min:2|max:10',
-                // 'short_name' =>'nullable|max:10',
-                // 'job_title' =>'nullable|max:20',
-                // 'password' =>'nullable|min:6|max:20',
-            ],[
-                //'code.unique' => $this->lang->error_code_exists,
-                // 'username.required' => $this->lang->error_username,
-                // 'username.unique' => $this->lang->error_username_exists,
-                //'email.required' => $this->lang->error_email,
-                //'email.unique' => $this->lang->error_email_exists,
-                'name.*' => $this->lang->error_name,
-                // 'mobile.required' => $this->lang->error_mobile,
-                // 'mobile.min' => $this->lang->error_mobile,
-                // 'mobile.max' => $this->lang->error_mobile,
-                 //'mobile.unique' => $this->lang->error_mobile_exists,
-                // 'first_name.*' => $this->lang->error_first_name,
-                // 'short_name.*' => $this->lang->error_short_name,
-                // 'job_title.*' => $this->lang->error_job_title,
-                // 'password.*' => $this->lang->error_password,
-        ]);
     }
 
 }

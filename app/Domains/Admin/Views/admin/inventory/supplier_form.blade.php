@@ -48,7 +48,7 @@
                 </div>
               </div>
 
-              <div class="row mb-3 required">
+              <div class="row mb-3">
                 <label for="input-short_name" class="col-sm-2 col-form-label">{{ $lang->column_short_name }}</label>
                 <div class="col-sm-10">
                   <input type="text" id="input-short_name" name="short_name" value="{{ $supplier->short_name }}" class="form-control">
@@ -56,29 +56,37 @@
                 </div>
               </div>
 
-<div class="row mb-3">
-  <label for="input-meta_data_supplier_contact_name" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_name }}</label>
-  <div class="col-sm-10">
-    <input type="text" id="input-meta_data_supplier_contact_name" name="meta_data_supplier_contact_name" value="{{ $meta_data->supplier_contact_name }}" class="form-control">
-    <div id="error-meta_data_supplier_contact_name" class="invalid-feedback"></div>
-  </div>
-</div>
+              <div class="row mb-3">
+                <label for="input-tax_id_num" class="col-sm-2 col-form-label">{{ $lang->column_tax_id_num }}</label>
+                <div class="col-sm-10">
+                  <input type="text" id="input-tax_id_num" name="tax_id_num" value="{{ $supplier->tax_id_num }}" class="form-control">
+                  <div id="error-tax_id_num" class="invalid-feedback"></div>
+                </div>
+              </div>
 
-<div class="row mb-3">
-  <label for="input-meta_data_supplier_contact_jobtitle" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_jobtitle }}</label>
-  <div class="col-sm-10">
-    <input type="text" id="input-meta_data_supplier_contact_jobtitle" name="meta_data_supplier_contact_jobtitle" value="{{ $meta_data->supplier_contact_jobtitle }}" class="form-control">
-    <div id="error-meta_data_supplier_contact_jobtitle" class="invalid-feedback"></div>
-  </div>
-</div>
+              <div class="row mb-3">
+                <label for="input-meta_data_supplier_contact_name" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_name }}</label>
+                <div class="col-sm-10">
+                  <input type="text" id="input-meta_data_supplier_contact_name" name="meta_data_supplier_contact_name" value="{{ $meta_data->supplier_contact_name }}" class="form-control">
+                  <div id="error-meta_data_supplier_contact_name" class="invalid-feedback"></div>
+                </div>
+              </div>
 
-<div class="row mb-3">
-  <label for="input-meta_data_supplier_contact_email" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_email }}</label>
-  <div class="col-sm-10">
-    <input type="text" id="input-meta_data_supplier_contact_email" name="meta_data_supplier_contact_email" value="{{ $meta_data->supplier_contact_email}}" class="form-control">
-    <div id="error-meta_data_supplier_contact_email" class="invalid-feedback"></div>
-  </div>
-</div>
+              <div class="row mb-3">
+                <label for="input-meta_data_supplier_contact_jobtitle" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_jobtitle }}</label>
+                <div class="col-sm-10">
+                  <input type="text" id="input-meta_data_supplier_contact_jobtitle" name="meta_data_supplier_contact_jobtitle" value="{{ $meta_data->supplier_contact_jobtitle }}" class="form-control">
+                  <div id="error-meta_data_supplier_contact_jobtitle" class="invalid-feedback"></div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label for="input-meta_data_supplier_contact_email" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_email }}</label>
+                <div class="col-sm-10">
+                  <input type="text" id="input-meta_data_supplier_contact_email" name="meta_data_supplier_contact_email" value="{{ $meta_data->supplier_contact_email}}" class="form-control">
+                  <div id="error-meta_data_supplier_contact_email" class="invalid-feedback"></div>
+                </div>
+              </div>
 
               <div class="row mb-3">
                 <label for="input-meta_data_supplier_contact_telephone" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_telephone }}</label>
@@ -96,11 +104,30 @@
                 </div>
               </div>
 
+              <div class="row mb-3">
+                <label for="input-meta_data_supplier_bank_name" class="col-sm-2 col-form-label">{{ $lang->column_supplier_bank_name }}</label>
+                <div class="col-sm-10">
+                  <input type="text" id="input-meta_data_supplier_bank_name" name="meta_data_supplier_bank_name" value="{{ $meta_data->supplier_bank_name }}" class="form-control">
+                  <div id="error-meta_data_supplier_bank_name" class="invalid-feedback"></div>
+                </div>
+              </div>
 
+              <div class="row mb-3">
+                <label for="input-meta_data_supplier_bank_code" class="col-sm-2 col-form-label">{{ $lang->column_supplier_bank_code }}</label>
+                <div class="col-sm-10">
+                  <input type="text" id="input-meta_data_supplier_bank_code" name="meta_data_supplier_bank_code" value="{{ $meta_data->supplier_bank_code }}" class="form-control">
+                  <div id="error-meta_data_supplier_bank_code" class="invalid-feedback"></div>
+                </div>
+              </div>
 
+              <div class="row mb-3">
+                <label for="input-meta_data_supplier_bank_account" class="col-sm-2 col-form-label">{{ $lang->column_supplier_bank_account }}</label>
+                <div class="col-sm-10">
+                  <input type="text" id="input-meta_data_supplier_bank_account" name="meta_data_supplier_bank_account" value="{{ $meta_data->supplier_bank_account }}" class="form-control">
+                  <div id="error-meta_data_supplier_bank_account" class="invalid-feedback"></div>
+                </div>
+              </div>
 
-
-              
 
             </div>
           </div>

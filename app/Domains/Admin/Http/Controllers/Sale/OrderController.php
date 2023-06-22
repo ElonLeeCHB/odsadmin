@@ -358,7 +358,7 @@ class OrderController extends Controller
 
         //Member
 		if(!empty($order)){
-            $member = $this->MemberService->findId($order->customer_id);
+            $member = $this->MemberService->findIdFirst($order->customer_id);
 		}
 
         if(!empty($member)){

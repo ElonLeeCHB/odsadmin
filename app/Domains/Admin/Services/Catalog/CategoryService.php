@@ -3,23 +3,11 @@
 namespace App\Domains\Admin\Services\Catalog;
 
 use App\Domains\Admin\Services\Service;
-use App\Libraries\TranslationLibrary;
-use App\Repositories\Eloquent\Catalog\CategoryRepository;
-use App\Repositories\Eloquent\Catalog\ProductRepository;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
 class CategoryService extends Service
 {
     protected $modelName = "\App\Models\Catalog\Category";
-
-    private $lang;
-
-	public function __construct(public CategoryRepository $repository
-    , private ProductRepository $productRepository)
-	{
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/catalog/category',]);
-	}
 
 	public function getCategories($data=[], $debug = 0)
 	{
@@ -34,7 +22,7 @@ class CategoryService extends Service
         
         $data['with'] = ['translation'];
 
-        $categories = $this->repository->getRows($data, $debug);
+        $categories = $this->getRows($data, $debug);
 
         return $categories;
 	}
@@ -51,7 +39,7 @@ class CategoryService extends Service
         DB::beginTransaction();
 
         try {
-            $category = $this->repository->findIdOrFailOrNew($data['category_id']);
+            $category = $this->findIdOrFailOrNew($data['category_id']);
 
             $category->code = $data['code'] ?? '';
             $category->slug = $data['slug'] ?? '';
@@ -61,8 +49,8 @@ class CategoryService extends Service
 
             $category->save();
 
-            if(!empty($data['category_translations'])){
-                $this->repository->saveTranslationData($category, $data['category_translations']);
+            if(!empty($data['translations'])){
+                $this->saveTranslationData($category, $data['translations']);
             }
 
             DB::commit();
@@ -76,17 +64,6 @@ class CategoryService extends Service
         }
     }
 
-    public function validator(array $data)
-    {
-        return Validator::make($data, [
-                'organization_id' =>'nullable|integer',
-                'name' =>'nullable|max:10',
-                'short_name' =>'nullable|max:10',
-            ],[
-                'organization_id.integer' => $this->lang->error_organization_id,
-                'name.*' => $this->lang->error_name,
-                'short_name.*' => $this->lang->error_short_name,
-        ]);
-    }
+
 
 }

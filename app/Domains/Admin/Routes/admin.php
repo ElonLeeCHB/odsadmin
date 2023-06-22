@@ -111,6 +111,14 @@ Route::group(
                 Route::get('orders/getOrderCommentPhrase', 'Sale\OrderController@getOrderCommentPhrase')->name('orders.getOrderCommentPhrase');
                 Route::get('orders/getOrderExtraCommentPhrase', 'Sale\OrderController@getOrderExtraCommentPhrase')->name('orders.getOrderExtraCommentPhrase');
 
+                //常用片語
+                Route::get('phrases', 'Sale\PhraseController@index')->name('phrases.index');
+                Route::get('phrases/form/{product_id?}', 'Sale\PhraseController@form')->name('phrases.form');
+                Route::get('phrases/list', 'Sale\PhraseController@list')->name('phrases.list');
+                Route::get('phrases/autocomplete', 'Sale\PhraseController@autocomplete')->name('phrases.autocomplete');
+                Route::post('phrases/save', 'Sale\PhraseController@save')->name('phrases.save');
+                Route::delete('phrases/delete', 'Sale\PhraseController@delete')->name('phrases.delete');
+
                 Route::get('mrequisition', 'Sale\MaterialRequisitionController@index')->name('mrequisition.index');
                 Route::get('mrequisition/list', 'Sale\MaterialRequisitionController@list')->name('mrequisition.list');
                 Route::get('mrequisition/form/{required_date?}', 'Sale\MaterialRequisitionController@form')->name('mrequisition.form');
@@ -144,7 +152,7 @@ Route::group(
                 //分類方式
                 Route::get('taxonomies', 'Common\TaxonomyController@index')->name('taxonomies.index');
                 Route::get('taxonomies/list', 'Common\TaxonomyController@list')->name('taxonomies.list');
-                Route::get('taxonomies/form/{term_id?}', 'Common\TaxonomyController@form')->name('taxonomies.form');
+                Route::get('taxonomies/form/{id?}', 'Common\TaxonomyController@form')->name('taxonomies.form');
                 Route::post('taxonomies/save', 'Common\TaxonomyController@save')->name('taxonomies.save');
                 Route::post('taxonomies/delete', 'Common\TaxonomyController@delete')->name('taxonomies.delete');
                 Route::get('taxonomies/autocomplete', 'Common\TaxonomyController@autocomplete')->name('taxonomies.autocomplete');
@@ -152,25 +160,26 @@ Route::group(
                 //分類
                 Route::get('terms', 'Common\TermController@index')->name('terms.index');
                 Route::get('terms/list', 'Common\TermController@list')->name('terms.list');
-                Route::get('terms/form/{term_id?}', 'Common\TermController@form')->name('terms.form');
+                Route::get('terms/form/{id?}', 'Common\TermController@form')->name('terms.form');
                 Route::post('terms/save', 'Common\TermController@save')->name('terms.save');
                 Route::post('terms/delete', 'Common\TermController@delete')->name('terms.delete');
                 Route::get('terms/autocomplete', 'Common\TermController@autocomplete')->name('terms.autocomplete');
-
-                //常用片語
-                Route::get('phrases', 'Common\PhraseController@index')->name('phrases.index');
-                Route::get('phrases/form/{product_id?}', 'Common\PhraseController@form')->name('phrases.form');
-                Route::get('phrases/list', 'Common\PhraseController@list')->name('phrases.list');
-                Route::get('phrases/autocomplete', 'Common\PhraseController@autocomplete')->name('phrases.autocomplete');
-                Route::post('phrases/save', 'Common\PhraseController@save')->name('phrases.save');
-                Route::delete('phrases/delete', 'Common\PhraseController@delete')->name('phrases.delete');
                 
                 //(收)付款條件
                 Route::get('payment_terms', 'Common\PaymentTermController@index')->name('payment_terms.index');
                 Route::get('payment_terms/list', 'Common\PaymentTermController@list')->name('payment_terms.list');
-                Route::get('payment_terms/form/{term_id?}', 'Common\PaymentTermController@form')->name('payment_terms.form');
+                Route::get('payment_terms/form/{id?}', 'Common\PaymentTermController@form')->name('payment_terms.form');
                 Route::post('payment_terms/save', 'Common\PaymentTermController@save')->name('payment_terms.save');
                 Route::post('payment_terms/delete', 'Common\PaymentTermController@delete')->name('payment_terms.delete');
+
+                //金融機構
+                Route::get('financial_institutions', 'Common\FinancialInstitutionController@index')->name('financial_institutions.index');
+                Route::get('financial_institutions/list', 'Common\FinancialInstitutionController@list')->name('financial_institutions.list');
+                Route::get('financial_institutions/form/{id?}', 'Common\FinancialInstitutionController@form')->name('financial_institutions.form');
+                Route::post('financial_institutions/save/{id?}', 'Common\FinancialInstitutionController@save')->name('financial_institutions.save');
+                Route::post('financial_institutions/delete', 'Common\FinancialInstitutionController@delete')->name('financial_institutions.delete');
+                Route::get('financial_institutions/autocomplete', 'Common\FinancialInstitutionController@autocomplete')->name('financial_institutions.autocomplete');
+
             });
 
             Route::group([
@@ -180,28 +189,28 @@ Route::group(
             {
                 Route::get('suppliers', 'Inventory\SupplierController@index')->name('suppliers.index');
                 Route::get('suppliers/list', 'Inventory\SupplierController@list')->name('suppliers.list');
-                Route::get('suppliers/form/{category_id?}', 'Inventory\SupplierController@form')->name('suppliers.form');
-                Route::post('suppliers/save/{category_id?}', 'Inventory\SupplierController@save')->name('suppliers.save');
+                Route::get('suppliers/form/{id?}', 'Inventory\SupplierController@form')->name('suppliers.form');
+                Route::post('suppliers/save/{id?}', 'Inventory\SupplierController@save')->name('suppliers.save');
                 Route::post('suppliers/delete', 'Inventory\SupplierController@delete')->name('suppliers.delete');
 
                 Route::get('warehouses', 'Inventory\WarehouseController@index')->name('warehouses.index');
                 Route::get('warehouses/list', 'Inventory\WarehouseController@list')->name('warehouses.list');
-                Route::get('warehouses/form/{category_id?}', 'Inventory\WarehouseController@form')->name('warehouses.form');
-                Route::post('warehouses/save/{category_id?}', 'Inventory\WarehouseController@save')->name('warehouses.save');
+                Route::get('warehouses/form/{id?}', 'Inventory\WarehouseController@form')->name('warehouses.form');
+                Route::post('warehouses/save/{id?}', 'Inventory\WarehouseController@save')->name('warehouses.save');
                 Route::post('warehouses/delete', 'Inventory\WarehouseController@delete')->name('warehouses.delete');
 
                 Route::get('categories', 'Inventory\CategoryController@index')->name('categories.index');
                 Route::get('categories/list', 'Inventory\CategoryController@list')->name('categories.list');
-                Route::get('categories/form/{category_id?}', 'Inventory\CategoryController@form')->name('categories.form');
-                Route::post('categories/save/{category_id?}', 'Inventory\CategoryController@save')->name('categories.save');
+                Route::get('categories/form/{id?}', 'Inventory\CategoryController@form')->name('categories.form');
+                Route::post('categories/save/{id?}', 'Inventory\CategoryController@save')->name('categories.save');
                 Route::post('categories/delete', 'Inventory\CategoryController@delete')->name('categories.delete');
                 Route::get('categories/autocomplete', 'Inventory\CategoryController@autocomplete')->name('categories.autocomplete');
 
                 Route::get('products', 'Inventory\ProductController@index')->name('products.index');
-                Route::get('products/form/{product_id?}', 'Inventory\ProductController@form')->name('products.form');
+                Route::get('products/form/{id?}', 'Inventory\ProductController@form')->name('products.form');
                 Route::get('products/list', 'Inventory\ProductController@list')->name('products.list');
                 Route::get('products/autocomplete', 'Inventory\ProductController@autocomplete')->name('products.autocomplete');
-                Route::post('products/save/{product_id?}', 'Inventory\ProductController@save')->name('products.save');
+                Route::post('products/save/{id?}', 'Inventory\ProductController@save')->name('products.save');
 
             });
 

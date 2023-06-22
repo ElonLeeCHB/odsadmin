@@ -44,6 +44,7 @@ return new class extends Migration
             $table->unsignedInteger('organization_id');
             $table->string('meta_key');
             $table->string('meta_value');
+            $table->unique(['organization_id','meta_key']);
         });
     }
 

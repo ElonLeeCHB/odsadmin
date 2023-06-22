@@ -11,6 +11,7 @@ use App\Repositories\Eloquent\Common\OptionRepository;
 class OrderProductOptionService extends Service
 {
     private $lang;
+    public $modelName = "\App\Models\Sale\OrderProductOption";
 
 	public function __construct(
         public OrderProductOptionRepository $repository

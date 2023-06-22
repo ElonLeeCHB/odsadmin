@@ -2,32 +2,39 @@
 
 namespace App\Domains\Admin\Http\Controllers\Common;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Libraries\TranslationLibrary;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
-use App\Domains\Admin\Services\Common\TermService;
+use App\Domains\Admin\Services\Common\FinancialInstitutionService;
 use App\Traits\InitController;
 
-class TermController extends Controller
+class FinancialInstitutionController extends Controller
 {
     use InitController;
 
     private $request;
     private $lang;
     private $LanguageRepository;
-    private $TermService;
+    private $FinancialInstitutionService;
 
-    public function __construct(Request $request, TermService $TermService, LanguageRepository $LanguageRepository)
+    public function __construct(
+        Request $request
+        , LanguageRepository $LanguageRepository
+        , FinancialInstitutionService $FinancialInstitutionService
+    )
     {
         $this->request = $request;
-        $this->TermService = $TermService;
+        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/common/financial_institution']);
         $this->LanguageRepository = $LanguageRepository;
-
-        // Translations
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/common/term']);
+        $this->FinancialInstitutionService = $FinancialInstitutionService;
     }
 
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function index()
     {
         $data['lang'] = $this->lang;
@@ -39,25 +46,25 @@ class TermController extends Controller
         ];
         
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_product,
+            'text' => $this->lang->text_common,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
         
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.common.terms.index'),
+            'href' => route('lang.admin.common.financial_institutions.index'),
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
 
         $data['list'] = $this->getList();
 
-        $data['list_url'] = route('lang.admin.common.terms.list'); //本參數在 getList() 也必須存在。
-        $data['add_url'] = route('lang.admin.common.terms.form');
-        $data['delete_url'] = route('lang.admin.common.terms.delete');
-        
-        return view('admin.common.term', $data);
+        $data['list_url'] = route('lang.admin.common.financial_institutions.list');
+        $data['add_url'] = route('lang.admin.common.financial_institutions.form');
+        $data['delete_url'] = route('lang.admin.common.financial_institutions.delete');
+
+        return view('admin.common.financial_institution', $data);
     }
 
     public function list()
@@ -65,6 +72,11 @@ class TermController extends Controller
         return $this->getList();
     }
 
+    /**
+     * Show the list table.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
     public function getList()
     {
         $data['lang'] = $this->lang;
@@ -73,14 +85,14 @@ class TermController extends Controller
         $queries = $this->getQueries($this->request->query());
 
         // Rows
-        $terms = $this->TermService->getRows($queries);
+        $terms = $this->FinancialInstitutionService->getRows($queries);
 
         foreach ($terms as $row) {
-            $row->edit_url = route('lang.admin.common.terms.form', array_merge([$row->id], $queries));
+            $row->edit_url = route('lang.admin.common.financial_institutions.form', array_merge([$row->id], $queries));
         }
-        $data['terms'] = $terms->withPath(route('lang.admin.common.terms.list'))->appends($queries);
+        $data['terms'] = $terms->withPath(route('lang.admin.common.financial_institutions.list'))->appends($queries);
 
-        // Prepare links for sort on list table's header
+        // Prepare links for list table's header
         if($queries['order'] == 'ASC'){
             $order = 'DESC';
         }else{
@@ -106,15 +118,17 @@ class TermController extends Controller
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_code'] = $route . "?sort=code&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
-        $data['sort_short_name'] = $route . "?sort=short_name&order=$order" .$url;
+        $data['sort_short_name'] = $route . "?sort=name&order=$order" .$url;
+        $data['sort_is_active'] = $route . "?sort=is_active&order=$order" .$url;
         $data['sort_taxonomy_name'] = $route . "?sort=taxonomy_name&order=$order" .$url;
         
-        $data['list_url'] = route('lang.admin.common.terms.list');
+        $data['list_url'] = route('lang.admin.common.financial_institutions.list');
         
-        return view('admin.common.term_list', $data);
+        return view('admin.common.financial_institution_list', $data);
     }
 
-    public function form($term_id = null)
+
+    public function form($institution_id = null)
     {
         $data['lang'] = $this->lang;
 
@@ -145,56 +159,30 @@ class TermController extends Controller
         // Prepare link for save, back
         $queries = $this->getQueries($this->request->query());
 
-        $data['save_url'] = route('lang.admin.common.terms.save');
-        $data['back_url'] = route('lang.admin.common.terms.index', $queries);   
-        $data['autocomplete_url'] = route('lang.admin.common.terms.autocomplete');     
+        $data['save_url'] = route('lang.admin.common.financial_institutions.save');
+        $data['back_url'] = route('lang.admin.common.financial_institutions.index', $queries);   
+        $data['autocomplete_url'] = route('lang.admin.common.financial_institutions.autocomplete');
 
         // Get Record
-        $term = $this->TermService->findIdOrFailOrNew($term_id);
+        $institution = $this->FinancialInstitutionService->findIdOrFailOrNew($institution_id);
 
-        if(!empty($term) && !empty($term->taxonomy->name)){
-            $term->taxonomy_name = $term->taxonomy->name;
+        $data['institution']  = $institution;
+
+        if(!empty($data['institution']) && $institution_id == $institution->id){
+            $data['institution_id'] = $institution_id;
         }else{
-            $term->taxonomy_name = '';
+            $data['institution_id'] = null;
         }
 
-
-        $data['term']  = $term;
-
-        if(!empty($data['term']) && $term_id == $term->id){
-            $data['term_id'] = $term_id;
-        }else{
-            $data['term_id'] = null;
-        }
-
-        // taxonomy_translations
-        if($term->translations->isEmpty()){
-            $term_translations = [];
-        }else{
-            foreach ($term->translations as $translation) {
-                $term_translations[$translation->locale] = $translation->toArray();
-            }
-        }
-        $data['translations'] = $term_translations;
-
-        return view('admin.common.term_form', $data);
+        return view('admin.common.financial_institution_form', $data);
     }
+
 
     public function save()
     {
         $data = $this->request->all();
 
         $json = [];
-
-        foreach ($data['translations'] as $locale => $translation) {
-            if(empty($translation['name']) || mb_strlen($translation['name']) < 2){
-                $json['error']['name-' . $locale] = '請輸入名稱 2-20 個字';
-            }
-        }        
-
-        if(empty($data['taxonomy_code']) || mb_strlen($data['taxonomy_code']) < 2){
-            $json['error']['taxonomy_name'] = '請輸入分類性質';
-        }
 
         // 檢查欄位
         // do something        
@@ -203,14 +191,18 @@ class TermController extends Controller
         }
 
         if(!$json) {
-            $result = $this->TermService->updateOrCreate($data);
+            $result = $this->FinancialInstitutionService->updateOrCreate($data);
 
-            if(empty($result['error']) && !empty($result['term_id'])){
-                $json = [
-                    'term_id' => $result['term_id'],
-                    'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.common.terms.form', $result['term_id']),
-                ];
+            if(empty($result['error'])){
+                if(isset($result['row_id'])){
+                    $json = [
+                        'institution_id' => $result['row_id'],
+                        'success' => $this->lang->text_success,
+                        'redirectUrl' => route('lang.admin.common.financial_institutions.form', $result['row_id']),
+                    ];
+                }else{
+                    $json['error'] = $this->lang->text_fail;
+                }
             }else{
                 if(config('app.debug')){
                     $json['error'] = $result['error'];
@@ -225,22 +217,28 @@ class TermController extends Controller
 
     }
 
+
     public function autocomplete()
     {
         $queries = $this->getQueries($this->request->query());
 
-        $rows = $this->TermService->getRows($queries);
+        // Rows
+        $rows = $this->FinancialInstitutionService->getRows($queries);
 
         $json = [];
 
         foreach ($rows as $row) {
             $json[] = array(
-                'id' => $row->id,
+                'institution_id' => $row->id,
                 'code' => $row->code,
                 'name' => $row->name,
+                'short_name' => $row->short_name,
             );
         }
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }
+
+
+
 }

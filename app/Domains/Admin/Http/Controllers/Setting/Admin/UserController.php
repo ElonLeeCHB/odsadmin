@@ -18,13 +18,7 @@ class UserController extends Controller
     {
         $this->request = $request;
         $this->UserService = $UserService;
-
-        // Translations
-        $groups = [
-            'admin/common/common',
-            'admin/admin/user',
-        ];
-        $this->lang = (new TranslationLibrary())->getTranslations($groups);
+        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/admin/user',]);
     }
 
     /**

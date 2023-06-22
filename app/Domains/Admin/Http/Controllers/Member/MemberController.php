@@ -2,8 +2,9 @@
 
 namespace App\Domains\Admin\Http\Controllers\Member;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\Controller;
 use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Member\MemberService;
 use App\Domains\Admin\Services\Organization\OrganizationService;
@@ -117,10 +118,19 @@ class MemberController extends Controller
             }
         }
 
+        unset($queries['sort']);
+        unset($queries['order']);
+
         //$data['action'] = route('lang.admin.member.members.massDelete');
 
         // Rows
-        $members = $this->MemberService->getRows($queries);
+        $members = $this->MemberService->getMembers($queries);
+
+        if(!empty($members)){
+            foreach ($members as $row) {
+                $row->edit_url = route('lang.admin.member.members.form', array_merge([$row->id], $queries));
+            }
+        }
 
         $data['members'] = $members->withPath(route('lang.admin.member.members.list'))->appends($queries);
 
@@ -133,9 +143,6 @@ class MemberController extends Controller
 
         $data['sort'] = strtolower($sort);
         $data['order'] = strtolower($order);
-
-        unset($queries['sort']);
-        unset($queries['order']);
 
         $url = '';
 
@@ -213,8 +220,8 @@ class MemberController extends Controller
         $data['back'] = route('lang.admin.member.members.index', $queries);
 
         // Get Record
-        $member = $this->MemberService->findIdOrNew($member_id);
-
+        $member = $this->MemberService->findIdOrFailOrNew($member_id);
+        
         $data['member']  = $member;
 
         if(!empty($data['member']) && $member_id == $member->id){
@@ -288,7 +295,7 @@ class MemberController extends Controller
             }
         }
 
-        $validator = $this->MemberService->validator($this->request->post());
+        $validator = $this->validator($this->request->post());
 
         if($validator->fails()){
             $messages = $validator->errors()->toArray();
@@ -306,14 +313,13 @@ class MemberController extends Controller
 
             if(empty($result['error'])){
                 $json = [
-                    'member_id' => $result['data']['member_id'],
+                    'member_id' => $result['member_id'],
                     'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.member.members.form', $json['member_id']),
+                    'redirectUrl' => route('lang.admin.member.members.form', $result['member_id']),
                 ];
 
             }else{
-                //$user_id = Auth::user()->id;
-                if(1){
+                if(config('app.debug')){
                     $json['error'] = $result['error'];
                 }else{
                     $json['error'] = $this->lang->text_fail;
@@ -366,7 +372,7 @@ class MemberController extends Controller
 
         $filter_data['pagination'] = false;
 
-        $members = $this->MemberService->getRows($filter_data);
+        $members = $this->MemberService->getMembers($filter_data);
 
         foreach ($members as $row) {
             $row = $this->MemberService->parseShippingAddress($row);
@@ -444,5 +450,36 @@ class MemberController extends Controller
         ]);
 
         return response(json_encode($json))->header('Content-Type','application/json');
+    }
+
+
+    public function validator(array $data)
+    {
+        return Validator::make($data, [
+                //code' =>'nullable|unique:users,code,'.$data['member_id'],
+                //'username' =>'nullable|unique:users,username,'.$data['member_id'],
+                //'email' =>'nullable|required|unique:users,email,'.$data['member_id'],
+                //'mobile' =>'nullable|min:9|max:15|unique:users,mobile,'.$data['member_id'],
+                'name' =>'nullable|min:2|max:20',
+                // 'first_name' =>'min:2|max:10',
+                // 'short_name' =>'nullable|max:10',
+                // 'job_title' =>'nullable|max:20',
+                // 'password' =>'nullable|min:6|max:20',
+            ],[
+                //'code.unique' => $this->lang->error_code_exists,
+                // 'username.required' => $this->lang->error_username,
+                // 'username.unique' => $this->lang->error_username_exists,
+                //'email.required' => $this->lang->error_email,
+                //'email.unique' => $this->lang->error_email_exists,
+                'name.*' => $this->lang->error_name,
+                // 'mobile.required' => $this->lang->error_mobile,
+                // 'mobile.min' => $this->lang->error_mobile,
+                // 'mobile.max' => $this->lang->error_mobile,
+                 //'mobile.unique' => $this->lang->error_mobile_exists,
+                // 'first_name.*' => $this->lang->error_first_name,
+                // 'short_name.*' => $this->lang->error_short_name,
+                // 'job_title.*' => $this->lang->error_job_title,
+                // 'password.*' => $this->lang->error_password,
+        ]);
     }
 }

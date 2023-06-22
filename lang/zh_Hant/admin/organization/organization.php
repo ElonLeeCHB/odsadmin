@@ -5,8 +5,7 @@ return [
 'heading_title' => '公司組織',
 
 // Tab
-'tab_general' => '基本資料1',
-'tab_data' => '基本資料2',
+'tab_data' => '基本資料',
 'tab_address' => '地址',
 'tab_orders' => '訂單記錄',
 
@@ -22,6 +21,7 @@ return [
 'column_name' => '公司名稱',
 'column_short_name' => '簡稱',
 'column_telephone' => '市話',
+'column_tax_id_num' => '統一編號',
 
 'column_contact' => '連絡人',
 'column_contact_phone' => '連絡人電話',

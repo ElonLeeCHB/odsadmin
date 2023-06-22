@@ -73,7 +73,7 @@ class TagController extends Controller
         // Prepare link for action
         $queries = $this->getQueries($this->request->query());
 
-        $queries['whereEquals'] = ['taxonomy_code' => 'product_tag'];
+        $queries['whereIn'] = ['taxonomy_code' => ['product_tag']];
 
         // rows
         $terms = $this->TermService->getRows($queries);
@@ -98,7 +98,7 @@ class TagController extends Controller
         unset($queries['sort']);
         unset($queries['order']);
         unset($queries['with']);
-        unset($queries['whereEquals']);
+        unset($queries['whereIn']);
 
         $url = '';
 
@@ -159,7 +159,7 @@ class TagController extends Controller
         $data['autocomplete_url'] = route('lang.admin.catalog.categories.autocomplete');
 
         // Get Record
-        $term = $this->TermService->findIdOrNew($term_id);
+        $term = $this->TermService->findIdOrFailOrNew($term_id);
 
         if($term->taxonomy && $term->taxonomy->name){
             $term->taxonomy_name = $term->taxonomy->name;
@@ -225,7 +225,7 @@ class TagController extends Controller
         $queries = $this->getQueries($this->request->query());
 
         $queries['pagination'] = false;
-        $queries['whereEquals'] = ['taxonomy_code' => 'product_tag'];
+        $queries['whereIn'] = ['taxonomy_code' => ['product_tag']];
 
         // Rows
         $rows = $this->TermService->getRows($queries);

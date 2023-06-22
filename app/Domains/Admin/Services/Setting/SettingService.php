@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class SettingService extends Service
 {
-    private $modelName = "\App\Models\Setting\Setting";
+    protected $modelName = "\App\Models\Setting\Setting";
 	public $repository;
 
 	public function __construct(SettingRepository $SettingRepository)

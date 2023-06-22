@@ -7,7 +7,7 @@ use App\Repositories\Eloquent\Localization\CountryRepository;
 
 class CountryService extends Service
 {
-    public $modelName = "\App\Models\Localization\Country";
+    protected $modelName = "\App\Models\Localization\Country";
 	private $lang;
 	
 	public function __construct(public CountryRepository $repository)

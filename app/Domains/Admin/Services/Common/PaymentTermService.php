@@ -9,6 +9,7 @@ use App\Repositories\Eloquent\Common\PaymentTermRepository;
 
 class PaymentTermService extends Service
 {
+    protected $modelName = "\App\Models\Common\PaymentTerm";
     public $repository;
 
 	public function __construct(PaymentTermRepository $repository)
