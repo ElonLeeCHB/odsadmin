@@ -12,7 +12,7 @@ use App\Models\Common\Option;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class OrderProduct extends Model
-{    
+{
     protected $guarded = [];
 
     public function translations()

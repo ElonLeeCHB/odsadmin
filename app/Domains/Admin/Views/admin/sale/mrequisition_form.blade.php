@@ -58,13 +58,13 @@
                         <tbody id="tbody_body_records">
                           <tr>
                             <td colspan="4"></td>
-                            @foreach($sale_saleable_product_ingredients as $product_id => $product_name)
+                            @foreach($sales_saleable_product_ingredients as $product_id => $product_name)
                             <td>{{ $product_name }}</td>
                             @endforeach
                           </tr>
                           <tr id="option-value-row-0">
                             <td colspan="4">全日統計</td>
-                            @foreach($sale_saleable_product_ingredients as $saleable_product_material_id => $saleable_product_material_name)
+                            @foreach($sales_saleable_product_ingredients as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
                               @if(!empty($mrequisitions['all_day']))
                               @foreach($mrequisitions['all_day'] as $material_product_id => $record)
@@ -78,7 +78,7 @@
                           </tr>
                           <tr id="option-value-row-0">
                             <td colspan="4">上午統計</td>
-                            @foreach($sale_saleable_product_ingredients as $saleable_product_material_id => $saleable_product_material_name)
+                            @foreach($sales_saleable_product_ingredients as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
                               @if(!empty($mrequisitions['am']))
                               @foreach($mrequisitions['am'] as $material_product_id => $record)
@@ -92,7 +92,7 @@
                           </tr>
                           <tr id="option-value-row-0">
                             <td colspan="4">下午統計</td>
-                            @foreach($sale_saleable_product_ingredients as $saleable_product_material_id => $saleable_product_material_name)
+                            @foreach($sales_saleable_product_ingredients as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
                               @if(!empty($mrequisitions['pm']))
                               @foreach($mrequisitions['pm'] as $material_product_id => $record)
@@ -109,7 +109,7 @@
                             <td class="text-start">訂單編號</td>
                             <td class="text-end">地址簡稱</td>
                             <td class="text-end">商品簡稱</td>
-                            @foreach($sale_saleable_product_ingredients as $saleable_product_material_id => $saleable_product_material_name)
+                            @foreach($sales_saleable_product_ingredients as $saleable_product_material_id => $saleable_product_material_name)
                             <td style="width:30px">{{ $saleable_product_material_name }}</td>
                             @endforeach
                           </tr>
@@ -120,7 +120,7 @@
                             <td class="text-end">{{ $detail_record['source_idsn'] }}</td>
                             <td class="text-end">{{ $detail_record['shipping_road_abbr'] }}</td>
                             <td>{{ $detail_record['product_name'] }}</td>
-                            @foreach($sale_saleable_product_ingredients as $saleable_product_material_id => $saleable_product_material_name)
+                            @foreach($sales_saleable_product_ingredients as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
                                 {{ $detail_record['items'][$saleable_product_material_id]['quantity'] ?? ''}}
                             </td>
@@ -168,7 +168,7 @@ function calcOrders(){
   var parts = required_date.split('-');
   parts[0] = parts[0].substring(2); // 將年份的前兩位去掉
   var required_date_2ymd = parts.join('');
-
+  
   $.ajax({
     type:'get',
     //dataType: 'json',

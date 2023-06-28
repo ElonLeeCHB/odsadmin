@@ -21,6 +21,11 @@ class ProductService extends Service
             unset($data['filter_keyword']);
         }
 
+        if(!empty($data['filter_name'])){
+            $arr['filter_name'] = $data['filter_name'];
+            unset($data['filter_name']);
+        }
+
         if(!empty($arr)){
             $data['whereHas']['translation'] = $arr;
         }
@@ -39,7 +44,7 @@ class ProductService extends Service
         try {
             $product = $this->findIdOrFailOrNew($data['product_id']);
 
-            $product->model = $data['model'] ?? 'model';
+            $product->model = $data['model'] ?? null;
             $product->main_category_id = $data['main_category_id'] ?? null;
             $product->price = $data['price'] ?? 0;
             $product->quantity = $data['quantity'] ?? 0;
@@ -54,8 +59,8 @@ class ProductService extends Service
 
             $product_id = $product->id;
 
-            if(!empty($data['product_translations'])){
-                $this->saveTranslationData($product, $data['product_translations']);
+            if(!empty($data['translations'])){
+                $this->saveTranslationData($product, $data['translations']);
             }
 
             // Product Categories - many to many

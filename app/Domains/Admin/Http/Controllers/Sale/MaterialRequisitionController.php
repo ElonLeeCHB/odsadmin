@@ -9,8 +9,10 @@ use App\Http\Controllers\Controller;
 use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Sale\MaterialRequisitionService;
 use App\Repositories\Eloquent\Sale\OrderRepository;
+use App\Repositories\Eloquent\Sale\OrderProductIngredientRepository;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Repositories\Eloquent\Common\OptionValueRepository;
+use App\Domains\Admin\Services\Setting\SettingService;
 use App\Models\Setting\Setting;
 
 class MaterialRequisitionController extends Controller
@@ -20,6 +22,7 @@ class MaterialRequisitionController extends Controller
     private $OptionValueRepository;
     private $MaterialRequisitionService;
     private $ProductRepository;
+    private $SettingService;
     private $lang;
 
     public function __construct(
@@ -28,11 +31,13 @@ class MaterialRequisitionController extends Controller
         OrderRepository $OrderRepository,
         OptionValueRepository $OptionValueRepository,
         ProductRepository $ProductRepository,
+        SettingService $SettingService,
         )
     {
         $this->request = $request;
         $this->OrderRepository = $OrderRepository;
         $this->ProductRepository = $ProductRepository;
+        $this->SettingService = $SettingService;
         $this->MaterialRequisitionService = $MaterialRequisitionService;
         $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/sale/mrequisition',]);
     }
@@ -190,8 +195,6 @@ class MaterialRequisitionController extends Controller
             $data['printForm'] = route('lang.admin.sale.mrequisition.printForm',$required_date);
         }
 
-       // echo '<pre>', print_r($mrequisitions, 1), "</pre>"; exit;
-
 
         $data['printForm'] = route('lang.admin.sale.mrequisition.printForm');
 
@@ -201,7 +204,7 @@ class MaterialRequisitionController extends Controller
 
         $data['mrequisitions']  = $mrequisitions ?? [];
 
-        $data['sale_saleable_product_ingredients'] = Setting::where('setting_key','sale_saleable_product_ingredients')->first()->setting_value;
+        $data['sales_saleable_product_ingredients'] = Setting::where('setting_key','sales_saleable_product_ingredients')->first()->setting_value;
 
         return view('admin.sale.mrequisition_form', $data);
     }
@@ -249,105 +252,82 @@ class MaterialRequisitionController extends Controller
     public function calcMrequisitionsByDate($required_date)
     {
         $required_date = parseDate($required_date);
-        $rawSql = $this->OrderRepository->parseDateToSqlWhere('delivery_date', $required_date);
+        $required_date_2ymd = parseDateStringTo6d($required_date);
 
-        if(empty($rawSql)){
+        $requiredDateRawSql = $this->OrderRepository->parseDateToSqlWhere('delivery_date', $required_date);
+
+        if(empty($requiredDateRawSql)){
             return false;
         }
 
-        $filter_data = [
-            'filter_status_id' => '103',
-            'regexp' => false,
-            'pagination' => false,
-            'with' => ['order_products','order_product_options.product_option_value.option_value',],
-            'WhereRawSqls' => [$rawSql],
-        ];
+        //需要備料的訂單狀態代號
+        $temp_row = $this->SettingService->getRow(['equal_setting_key' => 'sales_orders_to_be_prepared_status']);
+        $sales_orders_to_be_prepared_status = $temp_row->setting_value; // 必須是陣列
 
-        $orders = $this->OrderRepository->getRows($filter_data);
+        $result['required_date'] = $required_date;
+        $result['required_date_2ymd'] = $required_date_2ymd;
 
         $result['all_day'] = [];
         $result['am'] = [];
         $result['pm'] = [];
         $result['details'] = [];
+        
+        $filter_data = [
+            'with' => ['order_products','order_product_options.product_option_value.option_value',],
+            'WhereRawSqls' => [$requiredDateRawSql],
+            'whereIn' => ['status_id' => $sales_orders_to_be_prepared_status]
+        ];
+        $orders = $this->OrderRepository->getRows($filter_data,1);
+        
 
-        $result['required_date'] = $required_date;
-        $result['required_date_2ymd'] = parseDateStringTo6d($required_date);
-
-        $burrito3i_array = ['sadf','sadf','sadf','sadf','sadf','sadf'];
-
-        foreach ($orders as $key1 => $order) {
-            $order_id = $order->id;
+        foreach ($orders ?? [] as $key1 => $order) {
             foreach ($order->order_products as $key2 => $order_product) {
-                $order_idsn = $order->id . '_' . $order_product->sort_order;
-                $result['details'][$order_idsn] = [
-                    'require_date_ymd' => $order->delivery_date_ymd,
-                    'require_date_hi' => $order->delivery_date_hi,
-                    'product_id' => $order->product_id,
-                    'product_name' => $order_product->name,
-                    'source_id' => $order->id,
-                    'source_idsn' => $order_idsn,
-                    'source_body_id' => $order_product->id,
-                    'shipping_road_abbr' => $order->shipping_road_abbr,
-                ];
-
                 foreach ($order_product->order_product_options as $key3 => $order_product_option) {
+                    $option_value = $order_product_option->product_option_value->option_value;
 
-                    $material_product_id = $order_product_option->product_option_value->option_value->product_id;
-                    $material_product_name = $order_product_option->value;
-                    $material_quantity = $order_product_option->quantity;
+                    // 選應沒有對應的商品代號，略過
+                    if(empty($option_value->product_id)){
+                        continue;
+                    }
 
-                    $result['head'][] = [
-                        'require_date_ymd' => $order->require_date_ymd,
-                        'material_product_id' => $material_product_id,
-                        'quantity' => $material_quantity,
+                    $order_product_ingredients[] = [
+                        'required_date' => $required_date,
+                        'order_id' => $order->id,
+                        'order_product_id' => $order_product->id, //訂單商品表的流水號
+                        'product_id' => $order_product->product_id, //訂單的商品代號
+                        //'product_name' => $order_product->name, //訂單的商品代號
+                        'sub_product_id' => !empty($option_value->product_id) ? $option_value->product_id : 0, //選項對應的商品代號
+                        //'sub_product_name' => $order_product_option->value, //訂單的商品代號
+                        'quantity' => $order_product_option->quantity,
+
                     ];
-
-                    $lastQuantity = 0;
-                    if(!empty($result['details'][$order_idsn]['items'][$material_product_id]['quantity'])){
-                        $lastQuantity = $result['details'][$order_idsn]['items'][$material_product_id]['quantity'];
-                    };
-
-                    $result['details'][$order_idsn]['items'][$material_product_id] = [
-                        'material_product_id' => $material_product_id,
-                        'material_product_name' => $material_product_name,
-                        'quantity' => $lastQuantity + $material_quantity,
-                    ];
-
-                    // all_day
-                    if(empty($result['all_day'][$material_product_id]['quantity'])){
-                        $result['all_day'][$material_product_id]['quantity'] = 0;
-                    }
-
-                    $result['all_day'][$material_product_id]['quantity'] += (int)$material_quantity;
-                    $result['all_day'][$material_product_id]['material_product_name'] = $material_product_name;
-                    //End all day
-
-                    $carbon_required_date = Carbon::parse($order->delivery_date);
-
-                    $str_cutOffTime = $order->delivery_date_ymd . ' 12:59';
-                    $carbon_cutOffTime = Carbon::parse($str_cutOffTime);
-
-                    // am
-                    if (!$carbon_required_date->greaterThanOrEqualTo($carbon_cutOffTime)) {
-                        if(empty($result['am'][$material_product_id]['quantity'])){
-                            $result['am'][$material_product_id]['quantity'] = 0;
-                        }
-
-                        $result['am'][$material_product_id]['quantity'] += (int)$material_quantity;
-                        $result['am'][$material_product_id]['material_product_name'] = $material_product_name;
-                    }
-                    // pm
-                    else{
-                        if(empty($result['pm'][$material_product_id]['quantity'])){
-                            $result['pm'][$material_product_id]['quantity'] = 0;
-                        }
-
-                        $result['pm'][$material_product_id]['quantity'] += (int)$material_quantity;
-                        $result['pm'][$material_product_id]['material_product_name'] = $material_product_name;
-                    }
                 }
             }
         }
+
+        if(!empty($order_product_ingredients)){
+            (new OrderProductIngredientRepository)->newModel()->upsert($order_product_ingredients, ['required_date','order_id','order_product_id','product_id','sub_product_id']);
+        }
+
+        //以上可寫入。但由於訂單儲存時，資料表 order_product_options 有問題，先暫停。
+        //後面還要處理 
+        /**
+        $result['required_date'] = $required_date;
+        $result['required_date_2ymd'] = $required_date_2ymd;
+
+        $result['all_day'] = [];
+        $result['am'] = [];
+        $result['pm'] = [];
+        $result['details'] = [];
+         */
+
+         echo '<pre>', print_r(999, 1), "</pre>"; exit;
+
+
+
+
+
+
 
         if(!empty($result['details'] )){
             $result['details'] = collect($result['details'])->sortBy('source_idsn')->sortBy('require_date_hi')->values()->all();
@@ -440,10 +420,10 @@ class MaterialRequisitionController extends Controller
         
         $this->lang->text_form = $this->lang->text_material_requisition_setting;
         
-        $sale_saleable_product_ingredients = Setting::where('setting_key','sale_saleable_product_ingredients')->first()->setting_value;
-        $data['sale_saleable_product_ingredients'] = '';
-        foreach ($sale_saleable_product_ingredients as $key => $sale_saleable_product_ingredient) {
-            $data['sale_saleable_product_ingredients'] .= "$key, $sale_saleable_product_ingredient\r\n";
+        $sales_saleable_product_ingredients = Setting::where('setting_key','sales_saleable_product_ingredients')->first()->setting_value;
+        $data['sales_saleable_product_ingredients'] = '';
+        foreach ($sales_saleable_product_ingredients as $key => $sale_saleable_product_ingredient) {
+            $data['sales_saleable_product_ingredients'] .= "$key, $sale_saleable_product_ingredient\r\n";
         }
 
         $data['save'] = route('lang.admin.sale.mrequisition.settingSave');
@@ -478,7 +458,7 @@ class MaterialRequisitionController extends Controller
             try {
                 Setting::updateOrCreate(
                     // 搜尋條件
-                    ['location_id' => $location_id, 'group' => 'sales', 'setting_key' => 'sale_saleable_product_ingredients'],
+                    ['location_id' => $location_id, 'group' => 'sales', 'setting_key' => 'sales_saleable_product_ingredients'],
 
                     // 更新或創建的屬性及其值
                     ['setting_value' => json_encode($update_date),
@@ -526,7 +506,7 @@ class MaterialRequisitionController extends Controller
 
         $data['mrequisitions'] = $mrequisitions;
 
-        $data['sale_saleable_product_ingredients'] = Setting::where('setting_key','sale_saleable_product_ingredients')->first()->setting_value;
+        $data['sales_saleable_product_ingredients'] = Setting::where('setting_key','sales_saleable_product_ingredients')->first()->setting_value;
 
         return view('admin.sale.print_material_requisition', $data);
     }

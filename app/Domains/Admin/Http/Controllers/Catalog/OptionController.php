@@ -257,6 +257,7 @@ class OptionController extends Controller
         }else{
             $data['option_values'] = [];
         }
+        //echo '<pre>', print_r($option_values->toArray(), 1), "</pre>"; exit;
 
         return view('admin.catalog.option_form', $data);
     }
@@ -268,7 +269,7 @@ class OptionController extends Controller
         $json = [];
         
         // Check
-        $validator = $this->OptionService->validator($this->request->post());
+        $validator = $this->validator($this->request->post());
 
         if($validator->fails()){
             $messages = $validator->errors()->toArray();

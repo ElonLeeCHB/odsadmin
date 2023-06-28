@@ -105,7 +105,7 @@ return new class extends Migration
             $table->decimal('quantity', $precision = 13, $scale = 4)->default('0');
             $table->timestamps();
             
-            //$table->unique(['parent_id','order_product_id', 'product_option_id', 'product_option_value_id'],'main_unique_name');
+            $table->unique(['order_id','order_product_id','product_id','product_option_id', 'product_option_value_id', 'parent_product_option_value_id'],'order_product_options_unique_key');
             //$table->foreign('order_product_id')->references('id')->on('order_products')->onDelete('cascade');
         });
         

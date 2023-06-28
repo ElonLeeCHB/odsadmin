@@ -154,8 +154,6 @@ class SettingController extends Controller
     {
         $postData = $this->request->post();
 
-        $data = $this->request->all();
-
         $json = [];
 
         if(isset($json['error']) && !isset($json['error']['warning'])) {
@@ -163,7 +161,7 @@ class SettingController extends Controller
         }
 
         if(!$json) {
-            $result = $this->SettingService->updateOrCreate($data);
+            $result = $this->SettingService->updateOrCreate($postData);
 
             if(empty($result['error']) && !empty($result['setting_id'])){
                 $json = [
@@ -245,8 +243,9 @@ class SettingController extends Controller
         // Get Record
         $setting = $this->SettingService->findIdOrFailOrNew($setting_id);
 
+        // 如果用 $setting->setting_value, 由於 model 的特性，會導致非預期的結果。所以這裡另外設定一個 data 變數
         if($setting->is_json == 1){
-            $data['setting_value'] = json_encode($setting->setting_value);
+            $data['setting_value']  = json_encode($setting->setting_value, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         }else{
             $data['setting_value'] = $setting->setting_value;
         }

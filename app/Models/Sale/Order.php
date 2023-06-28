@@ -59,6 +59,11 @@ class Order extends Model
         return $this->hasManyThrough(OrderProductOption::class, OrderProduct::class);
     }
 
+    public function order_product_ingredients()
+    {
+        return $this->hasManyThrough(OrderProductIngredients::class, OrderProduct::class);
+    }
+
     // public function product_options()
     // {
     //     //return $this->product_options($this->order_product_options(), (new OrderProductOption())->product_option()

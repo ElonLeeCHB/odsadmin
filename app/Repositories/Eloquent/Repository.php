@@ -202,10 +202,10 @@ class Repository
         }
 
         // Limit
-        if(isset($data['limit'])){
+        if(!empty($data['limit'])){
             $limit = (int)$data['limit'];
-        }else if(config('settings.paginate_limit')){
-            $limit = config('settings.paginate_limit');
+        }else if(!empty(config('setting.config_admin_pagination_limit'))){
+            $limit = (int)config('setting.config_admin_pagination_limit');
         }else{
             $limit = 10;
         }

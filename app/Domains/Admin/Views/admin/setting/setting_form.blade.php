@@ -59,6 +59,14 @@
                     </div>
 
                     <div class="row mb-3">
+                      <label for="input-comment" class="col-sm-2 col-form-label">{{ $lang->column_comment }}</label>
+                      <div class="col-sm-10">
+                        <textarea id="input-comment" name="comment" class="form-control" >{{ $setting->comment }}</textarea>
+                        <div id="error-comment" class="invalid-feedback"></div>
+                      </div>
+                    </div>
+
+                    <div class="row mb-3">
                       <label for="input-is_autoload" class="col-sm-2 col-form-label">{{ $lang->column_is_autoload }}</label>
                       <div class="col-sm-10">
                         <div class="form-check form-switch form-switch-lg">

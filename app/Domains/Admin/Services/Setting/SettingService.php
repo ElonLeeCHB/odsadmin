@@ -56,11 +56,18 @@ class SettingService extends Service
 
         try {
             $setting = $this->repository->findIdOrFailOrNew($data['setting_id']);
-
+			
 			$setting->location_id = $data['location_id'] ?? 0;
 			$setting->group = $data['group'];
 			$setting->setting_key = $data['setting_key'];
-			$setting->setting_value = $data['setting_value'];
+			$setting->comment = $data['comment'] ?? null;
+
+			if(!empty($data['is_json'])){
+				$setting->setting_value = json_encode(json_decode($data['setting_value']));
+			}else{
+				$setting->setting_value = $data['setting_value'];
+			}
+
 			$setting->is_autoload = $data['is_autoload'];
 			$setting->is_json = $data['is_json'];
 

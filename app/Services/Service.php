@@ -7,6 +7,7 @@ use Exception;
 class Service
 {
     //public $locale = 'zh_Hant';
+    private $repository;
 
     public function resetRecord($record, $quries)
     {

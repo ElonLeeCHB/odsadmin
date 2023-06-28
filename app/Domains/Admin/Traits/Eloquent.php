@@ -78,8 +78,8 @@ trait Eloquent
     public function getRow($data, $debug=0): Model|null
     {
         $data['first'] = true;
-        $this->getRows($data, $debug);
-        return $this->getRows($data, $debug);
+        $row = $this->getRows($data, $debug);
+        return $row;
     }
 
     /**
@@ -193,8 +193,8 @@ trait Eloquent
             // Limit
             if(isset($data['limit'])){
                 $limit = (int)$data['limit'];
-            }else if(config('settings.paginate_limit')){
-                $limit = config('settings.paginate_limit');
+            }else if(!empty(config('setting.config_admin_pagination_limit'))){
+                $limit = (int)config('setting.config_admin_pagination_limit');
             }else{
                 $limit = 10;
             }
@@ -215,9 +215,7 @@ trait Eloquent
             else if($pagination == false && $limit == 0){
                 $result = $query->get(); // Get all
             }
-
         }
-
 
         return $result;
     }
@@ -522,7 +520,7 @@ trait Eloquent
         }
     }
 
-	protected function getTableColumns($connection = null)
+	public function getTableColumns($connection = null)
 	{
         if(!empty($this->table_columns)){
             return $this->table_columns;
@@ -541,7 +539,7 @@ trait Eloquent
         return $this->table_columns;
 	}
 
-    protected static function getQueries(Builder $builder)
+    public static function getQueries(Builder $builder)
     {
         $addSlashes = str_replace('?', "'?'", $builder->toSql());
 
@@ -567,7 +565,7 @@ trait Eloquent
      * Translation
      */
 
-    protected function getTranslationModel($translationModelName = null)
+     public function getTranslationModel($translationModelName = null)
     {
         if(empty($translationModelName)){
             $translationModelName = get_class($this->model) . 'Translation';
@@ -580,7 +578,7 @@ trait Eloquent
         return new $translationModelName();
     }
 
-    protected function saveTranslationData($masterModel, $data, $translatedAttributes=null)
+    public function saveTranslationData($masterModel, $data, $translatedAttributes=null)
     {
         if(empty($translatedAttributes)){
             $translatedAttributes = $this->model->translatedAttributes;

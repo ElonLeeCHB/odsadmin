@@ -3,7 +3,6 @@
 namespace App\Domains\Admin\Services\Common;
 
 use Illuminate\Support\Facades\DB;
-use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Service;
 use App\Repositories\Eloquent\Common\OptionRepository;
 use App\Repositories\Eloquent\Common\OptionValueRepository;
@@ -17,21 +16,12 @@ class OptionService extends Service
 	public function __construct(public OptionRepository $repository
         , private OptionValueRepository $OptionValueRepository)
 	{        
-        $groups = [
-            'admin/common/common',
-            'admin/common/option',
-        ];
-        $this->lang = (new TranslationLibrary())->getTranslations($groups);
+
 	}
     
 
     public function getOptions($data=[], $debug = 0)
     {
-        // if(!empty($data['filter_name'])){
-        //     $data['whereHas']['translation']['filter_name'] = $data['filter_name'];
-        //     unset($data['filter_name']);
-        // }
-
         $rows = $this->repository->getRows($data,$debug);
     
         return $rows;

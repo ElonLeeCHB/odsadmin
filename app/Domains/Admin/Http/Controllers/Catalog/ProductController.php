@@ -68,9 +68,7 @@ class ProductController extends Controller
     }
 
     public function list()
-    {
-        $data['lang'] = $this->lang;
-        
+    {        
         return $this->getList();
     }
 
@@ -119,7 +117,7 @@ class ProductController extends Controller
         }
 
         // Rows
-        $products = $this->ProductService->getRows($queries);
+        $products = $this->ProductService->getProducts($queries);
 
         if(!empty($products)){
             foreach ($products as $row) {

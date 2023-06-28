@@ -25,12 +25,12 @@ class SettingServiceProvider extends ServiceProvider
 
         if($setting->tableExists()){
             $settings = Setting::where('is_autoload', 1)->get();
-    
+
             foreach ($settings as $setting) {
-                $key = 'setting.' . $setting->key;
+                $key = 'setting.' . $setting->setting_key;
     
                 // If json, then array
-                $value = $setting->is_json ? json_decode($setting->value,1) : $setting->value;
+                $value = $setting->is_json ? json_decode($setting->setting_value,1) : $setting->setting_value;
     
                 Config::set($key, $value);
             }

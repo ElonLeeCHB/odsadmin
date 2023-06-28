@@ -25,6 +25,7 @@ use DB;
 
 class OrderService extends Service
 {
+    protected $modelName = "\App\Models\Sale\Order";
     private $lang;
 
 	public function __construct(public OrderRepository $repository

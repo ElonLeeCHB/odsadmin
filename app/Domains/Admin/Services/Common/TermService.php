@@ -17,7 +17,6 @@ class TermService extends Service
         DB::beginTransaction();
 
         try {
-            //echo '<pre>', print_r($data, 1), "</pre>"; exit;
             // 儲存主記錄
             $term = $this->findIdOrFailOrNew($data['term_id']);
 
