@@ -19,6 +19,7 @@ use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
 use App\Repositories\Eloquent\Sale\OrderTotalRepository;
 use App\Repositories\Eloquent\Member\MemberRepository;
+use App\Models\Sale\OrderProductOption;
 use App\Models\Catalog\ProductTranslation;
 use App\Models\Localization\Division;
 use DB;
@@ -30,7 +31,6 @@ class OrderService extends Service
 
 	public function __construct(public OrderRepository $repository
         , private OrderProductRepository $OrderProductRepository
-        , private OrderProductOptionRepository $OrderProductOptionRepository
         , private OrderTotalRepository $OrderTotalRepository
         , private OptionService $OptionService
         , private MemberRepository $MemberRepository
@@ -353,7 +353,7 @@ class OrderService extends Service
             }
 
             // Deleta all order_products
-            $this->OrderProductOptionRepository->newModel()->where('order_id', $order->id)->delete();
+            OrderProductOption::where('order_id', $order->id)->delete();
             $this->OrderProductRepository->newModel()->where('order_id', $order->id)->delete();
 
             // order_products table
@@ -528,7 +528,7 @@ class OrderService extends Service
                     }
                 }
                 if(!empty($update_order_product_options)){
-                    $this->OrderProductOptionRepository->newModel()->upsert($update_order_product_options,['id']);
+                    OrderProductOption::upsert($update_order_product_options,['id']);
                     unset($update_order_product_options);
                 }
             }

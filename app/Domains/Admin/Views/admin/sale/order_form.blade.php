@@ -113,7 +113,7 @@
                           </div>
                         </td>
 
-                        <td class="text-end colname-font" style="width: 70px;">{{ $member->salutation_id }}{{ $lang->column_salutation }}</td>
+                        <td class="text-end colname-font" style="width: 70px;">{{ $lang->column_salutation }}</td>
                         <td class="text-start">
                           <select name="salutation_id" id="input-salutation_id" class="form-select">
                             <option value="">--</option>

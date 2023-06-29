@@ -9,11 +9,13 @@ use App\Http\Controllers\Controller;
 use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Sale\MaterialRequisitionService;
 use App\Repositories\Eloquent\Sale\OrderRepository;
-use App\Repositories\Eloquent\Sale\OrderProductIngredientRepository;
+//use App\Repositories\Eloquent\Sale\OrderProductIngredientRepository;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Repositories\Eloquent\Common\OptionValueRepository;
-use App\Domains\Admin\Services\Setting\SettingService;
+use App\Repositories\Eloquent\Setting\SettingRepository;
+use App\Models\Sale\OrderProductIngredient;
 use App\Models\Setting\Setting;
+use Illuminate\Support\Facades\DB;
 
 class MaterialRequisitionController extends Controller
 {
@@ -22,7 +24,7 @@ class MaterialRequisitionController extends Controller
     private $OptionValueRepository;
     private $MaterialRequisitionService;
     private $ProductRepository;
-    private $SettingService;
+    private $SettingRepository;
     private $lang;
 
     public function __construct(
@@ -31,13 +33,13 @@ class MaterialRequisitionController extends Controller
         OrderRepository $OrderRepository,
         OptionValueRepository $OptionValueRepository,
         ProductRepository $ProductRepository,
-        SettingService $SettingService,
+        SettingRepository $SettingRepository,
         )
     {
         $this->request = $request;
         $this->OrderRepository = $OrderRepository;
         $this->ProductRepository = $ProductRepository;
-        $this->SettingService = $SettingService;
+        $this->SettingRepository = $SettingRepository;
         $this->MaterialRequisitionService = $MaterialRequisitionService;
         $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/sale/mrequisition',]);
     }
@@ -247,99 +249,206 @@ class MaterialRequisitionController extends Controller
 
 
     /**
-     * put to cache as array
+     * 抓取訂單資料，然後寫入資料表 order_product_ingredients
      */
     public function calcMrequisitionsByDate($required_date)
     {
-        $required_date = parseDate($required_date);
-        $required_date_2ymd = parseDateStringTo6d($required_date);
+        //DB::beginTransaction();
 
-        $requiredDateRawSql = $this->OrderRepository->parseDateToSqlWhere('delivery_date', $required_date);
+        try {
+            $required_date = parseDate($required_date);
+            $required_date_2ymd = parseDateStringTo6d($required_date);
+    
+            $requiredDateRawSql = $this->OrderRepository->parseDateToSqlWhere('delivery_date', $required_date);
+    
+            if(empty($requiredDateRawSql)){
+                return false;
+            }
+    
+            //需要備料的訂單狀態代號
+            $temp_row = $this->SettingRepository->getRow(['equal_setting_key' => 'sales_orders_to_be_prepared_status']);
+            $sales_orders_to_be_prepared_status = $temp_row->setting_value; // 必須是陣列
 
-        if(empty($requiredDateRawSql)){
-            return false;
-        }
+            $filter_data = [
+                'with' => ['order_products','order_product_options.product_option_value.option_value',],
+                'WhereRawSqls' => [$requiredDateRawSql],
+                'whereIn' => ['status_id' => $sales_orders_to_be_prepared_status],
+                'with' => 'order_products.order_product_options.product_option_value.option_value',
+            ];
+            $orders = $this->OrderRepository->getRows($filter_data);
+    
+            // 從設定檔找出需要除2的潤餅代號
+            $burritos_to_be_multiplied_array = $this->SettingRepository->getValueByKey('sales_burrito_half_of_6_inch');
+            $burritos_to_be_multiplied_keys = array_keys($burritos_to_be_multiplied_array);
+    
+            foreach ($orders ?? [] as $key1 => $order) {
+                foreach ($order->order_products as $key2 => $order_product) {
+                    foreach ($order_product->order_product_options as $key3 => $order_product_option) {
+                        $option_value = $order_product_option->product_option_value->option_value;
+    
+                        // 選應沒有對應的商品代號，略過
+                        if(empty($option_value->product_id)){
+                            continue;
+                        }
+    
+                        $sub_product_id = !empty($option_value->product_id) ? $option_value->product_id : 0; //選項對應的商品代號
+    
+                        if(in_array($sub_product_id, $burritos_to_be_multiplied_keys)){
+                            $quantity = ceil($order_product_option->quantity/2);
+                        }else{
+                            $quantity = $order_product_option->quantity;
+                        }
+    
+                        $order_product_ingredients[] = [
+                            'required_time' => $order->delivery_date,
+                            'required_date' => $required_date,
+                            'order_id' => $order->id,
+                            'order_product_id' => $order_product->id, //訂單商品表的流水號
+                            'order_product_sort_order' => $order_product->sort_order,
+                            'product_id' => $order_product->product_id, //訂單的商品代號
+                            //'product_name' => $order_product->name,
+                            'ingredient_product_id' => !empty($option_value->product_id) ? $option_value->product_id : 0, //選項對應的商品代號
+                            //'ingredient_product_name' => $order_product_option->value,
+                            'quantity' => $quantity,
+                        ];
 
-        //需要備料的訂單狀態代號
-        $temp_row = $this->SettingService->getRow(['equal_setting_key' => 'sales_orders_to_be_prepared_status']);
-        $sales_orders_to_be_prepared_status = $temp_row->setting_value; // 必須是陣列
-
-        $result['required_date'] = $required_date;
-        $result['required_date_2ymd'] = $required_date_2ymd;
-
-        $result['all_day'] = [];
-        $result['am'] = [];
-        $result['pm'] = [];
-        $result['details'] = [];
-        
-        $filter_data = [
-            'with' => ['order_products','order_product_options.product_option_value.option_value',],
-            'WhereRawSqls' => [$requiredDateRawSql],
-            'whereIn' => ['status_id' => $sales_orders_to_be_prepared_status]
-        ];
-        $orders = $this->OrderRepository->getRows($filter_data,1);
-        
-
-        foreach ($orders ?? [] as $key1 => $order) {
-            foreach ($order->order_products as $key2 => $order_product) {
-                foreach ($order_product->order_product_options as $key3 => $order_product_option) {
-                    $option_value = $order_product_option->product_option_value->option_value;
-
-                    // 選應沒有對應的商品代號，略過
-                    if(empty($option_value->product_id)){
-                        continue;
+                        $temp_keys[$required_date][$order->id][$order_product->id][$order_product->product_id][$option_value->product_id] = '';
                     }
-
-                    $order_product_ingredients[] = [
-                        'required_date' => $required_date,
-                        'order_id' => $order->id,
-                        'order_product_id' => $order_product->id, //訂單商品表的流水號
-                        'product_id' => $order_product->product_id, //訂單的商品代號
-                        //'product_name' => $order_product->name, //訂單的商品代號
-                        'sub_product_id' => !empty($option_value->product_id) ? $option_value->product_id : 0, //選項對應的商品代號
-                        //'sub_product_name' => $order_product_option->value, //訂單的商品代號
-                        'quantity' => $order_product_option->quantity,
-
-                    ];
                 }
             }
+
+            //delete
+            $db_ingredients = OrderProductIngredient::where('required_date', $required_date)->get();
+
+            foreach ($db_ingredients as $db_ingredient) {
+                //相關主鍵在資料庫有，在表單資料沒有。表示不需要，應刪除
+                if(!isset($temp_keys[$db_ingredient->required_date][$db_ingredient->order_id][$db_ingredient->order_product_id][$db_ingredient->product_id])){
+                    $delete_ids[] = $db_ingredient->id;
+                }
+            }
+            if(!empty($delete_ids)){
+                OrderProductIngredient::whereIn('id', $delete_ids)->delete();
+            }
+
+            //upsert
+            if(!empty($order_product_ingredients)){
+                $result = OrderProductIngredient::upsert($order_product_ingredients, ['required_date','order_id','order_product_id','product_id','sub_product_id']);
+            }
+
+            DB::commit();
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return response(json_encode($ex->getMessage()))->header('Content-Type','application/json');
         }
 
-        if(!empty($order_product_ingredients)){
-            (new OrderProductIngredientRepository)->newModel()->upsert($order_product_ingredients, ['required_date','order_id','order_product_id','product_id','sub_product_id']);
+        //重新整理陣列，並寫入緩存
+        try{
+
+            $filter_data = [
+                'equal_required_date' => $required_date,
+                'pagination'=> false,
+                'limit' => 0,
+                'with' => 'order' //為了獲取 shipping_road_abbr
+            ];
+            $ingredient_rows = OrderProductIngredient::where('required_date', $required_date)->with('order')->get();
+            //注意這裡的 required_date 是 date 型態
+
+            $orders = [];
+
+            $result = [];
+
+            foreach ($ingredient_rows as $ingredient) {
+                $orders[$ingredient->order_id][$ingredient->order_product_id][$ingredient->id] = $ingredient;
+            }
+
+            foreach ($orders as $order_id => $order) {
+                foreach ($order as $order_product_id => $order_product) {
+                    foreach ($order_product as $ingredient_id => $ingredient) {
+                        $order_idsn = $order_id . '_' . $ingredient->order_product_sort_order;
+                        $ingredient_product_id = $ingredient->ingredient_product_id;
+
+                        if(empty($result['details'][$order_idsn])){
+                            $result['details'][$order_idsn] = [
+                                'require_date_ymd' => $ingredient->required_date,
+                                'require_date_hi' => $ingredient->required_date_hi,
+                                'product_id' => $ingredient->product_id,
+                                'product_name' => $ingredient->product_name,
+                                'source_id' => $ingredient->order_id,
+                                'source_idsn' => $order_idsn,
+                                'source_body_id' => $ingredient->order_product_id,
+                                'shipping_road_abbr' => $ingredient->order->shipping_road_abbr,
+                            ];
+                        }
+
+                        $lastQuantity = 0;
+                        if(!empty($result['details'][$order_idsn]['items'][$ingredient_product_id]['quantity'])){
+                            $lastQuantity = $result['details'][$order_idsn]['items'][$ingredient_product_id]['quantity'];
+                        };
+    
+                        $result['details'][$order_idsn]['items'][$ingredient_product_id] = [
+                            'ingredient_product_id' => $ingredient_product_id,
+                            'ingredient_product_name' => $ingredient->ingredient_product_name,
+                            'quantity' => $lastQuantity + $ingredient->quantity,
+                        ];
+
+                        // all_day
+                        if(empty($result['all_day'][$ingredient_product_id]['quantity'])){
+                            $result['all_day'][$ingredient_product_id]['quantity'] = 0;
+                        }
+
+                        $result['all_day'][$ingredient_product_id]['quantity'] += (int)$ingredient->quantity;
+                        $result['all_day'][$ingredient_product_id]['ingredient_product_name'] = $ingredient->product_name;
+
+                        // ampm
+
+                        $carbon_required_time = Carbon::parse($ingredient->required_time);
+    
+                        $str_cutOffTime = $ingredient->required_date . ' 12:59';
+                        $carbon_cutOffTime = Carbon::parse($str_cutOffTime);
+    
+                        //  - am
+                        if (!$carbon_required_time->greaterThanOrEqualTo($carbon_cutOffTime)) {
+                            if(empty($result['am'][$ingredient_product_id]['quantity'])){
+                                $result['am'][$ingredient_product_id]['quantity'] = 0;
+                            }
+    
+                            $result['am'][$ingredient_product_id]['quantity'] += (int)$ingredient->quantity;
+                            $result['am'][$ingredient_product_id]['ingredient_product_name'] = $ingredient->quantity;
+                        }
+                        //  - pm
+                        else{
+                            if(empty($result['pm'][$ingredient_product_id]['quantity'])){
+                                $result['pm'][$ingredient_product_id]['quantity'] = 0;
+                            }
+    
+                            $result['pm'][$ingredient_product_id]['quantity'] += (int)$ingredient->quantity;
+                            $result['pm'][$ingredient_product_id]['ingredient_product_name'] = $ingredient->quantity;
+                        }
+                    }
+                }
+            }
+
+            // 排序
+            if(!empty($result['details'] )){
+                $result['details'] = collect($result['details'])->sortBy('source_idsn')->sortBy('require_date_hi')->values()->all();
+            }
+
+            // 緩存
+            $cacheName = 'OrderProductIngredient_RequiredDate2ymd_' . $required_date_2ymd;
+
+            cache()->forget($cacheName);
+
+            cache()->remember($cacheName, 60*24*90, function () use ($result) {
+                // 在缓存中不存在时执行的回调函数，用于获取值并存储到缓存中
+                return $result;
+            });
+
+            return ['required_date_2ymd' => $required_date_2ymd];
+
+        } catch (\Exception $ex) {
+            return response(json_encode($ex->getMessage()))->header('Content-Type','application/json');
         }
-
-        //以上可寫入。但由於訂單儲存時，資料表 order_product_options 有問題，先暫停。
-        //後面還要處理 
-        /**
-        $result['required_date'] = $required_date;
-        $result['required_date_2ymd'] = $required_date_2ymd;
-
-        $result['all_day'] = [];
-        $result['am'] = [];
-        $result['pm'] = [];
-        $result['details'] = [];
-         */
-
-         echo '<pre>', print_r(999, 1), "</pre>"; exit;
-
-
-
-
-
-
-
-        if(!empty($result['details'] )){
-            $result['details'] = collect($result['details'])->sortBy('source_idsn')->sortBy('require_date_hi')->values()->all();
-        }
-
-        // Cache
-        $cacheName = 'material_requisitions_required_date_' . parseDate($required_date);
-        
-        cache()->forget($cacheName);
-        cache()->put($cacheName, $result);
-
-        return ['required_date_2ymd' => $result['required_date_2ymd']];
     }
 
     /**
@@ -347,6 +456,8 @@ class MaterialRequisitionController extends Controller
      */
     public function getMrequisitions($required_date = null, $json = 0)
     {
+        $required_date_2ymd = parseDateStringTo6d($required_date);
+
         $result = [];
 
         if(empty($required_date)){
@@ -354,18 +465,15 @@ class MaterialRequisitionController extends Controller
         }
 
         if(!empty($required_date)){            
-            $cacheName = 'material_requisitions_required_date_' . parseDate($required_date);
+            $cacheName = 'OrderProductIngredient_RequiredDate2ymd_' . $required_date_2ymd;
+
             $result = cache()->get($cacheName);
-            // 有按重抓需求來源才重新計算，否則如果是空就維持空
-            // if(empty($result)){
-            //     $result = $this->calcMrequisitionsByDate($required_date); // array
-            // }
+
+            if(empty($result)){
+                $this->calcMrequisitionsByDate($required_date);
+                $result = cache()->get($cacheName);
+            }
         }
-
-        
-
-        //echo '<pre>', print_r($result, 1), "</pre>"; exit;
-
         $data = $this->request->all();
 
         if(!empty($data['jsonReponse'])){
@@ -495,7 +603,7 @@ class MaterialRequisitionController extends Controller
         
         // 列印時抓cache, 不重新計算
         if(!empty($required_date)){
-            $cacheName = 'material_requisitions_required_date_' . parseDate($required_date);
+            $cacheName = 'OrderProductIngredient_RequiredDate2ymd_' . parseDate($required_date);
             $mrequisitions = cache()->get($cacheName);
         }
 

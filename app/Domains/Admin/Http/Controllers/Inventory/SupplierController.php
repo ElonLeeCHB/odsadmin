@@ -51,7 +51,7 @@ class SupplierController extends Controller
         $data['list_url'] = route('lang.admin.inventory.suppliers.list'); //本參數在 getList() 也必須存在。
         $data['add_url'] = route('lang.admin.inventory.suppliers.form');
         $data['delete_url'] = route('lang.admin.inventory.suppliers.delete');
-        
+
         return view('admin.inventory.supplier', $data);
     }
 
@@ -98,7 +98,7 @@ class SupplierController extends Controller
         $queries['filter_is_supplier'] = 1;
 
         // Rows
-        $suppliers = $this->OrganizationService->getRows($queries);
+        $suppliers = $this->OrganizationService->getOrganizations($queries,1);
 
         foreach ($suppliers as $row) {
             $row->edit_url = route('lang.admin.inventory.suppliers.form', array_merge([$row->id], $queries));

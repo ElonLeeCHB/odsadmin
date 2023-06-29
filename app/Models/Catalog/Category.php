@@ -1,10 +1,5 @@
 <?php
 
-/**
- * 不使用 Astrotomic\Translatable 套件。
- * 不然自訂的 translation() 會有問題，說不符合套件的同名函數。
- * 
- */
 namespace App\Models\Catalog;
 
 //use Illuminate\Database\Eloquent\Model;
@@ -14,7 +9,6 @@ use App\Models\Catalog\Product;
 use App\Traits\Model\Translatable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
-//class Category extends Term implements TranslatableContract
 class Category extends Term
 {    
     use Translatable;

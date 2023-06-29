@@ -104,6 +104,8 @@ class OrderController extends Controller
     {
         $order = $this->OrderService->find($order_id);
 
+        //$order->load('order_products');
+
         $arr_all_statuses = $this->OrderService->getOrderStatuses();
 
         $order->status_txt = $arr_all_statuses[$order->status_id]['name'] ?? '';

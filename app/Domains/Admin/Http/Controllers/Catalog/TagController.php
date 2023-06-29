@@ -73,7 +73,7 @@ class TagController extends Controller
         // Prepare link for action
         $queries = $this->getQueries($this->request->query());
 
-        $queries['whereIn'] = ['taxonomy_code' => ['product_tag']];
+        $queries['whereIn'] = ['taxonomy_code' => ['product_tags']];
 
         // rows
         $terms = $this->TermService->getRows($queries);
@@ -185,7 +185,7 @@ class TagController extends Controller
         }
         $data['translations'] = $translations;
 
-        $data['taxonomy_code'] = 'product_tag';
+        $data['taxonomy_code'] = 'product_tags';
         
         return view('admin.common.term_form', $data);
     }
@@ -225,7 +225,7 @@ class TagController extends Controller
         $queries = $this->getQueries($this->request->query());
 
         $queries['pagination'] = false;
-        $queries['whereIn'] = ['taxonomy_code' => ['product_tag']];
+        $queries['whereIn'] = ['taxonomy_code' => ['product_tags']];
 
         // Rows
         $rows = $this->TermService->getRows($queries);

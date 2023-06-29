@@ -67,8 +67,8 @@
                             @foreach($sales_saleable_product_ingredients as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
                               @if(!empty($mrequisitions['all_day']))
-                              @foreach($mrequisitions['all_day'] as $material_product_id => $record)
-                                @if($saleable_product_material_id == $material_product_id)
+                              @foreach($mrequisitions['all_day'] as $ingredient_product_id => $record)
+                                @if($saleable_product_material_id == $ingredient_product_id)
                                   {{ $record['quantity'] }}
                                 @endif
                               @endforeach
@@ -81,8 +81,8 @@
                             @foreach($sales_saleable_product_ingredients as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
                               @if(!empty($mrequisitions['am']))
-                              @foreach($mrequisitions['am'] as $material_product_id => $record)
-                                @if($saleable_product_material_id == $material_product_id)
+                              @foreach($mrequisitions['am'] as $ingredient_product_id => $record)
+                                @if($saleable_product_material_id == $ingredient_product_id)
                                   {{ $record['quantity'] }}
                                 @endif
                               @endforeach
@@ -95,8 +95,8 @@
                             @foreach($sales_saleable_product_ingredients as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
                               @if(!empty($mrequisitions['pm']))
-                              @foreach($mrequisitions['pm'] as $material_product_id => $record)
-                                @if($saleable_product_material_id == $material_product_id)
+                              @foreach($mrequisitions['pm'] as $ingredient_product_id => $record)
+                                @if($saleable_product_material_id == $ingredient_product_id)
                                   {{ $record['quantity'] }}
                                 @endif
                               @endforeach

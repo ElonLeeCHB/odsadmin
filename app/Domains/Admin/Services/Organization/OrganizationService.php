@@ -10,7 +10,7 @@ class OrganizationService extends Service
 {
     protected $modelName = "\App\Models\Organization\Organization";
 
-	public function getRows($data=[], $debug = 0)
+	public function getOrganizations($data=[], $debug = 0)
 	{
 		if(!empty($data['filter_mixed_name'])){
             $data['andOrWhere'][] = [

@@ -466,11 +466,11 @@ class Repository
     }
 
 
-    public function upsert($allData, $whereColumns, $update)
+    public function upsert($allData, $whereColumns)
     {
         $query = $this->newModel()->query();
 
-        $query->upsert($allData, $whereColumns, $update); //updateOrCreate
+        $query->upsert($allData, $whereColumns); //updateOrCreate
     }
 
 

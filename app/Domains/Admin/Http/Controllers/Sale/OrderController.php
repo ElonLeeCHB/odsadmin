@@ -655,10 +655,10 @@ class OrderController extends Controller
 
     public function save()
     {
-        $data = $this->request->post();
+        $postData = $this->request->post();
 
         if(!empty($this->request->post('getReturn'))){
-            return response(json_encode($data))->header('Content-Type','application/json');
+            return response(json_encode($postData))->header('Content-Type','application/json');
         }
 
         $json = [];
@@ -678,7 +678,7 @@ class OrderController extends Controller
         
         // Validate
         //驗證表單內容
-        $validator = $this->OrderService->validator($data);
+        $validator = $this->OrderService->validator($postData);
 
         if($validator->fails()){
             $messages = $validator->errors()->toArray();
@@ -700,7 +700,7 @@ class OrderController extends Controller
         
         //表單驗證成功
         if (!$json) {
-            $result = $this->OrderService->updateOrCreate($data); //更新成功
+            $result = $this->OrderService->updateOrCreate($postData); //更新成功
 
             if(empty($result['error']) && !empty($result['data'])){
                 $order = $result['data'];

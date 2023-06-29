@@ -703,4 +703,12 @@ trait Eloquent
 
         return (object)$arr;
     }
+
+
+
+
+    public function upsert($allData, $whereColumns)
+    {
+        return $this->newModel()->upsert($allData, $whereColumns);
+    }
 }
