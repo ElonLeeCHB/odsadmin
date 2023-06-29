@@ -706,9 +706,110 @@ trait Eloquent
 
 
 
-
     public function upsert($allData, $whereColumns)
     {
         return $this->newModel()->upsert($allData, $whereColumns);
     }
+
+
+    /**
+     * 2023-05-01
+     * 23-05-01
+     * 20230501
+     * 230501
+     * 20230501-20230531
+     * 230501-230531
+     * 2023-05-01-2023-05-31
+     * 23-05-01-23-05-31
+     */
+    public function parseDateToSqlWhere($column, $dateString)
+    {
+        $dateString = trim($dateString);
+
+        // 只允許數字或-或:
+        if(!preg_match('/^[0-9\-\/:]+$/', $dateString, $matches)){
+            return false;
+        }
+
+        $date1 = null;
+        $date2 = null;
+
+        // 日期區間
+        if(strlen($dateString) > 12){
+            $dateString = str_replace(':','-',$dateString); //"2023-05-01:2023-05-31" change to "2023-05-01-2023-05-31"
+            $count = substr_count($dateString, '-');
+
+            $arr = explode('-', $dateString);
+
+            // 整串只有1個橫線作為兩個日期的分隔
+            if($count == 1){
+                $date1_year = substr($arr[0], 0, -4);
+                if($date1_year < 2000){
+                    $date1_year += 2000;
+                }
+
+                $date2_year = substr($arr[1], 0, -4);
+                if($date2_year < 2000){
+                    $date2_year += 2000;
+                }      
+
+                $date1 = $date1_year . '-' . substr($arr[0], -4, -2) . '-' . substr($arr[0], -2);
+                $date2 = $date2_year . '-' . substr($arr[1], -4, -2) . '-' . substr($arr[1], -2);
+
+            }else{
+                $date1_year = $arr[0] < 2000 ? $arr[0]+2000 : $arr[0];
+                $date1 = $date1_year . '-' . $arr[1] . '-' . $arr[2];
+
+                $date2_year = $arr[0] < 2000 ? $arr[0]+2000 : $arr[0];
+                $date2= $date2_year . '-' . $arr[4] . '-' . $arr[5];
+            }
+
+            $sql = "DATE($column) BETWEEN '$date1' AND '$date2'";
+        }
+        //單一日期
+        else{
+            //開頭字元是比較符號 (不是數字開頭)
+            if(preg_match('/^([^\d]+)\d+.*/', $dateString, $matches)){
+                $operator = $matches[1];
+                $dateString = str_replace($operator, '', $dateString); //remove operator
+                //$symbles = ['>','<','=','>=', '<='];
+            }else if(preg_match('/(^\d+.*)/', $dateString, $matches)){
+                $operator = '=';
+            }            
+    
+            if(preg_match('/(^\d{2,4}-\d{2}-\d{2}$)/', $dateString, $matches)){ //2023-05-01
+                $arr = explode('-', $dateString);
+                $date1_year = $arr[0] < 2000 ? $arr[0]+2000 : $arr[0];
+                $date1String = $date1_year . '-' . $arr[1] . '-' . $arr[2];
+            }else if(preg_match('/(^\d{6,8}$)/', $dateString, $matches)){ //230501, 0230501, 20230501
+                $date1_year = substr($dateString, 0, -4);
+                $date1_year = $date1_year < 2000 ? $date1_year+2000 : $date1_year;
+                $date1String = $date1_year . '-' . substr($dateString, -4, -2) . '-' . substr($dateString, -2);
+            }
+
+            $validDateString = date('Y-m-d', strtotime($date1String));
+
+            if($validDateString != $date1String){
+                return false;
+            }
+
+            $date1 = date_create($date1String);            
+            $date2 = date_add($date1, date_interval_create_from_date_string("1 days"));
+            $date2String = $date2->format('Y-m-d');
+
+            if($operator == '='){
+                $sql = "$column >= '$date1String' AND $column < '$date2String'";
+            }else{
+                $sql = "DATE($column) $operator '$date1'";
+            }
+        }
+
+        if($sql){
+            return $sql;
+        }
+
+        return false;
+    }
+
+
 }

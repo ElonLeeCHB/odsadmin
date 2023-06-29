@@ -7,11 +7,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Database\QueryException;
 use App\Http\Controllers\Controller;
 use App\Libraries\TranslationLibrary;
-use App\Domains\Admin\Services\Sale\MaterialRequisitionService;
+
 use App\Repositories\Eloquent\Sale\OrderRepository;
-//use App\Repositories\Eloquent\Sale\OrderProductIngredientRepository;
-use App\Repositories\Eloquent\Catalog\ProductRepository;
-use App\Repositories\Eloquent\Common\OptionValueRepository;
 use App\Repositories\Eloquent\Setting\SettingRepository;
 use App\Models\Sale\OrderProductIngredient;
 use App\Models\Setting\Setting;
@@ -21,26 +18,18 @@ class MaterialRequisitionController extends Controller
 {
     private $request;
     private $OrderRepository;
-    private $OptionValueRepository;
-    private $MaterialRequisitionService;
-    private $ProductRepository;
     private $SettingRepository;
     private $lang;
 
     public function __construct(
         Request $request,
-        MaterialRequisitionService $MaterialRequisitionService,
         OrderRepository $OrderRepository,
-        OptionValueRepository $OptionValueRepository,
-        ProductRepository $ProductRepository,
         SettingRepository $SettingRepository,
         )
     {
         $this->request = $request;
         $this->OrderRepository = $OrderRepository;
-        $this->ProductRepository = $ProductRepository;
         $this->SettingRepository = $SettingRepository;
-        $this->MaterialRequisitionService = $MaterialRequisitionService;
         $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/sale/mrequisition',]);
     }
 
@@ -74,73 +63,6 @@ class MaterialRequisitionController extends Controller
 
 
         return view('admin.sale.mrequisition', $data);
-    }
-
-
-    public function getList()
-    {
-        $data['lang'] = $this->lang;
-
-        // Prepare link for action
-        $queries = [];
-
-        if(!empty($this->request->query('page'))){
-            $page = $queries['page'] = $this->request->input('page');
-        }else{
-            $page = $queries['page'] = 1;
-        }
-
-        if(!empty($this->request->query('sort'))){
-            $sort = $queries['sort'] = $this->request->input('sort');
-        }else{
-            $sort = $queries['sort'] = 'id';
-        }
-
-        if(!empty($this->request->query('order'))){
-            $order = $queries['order'] = $this->request->query('order');
-        }else{
-            $order = $queries['order'] = 'DESC';
-        }
-
-        if(!empty($this->request->query('limit'))){
-            $limit = $queries['limit'] = $this->request->query('limit');
-        }
-
-        foreach($this->request->all() as $key => $value){
-            if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
-            }
-        }
-
-        $mrequisitions = $this->MaterialRequisitionService->getRequisitions($queries);
-
-        $data['mrequisitions'] = $mrequisitions;
-
-        // Prepare links for list table's header
-        if($order == 'ASC'){
-            $order = 'DESC';
-        }else{
-            $order = 'ASC';
-        }
-
-        $data['sort'] = strtolower($sort);
-        $data['order'] = strtolower($order);
-
-
-        $url = '';
-
-        foreach($queries as $key => $value){
-            $url .= "&$key=$value";
-        }
-
-
-        $route = route('lang.admin.sale.mrequisition.list');
-
-        $data['sort_required_date'] = $route . "?sort=required_date'&order=$order" .$url;
-        $data['sort_required_month'] = $route . "?sort=required_month&order=$order" .$url;
-        $data['sort_required_year'] = $route . "?sort=required_year&order=$order" .$url;
-
-        return view('admin.sale.mrequisition_list', $data);
     }
 
 
@@ -209,42 +131,6 @@ class MaterialRequisitionController extends Controller
         $data['sales_saleable_product_ingredients'] = Setting::where('setting_key','sales_saleable_product_ingredients')->first()->setting_value;
 
         return view('admin.sale.mrequisition_form', $data);
-    }
-
-
-    public function save()
-    {
-        $data = $this->request->all();
-
-        if(empty($data['required_date'])){
-            return false;
-        }
-
-        $json = [];
-
-        //validation
-
-
-        // validation fail
-        if(!empty($json)){
-            $json['warning'] = $this->lang->text_fail;
-            return response(json_encode($json))->header('Content-Type','application/json');
-        }
-
-        $result = $this->MaterialRequisitionService->updateOrCreate($data); //更新成功
-
-        if(empty($result['error'])){
-            $required_date_string = preg_replace('/[^0-9]/', '', $result['required_date']);
-            $json = [
-                'success' => $this->lang->text_success,
-                'required_date' => $data['required_date'],
-                'redirectUrl' => route('lang.admin.sale.mrequisition.form', $required_date_string),
-            ];
-        }else{ //更新失敗
-            $json['exec_error'] = $result['error'];
-        }
-
-        return response(json_encode($json))->header('Content-Type','application/json');
     }
 
 
@@ -533,6 +419,13 @@ class MaterialRequisitionController extends Controller
         foreach ($sales_saleable_product_ingredients as $key => $sale_saleable_product_ingredient) {
             $data['sales_saleable_product_ingredients'] .= "$key, $sale_saleable_product_ingredient\r\n";
         }
+        
+        $sales_burrito_half_of_6_inch = Setting::where('setting_key','sales_burrito_half_of_6_inch')->first()->setting_value;
+        $data['sales_burrito_half_of_6_inch'] = '';
+        foreach ($sales_burrito_half_of_6_inch as $key => $exclude_ingredient) {
+            $data['sales_burrito_half_of_6_inch'] .= "$key, $exclude_ingredient\r\n";
+        }
+
 
         $data['save'] = route('lang.admin.sale.mrequisition.settingSave');
         $data['back'] = route('lang.admin.sale.mrequisition.index');
@@ -543,9 +436,18 @@ class MaterialRequisitionController extends Controller
 
     public function settingSave()
     {
-        if(!empty($this->request->post('product'))){
-            $lines = explode("\n", $this->request->post('product'));  // 將多行文字拆成陣列
+
+        $location_id = $this->request->post('location_id') ?? 0;
+
+        $updateData = [];
+
+        //sales_saleable_product_ingredients
+        $sales_saleable_product_ingredients = $this->request->post('sales_saleable_product_ingredients') ?? '';
+
+        if(!empty($sales_saleable_product_ingredients)){
+            $lines = explode("\n", $sales_saleable_product_ingredients);  // 將多行文字拆成陣列
             $lines = array_map('trim', $lines);      // 去除每行文字的首尾空白
+            $tempDate = [];
             foreach ($lines as $key => $line) {
                 $line = str_replace(array("\r", "\n"), '', $line);
 
@@ -553,34 +455,58 @@ class MaterialRequisitionController extends Controller
                 if(!empty($matches)){
                     $product_id = $matches[1];
                     $product_name = $matches[2];
-                    $update_date[$product_id] = $product_name;
+                    $tempDate[$product_id] = $product_name;
                 }
             }
         }
 
-        if(!empty($update_date)){
-            $location_id = $this->request->post('location_id') ?? 0;
+        $updateData[] = [
+            'location_id' => $location_id,
+            'group' => 'sales',
+            'setting_key' => 'sales_saleable_product_ingredients',
+            'setting_value' => json_encode($tempDate),
+        ];
+
+        //sales_burrito_half_of_6_inch
+        $sales_burrito_half_of_6_inch = $this->request->post('sales_burrito_half_of_6_inch') ?? '';
+
+        if(!empty($sales_burrito_half_of_6_inch)){
+            $lines = explode("\n", $sales_burrito_half_of_6_inch);  // 將多行文字拆成陣列
+            $lines = array_map('trim', $lines);      // 去除每行文字的首尾空白
+            $tempDate = [];
+            foreach ($lines as $key => $line) {
+                $line = str_replace(array("\r", "\n"), '', $line);
+
+                preg_match('/^(\d+),\s*(.*)/', $line, $matches);
+                if(!empty($matches)){
+                    $product_id = $matches[1];
+                    $product_name = $matches[2];
+                    $tempDate[$product_id] = $product_name;
+                }
+            }
+        }
+
+        //upsert
+        $updateData[] = [
+            'location_id' => $location_id,
+            'group' => 'sales',
+            'setting_key' => 'sales_burrito_half_of_6_inch',
+            'setting_value' => json_encode($tempDate),
+        ];
+
+        if(!empty($updateData)){
 
             $json = [];
 
             try {
-                Setting::updateOrCreate(
-                    // 搜尋條件
-                    ['location_id' => $location_id, 'group' => 'sales', 'setting_key' => 'sales_saleable_product_ingredients'],
 
-                    // 更新或創建的屬性及其值
-                    ['setting_value' => json_encode($update_date),
-                     'is_json' => 1,
-                     'group' => 'sales',
-                     'updated_at' => now(),
-                     ]
-                );
+                Setting::upsert($updateData, ['location_id', 'setting_key']);
                 
                 $json['success'] = $this->lang->text_success;
 
 
             } catch (QueryException $e) {
-                $json['error'] = '錯誤代號：' . $e->getCode() . ', 錯誤訊息：' . $e->getMessage();
+                $json['error'] = $e->getCode();
             }
 
             return response(json_encode($json))->header('Content-Type','application/json');
