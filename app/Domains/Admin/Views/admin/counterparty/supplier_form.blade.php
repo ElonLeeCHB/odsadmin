@@ -48,7 +48,7 @@
                 </div>
               </div>
 
-              <div class="row mb-3">
+              <div class="row mb-3 required">
                 <label for="input-short_name" class="col-sm-2 col-form-label">{{ $lang->column_short_name }}</label>
                 <div class="col-sm-10">
                   <input type="text" id="input-short_name" name="short_name" value="{{ $supplier->short_name }}" class="form-control">
@@ -128,6 +128,17 @@
                 </div>
               </div>
 
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ $lang->column_enable }}</label>
+                <div class="col-sm-10">
+                  <div class="input-group">
+                    <div id="input-is_active" class="form-check form-switch form-switch-lg">
+                      <input type="hidden" name="is_active" value="0"/>
+                      <input type="checkbox" name="is_active" value="1" class="form-check-input" @if($supplier->is_active) checked @endif/>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
             </div>
           </div>
@@ -146,7 +157,7 @@
 $('#input-parent_name').autocomplete({
   'source': function (request, response) {
     $.ajax({
-      url: "{{ route('lang.admin.organization.organizations.autocomplete') }}?filter_name=" + encodeURIComponent(request),
+      url: "{{ route('lang.admin.counterparty.suppliers.autocomplete') }}?filter_name=" + encodeURIComponent(request),
       dataType: 'json',
       success: function (json) {
         json.unshift({
@@ -157,7 +168,7 @@ $('#input-parent_name').autocomplete({
         response($.map(json, function (item) {
           return {
             label: item['name'],
-            value: item['organization_id']
+            value: item['supplier_id']
           }
         }));
       }

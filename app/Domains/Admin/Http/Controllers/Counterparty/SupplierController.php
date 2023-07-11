@@ -1,26 +1,19 @@
 <?php
 
-namespace App\Domains\Admin\Http\Controllers\Inventory;
+namespace App\Domains\Admin\Http\Controllers\Counterparty;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Controllers\Controller;
-use App\Libraries\TranslationLibrary;
-use App\Domains\Admin\Services\Organization\OrganizationService;
+use App\Domains\Admin\Http\Controllers\BackendController;
+use App\Domains\Admin\Services\Counterparty\SupplierService;
 
-class SupplierController extends Controller
+class SupplierController extends BackendController
 {
-    private $lang;
-    private $request;
-    private $OrganizationService;
-
-    public function __construct(Request $request, OrganizationService $OrganizationService)
+    public function __construct(protected Request $request, protected SupplierService $SupplierService)
     {
-        $this->request = $request;
-        $this->OrganizationService = $OrganizationService;
-
-        // Translations
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/organization/organization','admin/inventory/supplier']);
+        parent::__construct();
+        
+        $this->getLang(['admin/common/common','admin/counterparty/organization','admin/counterparty/supplier']);
     }
 
     public function index()
@@ -34,25 +27,25 @@ class SupplierController extends Controller
         ];
         
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_product,
+            'text' => $this->lang->text_supplier,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
         
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.inventory.categories.index'),
+            'href' => route('lang.admin.counterparty.suppliers.index'),
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
 
         $data['list'] = $this->getList();
 
-        $data['list_url'] = route('lang.admin.inventory.suppliers.list'); //本參數在 getList() 也必須存在。
-        $data['add_url'] = route('lang.admin.inventory.suppliers.form');
-        $data['delete_url'] = route('lang.admin.inventory.suppliers.delete');
+        $data['list_url'] = route('lang.admin.counterparty.suppliers.list');
+        $data['add_url'] = route('lang.admin.counterparty.suppliers.form');
+        $data['delete_url'] = route('lang.admin.counterparty.suppliers.delete');
 
-        return view('admin.inventory.supplier', $data);
+        return view('admin.counterparty.supplier', $data);
     }
 
     public function list()
@@ -64,78 +57,83 @@ class SupplierController extends Controller
     {
         $data['lang'] = $this->lang;
 
-        // Prepare link for action
-        $queries = [];
+        $query_data = $this->request->query();
+        
+        // Prepare queries for records
+        $filter_data = [];
 
-        if(!empty($this->request->query('sort'))){
-            $sort = $queries['sort'] = $this->request->input('sort');
+        if(isset($query_data['sort'])){
+            $filter_data['sort'] = $query_data['sort'];
         }else{
-            $sort = $queries['sort'] = 'id';
+            $filter_data['sort'] = 'id';
         }
 
-        if(!empty($this->request->query('order'))){
-            $order = $queries['order'] = $this->request->query('order');
+        if(isset($query_data['order'])){
+            $filter_data['order'] = $query_data['order'];
         }else{
-            $order = $queries['order'] = 'asc';
+            $filter_data['order'] = 'asc';
         }
 
-        if(!empty($this->request->query('page'))){
-            $queries['page'] = $this->request->input('page');
+        if(isset($query_data['page'])){
+            $filter_data['page'] = $query_data['page'];
         }else{
-            $queries['page'] = 1;
-        }
-
-        if(!empty($this->request->query('limit'))){
-            $queries['limit'] = $this->request->query('limit');
+            $filter_data['page'] = 1;
         }
 
         foreach($this->request->all() as $key => $value){
             if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
+                $filter_data[$key] = $value;
             }
         }
 
-        $queries['filter_is_supplier'] = 1;
+        if(!isset($query_data['equal_is_active'])){
+            $filter_data['equal_is_active'] = 1;
+        }else{
+            $filter_data['equal_is_active'] = $query_data['equal_is_active'];
+        }
+        $filter_data['equal_is_supplier'] = 1;
 
-        // Rows
-        $suppliers = $this->OrganizationService->getOrganizations($queries,1);
+        // Records
+        $suppliers = $this->SupplierService->getSuppliers($filter_data);
 
         foreach ($suppliers as $row) {
-            $row->edit_url = route('lang.admin.inventory.suppliers.form', array_merge([$row->id], $queries));
+            $row->edit_url = route('lang.admin.counterparty.suppliers.form', array_merge([$row->id], $filter_data));
         }
 
         $data['suppliers'] = $suppliers;
 
-        // Prepare links for sort on list table's header
-        if($order == 'ASC'){
-            $order = 'DESC';
+        // Prepare links for sorting on list table's header
+        if($filter_data['order'] == 'ASC'){
+            $filter_data['order'] = 'DESC';
         }else{
-            $order = 'ASC';
+            $filter_data['order'] = 'ASC';
         }
         
-        $data['sort'] = strtolower($sort);
-        $data['order'] = strtolower($order);
+        $data['sort'] = strtolower($filter_data['sort']);
+        $data['order'] = strtolower($filter_data['order']);
 
-        unset($queries['sort']);
-        unset($queries['order']);
+        unset($filter_data['sort']);
+        unset($filter_data['order']);
 
         $url = '';
 
-        foreach($queries as $key => $value){
+        foreach($filter_data as $key => $value){
             $url .= "&$key=$value";
         }
         
         //link of table header for sorting
-        $route = route('lang.admin.inventory.suppliers.list');
+        $route = route('lang.admin.counterparty.suppliers.list');
+
+        $order = $query_data['order'] ?? 'ASC';
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_code'] = $route . "?sort=code&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_short_name'] = $route . "?sort=short_name&order=$order" .$url;
         
-        $data['list_url'] = route('lang.admin.inventory.suppliers.list');
+        $data['list_url'] = route('lang.admin.counterparty.suppliers.list');
         
-        return view('admin.inventory.supplier_list', $data);
+        return view('admin.counterparty.supplier_list', $data);
     }
 
     public function form($supplier_id = null)
@@ -151,14 +149,14 @@ class SupplierController extends Controller
         ];
 
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_inventory,
+            'text' => $this->lang->text_supplier,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
 
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.inventory.suppliers.index'),
+            'href' => route('lang.admin.counterparty.suppliers.index'),
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
@@ -170,12 +168,6 @@ class SupplierController extends Controller
             if(strpos($key, 'filter_') !== false){
                 $queries[$key] = $value;
             }
-        }
-
-        if(!empty($this->request->query('page'))){
-            $queries['page'] = $this->request->query('page');
-        }else{
-            $queries['page'] = 1;
         }
 
         if(!empty($this->request->query('sort'))){
@@ -194,13 +186,19 @@ class SupplierController extends Controller
             $queries['limit'] = $this->request->query('limit');
         }
 
-        $data['save_url'] = route('lang.admin.inventory.suppliers.save');
-        $data['back_url'] = route('lang.admin.inventory.suppliers.index', $queries);        
+        if(!empty($this->request->query('page'))){
+            $queries['page'] = $this->request->query('page');
+        }else{
+            $queries['page'] = 1;
+        }
+
+        $data['save_url'] = route('lang.admin.counterparty.suppliers.save');
+        $data['back_url'] = route('lang.admin.counterparty.suppliers.index', $queries);        
 
         // Get Record
-        $supplier = $this->OrganizationService->findIdOrFailOrNew($supplier_id);
+        $supplier = $this->SupplierService->findIdOrFailOrNew($supplier_id);
 
-        $data['meta_data'] = $this->OrganizationService->setMetaDataset($supplier);
+        $data['meta_data'] = $this->SupplierService->getMetaDataset($supplier);
 
         $supplier->parent_name = $supplier->parent->name ?? '';
 
@@ -212,7 +210,7 @@ class SupplierController extends Controller
             $data['supplier_id'] = null;
         }
 
-        return view('admin.inventory.supplier_form', $data);
+        return view('admin.counterparty.supplier_form', $data);
     }
 
     public function save()
@@ -240,13 +238,13 @@ class SupplierController extends Controller
         }
 
         if(!$json) {
-            $result = $this->OrganizationService->updateOrCreate($postData);
+            $result = $this->SupplierService->updateOrCreate($postData);
 
-            if(empty($result['error']) && !empty($result['organization_id'])){
+            if(empty($result['error']) && !empty($result['supplier_id'])){
                 $json = [
-                    'supplier_id' => $result['organization_id'],
+                    'supplier_id' => $result['supplier_id'],
                     'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.inventory.suppliers.form', $result['organization_id']),
+                    'redirectUrl' => route('lang.admin.counterparty.suppliers.form', $result['supplier_id']),
                 ];
             }else{
                 if(config('app.debug')){
@@ -268,19 +266,55 @@ class SupplierController extends Controller
     public function validator(array $data)
     {
         return Validator::make($data, [
-                'organization_id' =>'nullable|integer',
-                'code' =>'nullable|unique:organizations,code,'.$data['organization_id'],
+                'supplier_id' =>'nullable|integer',
+                'code' =>'nullable|unique:organizations,code,'.$data['supplier_id'],
                 'name' =>'min:2|max:50',
                 'short_name' =>'min:2|max:10',
                 'mobile' =>'nullable|min:9|max:20',
                 'telephone' =>'nullable|min:7|max:20',
             ],[
-                'organization_id.*' => $this->lang->error_organization_id,
+                'supplier_id.*' => $this->lang->error_supplier_id,
                 'code.*' => $this->lang->error_code,
                 'name.*' => $this->lang->error_name,
                 'short_name.*' => $this->lang->error_short_name,
                 'mobile.*' => $this->lang->error_mobile,
                 'telephone.*' => $this->lang->error_telephone,
         ]);
+    }
+
+
+    public function autocomplete()
+    {
+        $json = [];
+
+        $filter_data = array(
+            'filter_mixed_name'   => $this->request->filter_mixed_name,
+            'filter_contact'   => $this->request->filter_contact,
+            'filter_contact_phone'   => $this->request->filter_contact_phone,
+        );
+
+        if (!empty($this->request->sort)) {
+            if($this->request->sort =='name'){
+                $filter_data['sort'] = '.name';
+            } else if($this->request->sort =='short_name'){
+                $filter_data['sort'] = '.short_name';
+            }
+        }
+
+        $rows = $this->SupplierService->getRows($filter_data);
+
+        if(empty($rows)){
+            return false;
+        }
+
+        foreach ($rows as $row) {
+            $json[] = array(
+                'supplier_id' => $row->id,
+                'name' => $row->name,
+                'short_name' => $row->short_name,
+            );
+        }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
     }
 }

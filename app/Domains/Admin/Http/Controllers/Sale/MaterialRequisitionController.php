@@ -129,6 +129,7 @@ class MaterialRequisitionController extends Controller
         $data['mrequisitions']  = $mrequisitions ?? [];
 
         $data['sales_saleable_product_ingredients'] = Setting::where('setting_key','sales_saleable_product_ingredients')->first()->setting_value;
+        $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
 
         return view('admin.sale.mrequisition_form', $data);
     }
@@ -139,7 +140,7 @@ class MaterialRequisitionController extends Controller
      */
     public function calcMrequisitionsByDate($required_date)
     {
-        //DB::beginTransaction();
+        DB::beginTransaction();
 
         try {
             $required_date = parseDate($required_date);
@@ -159,32 +160,77 @@ class MaterialRequisitionController extends Controller
                 'with' => ['order_products','order_product_options.product_option_value.option_value',],
                 'WhereRawSqls' => [$requiredDateRawSql],
                 'whereIn' => ['status_id' => $sales_orders_to_be_prepared_status],
-                'with' => 'order_products.order_product_options.product_option_value.option_value',
+                'with' => 'order_products.order_product_options.product_option_value.option_value.product',
+                'pagination' => false,
+                'limit' => 0,
             ];
             $orders = $this->OrderRepository->getRows($filter_data);
-    
+
             // 從設定檔找出需要除2的潤餅代號
             $burritos_to_be_multiplied_array = $this->SettingRepository->getValueByKey('sales_burrito_half_of_6_inch');
-            $burritos_to_be_multiplied_keys = array_keys($burritos_to_be_multiplied_array);
-    
+            $burritos_to_be_multiplied_ids = array_keys($burritos_to_be_multiplied_array);
+
+            //之後應改用 bom 表
+            $burritos_6inch = [
+                1057 => ['product_id' => 1056, 'product_name' => '全素潤餅6吋'],
+                1059 => ['product_id' => 1058, 'product_name' => '蛋素潤餅6吋'],
+                1037 => ['product_id' => 1010, 'product_name' => '薯泥潤餅6吋'],
+                1038 => ['product_id' => 1011, 'product_name' => '炸蝦潤餅6吋'],
+                1039 => ['product_id' => 1012, 'product_name' => '炒雞潤餅6吋'],
+                1040 => ['product_id' => 1013, 'product_name' => '酥魚潤餅6吋'],
+                1041 => ['product_id' => 1014, 'product_name' => '培根潤餅6吋'],
+                1042 => ['product_id' => 1015, 'product_name' => '滷肉潤餅6吋']
+            ];
+            
             foreach ($orders ?? [] as $key1 => $order) {
+                $order_id = $order->id;
+
                 foreach ($order->order_products as $key2 => $order_product) {
+                    $order_product_id = $order_product->id;
+
                     foreach ($order_product->order_product_options as $key3 => $order_product_option) {
+                        $order_product_option_id = $order_product_option->id;
                         $option_value = $order_product_option->product_option_value->option_value;
+                        $product_option_value_id = $order_product_option->product_option_value->id;
     
-                        // 選應沒有對應的商品代號，略過
+                        // 選項沒有對應的商品代號，略過
                         if(empty($option_value->product_id)){
                             continue;
                         }
     
-                        $sub_product_id = !empty($option_value->product_id) ? $option_value->product_id : 0; //選項對應的商品代號
-    
-                        if(in_array($sub_product_id, $burritos_to_be_multiplied_keys)){
+                        $ingredient_product_id = $option_value->product_id;
+                        $ingredient_product_name = $option_value->product->name;
+
+                        $new_ingredient_product_id = '';
+                        $new_ingredient_product_name = '';
+
+                        //要除2的潤餅
+                        if(in_array($ingredient_product_id, $burritos_to_be_multiplied_ids)){
+                            $new_ingredient_product_id = $burritos_6inch[$ingredient_product_id]['product_id'];
+                            $new_ingredient_product_name = $burritos_6inch[$ingredient_product_id]['product_name'];
                             $quantity = ceil($order_product_option->quantity/2);
-                        }else{
+                        }
+
+                        //盒餐，有上層 parent_product_option_value_id，通常是飲料
+                        else if(!empty($order_product_option->parent_product_option_value_id)){
+                            //$drink_quantities[$order_id][$order_product_id][$product_option_value_id] += $order_product_option->quantity;
+                            //$quantity = $drink_quantities[$order_id][$order_product_id][$product_option_value_id];
+                            if(empty($drink_quantities[$order_id][$order_product_id][$product_option_value_id])){
+                                $drink_quantities[$order_id][$order_product_id][$product_option_value_id] = 0;
+                            }
+
+                            $drink_quantities[$order_id][$order_product_id][$product_option_value_id] += $order_product_option->quantity;
+                            $quantity = $drink_quantities[$order_id][$order_product_id][$product_option_value_id];
+                        }
+
+                        //一般情況
+                        else{
                             $quantity = $order_product_option->quantity;
                         }
-    
+
+                        $ingredient_product_id = !empty($new_ingredient_product_id) ? $new_ingredient_product_id : $ingredient_product_id;
+                        $ingredient_product_name = !empty($new_ingredient_product_name) ? $new_ingredient_product_name : $ingredient_product_name;
+
                         $order_product_ingredients[] = [
                             'required_time' => $order->delivery_date,
                             'required_date' => $required_date,
@@ -192,9 +238,9 @@ class MaterialRequisitionController extends Controller
                             'order_product_id' => $order_product->id, //訂單商品表的流水號
                             'order_product_sort_order' => $order_product->sort_order,
                             'product_id' => $order_product->product_id, //訂單的商品代號
-                            //'product_name' => $order_product->name,
-                            'ingredient_product_id' => !empty($option_value->product_id) ? $option_value->product_id : 0, //選項對應的商品代號
-                            //'ingredient_product_name' => $order_product_option->value,
+                            'product_name' => $order_product->name,
+                            'ingredient_product_id' => $ingredient_product_id,
+                            'ingredient_product_name' => $ingredient_product_name,
                             'quantity' => $quantity,
                         ];
 
@@ -202,6 +248,7 @@ class MaterialRequisitionController extends Controller
                     }
                 }
             }
+
 
             //delete
             $db_ingredients = OrderProductIngredient::where('required_date', $required_date)->get();
@@ -227,7 +274,7 @@ class MaterialRequisitionController extends Controller
             DB::rollback();
             return response(json_encode($ex->getMessage()))->header('Content-Type','application/json');
         }
-
+        
         //重新整理陣列，並寫入緩存
         try{
 
@@ -238,6 +285,7 @@ class MaterialRequisitionController extends Controller
                 'with' => 'order' //為了獲取 shipping_road_abbr
             ];
             $ingredient_rows = OrderProductIngredient::where('required_date', $required_date)->with('order')->get();
+
             //注意這裡的 required_date 是 date 型態
 
             $orders = [];
@@ -284,10 +332,9 @@ class MaterialRequisitionController extends Controller
                         }
 
                         $result['all_day'][$ingredient_product_id]['quantity'] += (int)$ingredient->quantity;
-                        $result['all_day'][$ingredient_product_id]['ingredient_product_name'] = $ingredient->product_name;
+                        $result['all_day'][$ingredient_product_id]['ingredient_product_name'] = $ingredient->ingredient_product_name;
 
                         // ampm
-
                         $carbon_required_time = Carbon::parse($ingredient->required_time);
     
                         $str_cutOffTime = $ingredient->required_date . ' 12:59';
@@ -300,7 +347,7 @@ class MaterialRequisitionController extends Controller
                             }
     
                             $result['am'][$ingredient_product_id]['quantity'] += (int)$ingredient->quantity;
-                            $result['am'][$ingredient_product_id]['ingredient_product_name'] = $ingredient->quantity;
+                            $result['am'][$ingredient_product_id]['ingredient_product_name'] = $ingredient->ingredient_product_name;
                         }
                         //  - pm
                         else{
@@ -309,7 +356,7 @@ class MaterialRequisitionController extends Controller
                             }
     
                             $result['pm'][$ingredient_product_id]['quantity'] += (int)$ingredient->quantity;
-                            $result['pm'][$ingredient_product_id]['ingredient_product_name'] = $ingredient->quantity;
+                            $result['pm'][$ingredient_product_id]['ingredient_product_name'] = $ingredient->ingredient_product_name;
                         }
                     }
                 }
@@ -326,7 +373,6 @@ class MaterialRequisitionController extends Controller
             cache()->forget($cacheName);
 
             cache()->remember($cacheName, 60*24*90, function () use ($result) {
-                // 在缓存中不存在时执行的回调函数，用于获取值并存储到缓存中
                 return $result;
             });
 
@@ -425,6 +471,12 @@ class MaterialRequisitionController extends Controller
         foreach ($sales_burrito_half_of_6_inch as $key => $exclude_ingredient) {
             $data['sales_burrito_half_of_6_inch'] .= "$key, $exclude_ingredient\r\n";
         }
+        
+        $sales_ingredients_table_items = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
+        $data['sales_ingredients_table_items'] = '';
+        foreach ($sales_ingredients_table_items as $key => $item) {
+            $data['sales_ingredients_table_items'] .= "$key, $item\r\n";
+        }
 
 
         $data['save'] = route('lang.admin.sale.mrequisition.settingSave');
@@ -458,14 +510,14 @@ class MaterialRequisitionController extends Controller
                     $tempDate[$product_id] = $product_name;
                 }
             }
-        }
 
-        $updateData[] = [
-            'location_id' => $location_id,
-            'group' => 'sales',
-            'setting_key' => 'sales_saleable_product_ingredients',
-            'setting_value' => json_encode($tempDate),
-        ];
+            $updateData[] = [
+                'location_id' => $location_id,
+                'group' => 'sales',
+                'setting_key' => 'sales_saleable_product_ingredients',
+                'setting_value' => json_encode($tempDate),
+            ];
+        }
 
         //sales_burrito_half_of_6_inch
         $sales_burrito_half_of_6_inch = $this->request->post('sales_burrito_half_of_6_inch') ?? '';
@@ -484,15 +536,41 @@ class MaterialRequisitionController extends Controller
                     $tempDate[$product_id] = $product_name;
                 }
             }
+
+            //upsert
+            $updateData[] = [
+                'location_id' => $location_id,
+                'group' => 'sales',
+                'setting_key' => 'sales_burrito_half_of_6_inch',
+                'setting_value' => json_encode($tempDate),
+            ];
         }
 
-        //upsert
-        $updateData[] = [
-            'location_id' => $location_id,
-            'group' => 'sales',
-            'setting_key' => 'sales_burrito_half_of_6_inch',
-            'setting_value' => json_encode($tempDate),
-        ];
+        //sales_ingredients_table_items
+        $sales_ingredients_table_items = $this->request->post('sales_ingredients_table_items') ?? '';
+
+        if(!empty($sales_ingredients_table_items)){
+            $lines = explode("\n", $sales_ingredients_table_items);  // 將多行文字拆成陣列
+            $lines = array_map('trim', $lines);      // 去除每行文字的首尾空白
+            $tempDate = [];
+            foreach ($lines as $key => $line) {
+                $line = str_replace(array("\r", "\n"), '', $line);
+
+                preg_match('/^(\d+),\s*(.*)/', $line, $matches);
+                if(!empty($matches)){
+                    $product_id = $matches[1];
+                    $product_name = $matches[2];
+                    $tempDate[$product_id] = $product_name;
+                }
+            }
+
+            $updateData[] = [
+                'location_id' => $location_id,
+                'group' => 'sales',
+                'setting_key' => 'sales_ingredients_table_items',
+                'setting_value' => json_encode($tempDate),
+            ];
+        }
 
         if(!empty($updateData)){
 
@@ -518,18 +596,20 @@ class MaterialRequisitionController extends Controller
     {
         $data['lang'] = $this->lang;
         $data['base'] = config('app.admin_url');
-
+        
         // parseDate
         if(!empty($required_date_string)){
-            $required_date = parseDate($required_date_string);
-            if($required_date == false){
+            //$required_date = parseDate($required_date_string);
+            $required_date_2ymd = parseDateStringTo6d($required_date_string);
+
+            if(empty($required_date_2ymd)){
                 return redirect(route('lang.admin.sale.mrequisition.form'))->with("warning", "日期格式錯誤");
             }
         }
         
         // 列印時抓cache, 不重新計算
-        if(!empty($required_date)){
-            $cacheName = 'OrderProductIngredient_RequiredDate2ymd_' . parseDate($required_date);
+        if(!empty($required_date_2ymd)){
+            $cacheName = 'OrderProductIngredient_RequiredDate2ymd_' . $required_date_2ymd;
             $mrequisitions = cache()->get($cacheName);
         }
 
@@ -540,7 +620,7 @@ class MaterialRequisitionController extends Controller
 
         $data['mrequisitions'] = $mrequisitions;
 
-        $data['sales_saleable_product_ingredients'] = Setting::where('setting_key','sales_saleable_product_ingredients')->first()->setting_value;
+        $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
 
         return view('admin.sale.print_material_requisition', $data);
     }

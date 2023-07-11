@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Repositories\Eloquent\Organization;
+namespace App\Repositories\Eloquent\Counterparty;
 
 use App\Repositories\Eloquent\Repository;
 use App\Repositories\Eloquent\Repository\Organization\OrganizationMetaRepository;
 
 class OrganizationRepository extends Repository
 {
-    public $modelName = "\App\Models\Organization\Organization";
+    public $modelName = "\App\Models\Counterparty\Organization";
 
     public function getMetaDataset($organization_id)
     {

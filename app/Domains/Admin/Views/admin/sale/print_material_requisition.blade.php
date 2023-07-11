@@ -49,13 +49,13 @@
     <tbody id="tbody_body_records">
       <tr>
         <td colspan="4"></td>
-        @foreach($sale_saleable_product_materials as $product_id => $product_name)
+        @foreach($sales_ingredients_table_items as $product_id => $product_name)
         <td style="width:30px"></td>
         @endforeach
     </tr>
       <tr id="option-value-row-0">
         <td colspan="4">全日統計</td>
-        @foreach($sale_saleable_product_materials as $saleable_product_material_id => $saleable_product_material_name)
+        @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
         <td>
           @if(!empty($mrequisitions['all_day']))
           @foreach($mrequisitions['all_day'] as $material_product_id => $record)
@@ -70,7 +70,7 @@
     </tr>
       <tr id="option-value-row-0">
         <td colspan="4">上午統計</td>
-        @foreach($sale_saleable_product_materials as $saleable_product_material_id => $saleable_product_material_name)
+        @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
         <td>
           @if(!empty($mrequisitions['am']))
           @foreach($mrequisitions['am'] as $material_product_id => $record)
@@ -84,7 +84,7 @@
     </tr>
       <tr id="option-value-row-0">
         <td colspan="4">下午統計</td>
-        @foreach($sale_saleable_product_materials as $saleable_product_material_id => $saleable_product_material_name)
+        @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
         <td>
           @if(!empty($mrequisitions['pm']))
           @foreach($mrequisitions['pm'] as $material_product_id => $record)
@@ -97,25 +97,31 @@
         @endforeach
     </tr>
     <tr>
-                            <td class="text-start">時間</td>
-                            <td class="text-start">訂單編號</td>
-                            <td class="text-end">地址簡稱</td>
-                            <td class="text-end">商品簡稱</td>
-                            @foreach($sale_saleable_product_materials as $saleable_product_material_id => $saleable_product_material_name)
-                            <td style="width:30px">{{ $saleable_product_material_name }}</td>
-                            @endforeach
-                          </tr>
+      <td class="text-start">時間</td>
+      <td class="text-start">訂單編號</td>
+      <td class="text-end">地址簡稱</td>
+      <td class="text-end">商品簡稱</td>
+      @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
+        <?php
+        $characters = mb_str_split($saleable_product_material_name);
+        $saleable_product_material_name = implode('<BR>', $characters);
+        ?>
+        <td style="width:30px">
+          {!! $saleable_product_material_name !!}
+        </td>
+      @endforeach
+    </tr>
 
       @if(!empty($mrequisitions['details']))
       @foreach($mrequisitions['details'] as $details_key => $detail_record)
-      <tr id="option-value-row-0">
+      <tr class="bordered">
         <td class="text-end">{{ $detail_record['require_date_hi'] }}</td>
         <td class="text-end">{{ $detail_record['source_idsn'] }}</td>
         <td class="text-end">{{ $detail_record['shipping_road_abbr'] }}</td>
         <td>{{ $detail_record['product_name'] }}</td>
-        @foreach($sale_saleable_product_materials as $product_id => $product_name)
+        @foreach($sales_ingredients_table_items as $product_id => $product_name)
         <td>
-  {{ $detail_record['items'][$product_id]['quantity'] ?? ''}}
+        {{ $detail_record['items'][$product_id]['quantity'] ?? ''}}
         </td>
         @endforeach
       </tr>
@@ -126,7 +132,5 @@
       </tbody>
   </table>
 </div>
-
-
   </body>
 </html>

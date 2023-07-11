@@ -37,7 +37,7 @@ Route::group(
     ], function()
 {
 
-    Route::get('test', 'Catalog\CategoryController@test')->name('categories.test');
+    //Route::get('test', 'Catalog\CategoryController@test')->name('categories.test');
 
     Route::group([
         'prefix' => config('app.admin_folder'),
@@ -187,12 +187,6 @@ Route::group(
                 'as' => 'inventory.',
             ], function ()
             {
-                Route::get('suppliers', 'Inventory\SupplierController@index')->name('suppliers.index');
-                Route::get('suppliers/list', 'Inventory\SupplierController@list')->name('suppliers.list');
-                Route::get('suppliers/form/{id?}', 'Inventory\SupplierController@form')->name('suppliers.form');
-                Route::post('suppliers/save/{id?}', 'Inventory\SupplierController@save')->name('suppliers.save');
-                Route::post('suppliers/delete', 'Inventory\SupplierController@delete')->name('suppliers.delete');
-
                 Route::get('warehouses', 'Inventory\WarehouseController@index')->name('warehouses.index');
                 Route::get('warehouses/list', 'Inventory\WarehouseController@list')->name('warehouses.list');
                 Route::get('warehouses/form/{id?}', 'Inventory\WarehouseController@form')->name('warehouses.form');
@@ -235,6 +229,25 @@ Route::group(
             });
 
             Route::group([
+                'prefix' => 'counterparty',
+                'as' => 'counterparty.',
+            ], function ()
+            {
+                Route::get('organizations', 'Counterparty\OrganizationController@index')->name('organizations.index');
+                Route::get('organizations/form/{organization_id?}', 'Counterparty\OrganizationController@form')->name('organizations.form');
+                Route::get('organizations/list', 'Counterparty\OrganizationController@list')->name('organizations.list');
+                Route::get('organizations/autocomplete', 'Counterparty\OrganizationController@autocomplete')->name('organizations.autocomplete');
+                Route::post('organizations/save/{organization_id?}', 'Counterparty\OrganizationController@save')->name('organizations.save');
+
+                Route::get('suppliers', 'Counterparty\SupplierController@index')->name('suppliers.index');
+                Route::get('suppliers/list', 'Counterparty\SupplierController@list')->name('suppliers.list');
+                Route::get('suppliers/form/{id?}', 'Counterparty\SupplierController@form')->name('suppliers.form');
+                Route::post('suppliers/save/{id?}', 'Counterparty\SupplierController@save')->name('suppliers.save');
+                Route::post('suppliers/delete', 'Counterparty\SupplierController@delete')->name('suppliers.delete');
+                Route::get('suppliers/autocomplete', 'Counterparty\SupplierController@autocomplete')->name('suppliers.autocomplete');
+            });
+
+            Route::group([
                 'prefix' => 'member',
                 'as' => 'member.',
             ], function ()
@@ -248,12 +261,6 @@ Route::group(
                 // gov_uniform_invoice_numbers
                 Route::get('guin/autocompleteSingle', 'SysData\GovUniformInvoiceNumberController@autocompleteSingle')->name('guin.autocompleteSingle');
                 Route::get('guin/setCache', 'SysData\GovUniformInvoiceNumberController@setCache')->name('guin.setCache');
-
-                Route::get('organizations', 'Member\OrganizationController@index')->name('organizations.index');
-                Route::get('organizations/form/{organization_id?}', 'Member\OrganizationController@form')->name('organizations.form');
-                Route::get('organizations/list', 'Member\OrganizationController@list')->name('organizations.list');
-                Route::get('organizations/autocomplete', 'Member\OrganizationController@autocomplete')->name('organizations.autocomplete');
-                Route::post('organizations/save/{organization_id?}', 'Member\OrganizationController@save')->name('organizations.save');
 
 
                 //Route::get('organizations', 'Member\OrganizationController@index')->name('organizations.index');
@@ -301,8 +308,8 @@ Route::group(
                         Route::get('parse_uniform_invoice_number', 'Tools\UniformInvoiceNumberController@getForm')->name('parse_uniform_invoice_number');
                         Route::post('parse_uniform_invoice_number', 'Tools\UniformInvoiceNumberController@parse');
 
-                        Route::get('getTwPostRoads', 'Localization\RoadsController@getTwPostRoads')->name('getTwPostRoads');
-                        Route::get('getJsonRoadsFromTwPost', 'Localization\RoadsController@getJsonRoadsFromTwPost');
+                        Route::get('getTwPostRoads', 'Localization\RoadController@getTwPostRoads')->name('getTwPostRoads');
+                        Route::get('getJsonRoadsFromTwPost', 'Localization\RoadController@getJsonRoadsFromTwPost');
 
                     });
                 });
@@ -318,7 +325,7 @@ Route::group(
                         'as' => 'roads.',
                     ], function ()
                     {
-                        Route::get('getOptions', 'Localization\RoadsController@getOptions')->name('options');
+                        Route::get('getOptions', 'Localization\RoadController@getOptions')->name('options');
 
                     });
 
@@ -327,19 +334,19 @@ Route::group(
 
             });
 
-            Route::group([
-                'prefix' => 'test',
-                'as' => 'test.',
-            ], function ()
-            {
-                Route::get('roads/toOneCsv', 'Localization\RoadsController@toOneCsv')->name('roads.toonecsv');
-                Route::get('roads/getFileNames', 'Localization\RoadsController@getFileNames')->name('roads.getFileNames');
+            // Route::group([
+            //     'prefix' => 'test',
+            //     'as' => 'test.',
+            // ], function ()
+            // {
+            //     Route::get('roads/toOneCsv', 'Localization\RoadController@toOneCsv')->name('roads.toonecsv');
+            //     Route::get('roads/getFileNames', 'Localization\RoadController@getFileNames')->name('roads.getFileNames');
 
-                Route::get('roads', 'Localization\RoadsController@index')->name('roads');
-                Route::get('roads/test', 'Localization\RoadsController@test')->name('roads');
+            //     Route::get('roads', 'Localization\RoadController@index')->name('roads');
+            //     Route::get('roads/test', 'Localization\RoadController@test')->name('roads');
 
-                Route::get('country', 'Localization\CountryController@index')->name('country');
-            });
+            //     Route::get('country', 'Localization\CountryController@index')->name('country');
+            // });
         });
 
     });

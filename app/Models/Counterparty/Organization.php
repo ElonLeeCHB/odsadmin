@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Models\Organization;
+namespace App\Models\Counterparty;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Localization\Division;
-use App\Models\Organization\OrganizationMeta;
+use App\Models\Counterparty\OrganizationMeta;
 
 class Organization extends Model
 {

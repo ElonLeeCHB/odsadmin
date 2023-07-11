@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Domains\Admin\Services\Organization;
+namespace App\Domains\Admin\Services\Counterparty;
 
 use Illuminate\Support\Facades\DB;
 use App\Domains\Admin\Services\Service;
-use App\Models\Organization\OrganizationMeta;
+use App\Models\Counterparty\OrganizationMeta;
 
 class OrganizationService extends Service
 {
-    protected $modelName = "\App\Models\Organization\Organization";
+    protected $modelName = "\App\Models\Counterparty\Organization";
 
 	public function getOrganizations($data=[], $debug = 0)
 	{
@@ -26,7 +26,7 @@ class OrganizationService extends Service
 
 		if(!empty($rows)){
             foreach ($rows as $row) {
-                $row->edit_url = route('lang.admin.member.organizations.form', array_merge([$row->id], $data));
+                $row->edit_url = route('lang.admin.organization.organizations.form', array_merge([$row->id], $data));
 				if(!empty($row->company)){
 					$row->company_name = $row->company->name;
 				}
@@ -49,7 +49,7 @@ class OrganizationService extends Service
                 $data[$key] = trim($value);
             }
 
-            $organization = $this->findIdOrFailOrNew(['id' => $data['organization_id']]);
+            $organization = $this->findIdOrFailOrNew($data['organization_id']);
 
             $organization->parent_id = $data['parent_id'] ?? 0;
             $organization->code = $data['code'];
@@ -58,7 +58,7 @@ class OrganizationService extends Service
             $organization->tax_id_num = $data['tax_id_num'] ?? null;
 
             $organization->save();
-
+            echo '<pre>', print_r(999, 1), "</pre>"; exit;
             $this->saveMetaDataset($organization, $data);
 
             DB::commit();

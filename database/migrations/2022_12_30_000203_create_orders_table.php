@@ -123,6 +123,21 @@ return new class extends Migration
         // Schema::create('order_comments', function (Blueprint $table) {
         //     $table->id();
         // });
+
+        // 訂單商品用料表
+        Schema::create('order_product_ingredients', function (Blueprint $table) {
+            $table->id();
+            $table->date('required_date');
+            $table->unsignedInteger('order_id');
+            $table->unsignedInteger('order_product_id');
+            $table->unsignedInteger('product_id');
+            $table->string('product_name')->nullable();
+            $table->unsignedInteger('sub_product_id');
+            $table->string('sub_product_name')->nullable();
+            $table->decimal('quantity',15,4);
+            $table->timestamps();;
+            $table->unique(['required_date','order_id','order_product_id','product_id','sub_product_id'], 'order_product_ingredients_unique_key');
+        });
     }
 
     /**
@@ -138,6 +153,7 @@ return new class extends Migration
         Schema::dropIfExists('order_product_options');
         Schema::dropIfExists('order_totals');
         //Schema::dropIfExists('order_comments');
+        Schema::dropIfExists('order_product_ingredients');
         Schema::enableForeignKeyConstraints();
     }
 };

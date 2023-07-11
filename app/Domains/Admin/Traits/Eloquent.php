@@ -63,8 +63,20 @@ trait Eloquent
     public function findIdOrFailOrNew($id, $data = null)
     {
         //find
-        if(!empty($id)){
-            $row = $this->newModel()->where('id', $id)->firstOrFail();
+        if(!empty(trim($id))){
+            $query = $this->newModel()->where('id', $id);
+
+            foreach($data ?? []as $key => $value){
+                if(!str_starts_with($key, 'equal_')){
+                    continue;
+                }
+                else{
+                    $column = str_replace('equal_', '', $key);
+                }
+                $query = $query->where($column, $value);
+            }
+
+            $row = $query->firstOrFail();
         }
         //new
         else{
@@ -75,7 +87,7 @@ trait Eloquent
     }
 
 
-    public function getRow($data, $debug=0): Model|null
+    public function getRow($data, $debug=0)
     {
         $data['first'] = true;
         $row = $this->getRows($data, $debug);
@@ -127,6 +139,34 @@ trait Eloquent
                 $query->whereIn($column, $arr);
             }
         }
+
+
+        // is_active can only be: 1, 0, -1, *
+        if(isset($data['filter_is_active'])){
+            $data['equal_is_active'] = $data['filter_is_active'];
+            unset($data['filter_is_active']);
+        }
+
+        if(isset($data['equal_is_active']) && ($data['equal_is_active'] == '*' || strlen($data['equal_is_active']) === 0 || $data['equal_is_active'] < 0)){
+            unset($data['equal_is_active']);
+        }
+
+        if(isset($data['equal_is_active'])){
+            $equal_is_active = $data['equal_is_active'];
+
+            if($equal_is_active == 0){
+                $query->where(function ($query) use($equal_is_active) {
+                    $query->orWhere('is_active', 0);
+                    $query->orWhereNull('is_active');
+                });
+            }else if($equal_is_active == 1){
+                $query->where('is_active', 1);
+            }
+
+            unset($data['equal_is_active']);
+        }
+        // End is_active
+
 
         // Equal
         $this->setEqualsQuery($query, $data);
@@ -224,12 +264,6 @@ trait Eloquent
     {
         $translatedAttributes = $this->model->translatedAttributes ?? [];
         
-        // Ignore is_active if -1
-        if(isset($data['filter_is_active'] ) && $data['filter_is_active'] == -1){
-            unset($data['filter_is_active']);
-        }
-        // End is_active
-
         foreach ($data as $key => $value) {
             // $key has prifix 'filter_'
             // $column is the name of database table's column
@@ -326,6 +360,15 @@ trait Eloquent
         }
 
         return $query;
+    }
+
+    public function setAndSubOrWhereQuery($query, $set)
+    {
+        $query->where(function ($query) use($set) {
+            foreach ($set as $key => $value) {
+                $query = $this->setWhereQuery($query, $key, $value,'orWhere');
+            }
+        });
     }
 
     /**
@@ -617,7 +660,7 @@ trait Eloquent
     /**
      * 獲取 meta_data，並根據 meta_keys ，若 meta_key 不存在，設為空值 ''
      */
-     public function setMetaDataset($row)
+     public function getMetaDataset($row)
     {
         $indexed_meta_dataset = [];
         $meta_keys = $row->meta_keys;
@@ -642,11 +685,14 @@ trait Eloquent
      */
     public function saveMetaDataset($masterModel, $data)
     {
-        $organization_id = $masterModel->id;
+        //$organization_id = $masterModel->id;
+        $master_id = $masterModel->id;
+        $master_key = $masterModel->getForeignKey();
 
         $existed_meta_data = $masterModel->meta_dataset()->select('id','meta_key')->get();
 
         $existed_meta_keys = [];
+        $new_meta_keys = [];
 
         foreach ($existed_meta_data as $row) {
             $existed_meta_keys[] = $row->meta_key;
@@ -669,7 +715,7 @@ trait Eloquent
                 continue;
             }
 
-            $new_meta_data[] = ['organization_id' => $organization_id, 'meta_key' => $column, 'meta_value' => $value];
+            $new_meta_data[] = [$master_key => $master_id, 'meta_key' => $column, 'meta_value' => $value];
 
             $new_meta_keys[] = $column;
         }
@@ -689,7 +735,7 @@ trait Eloquent
         $masterModel->meta_dataset()->whereIn('id',$delete_ids)->delete();
 
         if(!empty($new_meta_data)){
-            $masterModel->meta_dataset()->getRelated()->upsert($new_meta_data, ['organization_id','meta_key']);
+            $masterModel->meta_dataset()->getRelated()->upsert($new_meta_data, [$master_key,'meta_key']);
         }
     }
 

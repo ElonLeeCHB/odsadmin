@@ -57,7 +57,7 @@ class CategoryController extends Controller
         $data['add_url'] = route('lang.admin.catalog.categories.form');
         $data['delete_url'] = route('lang.admin.catalog.categories.delete');
 
-        return view('admin.common.term', $data);
+        return view('admin.catalog.category', $data);
     }
 
 
@@ -120,11 +120,11 @@ class CategoryController extends Controller
 
         $data['list_url'] =route('lang.admin.catalog.categories.list');
 
-        return view('admin.common.term_list', $data);
+        return view('admin.catalog.category_list', $data);
     }
 
 
-    public function form($term_id = null)
+    public function form($category_id = null)
     {
         $data['lang'] = $this->lang;
   
@@ -160,21 +160,21 @@ class CategoryController extends Controller
         $data['autocomplete_url'] = route('lang.admin.catalog.categories.autocomplete');
 
         // Get Record
-        $term = $this->TermService->findIdOrFailOrNew($term_id);
+        $category = $this->TermService->findIdOrFailOrNew($category_id,['equal_taxonomy_code' => 'product_category']);
 
-        $data['term']  = $term;
+        $data['category']  = $category;
         
-        if(!empty($data['term']) && $term_id == $term->id){
-            $data['term_id'] = $term_id;
+        if(!empty($data['category']) && $category_id == $category->id){
+            $data['category_id'] = $category_id;
         }else{
-            $data['term_id'] = null;
+            $data['category_id'] = null;
         }
 
         // translations
-        if($term->translations->isEmpty()){
+        if($category->translations->isEmpty()){
             $translations = [];
         }else{
-            foreach ($term->translations as $translation) {
+            foreach ($category->translations as $translation) {
                 $translations[$translation->locale] = $translation->toArray();
             }
         }
@@ -182,7 +182,7 @@ class CategoryController extends Controller
         
         $data['taxonomy_code'] = 'product_category';
         
-        return view('admin.common.term_form', $data);
+        return view('admin.catalog.category_form', $data);
     }
 
 
@@ -197,7 +197,11 @@ class CategoryController extends Controller
         }
 
         if(!$json) {
+
+            $data['taxonomy_code'] = 'product_category';
+
             $result = $this->TermService->updateOrCreate($data);
+
             if(empty($result['error'])){
                 $json = [
                     'term_id' => $result['term_id'],
@@ -217,10 +221,11 @@ class CategoryController extends Controller
 
     public function autocomplete()
     {
+        $query_data = $this->request->query();
+
         $queries = $this->getQueries($this->request->query());
 
         $queries['pagination'] = false;
-        $queries['whereIn'] = ['taxonomy_code' => ['product_category']];
 
         // Rows
         $rows = $this->TermService->getRows($queries);
@@ -228,6 +233,10 @@ class CategoryController extends Controller
         $json = [];
 
         foreach ($rows as $row) {
+            if(!empty($query_data['exclude_id']) && $query_data['exclude_id'] == $row->id){
+                continue;
+            }
+
             $json[] = array(
                 'term_id' => $row->id,
                 'code' => $row->code,

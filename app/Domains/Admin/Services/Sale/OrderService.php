@@ -153,7 +153,7 @@ class OrderService extends Service
 
     public function getAllOrderTags()
     {
-        $tags = Term::where('taxonomy_code', 'order_tags')->with('translation')->get();
+        $tags = Term::where('taxonomy_code', 'order_tag')->with('translation')->get();
         return $tags;
     }
 
@@ -282,11 +282,11 @@ class OrderService extends Service
             }
 
             // 標籤
-            if(!empty($data['order_tags'])){
-                if(!is_array($data['order_tags'])){
-                    $tags = explode(',', $data['order_tags']);
+            if(!empty($data['order_tag'])){
+                if(!is_array($data['order_tag'])){
+                    $tags = explode(',', $data['order_tag']);
                 }else{
-                    $tags = $data['order_tags'];
+                    $tags = $data['order_tag'];
                 }
 
                 foreach ($tags as $key => $tag) {

@@ -19,12 +19,12 @@ class GovUniformInvoiceNumberService extends Service
         $this->lang = (new TranslationLibrary())->getTranslations(['admin/sysdata/order',]);
 	}
 
-    public function getRow($data=[],$debug=0)
+    public function getRow($data,$debug=0)
     {
         if(!empty($data['filter_uniform_invoice_no'])){
             $uniform_invoice_no = $data['filter_uniform_invoice_no'];
             $cacheName = 'uniform_invoice_no_' . substr($uniform_invoice_no,-2);
-            $records = Cache::get($cacheName);
+            $records = cache()->get($cacheName);
 
             if (isset($records[$uniform_invoice_no])) {
                 // 若有，則取得指定的記錄

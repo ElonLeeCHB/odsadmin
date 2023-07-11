@@ -46,7 +46,7 @@
 					<div class="mb-3">
 						<label class="form-label">{{ $lang->column_is_active }}</label>
 						<select name="filter_is_active" id="input-filter_is_active" class="form-select">
-                            <option value="-1"> -- </option>
+                            <option value="*"> -- </option>
                             <option value="1" selected>{{ $lang->text_yes }}</option>
                             <option value="0">{{ $lang->text_no }}</option>
                           </select>

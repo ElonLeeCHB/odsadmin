@@ -78,6 +78,7 @@ return array (
 'column_created_time' => '建立時間',
 'column_updated_time' => '修改時間',
 'column_keyname' => '關鍵名稱',
+'column_keyword' => '關鍵字',
 
 // Entry
 'entry_enable' => '啟用',

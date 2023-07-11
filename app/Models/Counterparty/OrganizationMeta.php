@@ -2,10 +2,10 @@
 /**
  * 本檔應廢棄，改用 App\Models\Common 裡面的
  */
-namespace App\Models\Organization;
+namespace App\Models\Counterparty;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Organization\Organization;
+use App\Models\Counterparty\Organization;
 
 class OrganizationMeta extends Model
 {

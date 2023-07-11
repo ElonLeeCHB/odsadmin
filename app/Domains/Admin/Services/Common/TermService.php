@@ -23,9 +23,10 @@ class TermService extends Service
             $term->parent_id = $data['parent_id'] ?? 0;
             $term->code = $data['code'] ?? '';
             $term->slug = $data['slug'] ?? '';
+            $term->comment = $data['comment'] ?? '';
             $term->taxonomy_code = $data['taxonomy_code'] ?? '';
-            $term->is_active = $data['is_active'] ?? 0;
             $term->sort_order = $data['sort_order'] ?? 100;
+            $term->is_active = $data['is_active'] ?? 0;
 
             $term->save();
 

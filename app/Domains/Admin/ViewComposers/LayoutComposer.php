@@ -288,7 +288,7 @@ class LayoutComposer
             $inventory[] = [
                 'name'	   => $this->lang->text_inventory_supplier,
                 'icon'	   => '',
-                'href'     => route('lang.admin.inventory.suppliers.index'),
+                'href'     => route('lang.admin.counterparty.suppliers.index'),
                 'children' => []
             ];
         }

@@ -52,7 +52,19 @@
                 <div class="col-sm-10">
                   <div class="input-group">
                     <?php /* 下面 taxearea 的內容請注意是否會產生多餘空格 */ ?>
-                    <textarea style="width:300px;height:500px;" id="input-sales_burrito_half_of_6_inch" name="sales_burrito_half_of_6_inch">{{ $sales_burrito_half_of_6_inch }}</textarea>
+                    <textarea style="width:300px;height:250px;" id="input-sales_burrito_half_of_6_inch" name="sales_burrito_half_of_6_inch">{{ $sales_burrito_half_of_6_inch }}</textarea>
+                  </div>
+                  <div class="form-text">(格式：代號,名稱)</div>
+                  <div id="error-code" class="invalid-feedback"></div>
+                </div>
+              </div>
+              
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">訂單備料表的顯示項目</label>
+                <div class="col-sm-10">
+                  <div class="input-group">
+                    <?php /* 下面 taxearea 的內容請注意是否會產生多餘空格 */ ?>
+                    <textarea style="width:300px;height:500px;" id="input-sales_ingredients_table_items" name="sales_ingredients_table_items">{{ $sales_ingredients_table_items }}</textarea>
                   </div>
                   <div class="form-text">(格式：代號,名稱)</div>
                   <div id="error-code" class="invalid-feedback"></div>

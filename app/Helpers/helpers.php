@@ -40,29 +40,32 @@ if(!function_exists('zhChsToCht')){
 }
 
 
-    /**
-     * $dateString = '2023-05-01', '20230501', '23-05-01', '230501'
-     * return yyyy-mm-dd
-     */
+
+/**
+ * $dateString = '2023-05-01', '20230501', '23-05-01', '230501'
+ * return yyyy-mm-dd
+ */
 if(!function_exists('parseDate')){
-    function parseDate(String $dateString, $type = 'string')
-    {        
+    function parseDate(String $dateString)
+    {
         // Only allow numbers and - and / and :
         if(!preg_match('/^[0-9\-\/:]+$/', $dateString, $matches)){
             return false;
         }
 
         // Only get numbers
-        $dateString = preg_replace('#-|\/#','',$dateString);
+        $matches = [];
+        preg_match_all('/\d+/', $dateString, $matches);
+        $dateString = implode('', $matches[0]);
 
         // Get full string
         $year = (int)substr($dateString, 0, -4);
         $year = $year < 2000 ? $year+2000 : $year;
-        $dateString = $year . '-' . substr($dateString, -4, -2) . '-' . substr($dateString, -2);
 
-        $validDateString = date('Y-m-d', strtotime($dateString));
+        $newDateString = $year . '-' . substr($dateString, -4, -2) . '-' . substr($dateString, -2);
+        $validDateString = date('Y-m-d', strtotime($newDateString));
 
-        if($validDateString == $dateString){
+        if($validDateString == $newDateString){
             return $validDateString;
         }else{
 			return false;
@@ -71,13 +74,22 @@ if(!function_exists('parseDate')){
 }
 
 // '2023-03-27' or '2023-03-27 00:00:00' to 230327
-if(!function_exists('parseDateTo6d')){
+if(!function_exists('parseDateStringTo6d')){
     function parseDateStringTo6d($dateString)
     {
-        preg_match_all('/\d+/', $dateString, $matches);
-        $dateString = implode('', $matches[0]);
-        $dateString = substr($dateString,2);
-        return $dateString;
+        $dateYmd = parseDate($dateString); // yyyy-mm-dd
+
+        if($dateYmd){
+            preg_match_all('/\d+/', $dateString, $matches);
+            $dateString = implode('', $matches[0]);
+            $date2ymd = substr($dateString, -6);
+        }
+        
+        if(!empty($date2ymd)){
+            return $date2ymd;
+        }else{
+            return false;
+        }
     }
 }
 

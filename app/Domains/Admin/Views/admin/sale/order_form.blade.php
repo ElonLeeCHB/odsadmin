@@ -184,7 +184,7 @@
                         </td>
                         <td class="text-end colname-font">訂單標籤</td>
                         <td class="text-start">
-                          <select id="input-order_tags" name="order_tags[]" class="select2-multiple form-control" multiple="multiple">
+                          <select id="input-order_tag" name="order_tag[]" class="select2-multiple form-control" multiple="multiple">
 
                           </select><BR>
                           <div class="selOrderTag">
@@ -295,7 +295,7 @@
                   </div>
               </fieldset>
 
-              <label for="input-old_code" class="form-check-label">舊訂單編號(紙本)</label>
+              <label for="input-old_code" class="form-check-label">紙本訂單編號</label>
               <input type="text" id="input-old_code" name="old_code" value="{{ $order->old_code }}"><BR>
               建單時間：{{ $order->created_at }}<BR>
               修改時間：{{ $order->updated_at }}
@@ -329,7 +329,7 @@
                 </div>
 
                 <div class="table-responsive">
-                  <span style="color:red">* 素食商品請手動新增配菜數量</span>
+                  <span style="color:red">* 素食商品請注意配菜數量</span>
 
                   <table id="order_products" class="table table-bordered table-hover">
                     <tbody id="tbody_order_products">
@@ -421,7 +421,7 @@
             @foreach($order_extra_comment_phrases as $phrase)
             <tr>
               <td class="phrase sorting_1">{{ $phrase->sort_order }}</td>
-              <td class="phrase sorting_2" data-phrase-column="extra_comment">{{ $phrase->translation->name }}</td>
+              <td class="phrase sorting_2" data-phrase-column="extra_comment">{{ $phrase->name }}</td>
             </tr>
             @endforeach
           </tbody>
@@ -517,7 +517,7 @@ $(document).ready(function() {
 var orderTagBtnTxt = '   ';
 var qStr = '';
 $('.selOrderTag button').on('click', function(){
-  var addStr = $('#input-order_tags').val();
+  var addStr = $('#input-order_tag').val();
   var buttonText = $(this).text();
   if(buttonText=='清'){
     orderTagBtnTxt = '  ';
@@ -529,7 +529,7 @@ $('.selOrderTag button').on('click', function(){
 
 $(function () {
   //已存的訂單標籤
-  @foreach($order_tags as $tag)
+  @foreach($order_tag ?? [] as $tag)
     $('.select2-multiple').append(new Option('{{ $tag }}','{{ $tag }}',true,true));
   @endforeach
 
@@ -1027,12 +1027,13 @@ function myBeforeUnload(event){
     var total = $('#input-product-'+this_product_row+'-total').val().toNum();
     var final_total = parseFloat(total) + parseFloat(options_total);
     $('#input-product-'+this_product_row+'-final_total').val(final_total);
+    
     //console.log('options_with_qty: this_product_row='+this_product_row+', options_total='+options_total+', total='+total+', final_total='+final_total)
   });
 
   // -- 選項函數
   function calcProductOptionTotal(this_product_row){
-    var options_total = 0
+    var options_total = 0;
     $('#product-row-'+this_product_row).find('input[data-element="options_with_qty"]').each(function() {
       var option_qty = $(this).val().toNum();
       var option_price = $(this).data('option-price');
@@ -1106,6 +1107,9 @@ function myBeforeUnload(event){
     $('#input-product-'+this_product_row+'-main_meal_quantity').val(main_meal_quantity);
     $('#input-product-'+this_product_row+'-main_meal_quantity_no_veg').val(main_meal_quantity_no_veg);
     $('#input-product-'+this_product_row+'-unassigned_qty').val(unassigned_qty);
+    
+    
+    $('#input-product-'+this_product_row+'-burrito_total').text(main_meal_quantity);
     return main_meal_quantity;
   }
 

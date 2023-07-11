@@ -42,7 +42,7 @@ trait InitController
 
         // equals_
         foreach($data as $key => $value){
-            if(strpos($key, 'equals_') !== false){
+            if(strpos($key, 'equal_') !== false){
                 $queries[$key] = $value;
             }
         }

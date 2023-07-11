@@ -302,9 +302,9 @@ class OrderController extends Controller
         $data['location_id'] = 2;
 
         //訂單標籤
-        $order_tags = $this->OrderService->getOrderTagsByOrderId($order_id);
+        $order_tag = $this->OrderService->getOrderTagsByOrderId($order_id);
 
-        $data['order_tags'] = $order_tags;
+        $data['order_tag'] = $order_tag;
 
         //常用片語
         $data['order_comment_phrases'] = $this->OrderService->getOrderPhrases('phrase_order_comment');

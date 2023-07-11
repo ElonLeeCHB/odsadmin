@@ -76,7 +76,7 @@
             $quantity = $order_product_options[$order_product_id][$poid][$povid]['sub'][$parent_povid]['quantity'] ?? 0;
           @endphp
           {{ $product_option_value->name }} 
-          <input type="text"   name="order_products[{{ $product_row }}][order_product_options][{{ $poid }}][product_option_values][{{ $povid }}][parent_povid][{{ $parent_povid }}][quantity]" value="{{ $quantity }}" style="width:38px;" class="text-start"><BR>
+          <input type="text"   name="order_products[{{ $product_row }}][order_product_options][{{ $poid }}][product_option_values][{{ $povid }}][parent_povid][{{ $parent_povid }}][quantity]" value="{{ $quantity }}" style="width:38px;" class="text-start input-drink"><BR>
           <input type="hidden" name="order_products[{{ $product_row }}][order_product_options][{{ $poid }}][product_option_values][{{ $povid }}][parent_povid][{{ $parent_povid }}][value]" value="{{ $value }}">
           <input type="hidden" name="order_products[{{ $product_row }}][order_product_options][{{ $poid }}][product_option_values][{{ $povid }}][parent_povid][{{ $parent_povid }}][parent_povid]" value="{{ $parent_povid }}">
           <input type="hidden" name="order_products[{{ $product_row }}][order_product_options][{{ $poid }}][product_option_values][{{ $povid }}][parent_povid][{{ $parent_povid }}][parent_pov_name]" value="{{ $parent_pov_name }}">
@@ -186,4 +186,13 @@
     </tr>
     {{-- end 商品備註 --}}
 
+    {{-- 統計內容 --}}
+      <tr>
+        <td colspan="9">
+          主餐潤餅數量：<span id="input-product-{{ $product_row }}-burrito_total">333</span>, &nbsp;飲料數量：<span id="input-product-{{ $product_row }}-drink_total">333</span>
+        </td>
+      </tr>
+      {{-- end 統計內容 --}}
+
 </table>
+<BR>

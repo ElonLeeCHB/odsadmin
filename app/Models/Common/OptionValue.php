@@ -22,6 +22,7 @@ class OptionValue extends Model
     public $translatedAttributes = ['name','short_name'];
 
 
+    //選項值對應的商品代號
     public function product()
     {
         return $this->belongsTo(Product::class);

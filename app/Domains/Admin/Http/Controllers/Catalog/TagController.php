@@ -56,7 +56,7 @@ class TagController extends Controller
         $data['add_url'] = route('lang.admin.catalog.tags.form');
         $data['delete_url'] = route('lang.admin.catalog.tags.delete');
 
-        return view('admin.common.term', $data);
+        return view('admin.catalog.tag', $data);
     }
 
 
@@ -73,17 +73,17 @@ class TagController extends Controller
         // Prepare link for action
         $queries = $this->getQueries($this->request->query());
 
-        $queries['whereIn'] = ['taxonomy_code' => ['product_tags']];
+        $queries['whereIn'] = ['taxonomy_code' => ['product_tag']];
 
         // rows
         $terms = $this->TermService->getRows($queries);
         if(!empty($terms)){
             foreach ($terms as $row) {
-                $row->edit_url = route('lang.admin.catalog.categories.form', array_merge([$row->id], $queries));
+                $row->edit_url = route('lang.admin.catalog.tags.form', array_merge([$row->id], $queries));
             }
         }
 
-        $data['terms'] = $terms->withPath(route('lang.admin.catalog.categories.list'))->appends($queries);
+        $data['terms'] = $terms->withPath(route('lang.admin.catalog.tags.list'))->appends($queries);
 
         // Prepare links for list table's header
         if($queries['order'] == 'ASC'){
@@ -117,9 +117,9 @@ class TagController extends Controller
         $data['sort_is_active'] = $route . "?sort=is_active&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
 
-        $data['list_url'] =route('lang.admin.catalog.categories.list');
+        $data['list_url'] =route('lang.admin.catalog.tags.list');
 
-        return view('admin.common.term_list', $data);
+        return view('admin.catalog.tag_list', $data);
     }
 
 
@@ -154,18 +154,12 @@ class TagController extends Controller
         // Prepare link for save, back
         $queries = $this->getQueries($this->request->query());
 
-        $data['save_url'] = route('lang.admin.catalog.categories.save');
-        $data['back_url'] = route('lang.admin.catalog.categories.index', $queries);   
-        $data['autocomplete_url'] = route('lang.admin.catalog.categories.autocomplete');
+        $data['save_url'] = route('lang.admin.catalog.tags.save');
+        $data['back_url'] = route('lang.admin.catalog.tags.index', $queries);   
+        $data['autocomplete_url'] = route('lang.admin.catalog.tags.autocomplete');
 
         // Get Record
-        $term = $this->TermService->findIdOrFailOrNew($term_id);
-
-        if($term->taxonomy && $term->taxonomy->name){
-            $term->taxonomy_name = $term->taxonomy->name;
-        }else{
-            $term->taxonomy_name = '';
-        }
+        $term = $this->TermService->findIdOrFailOrNew($term_id,['equal_taxonomy_code' => 'product_tag']);
 
         $data['term']  = $term;
         
@@ -187,7 +181,7 @@ class TagController extends Controller
 
         $data['taxonomy_code'] = 'product_tags';
         
-        return view('admin.common.term_form', $data);
+        return view('admin.catalog.tag_form', $data);
     }
 
 
@@ -202,12 +196,15 @@ class TagController extends Controller
         }
 
         if(!$json) {
+            
+            $data['taxonomy_code'] = 'product_tag';
+
             $result = $this->TermService->updateOrCreate($data);
             if(empty($result['error'])){
                 $json = [
                     'term_id' => $result['term_id'],
                     'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.catalog.categories.form', $result['term_id']),
+                    'redirectUrl' => route('lang.admin.catalog.tags.form', $result['term_id']),
                 ];
             }else if(auth()->user()->username == 'admin'){
                 $json['warning'] = $result['error'];
@@ -222,10 +219,11 @@ class TagController extends Controller
 
     public function autocomplete()
     {
+        $query_data = $this->request->query();
+
         $queries = $this->getQueries($this->request->query());
 
         $queries['pagination'] = false;
-        $queries['whereIn'] = ['taxonomy_code' => ['product_tags']];
 
         // Rows
         $rows = $this->TermService->getRows($queries);
@@ -233,6 +231,9 @@ class TagController extends Controller
         $json = [];
 
         foreach ($rows as $row) {
+            if(!empty($query_data['exclude_id']) && $query_data['exclude_id'] == $row->id){
+                continue;
+            }
             $json[] = array(
                 'term_id' => $row->id,
                 'code' => $row->code,
