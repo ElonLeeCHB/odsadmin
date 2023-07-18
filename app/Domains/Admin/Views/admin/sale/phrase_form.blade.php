@@ -12,7 +12,7 @@
     <div class="page-header">
       <div class="container-fluid">
         <div class="float-end">
-          <button type="submit" form="form-category" data-bs-toggle="tooltip" title="儲存" class="btn btn-primary"><i class="fa fa-save"></i></button>
+          <button type="submit" form="form-phrase" data-bs-toggle="tooltip" title="儲存" class="btn btn-primary"><i class="fa fa-save"></i></button>
           <a href="{{ $back_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_back }}" class="btn btn-light"><i class="fas fa-reply"></i></a>
         </div>
         <h1>{{ $lang->heading_title }}</h1>
@@ -27,7 +27,7 @@
               <li class="nav-item"><a href="#tab-general" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_general }}</a></li>
               <li class="nav-item"><a href="#tab-data" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_data }}</a></li>
             </ul>
-            <form id="form-category" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
+            <form id="form-phrase" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
               @csrf
               @method('POST')
 

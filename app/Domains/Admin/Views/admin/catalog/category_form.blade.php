@@ -70,7 +70,7 @@
               </div>
 
               <div id="tab-general" class="tab-pane">
-                {{-- main column_code--}}
+                {{-- column_code--}}
                 <div class="row mb-3">
                   <label class="col-sm-2 col-form-label">{{ $lang->column_code }}</label>
                   <div class="col-sm-10">
@@ -93,6 +93,17 @@
                     <input type="hidden" id="input-parent_id" name="parent_id" value="{{ $category->parent_id }}" />
                     <ul id="autocomplete-parent_name" class="dropdown-menu"></ul>
                     <div class="form-text"></div><?php /* help text */ ?>
+                  </div>
+                </div>
+                
+                {{-- comment --}}
+                <div class="row mb-3">
+                  <label for="input-comment" class="col-sm-2 col-form-label">備註</label>
+                  <div class="col-sm-10">
+                    <div class="input-group">
+                      <input type="text" id="input-comment" name="comment" value="{{ $category->comment }}" class="form-control">
+                    </div>
+                    <div id="error-comment" class="invalid-feedback"></div>
                   </div>
                 </div>
 

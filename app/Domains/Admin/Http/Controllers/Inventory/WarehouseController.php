@@ -4,23 +4,18 @@ namespace App\Domains\Admin\Http\Controllers\Inventory;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Libraries\TranslationLibrary;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Admin\Services\Inventory\WarehouseService;
 
-class WarehouseController extends Controller
+class WarehouseController extends BackendController
 {
-    private $lang;
-    private $request;
-    private $service;
-
-    public function __construct(Request $request, WarehouseService $service)
+    public function __construct(private Request $request, private WarehouseService $WarehouseService)
     {
-        $this->request = $request;
-        $this->service = $service;
-
-        // Translations
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/inventory/warehouse',]);
+        parent::__construct();
+        
+        $this->getLang(['admin/common/common','admin/inventory/warehouse']);
     }
+
 
     public function index()
     {
@@ -59,77 +54,90 @@ class WarehouseController extends Controller
         return $this->getList();
     }
 
-    public function getList()
+    private function getList()
     {
         $data['lang'] = $this->lang;
 
-        // Prepare link for action
-        $queries = [];
+        $url_query_data = $this->request->query();
+        
+        // Prepare queries for records
+        $query_data = [];
 
-        if(!empty($this->request->query('sort'))){
-            $sort = $queries['sort'] = $this->request->input('sort');
+        if(isset($url_query_data['sort'])){
+            $query_data['sort'] = $url_query_data['sort'];
         }else{
-            $sort = $queries['sort'] = 'sort_order';
+            $query_data['sort'] = 'id';
         }
 
-        if(!empty($this->request->query('order'))){
-            $order = $queries['order'] = $this->request->query('order');
+        if(isset($url_query_data['order'])){
+            $query_data['order'] = $url_query_data['order'];
         }else{
-            $order = $queries['order'] = 'ASC';
+            $query_data['order'] = 'asc';
         }
 
-        if(!empty($this->request->query('page'))){
-            $queries['page'] = $this->request->input('page');
+        if(isset($url_query_data['page'])){
+            $query_data['page'] = $url_query_data['page'];
         }else{
-            $queries['page'] = 1;
+            $query_data['page'] = 1;
         }
 
-        if(!empty($this->request->query('limit'))){
-            $queries['limit'] = $this->request->query('limit');
-        }
-
-        foreach($this->request->all() as $key => $value){
+        foreach($url_query_data as $key => $value){
             if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
+                $query_data[$key] = $value;
+            }
+
+            if(strpos($key, 'equal_') !== false){
+                $query_data[$key] = $value;
             }
         }
 
+        // Default is_active to 1
+        if(!isset($url_query_data['equal_is_active'])){
+            $query_data['equal_is_active'] = 1;
+        }else{
+            $query_data['equal_is_active'] = $url_query_data['equal_is_active'];
+        }
+        
+
         // Rows
-        $warehouses = $this->service->getRows($queries);
+        $warehouses = $this->WarehouseService->getRows($query_data);
 
         foreach ($warehouses as $row) {
-            $row->edit_url = route('lang.admin.inventory.warehouses.form', array_merge([$row->id], $queries));
+            $row->edit_url = route('lang.admin.inventory.warehouses.form', array_merge([$row->id], $query_data));
             $row->is_active = ($row->is_active==1) ? $this->lang->text_enabled :$this->lang->text_disabled;
         }
 
         $data['warehouses'] = $warehouses;
 
         // Prepare links for sort on list table's header
-        if($order == 'ASC'){
-            $order = 'DESC';
+        if($query_data['order'] == 'ASC'){
+            $query_data['order'] = 'DESC';
         }else{
-            $order = 'ASC';
+            $query_data['order'] = 'ASC';
         }
         
-        $data['sort'] = strtolower($sort);
-        $data['order'] = strtolower($order);
+        $data['sort'] = strtolower($query_data['sort']);
+        $data['order'] = strtolower($query_data['order']);
 
-        unset($queries['sort']);
-        unset($queries['order']);
+        unset($query_data['sort']);
+        unset($query_data['order']);
 
         $url = '';
 
-        foreach($queries as $key => $value){
+        foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
         
         //link of table header for sorting
         $route = route('lang.admin.inventory.warehouses.list');
 
+        $order = $url_query_data['order'] ?? 'ASC';
+
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_code'] = $route . "?sort=code&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_is_active'] = $route . "?sort=is_active&order=$order" .$url;
+        $data['sort_sort_order'] = $route . "?sort=sort_order&order=$order" .$url;
         
         $data['list_url'] = route('lang.admin.inventory.warehouses.list');
         
@@ -196,7 +204,7 @@ class WarehouseController extends Controller
         $data['back_url'] = route('lang.admin.inventory.warehouses.index', $queries);        
 
         // Get Record
-        $warehouse = $this->service->findIdOrFailOrNew($warehouse_id);
+        $warehouse = $this->WarehouseService->findIdOrFailOrNew($warehouse_id);
 
         $data['warehouse']  = $warehouse;
 
@@ -226,7 +234,7 @@ class WarehouseController extends Controller
         }
 
         if(!$json) {
-            $result = $this->service->updateOrCreate($data);
+            $result = $this->WarehouseService->updateOrCreate($data);
 
             if(empty($result['error']) && !empty($result['warehouse_id'])){
                 $json = [
@@ -251,7 +259,46 @@ class WarehouseController extends Controller
 
     public function delete()
     {
+        $this->initController();
 
+        $post_data = $this->request->post();
+
+		$json = [];
+
+        // Permission
+        if($this->acting_username !== 'admin'){
+            $json['error'] = $this->lang->error_permission;
+        }
+
+        // Selected
+		if (isset($post_data['selected'])) {
+			$selected = $post_data['selected'];
+		} else {
+			$selected = [];
+		}
+
+		if (!$json) {
+
+			foreach ($selected as $category_id) {
+				$result = $this->WarehouseService->deleteWarehouse($category_id);
+
+                if(!empty($result['error'])){
+                    if(config('app.debug')){
+                        $json['error'] = $result['error'];
+                    }else{
+                        $json['error'] = $this->lang->text_fail;
+                    }
+
+                    break;
+                }
+			}
+		}
+        
+        if(empty($json['error'] )){
+            $json['success'] = $this->lang->text_success;
+        }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
     }
 
 }

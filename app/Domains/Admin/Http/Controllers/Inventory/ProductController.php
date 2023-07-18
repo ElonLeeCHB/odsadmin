@@ -56,7 +56,7 @@ class ProductController extends Controller
         ];
         
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_product,
+            'text' => $this->lang->text_inventory,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
@@ -68,6 +68,10 @@ class ProductController extends Controller
 
         $data['breadcumbs'] = (object)$breadcumbs;
         $data['list'] = $this->getList();
+
+        $data['list_url']   = route('lang.admin.inventory.products.list');
+        $data['add_url']    = route('lang.admin.inventory.products.form');
+        $data['delete_url'] = route('lang.admin.inventory.products.delete');
 
         return view('admin.inventory.product', $data);
     }

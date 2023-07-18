@@ -2,7 +2,11 @@
 
 namespace App\Repositories\Eloquent\Catalog;
 
+use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
+use App\Models\Common\Term;
+use App\Models\Common\TermTranslation;
+use App\Models\Common\TermRelation;
 
 class CategoryRepository extends Repository
 {

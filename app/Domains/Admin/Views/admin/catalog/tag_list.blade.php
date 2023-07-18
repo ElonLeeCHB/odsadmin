@@ -1,8 +1,9 @@
-<form id="form-term" method="post" data-oc-toggle="ajax" data-oc-load="{{ $list_url }} data-oc-target="#store">
+<form id="form-term" method="post" data-oc-toggle="ajax" data-oc-load="{{ $list_url }}" data-oc-target="#term">
 	<div class="table-responsive">
 		<table class="table table-bordered table-hover">
 			<thead>
 				<tr>
+				  <td class="text-center" style="width: 1px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></td>
 					<td class="text-start"><a href="{{ $sort_id }}" @if($sort=='id') class="{{ $order }}" @endif>{{ $lang->column_id }}</a></td>
 					<td class="text-start"><a href="{{ $sort_code }}" @if($sort=='code') class="{{ $order }}" @endif>{{ $lang->column_code }}</a></td>
 					<td class="text-start"><a href="{{ $sort_name }}" @if($sort=='name') class="{{ $order }}" @endif>{{ $lang->column_name }}</a></td>
@@ -11,8 +12,9 @@
 				</tr>
 			</thead>
 			<tbody>
-				@foreach($terms as $term)
-                <tr>
+				@foreach($tags as $term)
+        <tr>
+          <td class="text-center"><input type="checkbox" name="selected[]" value="{{ $term->id }}" class="form-check-input"/></td>
 					<td class="text-start">{{ $term->id }}</td>
 					<td class="text-start">{{ $term->code }}</td>
 					<td class="text-start">{{ $term->name }}</td>
@@ -23,5 +25,5 @@
             </tbody>
 		</table>
 	</div>
-  {!! $terms->links('admin.pagination.default', ['terms'=>$terms]) !!}
+  {!! $tags->links('admin.pagination.default', ['tags' => $tags]) !!}
 </form>

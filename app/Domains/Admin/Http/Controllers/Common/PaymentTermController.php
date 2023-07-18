@@ -2,28 +2,20 @@
 
 namespace App\Domains\Admin\Http\Controllers\Common;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Libraries\TranslationLibrary;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
 use App\Domains\Admin\Services\Common\PaymentTermService;
 
-class PaymentTermController extends Controller
+class PaymentTermController extends BackendController
 {
-    private $request;
-    private $lang;
-    private $LanguageRepository;
-    private $PaymentTermService;
-
-
-    public function __construct(Request $request, PaymentTermService $PaymentTermService, LanguageRepository $LanguageRepository)
+    public function __construct(private Request $request, private PaymentTermService $PaymentTermService)
     {
-        $this->request = $request;
-        $this->PaymentTermService = $PaymentTermService;
-        $this->LanguageRepository = $LanguageRepository;
-
-        // Translations
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/common/payment_term']);
+        parent::__construct();
+        
+        $this->getLang(['admin/common/common','admin/common/payment_term']);
     }
 
     public function index()
@@ -63,43 +55,15 @@ class PaymentTermController extends Controller
         return $this->getList();
     }
 
-    public function getList()
+    private function getList()
     {
         $data['lang'] = $this->lang;
 
         // Prepare link for action
-        $queries = [];
-
-        if(!empty($this->request->query('sort'))){
-            $sort = $queries['sort'] = $this->request->input('sort');
-        }else{
-            $sort = $queries['sort'] = 'id';
-        }
-
-        if(!empty($this->request->query('order'))){
-            $order = $queries['order'] = $this->request->query('order');
-        }else{
-            $order = $queries['order'] = 'asc';
-        }
-
-        if(!empty($this->request->query('page'))){
-            $queries['page'] = $this->request->input('page');
-        }else{
-            $queries['page'] = 1;
-        }
-
-        if(!empty($this->request->query('limit'))){
-            $queries['limit'] = $this->request->query('limit');
-        }
-
-        foreach($this->request->all() as $key => $value){
-            if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
-            }
-        }
+        $query_data = $this->getQueries($this->request->query());
 
         // Rows
-        $payment_terms = $this->PaymentTermService->getRows($queries);
+        $payment_terms = $this->PaymentTermService->getRows($query_data);
 
         $trans_type_array = [
             1 => '1:銷售',
@@ -113,29 +77,32 @@ class PaymentTermController extends Controller
         ];
 
         foreach ($payment_terms as $row) {
-            $row->edit_url = route('lang.admin.common.payment_terms.form', array_merge([$row->id], $queries));
+            $row->edit_url = route('lang.admin.common.payment_terms.form', array_merge([$row->id], $query_data));
             $row->due_date_basis_name = $trans_due_date_basis_array[$row->due_date_basis];
             $row->type_name = $trans_type_array[$row->type];
             $row->is_active_text = $row->is_active ? $this->lang->text_enabled : $this->lang->text_disabled;
         }
-        $data['payment_terms'] = $payment_terms->withPath(route('lang.admin.common.payment_terms.list'))->appends($queries);
+        
+        $data['payment_terms'] = $payment_terms->withPath(route('lang.admin.common.payment_terms.list'))->appends($query_data);
 
-        // Prepare links for sort on list table's header
-        if($order == 'ASC'){
+        // Prepare links for list table's header
+        if($query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($sort);
+        $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
-        unset($queries['sort']);
-        unset($queries['order']);
+        unset($query_data['sort']);
+        unset($query_data['order']);
+        unset($query_data['with']);
+        unset($query_data['whereIn']);
 
         $url = '';
 
-        foreach($queries as $key => $value){
+        foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
         
@@ -157,9 +124,6 @@ class PaymentTermController extends Controller
     public function form($payment_term_id = null)
     {
         $data['lang'] = $this->lang;
-
-        // Languages dropdown menu
-        $data['languages'] = $this->LanguageRepository->newModel()->active()->get();
 
         $this->lang->text_form = empty($payment_term_id) ? $this->lang->trans('text_add') : $this->lang->trans('text_edit');
 
@@ -240,6 +204,10 @@ class PaymentTermController extends Controller
             $json['error']['name'] = $this->lang->error_name;
         }
 
+        if(empty($data['type'])){
+            $json['error']['type'] = $this->lang->error_type;
+        }
+
         if(empty($data['due_date_basis'])){
             $json['error']['due_date_basis'] = $this->lang->error_due_date_basis;
         }
@@ -271,4 +239,48 @@ class PaymentTermController extends Controller
        return response(json_encode($json))->header('Content-Type','application/json');
     }
 
+
+    public function delete()
+    {
+        $this->initController();
+
+        $post_data = $this->request->post();
+
+		$json = [];
+
+        // Permission
+        if($this->acting_username !== 'admin'){
+            $json['error'] = $this->lang->error_permission;
+        }
+
+        // Selected
+		if (isset($post_data['selected'])) {
+			$selected = $post_data['selected'];
+		} else {
+			$selected = [];
+		}
+
+		if (!$json) {
+
+			foreach ($selected as $category_id) {
+				$result = $this->PaymentTermService->deletePaymentTerm($category_id);
+
+                if(!empty($result['error'])){
+                    if(config('app.debug')){
+                        $json['error'] = $result['error'];
+                    }else{
+                        $json['error'] = $this->lang->text_fail;
+                    }
+
+                    break;
+                }
+			}
+		}
+        
+        if(empty($json['error'] )){
+            $json['success'] = $this->lang->text_success;
+        }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
+    }
 }

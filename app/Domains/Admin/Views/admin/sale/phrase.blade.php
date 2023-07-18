@@ -4,7 +4,7 @@
 @endsection
 
 @section('columnLeft')
-	@include('admin.common.column_left')
+  @include('admin.common.column_left')
 @endsection
 
 @section('content')
@@ -13,7 +13,8 @@
     <div class="container-fluid">
       <div class="float-end">
         <button type="button" data-bs-toggle="tooltip" title="{{ $lang->text_filter }}" onclick="$('#filter-phrase').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fas fa-filter" style="font-size:18px"></i></button>
-        <a href="{{ $add_url }}" data-bs-toggle="tooltip" title="Add New" class="btn btn-primary"><i class="fas fa-plus"></i></a>
+        <a href="{{ $add_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fas fa-plus"></i></a>
+        <button type="submit" form="form-phrase" formaction="{{ $delete_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_delete }}" onclick="return confirm('{{ $lang->text_confirm }}');" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
       </div>
       <h1>{{ $lang->heading_title }}</h1>
       @include('admin.common.breadcumb')
@@ -26,27 +27,31 @@
           <div class="card">
             <div class="card-header"><i class="fas fa-filter"></i>  {{ $lang->text_filter }}</div>
             <div class="card-body">
+
               <div class="mb-3">
                 <label class="form-label">{{ $lang->column_name }}</label>
                 <input type="text" name="filter_name" value="" placeholder="{{ $lang->column_name }}" id="input-name" list="list-name" class="form-control"/>
                 <datalist id="list-name"></datalist>
               </div>
+
               <div class="mb-3">
                 <label class="form-label">{{ $lang->column_taxonomy }}</label>
                 <select name="filter_taxonomy_code" id="input-filter_taxonomy_code" class="form-select">
-                  <option value=""> -- </option>
+                  <option value="">{{ $lang->text_select }}</option>
                   <option value="phrase_order_comment">客戶備註</option>
                   <option value="phrase_order_extra_comment">餐點備註</option>
                 </select>
               </div>
+
               <div class="mb-3">
                 <label class="form-label">{{ $lang->column_is_active }}</label>
-                <select name="filter_is_active" id="input-filter_is_active" class="form-select">
-                  <option value=""> -- </option>
-                  <option value="1">{{ $lang->text_yes }}</option>
+                <select name="equal_is_active" id="input-equal_is_active" class="form-select">
+                  <option value="">{{ $lang->text_select }}</option>
+                  <option value="1" selected>{{ $lang->text_yes }}</option>
                   <option value="0">{{ $lang->text_no }}</option>
                 </select>
               </div>
+
               <div class="text-end">
                 <button type="button" id="button-filter" class="btn btn-light"><i class="fas fa-filter"></i> {{ $lang->text_filter }}</button>
               </div>
@@ -68,19 +73,19 @@
 @section('buttom')
 <script type="text/javascript"><!--
 $('#phrase').on('click', 'thead a, .pagination a', function(e) {
-	e.preventDefault();
+  e.preventDefault();
 
-	$('#phrase').load(this.href);
+  $('#phrase').load(this.href);
 });
 
 $('#button-filter').on('click', function() {
-	url = '';
+  url = '';
 
-	var filter_name = $('#input-name').val();
+  var filter_name = $('#input-name').val();
 
-	if (filter_name) {
-		url += '&filter_name=' + encodeURIComponent(filter_name);
-	}
+  if (filter_name) {
+    url += '&filter_name=' + encodeURIComponent(filter_name);
+  }
 
   var filter_taxonomy_code = $('#input-filter_taxonomy_code').val();
 
@@ -88,15 +93,15 @@ $('#button-filter').on('click', function() {
     url += '&filter_taxonomy_code=' + encodeURIComponent(filter_taxonomy_code);
   }
 
-	var filter_is_active = $('#input-filter_is_active').val();
+  var equal_is_active = $('#input-equal_is_active').val();
 
-	if (filter_is_active) {
-		url += '&filter_is_active=' + encodeURIComponent(filter_is_active);
-	}
+  if (equal_is_active) {
+    url += '&equal_is_active=' + encodeURIComponent(equal_is_active);
+  }
 
-	url = "{{ $list_url }}?" + url;
+  url = "{{ $list_url }}?" + url;
 
-	$('#phrase').load(url);
+  $('#phrase').load(url);
 });
 //--></script>
 @endsection

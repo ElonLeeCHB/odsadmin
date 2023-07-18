@@ -79,6 +79,12 @@ $('#button-filter').on('click', function() {
 		url += '&filter_name=' + encodeURIComponent(filter_name);
 	}
 
+  var equal_is_active = $('#input-equal_is_active').val();
+
+  if (equal_is_active) {
+    url += '&equal_is_active=' + encodeURIComponent(equal_is_active);
+  }
+
 	url = "{{ $list_url }}?" + url;
 
 	$('#term').load(url);

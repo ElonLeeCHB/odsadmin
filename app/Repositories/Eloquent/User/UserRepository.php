@@ -2,22 +2,26 @@
 
 namespace App\Repositories\Eloquent\User;
 
-use App\Domains\Admin\Traits\Eloquent;
+use Illuminate\Support\Facades\DB;
+use App\Traits\EloquentTrait;
 use App\Repositories\Eloquent\Repository;
 use App\Models\User\User;
+use App\Models\User\UserMeta;
+use App\Models\User\UserAddress;
 use App\Models\Common\Option;
 
 class UserRepository extends Repository
 {
-    use Eloquent;
+    use EloquentTrait;
 
     public $modelName = "\App\Models\User\User";
     
-    public function getAdminUsers($data,$debug=0)
+    
+    public function getAdminUsers($query_data,$debug=0)
     {
-        $users = User::whereHas('userMeta', function($query) {
-            $query->where('meta_key', 'is_admin')->where('meta_value', '1');
-        });
+        $query_data['whereHas']['userMeta'] = ['meta_key' => 'is_admin', 'meta_value' => 1];
+
+        $users = $this->getRows($query_data);
 
         return $users;
     }
@@ -48,4 +52,24 @@ class UserRepository extends Repository
 
         return $salutations;
     }
+
+
+    public function delete($user_id)
+    {
+        try {
+
+            DB::beginTransaction();
+
+            UserAddress::where('user_id', $user_id)->delete();
+            UserMeta::where('user_id', $user_id)->delete();
+            User::where('id', $user_id)->delete();
+
+            DB::commit();
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
+
 }

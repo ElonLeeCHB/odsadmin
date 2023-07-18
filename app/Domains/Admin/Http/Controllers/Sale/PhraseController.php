@@ -4,30 +4,17 @@ namespace App\Domains\Admin\Http\Controllers\Sale;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
-use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Common\TermService;
-use App\Traits\InitController;
 
-class PhraseController extends Controller
+class PhraseController extends BackendController
 {
-    use InitController;
-
-    private $request;
-    private $LanguageRepository;
-    private $TermService;
-    private $lang;
-
-    public function __construct(
-        Request $request
-        , TermService $TermService
-        , LanguageRepository $LanguageRepository
-        )
+    public function __construct(private Request $request, private TermService $TermService, private LanguageRepository $LanguageRepository)
     {
-        $this->request = $request;
-        $this->TermService = $TermService;
-        $this->LanguageRepository = $LanguageRepository;
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/common/phrase']);
+        parent::__construct();
+
+        $this->getLang(['admin/common/common','admin/common/term','admin/common/phrase']);
     }
 
     /**
@@ -81,7 +68,7 @@ class PhraseController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function getList()
+    private function getList()
     {
         $data['lang'] = $this->lang;
 
@@ -195,6 +182,7 @@ class PhraseController extends Controller
         return view('admin.sale.phrase_form', $data);
     }
     
+
     public function save()
     {
         $data = $this->request->all();
@@ -261,6 +249,49 @@ class PhraseController extends Controller
        return response(json_encode($json))->header('Content-Type','application/json');
     }
     
+
+    public function delete()
+    {
+        $this->initController();
+        
+        $post_data = $this->request->post();
+
+        $json = [];
+
+        if (isset($post_data['selected'])) {
+            $selected = $post_data['selected'];
+        } else {
+            $selected = [];
+        }
+
+        // Permission
+        if($this->acting_username !== 'admin'){
+            $json['error'] = $this->lang->error_permission;
+        }
+
+        if (!$json) {
+            foreach ($selected as $category_id) {
+                $result = $this->TermService->deleteTerm($category_id);
+
+                if(!empty($result['error'])){
+                    if(config('app.debug')){
+                        $json['warning'] = $result['error'];
+                    }else{
+                        $json['warning'] = $this->lang->text_fail;
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        if(empty($json['warning'] )){
+            $json['success'] = $this->lang->text_success;
+        }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
+    }
+
 
     public function autocomplete()
     {

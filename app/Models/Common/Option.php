@@ -20,7 +20,7 @@ class Option extends Model
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
 
-    public $translatedAttributes = ['name',];
+    public $translated_attributes = ['name',];
 
     public function option_values()
     {

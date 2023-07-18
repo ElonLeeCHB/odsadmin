@@ -5,19 +5,17 @@ namespace App\Domains\Admin\Http\Controllers\Member;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Member\MemberService;
-use App\Domains\Admin\Services\Organization\OrganizationService;
+use App\Domains\Admin\Services\Counterparty\OrganizationService;
 use App\Domains\Admin\Services\Localization\CountryService;
 use App\Domains\Admin\Services\Localization\DivisionService;
 use App\Domains\Admin\Services\Localization\AddressService;
 use App\Domains\Admin\Services\Common\OptionService;
-use Auth;
 
-class MemberController extends Controller
+class MemberController extends BackendController
 {
-    private $lang;
-    
     public function __construct(
         private Request $request
         , private MemberService $MemberService
@@ -28,12 +26,9 @@ class MemberController extends Controller
         , private OptionService $OptionService
         )
     {
-        // Translations
-        $groups = [
-            'admin/common/common',
-            'admin/member/member',
-        ];
-        $this->lang = (new TranslationLibrary())->getTranslations($groups);
+        parent::__construct();
+
+        $this->getLang(['admin/common/common','admin/member/member']);
     }
 
     /**
@@ -66,6 +61,10 @@ class MemberController extends Controller
 
         $data['list'] = $this->getList();
 
+        $data['list_url'] =route('lang.admin.member.members.list');
+        $data['add_url'] = route('lang.admin.member.members.form');
+        $data['delete_url'] = route('lang.admin.member.members.delete');
+
         return view('admin.member.member', $data);
     }
 
@@ -80,81 +79,57 @@ class MemberController extends Controller
 
     /**
      * Show the list table.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function getList()
+    private function getList()
     {
         $data['lang'] = $this->lang;
 
         // Prepare link for action
-        $queries = [];
+        $query_data = $this->getQueries($this->request->query());
 
-        if(!empty($this->request->query('page'))){
-            $page = $queries['page'] = $this->request->input('page');
-        }else{
-            $page = $queries['page'] = 1;
-        }
-
-        if(!empty($this->request->query('sort'))){
-            $sort = $queries['sort'] = $this->request->input('sort');
-        }else{
-            $sort = $queries['sort'] = 'id';
-        }
-
-        if(!empty($this->request->query('order'))){
-            $order = $queries['order'] = $this->request->query('order');
-        }else{
-            $order = $queries['order'] = 'DESC';
-        }
-
-        if(!empty($this->request->query('limit'))){
-            $limit = $queries['limit'] = $this->request->query('limit');
-        }
-
-        foreach($this->request->all() as $key => $value){
-            if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
-            }
-        }
-
-        unset($queries['sort']);
-        unset($queries['order']);
-
-        //$data['action'] = route('lang.admin.member.members.massDelete');
-
+        
         // Rows
-        $members = $this->MemberService->getMembers($queries);
+        $members = $this->MemberService->getMembers($query_data);
 
         if(!empty($members)){
             foreach ($members as $row) {
-                $row->edit_url = route('lang.admin.member.members.form', array_merge([$row->id], $queries));
+                $row->edit_url = route('lang.admin.member.members.form', array_merge([$row->id], $query_data));
             }
         }
 
-        $data['members'] = $members->withPath(route('lang.admin.member.members.list'))->appends($queries);
+        $data['members'] = $members->withPath(route('lang.admin.member.members.list'))->appends($query_data);
 
         // Prepare links for list table's header
-        if($order == 'ASC'){
+        if($query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
-
-        $data['sort'] = strtolower($sort);
+        
+        $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
+
+        unset($query_data['sort']);
+        unset($query_data['order']);
+        unset($query_data['with']);
+        unset($query_data['whereIn']);
 
         $url = '';
 
-        foreach($queries as $key => $value){
+        foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
 
         //link of table header for sorting
         $route = route('lang.admin.member.members.list');
+
+        $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
+        $data['sort_username'] = $route . "?sort=username&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
-        $data['sort_email'] = $route . "?sort=email&order=$order" .$url;
+        $data['sort_payment_company'] = $route . "?sort=payment_company&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
+
+        $data['list_url']   =  route('lang.admin.member.members.list');
 
         return view('admin.member.member_list', $data);
     }
@@ -331,6 +306,49 @@ class MemberController extends Controller
     }
 
 
+    public function delete()
+    {
+        $this->initController();
+        
+        $post_data = $this->request->post();
+
+        $json = [];
+
+        if (isset($post_data['selected'])) {
+            $selected = $post_data['selected'];
+        } else {
+            $selected = [];
+        }
+
+        // Permission
+        if($this->acting_username !== 'admin'){
+            $json['error'] = $this->lang->error_permission;
+        }
+
+        if (!$json) {
+            foreach ($selected as $member_id) {
+                $result = $this->MemberService->deleteMember($member_id);
+
+                if(!empty($result['error'])){
+                    if(config('app.debug')){
+                        $json['warning'] = $result['error'];
+                    }else{
+                        $json['warning'] = $this->lang->text_fail;
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        if(empty($json['warning'] )){
+            $json['success'] = $this->lang->text_success;
+        }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
+    }
+
+
     public function autocomplete()
     {
         $json = [];
@@ -375,7 +393,7 @@ class MemberController extends Controller
         $members = $this->MemberService->getMembers($filter_data);
 
         foreach ($members as $row) {
-            $row = $this->MemberService->parseShippingAddress($row);
+            //$row = $this->MemberService->parseShippingAddress($row);
 
             $show_text = '';
             if(!empty($this->request->show_column1) && !empty($this->request->show_column2)){

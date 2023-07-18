@@ -3,22 +3,18 @@
 namespace App\Domains\Admin\Http\Controllers\Setting\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use Illuminate\Http\Request;
-use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Setting\Admin\UserService;
 use Auth;
 
-class UserController extends Controller
+class UserController extends BackendController
 {
-    private $request;
-    private $lang;
-    private $UserService;
-    
-    public function __construct(Request $request, UserService $UserService)
+    public function __construct(protected Request $request, protected UserService $UserService)
     {
-        $this->request = $request;
-        $this->UserService = $UserService;
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/admin/user',]);
+        parent::__construct();
+        
+        $this->getLang(['admin/common/common','admin/admin/user']);
     }
 
     /**
@@ -51,8 +47,9 @@ class UserController extends Controller
 
         $data['list'] = $this->getList();
         
-        $data['newUrl'] = route('lang.admin.setting.admin.users.form');
-        $data['listUrl'] = route('lang.admin.setting.admin.users.list');     
+        $data['list_url']   =  route('lang.admin.setting.admin.users.list');
+        $data['add_url']    = route('lang.admin.setting.admin.users.form');
+        $data['delete_url'] = route('lang.admin.setting.admin.users.delete');    
 
         return view('admin.setting.admin', $data);
     }
@@ -71,81 +68,55 @@ class UserController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function getList()
+    private function getList()
     {
         $data['lang'] = $this->lang;
 
-        // Prepare link for action
-        $queries = [];
 
-        if(!empty($this->request->query('page'))){
-            $page = $queries['page'] = $this->request->input('page');
-        }else{
-            $page = $queries['page'] = 1;
-        }
-
-        if(!empty($this->request->query('sort'))){
-            $sort = $queries['sort'] = $this->request->input('sort');
-        }else{
-            $sort = $queries['sort'] = 'id';
-        }
-
-        if(!empty($this->request->query('order'))){
-            $order = $queries['order'] = $this->request->query('order');
-        }else{
-            $order = $queries['order'] = 'DESC';
-        }
-
-        if(!empty($this->request->query('limit'))){
-            $limit = $queries['limit'] = $this->request->query('limit');
-        }
-
-        foreach($this->request->all() as $key => $value){
-            if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
-            }
-        }
-
-        //$data['action'] = route('lang.admin.setting.admin.users.massDelete');
-        //$queries['user_meta']['is_admin'] = 1;
+        // Prepare queries for records
+        $query_data = $this->getQueries($this->request->query());
 
         // Rows
-        $users = $this->UserService->getAdminUsers($queries);
+        $users = $this->UserService->getAdminUsers($query_data);
 
         if(!empty($users)){
             foreach ($users as $row) {
-                $row->edit_url = route('lang.admin.setting.admin.users.form', array_merge([$row->id], $queries));
+                $row->edit_url = route('lang.admin.setting.admin.users.form', array_merge([$row->id], $query_data));
             }
         }
 
-        $data['users'] = $users->withPath(route('lang.admin.setting.admin.users.list'))->appends($queries);
+        $data['users'] = $users->withPath(route('lang.admin.setting.admin.users.list'))->appends($query_data);
 
         // Prepare links for list table's header
-        if($order == 'ASC'){
+        if($query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
-
-        $data['sort'] = strtolower($sort);
+        
+        $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
-        unset($queries['sort']);
-        unset($queries['order']);
+        unset($query_data['sort']);
+        unset($query_data['order']);
+        unset($query_data['with']);
+        unset($query_data['whereIn']);
 
         $url = '';
 
-        foreach($queries as $key => $value){
+        foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
 
         //link of table header for sorting
         $route = route('lang.admin.setting.admin.users.list');
+
+        $data['sort_username'] = $route . "?sort=username&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_email'] = $route . "?sort=email&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
         
-        $data['listUrl'] = route('lang.admin.setting.admin.users.list');
+        $data['list_url'] = route('lang.admin.setting.admin.users.list');
 
         return view('admin.setting.admin_list', $data);
     }
@@ -224,6 +195,7 @@ class UserController extends Controller
         return view('admin.setting.admin_form', $data);
     }
 
+
     public function save()
     {
         $data = $this->request->all();
@@ -263,6 +235,50 @@ class UserController extends Controller
 
        return response(json_encode($json))->header('Content-Type','application/json');
     }
+
+
+    public function delete()
+    {
+        $this->initController();
+        
+        $post_data = $this->request->post();
+
+        $json = [];
+
+        if (isset($post_data['selected'])) {
+            $selected = $post_data['selected'];
+        } else {
+            $selected = [];
+        }
+
+        // Permission
+        if($this->acting_username !== 'admin'){
+            $json['error'] = $this->lang->error_permission;
+        }
+
+        if (!$json) {
+            foreach ($selected as $user_id) {
+                $result = $this->UserService->removeAdmin($user_id);
+
+                if(!empty($result['error'])){
+                    if(config('app.debug')){
+                        $json['warning'] = $result['error'];
+                    }else{
+                        $json['warning'] = $this->lang->text_fail;
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        if(empty($json['warning'] )){
+            $json['success'] = $this->lang->text_success;
+        }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
+    }
+
 
 
     public function autocomplete()

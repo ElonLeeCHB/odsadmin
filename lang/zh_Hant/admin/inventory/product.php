@@ -5,15 +5,12 @@ return [
 'heading_title' => '品號設定',
 
 // Tab
-'tab_trans' => '語言檔',
-'tab_general' => '基本資料',
-
-'tab_data' => '明細資料',
+// 'tab_general' => '基本資料',
+// 'tab_data' => '明細資料',
 'tab_bom' => 'BOM',
-'tab_option' => '選項',
 
 // Text
-'text_product' => '商品管理',
+'text_inventory' => '庫存管理',
 'text_product_details' => '商品資料',    
 
 // Column

@@ -1,36 +1,39 @@
 <?php
 
-namespace App\Domains\Admin\Services\Common;
+namespace App\Domains\Admin\Services\Inventory;
 
 use Illuminate\Support\Facades\DB;
 use App\Domains\Admin\Services\Service;
 use App\Repositories\Eloquent\Common\TermRepository;
 
-class TermService extends Service
+class CategoryService extends Service
 {
     protected $modelName = "\App\Models\Common\Term";
 
-
     public function __construct(protected TermRepository $TermRepository)
     {}
-
 
     /**
      * 
      */
     public function updateOrCreate($data)
     {
-        DB::beginTransaction();
-
         try {
+            
+            DB::beginTransaction();
+
+            if(empty($data['taxonomy_code'])){
+                throw new \Exception('taxonomy_code is empty!');
+            }
+
             // 儲存主記錄
-            $term = $this->findIdOrFailOrNew($data['term_id']);
+            $term = $this->findIdOrFailOrNew($data['category_id']);
 
             $term->parent_id = $data['parent_id'] ?? 0;
             $term->code = $data['code'] ?? '';
             $term->slug = $data['slug'] ?? '';
+            $term->taxonomy_code = $data['taxonomy_code'];
             $term->comment = $data['comment'] ?? '';
-            $term->taxonomy_code = $data['taxonomy_code'] ?? '';
             $term->sort_order = $data['sort_order'] ?? 100;
             $term->is_active = $data['is_active'] ?? 0;
 
@@ -43,7 +46,7 @@ class TermService extends Service
 
             DB::commit();
 
-            $result['term_id'] = $term->id;
+            $result['category_id'] = $term->id;
             return $result;
             
         } catch (\Exception $ex) {
@@ -55,14 +58,42 @@ class TermService extends Service
         return false;
     }
 
+    public function getInventoryCategories($data, $debug = 0)
+    {
+        $data['whereIn'] = [
+            'taxonomy_code' => ['product_inventory_category','product_accounting_category'],
+        ];
 
-    public function deleteTerm($term_id)
+        $rows = $this->getRows($data, $debug);
+        return $rows;
+
+    }
+
+    public function getInventoryTypes($data)
+    {
+
+        $data['whereIn'] = ['taxonomy_id' => [5,6],];
+
+        $data['with'] = 'taxonomy';
+
+        $rows = $this->getRows($data);
+
+        //echo '<pre>', print_r($rows->toArray(), 1), "</pre>"; exit;
+
+        
+
+        return $rows;
+
+    }
+    
+
+    public function deleteCategory($category_id)
     {
         try {
 
             DB::beginTransaction();
 
-            $this->TermRepository->delete($term_id);
+            $this->TermRepository->delete($category_id);
 
             DB::commit();
 
@@ -75,5 +106,4 @@ class TermService extends Service
             return ['error' => $ex->getMessage()];
         }
     }
-    
 }

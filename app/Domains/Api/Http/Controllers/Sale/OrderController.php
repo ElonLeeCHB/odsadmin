@@ -192,9 +192,9 @@ class OrderController extends Controller
     }
 
 
-    public function getOrderPhrases($taxonomy)
+    public function getOrderPhrases($taxonomy_code)
     {
-        $json = $this->OrderService->getOrderPhrases($taxonomy)->toArray();
+        $json = $this->OrderService->getOrderPhrases($taxonomy_code)->toArray();
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }

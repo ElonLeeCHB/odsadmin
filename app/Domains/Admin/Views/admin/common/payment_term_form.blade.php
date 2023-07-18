@@ -24,14 +24,14 @@
         <div class="card-header"><i class="fas fa-pencil-alt"></i> {{ $lang->text_form }}</div>
         <div class="card-body">
           <ul class="nav nav-tabs">
-            <li class="nav-item"><a href="#tab-general" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_general }}</a></li>
+            <li class="nav-item"><a href="#tab-data" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_data }}</a></li>
           </ul>
           <form id="form-term" action="{{ $save }}" method="post" data-oc-toggle="ajax">
             @csrf
             @method('POST')
 
             <div class="tab-content">
-              <div id="tab-general" class="tab-pane active">
+              <div id="tab-data" class="tab-pane active">
                 
                 {{-- name --}}
                 <div class="row mb-3 required">
@@ -45,12 +45,12 @@
                 </div>
 
                 {{-- type --}}
-                <div class="row mb-3">
+                <div class="row mb-3 required">
                   <label class="col-sm-2 col-form-label">{{ $lang->column_type }}</label>
                   <div class="col-sm-10">
                     <div class="input-group">
                       <select name="type" id="input-type" class="form-select">
-                        <option value=""> -- </option>
+                        <option value="">{{ $lang->text_select }}</option>
                         <option value="1" @if($payment_term->type=='1') selected @endif>1:銷售</option>
                         <option value="2" @if($payment_term->type=='2') selected @endif>2:採購</option>
                       </select>
@@ -60,7 +60,7 @@
                 </div>
 
                 {{-- due_date_basis --}}
-                <div class="row mb-3">
+                <div class="row mb-3 required">
                   <label class="col-sm-2 col-form-label">{{ $lang->column_due_date_basis }}</label>
                   <div class="col-sm-10">
                     <div class="input-group">

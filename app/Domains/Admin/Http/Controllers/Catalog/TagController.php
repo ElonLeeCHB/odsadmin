@@ -4,26 +4,17 @@ namespace App\Domains\Admin\Http\Controllers\Catalog;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
-use App\Libraries\TranslationLibrary;
-use App\Domains\Admin\Services\Common\TermService;
-use App\Traits\InitController;
+use App\Domains\Admin\Services\Catalog\TagService;
 
-class TagController extends Controller
+class TagController extends BackendController
 {
-    use InitController;
-
-    private $request;
-    private $lang;
-    private $LanguageRepository;
-    private $TermService;
-
-    public function __construct(Request $request, LanguageRepository $LanguageRepository, TermService $TermService)
+    public function __construct(private Request $request, private LanguageRepository $LanguageRepository, private TagService $TagService)
     {
-        $this->request = $request;
-        $this->LanguageRepository = $LanguageRepository;
-        $this->TermService = $TermService;
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/common/term','admin/catalog/tag']);
+        parent::__construct();
+
+        $this->getLang(['admin/common/common','admin/common/term','admin/catalog/tag']);
     }
     
 
@@ -73,17 +64,18 @@ class TagController extends Controller
         // Prepare link for action
         $queries = $this->getQueries($this->request->query());
 
-        $queries['whereIn'] = ['taxonomy_code' => ['product_tag']];
+        $queries['equal_taxonomy_code'] = 'product_tag';
 
         // rows
-        $terms = $this->TermService->getRows($queries);
-        if(!empty($terms)){
-            foreach ($terms as $row) {
+        $tags = $this->TagService->getRows($queries);
+
+        if(!empty($tags)){
+            foreach ($tags as $row) {
                 $row->edit_url = route('lang.admin.catalog.tags.form', array_merge([$row->id], $queries));
             }
         }
 
-        $data['terms'] = $terms->withPath(route('lang.admin.catalog.tags.list'))->appends($queries);
+        $data['tags'] = $tags->withPath(route('lang.admin.catalog.tags.list'))->appends($queries);
 
         // Prepare links for list table's header
         if($queries['order'] == 'ASC'){
@@ -107,7 +99,7 @@ class TagController extends Controller
         }
         
         // link of table header for sorting        
-        $route = route('lang.admin.catalog.products.list');
+        $route = route('lang.admin.catalog.tags.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_code'] = $route . "?sort=code&order=$order" .$url;
@@ -123,7 +115,7 @@ class TagController extends Controller
     }
 
 
-    public function form($term_id = null)
+    public function form($tag_id = null)
     {
         $data['lang'] = $this->lang;
   
@@ -159,27 +151,27 @@ class TagController extends Controller
         $data['autocomplete_url'] = route('lang.admin.catalog.tags.autocomplete');
 
         // Get Record
-        $term = $this->TermService->findIdOrFailOrNew($term_id,['equal_taxonomy_code' => 'product_tag']);
+        $tag = $this->TagService->findIdOrFailOrNew($tag_id,['equal_taxonomy_code' => 'product_tag']);
 
-        $data['term']  = $term;
+        $data['tag']  = $tag;
         
-        if(!empty($data['term']) && $term_id == $term->id){
-            $data['term_id'] = $term_id;
+        if(!empty($data['tag']) && $tag_id == $tag->id){
+            $data['tag_id'] = $tag_id;
         }else{
-            $data['term_id'] = null;
+            $data['tag_id'] = null;
         }
 
         // product_translations
-        if($term->translations->isEmpty()){
+        if($tag->translations->isEmpty()){
             $translations = [];
         }else{
-            foreach ($term->translations as $translation) {
+            foreach ($tag->translations as $translation) {
                 $translations[$translation->locale] = $translation->toArray();
             }
         }
         $data['translations'] = $translations;
 
-        $data['taxonomy_code'] = 'product_tags';
+        $data['taxonomy_code'] = 'product_tag';
         
         return view('admin.catalog.tag_form', $data);
     }
@@ -199,12 +191,12 @@ class TagController extends Controller
             
             $data['taxonomy_code'] = 'product_tag';
 
-            $result = $this->TermService->updateOrCreate($data);
+            $result = $this->TagService->updateOrCreate($data);
             if(empty($result['error'])){
                 $json = [
-                    'term_id' => $result['term_id'],
+                    'tag_id' => $result['tag_id'],
                     'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.catalog.tags.form', $result['term_id']),
+                    'redirectUrl' => route('lang.admin.catalog.tags.form', $result['tag_id']),
                 ];
             }else if(auth()->user()->username == 'admin'){
                 $json['warning'] = $result['error'];
@@ -217,6 +209,45 @@ class TagController extends Controller
 
     }
 
+    public function delete()
+    {
+        $post_data = $this->request->post();
+
+		$json = [];
+
+		if (isset($post_data['selected'])) {
+			$selected = $post_data['selected'];
+		} else {
+			$selected = [];
+		}
+
+        // if (!$this->user->hasPermission('modify', 'catalog/category')) {
+		// 	$json['error'] = $this->language->get('error_permission');
+		// }
+
+		if (!$json) {
+			foreach ($selected as $tag_id) {
+				$result = $this->TagService->deleteTag($tag_id);
+
+                if(!empty($result['error'])){
+                    if(config('app.debug')){
+                        $json['warning'] = $result['error'];
+                    }else{
+                        $json['warning'] = $this->lang->text_fail;
+                    }
+
+                    break;
+                }
+			}
+		}
+
+        if(empty($json['warning'] )){
+            $json['success'] = $this->lang->text_success;
+        }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
+    }
+
     public function autocomplete()
     {
         $query_data = $this->request->query();
@@ -226,7 +257,7 @@ class TagController extends Controller
         $queries['pagination'] = false;
 
         // Rows
-        $rows = $this->TermService->getRows($queries);
+        $rows = $this->TagService->getRows($queries);
 
         $json = [];
 
@@ -235,7 +266,7 @@ class TagController extends Controller
                 continue;
             }
             $json[] = array(
-                'term_id' => $row->id,
+                'tag_id' => $row->id,
                 'code' => $row->code,
                 'name' => $row->name,
                 'short_name' => $row->short_name,
@@ -244,10 +275,5 @@ class TagController extends Controller
         }
 
         return response(json_encode($json))->header('Content-Type','application/json');
-    }
-
-    public function delete()
-    {
-
     }
 }

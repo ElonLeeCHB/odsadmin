@@ -2,9 +2,9 @@
 
 namespace App\Domains\Admin\Services;
 
-use App\Domains\Admin\Traits\Eloquent;
+use App\Traits\EloquentTrait;
 
 class Service
 {
-    use Eloquent;
+    use EloquentTrait;
 }

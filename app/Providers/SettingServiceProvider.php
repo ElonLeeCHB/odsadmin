@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Setting\Setting;
 
 class SettingServiceProvider extends ServiceProvider
@@ -27,7 +28,7 @@ class SettingServiceProvider extends ServiceProvider
             $settings = Setting::where('is_autoload', 1)->get();
 
             foreach ($settings as $setting) {
-                $key = 'setting.' . $setting->setting_key;
+                $key = 'settings.' . $setting->setting_key;
     
                 // If json, then array
                 $value = $setting->is_json ? json_decode($setting->setting_value,1) : $setting->setting_value;

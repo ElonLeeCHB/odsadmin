@@ -46,6 +46,7 @@ return [
 // Column
 'column_action' => '管理',
 'column_id' => 'ID',
+'column_username' => '帳號',
 'column_name' => '客戶名稱',
 'column_email' => 'E-Mail',
 'column_mobile' => '手機號碼',

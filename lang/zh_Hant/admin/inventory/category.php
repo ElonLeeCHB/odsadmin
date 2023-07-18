@@ -5,11 +5,11 @@ return [
 'heading_title' => '分類設定',
 
 // Tab
-'tab_trans' => '語言資料',
-'tab_general' => '基本資料',
 
 // Text
-'text_categories' => '商品管理',
+'text_inventory' => '庫存管理',
+'text_category' => '商品管理',
+
 
 // Column
 'column_name' => '分類名稱',
@@ -20,7 +20,6 @@ return [
 'column_stock_category' => '庫存分類',
 'column_sales_category' => '銷售分類',
 'column_is_active' => '是否啟用',
-
 
 // Button
 

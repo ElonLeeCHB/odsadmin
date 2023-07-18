@@ -40,7 +40,7 @@ class GovUniformInvoiceNumberService extends Service
                 $filter_data = [
                     'filter_uniform_invoice_no' => '*' . substr($uniform_invoice_no,-3),
                     'pagination' => false,
-                    'real_limit' => 100000,
+                    '_real_limit' => 100000,
                     'connection' => 'sysdata',
                 ];
                 $records = $this->getRecords($filter_data);

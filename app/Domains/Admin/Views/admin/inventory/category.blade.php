@@ -68,7 +68,7 @@
 @endsection
 
 @section('buttom')
-<script type="text/javascript"><!--
+<script type="text/javascript">
 $('#term').on('click', 'thead a, .pagination a', function(e) {
 	e.preventDefault();
 
@@ -100,5 +100,5 @@ $('#button-filter').on('click', function() {
 
 	$('#term').load(url);
 });
-//--></script>
+</script>
 @endsection

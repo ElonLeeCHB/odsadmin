@@ -11,7 +11,7 @@ class Term extends Model
 {
     use Translatable;
     
-    public $translatedAttributes = ['name', 'short_name',];
+    public $translated_attributes = ['name', 'short_name',];
     public $timestamps = false;
 
     protected $guarded = [];

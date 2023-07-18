@@ -2,12 +2,18 @@
 
 namespace App\Domains\Admin\Services\Common;
 
-use App\Domains\Admin\Services\Service;
 use Illuminate\Support\Facades\DB;
+use App\Domains\Admin\Services\Service;
+use App\Repositories\Eloquent\Common\TaxonomyRepository;
 
 class TaxonomyService extends Service
 {
     protected $modelName = "\App\Models\Common\Taxonomy";
+
+	public function __construct(protected TaxonomyRepository $TaxonomyRepository)
+	{
+        $this->TaxonomyRepository = $TaxonomyRepository;
+	}
 
     public function updateOrCreate($data)
     {
@@ -33,4 +39,10 @@ class TaxonomyService extends Service
             return ['error' => $ex->getMessage()];
         }
     }
+
+    public function deleteTaxonomy($taxonomy_id)
+    {
+        
+    }
+
 }

@@ -12,9 +12,7 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
-          {{-- <a href="javascript:void(0)" data-bs-toggle="tooltip" title="Orders" class="btn btn-warning"><i class="fas fa-receipt"></i></a> --}}
-        {{-- <button type="submit" form="form-product" data-bs-toggle="tooltip" title="Save" class="btn btn-primary"><i class="fas fa-save"></i></button> --}}
-        <button type="submit" form="form-product" data-bs-toggle="tooltip" title="儲存" class="btn btn-primary"><i class="fa fa-save"></i></button>
+        <button type="submit" form="form-product" data-bs-toggle="tooltip" title="{{ $lang->button_save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
         <a href="{{ $back }}" data-bs-toggle="tooltip" title="{{ $lang->button_back }}" class="btn btn-light"><i class="fas fa-reply"></i></a>
       </div>
       <h1>{{ $lang->heading_title }}</h1>
@@ -26,7 +24,7 @@
         <div class="card-header"><i class="fas fa-pencil-alt"></i> {{ $lang->text_form }}</div>
         <div class="card-body">
           <ul class="nav nav-tabs">
-            <li class="nav-item"><a href="#tab-general" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_general }}</a></li>
+            <li class="nav-item"><a href="#tab-trans" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_trans }}</a></li>
             <li class="nav-item"><a href="#tab-data" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_data }}</a></li>
             <li class="nav-item"><a href="#tab-option" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_option }}</a></li>
           </ul>
@@ -35,7 +33,7 @@
             @method('POST')
 
             <div class="tab-content">
-              <div id="tab-general" class="tab-pane active" >
+              <div id="tab-trans" class="tab-pane active" >
                 <ul class="nav nav-tabs">
                   @foreach($languages as $language)
                   <li class="nav-item"><a href="#language-{{ $language->code }}" data-bs-toggle="tab" class="nav-link @if ($loop->first)active @endif">{{ $language->native_name }}</a></li>
@@ -514,21 +512,24 @@
           url: "{{ route('lang.admin.catalog.categories.autocomplete') }}?filter_name=" + encodeURIComponent(request),
           dataType: 'json',
           success: function (json) {
-            json.unshift({
-              category_id: 0,
-              name: '{{ $lang->text_none }}'
-            });
+            // json.unshift({
+            //   category_id: 0,
+            //   name: '{{ $lang->text_none }}'
+            // });
 
-            response($.map(json, function (item) {
-              return {
-                label: item['name'],
-                value: item['category_id']
-              }
-            }));
+            // response($.map(json, function (item) {
+            //   return {
+            //     label: item['name'],
+            //     value: item['category_id']
+            //   }
+            // }));
+
+            response(json);
           }
         });
     },
     'select': function (item) {
+      //alert(JSON.stringify(item));
       $('#input-main_category_id').val(item['value']);
       $('#input-main_category').val(item['label']);
     }

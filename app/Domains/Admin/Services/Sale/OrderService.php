@@ -251,6 +251,7 @@ class OrderService extends Service
                 $order->email = $data['email'] ?? '';
                 $order->order_date = $data['order_date'] ?? null;
                 $order->payment_company = $data['payment_company'] ?? '';
+                $order->payment_department= $data['payment_department'] ?? '';
                 $order->payment_tin = $data['payment_tin'] ?? '';
                 $order->is_payment_tin = $data['is_payment_tin'] ?? 0;
                 $order->payment_total = $data['payment_total'] ?? 0;

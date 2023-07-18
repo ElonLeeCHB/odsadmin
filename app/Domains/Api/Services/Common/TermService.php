@@ -59,7 +59,7 @@ class TermService extends Service
             $record->parent_id = $data['parent_id'] ?? 0;
             $record->code = $data['code'] ?? '';
             $record->slug = $data['slug'] ?? '';
-            $record->taxonomy = $data['taxonomy'] ?? '';
+            $record->taxonomy_code = $data['taxonomy_code'] ?? '';
             $record->is_active = $data['is_active'] ?? 0;
             $record->sort_order = $data['sort_order'] ?? 9999;
 

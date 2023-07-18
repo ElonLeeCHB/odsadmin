@@ -5,8 +5,6 @@ return [
 'heading_title' => '商品',
 
 // Tab
-'tab_general' => '基本資料',
-'tab_data' => '明細資料',
 'tab_bom' => 'BOM',
 'tab_option' => '選項',
 
@@ -49,6 +47,7 @@ return [
 'column_category' => '分類',
 'column_comment' => '備註',
 'column_is_default' => '是否預設',
+'column_category' => '分類',
 
 
 'button_option_value_add' => '新增選項值',

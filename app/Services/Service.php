@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Exception;
+use App\Traits\EloquentTrait;
 
 class Service
 {

@@ -4,7 +4,7 @@ namespace App\Domains\Admin\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Auth;
+use Illuminate\Support\Facades\App;
 
 class IsAdmin
 {
@@ -17,20 +17,14 @@ class IsAdmin
      */
     public function handle(Request $request, Closure $next)
     {
-        $user = Auth::user();
+        $acting_user = auth()->user();
+        app()->instance('acting_user', $acting_user);
 
-        if($user){
-            $is_admin = $user->is_admin;
-        }else{
-            $is_admin = 0;
-        }
-        
-        if($is_admin){
+        if(!empty($acting_user) && $acting_user->is_admin){
             return $next($request);
+        }else{
+            $route = route('lang.admin.login') . "?prev_url=" . url()->current();
+            return redirect($route)->with('error',"There is something wrong!!");
         }
-        
-        $route = route('lang.admin.login') . "?prev_url=" . url()->current();
-
-        return redirect($route)->with('error',"There is something wrong!!");
     }
 }

@@ -15,7 +15,7 @@ class Product extends Model
 
     protected $guarded = [];
     protected $appends = ['name', 'description'];
-    public $translatedAttributes = ['name','full_name','short_name','description', 'meta_title', 'meta_description', 'meta_keyword',];
+    public $translated_attributes = ['name','full_name','short_name','description', 'meta_title', 'meta_description', 'meta_keyword',];
 
     public function main_category()
     {

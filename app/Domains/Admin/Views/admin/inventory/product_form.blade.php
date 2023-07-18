@@ -117,12 +117,12 @@
                   </div>
                 </div>
 
-                {{-- accounting_category --}}
+                {{-- product_accounting_category --}}
                 <div class="row mb-3">
                   <label class="col-sm-2 col-form-label">{{ $lang->column_accounting_category }}</label>
                   <div class="col-sm-10">
                     <div class="input-group">
-                      <input type="text" id="input-accounting_category" name="accounting_category" value="" data-oc-target="autocomplete-accounting_category_id" class="form-control"/>
+                      <input type="text" id="input-product_accounting_category" name="product_accounting_category" value="" data-oc-target="autocomplete-accounting_category_id" class="form-control"/>
                     </div>
                     <input type="hidden" id="input-accounting_category_id" name="accounting_category_id" value="" />
                     <ul id="autocomplete-accounting_category_id" class="dropdown-menu"></ul>

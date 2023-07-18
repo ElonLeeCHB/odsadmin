@@ -2,7 +2,9 @@
 
 namespace App\Domains\Admin\Http\Controllers\Counterparty;
 
+
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Validator;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Admin\Services\Counterparty\SupplierService;
@@ -18,6 +20,8 @@ class SupplierController extends BackendController
 
     public function index()
     {
+        $this->initController();
+
         $data['lang'] = $this->lang;
 
         // Breadcomb
@@ -57,74 +61,47 @@ class SupplierController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        $query_data = $this->request->query();
-        
+
         // Prepare queries for records
-        $filter_data = [];
+        $query_data = $this->getQueries($this->request->query());
 
-        if(isset($query_data['sort'])){
-            $filter_data['sort'] = $query_data['sort'];
-        }else{
-            $filter_data['sort'] = 'id';
-        }
-
-        if(isset($query_data['order'])){
-            $filter_data['order'] = $query_data['order'];
-        }else{
-            $filter_data['order'] = 'asc';
-        }
-
-        if(isset($query_data['page'])){
-            $filter_data['page'] = $query_data['page'];
-        }else{
-            $filter_data['page'] = 1;
-        }
-
-        foreach($this->request->all() as $key => $value){
-            if(strpos($key, 'filter_') !== false){
-                $filter_data[$key] = $value;
-            }
-        }
-
-        if(!isset($query_data['equal_is_active'])){
-            $filter_data['equal_is_active'] = 1;
-        }else{
-            $filter_data['equal_is_active'] = $query_data['equal_is_active'];
-        }
-        $filter_data['equal_is_supplier'] = 1;
+        // Extra default
+        $query_data['equal_is_supplier'] = 1;
 
         // Records
-        $suppliers = $this->SupplierService->getSuppliers($filter_data);
+        $suppliers = $this->SupplierService->getSuppliers($query_data);
 
         foreach ($suppliers as $row) {
-            $row->edit_url = route('lang.admin.counterparty.suppliers.form', array_merge([$row->id], $filter_data));
+            $row->edit_url = route('lang.admin.counterparty.suppliers.form', array_merge([$row->id], $query_data));
         }
 
         $data['suppliers'] = $suppliers;
 
-        // Prepare links for sorting on list table's header
-        if($filter_data['order'] == 'ASC'){
-            $filter_data['order'] = 'DESC';
+
+        // Prepare links for list table's header
+        if($query_data['order'] == 'ASC'){
+            $order = 'DESC';
         }else{
-            $filter_data['order'] = 'ASC';
+            $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($filter_data['sort']);
-        $data['order'] = strtolower($filter_data['order']);
+        $data['sort'] = strtolower($query_data['sort']);
+        $data['order'] = strtolower($order);
 
-        unset($filter_data['sort']);
-        unset($filter_data['order']);
+        unset($query_data['sort']);
+        unset($query_data['order']);
+        unset($query_data['with']);
+        unset($query_data['whereIn']);
 
         $url = '';
 
-        foreach($filter_data as $key => $value){
+        foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
         
+        
         //link of table header for sorting
         $route = route('lang.admin.counterparty.suppliers.list');
-
-        $order = $query_data['order'] ?? 'ASC';
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_code'] = $route . "?sort=code&order=$order" .$url;
@@ -260,7 +237,46 @@ class SupplierController extends BackendController
 
     public function delete()
     {
+        $this->initController();
 
+        $post_data = $this->request->post();
+
+		$json = [];
+
+        // Permission
+        if($this->acting_username !== 'admin'){
+            $json['error'] = $this->lang->error_permission;
+        }
+
+        // Selected
+		if (isset($post_data['selected'])) {
+			$selected = $post_data['selected'];
+		} else {
+			$selected = [];
+		}
+
+		if (!$json) {
+
+			foreach ($selected as $category_id) {
+				$result = $this->SupplierService->deleteSupplier($category_id);
+
+                if(!empty($result['error'])){
+                    if(config('app.debug')){
+                        $json['error'] = $result['error'];
+                    }else{
+                        $json['error'] = $this->lang->text_fail;
+                    }
+
+                    break;
+                }
+			}
+		}
+        
+        if(empty($json['error'] )){
+            $json['success'] = $this->lang->text_success;
+        }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
     }
 
     public function validator(array $data)
@@ -281,7 +297,6 @@ class SupplierController extends BackendController
                 'telephone.*' => $this->lang->error_telephone,
         ]);
     }
-
 
     public function autocomplete()
     {

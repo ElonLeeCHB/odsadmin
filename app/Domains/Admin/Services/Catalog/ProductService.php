@@ -2,15 +2,23 @@
 
 namespace App\Domains\Admin\Services\Catalog;
 
+use Illuminate\Support\Facades\DB;
 use App\Domains\Admin\Services\Service;
 use App\Models\Common\TermRelation;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
-use Illuminate\Support\Facades\DB;
+use App\Repositories\Eloquent\Catalog\ProductRepository;
 
 class ProductService extends Service
 {
     public $modelName = "\App\Models\Catalog\Product";
+
+
+	public function __construct(protected ProductRepository $ProductRepository)
+	{
+        
+	}
+
 
     public function getProducts($data=[], $debug = 0)
     {
@@ -34,6 +42,24 @@ class ProductService extends Service
 
         return $rows;
 
+    }
+
+
+    public function getProduct($data = [])
+    {
+        $cacheName = app()->getLocale() . 'ProductId_' . $data['filter_id'];
+
+        $result = cache()->remember($cacheName, 60*60*24*14, function() use($data){
+            $collection = $this->getRow($data);
+
+            return $collection;
+        });
+
+        if(empty($result)){
+            $result = [];
+        }
+
+        return $result;
     }
 
 
@@ -160,24 +186,6 @@ class ProductService extends Service
         }
     }
 
-
-    public function getProduct($data = [])
-    {
-        $cacheName = app()->getLocale() . 'ProductId_' . $data['filter_id'];
-
-        $result = cache()->remember($cacheName, 60*60*24*14, function() use($data){
-            $collection = $this->getRow($data);
-
-            return $collection;
-        });
-
-        if(empty($result)){
-            $result = [];
-        }
-
-        return $result;
-    }
-
     public function resetCachedSalableProducts($filter_data = [])
     {
 
@@ -220,4 +228,24 @@ class ProductService extends Service
         return $result;
     }
 
+
+    public function deleteProduct($product_id)
+    {
+        try {
+
+            $this->ProductRepository->delete($product_id);
+
+            return ['success' => true];
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
+
+
+    public function getCategories()
+    {
+        
+    }
 }

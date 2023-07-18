@@ -4,31 +4,21 @@ namespace App\Domains\Admin\Http\Controllers\Common;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Libraries\TranslationLibrary;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
 use App\Domains\Admin\Services\Common\TaxonomyService;
-use App\Traits\InitController;
 
-class TaxonomyController extends Controller
+class TaxonomyController extends BackendController
 {
-    use InitController;
-
-    private $request;
-    private $lang;
-    private $languageRepository;
-    private $TaxonomyService;
-
     public function __construct(
-        Request $request
-        , LanguageRepository $languageRepository
-        , TaxonomyService $TaxonomyService
+        private Request $request
+        , private LanguageRepository $languageRepository
+        , private TaxonomyService $TaxonomyService
     )
     {
-        $this->request = $request;
-        $this->languageRepository = $languageRepository;
-        $this->TaxonomyService = $TaxonomyService;
+        parent::__construct();
 
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/common/taxonomy']);
+        $this->getLang(['admin/common/common','admin/common/taxonomy']);
     }
 
     /**
@@ -226,9 +216,17 @@ class TaxonomyController extends Controller
 
     public function autocomplete()
     {
-        $queries = $this->getQueries($this->request->query());
+        $query_data = $this->getQueries($this->request->query());
 
-        $rows = $this->TaxonomyService->getRows($queries);
+        if(isset($query_data['equal_code'])){
+            if (strpos($query_data['equal_code'], ',') !== false) {
+                $arr = explode(',', $query_data['equal_code']);
+                $query_data['whereIn'] = ['code' => $arr];
+                unset($query_data['equal_code']);
+            }
+        }
+
+        $rows = $this->TaxonomyService->getRows($query_data);
 
         $json = [];
 

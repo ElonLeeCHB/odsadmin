@@ -3,9 +3,10 @@
 return array (
 
 // Tab
-'tab_trans' => '多語資料',
-'tab_general' => '基本資料',
-'tab_data' => '明細資料',
+'tab_trans' => '語言資料',
+// 'tab_general' => '基本資料',
+// 'tab_data' => '明細資料',
+'tab_data' => '基本資料',
 
 // Text
 'text_yes' => '是',
@@ -79,6 +80,8 @@ return array (
 'column_updated_time' => '修改時間',
 'column_keyname' => '關鍵名稱',
 'column_keyword' => '關鍵字',
+'column_sort_order' => '排序',
+'column_payment_company' => '訂餐公司',
 
 // Entry
 'entry_enable' => '啟用',

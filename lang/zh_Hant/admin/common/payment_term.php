@@ -18,6 +18,7 @@ return [
 
 // Error
 'error_name' => '名稱長度必須在 2 到 50 個字！',
+'error_type' => '請選擇分類！',
 'error_due_date_basis' => '請選擇應付款日起算基準',
 
 ];

@@ -1,33 +1,24 @@
 <?php
 
-namespace App\Domains\Admin\Http\Controllers\Common;
+namespace App\Domains\Admin\Http\Controllers\Counterparty;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Libraries\TranslationLibrary;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
-use App\Domains\Admin\Services\Common\FinancialInstitutionService;
-use App\Traits\InitController;
+use App\Domains\Admin\Services\Counterparty\FinancialInstitutionService;
 
-class FinancialInstitutionController extends Controller
+class FinancialInstitutionController extends BackendController
 {
-    use InitController;
-
-    private $request;
-    private $lang;
-    private $LanguageRepository;
-    private $FinancialInstitutionService;
-
     public function __construct(
-        Request $request
-        , LanguageRepository $LanguageRepository
-        , FinancialInstitutionService $FinancialInstitutionService
+        private Request $request
+        , private LanguageRepository $LanguageRepository
+        , private FinancialInstitutionService $FinancialInstitutionService
     )
     {
-        $this->request = $request;
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/common/financial_institution']);
-        $this->LanguageRepository = $LanguageRepository;
-        $this->FinancialInstitutionService = $FinancialInstitutionService;
+        parent::__construct();
+        
+        $this->getLang(['admin/common/common','admin/common/financial_institution']);
     }
 
     /**
@@ -64,7 +55,7 @@ class FinancialInstitutionController extends Controller
         $data['add_url'] = route('lang.admin.common.financial_institutions.form');
         $data['delete_url'] = route('lang.admin.common.financial_institutions.delete');
 
-        return view('admin.common.financial_institution', $data);
+        return view('admin.counterparty.financial_institution', $data);
     }
 
     public function list()
@@ -77,43 +68,44 @@ class FinancialInstitutionController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function getList()
+    private function getList()
     {
         $data['lang'] = $this->lang;
 
-        // Prepare link for action
-        $queries = $this->getQueries($this->request->query());
+        // Prepare queries for records
+        $query_data = $this->getQueries($this->request->query());
 
         // Rows
-        $terms = $this->FinancialInstitutionService->getRows($queries);
+        $institutions = $this->FinancialInstitutionService->getRows($query_data);
 
-        foreach ($terms as $row) {
-            $row->edit_url = route('lang.admin.common.financial_institutions.form', array_merge([$row->id], $queries));
+        foreach ($institutions as $row) {
+            $row->edit_url = route('lang.admin.common.financial_institutions.form', array_merge([$row->id], $query_data));
         }
-        $data['terms'] = $terms->withPath(route('lang.admin.common.financial_institutions.list'))->appends($queries);
+        $data['institutions'] = $institutions->withPath(route('lang.admin.common.financial_institutions.list'))->appends($query_data);
 
         // Prepare links for list table's header
-        if($queries['order'] == 'ASC'){
+        if($query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($queries['sort']);
+        $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
-        unset($queries['sort']);
-        unset($queries['order']);
-        unset($queries['with']);
+        unset($query_data['sort']);
+        unset($query_data['order']);
+        unset($query_data['with']);
+        unset($query_data['whereIn']);
 
         $url = '';
 
-        foreach($queries as $key => $value){
+        foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
         
         //link of table header for sorting
-        $route = route('lang.admin.common.terms.list');
+        $route = route('lang.admin.common.financial_institutions.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_code'] = $route . "?sort=code&order=$order" .$url;
@@ -124,7 +116,7 @@ class FinancialInstitutionController extends Controller
         
         $data['list_url'] = route('lang.admin.common.financial_institutions.list');
         
-        return view('admin.common.financial_institution_list', $data);
+        return view('admin.counterparty.financial_institution_list', $data);
     }
 
 
@@ -174,7 +166,7 @@ class FinancialInstitutionController extends Controller
             $data['institution_id'] = null;
         }
 
-        return view('admin.common.financial_institution_form', $data);
+        return view('admin.counterparty.financial_institution_form', $data);
     }
 
 
@@ -217,6 +209,49 @@ class FinancialInstitutionController extends Controller
 
     }
 
+    public function delete()
+    {
+        $this->initController();
+
+        $post_data = $this->request->post();
+
+		$json = [];
+
+        // Permission
+        if($this->acting_username !== 'admin'){
+            $json['error'] = $this->lang->error_permission;
+        }
+
+        // Selected
+		if (isset($post_data['selected'])) {
+			$selected = $post_data['selected'];
+		} else {
+			$selected = [];
+		}
+
+		if (!$json) {
+
+			foreach ($selected as $category_id) {
+				$result = $this->FinancialInstitutionService->deleteFinancialInstitution($category_id);
+
+                if(!empty($result['error'])){
+                    if(config('app.debug')){
+                        $json['error'] = $result['error'];
+                    }else{
+                        $json['error'] = $this->lang->text_fail;
+                    }
+
+                    break;
+                }
+			}
+		}
+        
+        if(empty($json['error'] )){
+            $json['success'] = $this->lang->text_success;
+        }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
+    }
 
     public function autocomplete()
     {

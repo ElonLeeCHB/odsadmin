@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Admin\Traits;
+namespace App\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\DB;
  * saveMetaDataset()
  * toStdObj()
  */
-trait Eloquent
+trait EloquentTrait
 {
     public function initialize($data)
     {
@@ -114,7 +114,7 @@ trait Eloquent
         }
 
         // With translation relation
-        if(!empty($this->model->translatedAttributes)){
+        if(!empty($this->model->translated_attributes)){
             $query->with('translation');
         }
 
@@ -133,6 +133,8 @@ trait Eloquent
         */
         //End
         
+        
+        // whereIn
         if(!empty($data['whereIn'])){
             foreach ($data['whereIn'] as $key => $arr) {
                 $column = $this->table . '.' . $key;
@@ -174,9 +176,10 @@ trait Eloquent
         // Like %some_value%
         $this->setFiltersQuery($query, $data);
 
+        // whereHas
         if(!empty($data['whereHas'])){
-            foreach ($data['whereHas'] as $rel_name => $relation) {
-                $query->whereHas($rel_name, function($query) use ($relation) {
+            foreach ($data['whereHas'] as $relation_name => $relation) {
+                $query->whereHas($relation_name, function($query) use ($relation) {
                     foreach ($relation as $key => $value) {
                         $this->setWhereQuery($query, $key, $value, 'where');
                     }
@@ -184,9 +187,9 @@ trait Eloquent
             }
         }
 
-        // WhereRawSqls
-        if(!empty($data['WhereRawSqls']) && is_array($data['WhereRawSqls'])){
-            foreach($data['WhereRawSqls'] as $rawsql){
+        // whereRawSqls
+        if(!empty($data['whereRawSqls']) && is_array($data['whereRawSqls'])){
+            foreach($data['whereRawSqls'] as $rawsql){
                 $query->whereRaw($rawsql);
             }
         }
@@ -233,10 +236,12 @@ trait Eloquent
             // Limit
             if(isset($data['limit'])){
                 $limit = (int)$data['limit'];
-            }else if(!empty(config('setting.config_admin_pagination_limit'))){
-                $limit = (int)config('setting.config_admin_pagination_limit');
             }else{
                 $limit = 10;
+            }
+
+            if(!empty($data['_real_limit'])){ // $data['real_limit'] don't open to public
+                $limit = $data['_real_limit'];
             }
     
             // Pagination
@@ -262,7 +267,7 @@ trait Eloquent
 
     private function setFiltersQuery($query, $data, $debug=0)
     {
-        $translatedAttributes = $this->model->translatedAttributes ?? [];
+        $translated_attributes = $this->model->translated_attributes ?? [];
         
         foreach ($data as $key => $value) {
             // $key has prifix 'filter_'
@@ -288,7 +293,7 @@ trait Eloquent
             }
 
             // Translated column is not processed here
-            if(in_array($column, $translatedAttributes)){
+            if(in_array($column, $translated_attributes)){
                 continue;
             }
 
@@ -313,12 +318,25 @@ trait Eloquent
         }
 
         // set translated whereHas then return data
-        if(in_array($column, $translatedAttributes)){
-            $data['whereHas']['translation'][$key] = $data[$key];
-            unset($data[$key]);
+        $translated_attributes = $this->model->translated_attributes ?? [];
+
+        foreach ($data as $key => $value) {
+            if(!str_starts_with($key, 'filter_')){
+                continue;
+            }else{
+                $column = str_replace('filter_', '', $key);
+            }
+
+            if(in_array($column, $translated_attributes)){
+                $data['whereHas']['translation'][$key] = $data[$key];
+                unset($data[$key]);
+            }
         }
 
         // Filters - relations
+        if(!empty($data['whereHas'])){
+            $this->setWhereHas($query, $data['whereHas']);
+        }
 
 
         // Display sql statement
@@ -531,6 +549,17 @@ trait Eloquent
         return $query;
     }
 
+    private function setWhereHas($query, $data)
+    {
+        foreach ($data as $rel_name => $relation) {
+            $query->whereHas($rel_name, function($query) use ($relation) {
+                foreach ($relation as $key => $value) {
+                    $this->setWhereQuery($query, $key, $value, 'where');
+                }
+            });
+        }
+    }
+
     private function setWith($query, $funcData)
     {
         // $data['with'] = 'translation'
@@ -621,13 +650,13 @@ trait Eloquent
         return new $translationModelName();
     }
 
-    public function saveTranslationData($masterModel, $data, $translatedAttributes=null)
+    public function saveTranslationData($masterModel, $data, $translated_attributes=null)
     {
-        if(empty($translatedAttributes)){
-            $translatedAttributes = $this->model->translatedAttributes;
+        if(empty($translated_attributes)){
+            $translated_attributes = $this->model->translated_attributes;
         }
 
-        if(empty($translatedAttributes)){
+        if(empty($translated_attributes)){
             return false;
         }
 
@@ -645,7 +674,7 @@ trait Eloquent
             }
             $arr['locale'] = $locale;
             $arr[$foreign_key] = $foreign_key_value;
-            foreach ($translatedAttributes as $column) {
+            foreach ($translated_attributes as $column) {
                 if(!empty($value[$column])){
                     $arr[$column] = $value[$column];
                 }

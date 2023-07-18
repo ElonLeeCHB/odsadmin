@@ -9,11 +9,10 @@ use App\Repositories\Eloquent\Counterparty\OrganizationRepository;
 class SupplierService extends Service
 {
     protected $modelName = "\App\Models\Counterparty\Organization";
-	protected $repository;
 
-	public function __construct()
+	public function __construct(protected OrganizationRepository $OrganizationRepository)
 	{
-        $this->repository = new OrganizationRepository;
+        $this->OrganizationRepository = $OrganizationRepository;
 	}
 
 	public function getSuppliers($data=[], $debug = 0)
@@ -76,5 +75,19 @@ class SupplierService extends Service
             return ['error' => $ex->getMessage()];
         }
 	}
+
+    public function deleteSupplier($supplier_id)
+    {
+        try {
+
+            $this->OrganizationRepository->delete($supplier_id);
+
+            return ['success' => true];
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
 
 }

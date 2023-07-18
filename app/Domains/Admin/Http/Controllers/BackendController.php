@@ -3,17 +3,14 @@
 namespace App\Domains\Admin\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Foundation\Bus\DispatchesJobs;
-use Illuminate\Foundation\Validation\ValidatesRequests;
 use App\Http\Controllers\Controller;
 use App\Libraries\TranslationLibrary;
 
 class BackendController extends Controller
-{
-    use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
-
+{    
     protected $lang;
+    protected $acting_user;
+    protected $acting_username;
 
     public function __construct()
     {
@@ -22,6 +19,62 @@ class BackendController extends Controller
         }
     }
 
+
+    public function initController()
+    {
+        if(empty($this->acting_user)){
+            $this->acting_user = app('acting_user');
+        }
+
+        $this->acting_username = $this->acting_user->username ?? '';
+    }
+
+
+    public function getQueries($data)
+    {
+        $query_data = [];
+
+        if(!empty($data['sort'])){
+            $query_data['sort'] = $data['sort'];
+        }else{
+            $query_data['sort'] = 'id';
+        }
+
+        if(!empty($data['order'])){
+            $query_data['order'] = $data['order'];
+        }else{
+            $query_data['order'] = 'DESC';
+        }
+
+        if(!empty($data['page'])){
+            $query_data['page'] = $data['page'];
+        }
+
+        if(!empty($data['limit'])){
+            $query_data['limit'] = $data['limit'];
+        }
+
+        // filter_
+        foreach($data as $key => $value){
+            if(strpos($key, 'filter_') !== false){
+                $query_data[$key] = $value;
+            }
+        }
+
+        // equals_
+        foreach($data as $key => $value){
+            if(strpos($key, 'equal_') !== false){
+                $query_data[$key] = $value;
+            }
+        }
+
+        // Extra
+        if(!isset($query_data['equal_is_active'])){
+            $query_data['equal_is_active'] = 1;
+        }
+
+        return $query_data;
+    }
 
 
     public function getLang($data)
@@ -37,4 +90,6 @@ class BackendController extends Controller
 
         return $this->lang;
     }
+
+    
 }

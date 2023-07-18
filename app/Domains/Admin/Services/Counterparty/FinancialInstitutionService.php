@@ -1,13 +1,19 @@
 <?php
 
-namespace App\Domains\Admin\Services\Common;
+namespace App\Domains\Admin\Services\Counterparty;
 
-use App\Domains\Admin\Services\Service;
 use Illuminate\Support\Facades\DB;
+use App\Domains\Admin\Services\Service;
+use App\Repositories\Eloquent\Counterparty\FinancialInstitutionRepository;
 
 class FinancialInstitutionService extends Service
 {
-    protected $modelName = "\App\Models\Common\FinancialInstitution";
+    protected $modelName = "\App\Models\Counterparty\FinancialInstitution";
+
+	public function __construct(protected FinancialInstitutionRepository $FinancialInstitutionRepository)
+	{
+
+	}
 
     public function updateOrCreate($data)
     {
@@ -28,6 +34,20 @@ class FinancialInstitutionService extends Service
             $result['row_id'] = $row->id;
             
             return $result;
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
+
+    public function deleteFinancialInstitution($id)
+    {
+        try {
+
+            $this->FinancialInstitutionRepository->delete($id);
+
+            return ['success' => true];
+
         } catch (\Exception $ex) {
             DB::rollback();
             return ['error' => $ex->getMessage()];

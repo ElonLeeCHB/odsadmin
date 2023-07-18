@@ -10,7 +10,7 @@ class Taxonomy extends Model
 {
     use Translatable;
     
-    public $translatedAttributes = ['name',];
+    public $translated_attributes = ['name',];
     protected $appends = ['name'];
     protected $guarded = [];
    

@@ -2,11 +2,11 @@
 
 namespace App\Repositories\Eloquent\Sale;
 
-use App\Domains\Admin\Traits\Eloquent;
+use App\Traits\EloquentTrait;
 
 class OrderProductIngredientRepository
 {
-    use Eloquent;
+    use EloquentTrait;
 
     public $modelName = "\App\Models\Sale\OrderProductIngredient";
 }

@@ -13,9 +13,8 @@
 		<div class="container-fluid">
 			<div class="float-end">
 				<button type="button" data-bs-toggle="tooltip" title="Filter" onclick="$('#filter-member').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fas fa-filter" style="font-size:18px"></i></button>
-				{{--<button type="button" data-bs-toggle="tooltip" title="Export" class="btn btn-light" data-bs-original-title="Edit" aria-label="Edit" id="button-export"><i class="fa fa-file-export" style="font-size:20px"></i></button>--}}
-				<a href="{{ route('lang.admin.member.members.form') }}" data-bs-toggle="tooltip" title="Add New" class="btn btn-primary"><i class="fas fa-plus"></i></a>
-				<?php /*<button type="submit" form="form-member" formaction="{{ route('lang.admin.member.members.massdelete') }}" data-bs-toggle="tooltip" title="Delete" onclick="return confirm('Are you sure?');" class="btn btn-danger"><i class="fas fa-trash-alt"></i></button> */ ?>
+				<a href="{{ $add_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i></a>
+				<button type="submit" form="form-member" formaction="{{ $delete_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_delete }}" onclick="return confirm('{{ $lang->text_confirm }}');" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
 			</div>
 			<h1>{{ $lang->heading_title }}</h1>
 			@include('admin.common.breadcumb')
@@ -71,59 +70,6 @@
 
 @section('buttom')
 <script type="text/javascript"><!--
-//Export: Show window
-$('#button-export').on('click', function () {
-	$('#modal-option').modal('show');
-	
-});
-
-
-//Export: Download
-$('#button-export-save').on('click', function () {
-	var dataString = $('form').serialize();
-	var ext = $('#input-excel-format').val();
-
-    $.ajax
-    ({
-        type: "POST",
-        url: "{{ route('lang.admin.member.members.index') }}",
-        data: dataString,
-        cache: false,
-        xhrFields:{
-            responseType: 'blob'
-        },
-		beforeSend: function () {
-			console.log('beforeSend');
-            $('#loading').css("display", "");
-            $('#button-export-save').attr("disabled", true);
-		},
-        success: function(data)
-        {
-			console.log('success');
-            var link = document.createElement('a');
-            link.href = window.URL.createObjectURL(data);
-			link.download = 'members.' + ext;
-
-            link.click();
-			$('#modal-option').modal('hide');
-        },
-		complete: function () {
-			console.log('complete');
-			$('#loading').css("display", "none");
-            $('#button-export-save').attr("disabled", false);
-		},
-        fail: function(data) {
-			console.log('fail');
-            alert('Not downloaded');
-        }
-    });
-});
-
-
-$('#button-export-cancel').on('click', function () {
-	$('#loading').css("display", "none");
-	$('#button-export-save').attr("disabled", false);
-});
 
 $('#member').on('click', 'thead a, .pagination a', function(e) {
 	e.preventDefault();
@@ -190,7 +136,7 @@ $('#button-filter').on('click', function() {
 	}
 	*/
 
-	url = "{{ route('lang.admin.member.members.list') }}?" + url;
+	url = "{{ $list_url }}?" + url;
 
 	$('#member').load(url);
 });

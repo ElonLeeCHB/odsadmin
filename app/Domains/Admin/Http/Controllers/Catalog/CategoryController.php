@@ -5,26 +5,17 @@ namespace App\Domains\Admin\Http\Controllers\Catalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
-use App\Libraries\TranslationLibrary;
-use App\Domains\Admin\Services\Common\TermService;
-use App\Traits\InitController;
+use App\Domains\Admin\Services\Catalog\CategoryService;
 
-class CategoryController extends Controller
+class CategoryController extends BackendController
 {
-    use InitController;
-
-    private $request;
-    private $lang;
-    private $LanguageRepository;
-    private $TermService;
-
-    public function __construct(Request $request, LanguageRepository $LanguageRepository, TermService $TermService)
+    public function __construct(private Request $request, private LanguageRepository $LanguageRepository, private CategoryService $CategoryService)
     {
-        $this->request = $request;
-        $this->LanguageRepository = $LanguageRepository;
-        $this->TermService = $TermService;
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/common/term','admin/catalog/category']);
+        parent::__construct();
+
+        $this->getLang(['admin/common/common','admin/common/term','admin/catalog/category']);
     }
     
 
@@ -53,8 +44,8 @@ class CategoryController extends Controller
 
         $data['list'] = $this->getList();
 
-        $data['list_url'] =route('lang.admin.catalog.categories.list');
-        $data['add_url'] = route('lang.admin.catalog.categories.form');
+        $data['list_url']   =  route('lang.admin.catalog.categories.list');
+        $data['add_url']    = route('lang.admin.catalog.categories.form');
         $data['delete_url'] = route('lang.admin.catalog.categories.delete');
 
         return view('admin.catalog.category', $data);
@@ -67,48 +58,51 @@ class CategoryController extends Controller
     }
 
 
-    public function getList()
+    private function getList()
     {
         $data['lang'] = $this->lang;
 
         // Prepare link for action
-        $queries = $this->getQueries($this->request->query());
+        $query_data = $this->getQueries($this->request->query());
 
-        $queries['whereIn'] = ['taxonomy_code' => ['product_category']];
+        // Extra
+        $query_data['equal_taxonomy_code'] = 'product_category';
 
-        // rows
-        $terms = $this->TermService->getRows($queries);
-        if(!empty($terms)){
-            foreach ($terms as $row) {
-                $row->edit_url = route('lang.admin.catalog.categories.form', array_merge([$row->id], $queries));
+        // Rows
+        $categories = $this->CategoryService->getRows($query_data);
+
+        if(!empty($categories)){
+            foreach ($categories as $row) {
+                $row->edit_url = route('lang.admin.catalog.categories.form', array_merge([$row->id], $query_data));
             }
         }
 
-        $data['terms'] = $terms->withPath(route('lang.admin.catalog.categories.list'))->appends($queries);
+        $data['categories'] = $categories->withPath(route('lang.admin.catalog.categories.list'))->appends($query_data);
 
         // Prepare links for list table's header
-        if($queries['order'] == 'ASC'){
+        if($query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($queries['sort']);
+        $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
-        unset($queries['sort']);
-        unset($queries['order']);
-        unset($queries['with']);
-        unset($queries['whereIn']);
+        unset($query_data['sort']);
+        unset($query_data['order']);
+        unset($query_data['with']);
+        unset($query_data['whereIn']);
 
         $url = '';
 
-        foreach($queries as $key => $value){
+        foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
         
+        
         // link of table header for sorting        
-        $route = route('lang.admin.catalog.products.list');
+        $route = route('lang.admin.catalog.categories.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_code'] = $route . "?sort=code&order=$order" .$url;
@@ -160,7 +154,7 @@ class CategoryController extends Controller
         $data['autocomplete_url'] = route('lang.admin.catalog.categories.autocomplete');
 
         // Get Record
-        $category = $this->TermService->findIdOrFailOrNew($category_id,['equal_taxonomy_code' => 'product_category']);
+        $category = $this->CategoryService->findIdOrFailOrNew($category_id,['equal_taxonomy_code' => 'product_category']);
 
         $data['category']  = $category;
         
@@ -200,13 +194,13 @@ class CategoryController extends Controller
 
             $data['taxonomy_code'] = 'product_category';
 
-            $result = $this->TermService->updateOrCreate($data);
+            $result = $this->CategoryService->updateOrCreate($data);
 
             if(empty($result['error'])){
                 $json = [
-                    'term_id' => $result['term_id'],
+                    'category_id' => $result['category_id'],
                     'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.catalog.categories.form', $result['term_id']),
+                    'redirectUrl' => route('lang.admin.catalog.categories.form', $result['category_id']),
                 ];
             }else if(auth()->user()->username == 'admin'){
                 $json['warning'] = $result['error'];
@@ -219,16 +213,59 @@ class CategoryController extends Controller
 
     }
 
+
+    public function delete()
+    {
+        $this->initController();
+        
+        $post_data = $this->request->post();
+
+        $json = [];
+
+        if (isset($post_data['selected'])) {
+            $selected = $post_data['selected'];
+        } else {
+            $selected = [];
+        }
+
+        // Permission
+        if($this->acting_username !== 'admin'){
+            $json['error'] = $this->lang->error_permission;
+        }
+
+        if (!$json) {
+            foreach ($selected as $category_id) {
+                $result = $this->CategoryService->deleteCategory($category_id);
+
+                if(!empty($result['error'])){
+                    if(config('app.debug')){
+                        $json['warning'] = $result['error'];
+                    }else{
+                        $json['warning'] = $this->lang->text_fail;
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        if(empty($json['warning'] )){
+            $json['success'] = $this->lang->text_success;
+        }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
+    }
+
+    
     public function autocomplete()
     {
         $query_data = $this->request->query();
-
         $queries = $this->getQueries($this->request->query());
-
+        $queries['equal_is_active'] = 1;
         $queries['pagination'] = false;
 
         // Rows
-        $rows = $this->TermService->getRows($queries);
+        $rows = $this->CategoryService->getCategories($queries);
 
         $json = [];
 
@@ -238,7 +275,9 @@ class CategoryController extends Controller
             }
 
             $json[] = array(
-                'term_id' => $row->id,
+                'label' => $row->name,
+                'value' => $row->id,
+                'category_id' => $row->id,
                 'code' => $row->code,
                 'name' => $row->name,
                 'short_name' => $row->short_name,
@@ -247,11 +286,6 @@ class CategoryController extends Controller
         }
 
         return response(json_encode($json))->header('Content-Type','application/json');
-    }
-
-    public function delete()
-    {
-
     }
 
     public function validator(array $data)

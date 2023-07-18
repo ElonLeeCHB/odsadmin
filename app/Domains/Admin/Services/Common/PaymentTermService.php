@@ -10,11 +10,10 @@ use App\Repositories\Eloquent\Common\PaymentTermRepository;
 class PaymentTermService extends Service
 {
     protected $modelName = "\App\Models\Common\PaymentTerm";
-    public $repository;
 
-	public function __construct(PaymentTermRepository $repository)
+	public function __construct(protected PaymentTermRepository $PaymentTermRepository)
 	{
-        $this->repository = $repository;
+        $this->PaymentTermRepository = $PaymentTermRepository;
 	}
 
 
@@ -28,7 +27,7 @@ class PaymentTermService extends Service
         try {
 
             // 儲存主記錄
-            $payment_term = $this->repository->findIdOrFailOrNew($data['payment_term_id']);
+            $payment_term = $this->PaymentTermRepository->findIdOrFailOrNew($data['payment_term_id']);
 
             $payment_term->type = $data['type'] ?? 1;
             $payment_term->name = $data['name'];
@@ -54,4 +53,18 @@ class PaymentTermService extends Service
         return false;
     }
     
+
+    public function deletePaymentTerm($payment_term_id)
+    {
+        try {
+
+            $this->PaymentTermRepository->delete($payment_term_id);
+
+            return ['success' => true];
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
 }

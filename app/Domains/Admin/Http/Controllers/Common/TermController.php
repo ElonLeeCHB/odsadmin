@@ -3,29 +3,20 @@
 namespace App\Domains\Admin\Http\Controllers\Common;
 
 use App\Http\Controllers\Controller;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use Illuminate\Http\Request;
 use App\Libraries\TranslationLibrary;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
 use App\Domains\Admin\Services\Common\TermService;
-use App\Traits\InitController;
+use App\Domains\Admin\Traits\InitControllerTrait;
 
-class TermController extends Controller
+class TermController extends BackendController
 {
-    use InitController;
-
-    private $request;
-    private $lang;
-    private $LanguageRepository;
-    private $TermService;
-
-    public function __construct(Request $request, TermService $TermService, LanguageRepository $LanguageRepository)
+    public function __construct(private Request $request, private TermService $TermService, private LanguageRepository $LanguageRepository)
     {
-        $this->request = $request;
-        $this->TermService = $TermService;
-        $this->LanguageRepository = $LanguageRepository;
+        parent::__construct();
 
-        // Translations
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/common/term']);
+        $this->getLang(['admin/common/common','admin/common/term']);
     }
 
     public function index()

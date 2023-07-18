@@ -37,10 +37,20 @@
                 <input type="text" id="input-name" name="filter_name" value="{{ $filter_name ?? '' }}"  data-oc-target="autocomplete-name" class="form-control" autocomplete="off"/>
                 <ul id="autocomplete-name" class="dropdown-menu"></ul>
               </div>
+
+              <div class="mb-3">
+                <label class="form-label">{{ $lang->column_is_active }}</label>
+                <select name="equal_is_active" id="input-equal_is_active" class="form-select">
+                  <option value="*"> -- </option>
+                  <option value="1" selected>{{ $lang->text_yes }}</option>
+                  <option value="0">{{ $lang->text_no }}</option>
+                </select>
+              </div>
               <div class="text-end">
                 <button type="reset" id="button-clear" class="btn btn-light"><i class="fa fa-refresh" aria-hidden="true"></i> {{ $lang->button_reset }}</button>
                 <button type="button" id="button-filter" class="btn btn-light"><i class="fa-solid fa-filter"></i> {{ $lang->button_filter }}</button>
               </div>
+
             </div>
           </div>
         </form>
@@ -78,6 +88,12 @@ $('#button-filter').on('click', function() {
 	if (filter_name) {
 		url += '&filter_name=' + encodeURIComponent(filter_name);
 	}
+
+  var equal_is_active = $('#input-equal_is_active').val();
+
+  if (equal_is_active) {
+    url += '&equal_is_active=' + encodeURIComponent(equal_is_active);
+  }
 
 	url = "{{ $list_url }}?" + url;
 

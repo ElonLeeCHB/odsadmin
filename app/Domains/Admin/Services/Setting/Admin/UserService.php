@@ -11,26 +11,24 @@ use App\Repositories\Eloquent\User\UserMetaRepository;
 
 class UserService extends Service
 {
-    private $lang;
-    private $modelName;
-    private $UserMetaRepository;
+    protected $modelName = "\App\Models\User\User";
 
-	public function __construct(public UserRepository $repository, UserMetaRepository $UserMetaRepository)
-    {
-        $this->modelName = "\App\Models\User\User";
-        $this->repository = $repository;
-        $this->UserMetaRepository = $UserMetaRepository;
-	}
+
+	public function __construct(private UserRepository $UserRepository, private UserMetaRepository $UserMetaRepository)
+    {}
+
 
     public function getAdminUsers($data, $debug=0)
     {
-        return $this->repository->getAdminUsers($data, $debug);
+        return $this->UserRepository->getAdminUsers($data, $debug);
     }
+
 
     public function getSalutations()
     {
-        return $this->repository->getSalutations();
+        return $this->UserRepository->getSalutations();
     }
+
 
     public function updateOrCreate($data)
     {
@@ -39,7 +37,7 @@ class UserService extends Service
         try {
             $user = $this->findIdOrFailOrNew(id:$data['user_id']);
 
-            $user->username = $data['username'] ?? null;
+            $user->username = $data['username'];
             $user->name = $data['name'] ?? '';
 
             if(isset($data['code'])){
@@ -60,13 +58,13 @@ class UserService extends Service
             $upsertData[] = [
                 'user_id' => $user->id,
                 'meta_key' => 'is_admin',
-                'meta_value' => $data['is_admin'],
+                'meta_value' => 1,
             ];
 
             if(!empty($upsertData)){
                 $this->UserMetaRepository->newModel()->upsert($upsertData, ['user_id','meta_key']);
-            }		
-		
+            }
+
             DB::commit();
 
             $result['data']['user_id'] = $user->id;
@@ -92,6 +90,12 @@ class UserService extends Service
                 'password.min' => '至少6位數',
                 'email.*' => 'email錯誤',
         ]);
+    }
+
+
+    public function removeAdmin($user_id)
+    {
+        $this->UserMetaRepository->removeAdmin($user_id);
     }
 
 }

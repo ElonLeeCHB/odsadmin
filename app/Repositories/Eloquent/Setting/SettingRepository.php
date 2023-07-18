@@ -2,12 +2,12 @@
 
 namespace App\Repositories\Eloquent\Setting;
 
-use App\Domains\Admin\Traits\Eloquent;
+use App\Traits\EloquentTrait;
 use App\Models\Setting\Setting;
 
 class SettingRepository
 {
-    use Eloquent;
+    use EloquentTrait;
 
     public $modelName = "\App\Models\Setting\Setting";
 

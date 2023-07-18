@@ -5,18 +5,17 @@ namespace App\Domains\Admin\Http\Controllers\Catalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Libraries\TranslationLibrary;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
-use App\Domains\Admin\Services\Common\OptionService;
 use App\Domains\Admin\Services\Catalog\ProductService;
+use App\Domains\Admin\Services\Common\OptionService;
 use App\Domains\Admin\Services\Catalog\CategoryService;
 use App\Domains\Admin\Services\Sale\OrderProductOptionService;
 
 
-class ProductController extends Controller
+class ProductController extends BackendController
 {
-    private $lang;
-
     public function __construct(
         private Request $request
         , private LanguageRepository $languageRepository
@@ -26,11 +25,9 @@ class ProductController extends Controller
         , private OrderProductOptionService $OrderProductOptionService
     )
     {
-        $groups = [
-            'admin/common/common',
-            'admin/catalog/product',
-        ];
-        $this->lang = (new TranslationLibrary())->getTranslations($groups);
+        parent::__construct();
+
+        $this->getLang(['admin/common/common','admin/catalog/product']);
     }
 
     /**
@@ -60,9 +57,18 @@ class ProductController extends Controller
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
-        $data['list'] = $this->getList();
 
-        $data['list_url'] = route('lang.admin.catalog.products.list');
+
+        // categories
+        $data['categories'] = $this->CategoryService->getCategories();
+
+
+        $data['list'] = $this->getList();
+        
+
+        $data['list_url']   = route('lang.admin.catalog.products.list');
+        $data['add_url']    = route('lang.admin.catalog.products.form');
+        $data['delete_url'] = route('lang.admin.catalog.products.delete');
 
         return view('admin.catalog.product', $data);
     }
@@ -72,12 +78,8 @@ class ProductController extends Controller
         return $this->getList();
     }
 
-    /**
-     * Show the list table.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
-    public function getList()
+
+    private function getList()
     {
         $data['lang'] = $this->lang;
 
@@ -120,7 +122,10 @@ class ProductController extends Controller
         $products = $this->ProductService->getProducts($queries);
 
         if(!empty($products)){
+            $products->load('main_category');
+
             foreach ($products as $row) {
+                $row->main_category_name = $row->main_category->name ?? '';
                 $row->edit_url = route('lang.admin.catalog.products.form', array_merge([$row->id], $queries));
             }
         }
@@ -248,11 +253,11 @@ class ProductController extends Controller
         $data['translations'] = $translations;
 
         // product_categories
-		if ($product_id) {
+        if ($product_id) {
             $ids = $product->categories->pluck('id')->toArray();
             if(!empty($ids)){
                 $cat_filters = [
-                    'whereIn' => $ids,
+                    'whereIn' => ['id' => $ids],
                     'pagination' => false
                 ];
                 $product_categories = $this->CategoryService->getRows($cat_filters);
@@ -264,11 +269,11 @@ class ProductController extends Controller
                     ];
                 }
             }
-		}
+        }
         
         if(empty($data['product_categories'])) {
-			$data['product_categories'] = [];
-		}
+            $data['product_categories'] = [];
+        }
 
         // product_options
         $product->load('product_options.translation');
@@ -340,6 +345,7 @@ class ProductController extends Controller
         return view('admin.catalog.product_form', $data);
     }
     
+
     public function save()
     {
         $data = $this->request->all();
@@ -426,6 +432,45 @@ class ProductController extends Controller
         return response(json_encode($json))->header('Content-Type','application/json');
     }
 
+    public function delete()
+    {
+        $post_data = $this->request->post();
+
+        $json = [];
+
+        if (isset($post_data['selected'])) {
+            $selected = $post_data['selected'];
+        } else {
+            $selected = [];
+        }
+
+        // if (!$this->user->hasPermission('modify', 'catalog/category')) {
+        //     $json['error'] = $this->language->get('error_permission');
+        // }
+
+        if (!$json) {
+            foreach ($selected as $product_id) {
+                $result = $this->ProductService->deleteProduct($product_id);
+
+                if(!empty($result['error'])){
+                    if(config('app.debug')){
+                        $json['warning'] = $result['error'];
+                    }else{
+                        $json['warning'] = $this->lang->text_fail;
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        if(empty($json['warning'] )){
+            $json['success'] = $this->lang->text_success;
+        }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
+    }
+
     public function autocomplete()
     {
         $json = [];
@@ -476,64 +521,4 @@ class ProductController extends Controller
                 'short_name.*' => $this->lang->error_short_name,
         ]);
     }
-    
-    //即將移到 OrderController
-    /*
-    public function options()
-    {
-        if(empty($this->request->product_row)){
-            return false;
-        }
-
-        $data['lang'] = $this->lang;
-
-        $filter_data = [
-            'filter_id' => $this->request->filter_product_id,
-            'regexp' => false,
-            'with' =>['product_options' => ['is_active'=>1]],
-        ];
-
-        $product = $this->ProductService->getRow($filter_data);
-        $product->product_options->load('option.translation');
-        $product->product_options->load('product_option_values.translation');
-        $data['product'] = $product;
-
-        $data['loop_product_options'] = [];
-        
-        $product->product_options = $product->product_options->sortBy('sort_order');
-
-        foreach ($product->product_options as $product_option) {
-            $option_code = $product_option->option->code;
-
-            $data['product_options'][$option_code] = [
-                'product_option_id' => $product_option->id,
-                'option_id' => $product_option->option->id,
-                'option_code' => $product_option->option->code,
-                'option_type' => $product_option->option->type,
-                'option_name' => $product_option->option->name,
-                'product_option_values' => $product_option->product_option_values,
-            ];
-
-            if($product_option->is_fixed != 1){
-                $data['loop_product_options'][] = [
-                    'product_option_id' => $product_option->id,
-                    'option_id' => $product_option->option->id,
-                    'option_code' => $product_option->option->code,
-                    'option_type' => $product_option->option->type,
-                    'option_name' => $product_option->option->name,
-                    'is_fixed' => $product_option->is_fixed,
-                    'is_hidden' => $product_option->is_hidden,
-                    'option_name' => $product_option->option->name,
-                    'product_option_values' => $product_option->product_option_values,
-                ];
-
-            }
-        }
-
-        $data['product_row'] = $this->request->product_row;
-
-        //return view('admin.sale.order_product_detail', $data);
-        return view('admin.sale.order_product_option', $data);
-    }
-    */
 }

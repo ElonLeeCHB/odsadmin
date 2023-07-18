@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\Lang;
 class LayoutComposer
 {
     private $lang;
-    private $authUser;
-    private $simUser;
+    private $auth_user;
+    private $acting_user;
     private $base;
     
     /**
@@ -22,17 +22,9 @@ class LayoutComposer
     //public function __construct(UserRepository $users)
     public function __construct()
     {
-        $this->authUser = auth()->user();
-        $this->simUser = auth()->user();
-        $this->base = config('app.admin_url');
-
-        // Translations
-        $groups = [
-            'admin/common/common',
-            'admin/common/column_left',
-            'admin/setting/setting',
-        ];
-        $this->lang = (new TranslationLibrary())->getTranslations($groups);
+        $this->auth_user = auth()->user();
+        $this->acting_user = auth()->user();
+        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/common/column_left','admin/setting/setting']);
     }
 
     /**
@@ -43,17 +35,12 @@ class LayoutComposer
      */
     public function compose(View $view)
     {
-        $view->with('authUser', $this->authUser);
-        $view->with('simUser', $this->simUser);
-        $view->with('base', $this->base);
+        $view->with('auth_user', $this->auth_user);
+        $view->with('acting_user', $this->acting_user);
+        $view->with('navigation', $this->lang->text_navigation);
 
         $leftMenus = $this->getColumnLeft();
-        //$leftMenus = [];
-        $view->with('navigation', $this->lang->text_navigation);
         $view->with('menus', $leftMenus);
-        $view->with('appName', env('APP_NAME'));
-
-        $view->with('location_id', 1);
 
     }
 
@@ -155,7 +142,7 @@ class LayoutComposer
             ];
         }
 
-        if(!empty($Catalog)) {
+        if(!empty($Catalog) && ($this->acting_user->username == 'admin')) {
             $menus[] = [
                 'id'       => 'menu-system',
                 'icon'	   => 'fas fa-cog',
@@ -205,7 +192,7 @@ class LayoutComposer
                 'children' => []
             ];
         }
-        if(1) {
+        if($this->acting_user->username == 'admin') {
             $sale[] = [
                 'name'	   => $this->lang->text_material_requisition_setting,
                 'icon'	   => '',
@@ -230,7 +217,7 @@ class LayoutComposer
         // Common
         $common = [];
 
-        if(1) {
+        if($this->acting_user->username == 'admin') {
             $common[] = [
                 'name'	   => $this->lang->text_common_taxonomy,
                 'icon'	   => '',
@@ -239,7 +226,7 @@ class LayoutComposer
             ];
         }
 
-        if(1) {
+        if($this->acting_user->username == 'admin') {
             $common[] = [
                 'name'	   => $this->lang->text_common_term,
                 'icon'	   => '',
@@ -498,7 +485,7 @@ class LayoutComposer
             ];
         }
 
-        if(!empty($system)) {
+        if(!empty($system) && ($this->acting_user->username == 'admin')) {
             $menus[] = [
                 'id'       => 'menu-setting',
                 'icon'	   => 'fas fa-cog',

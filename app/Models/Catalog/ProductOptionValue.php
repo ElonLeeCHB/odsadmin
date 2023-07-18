@@ -12,10 +12,9 @@ class ProductOptionValue extends Model
 {
     use Translatable;
     
-    protected $table = 'product_option_values';
     protected $guarded = [];
     protected $appends = ['name','short_name'];
-    public $translatedAttributes = ['name','short_name'];
+    public $translated_attributes = ['name','short_name'];
 
     //由於參考上層 OptionValue, 並且需要指定 option_value_id, 所以必須在此指定translation(s)關聯，而非使用 Translatable
     public function translations()

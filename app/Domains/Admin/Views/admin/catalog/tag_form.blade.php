@@ -75,7 +75,7 @@
                   <label class="col-sm-2 col-form-label">{{ $lang->column_code }}</label>
                   <div class="col-sm-10">
                     <div class="input-group">
-                      <input type="text" id="input-code" name="code" value="{{ $term->code ?? ''}}" data-oc-target="autocomplete-code" class="form-control" />
+                      <input type="text" id="input-code" name="code" value="{{ $tag->code ?? ''}}" data-oc-target="autocomplete-code" class="form-control" />
                     </div>
                     <div class="form-text">(識別碼有可能用在程式裡面。請小心設定。)</div>
                     <div id="error-code" class="invalid-feedback"></div>
@@ -87,10 +87,10 @@
                   <label class="col-sm-2 col-form-label">{{ $lang->column_parent_name }}</label>
                   <div class="col-sm-10">
                     <div class="input-group">
-                      <input type="text" id="input-parent_name" name="parent_name" value="{{ $term->parent->name ?? ''}}" data-oc-target="autocomplete-parent_name" class="form-control" />
+                      <input type="text" id="input-parent_name" name="parent_name" value="{{ $tag->parent->name ?? ''}}" data-oc-target="autocomplete-parent_name" class="form-control" />
                     </div>
                     <div id="error-parent_name" class="invalid-feedback"></div>
-                    <input type="hidden" id="input-parent_id" name="parent_id" value="{{ $term->parent_id }}" />
+                    <input type="hidden" id="input-parent_id" name="parent_id" value="{{ $tag->parent_id }}" />
                     <ul id="autocomplete-parent_name" class="dropdown-menu"></ul>
                     <div class="form-text"></div><?php /* help text */ ?>
                   </div>
@@ -101,7 +101,7 @@
                   <label for="input-comment" class="col-sm-2 col-form-label">備註</label>
                   <div class="col-sm-10">
                     <div class="input-group">
-                      <input type="text" id="input-comment" name="comment" value="{{ $term->comment }}" class="form-control">
+                      <input type="text" id="input-comment" name="comment" value="{{ $tag->comment }}" class="form-control">
                     </div>
                     <div id="error-comment" class="invalid-feedback"></div>
                   </div>
@@ -114,14 +114,14 @@
                     <div class="input-group">
                       <div id="input-is_active" class="form-check form-switch form-switch-lg">
                         <input type="hidden" name="is_active" value="0"/>
-                        <input type="checkbox" name="is_active" value="1" class="form-check-input" @if($term->is_active) checked @endif/>
+                        <input type="checkbox" name="is_active" value="1" class="form-check-input" @if($tag->is_active) checked @endif/>
                       </div>
                     </div>
                   </div>
                 </div>
 
               </div>
-              <input type="hidden" id="input-term_id" name="term_id" value="{{ $term_id }}"/>
+              <input type="hidden" id="input-tag_id" name="tag_id" value="{{ $tag_id }}"/>
             </div>
           </form>
           </div>
@@ -136,20 +136,20 @@
 
 $('#input-parent_name').autocomplete({
   'source': function (request, response) {
-    var self_id = $('#input-term_id').val();
+    var self_id = $('#input-tag_id').val();
 
     $.ajax({
       url: "{{ $autocomplete_url }}?filter_name=" + encodeURIComponent(request) + '&equal_taxonomy_code=product_tag' + '&exclude_id=' + self_id,
       dataType: 'json',
       success: function (json) {
         json.unshift({
-            term_id: '',
+            tag_id: '',
             name: '-- 無 --'
         });
 
         response($.map(json, function (item) {
           return {
-            value: item['term_id'],
+            value: item['tag_id'],
             label: item['name']
           }
         }));

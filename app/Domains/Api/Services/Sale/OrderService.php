@@ -173,11 +173,11 @@ class OrderService extends Service
             }
 
             // 標籤
-            if(!empty($data['order_tags'])){
-                if(!is_array($data['order_tags'])){
-                    $tags = explode(',', $data['order_tags']);
+            if(!empty($data['order_tag'])){
+                if(!is_array($data['order_tag'])){
+                    $tags = explode(',', $data['order_tag']);
                 }else{
-                    $tags = $data['order_tags'];
+                    $tags = $data['order_tag'];
                 }
 
                 foreach ($tags as $key => $tag) {
@@ -191,7 +191,7 @@ class OrderService extends Service
                     // 若無此標籤則新增
                     if($term_translation == null){
                         $term = new Term;
-                        $term->taxonomy = 'order_tags';
+                        $term->taxonomy = 'order_tag';
                         $term->object_model = 'App\Models\Sale\Order';
                         $term->is_active = 1;
                         $term->save();
@@ -213,7 +213,7 @@ class OrderService extends Service
                 }
 
                 // 新增前先找出已有的 term_id
-                $original_term_ids = Term::where('taxonomy', 'order_tags')->whereHas('term_relations', function ($query) use ($order_id) {
+                $original_term_ids = Term::where('taxonomy_code', 'order_tag')->whereHas('term_relations', function ($query) use ($order_id) {
                     $query->where('object_id', $order_id);
                 })->pluck('id')->toArray();
 
@@ -500,9 +500,9 @@ class OrderService extends Service
     }
 
 
-    public function getOrderPhrases($taxonomy)
+    public function getOrderPhrases($taxonomy_code)
     {
-        $result = Term::where('taxonomy', $taxonomy)->with('translation')->orderBy('sort_order', 'asc')->get();
+        $result = Term::where('taxonomy_code', $taxonomy_code)->with('translation')->orderBy('sort_order', 'asc')->get();
         return $result;
     }
 

@@ -11,13 +11,8 @@ class MemberService extends Service
 {
     protected $modelName = "\App\Models\Member\Member";
 
-    private $lang;
-
-    public function __construct(
-    )
-	{
-        
-    }
+    public function __construct(protected UserRepository $UserRepository)
+    {}
 
     public function getSalutations()
     {
@@ -148,6 +143,27 @@ class MemberService extends Service
         } catch (\Exception $ex) {
             DB::rollback();
             return ['error' =>$ex->getMessage()];
+        }
+    }
+
+
+    public function deleteMember($member_id)
+    {
+        try {
+
+            DB::beginTransaction();
+
+            $this->UserRepository->delete($member_id);
+
+            DB::commit();
+
+            $result['success'] = true;
+
+            return $result;
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
         }
     }
 

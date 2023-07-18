@@ -3,11 +3,11 @@
 namespace App\Repositories\Eloquent\Common;
 
 use App\Repositories\Eloquent\Repository;
-use App\Domains\Admin\Traits\Eloquent;
+use App\Traits\EloquentTrait;
 
 class OptionValueRepository extends Repository
 {
-    use Eloquent;
+    use EloquentTrait;
     
     public $modelName = "\App\Models\Common\OptionValue";
 }

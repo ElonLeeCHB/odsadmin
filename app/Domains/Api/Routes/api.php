@@ -50,7 +50,7 @@ Route::group([
     ], function ()
     {
         Route::get('order/getAllStatuses', 'Sale\OrderController@getAllStatuses')->name('order.getAllStatuses');
-        Route::get('order/getOrderPhrases/{taxonomy}', 'Sale\OrderController@getOrderPhrases')->name('order.getOrderPhrases');
+        Route::get('order/getOrderPhrases/{taxonomy_code}', 'Sale\OrderController@getOrderPhrases')->name('order.getOrderPhrases');
 
         Route::get('order', 'Sale\OrderController@list')->name('order.list');
         Route::post('order/save', 'Sale\OrderController@save')->name('order.save');
