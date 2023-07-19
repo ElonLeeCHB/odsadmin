@@ -11,10 +11,9 @@ class LocationService extends Service
     protected $modelName = "\App\Models\Setting\Location";
 	public $repository;
 
-	public function __construct()
-	{
-        $this->repository = new LocationRepository;
-	}
+
+    public function __construct(protected LocationRepository $LocationRepository)
+    {}
 
 
 	public function updateOrCreate($data)
@@ -22,7 +21,7 @@ class LocationService extends Service
         DB::beginTransaction();
 
         try {
-            $location = $this->repository->findIdOrFailOrNew($data['location_id']);
+            $location = $this->findIdOrFailOrNew($data['location_id']);
 
 			$location->name = $data['name'];
 			$location->short_name = $data['short_name'] ?? '';
@@ -47,4 +46,24 @@ class LocationService extends Service
         }
 	}
 
+
+    public function deleteLocation($location_id)
+    {
+        try {
+
+            DB::beginTransaction();
+
+            $this->LocationRepository->delete($location_id);
+
+            DB::commit();
+
+            $result['success'] = true;
+
+            return $result;
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
 }

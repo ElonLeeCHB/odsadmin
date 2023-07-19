@@ -54,9 +54,8 @@
             <ul class="nav navbar-nav">
               <li class="nav-item dropdown">
                 <select class="nav-select form-control" id="input-nav_location_id" name="nav_location_id">
-                  <option value="">請選擇</option>
-                  <option value="1" @if($location_id==1) selected @endif>重慶南門市</option>
-                  <option value="2" @if($location_id==2) selected @endif>和平門市</option>
+                  {{--<option value="2" @if($location_id==2) selected @endif>和平門市</option>--}}
+                  <option value="2" selected>和平門市</option>
                 </select>
               </li>
               <li id="nav-notification" class="nav-item dropdown">

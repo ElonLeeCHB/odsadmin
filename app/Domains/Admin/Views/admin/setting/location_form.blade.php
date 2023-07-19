@@ -31,6 +31,7 @@
           </ul>
           <div class="tab-content">
             <div id="tab-location" class="tab-pane active">
+
               <div class="row mb-3 required">
                 <label for="input-name" class="col-sm-2 col-form-label">{{ $lang->column_name }}</label>
                 <div class="col-sm-10">
@@ -38,6 +39,7 @@
                   <div id="error-name" class="invalid-feedback"></div>
                 </div>
               </div>
+
               <div class="row mb-3 required">
                 <label for="input-short_name" class="col-sm-2 col-form-label">{{ $lang->column_short_name }}</label>
                 <div class="col-sm-10">
@@ -45,6 +47,7 @@
                   <div id="error-short_name" class="invalid-feedback"></div>
                 </div>
               </div>
+
               <div class="row mb-3">
                 <label for="input-tin" class="col-sm-2 col-form-label">{{ $lang->column_tin }}</label>
                 <div class="col-sm-10">
@@ -52,6 +55,7 @@
                   <div id="error-tin" class="invalid-feedback"></div>
                 </div>
               </div>
+
               <div class="row mb-3">
                 <label for="input-owner" class="col-sm-2 col-form-label">{{ $lang->column_owner }}</label>
                 <div class="col-sm-10">
@@ -59,6 +63,7 @@
                   <div id="error-owner" class="invalid-feedback"></div>
                 </div>
               </div>
+
               <div class="row mb-3">
                 <label for="input-geocode" class="col-sm-2 col-form-label">{{ $lang->column_geocode }}</label>
                 <div class="col-sm-10">
@@ -66,6 +71,7 @@
                   <div class="form-text">{{ $lang->text_geocode }}</div>
                 </div>
               </div>
+
               <div class="row mb-3">
                 <label for="input-telephone" class="col-sm-2 col-form-label">{{ $lang->column_telephone }}</label>
                 <div class="col-sm-10">
@@ -73,6 +79,7 @@
                   <div id="error-telephone" class="invalid-feedback"></div>
                 </div>
               </div>
+              
             </div>
           </div>
           <input type="hidden" id="input-location_id" name="location_id" value="{{ $location_id }}"></form>

@@ -3,27 +3,17 @@
 namespace App\Domains\Admin\Http\Controllers\Setting;
 
 use App\Http\Controllers\Controller;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use Illuminate\Http\Request;
 use App\Domains\Admin\Services\Setting\LocationService;
-use App\Libraries\TranslationLibrary;
 
-class LocationController extends Controller
+class LocationController extends BackendController
 {
-    private $lang;
-    private $request;
-    private $service;
-
-    public function __construct(Request $request, LocationService $service)
+    public function __construct(private Request $request, private LocationService $LocationService)
     {
-        $this->request = $request;
-        $this->service = $service;
+        parent::__construct();
 
-        // Translations
-        $groups = [
-            'admin/common/common',
-            'admin/setting/location',
-        ];
-        $this->lang = (new TranslationLibrary())->getTranslations($groups);
+        $this->getLang(['admin/common/common','admin/setting/location']);
     }
 
     /**
@@ -72,69 +62,46 @@ class LocationController extends Controller
 
     public function getList()
     {
-        // Language
         $data['lang'] = $this->lang;
 
+
         // Prepare link for action
-        $queries = [];
+        $query_data = $this->getQueries($this->request->query());
 
-        if(!empty($this->request->query('page'))){
-            $page = $queries['page'] = $this->request->input('page');
-        }else{
-            $page = $queries['page'] = 1;
-        }
-
-        if(!empty($this->request->query('sort'))){
-            $sort = $queries['sort'] = $this->request->input('sort');
-        }else{
-            $sort = $queries['sort'] = 'id';
-        }
-
-        if(!empty($this->request->query('order'))){
-            $order = $queries['order'] = $this->request->query('order');
-        }else{
-            $order = $queries['order'] = 'DESC';
-        }
-
-        if(!empty($this->request->query('limit'))){
-            $limit = $queries['limit'] = $this->request->query('limit');
-        }
-
-        foreach($this->request->all() as $key => $value){
-            if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
-            }
-        }
-
-        $locations = $this->service->getRows($queries);
+        $locations = $this->LocationService->getRows($query_data);
 
         foreach ($locations as $row) {
-            $row->edit_url = route('lang.admin.setting.locations.form', array_merge([$row->id], $queries));
+            $row->edit_url = route('lang.admin.setting.locations.form', array_merge([$row->id], $query_data));
         }
 
         $data['locations'] = $locations;
 
-        // Prepare links for sort on list table's header
-        if($order == 'ASC'){
+
+        // Prepare links for list table's header
+        if($query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($sort);
+        $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
-        unset($queries['sort']);
-        unset($queries['order']);
+        unset($query_data['sort']);
+        unset($query_data['order']);
+        unset($query_data['with']);
+        unset($query_data['whereIn']);
 
         $url = '';
 
-        foreach($queries as $key => $value){
+        foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
         
+
         //link of table header for sorting
         $route = route('lang.admin.setting.locations.list');
+        
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_short_name'] = $route . "?sort=short_name&order=$order" .$url;
         
@@ -203,7 +170,7 @@ class LocationController extends Controller
         $data['back_url'] = route('lang.admin.setting.locations.index', $queries);        
 
         // Get Record
-        $location = $this->service->findIdOrFailOrNew($location_id);
+        $location = $this->LocationService->findIdOrFailOrNew($location_id);
 
         $data['location']  = $location;
 
@@ -228,7 +195,7 @@ class LocationController extends Controller
         }
 
         if(!$json) {
-            $result = $this->service->updateOrCreate($data);
+            $result = $this->LocationService->updateOrCreate($data);
 
             if(empty($result['error']) && !empty($result['location_id'])){
                 $json = [
@@ -255,7 +222,44 @@ class LocationController extends Controller
 
     public function delete()
     {
+        $this->initController();
+        
+        $post_data = $this->request->post();
 
+        $json = [];
+
+        if (isset($post_data['selected'])) {
+            $selected = $post_data['selected'];
+        } else {
+            $selected = [];
+        }
+
+        // Permission
+        if($this->acting_username !== 'admin'){
+            $json['error'] = $this->lang->error_permission;
+        }
+
+        if (!$json) {
+            foreach ($selected as $category_id) {
+                $result = $this->LocationService->deleteLocation($category_id);
+
+                if(!empty($result['error'])){
+                    if(config('app.debug')){
+                        $json['warning'] = $result['error'];
+                    }else{
+                        $json['warning'] = $this->lang->text_fail;
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        if(empty($json['warning'] )){
+            $json['success'] = $this->lang->text_success;
+        }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
     }
 
 }

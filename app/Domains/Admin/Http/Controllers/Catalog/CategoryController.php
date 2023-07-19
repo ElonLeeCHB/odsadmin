@@ -62,6 +62,7 @@ class CategoryController extends BackendController
     {
         $data['lang'] = $this->lang;
 
+
         // Prepare link for action
         $query_data = $this->getQueries($this->request->query());
 
@@ -79,6 +80,7 @@ class CategoryController extends BackendController
 
         $data['categories'] = $categories->withPath(route('lang.admin.catalog.categories.list'))->appends($query_data);
 
+        
         // Prepare links for list table's header
         if($query_data['order'] == 'ASC'){
             $order = 'DESC';
