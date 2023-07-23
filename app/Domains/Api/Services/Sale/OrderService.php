@@ -52,11 +52,17 @@ class OrderService extends Service
 
             $order_id = $data['order_id'] ?? null;
 
-            $customer_id = $data['customer_id'] ?? null;
+            if(isset($data['customer_id'])){
+                $customer_id = $data['customer_id'];
+            }else if(isset($data['member_id'])){
+                $customer_id = $data['member_id'];
+            }else{
+                $customer_id = null;
+            }
 
 			$mobile = '';
 			if(!empty($data['mobile'])){
-				$mobile = str_replace('-','',$data['mobile']);
+                $mobile = preg_replace('/\D+/', '', $data['mobile']);
 			}
 
 			$telephone = '';
@@ -66,14 +72,9 @@ class OrderService extends Service
 
             $shipping_personal_name = $data['shipping_personal_name'] ?? $data['personal_name'];
             $shipping_company = $data['shipping_company'] ?? $data['payment_company'] ?? '';
-            
-			$shipping_phone = '';
-			if(!empty($data['shipping_phone'])){
-				$shipping_phone = str_replace('-','',$data['shipping_phone']);
-			}
 
             // members table
-            if($data['personal_name']){
+            if(!empty($data['personal_name']) && !empty($mobile)){
                 $update_member_date = [
                     'name' => $data['personal_name'],
                     'salutation_id' => $data['salutation_id'] ?? 0,
@@ -83,7 +84,7 @@ class OrderService extends Service
                     'payment_tin' => $data['payment_tin'] ?? '',
                     'shipping_personal_name' => $data['shipping_personal_name'] ?? $data['personal_name'],
                     'shipping_company' => $data['shipping_company'] ?? $data['payment_company'] ?? '',
-                    'shipping_phone' => $shipping_phone ?? null,
+                    'shipping_phone' => $data['shipping_phone'] ?? null,
                     'shipping_state_id' => $data['shipping_state_id'] ?? 0,
                     'shipping_city_id' => $data['shipping_city_id'] ?? 0,
                     'shipping_road' => $data['shipping_road'] ?? '',

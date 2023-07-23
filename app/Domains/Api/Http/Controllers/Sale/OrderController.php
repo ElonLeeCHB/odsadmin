@@ -5,34 +5,33 @@ namespace App\Domains\Api\Http\Controllers\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
-use App\Libraries\TranslationLibrary;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Api\Services\Sale\OrderService;
 use App\Domains\Api\Services\Member\MemberService;
-use App\Domains\Api\Services\User\UserService;
+//use App\Domains\Api\Services\User\UserService;
+use App\Repositories\Eloquent\User\UserRepository;
 use App\Domains\Api\Services\Catalog\ProductService;
 use App\Domains\Api\Services\Common\OptionService;
 use App\Domains\Api\Services\Localization\CountryService;
 use App\Domains\Api\Services\Localization\DivisionService;
 
-class OrderController extends Controller
+class OrderController extends BackendController
 {
-    private $lang;
-    private $salable_products;
-    private $order;
-    private $sorted_order_products; //array and key is order_product_id
-
     public function __construct(
         private Request $request,
         private OrderService $OrderService,
         private MemberService $MemberService,
-        private UserService $UserService,
+        //private UserService $UserService,
+        private UserRepository $UserRepository,
         private ProductService $ProductService,
         private OptionService $OptionService,
         private CountryService $CountryService,
         private DivisionService $DivisionService,
         )
     {
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/sale/order',]);
+        parent::__construct();
+
+        $this->getLang(['admin/common/common','admin/sale/order']);
     }
 
     /**
@@ -116,10 +115,19 @@ class OrderController extends Controller
 
     public function save()
     {
-        $data = $this->request->all();
+        //$data = $this->request->all();
+        $post_data = $this->request->post();
+
+        if(isset($postData['customer_id'])){
+            $customer_id = $postData['customer_id'];
+        }else if(isset($postData['member_id'])){
+            $customer_id = $postData['member_id'];
+        }else{
+            $customer_id = null;
+        }
 
         if(!empty($this->request->query('getReturn'))){
-            return response(json_encode($data))->header('Content-Type','application/json');
+            return response(json_encode($post_data))->header('Content-Type','application/json');
         }
 
         $json = [];
@@ -133,9 +141,26 @@ class OrderController extends Controller
             $json['error']['location_id'] = '請指定門市代號';
         }
 
+        //檢查姓名+手機不可重複
+        if(!empty($customer_id) && !empty($this->request->mobile) && !empty($this->request->personal_name)){
+            
+            $filter_data = [
+                'equal_name' => $this->request->personal_name,
+                'equal_mobile' => preg_replace('/\D+/', '', $this->request->mobile),
+                'pagination' => false,
+                'select' => ['id', 'name', 'mobile'],
+            ];
+            $member = $this->UserRepository->getRow($filter_data);
+
+            if($member && $member->id != $customer_id){
+                $json['error']['personal_name'] = '此姓名+手機的客戶資料已存在！';
+                $json['error']['mobile'] = '此姓名+手機的客戶資料已存在！';
+            }
+        }
+
         // Validate
         //驗證表單內容
-        $validator = $this->OrderService->validator($data);
+        $validator = $this->OrderService->validator($post_data);
 
         if($validator->fails()){
             $messages = $validator->errors()->toArray();
@@ -146,7 +171,7 @@ class OrderController extends Controller
 
         //表單驗證成功
         if (!$json) {
-            $result = $this->OrderService->updateOrCreate($data);
+            $result = $this->OrderService->updateOrCreate($post_data);
 
             if(empty($result['error'])){
 
@@ -165,6 +190,8 @@ class OrderController extends Controller
                     'telephone' => $order->telephone,
                     'redirectUrl' => $redirectUrl,
                 ];
+
+                echo '<pre>', print_r(999, 1), "</pre>"; exit;
             }else{
                 //$user_id = auth()->user()->id ?? null;
                 //if($user_id == 1){
@@ -172,7 +199,7 @@ class OrderController extends Controller
                     $json['error'] = 'Debug: '.$result['error'];
 
                 }else{
-                    //$json['error'] = $this->lang->text_fail;
+                    $json['error'] = $this->lang->text_fail;
                     $json['error'] = $result['error'];
                 }
                 

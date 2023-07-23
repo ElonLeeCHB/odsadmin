@@ -2,10 +2,9 @@
 
 namespace App\Repositories\Eloquent\Member;
 
-use App\Repositories\Eloquent\Repository;
 use App\Traits\EloquentTrait;
 
-class MemberRepository extends Repository
+class MemberRepository
 {
     use EloquentTrait;
 

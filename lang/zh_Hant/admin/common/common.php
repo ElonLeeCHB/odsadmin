@@ -2,11 +2,13 @@
 
 return array (
 
+    
 // Tab
 'tab_trans' => '語言資料',
 // 'tab_general' => '基本資料',
 // 'tab_data' => '明細資料',
 'tab_data' => '基本資料',
+
 
 // Text
 'text_yes' => '是',
@@ -31,6 +33,8 @@ return array (
 'text_edit' => '編輯',
 'text_success' => '成功: 資料已更新！',
 'text_fail' => '更新失敗！',
+'text_required' => '必填',
+
 
 // Button
 'button_add' => '新增',
@@ -82,6 +86,8 @@ return array (
 'column_keyword' => '關鍵字',
 'column_sort_order' => '排序',
 'column_payment_company' => '訂餐公司',
+'column_required' => '必填',
+
 
 // Entry
 'entry_enable' => '啟用',
@@ -92,8 +98,10 @@ return array (
 'entry_updated_date' => '修改日期',
 'entry_required' => '必填欄位',
 
+
 // Placeholder
 'plcaeholder_keyname' => '姓名或公司名稱',
+
 
 // Error
 'error_permission' => '警告: 您沒有權限！',

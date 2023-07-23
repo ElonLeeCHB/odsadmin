@@ -269,7 +269,7 @@
                       <input type="hidden" name="product_options[{{ $option_row }}][type]" value="{{ $product_option->type }}"/>
 
                       <div class="row mb-3">
-                        <label for="input-required-{{ $option_row }}" class="col-sm-2 col-form-label">{{ $lang->column_required }}</label>
+                        <label for="input-required-{{ $option_row }}" class="col-sm-2 col-form-label">{{ $lang->text_required }}</label>
                         <div class="col-sm-10">
                           <select name="product_options[{{ $option_row }}][required]" id="input-required-{{ $option_row }}" class="form-select">
                             <option value="1"@if($product_option->required ) selected="selected" @endif>{{ $lang->text_yes }}</option>
@@ -428,7 +428,7 @@
                             </tbody>
                             <tfoot>
                               <tr>
-                                <td colspan="4"></td>
+                                <td colspan="5"></td>
                                 <td class="text-end"><button type="button" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" data-option-row="{{ $option_row }}" class="btn btn-primary"><i class="fa-solid fa-plus-circle"></i></button></td>
                               </tr>
                             </tfoot>

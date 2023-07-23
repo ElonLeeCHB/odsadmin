@@ -129,7 +129,7 @@
                         </td>
 
                         <td class="text-start" style="width:180px;">
-                          <input type="text" id="input-mobile" name="mobile"  value="{{ $order->mobile }}" placeholder="查詢時請輸入至少3個數字" data-oc-target="autocomplete-mobile" style="width:158px;" />
+                          <input type="text" id="input-mobile" name="mobile" aria-label="mobile" class="form-control" value="{{ $order->mobile }}" placeholder="查詢時請輸入至少3個數字" data-oc-target="autocomplete-mobile" style="width:158px;" />
                           <ul id="autocomplete-mobile" class="dropdown-menu"></ul>
                           <div id="error-mobile" class="invalid-feedback"></div>
 
@@ -438,96 +438,130 @@
 
 @section('buttom')
 <script type="text/javascript">
-var shipping_city_id = {{ $order->shipping_city_id ?? 0 }}
-    ,shipping_road = '';
 
-var payment_total = parseInt({{ $order->payment_total ?? 0 }})
-    , payment_paid = parseInt({{ $order->payment_paid ?? 0 }})
-    , payment_unpaid = parseInt({{ $order->payment_unpaid ?? 0 }})
+//關閉全部的 autocomplete
+$('input').attr('autocomplete', 'off');
 
-$(document).on("change",'#input-nav_location_id', function(){
-  var location_id = $(this).val();
-  $('#input-location_id').val(location_id);
+//列印按鈕
+$('#href-printReceiveForm').on('click',function(e){
+  e.preventDefault();
+  var order_id = $('#input-order_id').val();
+  var href = $(this).data('href');
+  var current_order_id = href.match(/[^\/]*$/);
+  if(current_order_id == '%20' && $.isNumeric(order_id)){
+    href = href.replace('%20',order_id);
+  }
+  window.open(href);
 });
-$("#input-nav_location_id" ).trigger( "change" );
 
-//選常用片語
+//暫時不用
+/*
+$( "input,textarea" ).focusin(function() {
+  window.addEventListener('beforeunload', myBeforeUnload);
+});
+
+$('#btn-save-order_form').on('click', function(){
+  window.removeEventListener('beforeunload', myBeforeUnload);
+});
+
+window.addEventListener('beforeunload', myBeforeUnload);
+
+//防止誤按關閉瀏覽器
+function myBeforeUnload(event){
+  // // Cancel the event as stated by the standard.
+  // event.preventDefault();
+  // // Chrome requires returnValue to be set.
+  // event.returnValue = '';
+}
+//
+*/
+
+
+// 單頭
 $(document).ready(function () {
-  $('#table-phrase-comment').DataTable();
-  $('#table-phrase-extra_comment').DataTable();
-});
 
+  var shipping_city_id = {{ $order->shipping_city_id ?? 0 }}
+      ,shipping_road = '';
 
-var phraseType = '';
+  var payment_total = parseInt({{ $order->payment_total ?? 0 }})
+      , payment_paid = parseInt({{ $order->payment_paid ?? 0 }})
+      , payment_unpaid = parseInt({{ $order->payment_unpaid ?? 0 }})
+      
+  $(document).on("change",'#input-nav_location_id', function(){
+    var location_id = $(this).val();
+    $('#input-location_id').val(location_id);
+  });
 
-//客戶備註選常用片語
-$('#input-comment').on('input', function () {
-  var order_comment_value = $(this).val();
-  if (order_comment_value.indexOf(',,') !== -1) {
-    $('#modal-phrases-comment').modal('show');
-  }
-});
+  $("#input-nav_location_id" ).trigger( "change" );
 
-//餐點備註選常用片語
-$('#input-extra_comment').on('input', function () {
-  var order_comment_value = $(this).val();
-  if (order_comment_value.indexOf(',,') !== -1) {
-    $('#modal-phrases-extra_comment').modal('show');
-  }
-});
+  //選常用片語
+  // $('#table-phrase-comment').DataTable();
+  // $('#table-phrase-extra_comment').DataTable();
+  //alert(33)
+  var phraseType = '';
 
-$(document).on("click",'.phrase', function(){
-  phraseType = $(this).data("phrase-column");
+  //客戶備註選常用片語
+  $('#input-comment').on('input', function () {
+    var order_comment_value = $(this).val();
+    if (order_comment_value.indexOf(',,') !== -1) {
+      $('#modal-phrases-comment').modal('show');
+    }
+  });
 
-  if(phraseType == 'comment'){
-    jObj = $('#input-comment');
-  }else if(phraseType == 'extra_comment'){
-    jObj = $('#input-extra_comment');
-  }
-  oldString = jObj.val();
-  order_comment_phrase = $(this).text();
+  //餐點備註選常用片語
+  $('#input-extra_comment').on('input', function () {
+    var order_comment_value = $(this).val();
+    if (order_comment_value.indexOf(',,') !== -1) {
+      $('#modal-phrases-extra_comment').modal('show');
+    }
+  });
 
-  splitResult = oldString.split(',,'); // 使用 :: 分割字符串
-  order_comment_phrase_before = splitResult[0]; // 分割后的前面字符串
-  order_comment_phrase_after = splitResult[1]; // 分割后的后面字符串
+  $(document).on("click",'.phrase', function(){
+    phraseType = $(this).data("phrase-column");
 
-  if(typeof order_comment_phrase_after == 'undefined'){
-    order_comment_phrase_after = '';
-  }
+    if(phraseType == 'comment'){
+      jObj = $('#input-comment');
+    }else if(phraseType == 'extra_comment'){
+      jObj = $('#input-extra_comment');
+    }
+    oldString = jObj.val();
+    order_comment_phrase = $(this).text();
 
-  if (oldString.indexOf(order_comment_phrase) !== -1) {
-    newString = oldString;
-  }else{
-    newString = order_comment_phrase_before + ', '+ order_comment_phrase + ', ' + order_comment_phrase_after;
-  }
+    splitResult = oldString.split(',,'); // 使用 :: 分割字符串
+    order_comment_phrase_before = splitResult[0]; // 分割后的前面字符串
+    order_comment_phrase_after = splitResult[1]; // 分割后的后面字符串
 
-  newString = newString.replace(/\s+/g, ' ').replace(/,+$/, ',').replace(/,+$/, '').replace(/,\s,\s/g, ', ').replace(/,\s$/g, '').replace(/^,\s*/, '');
+    if(typeof order_comment_phrase_after == 'undefined'){
+      order_comment_phrase_after = '';
+    }
 
-  jObj.val(newString);
-  $('#modal-phrases-comment').modal('hide');
-  $('#modal-phrases-extra_comment').modal('hide');
-});
+    if (oldString.indexOf(order_comment_phrase) !== -1) {
+      newString = oldString;
+    }else{
+      newString = order_comment_phrase_before + ', '+ order_comment_phrase + ', ' + order_comment_phrase_after;
+    }
 
-//整體設定
-$(document).ready(function() {
-  $('input').attr('autocomplete', 'off');
-});
+    newString = newString.replace(/\s+/g, ' ').replace(/,+$/, ',').replace(/,+$/, '').replace(/,\s,\s/g, ', ').replace(/,\s$/g, '').replace(/^,\s*/, '');
 
-// 訂單標籤
-var orderTagBtnTxt = '   ';
-var qStr = '';
-$('.selOrderTag button').on('click', function(){
-  var addStr = $('#input-order_tag').val();
-  var buttonText = $(this).text();
-  if(buttonText=='清'){
-    orderTagBtnTxt = '  ';
-    return;
-  }
-  orderTagBtnTxt = buttonText
-});
+    jObj.val(newString);
+    $('#modal-phrases-comment').modal('hide');
+    $('#modal-phrases-extra_comment').modal('hide');
 
+  });
 
-$(function () {
+  // 訂單標籤
+  var orderTagBtnTxt = '   ';
+  var qStr = '';
+  $('.selOrderTag button').on('click', function(){
+    var addStr = $('#input-order_tag').val();
+    var buttonText = $(this).text();
+    if(buttonText=='清'){
+      orderTagBtnTxt = '  ';
+      return;
+    }
+    orderTagBtnTxt = buttonText
+  });
+
   //已存的訂單標籤
   @foreach($order_tag ?? [] as $tag)
     $('.select2-multiple').append(new Option('{{ $tag }}','{{ $tag }}',true,true));
@@ -580,37 +614,14 @@ $(function () {
       return item.text;
     }
   });
-});
 
   //設定星期幾
-$("#input-delivery_date").on('change',function(){
-  const d = new Date(this.value);
-  let i = d.getDay();
-  daystr = ["日","一","二","三","四","五","六"][i];
-  $("#input-delivery_day_of_week").val(daystr);
-});
-
-//暫時不用
-/*
-$( "input,textarea" ).focusin(function() {
-  window.addEventListener('beforeunload', myBeforeUnload);
-});
-
-$('#btn-save-order_form').on('click', function(){
-  window.removeEventListener('beforeunload', myBeforeUnload);
-});
-
-window.addEventListener('beforeunload', myBeforeUnload);
-
-//防止誤按關閉瀏覽器
-function myBeforeUnload(event){
-  // // Cancel the event as stated by the standard.
-  // event.preventDefault();
-  // // Chrome requires returnValue to be set.
-  // event.returnValue = '';
-}
-//
-*/
+  $("#input-delivery_date").on('change',function(){
+    const d = new Date(this.value);
+    let i = d.getDay();
+    daystr = ["日","一","二","三","四","五","六"][i];
+    $("#input-delivery_day_of_week").val(daystr);
+  });
 
   //查姓名
   $('#input-personal_name').autocomplete({
@@ -915,30 +926,25 @@ function myBeforeUnload(event){
   });
 
 
-  //列印按鈕
-  $('#href-printReceiveForm').on('click',function(e){
-    e.preventDefault();
-    var order_id = $('#input-order_id').val();
-    var href = $(this).data('href');
-    var current_order_id = href.match(/[^\/]*$/);
-    if(current_order_id == '%20' && $.isNumeric(order_id)){
-      href = href.replace('%20',order_id);
-    }
-    window.open(href);
+  $("#input-payment_paid").on('input ',function(){
+    calcPayment()
   });
 
-  // 商品 ---------------------------------------------------
+  function calcPayment(){
+    payment_total = $('#input-payment_total').val().toNum();
+    payment_paid = $('#input-payment_paid').val().toNum();
+    payment_unpaid = parseFloat(payment_total) - parseFloat(payment_paid)
+    $('#input-payment_unpaid').val(payment_unpaid);
+  }
+});
+
+
+
+// 商品
+$(document).ready(function () {
   var product_row = {{ $product_row }};
 
-  function setInputToEmpty(parent){
-    $('#'+parent+ " input").each(function(){
-      var value = $(this).val();
-      if(value == 0){
-        $(this).val('');
-      }
-    });
-  }
-
+  // 新增商品
   function addProduct(){
     $.ajax({
       type:'get',
@@ -951,6 +957,7 @@ function myBeforeUnload(event){
     product_row++;
   }
 
+  // 刪除商品
   function removeProduct(product_row){
     var trProductRow = $('#product-row-'+product_row);
     var strId = trProductRow.attr('id');
@@ -961,7 +968,7 @@ function myBeforeUnload(event){
     calcTotal();
   }
 
-  //商品詳細內容，主要是選項，但包含price, model等等
+  // 獲取商品詳細內容
   function getProductDetails(selectedProduct){
     var jqObj = $(selectedProduct);
     var this_product_row = jqObj.closest('tr').data("product-row");
@@ -988,66 +995,11 @@ function myBeforeUnload(event){
         $('#input-product-'+this_product_row+'-model').val(model);
         $('#input-product-'+this_product_row+'-price').val(price);
         $('#input-product-'+this_product_row+'-quantity').val(1);
-        //setInputToEmpty('order_products');
       }
     });
   }
 
-  //顯示隱藏的商品選項 tr_order_product_option
-  /*
-  $(document).on("change",'input[data-element="switch_hidden_option"]', function(){
-    var chk = $(this)[0].checked
-    $(this).closest("[data-product-row]").find(".tr_hiddable_option").each(function() {
-      if(chk){
-        $(this).removeClass("d-none");
-      }else{
-        $(this).addClass("d-none");
-      }
-    });
-  });
-  */
-
-
-  //計算商品選項
-  // -- 選項數量異動
-/*
-
-  $('input[data-element="options_with_qty"]').on('focusout', function () {
-    var this_product_row = $(this).closest("[data-product-row]").data('product-row');
-    var options_total = calcProductOptionTotal(this_product_row)
-    var total = $('#input-product-'+this_product_row+'-total').val().toNum();
-    var final_total = parseFloat(total) + parseFloat(options_total);
-    $('#input-product-'+this_product_row+'-final_total').val(final_total);
-    console.log('options_with_qty: this_product_row='+this_product_row+', options_total='+options_total+', total='+total+', final_total='+final_total)
-  });
-*/
-  $(document).on("focusout",'input[data-element="options_with_qty"]', function(){
-    var this_product_row = $(this).closest("[data-product-row]").data('product-row');
-    var options_total = calcProductOptionTotal(this_product_row)
-    var total = $('#input-product-'+this_product_row+'-total').val().toNum();
-    var final_total = parseFloat(total) + parseFloat(options_total);
-    $('#input-product-'+this_product_row+'-final_total').val(final_total);
-    
-    //console.log('options_with_qty: this_product_row='+this_product_row+', options_total='+options_total+', total='+total+', final_total='+final_total)
-  });
-
-  // -- 選項函數
-  function calcProductOptionTotal(this_product_row){
-    var options_total = 0;
-    $('#product-row-'+this_product_row).find('input[data-element="options_with_qty"]').each(function() {
-      var option_qty = $(this).val().toNum();
-      var option_price = $(this).data('option-price');
-      var option_value = $(this).data('option-value');
-
-      options_total += parseFloat(option_qty) * parseFloat(option_price);
-    });
-
-    $('#input-product-'+this_product_row+'-options_total').val(options_total);
-
-    return options_total;
-  }
-
-
+  // 設定預設選項數量
   function setProductOptionDefault(this_product_row){
     var main_meal_quantity = $('#input-product-'+this_product_row+'-main_meal_quantity').val();
     var main_meal_quantity_no_veg = $('#input-product-'+this_product_row+'-main_meal_quantity_no_veg').val();
@@ -1061,6 +1013,31 @@ function myBeforeUnload(event){
         $(this).val(main_meal_quantity_no_veg);
       }
     });
+  }
+
+  // 觸發-計算商品選項金額
+  $(document).on("focusout",'input[data-element="options_with_qty"]', function(){
+    var this_product_row = $(this).closest("[data-product-row]").data('product-row');
+    var options_total = calcProductOptionTotal(this_product_row)
+    var total = $('#input-product-'+this_product_row+'-total').val().toNum();
+    var final_total = parseFloat(total) + parseFloat(options_total);
+    $('#input-product-'+this_product_row+'-final_total').val(final_total);
+    });
+
+  // 計算商品選項金額
+  function calcProductOptionTotal(this_product_row){
+    var options_total = 0;
+    $('#product-row-'+this_product_row).find('input[data-element="options_with_qty"]').each(function() {
+      var option_qty = $(this).val().toNum();
+      var option_price = $(this).data('option-price');
+      var option_value = $(this).data('option-value');
+
+      options_total += parseFloat(option_qty) * parseFloat(option_price);
+    });
+
+    $('#input-product-'+this_product_row+'-options_total').val(options_total);
+
+    return options_total;
   }
 
   //計算商品金額
@@ -1109,8 +1086,32 @@ function myBeforeUnload(event){
     $('#input-product-'+this_product_row+'-unassigned_qty').val(unassigned_qty);
     
     
-    $('#input-product-'+this_product_row+'-burrito_total').text(main_meal_quantity);
+    $('#span-product-'+this_product_row+'-burrito_total').text(main_meal_quantity);
     return main_meal_quantity;
+  }
+
+  //觸發-計算某商品的飲料量數
+  $(document).on("focusout",'input.drink', function(){
+    var this_product_row = $(this).closest("[data-product-row]").data('product-row');
+    calcProductDrink(this_product_row);
+  });
+
+  //計算某商品的飲料量數
+  function calcProductDrink(this_product_row){
+    // 找到 <tr> 元素
+    const trElement = document.querySelector('#product-row-'+this_product_row);
+
+    // 使用 querySelectorAll 找到所有帶有 class="drink" 的 <input> 元素
+    const drinkInputs = trElement.querySelectorAll('input.drink');
+
+    let total = 0;
+
+    // 迭代每個 <input> 元素，獲取其值並相加
+    drinkInputs.forEach((input) => {
+      total += parseFloat(input.value);
+    });
+
+    $('#span-product-'+this_product_row+'-drink_total').text(total);
   }
 
   //變更主餐數量
@@ -1225,15 +1226,19 @@ function myBeforeUnload(event){
     calcPayment()
   }
 
-  $("#input-payment_paid").on('input ',function(){
-    calcPayment()
-  });
 
-  function calcPayment(){
-    payment_total = $('#input-payment_total').val().toNum();
-    payment_paid = $('#input-payment_paid').val().toNum();
-    payment_unpaid = parseFloat(payment_total) - parseFloat(payment_paid)
-    $('#input-payment_unpaid').val(payment_unpaid);
-  }
+
+
+
+
+
+
+
+
+
+
+});
+
+
 </script>
 @endsection

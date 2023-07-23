@@ -4,13 +4,12 @@ namespace App\Repositories\Eloquent\User;
 
 use Illuminate\Support\Facades\DB;
 use App\Traits\EloquentTrait;
-use App\Repositories\Eloquent\Repository;
 use App\Models\User\User;
 use App\Models\User\UserMeta;
 use App\Models\User\UserAddress;
 use App\Models\Common\Option;
 
-class UserRepository extends Repository
+class UserRepository
 {
     use EloquentTrait;
 

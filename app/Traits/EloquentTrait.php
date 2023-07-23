@@ -212,15 +212,13 @@ trait EloquentTrait
         $query->orderBy($sort, $order);
 
         // Select
-        $select = '';
-
-        if(isset($data['select']) && $data['select'] !== '*'){
-            $select = $data['select'];
-        }else{
-            $this->table = $this->model->getTable();
-            $select = $this->table . '.*';
+        if(isset($data['select'])){
+            if(is_array($data['select'])){
+                $query->select($data['select']);
+            }else if($data['select'] !== '*'){
+                $query->select(DB::raw($data['select']));
+            }
         }
-        $query->select(DB::raw($select));
 
         // see the sql statement
         if(!empty($debug)){

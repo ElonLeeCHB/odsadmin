@@ -166,9 +166,17 @@ class OrderService extends Service
 
             $order_id = $data['order_id'] ?? null;
 
+            if(isset($data['customer_id'])){
+                $customer_id = $data['customer_id'];
+            }else if(isset($data['member_id'])){
+                $customer_id = $data['member_id'];
+            }else{
+                $customer_id = null;
+            }
+
 			$mobile = '';
 			if(!empty($data['mobile'])){
-				$mobile = str_replace('-','',$data['mobile']);
+                $mobile = preg_replace('/\D+/', '', $data['mobile']);
 			}
 
 			$telephone = '';
@@ -177,11 +185,6 @@ class OrderService extends Service
 			}
 
             $shipping_personal_name = $data['shipping_personal_name'] ?? $data['personal_name'];
-
-			$shipping_phone = '';
-			if(!empty($data['shipping_phone'])){
-				$shipping_phone = str_replace('-','',$data['shipping_phone']);
-			}
 
             $shipping_company = $data['shipping_company'] ?? $data['payment_company'] ?? '';
 
@@ -204,7 +207,8 @@ class OrderService extends Service
                     'shipping_address2' => $data['shipping_address2'] ?? '',
                 ];
 
-                $where_data = ['id' => $data['customer_id']];
+                $where_data = ['id' => $customer_id];
+
                 $customer = $this->MemberRepository->newModel()->updateOrCreate($where_data, $update_member_date,);
             }
 

@@ -4,50 +4,45 @@ namespace App\Domains\Admin\Http\Controllers\Sale;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Sale\OrderService;
-use App\Domains\Admin\Services\Member\MemberService;
+use App\Domains\Admin\Services\Member\MemberService; //將移除，改用 UserRepository
+use App\Repositories\Eloquent\User\UserRepository;
 use App\Domains\Admin\Services\Catalog\ProductService;
 use App\Domains\Admin\Services\Common\OptionService;
 use App\Domains\Admin\Services\Localization\CountryService;
 use App\Domains\Admin\Services\Localization\DivisionService;
 
-class OrderController extends Controller
+class OrderController extends BackendController
 {
-    private $request;
-    private $lang;
-    private $salable_products;
     private $order;
-    private $sorted_order_products; //array and key is order_product_id
-    
-    private $OrderService;
-    private $MemberService;
-    private $ProductService;
-    private $OptionService;
-    private $CountryService;
-    private $DivisionService;
 
     public function __construct(
-        Request $request,
-        OrderService $OrderService,
-        MemberService $MemberService,
-        ProductService $ProductService,
-        OptionService $OptionService,
-        CountryService $CountryService,
-        DivisionService $DivisionService,
+        private Request $request,
+        private OrderService $OrderService,
+        private MemberService $MemberService,
+        private UserRepository $UserRepository,
+        private ProductService $ProductService,
+        private OptionService $OptionService,
+        private CountryService $CountryService,
+        private DivisionService $DivisionService,
         )
     {
+        parent::__construct();
 
-        $this->request = $request;
-        $this->OrderService = $OrderService;
-        $this->MemberService = $MemberService;
-        $this->ProductService = $ProductService;
-        $this->OptionService = $OptionService;
-        $this->CountryService = $CountryService;
-        $this->DivisionService = $DivisionService;
+        $this->getLang(['admin/common/common','admin/sale/order']);
+
+        // $this->request = $request;
+        // $this->OrderService = $OrderService;
+        // $this->MemberService = $MemberService;
+        // $this->ProductService = $ProductService;
+        // $this->OptionService = $OptionService;
+        // $this->CountryService = $CountryService;
+        // $this->DivisionService = $DivisionService;
 
 
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/sale/order',]);
+        // $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/sale/order',]);
     }
 
     /**
@@ -661,6 +656,14 @@ class OrderController extends Controller
             return response(json_encode($postData))->header('Content-Type','application/json');
         }
 
+        if(isset($postData['customer_id'])){
+            $customer_id = $postData['customer_id'];
+        }else if(isset($postData['member_id'])){
+            $customer_id = $postData['member_id'];
+        }else{
+            $customer_id = null;
+        }
+
         $json = [];
 
         if(empty($this->request->mobile) && empty($this->request->telephone)){
@@ -675,6 +678,24 @@ class OrderController extends Controller
         if(!isset($this->request->is_payment_tin) || strlen($this->request->is_payment_tin) == ''){
             $json['error']['is_payment_tin'] = '請選擇是否需要統編';
         }
+
+        //檢查姓名+手機不可重複
+        if(!empty($customer_id) && !empty($this->request->mobile) && !empty($this->request->personal_name)){
+            
+            $filter_data = [
+                'equal_name' => $this->request->personal_name,
+                'equal_mobile' => preg_replace('/\D+/', '', $this->request->mobile),
+                'pagination' => false,
+                'select' => ['id', 'name', 'mobile'],
+            ];
+            $member = $this->UserRepository->getRow($filter_data);
+
+            if($member && $member->id != $customer_id){
+                $json['error']['personal_name'] = '此姓名+手機的客戶資料已存在！';
+                $json['error']['mobile'] = '此姓名+手機的客戶資料已存在！';
+            }
+        }
+
         
         // Validate
         //驗證表單內容
