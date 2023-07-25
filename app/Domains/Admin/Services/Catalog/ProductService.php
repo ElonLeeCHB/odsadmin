@@ -80,9 +80,6 @@ class ProductService extends Service
 
             $product->save();
 
-            $cacheName = app()->getLocale() . '_ProductId_' . $product->id;
-            cache()->forget($cacheName);
-
             $product_id = $product->id;
 
             if(!empty($data['translations'])){
@@ -115,7 +112,6 @@ class ProductService extends Service
             ProductOptionValue::where('product_id', $product->id)->delete();
 
             if(!empty($data['product_options'])){
-
                 if(!empty($data['product_options'])){
                     foreach ($data['product_options'] as $product_option) {
 
@@ -176,6 +172,8 @@ class ProductService extends Service
 
             $this->resetCachedSalableProducts();
 
+            $this->resetCachedProducts($product->id);
+            
             $result['product_id'] = $product->id;
 
             return $result;
@@ -184,6 +182,17 @@ class ProductService extends Service
             DB::rollback();
             return ['error' => $ex->getMessage()];
         }
+    }
+
+    public function resetCachedProducts($product_id)
+    {
+        // ProductOptions - used in product model
+        $cacheName = app()->getLocale() . '_ProductId_' . $product_id . '_ProductOptions';
+        cache()->forget($cacheName);
+
+        // Product
+        $cacheName = app()->getLocale() . '_ProductId_' . $product_id;
+        cache()->forget($cacheName);
     }
 
     public function resetCachedSalableProducts($filter_data = [])

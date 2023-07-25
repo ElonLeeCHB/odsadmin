@@ -5,26 +5,22 @@ namespace App\Domains\Admin\Http\Controllers\Catalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Libraries\TranslationLibrary;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
 use App\Domains\Admin\Services\Common\OptionService;
 use App\Domains\Admin\Services\Catalog\ProductService;
 
-class OptionController extends Controller
+class OptionController extends BackendController
 {
-    private $lang;
-    
     public function __construct(private Request $request
         , private LanguageRepository $LanguageRepository
         , private OptionService $OptionService
         , private ProductService $ProductService)
     {
+        parent::__construct();
 
-        $groups = [
-            'admin/common/common',
-            'admin/common/option',
-        ];
-        $this->lang = (new TranslationLibrary())->getTranslations($groups);
+        $this->getLang(['admin/common/common','admin/common/option']);
     }
 
     /**

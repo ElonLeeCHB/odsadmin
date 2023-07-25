@@ -108,12 +108,12 @@
                             @endforeach
                           </tr>
                           @if(!empty($mrequisitions['details']))
-                          @foreach($mrequisitions['details'] as $details_key => $detail_row)
+                          @foreach($mrequisitions['details'] as $key => $detail_row)
                           <tr id="option-value-row-0">
                             <td class="text-end">{{ $detail_row['require_date_hi'] }}</td>
-                            <td class="text-end">{{ $detail_row['source_idsn'] }}</td>
+                            <td class="text-end">{{ $detail_row['source_id'] ?? '' }}</td>
                             <td class="text-end">{{ $detail_row['shipping_road_abbr'] }}</td>
-                            <td>{{ $detail_row['product_name'] }}</td>
+                            <td>{{ $detail_row['main_category_name'] }}</td>
                             @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
                                 {{ $detail_row['items'][$saleable_product_material_id]['quantity'] ?? ''}}

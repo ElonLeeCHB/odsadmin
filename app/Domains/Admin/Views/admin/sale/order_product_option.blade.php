@@ -93,6 +93,13 @@
       @php 
         $poid = $product_option['product_option_id'];
 
+        // 用於 class 並觸發計算飲料數量
+        if($product_option['option_code'] == 'drink'){
+          $drink = 'drink';
+        }else{
+          $drink = '';
+        }
+
         $tr_hiddable_option = ''; //用於定位tr
         
         $dnone = '';
@@ -122,7 +129,7 @@
                 $opoid    = $order_product_options[$order_product_id][$poid][$povid]['order_product_option_id'] ?? '';
               @endphp
               <div style="float:left;" >
-              {{ $product_option_value->name }} <input type="number" value="{{ $quantity }}" class="options_with_qty" style="width:50px;" name="order_products[{{ $product_row }}][order_product_options][{{ $poid }}][product_option_values][{{ $povid }}][quantity]" data-option_code="{{ $product_option['option_code'] }}" data-option-value="{{ $product->name .'_'. $pov_value }}" data-option-value-id="{{ $ovid }}" data-is_default="{{ $product_option_value->is_default }}" data-option-price="{{ $product_option_value->price }}" data-element="options_with_qty">&nbsp;&nbsp; 
+              {{ $product_option_value->name }} <input type="number" value="{{ $quantity }}" class="options_with_qty {{ $drink }}" style="width:50px;" name="order_products[{{ $product_row }}][order_product_options][{{ $poid }}][product_option_values][{{ $povid }}][quantity]" data-option_code="{{ $product_option['option_code'] }}" data-option-value="{{ $product->name .'_'. $pov_value }}" data-option-value-id="{{ $ovid }}" data-is_default="{{ $product_option_value->is_default }}" data-option-price="{{ $product_option_value->price }}" data-element="options_with_qty">&nbsp;&nbsp; 
               </div>
               <input type="hidden" value="{{ $pov_value }}" name="order_products[{{ $product_row }}][order_product_options][{{ $poid }}][product_option_values][{{ $povid }}][value]">
               <input type="hidden" value="{{ $opoid }}" name="order_products[{{ $product_row }}][order_product_options][{{ $poid }}][product_option_values][{{ $povid }}][opoid]">

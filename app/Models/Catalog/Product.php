@@ -50,7 +50,7 @@ class Product extends Model
 
     public function cachedProductOptions()
     {
-        $cacheName = 'ProductId_' . $this->attributes['id'] . '_ProductOptions';
+        $cacheName = app()->getLocale() . '_ProductId_' . $this->attributes['id'] . '_ProductOptions';
 
         $result = cache()->remember($cacheName, 60*60*24*14, function(){
             return $this->product_options()->get();

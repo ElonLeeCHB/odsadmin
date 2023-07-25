@@ -340,7 +340,7 @@ class OrderController extends BackendController
 
         // Order Statuses
         $cachedStatusesName = app()->getLocale() . '_order_statuses';
-        $order_statuses = \Cache::get($cachedStatusesName);
+        $order_statuses = cache()->get($cachedStatusesName);
 
         if(empty($order_statuses)){
             $order_statuses = cache()->remember($cachedStatusesName, 60*60*24*365, function(){
@@ -691,7 +691,7 @@ class OrderController extends BackendController
             $member = $this->UserRepository->getRow($filter_data);
 
             if($member && $member->id != $customer_id){
-                $json['error']['personal_name'] = '此姓名+手機的客戶資料已存在！';
+                $json['error']['personal_name'] = '此姓名+手機的客戶資料已存在！ ID:' . $member->id;
                 $json['error']['mobile'] = '此姓名+手機的客戶資料已存在！';
             }
         }
@@ -713,7 +713,6 @@ class OrderController extends BackendController
             $json['error']['warning'] = $this->lang->error_warning;
 
             foreach($json['error'] as $error){
-
                 $json['error']['warning'] .= ' ' . $error;
                 break;
             }

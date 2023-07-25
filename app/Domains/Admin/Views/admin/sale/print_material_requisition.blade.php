@@ -21,17 +21,18 @@
   @page {
     size: A4;
     size: landscape;
-    margin: 10px;
+    margin: 0px;
   }
   body{
     font-size: 0.8em;
-    padding:0px;
+    padding:15px;
   }
   table {
     border-bottom: double;
   }
   td{
     padding: 0px !important;
+    
   }
 
   .material_item{
@@ -43,7 +44,7 @@
 
 
 
-<div class="table-responsive text-end mx-auto">
+<div class="table-responsive text-end mx-auto" >
   <table class="table table-bordered table-hover mx-auto">
 
     <tbody id="tbody_body_records">
@@ -106,7 +107,7 @@
         $characters = mb_str_split($saleable_product_material_name);
         $saleable_product_material_name = implode('<BR>', $characters);
         ?>
-        <td style="width:30px">
+        <td style="width:30px;" class="text-align: center;">
           {!! $saleable_product_material_name !!}
         </td>
       @endforeach
@@ -116,9 +117,9 @@
       @foreach($mrequisitions['details'] as $details_key => $detail_record)
       <tr class="bordered">
         <td class="text-end">{{ $detail_record['require_date_hi'] }}</td>
-        <td class="text-end">{{ $detail_record['source_idsn'] }}</td>
+        <td class="text-end">{{ $detail_record['source_id'] }}</td>
         <td class="text-end">{{ $detail_record['shipping_road_abbr'] }}</td>
-        <td>{{ $detail_record['product_name'] }}</td>
+        <td>{{ $detail_record['main_category_name'] }}</td>
         @foreach($sales_ingredients_table_items as $product_id => $product_name)
         <td>
         {{ $detail_record['items'][$product_id]['quantity'] ?? ''}}

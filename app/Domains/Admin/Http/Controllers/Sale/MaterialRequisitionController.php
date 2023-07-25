@@ -6,31 +6,24 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\QueryException;
 use App\Http\Controllers\Controller;
-use App\Libraries\TranslationLibrary;
-
+use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Setting\SettingRepository;
 use App\Models\Sale\OrderProductIngredient;
 use App\Models\Setting\Setting;
 use Illuminate\Support\Facades\DB;
 
-class MaterialRequisitionController extends Controller
+class MaterialRequisitionController extends BackendController
 {
-    private $request;
-    private $OrderRepository;
-    private $SettingRepository;
-    private $lang;
-
     public function __construct(
-        Request $request,
-        OrderRepository $OrderRepository,
-        SettingRepository $SettingRepository,
+        private Request $request,
+        private OrderRepository $OrderRepository,
+        private SettingRepository $SettingRepository,
         )
     {
-        $this->request = $request;
-        $this->OrderRepository = $OrderRepository;
-        $this->SettingRepository = $SettingRepository;
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/sale/mrequisition',]);
+        parent::__construct();
+
+        $this->getLang(['admin/common/common','admin/sale/mrequisition']);
     }
 
 
@@ -158,7 +151,7 @@ class MaterialRequisitionController extends Controller
 
             $filter_data = [
                 'with' => ['order_products','order_product_options.product_option_value.option_value',],
-                'WhereRawSqls' => [$requiredDateRawSql],
+                'whereRawSqls' => [$requiredDateRawSql],
                 'whereIn' => ['status_id' => $sales_orders_to_be_prepared_status],
                 'with' => 'order_products.order_product_options.product_option_value.option_value.product',
                 'pagination' => false,
@@ -187,17 +180,23 @@ class MaterialRequisitionController extends Controller
 
                 foreach ($order->order_products as $key2 => $order_product) {
                     $order_product_id = $order_product->id;
+                    $product = $order_product->product; //這是訂單商品的 product
 
                     foreach ($order_product->order_product_options as $key3 => $order_product_option) {
                         $order_product_option_id = $order_product_option->id;
-                        $option_value = $order_product_option->product_option_value->option_value;
+
+                        if(empty($order_product_option->product_option_value)){
+                            continue;
+                        }
                         $product_option_value_id = $order_product_option->product_option_value->id;
+                        $option_value = $order_product_option->product_option_value->option_value;
     
                         // 選項沒有對應的商品代號，略過
                         if(empty($option_value->product_id)){
                             continue;
                         }
     
+                        // 下面是選項本身所對應的料件，不是訂單商品。
                         $ingredient_product_id = $option_value->product_id;
                         $ingredient_product_name = $option_value->product->name;
 
@@ -242,13 +241,14 @@ class MaterialRequisitionController extends Controller
                             'ingredient_product_id' => $ingredient_product_id,
                             'ingredient_product_name' => $ingredient_product_name,
                             'quantity' => $quantity,
+                            'main_category_id' => $product->main_category_id,
+                            'main_category_name' => $product->main_category->name,
                         ];
 
-                        $temp_keys[$required_date][$order->id][$order_product->id][$order_product->product_id][$option_value->product_id] = '';
+                        $temp_keys[$required_date][$order->id][$order_product->id][$order_product->product_id][$option_value->product_id][$ingredient_product_id] = '';
                     }
                 }
             }
-
 
             //delete
             $db_ingredients = OrderProductIngredient::where('required_date', $required_date)->get();
@@ -274,7 +274,8 @@ class MaterialRequisitionController extends Controller
             DB::rollback();
             return response(json_encode($ex->getMessage()))->header('Content-Type','application/json');
         }
-        
+
+       
         //重新整理陣列，並寫入緩存
         try{
 
@@ -301,6 +302,9 @@ class MaterialRequisitionController extends Controller
                     foreach ($order_product as $ingredient_id => $ingredient) {
                         $order_idsn = $order_id . '_' . $ingredient->order_product_sort_order;
                         $ingredient_product_id = $ingredient->ingredient_product_id;
+                        // $main_category_id = $ingredient->main_category_id;
+                        // $main_category_name = $ingredient->main_category_name;
+                        $order_id_category_id = $order_id . '_' . $ingredient->main_category_id;
 
                         if(empty($result['details'][$order_idsn])){
                             $result['details'][$order_idsn] = [
@@ -312,6 +316,9 @@ class MaterialRequisitionController extends Controller
                                 'source_idsn' => $order_idsn,
                                 'source_body_id' => $ingredient->order_product_id,
                                 'shipping_road_abbr' => $ingredient->order->shipping_road_abbr,
+                                'main_category_id' => $ingredient->main_category_id,
+                                'main_category_name' => $ingredient->main_category_name,
+                                'order_id_category_id' => $order_id_category_id,
                             ];
                         }
 

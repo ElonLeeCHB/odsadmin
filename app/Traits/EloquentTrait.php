@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\DB;
  */
 trait EloquentTrait
 {
-    public function initialize($data)
+    public function initialize($data = null)
     {
         $this->model = new $this->modelName;
         $this->table = $this->model->getTable();
@@ -229,7 +229,11 @@ trait EloquentTrait
         $result = [];
 
         if(isset($data['first']) && $data['first'] = true){
-            $result = $query->first();
+            if(empty($data['pluck'])){
+                $result = $query->first();
+            }else{
+                $result = $query->pluck($data['pluck'])->first();
+            }
         }else{
             // Limit
             if(isset($data['limit'])){
@@ -241,7 +245,8 @@ trait EloquentTrait
             if(!empty($data['_real_limit'])){ // $data['real_limit'] don't open to public
                 $limit = $data['_real_limit'];
             }
-    
+
+
             // Pagination
             if(isset($data['pagination']) ){
                 $pagination = (boolean)$data['pagination'];
@@ -249,14 +254,26 @@ trait EloquentTrait
                 $pagination = true;
             }
     
-            if($pagination == true && $limit != 0){
-                $result = $query->paginate($limit); // Get some rows per page
+            if($pagination == true && $limit != 0){  // Get some rows per page
+                if(empty($data['pluck'])){
+                    $result = $query->paginate($limit);
+                }else{
+                    $result = $query->paginate($limit)->pluck($data['pluck']);
+                }
             }
-            else if($pagination == false && $limit != 0){
-                $result = $query->limit($limit)->get(); // Get some rows without pagination
+            else if($pagination == false && $limit != 0){ // Get some rows without pagination
+                if(empty($data['pluck'])){
+                    $result = $query->limit($limit)->get();
+                }else{
+                    $result = $query->limit($limit)->pluck($data['pluck']);
+                }
             }
             else if($pagination == false && $limit == 0){
-                $result = $query->get(); // Get all
+                if(empty($data['pluck'])){
+                    $result = $query->get(); // Get all
+                }else{
+                    $result = $query->pluck($data['pluck']);
+                }
             }
         }
 

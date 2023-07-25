@@ -53,7 +53,7 @@ class OrderService extends Service
         if(!empty($data['filter_delivery_date'])){
             $rawSql = $this->repository->parseDateToSqlWhere('delivery_date', $data['filter_delivery_date']);
             if($rawSql){
-                $data['WhereRawSqls'][] = $rawSql;
+                $data['whereRawSqls'][] = $rawSql;
             }
             unset($data['filter_delivery_date']);
         }

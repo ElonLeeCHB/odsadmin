@@ -7,5 +7,10 @@ use App\Repositories\Eloquent\Repository;
 class OrderRepository extends Repository
 {
     public $modelName = "\App\Models\Sale\Order";
+
+    public function getCachedStatus()
+    {
+        
+    }
 }
 

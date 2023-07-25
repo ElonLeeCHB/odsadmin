@@ -6,13 +6,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
-use App\Libraries\TranslationLibrary;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
 use App\Domains\Admin\Services\Catalog\ProductService;
 use App\Domains\Admin\Services\Common\OptionService;
 use App\Domains\Admin\Services\Catalog\CategoryService;
 use App\Domains\Admin\Services\Sale\OrderProductOptionService;
-
+use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
 
 class ProductController extends BackendController
 {
@@ -23,6 +22,7 @@ class ProductController extends BackendController
         , private CategoryService $CategoryService
         , private OptionService $OptionService
         , private OrderProductOptionService $OrderProductOptionService
+        , private ProductOptionValueRepository $ProductOptionValueRepository
     )
     {
         parent::__construct();
@@ -349,7 +349,7 @@ class ProductController extends BackendController
     public function save()
     {
         $data = $this->request->all();
-
+        
         $json = [];
         
         // Check
@@ -377,30 +377,44 @@ class ProductController extends BackendController
         if (isset($data['product_options'])) {
 
             //product_options in form
-            $product_option_value_ids = [];
+            $product_option_value_ids_in_form = [];
             foreach($data['product_options'] as $product_option){
                 if(!empty($product_option['product_option_values'])){
                     foreach ($product_option['product_option_values'] as $product_option_value) {
-                        $product_option_value_ids[] = $product_option_value['product_option_value_id'];
+                        $product_option_value_ids_in_form[] = $product_option_value['product_option_value_id'];
                     }
                 }
             }
 
-            if(!empty($product_option_value_ids)){
-                $product_option_value_ids = array_unique($product_option_value_ids);
-    
+            if(!empty($product_option_value_ids_in_form)){
+                $product_option_value_ids_in_form = array_unique($product_option_value_ids_in_form);
+                sort($product_option_value_ids_in_form);
+
                 //product_options in database
-                $filter_data = [
-                    'whereIn' => ['product_option_value_id' => $product_option_value_ids],
-                    'regexp' => false,
+                $query_data = [
+                    'equal_product_id' => $data['product_id'],
+                    'pluck' => 'id',
                     'limit' => 0,
                     'pagination' => false,
+                    'sort' => 'id',
+                    'order' => 'ASC',
                 ];
-                $order_product_options = $this->OrderProductOptionService->getRows($filter_data);
-    
-                foreach ($order_product_options as $order_product_option) {
-                    if(!in_array($order_product_option->product_option_value_id, $product_option_value_ids)){
-                        $json['error']['warning'] = $this->lang->error_product_option_value;
+                $existed_product_option_values = $this->ProductOptionValueRepository->getRows($query_data)->toArray();
+                $existed_product_option_values = array_unique($existed_product_option_values);
+
+                // Delete check
+                $delete_product_option_value_ids = array_diff($existed_product_option_values, $product_option_value_ids_in_form);
+
+                foreach ($delete_product_option_value_ids as $product_option_value_id) {
+                    $filter_data = [
+                        'equal_product_option_value_id' => $product_option_value_id,
+                        'pagination' => false,
+                        'select' => ['id','order_id'],
+                    ];
+                    $order_product_options = $this->OrderProductOptionService->getRow($filter_data);
+
+                    if(!empty($order_product_options)){
+                        $json['error']['warning'] = $this->lang->error_product_option_value . ' order_id: ' . $order_product_options->order_id;
                     }
                 }
             }

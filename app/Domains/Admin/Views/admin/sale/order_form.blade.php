@@ -478,767 +478,757 @@ function myBeforeUnload(event){
 
 
 // 單頭
-$(document).ready(function () {
-
-  var shipping_city_id = {{ $order->shipping_city_id ?? 0 }}
+var shipping_city_id = {{ $order->shipping_city_id ?? 0 }}
       ,shipping_road = '';
 
-  var payment_total = parseInt({{ $order->payment_total ?? 0 }})
-      , payment_paid = parseInt({{ $order->payment_paid ?? 0 }})
-      , payment_unpaid = parseInt({{ $order->payment_unpaid ?? 0 }})
-      
-  $(document).on("change",'#input-nav_location_id', function(){
-    var location_id = $(this).val();
-    $('#input-location_id').val(location_id);
-  });
+var payment_total = parseInt({{ $order->payment_total ?? 0 }})
+    , payment_paid = parseInt({{ $order->payment_paid ?? 0 }})
+    , payment_unpaid = parseInt({{ $order->payment_unpaid ?? 0 }})
+    
+$(document).on("change",'#input-nav_location_id', function(){
+  var location_id = $(this).val();
+  $('#input-location_id').val(location_id);
+});
 
-  $("#input-nav_location_id" ).trigger( "change" );
+$("#input-nav_location_id" ).trigger( "change" );
 
-  //選常用片語
-  // $('#table-phrase-comment').DataTable();
-  // $('#table-phrase-extra_comment').DataTable();
-  //alert(33)
-  var phraseType = '';
+//選常用片語
+// $('#table-phrase-comment').DataTable();
+// $('#table-phrase-extra_comment').DataTable();
+//alert(33)
+var phraseType = '';
 
-  //客戶備註選常用片語
-  $('#input-comment').on('input', function () {
-    var order_comment_value = $(this).val();
-    if (order_comment_value.indexOf(',,') !== -1) {
-      $('#modal-phrases-comment').modal('show');
-    }
-  });
+//客戶備註選常用片語
+$('#input-comment').on('input', function () {
+  var order_comment_value = $(this).val();
+  if (order_comment_value.indexOf(',,') !== -1) {
+    $('#modal-phrases-comment').modal('show');
+  }
+});
 
-  //餐點備註選常用片語
-  $('#input-extra_comment').on('input', function () {
-    var order_comment_value = $(this).val();
-    if (order_comment_value.indexOf(',,') !== -1) {
-      $('#modal-phrases-extra_comment').modal('show');
-    }
-  });
+//餐點備註選常用片語
+$('#input-extra_comment').on('input', function () {
+  var order_comment_value = $(this).val();
+  if (order_comment_value.indexOf(',,') !== -1) {
+    $('#modal-phrases-extra_comment').modal('show');
+  }
+});
 
-  $(document).on("click",'.phrase', function(){
-    phraseType = $(this).data("phrase-column");
+$(document).on("click",'.phrase', function(){
+  phraseType = $(this).data("phrase-column");
 
-    if(phraseType == 'comment'){
-      jObj = $('#input-comment');
-    }else if(phraseType == 'extra_comment'){
-      jObj = $('#input-extra_comment');
-    }
-    oldString = jObj.val();
-    order_comment_phrase = $(this).text();
+  if(phraseType == 'comment'){
+    jObj = $('#input-comment');
+  }else if(phraseType == 'extra_comment'){
+    jObj = $('#input-extra_comment');
+  }
+  oldString = jObj.val();
+  order_comment_phrase = $(this).text();
 
-    splitResult = oldString.split(',,'); // 使用 :: 分割字符串
-    order_comment_phrase_before = splitResult[0]; // 分割后的前面字符串
-    order_comment_phrase_after = splitResult[1]; // 分割后的后面字符串
+  splitResult = oldString.split(',,'); // 使用 :: 分割字符串
+  order_comment_phrase_before = splitResult[0]; // 分割后的前面字符串
+  order_comment_phrase_after = splitResult[1]; // 分割后的后面字符串
 
-    if(typeof order_comment_phrase_after == 'undefined'){
-      order_comment_phrase_after = '';
-    }
+  if(typeof order_comment_phrase_after == 'undefined'){
+    order_comment_phrase_after = '';
+  }
 
-    if (oldString.indexOf(order_comment_phrase) !== -1) {
-      newString = oldString;
-    }else{
-      newString = order_comment_phrase_before + ', '+ order_comment_phrase + ', ' + order_comment_phrase_after;
-    }
+  if (oldString.indexOf(order_comment_phrase) !== -1) {
+    newString = oldString;
+  }else{
+    newString = order_comment_phrase_before + ', '+ order_comment_phrase + ', ' + order_comment_phrase_after;
+  }
 
-    newString = newString.replace(/\s+/g, ' ').replace(/,+$/, ',').replace(/,+$/, '').replace(/,\s,\s/g, ', ').replace(/,\s$/g, '').replace(/^,\s*/, '');
+  newString = newString.replace(/\s+/g, ' ').replace(/,+$/, ',').replace(/,+$/, '').replace(/,\s,\s/g, ', ').replace(/,\s$/g, '').replace(/^,\s*/, '');
 
-    jObj.val(newString);
-    $('#modal-phrases-comment').modal('hide');
-    $('#modal-phrases-extra_comment').modal('hide');
+  jObj.val(newString);
+  $('#modal-phrases-comment').modal('hide');
+  $('#modal-phrases-extra_comment').modal('hide');
 
-  });
+});
 
-  // 訂單標籤
-  var orderTagBtnTxt = '   ';
-  var qStr = '';
-  $('.selOrderTag button').on('click', function(){
-    var addStr = $('#input-order_tag').val();
-    var buttonText = $(this).text();
-    if(buttonText=='清'){
-      orderTagBtnTxt = '  ';
-      return;
-    }
-    orderTagBtnTxt = buttonText
-  });
+// 訂單標籤
+var orderTagBtnTxt = '   ';
+var qStr = '';
+$('.selOrderTag button').on('click', function(){
+  var addStr = $('#input-order_tag').val();
+  var buttonText = $(this).text();
+  if(buttonText=='清'){
+    orderTagBtnTxt = '  ';
+    return;
+  }
+  orderTagBtnTxt = buttonText
+});
 
-  //已存的訂單標籤
-  @foreach($order_tag ?? [] as $tag)
-    $('.select2-multiple').append(new Option('{{ $tag }}','{{ $tag }}',true,true));
-  @endforeach
+//已存的訂單標籤
+@foreach($order_tag ?? [] as $tag)
+  $('.select2-multiple').append(new Option('{{ $tag }}','{{ $tag }}',true,true));
+@endforeach
 
-  $('.select2-multiple').select2({
-    multiple: true,
-    ajax: {
-      url: "{{ route('lang.admin.sale.orders.autocompleteAllOrderTags') }}",
-        dataType: 'json',
-        delay: 250,
-        data: function(params) {
-          orderTagBtnTxt = orderTagBtnTxt.replace(/\s+/g, "");
-          if(orderTagBtnTxt.length>0){
-            qStr = orderTagBtnTxt;
-          }else{
-            qStr = params.term;
-          }
+$('.select2-multiple').select2({
+  multiple: true,
+  ajax: {
+    url: "{{ route('lang.admin.sale.orders.autocompleteAllOrderTags') }}",
+      dataType: 'json',
+      delay: 250,
+      data: function(params) {
+        orderTagBtnTxt = orderTagBtnTxt.replace(/\s+/g, "");
+        if(orderTagBtnTxt.length>0){
+          qStr = orderTagBtnTxt;
+        }else{
+          qStr = params.term;
+        }
 
+        return {
+            q: qStr, // 使用者輸入的搜尋關鍵字
+            page: params.page // 目前頁數
+        };
+      },
+      processResults: function(data, params) {
+          // 將 API 回傳的資料轉換成 Select2 可用的格式
           return {
-              q: qStr, // 使用者輸入的搜尋關鍵字
-              page: params.page // 目前頁數
-          };
-        },
-        processResults: function(data, params) {
-            // 將 API 回傳的資料轉換成 Select2 可用的格式
-            return {
-              results: data.items, // 替換為實際的資料欄位名稱
-              pagination: {
-                  more: data.more // 替換為實際的分頁資訊
-              }
-            };
-        },
-        cache: true
-    },
-    // 設定顯示在下拉選單中的資料格式
-    templateResult: function(item) {
-      if (item.loading) {
-          //return '載入中...';
-      }
-      return item.text;
-    },
-    // 設定選取項目後要顯示在選取框中的格式
-    templateSelection: function(item) {
-      //if (item.id === '') {
-      if (item.text === '') {
-          //return '請選擇';
-          return '';
-      }
-      return item.text;
-    }
-  });
-
-  //設定星期幾
-  $("#input-delivery_date").on('change',function(){
-    const d = new Date(this.value);
-    let i = d.getDay();
-    daystr = ["日","一","二","三","四","五","六"][i];
-    $("#input-delivery_day_of_week").val(daystr);
-  });
-
-  //查姓名
-  $('#input-personal_name').autocomplete({
-    'minLength': 1,
-    'source': function (request, response) {
-        $.ajax({
-            url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_personal_name=" + encodeURIComponent(request),
-            dataType: 'json',
-            success: function (json) {
-                response(json);
+            results: data.items, // 替換為實際的資料欄位名稱
+            pagination: {
+                more: data.more // 替換為實際的分頁資訊
             }
-        });
-    },
-    'select': function (item) {
-      setCustomerInfo(item)
+          };
+      },
+      cache: true
+  },
+  // 設定顯示在下拉選單中的資料格式
+  templateResult: function(item) {
+    if (item.loading) {
+        //return '載入中...';
     }
-  });
-
-  //查手機
-  $('#input-mobile').autocomplete({
-    minLength: 3, //not working
-    source: function(request, response) {
-      request = request.replace(/-/g, "");
-      if(request.length > 2){
-        $.ajax({
-          url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_mobile=" + encodeURIComponent(request) + '&with=orders',
-          dataType: 'json',
-          success: function(json) {
-            response(json);
-          }
-        });
-      }else{
-        return false
-      }
-    },
-    select: function(event,ui) {
-      setCustomerInfo(event)
+    return item.text;
+  },
+  // 設定選取項目後要顯示在選取框中的格式
+  templateSelection: function(item) {
+    //if (item.id === '') {
+    if (item.text === '') {
+        //return '請選擇';
+        return '';
     }
-  });
-
-  //查市話
-  $('#input-telephone').autocomplete({
-    'minLength': 3,
-    'source': function(request, response) {
-      request = request.replace(/-/g, "");
-      $.ajax({
-        url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_telephone=" + encodeURIComponent(request),
-        dataType: 'json',
-        success: function(json) {
-          response(json);
-        }
-      });
-    },
-    'select': function(event,ui) {
-      setCustomerInfo(event)
-    }
-  });
-
-  //查email
-  $('#input-email').autocomplete({
-    'minLength': 2,
-    'source': function(request, response) {
-      $.ajax({
-        url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_email=" + encodeURIComponent(request) + '&show_column1=name&show_column2=email',
-        dataType: 'json',
-        success: function(json) {
-          response(json);
-        }
-      });
-    },
-    'select': function(event,ui) {
-      setCustomerInfo(event)
-    }
-  });
-
-  //查客戶之後重設單頭
-  function setCustomerInfo(item){
-    $('#input-personal_name').val(item.personal_name);
-    $('#input-customer_id').val(item.customer_id);
-    $('#input-customer').val(item.customer_id+'_'+item.personal_name);
-    $('#input-salutation_id').val(item.salutation_id);
-    $('#input-telephone').val(item.telephone);
-    $('#input-mobile').val(item.mobile);
-    $('#input-email').val(item.email);
-    $('#input-payment_company').val(item.payment_company);
-
-    $('#input-payment_tin').val(item.payment_tin);
-    $('#input-payment_department').val(item.payment_department);
-    $('#input-shipping_company').val(item.shipping_company);
-    $('#input-shipping_personal_name').val(item.shipping_personal_name);
-    $('#input-shipping_phone').val(item.shipping_phone);
-
-    shipping_city_id = item.shipping_city_id;
-    shipping_road = item.shipping_road;
-
-    $("#input-shipping_state_id").val(item.shipping_state_id);
-    $("#input-shipping_road").val(item.shipping_road);
-    $("#input-shipping_address1").val(item.shipping_address1);
-
-    if(item.has_order){
-      $("#a-order_list").attr('href', 'sale/orders?filter_customer_id='+item.customer_id);
-      $("#a-order_list").show();
-    }else{
-      $("#a-order_list").attr('href', '');
-      $("#a-order_list").hide();
-      $("#span-hasOrder").text('無訂單記錄');
-    }
-
-    setShippingState(item.shipping_state_id)
-    //swichDCustomerReadonly(true);
+    return item.text;
   }
+});
 
-  //查統編
-  $('#input-payment_tin').autocomplete({
-    minLength: 3, //not working
-    source: function(request, response) {
-      if(request.length > 7){
-        $.ajax({
-          url: "{{ route('lang.admin.member.guin.autocompleteSingle') }}?filter_payment_tin=" + encodeURIComponent(request),
+//設定星期幾
+$("#input-delivery_date").on('change',function(){
+  const d = new Date(this.value);
+  let i = d.getDay();
+  daystr = ["日","一","二","三","四","五","六"][i];
+  $("#input-delivery_day_of_week").val(daystr);
+});
+
+//查姓名
+$('#input-personal_name').autocomplete({
+  'minLength': 1,
+  'source': function (request, response) {
+      $.ajax({
+          url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_personal_name=" + encodeURIComponent(request),
           dataType: 'json',
-          success: function(json) {
-            response(json);
+          success: function (json) {
+              response(json);
           }
-        });
-      }else{
-        return false
-      }
-    },
-    select: function(event,ui) {
-      $('#input-payment_company').val(event.label);
-      $('#input-payment_company').prop('readonly', true);
-      $('#input-shipping_company').val(event.label);
+      });
+  },
+  'select': function (item) {
+    setCustomerInfo(item)
+  }
+});
 
-      if(event.address_parts.after_road_section.length == 0){
-        if(confirm('資料來源沒有地址，所以地址不進行覆蓋。')){
-          return;
+//查手機
+$('#input-mobile').autocomplete({
+  minLength: 3, //not working
+  source: function(request, response) {
+    request = request.replace(/-/g, "");
+    if(request.length > 2){
+      $.ajax({
+        url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_mobile=" + encodeURIComponent(request) + '&with=orders',
+        dataType: 'json',
+        success: function(json) {
+          response(json);
         }
-      }else{
-        if(confirm('是否覆蓋地址？')){
-          $('#input-shipping_road').val(event.address_parts.full_road_section);
-          $('#input-shipping_address1').val(event.address_parts.after_road_section);
-          $('#input-original_address').val(event.original_address);
-          $("#input-shipping_state_id").val(event.address_parts.divsionL1_id);
-
-          shipping_city_id = event.address_parts.divsionL2_id;
-          shipping_road = event.address_parts.full_road_section;
-
-          setShippingState(event.address_parts.divsionL1_id)
-        }
-      }
+      });
+    }else{
+      return false
     }
-  });
+  },
+  select: function(event,ui) {
+    setCustomerInfo(event)
+  }
+});
 
-  $('#a-payment_company').on('click', function(){
-      $('#input-payment_company').prop('readonly', false);
-      $('#input-payment_company').val('');
-  });
-
-  //重設鄉鎮區選單
-  function setShippingState(state_id){
+//查市話
+$('#input-telephone').autocomplete({
+  'minLength': 3,
+  'source': function(request, response) {
+    request = request.replace(/-/g, "");
     $.ajax({
-        type:'get',
-        url: "{{ route('lang.admin.localization.divisions.getJsonCities') }}?filter_parent_id=" + state_id,
-        success:function(json){
-          html = '<option value=""> -- </option>';
+      url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_telephone=" + encodeURIComponent(request),
+      dataType: 'json',
+      success: function(json) {
+        response(json);
+      }
+    });
+  },
+  'select': function(event,ui) {
+    setCustomerInfo(event)
+  }
+});
 
-          $.each(json, function(i, item) {
-            html += '<option value="'+item.city_id+'">'+item.name+'</option>';
-          });
+//查email
+$('#input-email').autocomplete({
+  'minLength': 2,
+  'source': function(request, response) {
+    $.ajax({
+      url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_email=" + encodeURIComponent(request) + '&show_column1=name&show_column2=email',
+      dataType: 'json',
+      success: function(json) {
+        response(json);
+      }
+    });
+  },
+  'select': function(event,ui) {
+    setCustomerInfo(event)
+  }
+});
 
-          $('#input-shipping_city_id').html(html);
+//查客戶之後重設單頭
+function setCustomerInfo(item){
+  $('#input-personal_name').val(item.personal_name);
+  $('#input-customer_id').val(item.customer_id);
+  $('#input-customer').val(item.customer_id+'_'+item.personal_name);
+  $('#input-salutation_id').val(item.salutation_id);
+  $('#input-telephone').val(item.telephone);
+  $('#input-mobile').val(item.mobile);
+  $('#input-email').val(item.email);
+  $('#input-payment_company').val(item.payment_company);
 
-          if(shipping_city_id){
-            $('#input-shipping_city_id').val(shipping_city_id);
-          }
-        }
-      });
+  $('#input-payment_tin').val(item.payment_tin);
+  $('#input-payment_department').val(item.payment_department);
+  $('#input-shipping_company').val(item.shipping_company);
+  $('#input-shipping_personal_name').val(item.shipping_personal_name);
+  $('#input-shipping_phone').val(item.shipping_phone);
+
+  shipping_city_id = item.shipping_city_id;
+  shipping_road = item.shipping_road;
+
+  $("#input-shipping_state_id").val(item.shipping_state_id);
+  $("#input-shipping_road").val(item.shipping_road);
+  $("#input-shipping_address1").val(item.shipping_address1);
+
+  if(item.has_order){
+    $("#a-order_list").attr('href', 'sale/orders?filter_customer_id='+item.customer_id);
+    $("#a-order_list").show();
+  }else{
+    $("#a-order_list").attr('href', '');
+    $("#a-order_list").hide();
+    $("#span-hasOrder").text('無訂單記錄');
   }
 
-  //選縣市查區
-  $('#input-shipping_state_id').on('change', function(){
-    var state_id = $(this).val();
-    setShippingState(state_id)
-    clearShippingAddress1()
-  });
+  setShippingState(item.shipping_state_id)
+  //swichDCustomerReadonly(true);
+}
 
-  //選鄉鎮市區
-  $('#input-shipping_city_id').on('change', function(){
-    clearShippingAddress1()
-  });
-
-  //查路名
-  $('#input-shipping_road').autocomplete({
-    'minLength': 1,
-    'source': function(request, response) {
-      filter_state_id = $('#input-shipping_state_id').val();
-      filter_city_id = $('#input-shipping_city_id').val();
-      filter_name = $(this).val();
-
-      if(!filter_state_id && !filter_city_id){
-        return false;
-      }
-
-      url = '';
-
-      if (filter_state_id) {
-        url += '&filter_state_id=' + encodeURIComponent(filter_state_id);
-      }
-
-      if (filter_city_id) {
-        url += '&filter_city_id=' + encodeURIComponent(filter_city_id);
-      }
-
-      if (filter_name) {
-        url += '&filter_name=' + encodeURIComponent(filter_name);
-      }
-
-      url = "{{ route('lang.admin.localization.roads.autocomplete') }}?" + url;
-
+//查統編
+$('#input-payment_tin').autocomplete({
+  minLength: 3, //not working
+  source: function(request, response) {
+    if(request.length > 7){
       $.ajax({
-        url: url,
+        url: "{{ route('lang.admin.member.guin.autocompleteSingle') }}?filter_payment_tin=" + encodeURIComponent(request),
         dataType: 'json',
         success: function(json) {
           response(json);
         }
       });
-    },
-    'select': function(item,ui) {
-
-      $("#input-shipping_city_id").val(item.city_id);
-      $("#input-shipping_road").val(item.name);
-    }
-  });
-
-  //addAddrPartName
-  $('.addAddrPartName button').on('click', function(){
-    var addAddrPartName = $('#input-shipping_address1').val();
-    var buttonText = $(this).text();
-    var newText = addAddrPartName+buttonText;
-    $('#input-shipping_address1').val(newText);
-  });
-
-  function clearShippingAddress1(){
-    $("#input-shipping_road").val('');
-    $("#input-shipping_lane").val('');
-    $("#input-shipping_alley").val('');
-    $("#input-shipping_no").val('');
-    $("#input-shipping_floor").val('');
-    $("#input-shipping_room").val('');
-  }
-  function clearCustomer(){
-    $('#input-personal_name').val('');
-    $('#input-customer_id').val('');
-    $('#input-customer').val('');
-    $('#input-telephone').val('');
-    $('#input-mobile').val('');
-    $('#input-email').val('');
-    $('#input-payment_company').val('');
-    $('#input-payment_company').prop('readonly', false);
-    $('#input-payment_tin').val('');
-    $('#input-shipping_state_id').val('');
-    $('#input-shipping_city_id').val('');
-    $('#input-payment_department').val('');
-    $('#input-shipping_company').val('');
-    $('#input-shipping_personal_name').val('');
-    $('#input-shipping_phone').val('');
-    $('#input-salutation_id').val('');
-
-    clearShippingAddress1();
-  }
-
-  //同訂購人
-  $("#input-same_order_customer").on('click',function(){
-      if($(this).is(':checked')){
-          personal_name = $("#input-personal_name").val();
-          mobile = $("#input-mobile").val();
-          $("#input-shipping_personal_name").val(personal_name);
-          $("#input-shipping_phone").val(mobile);
-      }else{
-          $("#input-shipping_personal_name").val('');
-          $("#input-shipping_phone").val('');
-      }
-  });
-  //同訂購公司
-  $("#input-same_as_order_company").on('click',function(){
-      if($(this).is(':checked')){
-          company = $("#input-payment_company").val();
-          $("#input-shipping_company").val(company);
-      }else{
-          $("#input-shipping_company").val('');
-      }
-  });
-
-  //預計付款日
-  $("#input-scheduled_payment_date").on('change',function(){
-    var scheduled_date = $(this).val();
-    if(scheduled_date.length != 0){
-      $('#input-payment_method-debt').prop('checked', true);
     }else{
-      $('#input-payment_method-debt').prop('checked', false);
+      return false
     }
-  });
+  },
+  select: function(event,ui) {
+    $('#input-payment_company').val(event.label);
+    $('#input-payment_company').prop('readonly', true);
+    $('#input-shipping_company').val(event.label);
 
+    if(event.address_parts.after_road_section.length == 0){
+      if(confirm('資料來源沒有地址，所以地址不進行覆蓋。')){
+        return;
+      }
+    }else{
+      if(confirm('是否覆蓋地址？')){
+        $('#input-shipping_road').val(event.address_parts.full_road_section);
+        $('#input-shipping_address1').val(event.address_parts.after_road_section);
+        $('#input-original_address').val(event.original_address);
+        $("#input-shipping_state_id").val(event.address_parts.divsionL1_id);
 
-  $("#input-payment_paid").on('input ',function(){
-    calcPayment()
-  });
+        shipping_city_id = event.address_parts.divsionL2_id;
+        shipping_road = event.address_parts.full_road_section;
 
-  function calcPayment(){
-    payment_total = $('#input-payment_total').val().toNum();
-    payment_paid = $('#input-payment_paid').val().toNum();
-    payment_unpaid = parseFloat(payment_total) - parseFloat(payment_paid)
-    $('#input-payment_unpaid').val(payment_unpaid);
+        setShippingState(event.address_parts.divsionL1_id)
+      }
+    }
+  }
+});
+
+$('#a-payment_company').on('click', function(){
+    $('#input-payment_company').prop('readonly', false);
+    $('#input-payment_company').val('');
+});
+
+//重設鄉鎮區選單
+function setShippingState(state_id){
+  $.ajax({
+      type:'get',
+      url: "{{ route('lang.admin.localization.divisions.getJsonCities') }}?filter_parent_id=" + state_id,
+      success:function(json){
+        html = '<option value=""> -- </option>';
+
+        $.each(json, function(i, item) {
+          html += '<option value="'+item.city_id+'">'+item.name+'</option>';
+        });
+
+        $('#input-shipping_city_id').html(html);
+
+        if(shipping_city_id){
+          $('#input-shipping_city_id').val(shipping_city_id);
+        }
+      }
+    });
+}
+
+//選縣市查區
+$('#input-shipping_state_id').on('change', function(){
+  var state_id = $(this).val();
+  setShippingState(state_id)
+  clearShippingAddress1()
+});
+
+//選鄉鎮市區
+$('#input-shipping_city_id').on('change', function(){
+  clearShippingAddress1()
+});
+
+//查路名
+$('#input-shipping_road').autocomplete({
+  'minLength': 1,
+  'source': function(request, response) {
+    filter_state_id = $('#input-shipping_state_id').val();
+    filter_city_id = $('#input-shipping_city_id').val();
+    filter_name = $(this).val();
+
+    if(!filter_state_id && !filter_city_id){
+      return false;
+    }
+
+    url = '';
+
+    if (filter_state_id) {
+      url += '&filter_state_id=' + encodeURIComponent(filter_state_id);
+    }
+
+    if (filter_city_id) {
+      url += '&filter_city_id=' + encodeURIComponent(filter_city_id);
+    }
+
+    if (filter_name) {
+      url += '&filter_name=' + encodeURIComponent(filter_name);
+    }
+
+    url = "{{ route('lang.admin.localization.roads.autocomplete') }}?" + url;
+
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      success: function(json) {
+        response(json);
+      }
+    });
+  },
+  'select': function(item,ui) {
+
+    $("#input-shipping_city_id").val(item.city_id);
+    $("#input-shipping_road").val(item.name);
+  }
+});
+
+//addAddrPartName
+$('.addAddrPartName button').on('click', function(){
+  var addAddrPartName = $('#input-shipping_address1').val();
+  var buttonText = $(this).text();
+  var newText = addAddrPartName+buttonText;
+  $('#input-shipping_address1').val(newText);
+});
+
+function clearShippingAddress1(){
+  $("#input-shipping_road").val('');
+  $("#input-shipping_lane").val('');
+  $("#input-shipping_alley").val('');
+  $("#input-shipping_no").val('');
+  $("#input-shipping_floor").val('');
+  $("#input-shipping_room").val('');
+}
+
+function clearCustomer(){
+  $('#input-personal_name').val('');
+  $('#input-customer_id').val('');
+  $('#input-customer').val('');
+  $('#input-telephone').val('');
+  $('#input-mobile').val('');
+  $('#input-email').val('');
+  $('#input-payment_company').val('');
+  $('#input-payment_company').prop('readonly', false);
+  $('#input-payment_tin').val('');
+  $('#input-shipping_state_id').val('');
+  $('#input-shipping_city_id').val('');
+  $('#input-payment_department').val('');
+  $('#input-shipping_company').val('');
+  $('#input-shipping_personal_name').val('');
+  $('#input-shipping_phone').val('');
+  $('#input-salutation_id').val('');
+
+  clearShippingAddress1();
+}
+
+//同訂購人
+$("#input-same_order_customer").on('click',function(){
+    if($(this).is(':checked')){
+        personal_name = $("#input-personal_name").val();
+        mobile = $("#input-mobile").val();
+        $("#input-shipping_personal_name").val(personal_name);
+        $("#input-shipping_phone").val(mobile);
+    }else{
+        $("#input-shipping_personal_name").val('');
+        $("#input-shipping_phone").val('');
+    }
+});
+
+//同訂購公司
+$("#input-same_as_order_company").on('click',function(){
+    if($(this).is(':checked')){
+        company = $("#input-payment_company").val();
+        $("#input-shipping_company").val(company);
+    }else{
+        $("#input-shipping_company").val('');
+    }
+});
+
+//預計付款日
+$("#input-scheduled_payment_date").on('change',function(){
+  var scheduled_date = $(this).val();
+  if(scheduled_date.length != 0){
+    $('#input-payment_method-debt').prop('checked', true);
+  }else{
+    $('#input-payment_method-debt').prop('checked', false);
   }
 });
 
 
+$("#input-payment_paid").on('input ',function(){
+  calcPayment()
+});
+
+function calcPayment(){
+  payment_total = $('#input-payment_total').val().toNum();
+  payment_paid = $('#input-payment_paid').val().toNum();
+  payment_unpaid = parseFloat(payment_total) - parseFloat(payment_paid)
+  $('#input-payment_unpaid').val(payment_unpaid);
+}
 
 // 商品
-$(document).ready(function () {
-  var product_row = {{ $product_row }};
+var product_row = {{ $product_row }};
 
-  // 新增商品
-  function addProduct(){
-    $.ajax({
-      type:'get',
-      dataType: 'html',
-      url: "{{ route('lang.admin.sale.orders.getProductHtml') }}?product_row="+product_row,
-      success:function(response){
-        $('#tbody_order_products').append(response);
-      }
-    });
-    product_row++;
-  }
+// 新增商品
+function addProduct(){
+  
+  $.ajax({
+    type:'get',
+    dataType: 'html',
+    url: "{{ route('lang.admin.sale.orders.getProductHtml') }}?product_row="+product_row,
+    success:function(response){
+      $('#tbody_order_products').append(response);
+    }
+  });
+  product_row++;
+}
 
-  // 刪除商品
-  function removeProduct(product_row){
-    var trProductRow = $('#product-row-'+product_row);
-    var strId = trProductRow.attr('id');
-    trProductRow.find('input').remove();
-    trProductRow.find('textarea').remove();
-    trProductRow.remove();
+// 刪除商品
+function removeProduct(product_row){
+  var trProductRow = $('#product-row-'+product_row);
+  var strId = trProductRow.attr('id');
+  trProductRow.find('input').remove();
+  trProductRow.find('textarea').remove();
+  trProductRow.remove();
 
-    calcTotal();
-  }
+  calcTotal();
+}
 
-  // 獲取商品詳細內容
-  function getProductDetails(selectedProduct){
-    var jqObj = $(selectedProduct);
-    var this_product_row = jqObj.closest('tr').data("product-row");
-    var product_id = jqObj.val();
+// 獲取商品詳細內容
+function getProductDetails(selectedProduct){
+  var jqObj = $(selectedProduct);
+  var this_product_row = jqObj.closest('tr').data("product-row");
+  var product_id = jqObj.val();
 
-    $.ajax({
-      type:'get',
-      dataType: 'html',
-      url: "{{ route('lang.admin.sale.orders.getProductDetailsHtml') }}?filter_product_id=" + encodeURIComponent(product_id) + '&product_row='+this_product_row,
-      success:function(response){
-        var is_required = '';
+  $.ajax({
+    type:'get',
+    dataType: 'html',
+    url: "{{ route('lang.admin.sale.orders.getProductDetailsHtml') }}?filter_product_id=" + encodeURIComponent(product_id) + '&product_row='+this_product_row,
+    success:function(response){
+      var is_required = '';
 
-        //options
-        $('#product-row-'+this_product_row+'-content-table').remove();
-        $('#product-row-'+this_product_row+'-options').append(response);
+      //options
+      $('#product-row-'+this_product_row+'-content-table').remove();
+      $('#product-row-'+this_product_row+'-options').append(response);
 
-        //product
-        var main_category_code = $('#product-row-'+this_product_row+'-hidden_main_category_code').val();
-        var model = $('#product-row-'+this_product_row+'-hidden_model').val();
-        var price = $('#product-row-'+this_product_row+'-hidden_price').val().toNum();
-        var sort_order = $('#product-row-'+this_product_row+'-hidden_sort_order').val().toNum();
+      //product
+      var main_category_code = $('#product-row-'+this_product_row+'-hidden_main_category_code').val();
+      var model = $('#product-row-'+this_product_row+'-hidden_model').val();
+      var price = $('#product-row-'+this_product_row+'-hidden_price').val().toNum();
+      var sort_order = $('#product-row-'+this_product_row+'-hidden_sort_order').val().toNum();
 
-        $('#input-product-'+this_product_row+'-main_category_code').val(main_category_code);
-        $('#input-product-'+this_product_row+'-model').val(model);
-        $('#input-product-'+this_product_row+'-price').val(price);
-        $('#input-product-'+this_product_row+'-quantity').val(1);
-      }
-    });
-  }
+      $('#input-product-'+this_product_row+'-main_category_code').val(main_category_code);
+      $('#input-product-'+this_product_row+'-model').val(model);
+      $('#input-product-'+this_product_row+'-price').val(price);
+      $('#input-product-'+this_product_row+'-quantity').val(1);
+    }
+  });
+}
 
-  // 設定預設選項數量
-  function setProductOptionDefault(this_product_row){
-    var main_meal_quantity = $('#input-product-'+this_product_row+'-main_meal_quantity').val();
-    var main_meal_quantity_no_veg = $('#input-product-'+this_product_row+'-main_meal_quantity_no_veg').val();
-    //console.log('funtion setProductOptionDefault: main_meal_quantity='+main_meal_quantity+', main_meal_quantity_no_veg='+main_meal_quantity_no_veg)
+// 設定預設選項數量
+function setProductOptionDefault(this_product_row){
+  var main_meal_quantity = $('#input-product-'+this_product_row+'-main_meal_quantity').val();
+  var main_meal_quantity_no_veg = $('#input-product-'+this_product_row+'-main_meal_quantity_no_veg').val();
+  //console.log('funtion setProductOptionDefault: main_meal_quantity='+main_meal_quantity+', main_meal_quantity_no_veg='+main_meal_quantity_no_veg)
 
-    $('#product-row-'+this_product_row).find('input[data-element="options_with_qty"]').each(function() {
-      var is_default = $(this).data('is_default');
+  $('#product-row-'+this_product_row).find('input[data-element="options_with_qty"]').each(function() {
+    var is_default = $(this).data('is_default');
 
-      //設定預設數量
-      if(is_default){
-        $(this).val(main_meal_quantity_no_veg);
-      }
-    });
-  }
+    //設定預設數量
+    if(is_default){
+      $(this).val(main_meal_quantity_no_veg);
+    }
+  });
+}
 
-  // 觸發-計算商品選項金額
-  $(document).on("focusout",'input[data-element="options_with_qty"]', function(){
-    var this_product_row = $(this).closest("[data-product-row]").data('product-row');
-    var options_total = calcProductOptionTotal(this_product_row)
-    var total = $('#input-product-'+this_product_row+'-total').val().toNum();
-    var final_total = parseFloat(total) + parseFloat(options_total);
-    $('#input-product-'+this_product_row+'-final_total').val(final_total);
-    });
-
-  // 計算商品選項金額
-  function calcProductOptionTotal(this_product_row){
-    var options_total = 0;
-    $('#product-row-'+this_product_row).find('input[data-element="options_with_qty"]').each(function() {
-      var option_qty = $(this).val().toNum();
-      var option_price = $(this).data('option-price');
-      var option_value = $(this).data('option-value');
-
-      options_total += parseFloat(option_qty) * parseFloat(option_price);
-    });
-
-    $('#input-product-'+this_product_row+'-options_total').val(options_total);
-
-    return options_total;
-  }
-
-  //計算商品金額
-  function calcProductTotal(this_product_row){
-    var quantity = $('#input-product-'+this_product_row+'-quantity').val().toNum();
-    var price = $('#input-product-'+this_product_row+'-price').val().toNum();
-    var total = parseFloat(quantity) * parseFloat(price);
-
-    //console.log('function calcProductTotal: this_product_row='+this_product_row+', quantity='+quantity+', price='+price+', total='+total)
-    return total;
-  }
-
-  //計算商品主餐數量
-  // -- 頁面初始化時先計算當前主餐數量
-  for (let this_product_row = 0; this_product_row < product_row; this_product_row++) {
-    calcProductMainMeal(this_product_row)
-  }
-
-  function calcProductMainMeal(this_product_row){
-    var quantity = $('#input-product-'+this_product_row+'-quantity').val();
-    var main_meal_quantity = 0;
-    var main_meal_quantity_veg = 0;
-    var main_meal_quantity_no_veg = 0;
-    var unassigned_qty = 0;
-
-    $('#product-row-'+this_product_row).find('.input_main_meal').each(function() {
-      var ovid = $(this).data('ovid');
-      var qty = $(this).val();
-      if($.isNumeric(qty) && qty > 0){
-        main_meal_quantity += parseInt(qty);
-      }
-
-      if(ovid == '1046' || ovid == '1047'){
-        main_meal_quantity_veg += parseInt(qty);
-      }
-    });
-
-    main_meal_quantity_no_veg = parseInt(main_meal_quantity) - parseInt(main_meal_quantity_veg);
-    //console.log('function calcProductMainMeal: main_meal_quantity_no_veg='+main_meal_quantity_no_veg+', main_meal_quantity='+main_meal_quantity+', main_meal_quantity_veg='+main_meal_quantity_veg)
-
-    unassigned_qty = quantity - main_meal_quantity;
-
-    //$('#input-product-'+this_product_row+'-main_meal_quantity').val(main_meal_quantity);
-    $('#input-product-'+this_product_row+'-main_meal_quantity').val(main_meal_quantity);
-    $('#input-product-'+this_product_row+'-main_meal_quantity_no_veg').val(main_meal_quantity_no_veg);
-    $('#input-product-'+this_product_row+'-unassigned_qty').val(unassigned_qty);
-    
-    
-    $('#span-product-'+this_product_row+'-burrito_total').text(main_meal_quantity);
-    return main_meal_quantity;
-  }
-
-  //觸發-計算某商品的飲料量數
-  $(document).on("focusout",'input.drink', function(){
-    var this_product_row = $(this).closest("[data-product-row]").data('product-row');
-    calcProductDrink(this_product_row);
+// 觸發-計算商品選項金額
+$(document).on("focusout",'input[data-element="options_with_qty"]', function(){
+  var this_product_row = $(this).closest("[data-product-row]").data('product-row');
+  var options_total = calcProductOptionTotal(this_product_row)
+  var total = $('#input-product-'+this_product_row+'-total').val().toNum();
+  var final_total = parseFloat(total) + parseFloat(options_total);
+  $('#input-product-'+this_product_row+'-final_total').val(final_total);
   });
 
-  //計算某商品的飲料量數
-  function calcProductDrink(this_product_row){
-    // 找到 <tr> 元素
-    const trElement = document.querySelector('#product-row-'+this_product_row);
+// 計算商品選項金額
+function calcProductOptionTotal(this_product_row){
+  var options_total = 0;
+  $('#product-row-'+this_product_row).find('input[data-element="options_with_qty"]').each(function() {
+    var option_qty = $(this).val().toNum();
+    var option_price = $(this).data('option-price');
+    var option_value = $(this).data('option-value');
 
-    // 使用 querySelectorAll 找到所有帶有 class="drink" 的 <input> 元素
-    const drinkInputs = trElement.querySelectorAll('input.drink');
-
-    let total = 0;
-
-    // 迭代每個 <input> 元素，獲取其值並相加
-    drinkInputs.forEach((input) => {
-      total += parseFloat(input.value);
-    });
-
-    $('#span-product-'+this_product_row+'-drink_total').text(total);
-  }
-
-  //變更主餐數量
-  $(document).on("focusout",'.input_main_meal', function(){
-    var this_product_row = $(this).closest("[data-product-row]").data('product-row');
-    main_meal_quantity = calcProductMainMeal(this_product_row)
-    setProductOptionDefault(this_product_row);
+    options_total += parseFloat(option_qty) * parseFloat(option_price);
   });
 
-  //變更商品數量或單價
-  $(document).on("focusout",'input[data-element="quantity"], input[data-element="price"]', function(){
-    var this_product_row = $(this).closest("[data-product-row]").data('product-row');
+  $('#input-product-'+this_product_row+'-options_total').val(options_total);
 
-    quantity = $('#input-product-'+this_product_row+'-quantity').val();
-    price = $('#input-product-'+this_product_row+'-price').val();
-    total = parseFloat(quantity) * parseFloat(price);
-    options_total = $('#input-product-'+this_product_row+'-options_total').val();
-    final_total = parseFloat(total) + parseFloat(options_total);
+  return options_total;
+}
 
-    $('#input-product-'+this_product_row+'-total').val(total);
-    $('#input-product-'+this_product_row+'-final_total').val(final_total);
-    //console.log('Change product quantity or price: this_product_row='+this_product_row+', total='+total+', options_total='+options_total+', final_total='+final_total)
-  });
+//計算商品金額
+function calcProductTotal(this_product_row){
+  var quantity = $('#input-product-'+this_product_row+'-quantity').val().toNum();
+  var price = $('#input-product-'+this_product_row+'-price').val().toNum();
+  var total = parseFloat(quantity) * parseFloat(price);
 
-  $('#button-refresh').on('click', function () {
-    calcTotal()
-  });
+  //console.log('function calcProductTotal: this_product_row='+this_product_row+', quantity='+quantity+', price='+price+', total='+total)
+  return total;
+}
 
-  //最終計算
-  function calcTotal(){
-    var product_quantity = 0; //某個商品的數量
-    var product_price = 0;
-    var product_option_total = 0;
-    var product_total = 0;
-    var final_product_total = 0;
+//計算商品主餐數量
+// -- 頁面初始化時先計算當前主餐數量
+for (let this_product_row = 0; this_product_row < product_row; this_product_row++) {
+  calcProductMainMeal(this_product_row)
+}
 
-    // payment_total 是本檔的全域變數
-    var order_sub_total = 0 //sum of all products' price*quantity
-        , order_discount = $('#input-total-discount').val().toNum()
-        , order_shipping_fee = $('#input-total-shipping_fee').val().toNum()
+function calcProductMainMeal(this_product_row){
+  var quantity = $('#input-product-'+this_product_row+'-quantity').val();
+  var main_meal_quantity = 0;
+  var main_meal_quantity_veg = 0;
+  var main_meal_quantity_no_veg = 0;
+  var unassigned_qty = 0;
 
-    for(i=1; i<=product_row; i++){
-
-      product_name = $('#product-row-'+i+'-hidden_name').val();
-      if(!product_name){
-        continue;
-      }
-
-      //選項金額加總
-      //product_options_total = $('#input-product-'+i+'-options_total').val();
-      //product_options_total = calcProductOptionTotal(i);
-      product_options_total = $('#input-product-'+i+'-options_total').val();
-
-      //主餐數量
-      product_main_meal_sum = $('#input-product-'+i+'-main_meal_quantity').val().toNum();
-
-      //商品數量
-      product_quantity_original = $('#input-product-'+i+'-quantity').val().toNum();
-      product_quantity = $('#input-product-'+i+'-quantity').val().toNum();
-
-      // if(product_main_meal_sum != 0 && product_main_meal_sum != product_quantity){
-      //   alert(product_name + ': 主餐加總='+product_main_meal_sum+', 商品數量='+product_quantity+', 兩者應相等')
-      //   return false;
-      // }
-
-      //商品數量
-      product_quantity = product_main_meal_sum;
-      if(product_quantity == 0){
-        product_quantity = 1;
-      }
-
-      $('#input-product-'+i+'-quantity').val(product_quantity_original);
-
-
-      //商品單價
-      product_price = $('#input-product-'+i+'-price').val().toNum();
-
-      //商品小計
-      product_total = parseFloat(product_quantity_original) * parseFloat(product_price)
-      $('#input-product-'+i+'-total').val(product_total);
-
-      //最終商品小計 = 商品小計 + 選項金額
-      final_total = parseFloat(product_total) + parseFloat(product_options_total)
-      $('#input-product-'+i+'-final_total').val(final_total);
-
-      //商品合計
-      order_sub_total += final_total;
-
+  $('#product-row-'+this_product_row).find('.input_main_meal').each(function() {
+    var ovid = $(this).data('ovid');
+    var qty = $(this).val();
+    if($.isNumeric(qty) && qty > 0){
+      main_meal_quantity += parseInt(qty);
     }
 
-    //console.log('button-refresh: product_option_total='+product_option_total+', product_quantity='+product_quantity+', product_price='+product_price+', product_total='+product_total+', final_product_total='+final_product_total)
-
-    //右下方訂單各項金額
-    // $('input[data-element="order_product_final_total"]').each( function(){
-    //   var total = $(this).val().toNum();
-    //   order_sub_total += parseInt(total)
-    // });
-
-    if(!$.isNumeric(order_discount)){
-      order_discount = 0;
+    if(ovid == '1046' || ovid == '1047'){
+      main_meal_quantity_veg += parseInt(qty);
     }
+  });
 
-    if(!$.isNumeric(order_shipping_fee)){
-      order_shipping_fee = 0;
-    }
+  main_meal_quantity_no_veg = parseInt(main_meal_quantity) - parseInt(main_meal_quantity_veg);
+  //console.log('function calcProductMainMeal: main_meal_quantity_no_veg='+main_meal_quantity_no_veg+', main_meal_quantity='+main_meal_quantity+', main_meal_quantity_veg='+main_meal_quantity_veg)
 
-    payment_total = parseFloat(order_sub_total) - parseFloat(order_discount) + parseFloat(order_shipping_fee);
+  unassigned_qty = quantity - main_meal_quantity;
 
-    $('#input-total-sub_total').val(order_sub_total);
-    $('#input-total-total').val(payment_total);
-    $('#input-payment_total').val(payment_total);
-    calcPayment()
-  }
+  //$('#input-product-'+this_product_row+'-main_meal_quantity').val(main_meal_quantity);
+  $('#input-product-'+this_product_row+'-main_meal_quantity').val(main_meal_quantity);
+  $('#input-product-'+this_product_row+'-main_meal_quantity_no_veg').val(main_meal_quantity_no_veg);
+  $('#input-product-'+this_product_row+'-unassigned_qty').val(unassigned_qty);
+  
+  
+  $('#span-product-'+this_product_row+'-burrito_total').text(main_meal_quantity);
+  return main_meal_quantity;
+}
 
-
-
-
-
-
-
-
-
-
-
-
+//觸發-計算某商品的飲料量數
+$(document).on("focusout",'input.drink', function(){
+  var this_product_row = $(this).closest("[data-product-row]").data('product-row');
+  calcProductDrink(this_product_row);
 });
 
+//計算當前飲料數量
+for (let i = 1; i < product_row; i++) {
+  calcProductDrink(i);
+}
+
+//計算某商品的飲料量數
+function calcProductDrink(this_product_row){
+  
+  // 找到 <tr> 元素
+  const trElement = document.querySelector('#product-row-'+this_product_row);
+
+  // 使用 querySelectorAll 找到所有帶有 class="drink" 的 <input> 元素
+  const drinkInputs = trElement.querySelectorAll('input.drink');
+
+  let total = 0;
+
+  // 迭代每個 <input> 元素，獲取其值並相加
+  drinkInputs.forEach((input) => {
+    total += parseFloat(input.value);
+  });
+
+  $('#span-product-'+this_product_row+'-drink_total').text(total);
+}
+
+
+//變更主餐數量
+$(document).on("focusout",'.input_main_meal', function(){
+  var this_product_row = $(this).closest("[data-product-row]").data('product-row');
+  main_meal_quantity = calcProductMainMeal(this_product_row)
+  setProductOptionDefault(this_product_row);
+});
+
+//變更商品數量或單價
+$(document).on("focusout",'input[data-element="quantity"], input[data-element="price"]', function(){
+  var this_product_row = $(this).closest("[data-product-row]").data('product-row');
+
+  quantity = $('#input-product-'+this_product_row+'-quantity').val();
+  price = $('#input-product-'+this_product_row+'-price').val();
+  total = parseFloat(quantity) * parseFloat(price);
+  options_total = $('#input-product-'+this_product_row+'-options_total').val();
+  final_total = parseFloat(total) + parseFloat(options_total);
+
+  $('#input-product-'+this_product_row+'-total').val(total);
+  $('#input-product-'+this_product_row+'-final_total').val(final_total);
+  //console.log('Change product quantity or price: this_product_row='+this_product_row+', total='+total+', options_total='+options_total+', final_total='+final_total)
+});
+
+$('#button-refresh').on('click', function () {
+  calcTotal()
+});
+
+//最終計算
+function calcTotal(){
+  var product_quantity = 0; //某個商品的數量
+  var product_price = 0;
+  var product_option_total = 0;
+  var product_total = 0;
+  var final_product_total = 0;
+
+  // payment_total 是本檔的全域變數
+  var order_sub_total = 0 //sum of all products' price*quantity
+      , order_discount = $('#input-total-discount').val().toNum()
+      , order_shipping_fee = $('#input-total-shipping_fee').val().toNum()
+
+  for(i=1; i<=product_row; i++){
+
+    product_name = $('#product-row-'+i+'-hidden_name').val();
+    if(!product_name){
+      continue;
+    }
+
+    //選項金額加總
+    //product_options_total = $('#input-product-'+i+'-options_total').val();
+    //product_options_total = calcProductOptionTotal(i);
+    product_options_total = $('#input-product-'+i+'-options_total').val();
+
+    //主餐數量
+    product_main_meal_sum = $('#input-product-'+i+'-main_meal_quantity').val().toNum();
+
+    //商品數量
+    product_quantity_original = $('#input-product-'+i+'-quantity').val().toNum();
+    product_quantity = $('#input-product-'+i+'-quantity').val().toNum();
+
+    // if(product_main_meal_sum != 0 && product_main_meal_sum != product_quantity){
+    //   alert(product_name + ': 主餐加總='+product_main_meal_sum+', 商品數量='+product_quantity+', 兩者應相等')
+    //   return false;
+    // }
+
+    //商品數量
+    product_quantity = product_main_meal_sum;
+    if(product_quantity == 0){
+      product_quantity = 1;
+    }
+
+    $('#input-product-'+i+'-quantity').val(product_quantity_original);
+
+
+    //商品單價
+    product_price = $('#input-product-'+i+'-price').val().toNum();
+
+    //商品小計
+    product_total = parseFloat(product_quantity_original) * parseFloat(product_price)
+    $('#input-product-'+i+'-total').val(product_total);
+
+    //最終商品小計 = 商品小計 + 選項金額
+    final_total = parseFloat(product_total) + parseFloat(product_options_total)
+    $('#input-product-'+i+'-final_total').val(final_total);
+
+    //商品合計
+    order_sub_total += final_total;
+
+  }
+
+  //console.log('button-refresh: product_option_total='+product_option_total+', product_quantity='+product_quantity+', product_price='+product_price+', product_total='+product_total+', final_product_total='+final_product_total)
+
+  //右下方訂單各項金額
+  // $('input[data-element="order_product_final_total"]').each( function(){
+  //   var total = $(this).val().toNum();
+  //   order_sub_total += parseInt(total)
+  // });
+
+  if(!$.isNumeric(order_discount)){
+    order_discount = 0;
+  }
+
+  if(!$.isNumeric(order_shipping_fee)){
+    order_shipping_fee = 0;
+  }
+
+  payment_total = parseFloat(order_sub_total) - parseFloat(order_discount) + parseFloat(order_shipping_fee);
+
+  $('#input-total-sub_total').val(order_sub_total);
+  $('#input-total-total').val(payment_total);
+  $('#input-payment_total').val(payment_total);
+  calcPayment()
+}
 
 </script>
 @endsection
