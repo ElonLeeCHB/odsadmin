@@ -512,18 +512,6 @@
           url: "{{ route('lang.admin.catalog.categories.autocomplete') }}?filter_name=" + encodeURIComponent(request),
           dataType: 'json',
           success: function (json) {
-            // json.unshift({
-            //   category_id: 0,
-            //   name: '{{ $lang->text_none }}'
-            // });
-
-            // response($.map(json, function (item) {
-            //   return {
-            //     label: item['name'],
-            //     value: item['category_id']
-            //   }
-            // }));
-
             response(json);
           }
         });

@@ -90,6 +90,7 @@
             <table id="option-value" class="table table-bordered table-hover">
               <thead>
                 <tr>
+                  <td style="width: 50px;">項次</td>
                   <td class="text-start required">{{ $lang->entry_option_value_name }}</td>
                   <td>簡稱</td>
                   <td class="text-end">{{ $lang->entry_sort_order }}</td>
@@ -99,9 +100,10 @@
                 </tr>
               </thead>
               <tbody>
-                <?php $option_value_row = 0; ?>
+                <?php $option_value_row = 1; ?>
                 @foreach($option_values as $option_value)
                 <tr id="option-value-row-{{ $option_value_row }}">
+                  <td>{{ $option_value_row }}</td>
                   <td class="text-center">
                     <input type="hidden" name="option_values[{{ $option_value_row }}][option_value_id]" value="{{ $option_value->id }}">
                     @foreach($languages as $language)
@@ -206,30 +208,47 @@ function addOptionValue() {
 }
 
 
-$('.option_value_product').autocomplete({
-	'source': function(request, response) {
-		$.ajax({
-			//url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_last_name=" + encodeURIComponent(request),
-      url: "{{ route('lang.admin.catalog.products.autocomplete') }}?filter_name=" + encodeURIComponent(request),
+// $('.option_value_product').autocomplete({
+// 	'source': function(request, response) {
+// 		$.ajax({
+//       url: "{{ route('lang.admin.catalog.products.autocomplete') }}?filter_name=" + encodeURIComponent(request),
+// 			dataType: 'json',
+// 			success: function(json) {
+//         response(json);
+// 			}
+// 		});
+// 	},
+// 	'select': function(item) {
+//     var rownum = $(this).data("rownum");
+//     console.log('rownum:'+rownum+', event.product_id:'+item.product_id+', product_name:'+item.label);
+//     $('#input-option_values-'+rownum+'-product_id').val(item.product_id);
+//     $('#input-option_values-'+rownum+'-product_name').val(item.label);
+//   }
+// });
 
-			dataType: 'json',
-			success: function(json) {        
-				response($.map(json, function(item) {
-					return {
-						label: item['name'],
-						value: item['product_id'],
-						product_id: item['product_id'],
-					}
-				}));
-			}
-		});
-	},
-	'select': function(event,ui) {
-    var rownum = $(this).data("rownum");
-    console.log('rownum:'+rownum+', event.product_id:'+event.product_id+', product_name:'+event.label);
-    $('#input-option_values-'+rownum+'-product_id').val(event.product_id);
-    $('#input-option_values-'+rownum+'-product_name').val(event.label);
-  }
+$(document).ready(function() {
+
+  $("#option-value").on("focus", ".option_value_product", function(event) {
+
+    $('.option_value_product').autocomplete({
+      'source': function(request, response) {
+        $.ajax({
+          url: "{{ route('lang.admin.catalog.products.autocomplete') }}?filter_name=" + encodeURIComponent(request),
+          dataType: 'json',
+          success: function(json) {
+            response(json);
+          }
+        });
+      },
+      'select': function(item) {
+        var rownum = $(this).data("rownum");
+        console.log('rownum:'+rownum+', event.product_id:'+item.product_id+', product_name:'+item.label);
+        $('#input-option_values-'+rownum+'-product_id').val(item.product_id);
+        $('#input-option_values-'+rownum+'-product_name').val(item.label);
+      }
+    });
+  });
+
 });
 
 --></script>

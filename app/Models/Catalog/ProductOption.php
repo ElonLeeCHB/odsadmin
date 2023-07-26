@@ -22,6 +22,7 @@ class ProductOption extends Model
         static::addGlobalScope(fn ($query) => $query->orderBy('sort_order'));
     }
 
+    // 本處多語特殊，要另外寫在這裡。
     public function translations()
     {
         return $this->hasMany(
@@ -44,22 +45,29 @@ class ProductOption extends Model
         return $this->hasMany(ProductOptionValue::class)->orderBy('sort_order');
     }
 
-    public function getProductOptionValuesAttribute()
+    
+    public function active_product_option_values()
     {
-        $cacheName = 'ProductId_' . $this->attributes['product_id'] . '_ProductOptionId_' . $this->attributes['id'] . '_ ProductOptionValues';
-
-        $product_option_values = cache()->remember($cacheName, 60*60*24*14, function(){
-            $collections = $this->product_option_values()->get()->sortBy('sort_order');
-
-            foreach($collections as $key => $collection){
-                $collection = $collection->translation->name;
-            }
-
-            return $collections;
-        });
-
-        return $product_option_values;
+        return $this->hasMany(ProductOptionValue::class)->where('is_active', 1)->orderBy('sort_order');
     }
+
+
+    // public function getProductOptionValuesAttribute()
+    // {
+    //     $cacheName = 'ProductId_' . $this->attributes['product_id'] . '_ProductOptionId_' . $this->attributes['id'] . '_ ProductOptionValues';
+
+    //     $product_option_values = cache()->remember($cacheName, 60*60*24*14, function(){
+    //         $collections = $this->product_option_values()->get()->sortBy('sort_order');
+
+    //         foreach($collections as $key => $collection){
+    //             $collection = $collection->translation->name;
+    //         }
+
+    //         return $collections;
+    //     });
+
+    //     return $product_option_values;
+    // }
 
     public function cachedProductOptionValues()
     {

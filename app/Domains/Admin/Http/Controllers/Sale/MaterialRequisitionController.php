@@ -306,8 +306,8 @@ class MaterialRequisitionController extends BackendController
                         // $main_category_name = $ingredient->main_category_name;
                         $order_id_category_id = $order_id . '_' . $ingredient->main_category_id;
 
-                        if(empty($result['details'][$order_idsn])){
-                            $result['details'][$order_idsn] = [
+                        if(empty($result['details'][$order_id_category_id])){
+                            $result['details'][$order_id_category_id] = [
                                 'require_date_ymd' => $ingredient->required_date,
                                 'require_date_hi' => $ingredient->required_date_hi,
                                 'product_id' => $ingredient->product_id,
@@ -323,11 +323,11 @@ class MaterialRequisitionController extends BackendController
                         }
 
                         $lastQuantity = 0;
-                        if(!empty($result['details'][$order_idsn]['items'][$ingredient_product_id]['quantity'])){
-                            $lastQuantity = $result['details'][$order_idsn]['items'][$ingredient_product_id]['quantity'];
+                        if(!empty($result['details'][$order_id_category_id]['items'][$ingredient_product_id]['quantity'])){
+                            $lastQuantity = $result['details'][$order_id_category_id]['items'][$ingredient_product_id]['quantity'];
                         };
     
-                        $result['details'][$order_idsn]['items'][$ingredient_product_id] = [
+                        $result['details'][$order_id_category_id]['items'][$ingredient_product_id] = [
                             'ingredient_product_id' => $ingredient_product_id,
                             'ingredient_product_name' => $ingredient->ingredient_product_name,
                             'quantity' => $lastQuantity + $ingredient->quantity,

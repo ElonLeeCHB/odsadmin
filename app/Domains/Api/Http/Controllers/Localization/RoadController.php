@@ -38,22 +38,29 @@ class RoadController extends Controller
         if(empty($this->request->filter_state_id) && empty($this->request->filter_city_id)){
             return false;
         }
-        // Has state, no city
-        if(!empty($this->request->filter_state_id) && empty($this->request->filter_city_id)){
+
+        //find state
+        if(!empty($this->request->filter_state_id)){
             $filter_data = [
-                'filter_id' => $this->request->filter_state_id,
-                'with' => 'subDivisions',
-                'regexp' => false,
+                'equal_id' => $this->request->filter_state_id,
+                'limit' => 0,
+                'pagination' => false,
+                'with' => ['subDivisions'],
             ];
+    
             $state = $this->DivisionService->getRecord($filter_data);
+        }
+
+        //find cities within state
+        if(!empty($state->subDivisions)){
             $cities = $state->subDivisions;
-            $city_ids = $cities->pluck('id')->toArray();
+            $city_ids = $cities->pluck('id');
         }
 		
-		// Find Roads
+        //find roads
         $filter_data = [
             'regexp' => true,
-            'limit' => 20,
+            'limit' => 0,
             'pagination' => false,
             'relations' => ['city'],
         ];

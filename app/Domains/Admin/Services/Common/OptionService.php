@@ -177,6 +177,7 @@ class OptionService extends Service
             foreach ($options as $option) {
     
                 if(!$option->product_options->isEmpty()) {
+                    echo '<pre>', print_r($option->product_options->toArray(), 1), "</pre>"; exit;
                     $msg['error'] = '警告: 選項代號 '.$option->id.' 已有商品使用，不可刪除。';
                     return $msg;                    
                 }

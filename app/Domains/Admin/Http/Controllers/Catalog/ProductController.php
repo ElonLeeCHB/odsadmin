@@ -513,6 +513,8 @@ class ProductController extends BackendController
 
         foreach ($rows as $row) {
             $json[] = array(
+                'label' => $row->name . '-' . $row->id,
+                'value' => $row->id,
                 'product_id' => $row->id,
                 'name' => $row->name,
                 'model' => $row->model,
