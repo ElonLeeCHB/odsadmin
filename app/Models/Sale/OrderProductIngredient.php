@@ -14,24 +14,24 @@ use Illuminate\Support\Carbon;
 class OrderProductIngredient extends Model
 {
     use ModelTrait;
-    protected $appends = ['required_date_ymd', 'required_date_hi', 'required_weekday', 'product_name', 'ingredient_product_name'];
+    protected $appends = ['required_date_ymd', 'required_date_hi', 'required_weekday'];
 
     protected $guarded = [];
 
 
-    public function product_translation()
-    {
-        $locale = app()->getLocale();
+    // public function product_translation()
+    // {
+    //     $locale = app()->getLocale();
 
-        return $this->belongsTo(ProductTranslation::class, 'product_id', 'product_id')->where('locale', $locale);
-    }
+    //     return $this->belongsTo(ProductTranslation::class, 'product_id', 'product_id')->where('locale', $locale);
+    // }
 
-    public function ingredient_product_translation()
-    {
-        $locale = app()->getLocale();
+    // public function ingredient_product_translation()
+    // {
+    //     $locale = app()->getLocale();
 
-        return $this->belongsTo(ProductTranslation::class, 'ingredient_product_id', 'product_id')->where('locale', $locale);
-    }
+    //     return $this->belongsTo(ProductTranslation::class, 'ingredient_product_id', 'product_id')->where('locale', $locale);
+    // }
 
     public function order()
     {
@@ -82,19 +82,19 @@ class OrderProductIngredient extends Model
 
 
 
-    protected function productName(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => $this->product_translation->name ?? '',
-        );
-    }
+    // protected function productName(): Attribute
+    // {
+    //     return Attribute::make(
+    //         get: fn () => $this->product_translation->name ?? '',
+    //     );
+    // }
 
-    protected function ingredientProductName(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => $this->ingredient_product_translation->name ?? '',
-        );
-    }
+    // protected function ingredientProductName(): Attribute
+    // {
+    //     return Attribute::make(
+    //         get: fn () => $this->ingredient_product_translation->name ?? '',
+    //     );
+    // }
 
 
 

@@ -92,28 +92,6 @@ class OrderService extends Service
 
         $rows = $this->repository->getRows($data);
 
-        if(!empty($data['andOrWhere'])){
-            unset($data['andOrWhere']);
-        }
-
-        if(!empty($data['with'])){
-            unset($data['with']);
-        }
-
-       // statuses
-
-	    $order_statuses = $this->getOrderStatuses();
-
-		$status_items = $this->getOrderStatuseValues($order_statuses);
-
-        if(!empty($rows)){
-            foreach ($rows as $row) {
-                $row->edit_url = route('lang.admin.sale.orders.form', array_merge([$row->id], $data));
-                $row->payment_phone = $row->payment_mobile . "<BR>" . $row->payment_telephone;
-				$row->status_text = $status_items[$row->status_id] ?? '';
-            }
-        }
-
         return $rows;
     }
 

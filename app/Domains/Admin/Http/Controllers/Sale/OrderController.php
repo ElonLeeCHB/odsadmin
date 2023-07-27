@@ -136,71 +136,54 @@ class OrderController extends BackendController
     {
         $data['lang'] = $this->lang;
 
+
         // Prepare link for action
-        $queries = [];
+        $url_query_data = $this->getQueries($this->request->query());
 
-        if(!empty($this->request->query('page'))){
-            $page = $queries['page'] = $this->request->input('page');
-        }else{
-            $page = $queries['page'] = 1;
-        }
+        // Extra
+        //$url_query_data['equal_is_active'] = 1;
 
-        if(!empty($this->request->query('sort'))){
-            $sort = $queries['sort'] = $this->request->input('sort');
-        }else{
-            $sort = $queries['sort'] = 'id';
-        }
+        // Rows
+        $orders = $this->OrderService->getOrders($url_query_data,1);
 
-        if(!empty($this->request->query('order'))){
-            $order = $queries['order'] = $this->request->query('order');
-        }else{
-            $order = $queries['order'] = 'DESC';
-        }
+        // statuses
+	    $order_statuses = $this->OrderService->getOrderStatuses();
 
-        if(!empty($this->request->query('limit'))){
-            $limit = $queries['limit'] = $this->request->query('limit');
-        }
+		$status_items = $this->OrderService->getOrderStatuseValues($order_statuses);
 
-        foreach($this->request->all() as $key => $value){
-            if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
+        if(!empty($orders)){
+            foreach ($orders as $row) {
+                $row->edit_url = route('lang.admin.sale.orders.form', array_merge([$row->id], $url_query_data));
+                $row->payment_phone = $row->payment_mobile . "<BR>" . $row->payment_telephone;
+				$row->status_text = $status_items[$row->status_id] ?? '';
             }
         }
 
-        //$data['action'] = route('lang.admin.member.members.massDelete');
-
-
-        // Rows
-        $orders = $this->OrderService->getOrders($queries,1);
-
-        if(!empty($queries['with'])){
-            unset($queries['with']);
-        }
-
-        $data['orders'] = $orders->withPath(route('lang.admin.sale.orders.list'))->appends($queries);
+        $data['orders'] = $orders->withPath(route('lang.admin.sale.orders.list'))->appends($url_query_data);
 
 
         // Prepare links for list table's header
-        if($order == 'ASC'){
+        if($url_query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
-
-        $data['sort'] = strtolower($sort);
+        
+        $data['sort'] = strtolower($url_query_data['sort']);
         $data['order'] = strtolower($order);
 
-        unset($queries['sort']);
-        unset($queries['order']);
+        $url_query_data = $this->unsetUrlQueryData($url_query_data);
 
         $url = '';
 
-        foreach($queries as $key => $value){
+        foreach($url_query_data as $key => $value){
             $url .= "&$key=$value";
         }
 
+
         //link of table header for sorting
         $route = route('lang.admin.sale.orders.list');
+
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_code'] = $route . "?sort=code&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
@@ -209,6 +192,8 @@ class OrderController extends BackendController
         $data['sort_price'] = $route . "?sort=price&order=$order" .$url;
         $data['sort_delivery_date'] = $route . "?sort=delivery_date&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
+
+        $data['list_url'] = route('lang.admin.sale.orders.list');
 
         return view('admin.sale.order_list', $data);
     }
@@ -664,7 +649,20 @@ class OrderController extends BackendController
             $customer_id = null;
         }
 
+        if(isset($postData['mobile'])){
+            $mobile = $postData['mobile'];
+        }
+        //若無此變數或是0或是空值 ''，重定義為null
+        if(empty($mobile)){
+            $mobile = null;
+        }
+        
+
         $json = [];
+
+        if(empty($this->request->personal_name)){
+            $json['error']['personal_name'] = '請輸入訂購人姓名';
+        }
 
         if(empty($this->request->mobile) && empty($this->request->telephone)){
             $json['error']['mobile'] = $this->lang->error_phone;
@@ -680,21 +678,22 @@ class OrderController extends BackendController
         }
 
         //檢查姓名+手機不可重複
-        if(!empty($customer_id) && !empty($this->request->mobile) && !empty($this->request->personal_name)){
-            
+        if(!empty($this->request->personal_name)){
             $filter_data = [
                 'equal_name' => $this->request->personal_name,
-                'equal_mobile' => preg_replace('/\D+/', '', $this->request->mobile),
+                'equal_mobile' => preg_replace('/\D+/', '', $mobile),
                 'pagination' => false,
                 'select' => ['id', 'name', 'mobile'],
             ];
             $member = $this->UserRepository->getRow($filter_data);
 
-            if($member && $member->id != $customer_id){
+            //資料庫已存在姓名+手機，但其代號與傳入代號不同
+            if(!empty($member) && $member->id != $customer_id){
                 $json['error']['personal_name'] = '此姓名+手機的客戶資料已存在！ ID:' . $member->id;
                 $json['error']['mobile'] = '此姓名+手機的客戶資料已存在！';
             }
         }
+
 
         
         // Validate

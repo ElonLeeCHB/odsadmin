@@ -83,14 +83,10 @@ class RoadController extends Controller
 		$roads = $this->RoadService->getRecords($filter_data);
 
         foreach ($roads as $key => $row) {
-            $combo_name = '';
-            if(!empty($state->name)){
-                $combo_name = $state->name . '_';
-            }
-            $combo_name .= $row->city->name . '_' . $row->name;
+
             $json[] = [
                 'value' => $row->id,
-                'label' => $combo_name,
+                'label' => $row->city->name . '_' . $row->name,
                 'road_id' => $row->id,
                 'name' => $row->name,
                 'city_id' => $row->city_id,

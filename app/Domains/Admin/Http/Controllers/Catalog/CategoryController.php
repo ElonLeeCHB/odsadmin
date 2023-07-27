@@ -64,41 +64,39 @@ class CategoryController extends BackendController
 
 
         // Prepare link for action
-        $query_data = $this->getQueries($this->request->query());
+        $url_query_data = $this->getQueries($this->request->query());
 
         // Extra
-        $query_data['equal_taxonomy_code'] = 'product_category';
+        $url_query_data['equal_taxonomy_code'] = 'product_category';
+        $url_query_data['equal_is_active'] = 1;
 
         // Rows
-        $categories = $this->CategoryService->getRows($query_data);
+        $categories = $this->CategoryService->getRows($url_query_data);
 
         if(!empty($categories)){
             foreach ($categories as $row) {
-                $row->edit_url = route('lang.admin.catalog.categories.form', array_merge([$row->id], $query_data));
+                $row->edit_url = route('lang.admin.catalog.categories.form', array_merge([$row->id], $url_query_data));
             }
         }
 
-        $data['categories'] = $categories->withPath(route('lang.admin.catalog.categories.list'))->appends($query_data);
+        $data['categories'] = $categories->withPath(route('lang.admin.catalog.categories.list'))->appends($url_query_data);
 
         
         // Prepare links for list table's header
-        if($query_data['order'] == 'ASC'){
+        if($url_query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($query_data['sort']);
+        $data['sort'] = strtolower($url_query_data['sort']);
         $data['order'] = strtolower($order);
 
-        unset($query_data['sort']);
-        unset($query_data['order']);
-        unset($query_data['with']);
-        unset($query_data['whereIn']);
+        $url_query_data = $this->unsetUrlQueryData($url_query_data);
 
         $url = '';
 
-        foreach($query_data as $key => $value){
+        foreach($url_query_data as $key => $value){
             $url .= "&$key=$value";
         }
         
@@ -114,7 +112,7 @@ class CategoryController extends BackendController
         $data['sort_is_active'] = $route . "?sort=is_active&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
 
-        $data['list_url'] =route('lang.admin.catalog.categories.list');
+        $data['list_url'] = route('lang.admin.catalog.categories.list');
 
         return view('admin.catalog.category_list', $data);
     }

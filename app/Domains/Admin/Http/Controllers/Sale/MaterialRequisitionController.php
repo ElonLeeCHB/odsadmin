@@ -245,20 +245,25 @@ class MaterialRequisitionController extends BackendController
                             'main_category_name' => $product->main_category->name,
                         ];
 
-                        $temp_keys[$required_date][$order->id][$order_product->id][$order_product->product_id][$option_value->product_id][$ingredient_product_id] = '';
+                        $temp_keys[$required_date][$order->id][$order_product->id][$order_product->product_id][$ingredient_product_id] = $ingredient_product_name;
                     }
                 }
             }
 
             //delete
             $db_ingredients = OrderProductIngredient::where('required_date', $required_date)->get();
+            //echo '<pre>', print_r($temp_keys, 1), "</pre>"; exit;
+
+            $delete_ids = [];
 
             foreach ($db_ingredients as $db_ingredient) {
-                //相關主鍵在資料庫有，在表單資料沒有。表示不需要，應刪除
-                if(!isset($temp_keys[$db_ingredient->required_date][$db_ingredient->order_id][$db_ingredient->order_product_id][$db_ingredient->product_id])){
+                //相關主鍵在資料庫有，在訂單沒有。表示不需要，應刪除
+                if(!isset($temp_keys[$db_ingredient->required_date][$db_ingredient->order_id][$db_ingredient->order_product_id][$db_ingredient->product_id][$db_ingredient->ingredient_product_id])){
                     $delete_ids[] = $db_ingredient->id;
                 }
             }
+            //echo '<pre>', print_r($delete_ids, 1), "</pre>"; exit;
+            
             if(!empty($delete_ids)){
                 OrderProductIngredient::whereIn('id', $delete_ids)->delete();
             }

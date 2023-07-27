@@ -69,9 +69,9 @@ class BackendController extends Controller
         }
 
         // Extra
-        if(!isset($query_data['equal_is_active'])){
-            $query_data['equal_is_active'] = 1;
-        }
+        // if(!isset($query_data['equal_is_active'])){
+        //     $query_data['equal_is_active'] = 1;
+        // }
 
         return $query_data;
     }
@@ -89,6 +89,36 @@ class BackendController extends Controller
         }
 
         return $this->lang;
+    }
+
+
+    public function unsetUrlQueryData($query_data)
+    {
+        if(!empty($query_data['sort'])){
+            unset($query_data['sort']);
+        }
+        
+        if(!empty($query_data['order'])){
+            unset($query_data['order']);
+        }
+        
+        if(!empty($query_data['with'])){
+            unset($query_data['with']);
+        }
+        
+        if(!empty($query_data['whereIn'])){
+            unset($query_data['whereIn']);
+        }
+        
+        if(!empty($query_data['whereRawSqls'])){
+            unset($query_data['whereRawSqls']);
+        }
+        
+        if(!empty($query_data['andOrWhere'])){
+            unset($query_data['andOrWhere']);
+        }
+        
+        return $query_data;
     }
 
     

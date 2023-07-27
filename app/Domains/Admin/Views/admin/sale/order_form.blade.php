@@ -1007,7 +1007,7 @@ function setProductOptionDefault(this_product_row){
 
     //設定預設數量
     if(is_default){
-      $(this).val(main_meal_quantity_no_veg);
+      $(this).val(main_meal_quantity);
     }
   });
 }
