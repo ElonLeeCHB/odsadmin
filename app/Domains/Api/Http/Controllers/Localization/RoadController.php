@@ -3,31 +3,20 @@
 namespace App\Domains\Api\Http\Controllers\Localization;
 
 use App\Http\Controllers\Controller;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use Illuminate\Http\Request;
 use App\Libraries\TranslationLibrary;
 use App\Domains\Api\Services\Localization\RoadService;
 use App\Domains\Api\Services\Localization\DivisionService;
 use DB;
 
-class RoadController extends Controller
+class RoadController extends BackendController
 {
-    private $request;
-    private $DivisionService;
-    private $RoadService;
-
-    public function __construct(Request $request, RoadService $RoadService, DivisionService $DivisionService)
+    public function __construct(protected Request $request, protected RoadService $RoadService, protected DivisionService $DivisionService)
     {
-        $this->RoadService = $RoadService;
-        $this->DivisionService = $DivisionService;
-        $this->request = $request;
+        parent::__construct();
 
-        // Translations
-        $groups = [
-            'admin/common/common',
-            'admin/common/column_left',
-            'admin/localization/country',
-        ];
-        $this->lang = new TranslationLibrary($groups);
+        $this->getLang(['admin/common/common']);
     }
 
 
@@ -48,7 +37,8 @@ class RoadController extends Controller
                 'with' => ['subDivisions'],
             ];
     
-            $state = $this->DivisionService->getRecord($filter_data);
+            //$state = $this->DivisionService->getRecord($filter_data,1);
+            $state = $this->DivisionService->getRow($filter_data);
         }
 
         //find cities within state
@@ -56,7 +46,7 @@ class RoadController extends Controller
             $cities = $state->subDivisions;
             $city_ids = $cities->pluck('id');
         }
-		
+
         //find roads
         $filter_data = [
             'regexp' => true,

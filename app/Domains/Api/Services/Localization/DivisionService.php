@@ -2,15 +2,13 @@
 
 namespace App\Domains\Api\Services\Localization;
 
-use App\Domains\Api\Services\Service;
-use App\Traits\Model\EloquentTrait;
+use App\Traits\EloquentTrait;
 
-class DivisionService extends Service
+class DivisionService
 {
     use EloquentTrait;
 
     public $modelName;
-    public $lang;
 
     public function __construct()
     {
