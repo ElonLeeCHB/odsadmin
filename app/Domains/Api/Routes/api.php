@@ -55,6 +55,7 @@ Route::group([
         Route::get('order', 'Sale\OrderController@list')->name('order.list');
         Route::post('order/save', 'Sale\OrderController@save')->name('order.save');
         Route::get('order/{order_id}', 'Sale\OrderController@details')->name('order.details');
+        Route::get('order/{order_id}/header', 'Sale\OrderController@header')->name('order.header');
 
     });
 

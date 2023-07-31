@@ -10,7 +10,7 @@ use App\Domains\Api\Services\Service;
 use App\Domains\Api\Services\Common\OptionService;
 use App\Domains\Api\Services\Sale\OrderProductService;
 use App\Domains\Api\Services\Sale\OrderProductOptionService;
-
+use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
 use App\Models\Common\Term;
 use App\Models\Common\TermTranslation;
 use App\Models\Common\TermRelation;
@@ -36,6 +36,7 @@ class OrderService extends Service
 	public function __construct(private OptionService $OptionService
     , private OrderProductService $OrderProductService
     , private OrderProductOptionService $OrderProductOptionService
+    , private OrderProductOptionRepository $OrderProductOptionRepository
     )
 	{
         $this->modelName = "\App\Models\Sale\Order";
@@ -478,6 +479,17 @@ class OrderService extends Service
 
         return $records;
     }
+
+
+    // public function getOrderProductOptions($order_id)
+    // {
+    //     $dbquery_data = [
+    //         'equal_order_id' => $order_id,
+    //     ];
+    //     $order_product_options = $this->OrderProductOptionRepository->getRows($dbquery_data);
+    //     echo '<pre>', print_r($order_product_options, 1), "</pre>"; exit;
+
+    // }
 
 
     public function getOrderStatuses()

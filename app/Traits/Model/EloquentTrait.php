@@ -117,8 +117,8 @@ trait EloquentTrait
         $this->setFiltersQuery($query, $data);
 
         // WhereRawSqls
-        if(!empty($data['WhereRawSqls']) && is_array($data['WhereRawSqls'])){
-            foreach($data['WhereRawSqls'] as $rawsql){
+        if(!empty($data['whereRawSqls']) && is_array($data['whereRawSqls'])){
+            foreach($data['whereRawSqls'] as $rawsql){
                 $query->whereRaw($rawsql);
             }
         }

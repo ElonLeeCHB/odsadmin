@@ -99,11 +99,9 @@ class OrderController extends BackendController
     }
 
 
-    public function details($order_id)
+    public function header($order_id)
     {
         $order = $this->OrderService->find($order_id);
-
-        //$order->load('order_products');
 
         $arr_all_statuses = $this->OrderService->getOrderStatuses();
 
@@ -113,9 +111,30 @@ class OrderController extends BackendController
     }
 
 
+    public function details($order_id)
+    {
+        $db_query_data = [
+            'equal_id' => $order_id,
+            'with' => 'order_products.order_product_options',
+        ];
+        $order = $this->OrderService->find($order_id,$db_query_data);
+
+        $arr_all_statuses = $this->OrderService->getOrderStatuses();
+
+        $order->status_txt = $arr_all_statuses[$order->status_id]['name'] ?? '';
+
+        return response(json_encode($order))->header('Content-Type','application/json');
+    }
+
+
+    public function orderProductOptions($or)
+    {
+
+    }
+
+
     public function save()
     {
-        //$data = $this->request->all();
         $post_data = $this->request->post();
 
         if(isset($postData['customer_id'])){
@@ -191,7 +210,6 @@ class OrderController extends BackendController
                     'redirectUrl' => $redirectUrl,
                 ];
 
-                echo '<pre>', print_r(999, 1), "</pre>"; exit;
             }else{
                 //$user_id = auth()->user()->id ?? null;
                 //if($user_id == 1){
