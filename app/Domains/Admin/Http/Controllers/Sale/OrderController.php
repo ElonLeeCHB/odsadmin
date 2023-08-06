@@ -14,6 +14,10 @@ use App\Domains\Admin\Services\Common\OptionService;
 use App\Domains\Admin\Services\Localization\CountryService;
 use App\Domains\Admin\Services\Localization\DivisionService;
 
+use Maatwebsite\Excel\Facades\Excel;
+use App\Domains\Admin\ExportsLaravelExcel\OrderProductExport;
+use App\Domains\Admin\ExportsLaravelExcel\UsersExport;
+
 class OrderController extends BackendController
 {
     private $order;
@@ -78,6 +82,16 @@ class OrderController extends BackendController
         $data['states'] = $this->DivisionService->getStates();
 
         $data['list'] = $this->getList();
+
+
+        $url_query_data = $this->getQueries($this->request->query());
+
+        // Rows
+        //$orders = $this->OrderService->getOrders($url_query_data,1);
+
+        $data['export_order_products_url'] = route('lang.admin.sale.orders.product_reports');
+
+        
 
 		//$data['copy'] = route('lang.admin.sale.orders.copy');
 
@@ -144,7 +158,7 @@ class OrderController extends BackendController
         //$url_query_data['equal_is_active'] = 1;
 
         // Rows
-        $orders = $this->OrderService->getOrders($url_query_data,1);
+        $orders = $this->OrderService->getOrders($url_query_data);
 
         // statuses
 	    $order_statuses = $this->OrderService->getOrderStatuses();
@@ -1026,6 +1040,15 @@ class OrderController extends BackendController
 
         return response(json_encode($json))->header('Content-Type','application/json');
 
+    }
+
+    public function product_reports()
+    {
+        $data = $this->request->all();
+
+        //return Excel::download(new UsersExport($data), 'users.xlsx');
+
+        return $this->OrderService->exportOrderProducts($data); 
     }
 
 }

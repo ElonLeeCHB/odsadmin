@@ -2,6 +2,7 @@
 
 namespace App\Domains\Admin\Services\Sale;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Carbon;
 use App\Libraries\TranslationLibrary;
@@ -14,6 +15,9 @@ use App\Models\Common\Term;
 use App\Models\Common\TermTranslation;
 use App\Models\Common\TermRelation;
 
+use App\Models\Sale\Order;
+use App\Models\Sale\OrderProduct;
+
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
@@ -22,7 +26,8 @@ use App\Repositories\Eloquent\Member\MemberRepository;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Catalog\ProductTranslation;
 use App\Models\Localization\Division;
-use DB;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Domains\Admin\ExportsLaravelExcel\OrderProductExport;
 
 class OrderService extends Service
 {
@@ -88,9 +93,9 @@ class OrderService extends Service
             $data['filter_shipping_city_id'] = '=' . $data['filter_shipping_city_id'];
         }
 
-        $data['with'] = ['status.translation'];
+        $data['with'][] = 'status.translation';
 
-        $rows = $this->repository->getRows($data);
+        $rows = $this->repository->getRows($data, $debug);
 
         return $rows;
     }
@@ -729,6 +734,34 @@ class OrderService extends Service
     {
         $result = Term::where('taxonomy_code', $taxonomy_code)->with('translation')->orderBy('sort_order', 'asc')->get();
         return $result;
+
+    }
+
+
+    public function exportOrderProducts($data)
+    {
+        //$data['select'] = ['order_id', 'product_id', 'name', 'quantity', 'price', 'total', 'options_total', 'final_total', 'date_created', 'date_modified'];
+
+        $data['with'][] = 'order_products';
+
+        $data['pagination'] = false;
+        $data['limit'] = 0;
+
+        $orders = $this->getOrders($data);
+
+        foreach ($orders as $order) {
+            foreach ($order->order_products as $order_product) {
+                $order_products[] = $order_product->toArray();
+            }
+        }
+
+        $data['order_products'] = $order_products;
+
+        return Excel::download(new OrderProductExport($data), 'order_products.xlsx');
+
+
+
+
 
     }
 }

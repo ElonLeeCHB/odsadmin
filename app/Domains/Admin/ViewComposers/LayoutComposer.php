@@ -192,6 +192,8 @@ class LayoutComposer
                 'children' => []
             ];
         }
+
+        //備料單設定
         if($this->acting_user->username == 'admin') {
             $sale[] = [
                 'name'	   => $this->lang->text_material_requisition_setting,

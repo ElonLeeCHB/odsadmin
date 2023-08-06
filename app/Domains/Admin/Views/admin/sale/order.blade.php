@@ -15,6 +15,13 @@
       @include('admin.common.breadcumb')
 
       <div class="float-end">
+
+        {{--<a href="{{ $export_order_products_url }}" class="btn btn-info" data-bs-toggle="tooltip" title="匯出訂單商品"><i class="fa fa-file-export"></i></a>--}}
+
+
+
+        <button type="button" data-bs-toggle="tooltip" title="匯出訂單商品" class="btn btn-info" data-bs-original-title="匯出訂單商品" aria-label="匯出訂單商品" id="btn-export-order_products"><i class="fa fa-file-export"></i></button>
+
         {{--<button type="submit" form="form-order" formaction="{{ $copy }}" data-bs-toggle="tooltip" title="複製" class="btn btn-light"><i class="fa-regular fa-copy"></i></button>--}}
         <button type="button" data-bs-toggle="tooltip" title="Filter" onclick="$('#filter-order').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fas fa-filter" style="font-size:18px"></i></button>
         {{--<button type="button" data-bs-toggle="tooltip" title="Export" class="btn btn-light" data-bs-original-title="Edit" aria-label="Edit" id="button-export"><i class="fa fa-file-export" style="font-size:20px"></i></button>--}}
@@ -103,7 +110,7 @@
 @endsection
 
 @section('buttom')
-<script type="text/javascript"><!--
+<script type="text/javascript">
 //選縣市查區
 $('#input-shipping_state_id').on('change', function(){
   var state_id = $(this).val();
@@ -183,5 +190,47 @@ $('#button-filter').on('click', function() {
 
   $('#product').load(url);
 });
-//--></script>
+
+
+$(function(){
+  //匯出按鈕
+  $('#btn-export-order_products').on('click', function () {
+    var dataString = $('#filter-form').serialize();
+
+    //window.open(downloadUrl, '_blank');
+
+    $.ajax({
+        type: "POST",
+        url: "{{ $export_order_products_url }}",
+        data: dataString,
+        cache: false,
+        xhrFields:{
+            responseType: 'blob'
+        },
+        beforeSend: function () {
+          console.log('beforeSend');
+          //$('#loading').css("display", "");
+         // $('#btn-export-order_products').attr("disabled", true);
+        },
+        success: function(data)
+        {
+          console.log('success');
+          var link = document.createElement('a');
+          link.href = window.URL.createObjectURL(data);
+          link.download = 'order_products.xlsx';
+          link.click();
+        },
+        complete: function () {
+          console.log('complete');
+         // $('#loading').css("display", "none");
+         // $('##btn-export-order_products').attr("disabled", false);
+        },
+        fail: function(data) {
+          console.log('fail');
+          alert('Not downloaded');
+        }
+    });
+  });
+})
+</script>
 @endsection
