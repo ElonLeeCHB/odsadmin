@@ -196,7 +196,15 @@
     {{-- 統計內容 --}}
       <tr>
         <td colspan="9">
-          當前數量：主餐潤餅=<span id="span-product-{{ $product_row }}-burrito_total">0</span>, &nbsp;飲料=<span id="span-product-{{ $product_row }}-drink_total">0</span>
+          當前數量：
+          
+          <label>主餐潤餅<input type="text" id="input-product-{{ $product_row }}-burrito_total" value="0" style="width:30px;" readonly></label> &nbsp;
+          <label>葷食潤餅<input type="text" id="input-product-{{ $product_row }}-burrito_total_no_veg" value="0" style="width:30px;" readonly></label> &nbsp;
+          <label>素食總和<input type="text" id="input-product-{{ $product_row }}-burrito_total_veg" value="0" style="width:30px;" readonly></label> &nbsp;
+          <label>全素潤餅<input type="text" id="input-product-{{ $product_row }}-burrito_total_pure_veg" value="0" style="width:30px;" readonly></label> &nbsp;
+          <label>蛋素潤餅<input type="text" id="input-product-{{ $product_row }}-burrito_total_egg_veg" value="0" style="width:30px;" readonly></label> &nbsp;
+          <label>飲料<input type="text" id="input-product-{{ $product_row }}-drink_total" value="0" style="width:30px;" readonly></label> &nbsp;
+            
         </td>
       </tr>
       {{-- end 統計內容 --}}

@@ -1024,8 +1024,8 @@ function getProductDetails(selectedProduct){
 
 // 設定預設選項數量
 function setProductOptionDefault(this_product_row){
-  var main_meal_quantity = $('#input-product-'+this_product_row+'-main_meal_quantity').val();
-  var main_meal_quantity_no_veg = $('#input-product-'+this_product_row+'-main_meal_quantity_no_veg').val();
+  var burrito_total = $('#input-product-'+this_product_row+'-burrito_total').val();
+  var burrito_total_no_veg = $('#input-product-'+this_product_row+'-burrito_total_no_veg').val();
   //console.log('funtion setProductOptionDefault: main_meal_quantity='+main_meal_quantity+', main_meal_quantity_no_veg='+main_meal_quantity_no_veg)
 
   $('#product-row-'+this_product_row).find('input[data-element="options_with_qty"]').each(function() {
@@ -1033,7 +1033,7 @@ function setProductOptionDefault(this_product_row){
 
     //設定預設數量
     if(is_default){
-      $(this).val(main_meal_quantity);
+      $(this).val(burrito_total);
     }
   });
 }
@@ -1074,43 +1074,45 @@ function calcProductTotal(this_product_row){
 }
 
 //計算商品主餐數量
-// -- 頁面初始化時先計算當前主餐數量
-for (let this_product_row = 0; this_product_row < product_row; this_product_row++) {
-  calcProductMainMeal(this_product_row)
-}
-
 function calcProductMainMeal(this_product_row){
-  var quantity = $('#input-product-'+this_product_row+'-quantity').val();
-  var main_meal_quantity = 0;
-  var main_meal_quantity_veg = 0;
-  var main_meal_quantity_no_veg = 0;
+  var product_quantity = $('#input-product-'+this_product_row+'-quantity').val();
+
+  var burrito_total = 0;
+  var burrito_total_no_veg = 0; //葷
+  var burrito_total_veg = 0; //素食總和
+  var burrito_total_egg_veg = 0; //蛋素
+  var burrito_total_pure_veg = 0; //全素
   var unassigned_qty = 0;
 
   $('#product-row-'+this_product_row).find('.input_main_meal').each(function() {
     var ovid = $(this).data('ovid');
     var qty = $(this).val();
+
     if($.isNumeric(qty) && qty > 0){
-      main_meal_quantity += parseInt(qty);
+      burrito_total += parseInt(qty); //全部
     }
 
-    if(ovid == '1046' || ovid == '1047'){
-      main_meal_quantity_veg += parseInt(qty);
+    if(ovid == '1046'){
+      burrito_total_pure_veg += parseInt(qty); //全素
+    }else if(ovid == '1047'){
+      burrito_total_egg_veg += parseInt(qty); //蛋素
     }
+    
   });
 
-  main_meal_quantity_no_veg = parseInt(main_meal_quantity) - parseInt(main_meal_quantity_veg);
-  //console.log('function calcProductMainMeal: main_meal_quantity_no_veg='+main_meal_quantity_no_veg+', main_meal_quantity='+main_meal_quantity+', main_meal_quantity_veg='+main_meal_quantity_veg)
+  burrito_total_veg = burrito_total_pure_veg + burrito_total_egg_veg; //素食總和
 
-  unassigned_qty = quantity - main_meal_quantity;
+  burrito_total_no_veg = parseInt(burrito_total) - parseInt(burrito_total_veg); //葷
 
-  //$('#input-product-'+this_product_row+'-main_meal_quantity').val(main_meal_quantity);
-  $('#input-product-'+this_product_row+'-main_meal_quantity').val(main_meal_quantity);
-  $('#input-product-'+this_product_row+'-main_meal_quantity_no_veg').val(main_meal_quantity_no_veg);
+  unassigned_qty = product_quantity - burrito_total;
+
+  $('#input-product-'+this_product_row+'-burrito_total').val(burrito_total);
+  $('#input-product-'+this_product_row+'-burrito_total_no_veg').val(burrito_total_no_veg);
+  $('#input-product-'+this_product_row+'-burrito_total_veg').val(burrito_total_veg);
+  $('#input-product-'+this_product_row+'-burrito_total_egg_veg').val(burrito_total_egg_veg);
+  $('#input-product-'+this_product_row+'-burrito_total_pure_veg').val(burrito_total_pure_veg);
   $('#input-product-'+this_product_row+'-unassigned_qty').val(unassigned_qty);
-  
-  
-  $('#span-product-'+this_product_row+'-burrito_total').text(main_meal_quantity);
-  return main_meal_quantity;
+
 }
 
 //觸發-計算某商品的飲料量數
@@ -1119,35 +1121,35 @@ $(document).on("focusout",'input.drink', function(){
   calcProductDrink(this_product_row);
 });
 
-//計算當前飲料數量
-for (let i = 1; i < product_row; i++) {
-  calcProductDrink(i);
-}
-
-//計算某商品的飲料量數
+//計算商品的飲料數量
 function calcProductDrink(this_product_row){
-  
-  // 找到 <tr> 元素
-  const trElement = document.querySelector('#product-row-'+this_product_row);
+  var drink_total = 0;
 
-  // 使用 querySelectorAll 找到所有帶有 class="drink" 的 <input> 元素
-  const drinkInputs = trElement.querySelectorAll('input.drink');
+  $('#product-row-'+this_product_row).find('input.drink').each(function() {
+    let qty = $(this).val();
 
-  let total = 0;
-
-  // 迭代每個 <input> 元素，獲取其值並相加
-  drinkInputs.forEach((input) => {
-    total += parseFloat(input.value);
+    if($.isNumeric(qty) && qty > 0){
+      drink_total += parseInt(qty); //全部
+    }
+    
   });
 
-  $('#span-product-'+this_product_row+'-drink_total').text(total);
+  $('#input-product-'+this_product_row+'-drink_total').val(drink_total);
 }
+
+
+//頁面初始化時先計算當前數量
+for (let this_product_row = 0; this_product_row < product_row; this_product_row++) {
+  calcProductMainMeal(this_product_row)
+  calcProductDrink(this_product_row)
+}
+
 
 
 //變更主餐數量
 $(document).on("focusout",'.input_main_meal', function(){
-  var this_product_row = $(this).closest("[data-product-row]").data('product-row');
-  main_meal_quantity = calcProductMainMeal(this_product_row)
+  let this_product_row = $(this).closest("[data-product-row]").data('product-row');
+  calcProductMainMeal(this_product_row)
   setProductOptionDefault(this_product_row);
 });
 
@@ -1164,6 +1166,8 @@ $(document).on("focusout",'input[data-element="quantity"], input[data-element="p
   $('#input-product-'+this_product_row+'-total').val(total);
   $('#input-product-'+this_product_row+'-final_total').val(final_total);
   //console.log('Change product quantity or price: this_product_row='+this_product_row+', total='+total+', options_total='+options_total+', final_total='+final_total)
+
+  calcProductMainMeal(this_product_row)
 });
 
 $('#button-refresh').on('click', function () {
