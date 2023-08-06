@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
  * setWhereQuery
  * setWith()
  * getTableColumns()
- * getQueries()
+ * getQueryContent()
  * getTranslationModel()
  * saveTranslationData()
  * setMetaDataset()
@@ -106,6 +106,66 @@ trait EloquentTrait
     {
         $this->initialize($data);
 
+        $query = $this->getQuery($data, $debug);
+
+        // get result
+        $result = [];
+
+        if(isset($data['first']) && $data['first'] = true){
+            if(empty($data['pluck'])){
+                $result = $query->first();
+            }else{
+                $result = $query->pluck($data['pluck'])->first();
+            }
+        }else{
+            // Limit
+            if(isset($data['limit'])){
+                $limit = (int)$data['limit'];
+            }else{
+                $limit = 10;
+            }
+
+            if(!empty($data['_real_limit'])){ // $data['real_limit'] don't open to public
+                $limit = $data['_real_limit'];
+            }
+
+
+            // Pagination
+            if(isset($data['pagination']) ){
+                $pagination = (boolean)$data['pagination'];
+            }else{
+                $pagination = true;
+            }
+    
+            if($pagination == true && $limit != 0){  // Get some rows per page
+                if(empty($data['pluck'])){
+                    $result = $query->paginate($limit);
+                }else{
+                    $result = $query->paginate($limit)->pluck($data['pluck']);
+                }
+            }
+            else if($pagination == false && $limit != 0){ // Get some rows without pagination
+                if(empty($data['pluck'])){
+                    $result = $query->limit($limit)->get();
+                }else{
+                    $result = $query->limit($limit)->pluck($data['pluck']);
+                }
+            }
+            else if($pagination == false && $limit == 0){
+                if(empty($data['pluck'])){
+                    $result = $query->get(); // Get all
+                }else{
+                    $result = $query->pluck($data['pluck']);
+                }
+            }
+        }
+
+        return $result;
+    }
+
+
+    public function getQuery($data=[], $debug=0)
+    {
         $query = $this->newModel()->query();
 
         // With relations
@@ -113,25 +173,11 @@ trait EloquentTrait
             $this->setWith($query, $data['with']);
         }
 
+
         // With translation relation
         if(!empty($this->model->translated_attributes)){
             $query->with('translation');
         }
-
-        /*
-        //本段要搭配套件 Astrotomic/laravel-translatable
-        //暫時不用套件，自己處理
-        if(!empty($data['whereTranslation'])){
-            foreach ($data['whereTranslation'] as $key => $value) {
-                $query->whereTranslation($key, $value);
-            }
-        }
-
-        if(!empty($data['whereTranslation'])){
-            $this->setTranslationFilter($data['whereTranslation'], $query);
-        }
-        */
-        //End
         
         
         // whereIn
@@ -144,18 +190,22 @@ trait EloquentTrait
 
 
         // is_active can only be: 1, 0, -1, *
+        // - 相容以前的舊寫法
         if(isset($data['filter_is_active'])){
             $data['equal_is_active'] = $data['filter_is_active'];
             unset($data['filter_is_active']);
         }
 
+        // - 如果 equal_is_active 是 *, 或長度是 0 ，或值小於0，表示不做 is_active 判斷。
         if(isset($data['equal_is_active']) && ($data['equal_is_active'] == '*' || strlen($data['equal_is_active']) === 0 || $data['equal_is_active'] < 0)){
             unset($data['equal_is_active']);
         }
 
+        // - 開始判斷
         if(isset($data['equal_is_active'])){
             $equal_is_active = $data['equal_is_active'];
 
+            // -- 變數為值=0，表示不啟用。除了真的是0，把null也算在內。
             if($equal_is_active == 0){
                 $query->where(function ($query) use($equal_is_active) {
                     $query->orWhere('is_active', 0);
@@ -222,63 +272,12 @@ trait EloquentTrait
 
         // see the sql statement
         if(!empty($debug)){
-            $this->getQueries($query);
+            $this->getQueryContent($query);
         }
 
-        // get result
-        $result = [];
-
-        if(isset($data['first']) && $data['first'] = true){
-            if(empty($data['pluck'])){
-                $result = $query->first();
-            }else{
-                $result = $query->pluck($data['pluck'])->first();
-            }
-        }else{
-            // Limit
-            if(isset($data['limit'])){
-                $limit = (int)$data['limit'];
-            }else{
-                $limit = 10;
-            }
-
-            if(!empty($data['_real_limit'])){ // $data['real_limit'] don't open to public
-                $limit = $data['_real_limit'];
-            }
-
-
-            // Pagination
-            if(isset($data['pagination']) ){
-                $pagination = (boolean)$data['pagination'];
-            }else{
-                $pagination = true;
-            }
-    
-            if($pagination == true && $limit != 0){  // Get some rows per page
-                if(empty($data['pluck'])){
-                    $result = $query->paginate($limit);
-                }else{
-                    $result = $query->paginate($limit)->pluck($data['pluck']);
-                }
-            }
-            else if($pagination == false && $limit != 0){ // Get some rows without pagination
-                if(empty($data['pluck'])){
-                    $result = $query->limit($limit)->get();
-                }else{
-                    $result = $query->limit($limit)->pluck($data['pluck']);
-                }
-            }
-            else if($pagination == false && $limit == 0){
-                if(empty($data['pluck'])){
-                    $result = $query->get(); // Get all
-                }else{
-                    $result = $query->pluck($data['pluck']);
-                }
-            }
-        }
-
-        return $result;
+        return $query;
     }
+
 
     private function setFiltersQuery($query, $data, $debug=0)
     {
@@ -356,7 +355,7 @@ trait EloquentTrait
 
         // Display sql statement
         if(!empty($debug)){
-            $this->getQueries($query);
+            $this->getQueryContent($query);
         }
     }
 
@@ -626,7 +625,7 @@ trait EloquentTrait
         return $this->table_columns;
 	}
 
-    public static function getQueries(Builder $builder)
+    public static function getQueryContent(Builder $builder)
     {
         $addSlashes = str_replace('?', "'?'", $builder->toSql());
 

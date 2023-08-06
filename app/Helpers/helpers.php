@@ -198,3 +198,42 @@ if(!function_exists('getSqlWithBindings')){
         echo '<pre>', print_r($filledSql, 1), "</pre>"; exit;
     }
 }
+
+/**
+ * Only compare the day part
+ */
+if(!function_exists('parseDiffDays')){
+    function parseDiffDays($start, $end){
+
+        $end = time();
+
+        //start
+        $start_date = parseDate($start);
+
+        if($start_date == false){
+            $start_date = date('Y-m-d', $start); //timestamp
+
+            if($start_date == false){
+                return false;
+            }
+        }
+
+        //end
+        $end_date = parseDate($end);
+
+        if($end_date == false){
+            $end_date = date('Y-m-d', $end); //timestamp
+
+            if($end_date == false){
+                return false;
+            }
+        }
+
+        $date1 = strtotime($start_date);
+        $date2 = strtotime($end_date);
+        
+        $days_diff = floor(($date2 - $date1) / (60 * 60 * 24));
+
+        return $days_diff;
+    }
+}

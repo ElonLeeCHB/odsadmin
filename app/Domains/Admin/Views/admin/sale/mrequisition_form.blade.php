@@ -12,10 +12,14 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
-        @if(!empty($calc))
+        
+        <a id="href-export" target="_blank" data-bs-toggle="tooltip" title="匯出" class="btn btn-info"><i class="fa fa-file-export"></i></a>
+
+        @if(!empty($calc_url))
         <a data-href="{{ $printForm }}" id="href-printForm"  target="_blank" data-bs-toggle="tooltip" title="列印" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
         @endif
-        <a href="{{ $back }}" data-bs-toggle="tooltip" title="Back" class="btn btn-light"><i class="fas fa-reply"></i></a>
+        <a href="{{ $back_url }}" data-bs-toggle="tooltip" title="Back" class="btn btn-light"><i class="fas fa-reply"></i></a>
+
       </div>
       <h1>{{ $lang->heading_title }}</h1>
       @include('admin.common.breadcumb')
@@ -29,7 +33,7 @@
               <li class="nav-item"><a href="#tab-general" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_general }}</a></li>
               <!--<li class="nav-item"><a href="#tab-address" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_address }}</a></li>-->
           </ul>
-          <form id="form-mrequisition" action="{{ $save }}" method="post" data-oc-toggle="ajax">
+          <form id="form-mrequisition" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
             @csrf
             @method('POST')
             <div class="tab-content">
@@ -39,6 +43,7 @@
 
 				            <legend class="float-none">日期 
                       <button type="button" id="getDemandSource" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="重抓需求來源" onclick="calcOrders();"><i class="fa-solid fa-list"></i></button>
+
                     </legend>
 
                     <div class="row mb-3">
@@ -99,10 +104,10 @@
                             @endforeach
                           </tr>
                           <tr>
+                            <td class="text-start"> </td>
                             <td class="text-start">時間</td>
                             <td class="text-start">訂單編號</td>
                             <td class="text-end">地址簡稱</td>
-                            <td class="text-end">商品簡稱</td>
                             @foreach($sales_ingredients_table_items as $name)
                             <td style="width:30px">{{ $name }}</td>
                             @endforeach
@@ -110,10 +115,10 @@
                           @if(!empty($mrequisitions['details']))
                           @foreach($mrequisitions['details'] as $key => $detail_row)
                           <tr id="option-value-row-0">
-                            <td class="text-end">{{ $detail_row['require_date_hi'] }}</td>
+                            <td class="text-end">{{ $key+1 }}</td>
+                            <td class="text-end">{{ $detail_row['required_date_hi'] ?? '' }}</td>
                             <td class="text-end">{{ $detail_row['source_id'] ?? '' }}</td>
                             <td class="text-end">{{ $detail_row['shipping_road_abbr'] }}</td>
-                            <td>{{ $detail_row['main_category_name'] }}</td>
                             @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
                                 {{ $detail_row['items'][$saleable_product_material_id]['quantity'] ?? ''}}
@@ -148,7 +153,8 @@ $("#btn-redirectToRequiredDate").on('click', function(){
   var required_date_2ymd = parts.join('');
 
   if(required_date_2ymd.length > 0){
-    window.location.href = "{{ route('lang.admin.sale.mrequisition.form') }}/" + required_date_2ymd;
+    //window.location.href = "{{ route('lang.admin.sale.mrequisition.form') }}/" + required_date_2ymd;
+    alertr(33);
   }
 });
 
@@ -162,15 +168,19 @@ function calcOrders(){
   var parts = required_date.split('-');
   parts[0] = parts[0].substring(2); // 將年份的前兩位去掉
   var required_date_2ymd = parts.join('');
-  
+    
   $.ajax({
     type:'get',
     //dataType: 'json',
     url: "{{ route('lang.admin.sale.mrequisition.calcMrequisitionsByDate') }}/"+required_date,
     success:function(response){
-      if(response.required_date_2ymd.length > 0){
+
+      if(response.error){
+        alert(response.error)
+      }else if(response.required_date_2ymd.length > 0){
         window.location.href = "{{ route('lang.admin.sale.mrequisition.form') }}/" + required_date_2ymd;
       }
+      
     }
   });
 }
@@ -183,6 +193,45 @@ $(function(){
     var required_date = currentUrl.match(/[^\/]*$/); //get last number in url
     var url = "{{ route('lang.admin.sale.mrequisition.printForm') }}/" + required_date;
     window.open(url);
+  });
+
+  //匯出按鈕
+  $('#href-export').on('click', function () {
+    var dataString = $('form').serialize();
+    var ext = $('#input-excel-format').val();
+
+
+    $.ajax({
+        type: "POST",
+        url: "{{ $export_url }}",
+        data: dataString,
+        cache: false,
+        xhrFields:{
+            responseType: 'blob'
+        },
+        beforeSend: function () {
+          console.log('beforeSend');
+          $('#loading').css("display", "");
+          //$('#button-export-save').attr("disabled", true);
+        },
+        success: function(data)
+        {
+          console.log('success');
+          var link = document.createElement('a');
+          link.href = window.URL.createObjectURL(data);
+          link.download = 'members.' + ext;
+          link.click();
+        },
+        complete: function () {
+          console.log('complete');
+          $('#loading').css("display", "none");
+          //$('#button-export-save').attr("disabled", false);
+        },
+        fail: function(data) {
+          console.log('fail');
+          alert('Not downloaded');
+        }
+    });
   });
 })
 

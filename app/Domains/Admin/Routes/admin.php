@@ -126,8 +126,10 @@ Route::group(
                 //Route::get('mrequisition/getMrequisitions', 'Sale\MaterialRequisitionController@getMrequisitions')->name('mrequisition.getMrequisitions');
                 Route::get('mrequisition/calcMrequisitionsByDate/{required_date?}', 'Sale\MaterialRequisitionController@calcMrequisitionsByDate')->name('mrequisition.calcMrequisitionsByDate');
                 Route::get('mrequisition/printForm/{required_date?}', 'Sale\MaterialRequisitionController@printForm')->name('mrequisition.printForm');
-                Route::get('mrequisition/setting', 'Sale\MaterialRequisitionController@setting')->name('mrequisition.setting');
+                Route::get('mrequisition/setting', 'Sale\MaterialRequisitionController@settingForm')->name('mrequisition.setting');
                 Route::post('mrequisition/setting/save', 'Sale\MaterialRequisitionController@settingSave')->name('mrequisition.settingSave');
+                Route::post('mrequisition/export', 'Sale\MaterialRequisitionController@export')->name('mrequisition.export');
+
                 
             });
 

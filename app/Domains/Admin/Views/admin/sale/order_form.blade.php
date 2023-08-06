@@ -437,7 +437,27 @@
 @endsection
 
 @section('buttom')
+
+
 <script type="text/javascript">
+
+//查姓名 input-personal_name
+$(document).ready(function() {
+  // 使用 compositionend 事件觸發中文輸入完成後的 AJAX 請求
+  $("#input-personal_name").on("compositionend", function(event) {
+    //alert(33)
+    // 在輸入法輸入完成時觸發 AJAX 請求
+    $.ajax({
+            url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_personal_name=" + encodeURIComponent(request),
+            dataType: 'json',
+            success: function (json) {
+                response(json);
+            }
+        });
+  });
+
+});
+
 
 //關閉全部的 autocomplete
 $('input').attr('autocomplete', 'off');
@@ -621,22 +641,28 @@ $("#input-delivery_date").on('change',function(){
   $("#input-delivery_day_of_week").val(daystr);
 });
 
+function isChineseInputCompleted(){
+  return true
+}
 //查姓名
-$('#input-personal_name').autocomplete({
-  'minLength': 1,
-  'source': function (request, response) {
-      $.ajax({
-          url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_personal_name=" + encodeURIComponent(request),
-          dataType: 'json',
-          success: function (json) {
-              response(json);
-          }
-      });
-  },
-  'select': function (item) {
-    setCustomerInfo(item)
-  }
-});
+// $('#input-personal_name').autocomplete({
+//   'minLength': 1,
+//   'source': function (request, response) {
+//     if (isChineseInputCompleted(query)) {
+//       var query = request.term;
+//       $.ajax({
+//           url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_personal_name=" + encodeURIComponent(request),
+//           dataType: 'json',
+//           success: function (json) {
+//               response(json);
+//           }
+//       });
+//     }
+//   },
+//   'select': function (item) {
+//     setCustomerInfo(item)
+//   }
+// });
 
 //查手機
 $('#input-mobile').autocomplete({

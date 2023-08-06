@@ -59,7 +59,7 @@
 
         <div class="mb-3">
           <label class="form-label">{{ $lang->column_is_active }}</label>
-          <select name="filter_is_active" id="input-filter_is_active" class="form-select">
+          <select name="equal_is_active" id="input-equal_is_active" class="form-select">
             <option value="">{{ $lang->text_select }}</option>
             <option value="1" selected>{{ $lang->text_yes }}</option>
             <option value="0">{{ $lang->text_no }}</option>
@@ -84,49 +84,6 @@
   </div>
 </div>
 
-<!-- 下載 excel 彈出視窗 -->
-<div id="modal-option" class="modal fade">
-  <form id="excel-form">
-    @csrf
-    @method('post')
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title"><i class="fas fa-file-excel"></i> Export</h5> <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="input-format" class="form-label">Format</label>
-            <select name="format" id="input-excel-format" class="form-select">
-              <option value="xlsx" selected="selected">xlsx</option>
-              <option value="csv">csv</option>
-              <?php /*
-              <option value="csv">csv</option>
-              <option value="pdf">pdf</option>
-              */ ?>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="input-template" class="form-label">Template</label>
-            <select name="template" id="input-template" class="form-select">
-              <option value="">{{ $lang->text_none }}</option>
-              <option value="BasicTableLaravelExcel">Basic Table with freeze panes, memory maybe not enough.</option>
-            </select>
-          </div>
-          <div class="modal-footer">
-            <div class="loadingdiv" id="loading" style="display: none;">
-              <img src="{{ asset('backend/assets/image/ajax-loader.gif') }}" width="50"/>     
-            </div>
-            <button type="button" id="button-export-save" class="btn btn-primary">Save</button>
-            <button type="button" id="button-export-cancel" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-          </div>
-
-
-        </div>
-      </div>
-    </div>
-  </form>
-</div>
 @endsection
 
 @section('buttom')
@@ -158,10 +115,10 @@ $('#button-filter').on('click', function() {
     url += '&filter_is_salable=' + encodeURIComponent(filter_is_salable);
   }
 
-  var filter_is_active = $('#input-filter_is_active').val();
+  var equal_is_active = $('#input-equal_is_active').val();
 
-  if (filter_is_active) {
-    url += '&filter_is_active=' + encodeURIComponent(filter_is_active);
+  if (equal_is_active) {
+    url += '&equal_is_active=' + encodeURIComponent(equal_is_active);
   }
 
   url = "{{ $list_url }}?" + url;

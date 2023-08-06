@@ -34,7 +34,7 @@ class TagService extends Service
             $term->slug = $data['slug'] ?? '';
             $term->taxonomy_code = 'product_tag';
             $term->comment = $data['comment'] ?? '';
-            $term->sort_order = $data['sort_order'] ?? 999;
+            $term->sort_order = $data['sort_order'] ?? 1000;
             $term->is_active = $data['is_active'] ?? 0;
 
             $term->save();

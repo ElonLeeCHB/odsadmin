@@ -37,8 +37,8 @@ class ProductService extends Service
         if(!empty($arr)){
             $data['whereHas']['translation'] = $arr;
         }
-
-        $rows = $this->getRows($data,$debug);
+        //echo '<pre>', print_r($data, 1), "</pre>"; exit;
+        $rows = $this->getRows($data);
 
         return $rows;
 
@@ -121,7 +121,7 @@ class ProductService extends Service
                                     'id' => $product_option['product_option_id'],
                                     'option_id' => $product_option['option_id'],
                                     'required' => $product_option['required'] ?? 0,
-                                    'sort_order' => $product_option['sort_order'] ?? 999,
+                                    'sort_order' => $product_option['sort_order'] ?? 1000,
                                     'is_active' => $product_option['is_active'] ?? 1,
                                     'is_fixed' => $product_option['is_fixed'] ?? 0,
                                     'is_hidden' => $product_option['is_hidden'] ?? 0,
@@ -154,7 +154,7 @@ class ProductService extends Service
                                 'id' => $product_option['option_id'],
                                 'option_id' => $product_option['option_id'],
                                 'required' => $product_option['required'],
-                                'sort_order' => $product_option['sort_order'] ?? 999,
+                                'sort_order' => $product_option['sort_order'] ?? 1000,
                                 'is_active' => $product_option['is_active'] ?? 1,
                                 'is_fixed' => $option_value['is_fixed'] ?? 0,
                                 'is_hidden' => $option_value['is_hidden'] ?? 0,

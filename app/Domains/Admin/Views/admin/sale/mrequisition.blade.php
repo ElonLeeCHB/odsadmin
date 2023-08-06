@@ -62,61 +62,6 @@
 @section('buttom')
 <script type="text/javascript"><!--
 
-//Export: Show window
-$('#button-export').on('click', function () {
-	$('#modal-option').modal('show');
-	
-});
-
-
-//Export: Download
-/*
-$('#button-export-save').on('click', function () {
-	var dataString = $('form').serialize();
-	var ext = $('#input-excel-format').val();
-
-    $.ajax
-    ({
-        type: "POST",
-        url: "{{ route('lang.admin.member.members.index') }}",
-        data: dataString,
-        cache: false,
-        xhrFields:{
-            responseType: 'blob'
-        },
-		beforeSend: function () {
-			console.log('beforeSend');
-            $('#loading').css("display", "");
-            $('#button-export-save').attr("disabled", true);
-		},
-        success: function(data)
-        {
-			console.log('success');
-            var link = document.createElement('a');
-            link.href = window.URL.createObjectURL(data);
-			link.download = 'members.' + ext;
-
-            link.click();
-			$('#modal-option').modal('hide');
-        },
-		complete: function () {
-			console.log('complete');
-			$('#loading').css("display", "none");
-            $('#button-export-save').attr("disabled", false);
-		},
-        fail: function(data) {
-			console.log('fail');
-            alert('Not downloaded');
-        }
-    });
-});
-
-
-$('#button-export-cancel').on('click', function () {
-	$('#loading').css("display", "none");
-	$('#button-export-save').attr("disabled", false);
-});
-*/
 $('#mrequisition').on('click', 'thead a, .pagination a', function(e) {
 	e.preventDefault();
 

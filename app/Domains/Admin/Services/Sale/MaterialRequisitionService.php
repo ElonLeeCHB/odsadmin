@@ -11,4 +11,11 @@ class MaterialRequisitionService extends Service
 	{
 	}
 
+
+	public function export($data)
+	{
+
+		$this->getQuery($data);
+	}
+
 }

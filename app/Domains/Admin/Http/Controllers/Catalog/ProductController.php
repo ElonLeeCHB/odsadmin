@@ -114,12 +114,12 @@ class ProductController extends BackendController
             }
         }
 
-        if(!isset($queries['filter_is_active'])){
-            $queries['filter_is_active'] = '1';
+        if(!isset($queries['equal_is_active'])){
+            $queries['equal_is_active'] = '1';
         }
 
         // Rows
-        $products = $this->ProductService->getProducts($queries);
+        $products = $this->ProductService->getProducts($queries,1);
 
         if(!empty($products)){
             $products->load('main_category');
