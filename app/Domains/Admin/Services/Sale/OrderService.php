@@ -54,6 +54,15 @@ class OrderService extends Service
             // }
         //}
 
+        $data = $this->getListQueryData($data);
+
+        $rows = $this->repository->getRows($data, $debug);
+
+        return $rows;
+    }
+
+    public function getListQueryData($data)
+    {
         //送達日 $delivery_date
         if(!empty($data['filter_delivery_date'])){
             $rawSql = $this->repository->parseDateToSqlWhere('delivery_date', $data['filter_delivery_date']);
@@ -86,18 +95,16 @@ class OrderService extends Service
         }
 
         if(!empty($data['filter_shipping_state_id'])){
-            $data['filter_shipping_state_id'] = '=' . $data['filter_shipping_state_id'];
+            $data['equal_shipping_state_id'] = $data['filter_shipping_state_id'];
         }
 
         if(!empty($data['filter_shipping_city_id'])){
-            $data['filter_shipping_city_id'] = '=' . $data['filter_shipping_city_id'];
+            $data['equal_shipping_city_id'] = $data['filter_shipping_city_id'];
         }
 
         $data['with'][] = 'status.translation';
 
-        $rows = $this->repository->getRows($data, $debug);
-
-        return $rows;
+        return $data;
     }
 
 
@@ -226,7 +233,6 @@ class OrderService extends Service
                     }
                 }
 
-
                 $order = $this->repository->findIdOrFailOrNew($order_id);
 
                 $order->location_id = $data['location_id'];
@@ -256,7 +262,7 @@ class OrderService extends Service
                 $order->shipping_road = $data['shipping_road'] ?? '';
                 $order->shipping_address1 = $data['shipping_address1'] ?? '';
                 $order->shipping_address2 = $data['shipping_address2'] ?? '';
-                $order->shipping_road_abbr = $data['shipping_road_abbr'] ?? '';
+                $order->shipping_road_abbr = $data['shipping_road_abbr'] ?? $data['shipping_road'];
                 $order->shipping_method = $data['shipping_method'] ?? '';
                 $order->delivery_date = $delivery_date;
                 $order->delivery_time_range = $data['delivery_time_range'] ?? '';
@@ -740,28 +746,15 @@ class OrderService extends Service
 
     public function exportOrderProducts($data)
     {
-        //$data['select'] = ['order_id', 'product_id', 'name', 'quantity', 'price', 'total', 'options_total', 'final_total', 'date_created', 'date_modified'];
+        $data = $this->getListQueryData($data);
 
-        $data['with'][] = 'order_products';
+        $data['with'][] = 'order_products.order_product_options';
 
-        $data['pagination'] = false;
-        $data['limit'] = 0;
+        $query = $this->getQuery($data);
 
-        $orders = $this->getOrders($data);
+        $arr = [];
+        $arr['query'] = $query;
 
-        foreach ($orders as $order) {
-            foreach ($order->order_products as $order_product) {
-                $order_products[] = $order_product->toArray();
-            }
-        }
-
-        $data['order_products'] = $order_products;
-
-        return Excel::download(new OrderProductExport($data), 'order_products.xlsx');
-
-
-
-
-
+        return Excel::download(new OrderProductExport($arr), 'order_products.xlsx');
     }
 }

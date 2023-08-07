@@ -13,23 +13,12 @@
     <div class="container-fluid">
       <h1>{{ $lang->heading_title }}</h1>
       @include('admin.common.breadcumb')
-
       <div class="float-end">
-
-        {{--<a href="{{ $export_order_products_url }}" class="btn btn-info" data-bs-toggle="tooltip" title="匯出訂單商品"><i class="fa fa-file-export"></i></a>--}}
-
-
-
-        <button type="button" data-bs-toggle="tooltip" title="匯出訂單商品" class="btn btn-info" data-bs-original-title="匯出訂單商品" aria-label="匯出訂單商品" id="btn-export-order_products"><i class="fa fa-file-export"></i></button>
-
+        <button type="button" data-bs-toggle="tooltip" title="匯出訂單商品，最多兩千筆訂單" class="btn btn-info" data-bs-original-title="匯出訂單商品" aria-label="匯出訂單商品" id="btn-export-order_products"><i class="fa fa-file-export"></i></button>
         {{--<button type="submit" form="form-order" formaction="{{ $copy }}" data-bs-toggle="tooltip" title="複製" class="btn btn-light"><i class="fa-regular fa-copy"></i></button>--}}
         <button type="button" data-bs-toggle="tooltip" title="Filter" onclick="$('#filter-order').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fas fa-filter" style="font-size:18px"></i></button>
-        {{--<button type="button" data-bs-toggle="tooltip" title="Export" class="btn btn-light" data-bs-original-title="Edit" aria-label="Edit" id="button-export"><i class="fa fa-file-export" style="font-size:20px"></i></button>--}}
         <a href="{{ route('lang.admin.sale.orders.form') }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fas fa-plus"></i></a>
-        
       </div>
-
-
     </div>
   </div>
   <div class="container-fluid">
@@ -106,6 +95,23 @@
     </div>
   </div>
   </div>
+</div>
+
+<div id="modal-option" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-file-excel"></i> Export</h5> <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="loadingdiv" id="loading" style="display: block;">
+          <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>     
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
 </div>
 @endsection
 
@@ -195,9 +201,8 @@ $('#button-filter').on('click', function() {
 $(function(){
   //匯出按鈕
   $('#btn-export-order_products').on('click', function () {
+    $('#modal-option').modal('show');
     var dataString = $('#filter-form').serialize();
-
-    //window.open(downloadUrl, '_blank');
 
     $.ajax({
         type: "POST",
@@ -209,8 +214,7 @@ $(function(){
         },
         beforeSend: function () {
           console.log('beforeSend');
-          //$('#loading').css("display", "");
-         // $('#btn-export-order_products').attr("disabled", true);
+          $('#btn-export-order_products').attr("disabled", true);
         },
         success: function(data)
         {
@@ -222,8 +226,8 @@ $(function(){
         },
         complete: function () {
           console.log('complete');
-         // $('#loading').css("display", "none");
-         // $('##btn-export-order_products').attr("disabled", false);
+         $('#modal-option').modal('hide');
+         $('#btn-export-order_products').attr("disabled", false);
         },
         fail: function(data) {
           console.log('fail');

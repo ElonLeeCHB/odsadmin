@@ -3,10 +3,8 @@
 namespace App\Domains\Api\Services\Catalog;
 
 
-
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
-
 use App\Domains\Api\Services\Service;
 use App\Traits\Model\EloquentTrait;
 use App\Libraries\TranslationLibrary;

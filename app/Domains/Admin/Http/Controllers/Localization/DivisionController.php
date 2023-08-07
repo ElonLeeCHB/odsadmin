@@ -41,8 +41,8 @@ class DivisionController extends Controller
         $cacheName = 'tw_division_level_1';
 
         $json = cache()->rememberForever($cacheName, function(){
-            if(isset($this->request->filter_country_code)){
-                $filter_data['filter_country_code'] = $this->request->filter_country_code;
+            if(isset($this->request->equal_country_code)){
+                $filter_data['equal_country_code'] = $this->request->equal_country_code;
             }else{
                 return false;
             }
@@ -71,7 +71,7 @@ class DivisionController extends Controller
         //cache()->forget($cacheName);
         $divisions = cache()->rememberForever($cacheName, function(){
             $filter_data = [
-                'filter_country_code' => $this->request->filter_country_code ?? 'tw',
+                'equal_country_code' => $this->request->equal_country_code ?? 'tw',
                 'filter_level' => 2,
                 'pagination' => false,
                 'regexp' => false, // false = 完全比對

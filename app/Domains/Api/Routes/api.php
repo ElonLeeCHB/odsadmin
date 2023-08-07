@@ -109,7 +109,8 @@ Route::group([
             'as' => 'road.',
         ], function ()
         {
-            Route::get('', 'Localization\RoadController@list')->name('list');    
+            Route::get('', 'Localization\RoadController@list')->name('list');
+            Route::get('fword', 'Localization\RoadController@fword')->name('fword');    
         }); 
     }); 
 

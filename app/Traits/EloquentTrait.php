@@ -226,6 +226,10 @@ trait EloquentTrait
         // Like %some_value%
         $this->setFiltersQuery($query, $data);
 
+        if(!empty($data['distinct'])){
+            $query->distinct();
+        }
+
         // whereHas
         if(!empty($data['whereHas'])){
             foreach ($data['whereHas'] as $relation_name => $relation) {
@@ -260,6 +264,12 @@ trait EloquentTrait
         }
 
         $query->orderBy($sort, $order);
+
+        
+
+        if(!empty($data['orderByRaw'])){
+            $query->orderByRaw($data['orderByRaw']);
+        }
 
         // Select
         if(isset($data['select'])){

@@ -22,7 +22,7 @@ class DivisionService extends Service
         $result = cache()->remember($cacheName, 60*60*24*14, function() use ($filter_data){
 			if(empty($filter_data)){
 				$filter_data = [
-					'filter_country_code' => 'tw',
+					'equal_country_code' => 'tw',
 					'filter_level' => '1',
 					'filter_is_active' => '1',
 					'sort' => 'id',
@@ -50,10 +50,10 @@ class DivisionService extends Service
 		$filter_data = [];
 
 		// Re-define array to make sure it matches the table's index
-		if(empty($data['filter_country_code'])){
-			$filter_data['filter_country_code'] = 'tw';
+		if(empty($data['equal_country_code'])){
+			$filter_data['equal_country_code'] = 'tw';
 		}else{
-			$filter_data['filter_country_code'] = $data['filter_country_code'];
+			$filter_data['equal_country_code'] = $data['equal_country_code'];
 		}
 
 		$filter_data['filter_level'] = 2;

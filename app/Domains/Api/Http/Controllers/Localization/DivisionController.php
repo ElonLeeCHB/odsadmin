@@ -4,38 +4,36 @@ namespace App\Domains\Api\Http\Controllers\Localization;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Libraries\TranslationLibrary;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Api\Services\Localization\CountryService;
 use App\Domains\Api\Services\Localization\DivisionService;
-use App\Domains\Api\Services\Localization\RoadService;
-use DB;
 
-class DivisionController extends Controller
+class DivisionController extends BackendController
 {
 
-    public function __construct(private Request $request
+    public function __construct(protected Request $request
         , private CountryService $CountryService
         , private DivisionService $DivisionService
-        , private RoadService $RoadService
     )
     {
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/localization/division']);
+        parent::__construct();
+
+        $this->getLang(['admin/common/common', 'admin/localization/division']);
     }
 
     public function stateList()
     {
         $divisions = cache()->rememberForever('tw_division_level_1', function(){
             $filter_data = [
-                'filter_level' => '1',
-                'filter_country_code' => $this->request->filter_country_code ?? 'tw',
+                'equal_level' => '1',
+                'equal_country_code' => $this->request->equal_country_code ?? 'tw',
                 'pagination' => false,
-                'regexp' => false, // false = 完全比對
                 'limit' => 100,
                 'sort' => 'sort_order',
                 'order' => 'ASC',
             ];
     
-            $records = $this->DivisionService->getRecords($filter_data);
+            $records = $this->DivisionService->getRows($filter_data);
     
             foreach ($records as $record) {
                 $result[] = [
@@ -70,21 +68,15 @@ class DivisionController extends Controller
 
         $divisions = cache()->rememberForever($cacheName, function(){
             $filter_data = [
-                'filter_country_code' => $this->request->filter_country_code ?? 'tw',
-                'filter_level' => 2,
+                'equal_country_code' => $this->request->equal_country_code ?? 'tw',
+                'equal_level' => 2,
                 'pagination' => false,
-                'regexp' => false, // false = 完全比對
-                'limit' => 500,
+                'limit' => 0,
                 'sort' => 'sort_order',
                 'order' => 'ASC',
             ];
-            
-            $filter_data['regexp'] = false;
-            $filter_data['pagination'] = false;
-            $filter_data['limit'] = 0;
-            $filter_data['order'] = 'ASC';
-    
-            $rows = $this->DivisionService->getRecords($filter_data);
+               
+            $rows = $this->DivisionService->getRows($filter_data);
     
             foreach ($rows as $row) {
                 $result[$row->parent_id][] = [

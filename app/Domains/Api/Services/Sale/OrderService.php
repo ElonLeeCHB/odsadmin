@@ -159,7 +159,7 @@ class OrderService extends Service
                 $order->shipping_road = $data['shipping_road'] ?? '';
                 $order->shipping_address1 = $data['shipping_address1'] ?? '';
                 $order->shipping_address2 = $data['shipping_address2'] ?? '';
-                $order->shipping_road_abbr = $data['shipping_road_abbr'] ?? '';
+                $order->shipping_road_abbr = $data['shipping_road_abbr'] ?? $data['shipping_road'];
                 $order->shipping_method = $data['shipping_method'] ?? '';
                 $order->delivery_date = $delivery_date;
                 $order->delivery_time_range = $data['delivery_time_range'] ?? '';

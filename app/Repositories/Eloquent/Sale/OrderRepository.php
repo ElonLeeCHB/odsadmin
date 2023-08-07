@@ -8,7 +8,7 @@ class OrderRepository extends Repository
 {
     public $modelName = "\App\Models\Sale\Order";
 
-    public function getCachedStatus()
+    public function getOrderProductReports($data)
     {
         
     }

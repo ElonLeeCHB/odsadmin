@@ -1023,30 +1023,11 @@ class OrderController extends BackendController
 
         return view('admin.sale.print_receive_form', $data);
     }
-
-
-    public function getOrderCommentPhrase()
-    {
-        $json = $this->OrderService->getOrderCommentPhrase()->toArray();
-
-        return response(json_encode($json))->header('Content-Type','application/json');
-
-    }
-
-
-    public function getOrderExtraCommentPhrase()
-    {
-        $json = $this->OrderService->getOrderExtraCommentPhrase()->toArray();
-
-        return response(json_encode($json))->header('Content-Type','application/json');
-
-    }
+    
 
     public function product_reports()
     {
         $data = $this->request->all();
-
-        //return Excel::download(new UsersExport($data), 'users.xlsx');
 
         return $this->OrderService->exportOrderProducts($data); 
     }
