@@ -298,7 +298,9 @@ class MaterialRequisitionController extends BackendController
                         'require_date_ymd' => $ingredient->required_date,
                         'required_date_hi' => $ingredient->required_date_hi,
                         'source_id' => $ingredient->order_id,
+                        'source_id_url' => route('lang.admin.sale.orders.form', [$order_id]),
                         'shipping_road_abbr' => $ingredient->order->shipping_road_abbr,
+
                     ];
                 }
 

@@ -13,8 +13,6 @@
     <div class="container-fluid">
       <div class="float-end">
         
-        <a id="href-export" target="_blank" data-bs-toggle="tooltip" title="匯出" class="btn btn-info"><i class="fa fa-file-export"></i></a>
-
         @if(!empty($calc_url))
         <a data-href="{{ $printForm }}" id="href-printForm"  target="_blank" data-bs-toggle="tooltip" title="列印" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
         @endif
@@ -117,7 +115,7 @@
                           <tr id="option-value-row-0">
                             <td class="text-end">{{ $key+1 }}</td>
                             <td class="text-end">{{ $detail_row['required_date_hi'] ?? '' }}</td>
-                            <td class="text-end">{{ $detail_row['source_id'] ?? '' }}</td>
+                            <td class="text-end"><a href="{{ $detail_row['source_id_url'] }}" data-bs-toggle="tooltip" title="訂單連結" target="_blank">{{ $detail_row['source_id'] ?? '' }}</a></td>
                             <td class="text-end">{{ $detail_row['shipping_road_abbr'] }}</td>
                             @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
@@ -153,8 +151,7 @@ $("#btn-redirectToRequiredDate").on('click', function(){
   var required_date_2ymd = parts.join('');
 
   if(required_date_2ymd.length > 0){
-    //window.location.href = "{{ route('lang.admin.sale.mrequisition.form') }}/" + required_date_2ymd;
-    alertr(33);
+    window.location.href = "{{ route('lang.admin.sale.mrequisition.form') }}/" + required_date_2ymd;
   }
 });
 

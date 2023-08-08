@@ -101,7 +101,6 @@
       <td class="text-start">時間</td>
       <td class="text-start">訂單編號</td>
       <td class="text-end">地址簡稱</td>
-      <td class="text-end">商品簡稱</td>
       @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
         <?php
         $characters = mb_str_split($saleable_product_material_name);
@@ -116,10 +115,9 @@
       @if(!empty($mrequisitions['details']))
       @foreach($mrequisitions['details'] as $details_key => $detail_record)
       <tr class="bordered">
-        <td class="text-end">{{ $detail_record['require_date_hi'] }}</td>
+        <td class="text-end">{{ $detail_record['required_date_hi'] }}</td>
         <td class="text-end">{{ $detail_record['source_id'] }}</td>
         <td class="text-end">{{ $detail_record['shipping_road_abbr'] }}</td>
-        <td>{{ $detail_record['main_category_name'] }}</td>
         @foreach($sales_ingredients_table_items as $product_id => $product_name)
         <td>
         {{ $detail_record['items'][$product_id]['quantity'] ?? ''}}

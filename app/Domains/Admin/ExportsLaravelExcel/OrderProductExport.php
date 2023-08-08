@@ -18,6 +18,8 @@ class OrderProductExport implements WithHeadings, FromCollection, WithEvents
 
     private $data;
     private $query;
+    private $collection;
+    private $headings;
 
     
     public function __construct($data)
@@ -27,16 +29,22 @@ class OrderProductExport implements WithHeadings, FromCollection, WithEvents
         if(!empty($data['query'])){
             $this->query = $data['query'];
         }
+        
+        if(!empty($data['collection'])){
+            $this->collection = $data['collection'];
+        }
+        
+        if(!empty($data['headings'])){
+            $this->headings = $data['headings'];
+        }
     }
 
 
     public function headings(): array
     {
-        $arr = ['Order ID', '門市', '訂購日期', '送達日期', '總金額', '縣市', '鄉鎮市區', '打單時間',
+        return ['Order ID', '門市', '訂購日期', '送達日期', '狀態', '總金額', '縣市', '鄉鎮市區', '打單時間',
                 '商品代號', '商品名稱', '單價', '數量', '金額', '選項金額', '最終金額'
                 ];
-
-        return $arr;
     }
 
 
@@ -51,6 +59,7 @@ class OrderProductExport implements WithHeadings, FromCollection, WithEvents
                     'location_name' => $order->location_name,
                     'order_date' => Carbon::parse($order->order_date)->format('Y/m/d'),
                     'delivery_date' => Carbon::parse($order->delivery_date)->format('Y/m/d'),
+                    'status_name' => $order->status->translation->name ?? '',
                     'payment_total' => $order->payment_total,
                     'shipping_state' => $order->shipping_state->name ?? '',
                     'shipping_city' => $order->shipping_city->name ?? '',

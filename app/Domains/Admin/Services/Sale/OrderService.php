@@ -8,15 +8,11 @@ use Illuminate\Support\Carbon;
 use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Service;
 use App\Domains\Admin\Services\Common\OptionService;
-use App\Helpers\Classes\TwAddress;
 
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Common\Term;
 use App\Models\Common\TermTranslation;
 use App\Models\Common\TermRelation;
-
-use App\Models\Sale\Order;
-use App\Models\Sale\OrderProduct;
 
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
@@ -27,7 +23,9 @@ use App\Models\Sale\OrderProductOption;
 use App\Models\Catalog\ProductTranslation;
 use App\Models\Localization\Division;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Domains\Admin\ExportsLaravelExcel\OrderProductExport;
+//use App\Domains\Admin\ExportsLaravelExcel\OrderProductExport;
+use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
+
 
 class OrderService extends Service
 {
@@ -748,13 +746,45 @@ class OrderService extends Service
     {
         $data = $this->getListQueryData($data);
 
-        $data['with'][] = 'order_products.order_product_options';
+        $data['with'][] = 'order_products';
 
         $query = $this->getQuery($data);
 
-        $arr = [];
-        $arr['query'] = $query;
+        $orders = $query->limit(2000)->orderByDesc('delivery_date')->get();
 
-        return Excel::download(new OrderProductExport($arr), 'order_products.xlsx');
+        $data = [];
+        $rows = [];
+
+        foreach ($orders as $order) {
+            foreach ($order->order_products as $order_product) {
+                $rows[] = [
+                    'order_id' => $order->id,
+                    'location_name' => $order->location_name,
+                    'order_date' => Carbon::parse($order->order_date)->format('Y/m/d'),
+                    'delivery_date' => Carbon::parse($order->delivery_date)->format('Y/m/d'),
+                    'status_name' => $order->status->translation->name ?? '',
+                    'payment_total' => $order->payment_total,
+                    'shipping_state' => $order->shipping_state->name ?? '',
+                    'shipping_city' => $order->shipping_city->name ?? '',
+                    'created_at' => Carbon::parse($order->created_at)->format('Y/m/d h:i'),
+
+                    'product_id' => $order_product->product_id,
+                    'product_name' => $order_product->name,
+                    'price' => $order_product->price,
+                    'quantity' => $order_product->quantity,
+                    'total' => $order_product->quantity,
+                    'options_total' => $order_product->options_total,
+                    'final_total' => $order_product->final_total,
+                ];
+            }
+        }
+
+        $data['collection'] = collect($rows);
+
+        $data['headings'] = ['Order ID', '門市', '訂購日期', '送達日期', '狀態', '總金額', '縣市', '鄉鎮市區', '打單時間',
+                             '商品代號', '商品名稱', '單價', '數量', '金額', '選項金額', '最終金額'
+                            ];
+
+        return Excel::download(new CommonExport($data), 'order_products.xlsx');
     }
 }

@@ -81,7 +81,7 @@
                           <input type="text" id="input-delivery_date_hi" name="delivery_date_hi"value="{{ $order->delivery_date_hi }}" class="width4char" placeholder="例如 12:00" >
 
                           &nbsp;&nbsp;
-                          <label target="_blank" for="input-shipping_road_abbr" data-bs-toggle="tooltip" title="任意文字。請盡量簡短。例如&quot;中山南&quot;" class="colname-font"><i class="fa fa-question-circle" aria-hidden="true"></i> 送達路段</label>
+                          <label target="_blank" for="input-shipping_road_abbr" data-bs-toggle="tooltip" title="任意文字。請盡量簡短。例如&quot;中山南&quot;" class="colname-font"><i class="fa fa-question-circle" aria-hidden="true"></i> 地址簡稱</label>
                           <input type="text" id="input-shipping_road_abbr" name="shipping_road_abbr" value="{{ $order->shipping_road_abbr }}" style="width:110px;">
 
                           &nbsp;&nbsp;

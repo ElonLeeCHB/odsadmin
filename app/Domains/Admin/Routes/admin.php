@@ -131,7 +131,6 @@ Route::group(
                 Route::get('mrequisition/setting', 'Sale\MaterialRequisitionController@settingForm')->name('mrequisition.setting');
                 Route::post('mrequisition/setting/save', 'Sale\MaterialRequisitionController@settingSave')->name('mrequisition.settingSave');
                 Route::post('mrequisition/export', 'Sale\MaterialRequisitionController@export')->name('mrequisition.export');
-
                 
             });
 
