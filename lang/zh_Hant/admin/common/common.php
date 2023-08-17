@@ -64,7 +64,7 @@ return array (
 'button_view' => '檢視',
 'button_filter' => '篩選',
 'button_reset' => '重設',
-'button_clear' => '清除',
+'button_clear' => '清空',
 
 
 // Column

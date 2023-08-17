@@ -236,9 +236,9 @@ class OrderService extends Service
                 $order->location_id = $data['location_id'];
                 $order->personal_name = $data['personal_name'];
                 $order->customer_id = $customer->id;
-                $order->mobile = $data['mobile'] ?? '';
+                $order->mobile = $mobile ?? '';
                 $order->telephone_prefix = $data['telephone_prefix'] ?? '';
-                $order->telephone = $data['telephone'] ?? '';
+                $order->telephone = $telephone ?? '';
                 $order->email = $data['email'] ?? '';
                 $order->order_date = $data['order_date'] ?? null;
                 $order->payment_company = $data['payment_company'] ?? '';

@@ -42,59 +42,64 @@
               <fieldset>
                 <div>
                   <table class="table table-bordered table-hover" id="table-order-header">
-                    <tbody>
+                    <tbody>                      
                       <tr>
-                        <td colspan="8">
-
-                        <label for="input-order_date" class="colname-font">訂購日期 </label>
-                        <input type="date" id="input-order_date" name="order_date" value="{{ $order->order_date }}">
-
-                        &nbsp;&nbsp;&nbsp;<label for="input-status_id" class="colname-font">訂單狀態 </label>
-                          <select id="input-status_id" name="status_id">
+                        <td class="col-md-1 text-end colname-font">訂購日期</td>
+                        <td class="col-md-2">
+                          <div class="input-group" style="display: flex;margin-right: 5px;width:100%;">
+                            <input type="text" id="input-order_date" name="order_date" value="{{ $order->order_date }}" class="form-control date" style="width:100px;"/>
+                            <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
+                          </div>
+                        </td>
+                        <td class="col-md-1 text-end colname-font">狀態</td>
+                        <td class="col-md-2">
+                          <select id="input-status_id" name="status_id" class="form-select">
                             <option value="">--</option>
                               @foreach($order_statuses as $status)
                               <option value="{{ $status->id }}" @if($status->id == $status_id) selected @endif>{{ $status->name }}</option>
                               @endforeach
-                          </select>&nbsp;&nbsp;
-
-                          <label for="input-shipping_method" class="colname-font">取貨方式 </label>
-                          <select id="input-shipping_method" name="shipping_method">
+                          </select>
+                        </td>
+                        <td class="col-md-1 text-end colname-font">取貨方式</td>
+                        <td class="col-md-2">
+                          <select id="input-shipping_method" name="shipping_method" class="form-select">
                             <option value="">--</option>
                             <option value="shipping_pickup" @if($shipping_method == 'shipping_pickup' ) selected="selected" @endif>自取</option>
                             <option value="shipping_delivery" @if($shipping_method == 'shipping_delivery' )selected="selected" @endif>派送</option>
                           </select>
-
+                        </td>
+                        <td class="col-md-1 text-end colname-font">控單表備註</td>
+                        <td class="col-md-2">
+                          <input type="text" id="input-delivery_time_comment" name="delivery_time_comment" value="{{ $order->delivery_time_comment }}" placeholder="a 或 b 或 a,b" class="form-control">
                         </td>
                       </tr>
                       <tr>
-                        <td class="text-end colname-font" style="width:85px;">{{ $lang->column_delivery_date }}</td>
-                        <td class="text-start width6char" ><input type="date" id="input-delivery_date_ymd" name="delivery_date_ymd" value="{{ $order->delivery_date_ymd }}" class="form-control"></td>
-                        <td class="text-end colname-font" style="width: 70px;">{{ $lang->column_delivery_day_of_week }}</td>
-                        <td class="text-start width7char"><input type="text" id="input-delivery_day_of_week" name="delivery_day_of_week" value="{{ $order->delivery_weekday }}" class="form-control" readonly></td>
-
-                        <td class="text-start" colspan="4">
-                          <label target="_blank" for="input-delivery_time_range" data-bs-toggle="tooltip" title="例如：1130-1230" class="colname-font"><i class="fa fa-question-circle" aria-hidden="true"></i> 送達時間範圍</label>
-                          <input type="text" id="input-delivery_time_range" name="delivery_time_range" value="{{ $order->delivery_time_range }}" placeholder="例如 1130 - 1230" style="width:120px;" >
-
-                          &nbsp;&nbsp;
-                          <label target="_blank" for="input-delivery_date_hi" data-bs-toggle="tooltip" title="格式必須是幾點:幾分，例如 12:30。" class="colname-font"><i class="fa fa-question-circle" aria-hidden="true"></i> 送達時間</label>
-                          <input type="text" id="input-delivery_date_hi" name="delivery_date_hi"value="{{ $order->delivery_date_hi }}" class="width4char" placeholder="例如 12:00" >
-
-                          &nbsp;&nbsp;
-                          <label target="_blank" for="input-shipping_road_abbr" data-bs-toggle="tooltip" title="任意文字。請盡量簡短。例如&quot;中山南&quot;" class="colname-font"><i class="fa fa-question-circle" aria-hidden="true"></i> 地址簡稱</label>
-                          <input type="text" id="input-shipping_road_abbr" name="shipping_road_abbr" value="{{ $order->shipping_road_abbr }}" style="width:110px;">
-
-                          &nbsp;&nbsp;
-                          <label target="_blank" for="input-delivery_time_comment" data-bs-toggle="tooltip" title="a 或 b 或 a,b" class="colname-font"><i class="fa fa-question-circle" aria-hidden="true"> 控單表備註</i></label>
-                          <input type="text" id="input-delivery_time_comment" name="delivery_time_comment" value="{{ $order->delivery_time_comment }}" class="width4char"><BR>
+                        <td class="col-md-1 text-end colname-font">送達日期</td>
+                        <td class="col-md-2">
+                          <div class="input-group" style="display: flex;margin-right: 5px;width:100%;">
+                            <input type="text" id="input-order_date" name="order_date" value="{{ $order->order_date }}" placeholder="日期" class="form-control date" style="width:100px;"/>
+                            <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
+                          </div>
+                        </td>
+                        <td class="col-md-1 text-end colname-font">星期</td>
+                        <td class="col-md-2">
+                          <input type="text" id="input-delivery_day_of_week" name="delivery_day_of_week" value="{{ $order->delivery_weekday }}" class="form-control" readonly>
+                        </td>
+                        <td class="col-md-1 text-end colname-font">時間範圍</td>
+                        <td class="col-md-2">
+                        <input type="text" id="input-delivery_time_range" name="delivery_time_range" value="{{ $order->delivery_time_range }}" placeholder="例如 1130-1230" class="form-control">
+                        </td>
+                        <td class="col-md-1 text-end colname-font">送達時間</td>
+                        <td class="col-md-2">
+                          <input type="text" id="input-delivery_date_hi" name="delivery_date_hi"value="{{ $order->delivery_date_hi }}" class="form-control" placeholder="例如 12:00" >
                         </td>
                       </tr>
-
+                      
                       <tr>
-                        <td class="text-end colname-font required" style="width: 105px;">{{ $lang->column_personal_name }}</td>
-                        <td class="text-start width6char" >
+                        <td class="col-md-1 text-end colname-font">訂購人</td>
+                        <td class="col-md-2">
                           <input  type="hidden" id="input-customer_id" name="customer_id" value="{{ $order->customer_id }}" >
-                          <div class="input-group mb-3">
+                          <div class="input-group">
                             <input type="text" id="input-personal_name" name="personal_name" class="form-control" aria-label="personal_name" value="{{ $order->personal_name }}" data-oc-target="autocomplete-personal_name">
                             <div class="input-group-append">
                               <a class="input-group-text" target="_self" id="a-order_list" href="sale/orders?filter_customer_id={{ $order->customer_id }}"><i class="fa-solid fa-list"></i></a>
@@ -105,16 +110,15 @@
 
                           <div style="display: flex;flex-direction: row;justify-content: space-between;">
                             <div class="text-start">
-                              <input id="input-customer" name="customer" value="{{ $order->customer }}" class="form-control" disabled>
+                              <input id="input-customer" name="customer" value="({{ $order->customer }})" class="form-control" disabled>
                             </div>
                             <div class="text-end">
-                            <i class="fa fa-times-circle" data-bs-toggle="tooltip" title="清空訂購人" style="color:grey;" onclick="clearCustomer();"></i>
+                              <i class="fa fa-times-circle" data-bs-toggle="tooltip" title="清空訂購人" style="color:grey;" onclick="clearCustomer();"></i>
                             </div>
                           </div>
                         </td>
-
-                        <td class="text-end colname-font" style="width: 70px;">{{ $lang->column_salutation }}</td>
-                        <td class="text-start">
+                        <td class="col-md-1 text-end colname-font">稱謂</td>
+                        <td class="col-md-2">
                           <select name="salutation_id" id="input-salutation_id" class="form-select">
                             <option value="">--</option>
                               @foreach($salutations as $salutation)
@@ -122,54 +126,49 @@
                               @endforeach
                           </select>
                         </td>
-
-                        <td class="text-end" style="width:100px;">
+                        <td class="col-md-1 text-end colname-font">
                           <label target="_blank" data-bs-toggle="tooltip" title="儲存時系統會自動刪除橫線" class="colname-font"><i class="fa fa-question-circle" aria-hidden="true"></i> {{ $lang->column_mobile }}</label><BR>
                           <label target="_blank" data-bs-toggle="tooltip" title="儲存時系統會自動刪除橫線" class="colname-font"><i class="fa fa-question-circle" aria-hidden="true"></i> {{ $lang->column_telephone }}</label>
                         </td>
-
-                        <td class="text-start" style="width:180px;">
-                          <input type="text" id="input-mobile" name="mobile" aria-label="mobile" class="form-control" value="{{ $order->mobile }}" placeholder="查詢時請輸入至少3個數字" data-oc-target="autocomplete-mobile" style="width:158px;" />
+                        <td class="col-md-2">
+                          <input type="text" id="input-mobile" name="mobile" aria-label="mobile" class="form-control" value="{{ $order->mobile }}" placeholder="查詢時請輸入至少3個數字" data-oc-target="autocomplete-mobile"/>
                           <ul id="autocomplete-mobile" class="dropdown-menu"></ul>
                           <div id="error-mobile" class="invalid-feedback"></div>
 
-                          <input type="text" id="input-telephone_prefix" name="telephone_prefix" value="{{ $order->telephone_prefix }}" placeholder="區碼" style="width:30px"/>
-                          <input type="text" id="input-telephone" name="telephone" value="{{ $order->telephone }}" placeholder="查詢時請輸入至少3個數字" data-oc-target="autocomplete-telephone" style="width:125px;" />
-                          <ul id="autocomplete-telephone" class="dropdown-menu"></ul>
-                          <div id="error-telephone" class="invalid-feedback"></div>
-                          <span id="span-hasOrder" style="color:red"></span>
+                          <div class="input-group" style="display: flex;margin-right: 5px;width:100%;">
+                            <input type="text" id="input-telephone_prefix" name="telephone_prefix" value="{{ $order->telephone_prefix }}" placeholder="區碼" style="width:40px"/>
+                            <input type="text" id="input-telephone" name="telephone" value="{{ $order->telephone }}" placeholder="查詢時請輸入至少3個數字" data-oc-target="autocomplete-telephone" class="form-control"/>
+                            <ul id="autocomplete-telephone" class="dropdown-menu"></ul>
+                            <div id="error-telephone" class="invalid-feedback"></div>
+                            <span id="span-hasOrder" style="color:red"></span>
+                          </div>
 
-                        </td>
 
-                        <td class="text-end colname-font" style="width: 100px;">{{ $lang->column_email }}</td>
-                        <td class="text-start">
-                          <input type="text" id="input-email" name="email" value="{{ $order->email }}" placeholder="{{ $lang->column_email }}" data-oc-target="autocomplete-email"  class="form-control"/>
-                          <ul id="autocomplete-email" class="dropdown-menu"></ul>
-                        </td>
+                       </td>
+                        <td class="col-md-1 text-end colname-font">地址簡稱</td>
+                        <td class="col-md-2"><input type="text" id="input-shipping_road_abbr" name="shipping_road_abbr" value="{{ $order->shipping_road_abbr }}" class="form-control"></td>
                       </tr>
 
                       <tr>
-                        <td class="text-end colname-font" style="width: 105px;">{{ $lang->column_payment_company }}</td>
-                        <td class="text-start" colspan="3" >
-
-
-                        <div class="input-group mb-3">
-                          <input type="text" id="input-payment_company" name="payment_company" class="form-control" aria-label="payment_company" value="{{ $order->payment_company }}" data-oc-target="autocomplete-payment_company">
-                          <div class="input-group-append">
-                            <a class="input-group-text" target="_self" id="a-payment_company"><i class="fa-solid fa-eraser"></i></a>
+                        <td class="col-md-1 text-end colname-font">訂餐公司</td>
+                        <td colspan="3">
+                          <div class="input-group mb-3">
+                            <input type="text" id="input-payment_company" name="payment_company" class="form-control" aria-label="payment_company" value="{{ $order->payment_company }}" data-oc-target="autocomplete-payment_company">
+                            <div class="input-group-append">
+                              <a class="input-group-text" target="_self" id="a-payment_company"><i class="fa-solid fa-eraser"></i></a>
+                            </div>
                           </div>
-                        </div>
 
 
-                          <div class="input-group">
+                            <div class="input-group">
 
-                            <input type="text" id="input-payment_company_shortname" name="payment_company_shortname" value="" placeholder="公司簡稱" class="form-control w-50">
-                            <input type="text" id="input-payment_department" name="payment_department" value="{{ $order->payment_department }}" placeholder="部門" class="form-control w-50">
+                              <input type="text" id="input-payment_company_shortname" name="payment_company_shortname" value="" placeholder="公司簡稱" class="form-control w-50">
+                              <input type="text" id="input-payment_department" name="payment_department" value="{{ $order->payment_department }}" placeholder="部門" class="form-control w-50">
 
-                          </div>
+                            </div>
                         </td>
-                        <td class="text-end colname-font">是否統編</td>
-                        <td class="text-start" style="font-size: 16px;">
+                        <td class="col-md-1 text-end colname-font">統編</td>
+                        <td class="col-md-2">
                           <select id="input-is_payment_tin" name="is_payment_tin">
                             <option value="">請選擇</option>
                             <option value="0" @if($order->is_payment_tin == 0) selected @endif>不需要</option>
@@ -180,10 +179,9 @@
 
                           <input type="text" id="input-payment_tin" name="payment_tin" value="{{ $order->payment_tin }}" placeholder="統一編號" data-oc-target="autocomplete-payment_tin" class="form-control" autocomplete="off">
                           <ul id="autocomplete-payment_tin" class="dropdown-menu"></ul>
-
                         </td>
-                        <td class="text-end colname-font">訂單標籤</td>
-                        <td class="text-start">
+                        <td class="col-md-1 text-end colname-font">訂單標籤</td>
+                        <td class="col-md-2">
                           <select id="input-order_tag" name="order_tag[]" class="select2-multiple form-control" multiple="multiple">
 
                           </select><BR>
@@ -192,12 +190,20 @@
                             <button type="button">教</button>
                             <button type="button">幫</button>
                             <button type="button">清</button>
+                          </div></td>
+                      </tr>
+
+                      <tr>
+                        <td class="col-md-1 text-end colname-font">送達公司</td>
+                        <td colspan="3">
+                          <input type="text" id="input-shipping_company" name="shipping_company" value="{{ $order->shipping_company }}" class="form-control">
+                          <div class="form-check" style="font-size: 0.8em;">
+                            <input type="checkbox" name="same_as_order_company" id="input-same_as_order_company" class="form-check-input">
+                            <label for="input-same_as_order_company" class="form-check-label">同訂餐公司</label>
                           </div>
                         </td>
-                      </tr>
-                      <tr>
-                        <td class="text-end colname-font required" style="width: 105px;">{{ $lang->column_shipping_personal_name }}</td>
-                        <td class="text-start" colspan="2">
+                        <td class="col-md-1 text-end colname-font">收件人</td>
+                        <td class="col-md-2">
                           <input type="text" id="input-shipping_personal_name" name="shipping_personal_name" value="{{ $order->shipping_personal_name }}" class="form-control">
                           <div id="error-shipping_personal_name" class="invalid-feedback"></div>
 
@@ -205,10 +211,14 @@
                             <input type="checkbox" name="same_order_customer" id="input-same_order_customer" class="form-check-input">
                             <label for="input-same_order_customer" class="form-check-label">同訂購人</label>
                           </div>
-
                         </td>
-                        <td class="text-end colname-font" style="width: 60px;">地址</td>
-                        <td class="text-start" colspan="4">
+                        <td class="col-md-1 text-end colname-font">收件電話</td>
+                        <td class="col-md-2"><input type="text" id="input-shipping_phone" name="shipping_phone" value="{{ $order->shipping_phone }}" class="form-control"></td>
+                      </tr>
+
+                      <tr>
+                        <td class="col-md-1 text-end colname-font">地址</td>
+                        <td colspan="3">
                           <div class="col-sm-12">
                             <div class="input-group shipping">
                               <select id="input-shipping_state_id" name="shipping_state_id">
@@ -233,22 +243,24 @@
                             <button type="button">巷</button> <button type="button">弄</button> <button type="button">衖</button> <button type="button">號</button>
                             <button type="button">棟</button> <button type="button">大樓</button> <button type="button">樓</button> <button type="button">房</button>
                             <button type="button">室</button>
-                            <BR><input type="text" id="input-original_address" name="original_address" placeholder="統編登記地址" value="" readonly style="width:100%">
+                            <BR><input type="text" id="input-original_address" name="original_address" placeholder="統編登記地址" value="" readonly style="width:200px;">
                           </div>
-
-                          <!--<button type="button" data-bs-toggle="modal" data-bs-target="#modal-customer" class="btn btn-outline-primary"><i class="fa-solid fa-cog"></i></button>-->
                         </td>
+                        <td class="col-md-1 text-end colname-font"></td>
+                        <td class="col-md-2"></td>
+                        <td class="col-md-1 text-end colname-font"></td>
+                        <td class="col-md-2"></td>
                       </tr>
-                      <tr>
-                        <td class="text-end colname-font" style="width: 105px;">{{ $lang->column_shipping_company }}</td>
-                        <td class="text-start" colspan="2" ><input type="text" id="input-shipping_company" name="shipping_company" value="{{ $order->shipping_company }}" class="form-control">
-                          <div class="form-check" style="font-size: 0.8em;">
-                            <input type="checkbox" name="same_as_order_company" id="input-same_as_order_company" class="form-check-input">
-                            <label for="input-same_as_order_company" class="form-check-label">同訂餐公司</label>
-                          </div>
-                      </td>
-                        <td class="text-end colname-font" style="width: 70px;" colspan="2">{{ $lang->column_shipping_phone }}</td>
-                        <td class="text-start" colspan="3"><input type="text" id="input-shipping_phone" name="shipping_phone" value="{{ $order->shipping_phone }}" class="form-control"></td>
+
+                      <tr style="display: none;">
+                        <td class="col-md-1 text-end colname-font">xxx</td>
+                        <td class="col-md-2"></td>
+                        <td class="col-md-1 text-end colname-font">xxx</td>
+                        <td class="col-md-2"></td>
+                        <td class="col-md-1 text-end colname-font">xxx</td>
+                        <td class="col-md-2"></td>
+                        <td class="col-md-1 text-end colname-font">xxx</td>
+                        <td class="col-md-2"></td>
                       </tr>
                     </tbody>
                   </table>
@@ -257,40 +269,43 @@
 
               <fieldset>
                   <div>
-                    <table class="table table-bordered table-hover" id="table-payment">
-                      <tr>
-                        <td colspan="2">
-                          <span class="colname-font">付款狀況</span>
-                      </td>
-                      </tr>
-                      <tr>
-                        <td>付款方式：&nbsp;
-                          <input type="radio" id="input-payment_method-cash" name="payment_method" value="cash" @if($order->payment_method=='cash') checked @endif>
-                          <label for="input-payment_method-cash">現金</label>&nbsp;
+                    <table class="table table-bordered table-hover" id="table-order-header">
+                      <tbody>                      
+                        <tr>
+                          <td class="col-md-1 text-end colname-font">付款方式</td>
+                          <td colspan="3">
+                            <input type="radio" id="input-payment_method-cash" name="payment_method" value="cash" @if($order->payment_method=='cash') checked @endif>
+                            <label for="input-payment_method-cash">現金</label>&nbsp;
 
-                          <input type="radio" id="input-payment_method-wire" name="payment_method" value="wire" @if($order->payment_method=='wire') checked @endif>
-                          <label for="input-payment_method-wire">轉帳</label>&nbsp;
+                            <input type="radio" id="input-payment_method-wire" name="payment_method" value="wire" @if($order->payment_method=='wire') checked @endif>
+                            <label for="input-payment_method-wire">轉帳</label>&nbsp;
 
-                          <input type="radio" id="input-payment_method-credit" name="payment_method" value="credit" @if($order->payment_method=='credit') checked @endif>
-                          <label for="input-payment_method-credit">信用卡</label>&nbsp;
+                            <input type="radio" id="input-payment_method-credit" name="payment_method" value="credit" @if($order->payment_method=='credit') checked @endif>
+                            <label for="input-payment_method-credit">信用卡</label>&nbsp;
 
-                          <input type="radio" id="input-payment_method-debt" name="payment_method" value="debt" @if($order->payment_method=='debt') checked @endif>
-                          <label for="input-payment_method-debt">賒帳</label>
-                          <label data-bs-toggle="tooltip" title="若賒帳，請填寫預計付款日"><i class="fa fa-question-circle"> </i></label>
-                          <input type="date" id="input-scheduled_payment_date" name="scheduled_payment_date" value="{{ $order->scheduled_payment_date }}">
-
-                        </td>
-                        <td>
-                          總金額：<input type="text" id="input-payment_total" value="{{ $order->payment_total }}" style="width:80px" readonly>&nbsp;&nbsp; &nbsp;&nbsp;
-                          已付金額： <input type="text" id="input-payment_paid" name="payment_paid" value="{{ $order->payment_paid }}" style="width:80px">&nbsp;&nbsp;
-                          未付餘額： <input type="text" id="input-payment_unpaid" name="payment_unpaid" value="{{ $order->payment_unpaid }}" style="width:80px" readonly >&nbsp;&nbsp;
-
-                        </td>
-                      </tr>
-                      <tr>
-                        <td></td>
-                        <td></td>
-                      </tr>
+                            <input type="radio" id="input-payment_method-debt" name="payment_method" value="debt" @if($order->payment_method=='debt') checked @endif>
+                            <label for="input-payment_method-debt">賒帳</label>
+                          </td>
+                          <td class="col-md-1 text-end colname-font">預計付款日</td>
+                          <td class="col-md-2">
+                            <div class="input-group" style="display: flex;margin-right: 5px;width:100%;">
+                              <input type="text" id="input-scheduled_payment_date" name="scheduled_payment_date" value="{{ $order->scheduled_payment_date }}" class="form-control date" style="width:100px;"/>
+                              <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
+                            </div>
+                          </td>
+                          </td>
+                          <td class="col-md-1 text-end colname-font"></td>
+                          <td class="col-md-2"></td>
+                        </tr>
+                        <tr>
+                          <td class="col-md-1 text-end colname-font">付款狀況</td>
+                          <td colspan="3">
+                            總金額：<input type="text" id="input-payment_total" value="{{ $order->payment_total }}" style="width:80px" readonly>&nbsp;&nbsp; &nbsp;&nbsp;
+                            已付金額： <input type="text" id="input-payment_paid" name="payment_paid" value="{{ $order->payment_paid }}" style="width:80px">&nbsp;&nbsp;
+                            未付餘額： <input type="text" id="input-payment_unpaid" name="payment_unpaid" value="{{ $order->payment_unpaid }}" style="width:80px" readonly >&nbsp;&nbsp;
+                          </td>
+                        </tr>
+                      </tbody>
                     </table>
                   </div>
               </fieldset>
@@ -329,7 +344,7 @@
                 </div>
 
                 <div class="table-responsive">
-                  <span style="color:red">* 素食商品請注意配菜數量</span>
+                  <span style="color:red">* 請注意配菜數量</span>
 
                   <table id="order_products" class="table table-bordered table-hover">
                     <tbody id="tbody_order_products">
@@ -441,22 +456,6 @@
 
 <script type="text/javascript">
 
-//查姓名 input-personal_name
-$(document).ready(function() {
-  // 使用 compositionend 事件觸發中文輸入完成後的 AJAX 請求
-  $("#input-personal_name").on("compositionend", function(event) {
-    //alert(33)
-    // 在輸入法輸入完成時觸發 AJAX 請求
-    $.ajax({
-            url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_personal_name=" + encodeURIComponent(request),
-            dataType: 'json',
-            success: function (json) {
-                response(json);
-            }
-        });
-  });
-
-});
 
 
 //關閉全部的 autocomplete
@@ -644,32 +643,40 @@ $("#input-delivery_date").on('change',function(){
 function isChineseInputCompleted(){
   return true
 }
+
 //查姓名
-// $('#input-personal_name').autocomplete({
-//   'minLength': 1,
-//   'source': function (request, response) {
-//     if (isChineseInputCompleted(query)) {
-//       var query = request.term;
-//       $.ajax({
-//           url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_personal_name=" + encodeURIComponent(request),
-//           dataType: 'json',
-//           success: function (json) {
-//               response(json);
-//           }
-//       });
-//     }
-//   },
-//   'select': function (item) {
-//     setCustomerInfo(item)
-//   }
-// });
+$(document).ready(function() {
+  $('#input-personal_name').on('input', function(){
+    $('#input-personal_name').autocomplete({
+      'minLength': 1,
+      'source': function (request, response) {
+        var regex = /[a-zA-Z0-9\u3105-\u3129]+/;
+        if (regex.test(request)) {
+          return;
+        }else{
+          $.ajax({
+            url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_personal_name=" + encodeURIComponent(request),
+            dataType: 'json',
+            success: function (json) {
+              response(json);
+            }
+          });
+        }
+      },
+      'select': function (item) {
+        setCustomerInfo(item)
+      }
+    });
+  });
+});
+
 
 //查手機
 $('#input-mobile').autocomplete({
   minLength: 3, //not working
   source: function(request, response) {
     request = request.replace(/-/g, "");
-    if(request.length > 2){
+    if(request.length > 6){
       $.ajax({
         url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_mobile=" + encodeURIComponent(request) + '&with=orders',
         dataType: 'json',
@@ -886,6 +893,7 @@ $('.addAddrPartName button').on('click', function(){
   var buttonText = $(this).text();
   var newText = addAddrPartName+buttonText;
   $('#input-shipping_address1').val(newText);
+  $('#input-shipping_address1').focus();
 });
 
 function clearShippingAddress1(){

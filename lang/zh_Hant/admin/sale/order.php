@@ -62,6 +62,7 @@ return [
 'column_shipping_city' => '鄉鎮市區',
 'column_shipping_road' => '路名',
 'column_shipping_address' => '地址',
+'column_shipping_road_abbr' => '地址簡稱',
 'column_is_closed' => '結案碼',
 'column_order_option' => '訂單選項',
 'column_comment' => '客戶備註',

@@ -60,7 +60,7 @@ class TermController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        // Prepare link for action
+        // Prepare query_data for records
         $queries = $this->getQueries($this->request->query());
 
         // Rows

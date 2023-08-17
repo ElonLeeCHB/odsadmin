@@ -464,6 +464,7 @@ class MaterialRequisitionController extends BackendController
         $data['save_url'] = route('lang.admin.sale.mrequisition.settingSave');
         $data['back_url'] = route('lang.admin.sale.mrequisition.index');
         $data['list_url'] = route('lang.admin.sale.mrequisition.list');
+        
 
         return view('admin.sale.material_requisition_setting_form', $data);
     }

@@ -72,7 +72,7 @@ class PhraseController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        // Prepare link for action
+        // Prepare query_data for records
         $queries = $this->getQueries($this->request->query());
 
         $queries['whereIn'] = ['taxonomy_code' => ['phrase_order_comment', 'phrase_order_extra_comment']];

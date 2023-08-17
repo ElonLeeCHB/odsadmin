@@ -13,6 +13,7 @@
     <td class="text-start">培根</td>
     <td class="text-start">滷肉</td>
     <td class="text-start">呱呱卷</td>
+    <td class="text-start">虛擬潤餅</td>
   </tr>
   @endif
 
@@ -62,7 +63,7 @@
 
     <tr class="tr_drink">
       {{-- 盒餐飲料 --}}
-      @for($i = 0; $i < 9; $i++)
+      @for($i = 0; $i < 10; $i++)
         <td>
         @php 
           $poid = $product_options['drink']['product_option_id'];

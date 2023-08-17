@@ -62,20 +62,23 @@ class SupplierController extends BackendController
         $data['lang'] = $this->lang;
 
 
-        // Prepare queries for records
+        // Prepare query_data for records
         $query_data = $this->getQueries($this->request->query());
 
         // Extra default
         $query_data['equal_is_supplier'] = 1;
 
+
         // Records
         $suppliers = $this->SupplierService->getSuppliers($query_data);
-
+        
         foreach ($suppliers as $row) {
             $row->edit_url = route('lang.admin.counterparty.suppliers.form', array_merge([$row->id], $query_data));
+            $row->payment_term_name = $row->payment_term->name ?? '';
         }
-
-        $data['suppliers'] = $suppliers;
+        $suppliers = $this->unsetRelations($suppliers, ['payment_term']);
+        
+        $data['suppliers'] = &$suppliers;
 
 
         // Prepare links for list table's header
@@ -172,6 +175,7 @@ class SupplierController extends BackendController
         $data['save_url'] = route('lang.admin.counterparty.suppliers.save');
         $data['back_url'] = route('lang.admin.counterparty.suppliers.index', $queries);        
 
+
         // Get Record
         $supplier = $this->SupplierService->findIdOrFailOrNew($supplier_id);
 
@@ -179,13 +183,18 @@ class SupplierController extends BackendController
 
         $supplier->parent_name = $supplier->parent->name ?? '';
 
-        $data['supplier']  = $supplier;
+        $supplier->payment_term_name = $supplier->payment_term->name ?? '';
+        $supplier = $this->unsetRelations($supplier, ['payment_term']);
+
+        $data['supplier']  = &$supplier;
 
         if(!empty($data['supplier']) && $supplier_id == $supplier->id){
             $data['supplier_id'] = $supplier_id;
         }else{
             $data['supplier_id'] = null;
         }
+        
+        $data['payment_term_autocomplete_url'] = route('lang.admin.common.payment_terms.autocomplete');
 
         return view('admin.counterparty.supplier_form', $data);
     }

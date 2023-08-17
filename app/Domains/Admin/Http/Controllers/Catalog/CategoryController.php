@@ -63,40 +63,40 @@ class CategoryController extends BackendController
         $data['lang'] = $this->lang;
 
 
-        // Prepare link for action
-        $url_query_data = $this->getQueries($this->request->query());
+        // Prepare query_data for records
+        $query_data = $this->getQueries($this->request->query());
 
         // Extra
-        $url_query_data['equal_taxonomy_code'] = 'product_category';
-        $url_query_data['equal_is_active'] = 1;
+        $query_data['equal_taxonomy_code'] = 'product_category';
+        $query_data['equal_is_active'] = 1;
 
         // Rows
-        $categories = $this->CategoryService->getRows($url_query_data);
+        $categories = $this->CategoryService->getRows($query_data);
 
         if(!empty($categories)){
             foreach ($categories as $row) {
-                $row->edit_url = route('lang.admin.catalog.categories.form', array_merge([$row->id], $url_query_data));
+                $row->edit_url = route('lang.admin.catalog.categories.form', array_merge([$row->id], $query_data));
             }
         }
 
-        $data['categories'] = $categories->withPath(route('lang.admin.catalog.categories.list'))->appends($url_query_data);
+        $data['categories'] = $categories->withPath(route('lang.admin.catalog.categories.list'))->appends($query_data);
 
         
         // Prepare links for list table's header
-        if($url_query_data['order'] == 'ASC'){
+        if($query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($url_query_data['sort']);
+        $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
-        $url_query_data = $this->unsetUrlQueryData($url_query_data);
+        $query_data = $this->unsetUrlQueryData($query_data);
 
         $url = '';
 
-        foreach($url_query_data as $key => $value){
+        foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
         

@@ -37,8 +37,8 @@ class ProductService extends Service
         if(!empty($arr)){
             $data['whereHas']['translation'] = $arr;
         }
-        //echo '<pre>', print_r($data, 1), "</pre>"; exit;
-        $rows = $this->getRows($data);
+
+        $rows = $this->getRows($data, $debug);
 
         return $rows;
 

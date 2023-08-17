@@ -10,7 +10,6 @@ use App\Domains\Admin\Services\Common\OptionService;
 use App\Domains\Admin\Services\Catalog\ProductService;
 use App\Domains\Admin\Services\Catalog\CategoryService;
 
-
 class ProductController extends Controller
 {
     private $lang;
@@ -90,7 +89,7 @@ class ProductController extends Controller
     {
         $data['lang'] = $this->lang;
 
-        // Prepare link for action
+        // Prepare query_data for records
         $queries = [];
 
         if(!empty($this->request->query('page'))){

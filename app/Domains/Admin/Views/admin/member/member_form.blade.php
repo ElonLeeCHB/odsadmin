@@ -88,16 +88,6 @@
                       </div>
                     </div>
                     
-                    <div class="row mb-3">
-                      <label for="input-is_admin" class="col-sm-2 col-form-label">{{ $lang->column_is_admin }}</label>
-                      <div class="col-sm-10">
-                        <div class="form-check form-switch form-switch-lg">
-                          <input type="hidden" name="is_admin" value="0"/>
-                          <input type="checkbox" name="is_admin" value="1" id="input-is_admin" class="form-check-input"{% if status %} checked{% endif %}/>
-                        </div>
-                      </div>
-                    </div>
-                    
                     <legend>訂購資料</legend>
                     <div class="row mb-3">
                       <label for="input-payment_company" class="col-sm-2 col-form-label">{{ $lang->entry_payment_company }}</label>

@@ -24,6 +24,8 @@ class SupplierService extends Service
             ];
 			unset($data['filter_keyword']);
 		}
+
+        $data['with'] = 'payment_term';
 		
 		$rows = $this->getRows($data);
 
@@ -55,6 +57,7 @@ class SupplierService extends Service
             $supplier->name = $data['name'];
             $supplier->short_name = $data['short_name'] ?? null;
             $supplier->tax_id_num = $data['tax_id_num'] ?? null;
+            $supplier->payment_term_id = $data['payment_term_id'] ?? 0;
             $supplier->is_active = $data['is_active'] ?? 1;
             $supplier->is_supplier = 1;
             $supplier->is_customer = $data['is_customer'] ?? 0;

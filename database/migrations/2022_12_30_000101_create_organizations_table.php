@@ -23,9 +23,9 @@ return new class extends Migration
             $table->string('name',100); // common_name
             $table->string('official_name',100)->nullable();
             $table->string('short_name',100);
-            $table->string('telephone_prefix',3)->nullable();
             $table->string('telephone', 20)->nullable();
             $table->string('country_code',3)->nullable();
+            $table->unsignedInteger('payment_term_id');
             
             $table->unsignedInteger('corporation_id')->default('0')->comment('anscetor\'s organization_id');
             $table->unsignedInteger('company_id')->default('0')->comment('anscetor\'s organization_id');

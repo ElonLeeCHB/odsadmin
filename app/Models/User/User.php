@@ -49,6 +49,9 @@ class User extends Authenticatable
 
     //protected $appends = ['user_meta'];
 
+    public $meta_keys = [
+    ];
+
     protected static function booted()
     {
         parent::booted();
@@ -75,20 +78,20 @@ class User extends Authenticatable
         return parent::__get($key);
     }
 
-    public function isAdmin()
-    {
-        $userMeta = $this->userMeta()->where('meta_key', 'is_admin')->where('meta_value', '1')->first();
+    // public function isAdmin()
+    // {
+    //     $userMeta = $this->userMeta()->where('meta_key', 'is_admin')->where('meta_value', '1')->first();
 
-        $is_admin = 0;
+    //     $is_admin = 0;
 
-        if($userMeta){
-            $is_admin = $userMeta->meta_value;
-        }
+    //     if($userMeta){
+    //         $is_admin = $userMeta->meta_value;
+    //     }
 
-        return Attribute::make(
-            get: fn ($value) => $is_admin,
-        );
-    }
+    //     return Attribute::make(
+    //         get: fn ($value) => $is_admin,
+    //     );
+    // }
 
     protected function firstName(): Attribute
     {

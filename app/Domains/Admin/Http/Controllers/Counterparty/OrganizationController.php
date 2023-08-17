@@ -76,7 +76,7 @@ class OrganizationController extends Controller
     {
         $data['lang'] = $this->lang;
 
-        // Prepare link for action
+        // Prepare query_data for records
         $queries = [];
 
         if(!empty($this->request->query('page'))){

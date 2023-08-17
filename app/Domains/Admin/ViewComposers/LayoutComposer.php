@@ -81,7 +81,7 @@ class LayoutComposer
             $Catalog[] = [
                 'name'	   => $this->lang->text_catalog_category,
                 'icon'	   => '',
-                'href'     => route('lang.admin.catalog.categories.index'),
+                'href'     => route('lang.admin.catalog.categories.index', ['equal_is_active' => 1]),
                 'children' => []
             ];
         }
@@ -90,7 +90,7 @@ class LayoutComposer
             $Catalog[] = [
                 'name'	   => $this->lang->text_catalog_tag,
                 'icon'	   => '',
-                'href'     => route('lang.admin.catalog.tags.index'),
+                'href'     => route('lang.admin.catalog.tags.index', ['equal_is_active' => 1]),
                 'children' => []
             ];
         }
@@ -99,7 +99,7 @@ class LayoutComposer
             $Catalog[] = [
                 'name'	   => $this->lang->text_option,
                 'icon'	   => '',
-                'href'     => route('lang.admin.catalog.options.index'),
+                'href'     => route('lang.admin.catalog.options.index', ['equal_is_active' => 1]),
                 'children' => []
             ];
         }
@@ -108,7 +108,7 @@ class LayoutComposer
             $Catalog[] = [
                 'name'	   => $this->lang->text_product,
                 'icon'	   => '',
-                'href'     => route('lang.admin.catalog.products.index'),
+                'href'     => route('lang.admin.catalog.products.index', ['equal_is_active' => 1]),
                 'children' => []
             ];
         }
@@ -311,6 +311,16 @@ class LayoutComposer
             ];
         }
 
+        // 進貨作業
+        if(1) {
+            $inventory[] = [
+                'name'	   => $this->lang->text_inventory_receiving,
+                'icon'	   => '',
+                'href'     => route('lang.admin.inventory.receiving.index'),
+                'children' => []
+            ];
+        }
+
         // add to Menus
         if(!empty($inventory)) {
             $menus[] = [
@@ -386,7 +396,7 @@ class LayoutComposer
         if (1) {
             $user[] = [
                 'name'	   => '使用者',
-                'href'     => route('lang.admin.setting.admin.users.index'),
+                'href'     => route('lang.admin.setting.user.users.index', ['equal_is_admin' => 1, 'equal_is_active' => 1]),
                 'icon'	   => ' ',
             ];
         }
@@ -395,7 +405,7 @@ class LayoutComposer
         if (1) {
             $user[] = [
                 'name'	   => '權限',
-                'href'     => route('lang.admin.setting.admin.permissions.index'),
+                'href'     => route('lang.admin.setting.user.permissions.index', ['equal_is_active' => 1]),
                 'icon'	   => ' ',
             ];
         }

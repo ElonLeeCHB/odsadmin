@@ -74,7 +74,7 @@ class OptionController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        // Prepare link for action
+        // Prepare query_data for records
         $queries = [];
 
         if(!empty($this->request->query('page'))){
@@ -311,7 +311,6 @@ class OptionController extends BackendController
 				}
 			}
 		}
-
 
         if (isset($json['error']) && !isset($json['error']['warning'])) {
             $json['error']['warning'] = $this->lang->error_warning;

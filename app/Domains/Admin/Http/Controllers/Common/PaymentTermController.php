@@ -59,7 +59,7 @@ class PaymentTermController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        // Prepare link for action
+        // Prepare query_data for records
         $query_data = $this->getQueries($this->request->query());
 
         // Rows
@@ -177,8 +177,8 @@ class PaymentTermController extends BackendController
             $queries['limit'] = $this->request->query('limit');
         }
 
-        $data['save'] = route('lang.admin.common.payment_terms.save');
-        $data['back'] = route('lang.admin.common.payment_terms.index', $queries);        
+        $data['save_url'] = route('lang.admin.common.payment_terms.save');
+        $data['back_url'] = route('lang.admin.common.payment_terms.index', $queries);        
 
         // Get Record
         $payment_term = $this->PaymentTermService->findIdOrFailOrNew($payment_term_id);
@@ -190,6 +190,7 @@ class PaymentTermController extends BackendController
         }else{
             $data['payment_term_id'] = null;
         }
+
 
         return view('admin.common.payment_term_form', $data);
     }
@@ -279,6 +280,47 @@ class PaymentTermController extends BackendController
         
         if(empty($json['error'] )){
             $json['success'] = $this->lang->text_success;
+        }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
+    }
+
+
+    public function autocomplete()
+    {
+        $query_data = $this->request->query();
+        
+        $filter_data['equal_type'] = 2;
+
+        if(isset($query_data['filter_name'])){
+            $filter_data['filter_name'] = $query_data['filter_name'];
+        }
+
+        if(isset($query_data['is_active'])){
+            $filter_data['equal_is_active'] = $query_data['is_active'];
+        }else{
+            $filter_data['equal_is_active'] = 1;
+        }
+
+        $filter_data['limit'] = 0;
+        $filter_data['pagination'] = false;
+
+        $rows = $this->PaymentTermService->getRows($filter_data);
+        
+        $json = [];
+
+        $json[] = [
+            'label' => '---請選擇---',
+            'value' => 0,
+            'name' => '',
+        ];
+
+        foreach ($rows as $row) {
+            $json[] = array(
+                'label' => '2:採購-' . $row->name,
+                'value' => $row->id,
+                'name' => $row->name,
+            );
         }
 
         return response(json_encode($json))->header('Content-Type','application/json');

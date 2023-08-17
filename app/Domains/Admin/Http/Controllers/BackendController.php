@@ -121,5 +121,23 @@ class BackendController extends Controller
         return $query_data;
     }
 
-    
+
+    public function unsetRelations($rows, $relations)
+    {
+        if ($rows instanceof \Illuminate\Database\Eloquent\Model) {
+            foreach ($relations as $relation) {
+                $rows->setRelation($relation, null);
+            }
+            
+        }
+        else if(count($rows) > 1){
+            foreach ($rows as $row) {
+                foreach ($relations as $relation) {
+                    $row->setRelation($relation, null);
+                }
+            }
+        }
+
+        return $rows;
+    }
 }

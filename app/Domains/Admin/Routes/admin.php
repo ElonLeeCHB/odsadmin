@@ -174,6 +174,7 @@ Route::group(
                 Route::get('payment_terms/form/{id?}', 'Common\PaymentTermController@form')->name('payment_terms.form');
                 Route::post('payment_terms/save', 'Common\PaymentTermController@save')->name('payment_terms.save');
                 Route::post('payment_terms/delete', 'Common\PaymentTermController@delete')->name('payment_terms.delete');
+                Route::get('payment_terms/autocomplete', 'Common\PaymentTermController@autocomplete')->name('payment_terms.autocomplete');
 
                 //金融機構
                 Route::get('financial_institutions', 'Counterparty\FinancialInstitutionController@index')->name('financial_institutions.index');
@@ -210,6 +211,12 @@ Route::group(
                 Route::post('products/delete', 'Inventory\ProductController@delete')->name('products.delete');
                 Route::get('products/autocomplete', 'Inventory\ProductController@autocomplete')->name('products.autocomplete');
 
+                Route::get('receiving', 'Inventory\ReceivingController@index')->name('receiving.index');
+                Route::get('receiving/list', 'Inventory\ReceivingController@list')->name('receiving.list');
+                Route::get('receiving/form/{id?}', 'Inventory\ReceivingController@form')->name('receiving.form');
+                Route::post('receiving/save/{id?}', 'Inventory\ReceivingController@save')->name('receiving.save');
+                Route::post('receiving/delete', 'Inventory\ReceivingController@delete')->name('receiving.delete');
+                Route::get('receiving/autocomplete', 'Inventory\ReceivingController@autocomplete')->name('receiving.autocomplete');
             });
 
 
@@ -290,15 +297,15 @@ Route::group(
                 Route::post('settings/delete', 'Setting\SettingController@delete')->name('settings.delete');
 
                 Route::group([
-                    'prefix' => 'admin',
-                    'as' => 'admin.',
+                    'prefix' => 'user',
+                    'as' => 'user.',
                 ], function ()
                 {
-                    Route::get('users', 'Setting\Admin\UserController@index')->name('users.index');
-                    Route::get('users/form/{user_id?}', 'Setting\Admin\UserController@form')->name('users.form');
-                    Route::get('users/list', 'Setting\Admin\UserController@list')->name('users.list');
-                    Route::post('users/save/{user_id?}', 'Setting\Admin\UserController@save')->name('users.save');
-                    Route::post('users/delete', 'Setting\Admin\UserController@delete')->name('users.delete');
+                    Route::get('users', 'Setting\User\UserController@index')->name('users.index');
+                    Route::get('users/form/{user_id?}', 'Setting\User\UserController@form')->name('users.form');
+                    Route::get('users/list', 'Setting\User\UserController@list')->name('users.list');
+                    Route::post('users/save/{user_id?}', 'Setting\User\UserController@save')->name('users.save');
+                    Route::post('users/delete', 'Setting\User\UserController@delete')->name('users.delete');
     
                     Route::get('permissions', 'Setting\Admin\PermissionController@index')->name('permissions.index');
                     Route::get('permissions/form/{user_id?}', 'Setting\Admin\PermissionController@form')->name('permissions.form');

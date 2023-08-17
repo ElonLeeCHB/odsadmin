@@ -29,25 +29,37 @@
       <div class="card-body">
 
         <div class="mb-3">
-          <label class="form-label">{{ $lang->column_name }}</label>
-          <input type="text" name="filter_name" value="" placeholder="{{ $lang->column_name }}" id="input-name" list="list-name" class="form-control"/>
-          <datalist id="list-name"></datalist>
+          <label class="form-label">{{ $lang->column_keyname }}</label>
+          <input type="text" name="filter_keyname" value="{{ $filter_keyname ?? '' }}" placeholder="{{ $lang->column_keyname }}" id="input-keyname" list="list-keyname" class="form-control"/>
+          <datalist id="list-keyname"></datalist>
         </div>
 
         <div class="mb-3">
           <label class="form-label">{{ $lang->column_phone }}</label>
-          <input type="text" name="filter_phone" value="" placeholder="{{ $lang->placeholder_phone }}" id="input-phone" list="list-phone" class="form-control"/>
+          <input type="text" name="filter_phone" value="{{ $filter_phone ?? '' }}" placeholder="{{ $lang->placeholder_phone }}" id="input-phone" list="list-phone" class="form-control"/>
           <datalist id="list-phone"></datalist>
         </div>
 
         <div class="mb-3">
-          <label class="form-label">{{ $lang->column_email }}</label>
-          <input type="text" name="filter_email" value="" placeholder="{{ $lang->column_email }}" id="input-email" list="list-email" class="form-control"/>
-          <datalist id="list-email"></datalist>
+          <label class="form-label">{{ $lang->column_is_admin }}</label>
+          <select name="equal_is_admin" id="input-equal_is_admin" class="form-select">
+          <option value="*">{{ $lang->text_select }}</option>
+            <option value="1"@if($equal_is_admin==1) selected @endif>{{ $lang->text_yes }}</option>
+            <option value="0"@if($equal_is_admin==0) selected @endif>{{ $lang->text_no }}</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">{{ $lang->column_is_active }}</label>
+          <select name="equal_is_active" id="input-equal_is_active" class="form-select">
+          <option value="*">{{ $lang->text_select }}</option>
+            <option value="1" @if($equal_is_active==1) selected @endif>{{ $lang->text_yes }}</option>
+            <option value="0" @if($equal_is_active==0) selected @endif>{{ $lang->text_no }}</option>
+          </select>
         </div>
 
         <div class="text-end">
-          <button type="reset" id="button-clear" class="btn btn-light"><i class="fa fa-refresh" aria-hidden="true"></i> {{ $lang->button_reset }}</button>
+          <button type="reset" id="button-reset" class="btn btn-light"><i class="fa fa-refresh" aria-hidden="true"></i> {{ $lang->button_reset }}</button>
           <button type="button" id="button-filter" class="btn btn-light"><i class="fas fa-filter"></i> {{ $lang->button_filter }}</button>
       </div>
 
@@ -78,34 +90,34 @@ $('#user').on('click', 'thead a, .pagination a', function(e) {
 $('#button-filter').on('click', function() {
   url = '';
 
-  var filter_name = $('#input-name').val();
+  var filter_keyname = $('#input-keyname').val();
 
-  if (filter_name) {
-    url += '&filter_name=' + encodeURIComponent(filter_name);
+  if (filter_keyname) {
+    url += '&filter_keyname=' + encodeURIComponent(filter_keyname);
   }
 
-  var filter_mobile = $('#input-phone').val();
+  var filter_phone = $('#input-phone').val();
 
-  if (filter_mobile) {
-    url += '&filter_phone=' + encodeURIComponent(filter_mobile);
+  if (filter_phone) {
+    url += '&filter_phone=' + encodeURIComponent(filter_phone);
   }
 
-  var filter_email = $('#input-email').val();
+  var equal_is_admin = $('#input-equal_is_admin').val();
 
-  if (filter_email) {
-    url += '&filter_email=' + encodeURIComponent(filter_email);
+  if (equal_is_admin) {
+    url += '&equal_is_admin=' + encodeURIComponent(equal_is_admin);
   }
 
-  var filter_location_id = $('#input-location_id').val();
+  var equal_is_active = $('#input-equal_is_active').val();
 
-  if (filter_company) {
-    url += '&filter_location_id=' + encodeURIComponent(filter_location_id);
+  if (equal_is_active) {
+    url += '&equal_is_active=' + encodeURIComponent(equal_is_active);
   }
+  
 
   url = "{{ $list_url }}?" + url;
 
   $('#user').load(url);
 });
-
 //--></script>
 @endsection

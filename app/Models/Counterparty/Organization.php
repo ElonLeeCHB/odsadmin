@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Localization\Division;
 use App\Models\Counterparty\OrganizationMeta;
+use App\Models\Common\PaymentTerm;
+
 
 class Organization extends Model
 {
@@ -21,6 +23,14 @@ class Organization extends Model
         'supplier_bank_code',
         'supplier_bank_account',
     ];
+
+   // public $appends = ['payment_term_name'];
+
+
+    public function payment_term()
+    {
+        return $this->belongsTo(PaymentTerm::class);
+    }
 
     public function meta_dataset()
     {
@@ -42,6 +52,15 @@ class Organization extends Model
         return $this->belongsTo(self::class, 'corporation_id', 'id');
     }
 
+
+    // Attribute
+
+    // protected function paymentTermName(): Attribute
+    // {
+    //     return Attribute::make(
+    //         get: fn () => $this->payment_term->name ?? '',
+    //     );
+    // }
 
     protected function type1_txt(): Attribute
     {

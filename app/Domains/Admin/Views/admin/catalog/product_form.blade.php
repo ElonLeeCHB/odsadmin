@@ -654,7 +654,7 @@
               html += '    <tbody></tbody>';
               html += '    <tfoot>';
               html += '      <tr>';
-              html += '        <td colspan="4"></td>';
+              html += '        <td colspan="5"></td>';
               html += '        <td class="text-end"><button type="button" data-option-row="' + option_row + '" data-bs-toggle="tooltip" title="{{ $lang->button_option_value_add }}" class="btn btn-primary"><i class="fa-solid fa-plus-circle"></i></button></td>';
               html += '      </tr>';
               html += '    </tfoot>';

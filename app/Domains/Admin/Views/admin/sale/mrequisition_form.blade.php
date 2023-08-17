@@ -48,10 +48,11 @@
                       <label for="input-required_date" class="col-sm-2 col-form-label">{{ $lang->column_required_date }}</label>
                       <div class="col-sm-10">
                         <div class="input-group">
-                        <input type="date" id="input-required_date" name="required_date" value="{{ $required_date }}" placeholder="{{ $lang->column_required_date }}" class="form-control"/>
+                          <input type="text" id="input-required_date" name="required_date" value="{{ $required_date }}" placeholder="{{ $lang->column_required_date }}" class="form-control date"/>
+                          <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
                           <button type="button" id="btn-redirectToRequiredDate" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="查詢" >查詢</button>
-                          <div id="error-required_date" class="invalid-feedback"></div>
                         </div>
+                        <div id="error-required_date" class="invalid-feedback"></div>
                       </div>
                     </div>
                     

@@ -84,7 +84,7 @@ class MemberController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        // Prepare link for action
+        // Prepare query_data for records
         $query_data = $this->getQueries($this->request->query());
 
         

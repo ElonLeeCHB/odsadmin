@@ -28,6 +28,7 @@ return [
 'text_inventory_warehouse' => '倉庫設定',
 'text_inventory_category' => '品號分類設定',
 'text_inventory_products' => '品號建立作業',
+'text_inventory_receiving' => '進貨作業',
 
 'text_member' => '客戶管理',
 'text_individual' => '客戶',

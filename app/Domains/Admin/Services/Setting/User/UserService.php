@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Admin\Services\Setting\Admin;
+namespace App\Domains\Admin\Services\Setting\User;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -51,19 +51,21 @@ class UserService extends Service
             if(!empty($data['password'])){
                 $user->password = Hash::make($data['password']);
             }
+
+            $user->is_admin = $data['is_admin'] ?? 0;
             
             $user->save();
 
             //is_admin
-            $upsertData[] = [
-                'user_id' => $user->id,
-                'meta_key' => 'is_admin',
-                'meta_value' => 1,
-            ];
+            // $upsertData[] = [
+            //     'user_id' => $user->id,
+            //     'meta_key' => 'is_admin',
+            //     'meta_value' => 1,
+            // ];
 
-            if(!empty($upsertData)){
-                $this->UserMetaRepository->newModel()->upsert($upsertData, ['user_id','meta_key']);
-            }
+            // if(!empty($upsertData)){
+            //     $this->UserMetaRepository->newModel()->upsert($upsertData, ['user_id','meta_key']);
+            // }
 
             DB::commit();
 

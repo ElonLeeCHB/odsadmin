@@ -126,12 +126,14 @@ class RoadController extends BackendController
             'orderByRaw' => 'CONVERT(`word` using big5)',
         ];
 
-        if(!empty($equal_city_id)){
-            $filter_data['select'] = 'word, city_id, city_name';
-        }else{
-            $filter_data['select'] = 'word';
-            $filter_data['pluck'] = 'word';
-        }
+        // if(!empty($equal_city_id)){
+        //     $filter_data['select'] = 'word, city_id';
+        // }else{
+        //     $filter_data['select'] = 'word';
+        //     $filter_data['pluck'] = 'word';
+        // }
+        $filter_data['select'] = 'word';
+        $filter_data['pluck'] = 'word';
 
         if (!empty($equal_city_id)) {
             $filter_data['equal_city_id'] = $equal_city_id;

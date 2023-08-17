@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Admin\Http\Controllers\Setting\Admin;
+namespace App\Domains\Admin\Http\Controllers\Setting\User;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -50,17 +50,17 @@ class PermissionController extends Controller
 
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.setting.admin.users.index'),
+            'href' => route('lang.admin.setting.user.users.index'),
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
 
         $data['list'] = $this->getList();
         
-        $data['newUrl'] = route('lang.admin.setting.admin.users.form');
-        $data['listUrl'] = route('lang.admin.setting.admin.users.list');
+        $data['newUrl'] = route('lang.admin.setting.user.users.form');
+        $data['listUrl'] = route('lang.admin.setting.user.users.list');
 
-        $data['autocompleteUrl'] = route('lang.admin.setting.admin.users.autocomplete');        
+        $data['autocompleteUrl'] = route('lang.admin.setting.user.users.autocomplete');        
 
         return view('admin.setting.user', $data);
     }
@@ -69,7 +69,7 @@ class PermissionController extends Controller
     {
         $data['lang'] = $this->lang;
 
-        $data['form_action'] = route('lang.admin.setting.admin.users.list');
+        $data['form_action'] = route('lang.admin.setting.user.users.list');
 
         return $this->getList();
     }
@@ -83,7 +83,7 @@ class PermissionController extends Controller
     {
         $data['lang'] = $this->lang;
 
-        // Prepare link for action
+        // Prepare query_data for records
         $queries = [];
 
         if(!empty($this->request->query('page'))){
@@ -114,7 +114,7 @@ class PermissionController extends Controller
             }
         }
 
-        //$data['action'] = route('lang.admin.setting.admin.users.massDelete');
+        //$data['action'] = route('lang.admin.setting.user.users.massDelete');
         //$queries['user_meta']['is_admin'] = 1;
 
         // Rows
@@ -122,11 +122,11 @@ class PermissionController extends Controller
 
         if(!empty($users)){
             foreach ($users as $row) {
-                $row->edit_url = route('lang.admin.setting.admin.users.form', array_merge([$row->id], $queries));
+                $row->edit_url = route('lang.admin.setting.user.users.form', array_merge([$row->id], $queries));
             }
         }
 
-        $data['users'] = $users->withPath(route('lang.admin.setting.admin.users.list'))->appends($queries);
+        $data['users'] = $users->withPath(route('lang.admin.setting.user.users.list'))->appends($queries);
 
         // Prepare links for list table's header
         if($order == 'ASC'){
@@ -148,12 +148,12 @@ class PermissionController extends Controller
         }
 
         //link of table header for sorting
-        $route = route('lang.admin.setting.admin.users.list');
+        $route = route('lang.admin.setting.user.users.list');
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_email'] = $route . "?sort=email&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
         
-        $data['listUrl'] = route('lang.admin.setting.admin.users.list');
+        $data['listUrl'] = route('lang.admin.setting.user.users.list');
 
         return view('admin.setting.user_list', $data);
     }
@@ -179,7 +179,7 @@ class PermissionController extends Controller
 
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.setting.admin.users.index'),
+            'href' => route('lang.admin.setting.user.users.index'),
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
@@ -215,8 +215,8 @@ class PermissionController extends Controller
             $queries['limit'] = $this->request->query('limit');
         }
 
-        $data['save'] = route('lang.admin.setting.admin.users.save');
-        $data['back'] = route('lang.admin.setting.admin.users.index', $queries);
+        $data['save'] = route('lang.admin.setting.user.users.save');
+        $data['back'] = route('lang.admin.setting.user.users.index', $queries);
 
         // Get Record
         $user = $this->UserService->findOrFailOrNew($user_id);

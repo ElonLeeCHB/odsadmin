@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
-use App\Domains\Api\Services\Sale\OrderService;
+use App\Domains\Admin\Services\Sale\OrderService;
 use App\Domains\Api\Services\Member\MemberService;
 //use App\Domains\Api\Services\User\UserService;
 use App\Repositories\Eloquent\User\UserRepository;
@@ -85,7 +85,7 @@ class OrderController extends BackendController
 
         $arr_all_statuses = $this->OrderService->getOrderStatuses();
         
-        $arr_all_salutations = $this->OrderService->getOrderStatuses();
+        //$arr_all_salutations = $this->OrderService->getOrderStatuses();
 
         if(!empty($orders)){
             foreach ($orders as $record) {
@@ -101,7 +101,7 @@ class OrderController extends BackendController
 
     public function header($order_id)
     {
-        $order = $this->OrderService->find($order_id);
+        $order = $this->OrderService->findIdOrFailOrNew($order_id);
 
         $arr_all_statuses = $this->OrderService->getOrderStatuses();
 
@@ -113,11 +113,8 @@ class OrderController extends BackendController
 
     public function details($order_id)
     {
-        $db_query_data = [
-            'equal_id' => $order_id,
-            'with' => 'order_products.order_product_options',
-        ];
-        $order = $this->OrderService->find($order_id,$db_query_data);
+        $order = $this->OrderService->findIdOrFailOrNew($order_id);
+        $order->load('order_products.order_product_options');
 
         $arr_all_statuses = $this->OrderService->getOrderStatuses();
 

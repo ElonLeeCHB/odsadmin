@@ -83,72 +83,46 @@ class ProductController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        // Prepare link for action
-        $queries = [];
 
-        if(!empty($this->request->query('page'))){
-            $page = $queries['page'] = $this->request->input('page');
-        }else{
-            $page = $queries['page'] = 1;
+        // Prepare query_data for records
+        $query_data = $this->getQueries($this->request->query());
+
+        // Extra
+        if(!isset($query_data['equal_is_active'])){
+            $query_data['equal_is_active'] = '1';
         }
 
-        if(!empty($this->request->query('sort'))){
-            $sort = $queries['sort'] = $this->request->input('sort');
-        }else{
-            $sort = $queries['sort'] = 'id';
-        }
-
-        if(!empty($this->request->query('order'))){
-            $order = $queries['order'] = $this->request->query('order');
-        }else{
-            $order = $queries['order'] = 'asc';
-        }
-
-        if(!empty($this->request->query('limit'))){
-            $limit = $queries['limit'] = $this->request->query('limit');
-        }
-
-        foreach($this->request->all() as $key => $value){
-            if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
-            }
-        }
-
-        if(!isset($queries['equal_is_active'])){
-            $queries['equal_is_active'] = '1';
-        }
 
         // Rows
-        $products = $this->ProductService->getProducts($queries,1);
+        $products = $this->ProductService->getProducts($query_data);
 
         if(!empty($products)){
             $products->load('main_category');
 
             foreach ($products as $row) {
                 $row->main_category_name = $row->main_category->name ?? '';
-                $row->edit_url = route('lang.admin.catalog.products.form', array_merge([$row->id], $queries));
+                $row->edit_url = route('lang.admin.catalog.products.form', array_merge([$row->id], $query_data));
             }
         }
 
-        $data['products'] = $products->withPath(route('lang.admin.catalog.products.list'))->appends($queries);
+        $data['products'] = $products->withPath(route('lang.admin.catalog.products.list'))->appends($query_data);
+
 
         // Prepare links for list table's header
-        if($order == 'ASC' ){
+        if($query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['page'] = strtolower($page);
-        $data['sort'] = strtolower($sort);
+        $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
-        unset($queries['sort']);
-        unset($queries['order']);
+        $query_data = $this->unsetUrlQueryData($query_data);
 
         $url = '';
 
-        foreach($queries as $key => $value){
+        foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
         
@@ -333,11 +307,7 @@ class ProductController extends BackendController
             $option = $product_option->option;
             if ($option->type == 'options_with_qty' || $option->type == 'select' || $option->type == 'radio' || $option->type == 'checkbox' || $product_option->type == 'image') {
                 if (!isset($data['option_values'][$option->id])) { //避免重複。但是實際上是否有可能一個商品拉兩個顏色組？
-                    $filter_data = [
-                        'filter_option_id' => $option->id,
-                        'with' => 'product.translations',
-                    ];
-                    $data['option_values'][$option->id] = $option->option_values;
+                    $data['option_values'][$option->id] = $option->option_values->where('is_active',1);
                 }
             }
         }

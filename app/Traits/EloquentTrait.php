@@ -66,16 +66,6 @@ trait EloquentTrait
         if(!empty(trim($id))){
             $query = $this->newModel()->where('id', $id);
 
-            foreach($data ?? []as $key => $value){
-                if(!str_starts_with($key, 'equal_')){
-                    continue;
-                }
-                else{
-                    $column = str_replace('equal_', '', $key);
-                }
-                $query = $query->where($column, $value);
-            }
-
             $row = $query->firstOrFail();
         }
         //new
