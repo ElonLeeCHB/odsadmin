@@ -1,10 +1,6 @@
 @extends('admin.app')
 
 @section('pageJsCss')
-<script src="{{ asset('assets-admin/javascript/jquery/datetimepicker/moment.min.js') }}" type="text/javascript"></script>
-<script src="{{ asset('assets-admin/javascript/jquery/datetimepicker/moment-with-locales.min.js') }}" type="text/javascript" ></script>
-<script src="{{ asset('assets-admin/javascript/jquery/datetimepicker/daterangepicker.js') }}" type="text/javascript" ></script>
-<link  href="{{ asset('assets-admin/javascript/jquery/datetimepicker/daterangepicker.css') }}" rel="stylesheet" type="text/css"/>
 @endsection
 
 @section('columnLeft')

@@ -4,39 +4,26 @@ namespace App\Domains\Admin\Http\Controllers\Inventory;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Libraries\TranslationLibrary;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
 use App\Domains\Admin\Services\Common\OptionService;
 use App\Domains\Admin\Services\Catalog\ProductService;
 use App\Domains\Admin\Services\Catalog\CategoryService;
 
-class ProductController extends Controller
+class ProductController extends BackendController
 {
-    private $lang;
-    private $request;
-    private $OptionService;
-    private $ProductService;
-    private $CategoryService;
-
     public function __construct(
-        Request $request
-        , LanguageRepository $languageRepository
-        , OptionService $OptionService
-        , ProductService $ProductService
-        , CategoryService $CategoryService
+        protected Request $request
+        , private LanguageRepository $languageRepository
+        , private OptionService $OptionService
+        , private ProductService $ProductService
+        , private CategoryService $CategoryService
     )
     {
-        $this->request = $request;
-        $this->languageRepository = $languageRepository;
-        $this->OptionService = $OptionService;
-        $this->ProductService = $ProductService;
-        $this->CategoryService = $CategoryService;
+        parent::__construct();
 
-        $groups = [
-            'admin/common/common',
-            'admin/inventory/product',
-        ];
-        $this->lang = (new TranslationLibrary())->getTranslations($groups);
+        $this->getLang(['admin/common/common','admin/inventory/product']);
     }
 
     /**
@@ -66,13 +53,19 @@ class ProductController extends Controller
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
+
+
+        // categories
+        $data['categories'] = $this->CategoryService->getCategories();
+
+        
         $data['list'] = $this->getList();
 
         $data['list_url']   = route('lang.admin.inventory.products.list');
         $data['add_url']    = route('lang.admin.inventory.products.form');
         $data['delete_url'] = route('lang.admin.inventory.products.delete');
 
-        return view('admin.inventory.product', $data);
+        return view('admin.catalog.product', $data);
     }
 
     public function list()
@@ -89,69 +82,49 @@ class ProductController extends Controller
     {
         $data['lang'] = $this->lang;
 
+
         // Prepare query_data for records
-        $queries = [];
+        $query_data = $this->getQueries($this->request->query());
 
-        if(!empty($this->request->query('page'))){
-            $page = $queries['page'] = $this->request->input('page');
-        }else{
-            $page = $queries['page'] = 1;
+        // Extra
+        if(!isset($query_data['equal_is_active'])){
+            $query_data['equal_is_active'] = '1';
         }
-
-        if(!empty($this->request->query('sort'))){
-            $sort = $queries['sort'] = $this->request->input('sort');
-        }else{
-            $sort = $queries['sort'] = 'id';
-        }
-
-        if(!empty($this->request->query('order'))){
-            $order = $queries['order'] = $this->request->query('order');
-        }else{
-            $order = $queries['order'] = 'asc';
-        }
-
-        if(!empty($this->request->query('limit'))){
-            $limit = $queries['limit'] = $this->request->query('limit');
-        }
-
-        foreach($this->request->all() as $key => $value){
-            if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
-            }
-        }        
 
         // Rows
-        $products = $this->ProductService->getRows($queries);
+        $products = $this->ProductService->getRows($query_data);
 
         if(!empty($products)){
             foreach ($products as $row) {
-                $row->edit_url = route('lang.admin.inventory.products.form', array_merge([$row->id], $queries));
+                $row->edit_url = route('lang.admin.inventory.products.form', array_merge([$row->id], $query_data));
             }
         }
 
-        $data['products'] = $products->withPath(route('lang.admin.inventory.products.list'))->appends($queries);
+        $data['products'] = $products->withPath(route('lang.admin.inventory.products.list'))->appends($query_data);
+
 
         // Prepare links for list table's header
-        if($order == 'ASC' ){
+        if($query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($sort);
+        $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
-        unset($queries['sort']);
-        unset($queries['order']);
+        $query_data = $this->unsetUrlQueryData($query_data);
 
         $url = '';
 
-        foreach($queries as $key => $value){
+        foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
-        
+
+
         // link of table header for sorting        
         $route = route('lang.admin.inventory.products.list');
+
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_model'] = $route . "?sort=model&order=$order" .$url;
@@ -159,7 +132,7 @@ class ProductController extends Controller
         $data['sort_quantity'] = $route . "?sort=quantity&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
 
-        return view('admin.inventory.product_list', $data);
+        return view('admin.catalog.product_list', $data);
     }
 
 

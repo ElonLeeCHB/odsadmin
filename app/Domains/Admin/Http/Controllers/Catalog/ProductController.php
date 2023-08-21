@@ -38,6 +38,7 @@ class ProductController extends BackendController
     public function index()
     {
         $data['lang'] = $this->lang;
+        
 
         // Breadcomb
         $breadcumbs[] = (object)[
@@ -64,7 +65,6 @@ class ProductController extends BackendController
 
 
         $data['list'] = $this->getList();
-        
 
         $data['list_url']   = route('lang.admin.catalog.products.list');
         $data['add_url']    = route('lang.admin.catalog.products.form');

@@ -282,6 +282,14 @@ trait EloquentTrait
     private function setFiltersQuery($query, $data, $debug=0)
     {
         $translated_attributes = $this->model->translated_attributes ?? [];
+
+        $connection = null;
+        
+        // if(!empty($data['connection'])){
+        //     $connection = $data['connection'];
+        // }
+
+        $table_columns = $this->getTableColumns($this->connection);
         
         foreach ($data as $key => $value) {
             // $key has prifix 'filter_'
@@ -302,7 +310,7 @@ trait EloquentTrait
             }
 
             // Has to be the table's columns
-            if(!in_array($column, $this->getTableColumns())){
+            if(!in_array($column, $table_columns)){
                 continue;
             }
 
@@ -362,6 +370,8 @@ trait EloquentTrait
 
     private function setEqualsQuery($query, $data)
     {
+        $table_columns = $this->getTableColumns($this->connection);
+
         foreach ($data as $key => $value) {
 
             $column = null;
@@ -376,8 +386,8 @@ trait EloquentTrait
                 continue;
             }
 
-            $this->getTableColumns();
-            if(!in_array($column, $this->table_columns)){ // Has to be the table's columns
+            
+            if(!in_array($column, $table_columns)){ // Has to be the table's columns
                 continue;
             }
 

@@ -4,15 +4,14 @@ namespace App\Domains\Admin\Services\SysData;
 
 use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Service;
-
 use App\Repositories\Eloquent\SysData\GovUniformInvoiceNumberRepository;
-use Illuminate\Support\Facades\Validator;
-use DB;
-use Carbon\Carbon;
 use Cache;
+
 class GovUniformInvoiceNumberService extends Service
 {
     private $lang;
+    protected $modelName = "\App\Models\SysData\GovUniformInvoiceNumber";
+    protected $connection = 'sysdata';
 
 	public function __construct(protected GovUniformInvoiceNumberRepository $repository)
 	{
@@ -23,8 +22,8 @@ class GovUniformInvoiceNumberService extends Service
     {
         if(!empty($data['filter_uniform_invoice_no'])){
             $uniform_invoice_no = $data['filter_uniform_invoice_no'];
-            $cacheName = 'uniform_invoice_no_' . substr($uniform_invoice_no,-2);
-            $records = cache()->get($cacheName);
+            $cacheName = 'uniform_invoice_no_' . substr($uniform_invoice_no,-3);
+            $records = cache()->get($cacheName);            
 
             if (isset($records[$uniform_invoice_no])) {
                 // 若有，則取得指定的記錄
@@ -32,17 +31,18 @@ class GovUniformInvoiceNumberService extends Service
             } else {
                 // 若沒有，則從資料庫或其他資料來源取得資料
                 $filter_data = [
-                    'filter_uniform_invoice_no' => '*' . substr($uniform_invoice_no,-2),
+                    'filter_uniform_invoice_no' => '*' . substr($uniform_invoice_no,-3),
                     'pagination' => false,
                     'limit' => 0,
+                    'regexp' => true,
                     'connection' => 'sysdata',
                 ];
-                $records = $this->repository->getRows($filter_data);
+                $records = $this->getRows($filter_data);
 
                 if(!empty($records)){
                     $records = $records->keyBy('uniform_invoice_no');
 
-                    Cache::put($cacheName, $records, 60*60*24*365); // 有效秒數
+                    cache()->put($cacheName, $records, 60*60*24*60); // 有效秒數
 
                     if(!empty($records[$uniform_invoice_no])){
                         $record = $records[$uniform_invoice_no];
@@ -65,7 +65,7 @@ class GovUniformInvoiceNumberService extends Service
         for ($i=$start; $i<($start+10); $i++) {
             $sufix = sprintf("%02d", $i);
             $cacheName = 'uniform_invoice_no_' . $sufix;
-            $records = Cache::get($cacheName);
+            $records = cache()->get($cacheName);
 
             if (empty($records)) {
                 $filter_data = [

@@ -5,9 +5,9 @@ namespace App\Domains\Api\Http\Controllers\SysData;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Libraries\TranslationLibrary;
-use App\Domains\Api\Services\SysData\GovUniformInvoiceNumberService;
+use App\Domains\Admin\Services\SysData\GovUniformInvoiceNumberService;
+use App\Domains\Admin\Services\Localization\DivisionService;
 use App\Helpers\Classes\TwAddress;
-use App\Domains\Api\Services\Localization\DivisionService;
 
 class GovUniformInvoiceNumberController extends Controller
 {
@@ -40,7 +40,7 @@ class GovUniformInvoiceNumberController extends Controller
             'regexp' => false,
         ];
 
-        $record = $this->GovUniformInvoiceNumberService->getInvoiceInfo($filter_data);
+        $record = $this->GovUniformInvoiceNumberService->getRow($filter_data);
 
         if(!empty($record)){
             $arr = TwAddress::parseGovProvidedAddress($record->address);
@@ -51,7 +51,7 @@ class GovUniformInvoiceNumberController extends Controller
                     'filter_name' => $arr['divsionL1'],
                     'regexp' => false,
                 ];
-                $divsionL1 = $this->DivisionService->getRecord($filter_data);
+                $divsionL1 = $this->DivisionService->getRow($filter_data);
 
                 $filter_data = [
                     'filter_parent_id' => $divsionL1->id,
@@ -59,7 +59,7 @@ class GovUniformInvoiceNumberController extends Controller
                     'filter_name' => $arr['divsionL2'],
                     'regexp' => false,
                 ];
-                $divsionL2 = $this->DivisionService->getRecord($filter_data);
+                $divsionL2 = $this->DivisionService->getRow($filter_data);
 
                 $arr['divsionL1_id'] = $divsionL1->id;
                 $arr['divsionL2_id'] = $divsionL2->id;
@@ -80,7 +80,7 @@ class GovUniformInvoiceNumberController extends Controller
         $filter_uniform_invoice_no = $this->request->filter_payment_tin ?? $this->request->filter_uniform_invoice_no ?? '';
 
         if(!empty($filter_uniform_invoice_no)){
-            if(strlen($filter_uniform_invoice_no) < 8 ){
+            if(strlen($filter_uniform_invoice_no) < 7 ){
                 return response(json_encode('長度不足'))->header('Content-Type','application/json');
             }
             $filter_data['filter_uniform_invoice_no'] = $filter_uniform_invoice_no;
@@ -94,7 +94,7 @@ class GovUniformInvoiceNumberController extends Controller
         $filter_data['limit'] = 10;
         $filter_data['connection'] = 'sysdata';
 
-        $rows = $this->GovUniformInvoiceNumberService->getRecords($filter_data);
+        $rows = $this->GovUniformInvoiceNumberService->getRows($filter_data);
         
         if(!empty($rows)){
             foreach ($rows as $key => $row) {
@@ -106,7 +106,7 @@ class GovUniformInvoiceNumberController extends Controller
                         'filter_name' => $arr['divsionL1'],
                         'regexp' => false,
                     ];
-                    $divsionL1 = $this->DivisionService->getRecord($filter_data);
+                    $divsionL1 = $this->DivisionService->getRow($filter_data);
 
                     $filter_data = [
                         'filter_parent_id' => $divsionL1->id,
@@ -114,7 +114,7 @@ class GovUniformInvoiceNumberController extends Controller
                         'filter_name' => $arr['divsionL2'],
                         'regexp' => false,
                     ];
-                    $divsionL2 = $this->DivisionService->getRecord($filter_data);
+                    $divsionL2 = $this->DivisionService->getRow($filter_data);
 
                     $arr['divsionL1_id'] = $divsionL1->id;
                     $arr['divsionL2_id'] = $divsionL2->id;

@@ -90,7 +90,11 @@ class DivisionController extends BackendController
             return $result;
         });
 
-        $cities = $divisions[$this->request->filter_parent_id];
+        $cities = [];
+        
+        if(!empty($this->request->filter_parent_id) && is_numeric($this->request->filter_parent_id)){
+            $cities = $divisions[$this->request->filter_parent_id];
+        }
         
         if(!empty($this->request->filter_name)){
             foreach ($cities as $key => $city) {

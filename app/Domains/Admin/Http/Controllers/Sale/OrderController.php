@@ -162,6 +162,7 @@ class OrderController extends BackendController
 
         // statuses
 	    $order_statuses = $this->OrderService->getOrderStatuses();
+        
 
 		$status_items = $this->OrderService->getOrderStatuseValues($order_statuses);
 

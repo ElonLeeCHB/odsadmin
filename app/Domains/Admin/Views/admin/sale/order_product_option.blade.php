@@ -116,7 +116,7 @@
       <input type="hidden" name="order_products[{{ $product_row }}][order_product_options][{{ $poid }}][type]" value="{{ $product_option['option_type'] }}">
 
       <tr class="tr_order_product_option{{ $dnone }}{{ $tr_hiddable_option }}">
-        <td colspan="9">
+        <td colspan="10">
           【{{ $product_option['option_name'] }}】 <BR>
 
           @if($product_option['option_type'] == 'options_with_qty')
@@ -179,7 +179,7 @@
 
   {{-- 商品備註 --}}
     <tr>
-      <td colspan="9">
+      <td colspan="10">
         <input type="text" value="{{ $order_product->comment ?? '' }}" name="order_products[{{ $product_row }}][comment]" 
           placeholder="這是備註  (列序 {{ $product_row }}, {{ $main_category_name }}, {{ $main_category_code }}, 商品代號 {{ $product->id }} {{ $product->model }}, )" class="form-control">
 
@@ -196,7 +196,7 @@
 
     {{-- 統計內容 --}}
       <tr>
-        <td colspan="9">
+        <td colspan="10">
           當前數量：
           
           <label>主餐潤餅<input type="text" id="input-product-{{ $product_row }}-burrito_total" value="0" style="width:30px;" readonly></label> &nbsp;

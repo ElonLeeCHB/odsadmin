@@ -32,16 +32,16 @@ class OrderService extends Service
     protected $modelName = "\App\Models\Sale\Order";
     private $lang;
 
-	public function __construct(public OrderRepository $repository
+    public function __construct(public OrderRepository $repository
         , private OrderProductRepository $OrderProductRepository
         , private OrderTotalRepository $OrderTotalRepository
         , private OptionService $OptionService
         , private MemberRepository $MemberRepository
         , private TermRepository $TermRepository
     )
-	{
+    {
         $this->lang = (new TranslationLibrary())->getTranslations(['admin/sale/order',]);
-	}
+    }
 
 
     public function getOrders($data=[], $debug=0)
@@ -149,7 +149,7 @@ class OrderService extends Service
     public function updateOrCreate($data)
     {
         DB::beginTransaction();
-
+        
         try {
 
             $order_id = $data['order_id'] ?? null;
@@ -162,15 +162,15 @@ class OrderService extends Service
                 $customer_id = null;
             }
 
-			$mobile = '';
-			if(!empty($data['mobile'])){
+            $mobile = '';
+            if(!empty($data['mobile'])){
                 $mobile = preg_replace('/\D+/', '', $data['mobile']);
-			}
+            }
 
-			$telephone = '';
-			if(!empty($data['telephone'])){
-				$telephone = str_replace('-','',$data['telephone']);
-			}
+            $telephone = '';
+            if(!empty($data['telephone'])){
+                $telephone = str_replace('-','',$data['telephone']);
+            }
 
             $shipping_personal_name = $data['shipping_personal_name'] ?? $data['personal_name'];
 
@@ -388,21 +388,31 @@ class OrderService extends Service
                     $sort_order++;
                 }
 
+                $options_total = 0;
+                if(!empty($fm_order_product['options_total'])){
+                    $options_total = str_replace(',', '', $fm_order_product['options_total']);
+                }
+
+                $final_total = 0;
+                if(!empty($fm_order_product['final_total'])){
+                    $final_total = str_replace(',', '', $fm_order_product['final_total']);
+                }
+
                 foreach ($data['order_products'] as $key => $fm_order_product) {
                     $product_id = $fm_order_product['product_id'];
                     $update_order_product = [
-                        'id' => $fm_order_product['order_product_id'],
+                        'id' => $fm_order_product['order_product_id'] ?? null,
                         'order_id' => $order->id,
                         'product_id' => $product_id,
-                        'main_category_code' => $fm_order_product['main_category_code'],
+                        'main_category_code' => $fm_order_product['main_category_code'] ?? '',
                         'name' => $product_translations[$product_id],
                         'model' => $fm_order_product['model'] ?? '',
                         'quantity' => str_replace(',', '', $fm_order_product['quantity']),
                         'price' => str_replace(',', '', $fm_order_product['price']),
                         'total' => str_replace(',', '', $fm_order_product['total']),
-                        'options_total' => str_replace(',', '', $fm_order_product['options_total']),
-                        'final_total' => str_replace(',', '', $fm_order_product['final_total']),
-                        'comment' => $fm_order_product['comment'],
+                        'options_total' => $options_total,
+                        'final_total' => $final_total,
+                        'comment' => $fm_order_product['comment'] ?? '',
                         'sort_order' => $fm_order_product['sort_order'], //此時 sort_order 必定是從1遞增
                         //'sort_order' => $sort_order,
                     ];
@@ -551,9 +561,7 @@ class OrderService extends Service
 
         } catch (\Exception $ex) {
             DB::rollback();
-            $msg = $ex->getMessage();
-            $json['error'] = $msg;
-            return $json;
+            return ['error' => $ex->getMessage()];
         }
     }
 
@@ -660,7 +668,8 @@ class OrderService extends Service
 
         foreach($option_values as $key => $option_value){
             unset($option_value['translation']);
-            $result[$key] = (object) $option_value;
+            $option_value_id = $option_value['id'];
+            $result[$option_value_id] = (object) $option_value;
         }
 
         return $result;
@@ -668,14 +677,14 @@ class OrderService extends Service
 
     public function getOrderStatuseValues($statuses = [])
     {
-		$result = [];
+        $result = [];
 
         if(!empty($statuses)){
-			foreach($statuses as $status){
-				$option_value_id = $status->id;
-				$result[$option_value_id] = $status->name;
-			}
-		}
+            foreach($statuses as $status){
+                $option_value_id = $status->id;
+                $result[$option_value_id] = $status->name;
+            }
+        }
 
         return $result;
     }

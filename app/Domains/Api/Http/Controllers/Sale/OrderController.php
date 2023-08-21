@@ -84,16 +84,16 @@ class OrderController extends BackendController
         $orders = $this->OrderService->getOrders($queries);
 
         $arr_all_statuses = $this->OrderService->getOrderStatuses();
-        
         //$arr_all_salutations = $this->OrderService->getOrderStatuses();
 
         if(!empty($orders)){
             foreach ($orders as $record) {
                 $record->edit_url = route('api.sale.order.details', array_merge([$record->id], $queries));
                 $record->payment_phone = $record->payment_mobile . "<BR>" . $record->payment_telephone;
-				$record->status_txt = $arr_all_statuses[$record->status_id]['name'] ?? '';
+                $record->status_txt = $arr_all_statuses[$record->status_id]->name ?? '';
             }
         }
+        
 
         return response(json_encode($orders))->header('Content-Type','application/json');
     }
@@ -118,7 +118,7 @@ class OrderController extends BackendController
 
         $arr_all_statuses = $this->OrderService->getOrderStatuses();
 
-        $order->status_txt = $arr_all_statuses[$order->status_id]['name'] ?? '';
+        $order->status_txt = $arr_all_statuses[$order->status_id]->name ?? '';
 
         return response(json_encode($order))->header('Content-Type','application/json');
     }
@@ -192,7 +192,7 @@ class OrderController extends BackendController
 
             if(empty($result['error'])){
 
-                $order = $result['order'];
+                $order = $result['data'];
                 
                 $redirectUrl = route('api.sale.order.details', $order->id);
 
