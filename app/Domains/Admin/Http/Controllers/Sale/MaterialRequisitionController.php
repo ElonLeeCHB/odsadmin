@@ -71,7 +71,7 @@ class MaterialRequisitionController extends BackendController
             }
         }
 
-        $data['required_date'] = $required_date ?? '';
+        $data['required_date'] = $required_date ?? date('Y-m-d');
 
         $data['lang'] = $this->lang;
 
@@ -585,7 +585,7 @@ class MaterialRequisitionController extends BackendController
 
         $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
 
-        return view('admin.sale.print_material_requisition', $data);
+        return view('admin.sale.mrequisition_print_form', $data);
     }
 
 

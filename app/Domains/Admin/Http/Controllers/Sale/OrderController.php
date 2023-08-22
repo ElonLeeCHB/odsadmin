@@ -556,11 +556,8 @@ class OrderController extends BackendController
 
         //is_main_meal_title
         $data['is_main_meal_title'] = 0;
-        $arr = ['bento', 'lunchbox'];
+        $arr = ['bento', 'lunchbox', 'cstLunchbox', 'cstBento'];
         if(!empty($data['main_category_code']) && in_array($data['main_category_code'], $arr)){
-            $data['is_main_meal_title'] = 1;
-        }
-        if($product->id == '1062'){
             $data['is_main_meal_title'] = 1;
         }
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Admin\Services\Sale;
+namespace App\Domains\Api\Services\Sale;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -8,6 +8,8 @@ use Illuminate\Support\Carbon;
 use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Service;
 use App\Domains\Admin\Services\Common\OptionService;
+use App\Domains\Api\Services\Sale\OrderProductService;
+use App\Domains\Api\Services\Sale\OrderProductOptionService;
 
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Common\Term;
@@ -38,6 +40,8 @@ class OrderService extends Service
         , private OptionService $OptionService
         , private MemberRepository $MemberRepository
         , private TermRepository $TermRepository
+        , private OrderProductService $OrderProductService
+        , private OrderProductOptionService $OrderProductOptionService
     )
     {
         $this->lang = (new TranslationLibrary())->getTranslations(['admin/sale/order',]);
@@ -431,13 +435,13 @@ class OrderService extends Service
                     unset($update_order_products);
                 }
             }
-            
+
 
             // order_product_options table
-            if(!empty($data['order_products'])){                
+            if(!empty($data['order_products'])){
 
-                //重抓 order_product
-                $tmprows = $this->OrderProductRepository->newModel()->where('order_id', $order->id)->orderBy('sort_order','ASC')->get();
+                //重抓 order_product，需要 order_product_id
+                $tmprows = $this->OrderProductService->newModel()->where('order_id', $order->id)->orderBy('sort_order','ASC')->get();
 
                 if(!empty($tmprows)){
                     foreach ($tmprows as $tmprow) {
@@ -447,91 +451,45 @@ class OrderService extends Service
 
                 $update_order_product_options = [];
 
-                foreach ($data['order_products'] as $key => $fm_order_product) {
-                    $sort_order = $fm_order_product['sort_order'];
+                foreach ($data['order_products'] as $form_order_product) {;
+                    $sort_order = $form_order_product['sort_order'];
                     $order_product = $db_order_products[$sort_order];
 
-                    if(!empty($fm_order_product['order_product_options'] )){ //表單資料 $data
-                        foreach ($fm_order_product['order_product_options'] as $product_option_id => $order_product_option) {
-                            if($order_product_option['type'] == 'options_with_qty'){
-                                //parent_povid
-                                foreach ( $order_product_option['product_option_values'] as $product_option_value_id => $product_option_value) {
+                    if(!empty($form_order_product['product_options'] )){ //表單資料 $data
+                        foreach ($form_order_product['product_options'] as $product_option) {
 
-                                    if(empty($product_option_value['parent_povid'])){
-                                        if(empty($product_option_value['quantity'])){
-                                            continue;
-                                        }
+                            if($product_option['type'] == 'checkbox'){
 
-                                        $product_option_value['quantity'] = str_replace(',', '', $product_option_value['quantity'] );
-
-                                        $update_order_product_options[] = [
-                                            'id'                        => $product_option_value['opoid'] ?? 0,
-                                            'order_product_id'          => $order_product->id,
-                                            'parent_product_option_value_id' => 0,
-                                            'order_id'                  => $order->id,
-                                            'product_id'                => $fm_order_product['product_id'],
-                                            'product_option_id'         => $product_option_id,
-                                            'product_option_value_id'   => $product_option_value_id,
-                                            'name'                      => $order_product_option['name'] ?? '',
-                                            'type'                      => $order_product_option['type'] ?? '',
-                                            'value'                     => $product_option_value['value'] ?? '',
-                                            'quantity'                  => $product_option_value['quantity'],
-                                        ];
-                                    }else{
-                                        foreach ($product_option_value['parent_povid'] as $parent_povid => $sub_product_option_value) {
-                                            if(empty($sub_product_option_value['quantity'])){
-                                                continue;
-                                            }
-
-                                            $sub_product_option_value['quantity'] = str_replace(',', '', $sub_product_option_value['quantity'] );
-
-                                            $update_order_product_options[] = [
-                                                'id'                        => $sub_product_option_value['opoid'] ?? 0,
-                                                'order_product_id'          => $order_product->id,
-                                                'parent_product_option_value_id' => $parent_povid,
-                                                'order_id'                  => $order->id,
-                                                'product_id'                => $fm_order_product['product_id'],
-                                                'product_option_id'         => $product_option_id,
-                                                'product_option_value_id'   => $product_option_value_id,
-                                                'name'                      => $order_product_option['name'] ?? '',
-                                                'type'                      => $order_product_option['type'] ?? '',
-                                                'value'                     => $sub_product_option_value['value'] ?? '',
-                                                'quantity'                  => $sub_product_option_value['quantity'],
-                                            ];
-                                        }
-
-                                    }
-                                }
                             }
 
-                            else if($order_product_option['type'] == 'checkbox'){
-                                foreach ( $order_product_option['product_option_values'] as $product_option_value_id => $product_option_value) {
-                                    if(!empty($product_option_value['checked']) && $product_option_value['checked'] == $product_option_value_id){
-                                        $arr = [
-                                            'id'                        => $product_option_value['opoid'] ?? 0,
-                                            'order_product_id'          => $order_product->id,
-                                            'parent_product_option_value_id' => 0,
-                                            'order_id'                  => $order->id,
-                                            'product_id'                => $fm_order_product['product_id'],
-                                            'product_option_id'         => $product_option_id,
-                                            'product_option_value_id'   => $product_option_value_id,
-                                            'name'                      => $order_product_option['name'] ?? '',
-                                            'type'                      => $order_product_option['type'] ?? '',
-                                            'value'                     => $product_option_value['value'] ?? '',
-                                            'quantity'                  => 0,
-                                        ];
+                            else if($product_option['type'] == 'options_with_qty'){
+                                foreach ( $product_option['product_option_values'] as $product_option_value) {
 
-                                        $update_order_product_options[] = $arr;
-                                        unset($arr);
-                                    }
+                                    $product_option_value['quantity'] = str_replace(',', '', $product_option_value['quantity'] );
+
+                                    $update_order_product_options[] = [
+                                        'id'                        => $product_option_value['order_product_option_id'] ?? 0,
+                                        'order_product_id'          => $order_product->id,
+                                        'parent_product_option_value_id' => $product_option_value['parent_povid'] ?? 0,
+                                        'order_id'                  => $order->id,
+                                        'product_id'                => $form_order_product['product_id'],
+                                        'product_option_id'         => $product_option['product_option_id'],
+                                        'product_option_value_id'   => $product_option_value['product_option_value_id'],
+                                        'name'                      => $product_option['name'],
+                                        'type'                      => $product_option['type'],
+                                        'value'                     => $product_option_value['value'],
+                                        'quantity'                  => $product_option_value['quantity'],
+                                    ];
                                 }
+
+
                             }
 
                         }
                     }
                 }
                 if(!empty($update_order_product_options)){
-                    OrderProductOption::upsert($update_order_product_options,['id']);
+                    $this->OrderProductOptionService->newModel()->upsert($update_order_product_options,['id']);
                     unset($update_order_product_options);
                 }
             }

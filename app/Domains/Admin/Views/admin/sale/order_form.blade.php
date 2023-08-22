@@ -68,16 +68,14 @@
                             <option value="shipping_delivery" @if($shipping_method == 'shipping_delivery' )selected="selected" @endif>派送</option>
                           </select>
                         </td>
-                        <td class="col-md-1 text-end colname-font">控單表備註</td>
-                        <td class="col-md-2">
-                          <input type="text" id="input-delivery_time_comment" name="delivery_time_comment" value="{{ $order->delivery_time_comment }}" placeholder="a 或 b 或 a,b" class="form-control">
-                        </td>
+                        <td class="col-md-1 text-end colname-font">訂單編號</td>
+                        <td class="col-md-2">{{ $order->code }}</td>
                       </tr>
                       <tr>
                         <td class="col-md-1 text-end colname-font">送達日期</td>
                         <td class="col-md-2">
                           <div class="input-group" style="display: flex;margin-right: 5px;width:100%;">
-                            <input type="text" id="input-order_date" name="order_date" value="{{ $order->order_date }}" placeholder="日期" class="form-control date" style="width:100px;"/>
+                            <input type="text" id="input-delivery_date" name="delivery_date" value="{{ $order->delivery_date }}" placeholder="日期" class="form-control date" style="width:100px;"/>
                             <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
                           </div>
                         </td>
@@ -89,10 +87,8 @@
                         <td class="col-md-2">
                         <input type="text" id="input-delivery_time_range" name="delivery_time_range" value="{{ $order->delivery_time_range }}" placeholder="例如 1130-1230" class="form-control">
                         </td>
-                        <td class="col-md-1 text-end colname-font">送達時間</td>
-                        <td class="col-md-2">
-                          <input type="text" id="input-delivery_date_hi" name="delivery_date_hi"value="{{ $order->delivery_date_hi }}" class="form-control" placeholder="例如 12:00" >
-                        </td>
+                        <td class="col-md-1 text-end colname-font">控單表備註</td>
+                        <td class="col-md-2"><input type="text" id="input-delivery_time_comment" name="delivery_time_comment" value="{{ $order->delivery_time_comment }}" placeholder="a 或 b 或 a,b" class="form-control"></td>
                       </tr>
                       
                       <tr>
@@ -180,17 +176,8 @@
                           <input type="text" id="input-payment_tin" name="payment_tin" value="{{ $order->payment_tin }}" placeholder="統一編號" data-oc-target="autocomplete-payment_tin" class="form-control" autocomplete="off">
                           <ul id="autocomplete-payment_tin" class="dropdown-menu"></ul>
                         </td>
-                        <td class="col-md-1 text-end colname-font">訂單標籤</td>
-                        <td class="col-md-2">
-                          <select id="input-order_tag" name="order_tag[]" class="select2-multiple form-control" multiple="multiple">
-
-                          </select><BR>
-                          <div class="selOrderTag">
-                            <button type="button">會</button>
-                            <button type="button">教</button>
-                            <button type="button">幫</button>
-                            <button type="button">清</button>
-                          </div></td>
+                        <td class="col-md-1 text-end colname-font"></td>
+                        <td class="col-md-2"></td>
                       </tr>
 
                       <tr>
@@ -212,8 +199,8 @@
                             <label for="input-same_order_customer" class="form-check-label">同訂購人</label>
                           </div>
                         </td>
-                        <td class="col-md-1 text-end colname-font">收件電話</td>
-                        <td class="col-md-2"><input type="text" id="input-shipping_phone" name="shipping_phone" value="{{ $order->shipping_phone }}" class="form-control"></td>
+                        <td class="col-md-1 text-end colname-font"></td>
+                        <td class="col-md-2"></td>
                       </tr>
 
                       <tr>
@@ -246,10 +233,18 @@
                             <BR><input type="text" id="input-original_address" name="original_address" placeholder="統編登記地址" value="" readonly style="width:200px;">
                           </div>
                         </td>
-                        <td class="col-md-1 text-end colname-font"></td>
-                        <td class="col-md-2"></td>
-                        <td class="col-md-1 text-end colname-font"></td>
-                        <td class="col-md-2"></td>
+                        <td class="col-md-1 text-end colname-font">收件電話</td>
+                        <td class="col-md-2"><input type="text" id="input-shipping_phone" name="shipping_phone" value="{{ $order->shipping_phone }}" class="form-control"></td>
+                        <td class="col-md-1 text-end colname-font">訂單標籤</td>
+                        <td class="col-md-2">
+                          <select id="input-order_tag" name="order_tag[]" class="select2-multiple form-control" multiple="multiple"></select><BR>
+                          <div class="selOrderTag">
+                            <button type="button">會</button>
+                            <button type="button">教</button>
+                            <button type="button">幫</button>
+                            <button type="button">清</button>
+                          </div>
+                        </td>
                       </tr>
 
                       <tr style="display: none;">
@@ -386,6 +381,39 @@
   </div>
 </div>{{-- End of content--}}
 
+<div id="modal-phrases-product_comment" class="modal fade show" aria-modal="true" role="dialog" style="display: none; padding-left: 0px;">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fa-solid fa-pencil"></i> 商品備註 常用片語</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <table id="table-phrase-product_comment" class="table table-striped dataTable">
+          <thead>
+            <tr>
+              <th class="sorting sorting_asc" tabindex="0" aria-controls="table-phrase-product_comment" aria-sort="ascending" >排序</th>
+              <th class="sorting" tabindex="0" aria-controls="table-phrase-product_comment" aria-sort="ascending" >常用片語</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach($order_extra_comment_phrases as $phrase)
+            <tr>
+              <td class="phrase sorting_1">{{ $phrase->sort_order }}</td>
+              <td class="phrase sorting_2" data-phrase-column="product_comment">{{ $phrase->translation->name }}</td>
+            </tr>
+            @endforeach
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" data-option-row="0" data-option-value-row="0" class="btn btn-primary">確定</button> <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
+      </div>
+    </div>
+  </div>
+  <input type="hidden" id="product_comment_caller" value="">
+</div>
+
 <div id="modal-phrases-comment" class="modal fade show" aria-modal="true" role="dialog" style="display: none; padding-left: 0px;">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -412,16 +440,17 @@
         </table>
       </div>
       <div class="modal-footer">
-        <button type="button" id="button-save" data-option-row="0" data-option-value-row="0" class="btn btn-primary">儲存</button> <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
+        <button type="button" data-option-row="0" data-option-value-row="0" class="btn btn-primary">儲存</button> <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
       </div>
     </div>
   </div>
 </div>
+
 <div id="modal-phrases-extra_comment" class="modal fade show" aria-modal="true" role="dialog" style="display: none; padding-left: 0px;">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fa-solid fa-pencil"></i> 客戶備註 常用片語</h5>
+        <h5 class="modal-title"><i class="fa-solid fa-pencil"></i> 餐點備註 常用片語</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -443,7 +472,7 @@
         </table>
       </div>
       <div class="modal-footer">
-        <button type="button" id="button-save" data-option-row="0" data-option-value-row="0" class="btn btn-primary">儲存</button> <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
+        <button type="button" data-option-row="0" data-option-value-row="0" class="btn btn-primary">儲存</button> <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
       </div>
     </div>
   </div>
@@ -533,6 +562,18 @@ $('#input-extra_comment').on('input', function () {
   }
 });
 
+//商品備註選常用片語
+var jobjProductComment = null;
+$(document).on("input",'.product_comment', function(){
+  //var product_comment_value = $(this).val();
+  var commentString = $(this).val();
+  jobjProductComment = $(this);
+
+  if (commentString.indexOf(',,') !== -1) {
+    $('#modal-phrases-product_comment').modal('show');
+  }
+});
+
 $(document).on("click",'.phrase', function(){
   phraseType = $(this).data("phrase-column");
 
@@ -540,10 +581,12 @@ $(document).on("click",'.phrase', function(){
     jObj = $('#input-comment');
   }else if(phraseType == 'extra_comment'){
     jObj = $('#input-extra_comment');
+  }else if(phraseType == 'product_comment'){
+    jObj = jobjProductComment;
   }
+
   oldString = jObj.val();
   order_comment_phrase = $(this).text();
-
   splitResult = oldString.split(',,'); // 使用 :: 分割字符串
   order_comment_phrase_before = splitResult[0]; // 分割后的前面字符串
   order_comment_phrase_after = splitResult[1]; // 分割后的后面字符串
@@ -563,6 +606,7 @@ $(document).on("click",'.phrase', function(){
   jObj.val(newString);
   $('#modal-phrases-comment').modal('hide');
   $('#modal-phrases-extra_comment').modal('hide');
+  $('#modal-phrases-product_comment').modal('hide');
 
 });
 
@@ -1208,7 +1252,7 @@ function calcTotal(){
     product_options_total = $('#input-product-'+i+'-options_total').val();
 
     //主餐數量
-    product_main_meal_sum = $('#input-product-'+i+'-main_meal_quantity').val().toNum();
+    product_main_meal_sum = $('#input-product-'+i+'-burrito_total').val().toNum();
 
     //商品數量
     product_quantity_original = $('#input-product-'+i+'-quantity').val().toNum();

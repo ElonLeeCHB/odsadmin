@@ -181,7 +181,8 @@
     <tr>
       <td colspan="10">
         <input type="text" value="{{ $order_product->comment ?? '' }}" name="order_products[{{ $product_row }}][comment]" 
-          placeholder="這是備註  (列序 {{ $product_row }}, {{ $main_category_name }}, {{ $main_category_code }}, 商品代號 {{ $product->id }} {{ $product->model }}, )" class="form-control">
+          placeholder="這是備註  (列序 {{ $product_row }}, {{ $main_category_name }}, {{ $main_category_code }}, 商品代號 {{ $product->id }} {{ $product->model }}, )" 
+          class="form-control product_comment">
 
           <input type="hidden" id="product-row-{{ $product_row }}-hidden_main_category_code" value="{{ $main_category_code }}">
           <input type="hidden" id="product-row-{{ $product_row }}-hidden_name" value="{{ $name }}">
