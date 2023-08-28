@@ -284,6 +284,21 @@ class MaterialRequisitionController extends BackendController
                 ->groupBy('required_time', 'required_date', 'order_id', 'ingredient_product_id', 'ingredient_product_name')
                 ->where('required_date', $required_date)->get();
 
+            foreach ($ingredient_rows as $row) {
+                $order_ids[] = $row['order_id'];
+            }
+            $order_ids = array_unique($order_ids);
+
+            $filter_data = [
+                'whereIn' => ['id' => $order_ids],
+                'select' => ['id', 'code'],
+                'limit' => 0,
+                'pagination' => false,
+                'toStdObj' => true,
+                'keyBy' => 'id',
+            ];
+
+            $orders = $this->OrderRepository->getRows($filter_data);
 
             $result = [];
             $result['details'] = [];
@@ -299,6 +314,7 @@ class MaterialRequisitionController extends BackendController
                         'required_date_hi' => $ingredient->required_date_hi,
                         'source_id' => $ingredient->order_id,
                         'source_id_url' => route('lang.admin.sale.orders.form', [$order_id]),
+                        'order_code' => substr($orders[$order_id]->code,4,4),
                         'shipping_road_abbr' => $ingredient->order->shipping_road_abbr,
 
                     ];

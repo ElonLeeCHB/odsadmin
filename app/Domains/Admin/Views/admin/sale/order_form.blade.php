@@ -75,7 +75,7 @@
                         <td class="col-md-1 text-end colname-font">送達日期</td>
                         <td class="col-md-2">
                           <div class="input-group" style="display: flex;margin-right: 5px;width:100%;">
-                            <input type="text" id="input-delivery_date" name="delivery_date" value="{{ $order->delivery_date }}" placeholder="日期" class="form-control date" style="width:100px;"/>
+                            <input type="text" id="input-delivery_date_ymd" name="delivery_date_ymd" value="{{ $order->delivery_date_ymd }}" placeholder="日期" class="form-control date" style="width:100px;"/>
                             <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
                           </div>
                         </td>
@@ -87,8 +87,8 @@
                         <td class="col-md-2">
                         <input type="text" id="input-delivery_time_range" name="delivery_time_range" value="{{ $order->delivery_time_range }}" placeholder="例如 1130-1230" class="form-control">
                         </td>
-                        <td class="col-md-1 text-end colname-font">控單表備註</td>
-                        <td class="col-md-2"><input type="text" id="input-delivery_time_comment" name="delivery_time_comment" value="{{ $order->delivery_time_comment }}" placeholder="a 或 b 或 a,b" class="form-control"></td>
+                        <td class="col-md-1 text-end colname-font">出餐時間</td>
+                        <td class="col-md-2"><input type="text" id="input-delivery_date_hi" name="delivery_date_hi"value="{{ $order->delivery_date_hi }}" class="width4char" placeholder="例如 12:00" ></td>
                       </tr>
                       
                       <tr>
@@ -141,8 +141,8 @@
 
 
                        </td>
-                        <td class="col-md-1 text-end colname-font">地址簡稱</td>
-                        <td class="col-md-2"><input type="text" id="input-shipping_road_abbr" name="shipping_road_abbr" value="{{ $order->shipping_road_abbr }}" class="form-control"></td>
+                        <td class="col-md-1 text-end colname-font">控單表備註</td>
+                        <td class="col-md-2"><input type="text" id="input-delivery_time_comment" name="delivery_time_comment" value="{{ $order->delivery_time_comment }}" placeholder="a 或 b 或 a,b" class="form-control"></td>
                       </tr>
 
                       <tr>
@@ -176,8 +176,8 @@
                           <input type="text" id="input-payment_tin" name="payment_tin" value="{{ $order->payment_tin }}" placeholder="統一編號" data-oc-target="autocomplete-payment_tin" class="form-control" autocomplete="off">
                           <ul id="autocomplete-payment_tin" class="dropdown-menu"></ul>
                         </td>
-                        <td class="col-md-1 text-end colname-font"></td>
-                        <td class="col-md-2"></td>
+                        <td class="col-md-1 text-end colname-font">地址簡稱</td>
+                        <td class="col-md-2"><input type="text" id="input-shipping_road_abbr" name="shipping_road_abbr" value="{{ $order->shipping_road_abbr }}" class="form-control"></td>
                       </tr>
 
                       <tr>

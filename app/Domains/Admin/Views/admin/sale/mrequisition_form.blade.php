@@ -105,10 +105,14 @@
                           <tr>
                             <td class="text-start"> </td>
                             <td class="text-start">時間</td>
-                            <td class="text-start">訂單編號</td>
+                            <td class="text-start">訂單編號<BR>(末4碼)</td>
                             <td class="text-end">地址簡稱</td>
                             @foreach($sales_ingredients_table_items as $name)
-                            <td style="width:30px">{{ $name }}</td>
+                              <?php
+                              $characters = mb_str_split($name);
+                              $new_name = implode('<BR>', $characters);
+                              ?>
+                            <td style="width:30px;">{!! $new_name !!}</td>
                             @endforeach
                           </tr>
                           @if(!empty($mrequisitions['details']))
@@ -116,7 +120,7 @@
                           <tr id="option-value-row-0">
                             <td class="text-end">{{ $key+1 }}</td>
                             <td class="text-end">{{ $detail_row['required_date_hi'] ?? '' }}</td>
-                            <td class="text-end"><a href="{{ $detail_row['source_id_url'] }}" data-bs-toggle="tooltip" title="訂單連結" target="_blank">{{ $detail_row['source_id'] ?? '' }}</a></td>
+                            <td class="text-end"><a href="{{ $detail_row['source_id_url'] }}" data-bs-toggle="tooltip" title="訂單連結" target="_blank">{{ $detail_row['order_code'] ?? '' }}</a></td>
                             <td class="text-end">{{ $detail_row['shipping_road_abbr'] }}</td>
                             @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
                             <td>

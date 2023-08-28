@@ -189,6 +189,7 @@ class OrderService extends Service
                     'telephone_prefix' => $data['telephone_prefix'] ?? '',
                     'telephone' => $telephone,
                     'payment_tin' => $data['payment_tin'] ?? '',
+                    'payment_company' => $data['payment_company'] ?? '',
                     'shipping_personal_name' => $data['shipping_personal_name'] ?? $data['personal_name'],
                     'shipping_company' => $shipping_company,
                     'shipping_phone' => $data['shipping_phone'] ?? null,

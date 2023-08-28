@@ -148,6 +148,33 @@ trait EloquentTrait
                     $result = $query->pluck($data['pluck']);
                 }
             }
+
+            if(!empty($data['keyBy'])){
+                $result = $result->keyBy($data['keyBy']);
+            }
+        }
+
+
+        //toStdObj
+        if(!empty($data['toStdObj'])){
+            $result = $result->toArray();
+            $rows = [];
+
+            if(empty($data['first'])){
+                foreach ($result as $id => $row) {
+                    //echo '<pre>', print_r($row, 1), "</pre>"; exit;
+                    $new_row = [];
+                    foreach ($row as $column => $value) {
+                        if(in_array($column, $data['select'])){
+                            $new_row[$column] = $value;
+                        }
+                    }
+                    
+                    $rows[$id] = (object) $new_row;
+                }
+            }
+
+            $result =  &$rows;
         }
 
         return $result;
@@ -466,7 +493,7 @@ trait EloquentTrait
             $value = str_replace(' ', '*', $value);
             // 'foo*woo' => 'foo(.*)woo'
             $value = str_replace('*', '(.*)', $value);
-            if($this->zh_hant_hans_transform === true){
+            if(isset($this->zh_hant_hans_transform) && $this->zh_hant_hans_transform === true){
                 $zhtw = zhChsToCht($value);
                 $zhcn = zhChtToChs($value);
                 $query->$type(function ($query) use($column, $zhtw, $zhcn) {
@@ -618,12 +645,12 @@ trait EloquentTrait
 
 	public function getTableColumns($connection = null)
 	{
-        if(!empty($this->table_columns)){
-            return $this->table_columns;
+        if(empty($this->table)){
+            $this->table = $this->model->getTable();
         }
 
-        if(!empty($this->table)){
-            $this->table = $this->model->getTable();
+        if(!empty($this->table_columns)){
+            return $this->table_columns;
         }
 
         if(empty($connection) ){

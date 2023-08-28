@@ -1027,6 +1027,8 @@ class OrderController extends BackendController
     {
         $data = $this->request->all();
 
+        //echo '<pre>', print_r($data, 1), "</pre>"; exit;
+
         return $this->OrderService->exportOrderProducts($data); 
     }
 

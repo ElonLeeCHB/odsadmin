@@ -75,12 +75,20 @@ class RoadController extends BackendController
                 $road_name = $row->city->name . '_' . $row->name;
             }
 
+            //if(!empty($row->city->short_name) && $row->city->parent_id != 2 ){
+            if(!empty($row->city->short_name) ){
+                $short_name = $row->city->path_name;
+            }else{
+                $short_name = $row->short_name;
+            }
+
             $json[] = [
                 'value' => $row->id,
                 'label' => $road_name,
                 'road_id' => $row->id,
                 'name' => $row->name,
                 'city_id' => $row->city_id,
+                'short_name' => $short_name,
             ];
         }
 

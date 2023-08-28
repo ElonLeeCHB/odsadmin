@@ -16,7 +16,8 @@
 
   </head>
   <body>
-  <style>
+
+<style>
 @media screen, print {
   @page {
     size: A4;
@@ -31,14 +32,12 @@
     border-bottom: double;
   }
   td{
-    padding: 0px !important;
-    
+    /*padding: 0px !important;*/
+    padding-top: 0px !important;
+    padding-left: 0px !important;
+    padding-right: 3px !important;
+    padding-bottom: 0px !important;
   }
-
-  .material_item{
-    width: 30px;;
-  }
-
 }
 </style>
 
@@ -47,16 +46,10 @@
 <div class="table-responsive text-end mx-auto" >
   <table class="table table-bordered table-hover mx-auto">
     <tbody id="tbody_body_records">
-      <tr>
-          <td colspan="3"></td>
-          @foreach($sales_ingredients_table_items as $product_id => $product_name)
-          <td style="width:30px"></td>
-          @endforeach
-      </tr>
       <tr id="option-value-row-0">
         <td colspan="3">全日統計</td>
         @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
-        <td>
+        <td style="width:31px;">
           @if(!empty($mrequisitions['all_day']))
           @foreach($mrequisitions['all_day'] as $material_product_id => $record)
             @if($saleable_product_material_id == $material_product_id)
@@ -97,14 +90,14 @@
       </tr>
       <tr style="border-bottom: 2px solid black;">
         <td class="text-start">時間</td>
-        <td class="text-start">訂單流水號</td>
+        <td class="text-start">訂單編號<BR>末4碼</td>
         <td class="text-end">地址簡稱</td>
         @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
           <?php
           $characters = mb_str_split($saleable_product_material_name);
           $saleable_product_material_name = implode('<BR>', $characters);
           ?>
-          <td style="width:30px;" class="text-align: center;">
+          <td class="text-align: center;">
             {!! $saleable_product_material_name !!}
           </td>
         @endforeach

@@ -7,7 +7,6 @@
         <tr>
           <td class="text-center" style="width: 1px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></td>
           <td></td>
-          <td class="text-end"><a href="{{ $sort_id }}" @if($sort=='id') class="{{ $order }}" @endif>{{ $lang->column_id }}</a></td>
           <td class="text-start"><a href="{{ $sort_code }}" @if($sort=='code') class="{{ $order }}" @endif>{{ $lang->column_code }}</a></td>
           <td class="text-start"><a href="{{ $sort_name }}" @if($sort=='name') class="{{ $order }}" @endif>{{ $lang->column_name }}</a></td>
           <td class="text-start">{{ $lang->column_phone }}</td>
@@ -20,10 +19,13 @@
       <tbody>
         <?php $i = 1; ?>
         @foreach($orders as $row)
+        <?php 
+          $page = request()->input('page') ?? 1;
+          $no = ($page-1) * 10 + $i;
+        ?>
         <tr>
           <td class="text-center"><input type="checkbox" name="selected[]" value="{{ $row->id }}" class="form-check-input"/></td>
-          <td>{{ $i }}</td>
-          <td class="text-end">{{ $row->id }}</td>
+          <td>{{ $no ?? '' }}</td>
           <td class="text-start">{{ $row->code }}</td>
           <td class="text-start">{{ $row->personal_name }}</td>
           <td class="text-start">mob:{{ $row->mobile }}<BR>tel:{{ $row->telephone }}</td>

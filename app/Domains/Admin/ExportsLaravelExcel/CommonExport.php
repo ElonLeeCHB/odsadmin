@@ -23,10 +23,6 @@ class CommonExport implements WithHeadings, FromCollection, WithEvents, WithCust
     {
         $this->data = $data;
         
-        if(!empty($data['query'])){
-            $this->query = $data['query'];
-        }
-        
         if(!empty($data['collection'])){
             $this->collection = $data['collection'];
         }
