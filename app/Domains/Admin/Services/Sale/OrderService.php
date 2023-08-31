@@ -4,7 +4,6 @@ namespace App\Domains\Admin\Services\Sale;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Carbon;
 use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Service;
 use App\Domains\Admin\Services\Common\OptionService;
@@ -25,7 +24,9 @@ use App\Models\Localization\Division;
 use Maatwebsite\Excel\Facades\Excel;
 //use App\Domains\Admin\ExportsLaravelExcel\OrderProductExport;
 use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
-
+use Carbon\Carbon;
+//use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+use Mpdf\Mpdf;
 
 class OrderService extends Service
 {
@@ -796,5 +797,209 @@ class OrderService extends Service
                             ];
 
         return Excel::download(new CommonExport($data), 'order_products.xlsx');
+    }
+
+
+    public function getOrderPrintData($order)
+    {
+        $result['lang'] = $this->lang;
+        $result['base'] = config('app.admin_url');
+
+        // shipping_address
+        $order->shipping_address = '';
+        if(!empty($order->shipping_state->name)){
+            $order->shipping_address .= $order->shipping_state->name;
+        }
+        if(!empty($order->shipping_city->name)){
+            $order->shipping_address .= $order->shipping_city->name;
+        }
+        if(!empty($order->shipping_road)){
+            $order->shipping_address .= $order->shipping_road;
+        }
+        if(!empty($order->shipping_address1)){
+            $order->shipping_address .= $order->shipping_address1;
+        }
+
+        // telephone_text
+        $order->telephone_text = $order->telephone;
+        if(!empty($order->telephone_prefix)){
+            $order->telephone_text = $order->telephone_prefix . '-' . $order->telephone;
+        }
+
+        $result['order']  = (object)$order->toArray();
+
+        $final_drinks = [];
+        $final_products = [];
+
+        // 排序：主分類、商品
+        foreach ($order->order_products as $order_product) {
+            $order_product->product_sort_order = $order_product->product->sort_order;
+            $order_product->main_category_sort_order = $order_product->product->main_category->sort_order;
+        }
+        $order->order_products->sortBy('main_category_sort_order')->sortBy('product_sort_order');
+
+        // 商品計算
+        foreach ($order->order_products as $order_product) {
+
+            $arr_order_product = [
+                'order_product_id' => $order_product->id,
+                'product_id' => $order_product->product_id,
+                'main_category_code' => $order_product->main_category_code,
+                'name' => $order_product->name,
+                'model' => $order_product->model,
+                'quantity' => $order_product->quantity,
+                'comment' => $order_product->comment,
+            ];
+
+            if(!empty($order_product->order_product_options)){
+                foreach ($order_product->order_product_options as $order_product_option) {
+                    $quantity = $order_product_option->quantity ?? 0;
+
+                    if($quantity == 0){
+                        continue;
+                    }
+
+                    $option_id = $order_product_option->product_option->option->id;
+                    $option_name = $order_product_option->product_option->option->name;
+                    $option_code = $order_product_option->product_option->option->code;
+                    $option_value_id = $order_product_option->product_option_value->option_value_id;
+                    $product_option_value_id = $order_product_option->product_option_value_id;
+                    $parent_product_option_value_id = $order_product_option->parent_product_option_value_id;
+
+                    //主餐
+                    if($option_code == 'main_meal'){
+                        $arr_order_product['main_meal']['name'] = $option_name;
+                        $arr_order_product['main_meal']['option_values'][$option_value_id]['order_product_option_id'] = $order_product_option->id;
+                        $arr_order_product['main_meal']['option_values'][$option_value_id]['product_option_value_id'] = $product_option_value_id;
+                        $arr_order_product['main_meal']['option_values'][$option_value_id]['option_value_id'] = $option_value_id;
+                        $arr_order_product['main_meal']['option_values'][$option_value_id]['name'] = $order_product_option->value;
+                        $arr_order_product['main_meal']['option_values'][$option_value_id]['quantity'] = $order_product_option->quantity;
+
+                        //整合飲料
+                        foreach ($order_product->order_product_options as $drink) {
+                            $drink_code = $drink->product_option->option->code ?? '';
+                            $drink_parent_id = $drink->parent_product_option_value_id;
+                            $drink_option_value_id = $drink->product_option_value->option_value_id;
+                            if($drink_code != 'drink' || empty($drink_parent_id) || $drink_parent_id != $product_option_value_id){
+                                continue;
+                            }
+
+                            $arr_order_product['main_meal']['option_values'][$option_value_id]['drink'][$drink_option_value_id]['name'] = $drink->value;
+                            $arr_order_product['main_meal']['option_values'][$option_value_id]['drink'][$drink_option_value_id]['quantity'] = $drink->quantity;
+
+                        }
+                    }
+
+                    //飲料不配主餐
+                    else if($option_code == 'drink' && empty($parent_product_option_value_id)){
+                        $arr_order_product['drink']['name'] = $option_name;
+                        $arr_order_product['drink']['option_values'][$option_value_id]['order_product_option_id'] = $order_product_option->id;
+                        $arr_order_product['drink']['option_values'][$option_value_id]['product_option_value_id'] = $product_option_value_id;
+                        $arr_order_product['drink']['option_values'][$option_value_id]['option_value_id'] = $option_value_id;
+                        $arr_order_product['drink']['option_values'][$option_value_id]['name'] = $order_product_option->value;
+                        $arr_order_product['drink']['option_values'][$option_value_id]['quantity'] = $order_product_option->quantity;
+
+                        //$arr_order_product['main_meal']['option_values'][$parent_product_option_value_id]['drink'] = [];//飲料配主餐 設為空陣列
+                    }
+
+                    //統計區
+                    $statics[$option_code]['option_id'] = $option_id;
+                    $statics[$option_code]['option_name'] = $option_name;
+                    $statics[$option_code]['option_values'][$option_value_id]['option_value_id'] = $option_value_id;
+                    $statics[$option_code]['option_values'][$option_value_id]['name'] = $order_product_option->value;
+
+                    if(empty($statics[$option_code]['option_values'][$option_value_id]['quantity'])){
+                        $statics[$option_code]['option_values'][$option_value_id]['quantity'] = 0;
+                    }
+
+                    $statics[$option_code]['option_values'][$option_value_id]['quantity'] += (int) $order_product_option->quantity;
+
+                    if(empty($statics[$option_code]['total'])){
+                        $statics[$option_code]['total'] = 0;
+                    }
+
+                    $statics[$option_code]['total'] += (int) $order_product_option->quantity;
+                }
+            }
+
+            $final_products[] = $arr_order_product;
+        }
+
+        $result['final_products'] = [];
+        if(!empty($final_products)){
+            $result['final_products'] = &$final_products;
+        }
+
+        $result['statics'] = [];
+        if(!empty($statics)){
+            $result['statics'] = $statics;
+        }
+
+        $filter_data = [
+            'filter_order_id' => $order->id,
+            'regexp' => false,
+            'limit' => 0,
+            'pagination' => false,
+            'sort' => 'id',
+            'order' => 'ASC',
+        ];
+        $order_totals = $this->getOrderTotal($filter_data);
+
+        if(!$order_totals->isEmpty()){
+            foreach ($order_totals as $key => $order_total) {
+                $result['order_totals'][$order_total->code] = $order_total;
+            }
+        }else{
+            $result['order_totals'] = [
+                'sub_total' => (object)['title' => '商品合計', 'value' => 0, 'sort_order' => 1],
+                'discount' => (object)['title' => '優惠折扣', 'value' => 0, 'sort_order' => 2],
+                'shipping_fee' => (object)['title' => '運費', 'value' => 0, 'sort_order' => 3],
+                'total' => (object)['title' => '總計', 'value' => 0, 'sort_order' => 4],
+            ];
+        }
+
+        $result['underline'] = '_______________';
+
+        return $result;
+    }
+
+
+    public function exportOrders($data)
+    {
+        $data = $this->getListQueryData($data);
+
+        $data['with'] = ['order_products.order_product_options.product_option.option'
+                        ,'order_products.order_product_options.product_option_value'
+                        ,'order_products.product.main_category'
+                        ];
+
+        $query = $this->getQuery($data);
+        
+        $orders = $query->limit(100)->orderByDesc('delivery_date')->get();
+
+        
+
+        $orderPrintData = $this->getOrderPrintData($orders[0]);
+
+        $view = view('admin.sale.print_order_form', $orderPrintData);
+        $html = $view->render();
+
+        $mpdf = new Mpdf([
+            'fontDir' => public_path('fonts/'), // 字体文件路径
+            'fontdata' => [
+                'sourcehanserif' => [
+                    'R' => 'SourceHanSerifTC-VF.ttf', // 思源宋体的.ttf文件路径
+                    // 'B' => 'SourceHanSerif-Bold.ttf', // 如果需要加粗样式，可以配置这里
+                    // 'I' => 'SourceHanSerif-Italic.ttf', // 如果需要斜体样式，可以配置这里
+                ]
+            ]
+        ]);
+        
+        
+        
+        $mpdf->WriteHTML($html);
+        $mpdf->Output('example.pdf', 'D');
+
+        return Excel::download(new CommonExport($data), 'invoices.pdf', \Maatwebsite\Excel\Excel::MPDF);
     }
 }

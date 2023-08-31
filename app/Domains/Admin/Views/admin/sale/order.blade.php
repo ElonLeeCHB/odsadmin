@@ -14,7 +14,8 @@
       <h1>{{ $lang->heading_title }}</h1>
       @include('admin.common.breadcumb')
       <div class="float-end">
-        <button type="button" data-bs-toggle="tooltip" title="匯出訂單商品，最多兩千筆訂單" class="btn btn-info" data-bs-original-title="匯出訂單商品" aria-label="匯出訂單商品" id="btn-export-order_products"><i class="fa fa-file-export"></i></button>
+        <button type="button" id="btn-export-order_products" data-oc-toggle="ajax" data-bs-toggle="tooltip" title="匯出訂單商品，最多兩千筆訂單" class="btn btn-info" data-bs-original-title="匯出訂單商品" aria-label="匯出訂單商品"><i class="fa fa-file-export"></i></button>
+        <button type="button" id="btn-batch_print" data-bs-toggle="tooltip" data-loading-text="Loading..." title="批次列印" class="btn btn-info" aria-label="批次列印"><i class="fa fa-print"></i></button>
         {{--<button type="submit" form="form-order" formaction="{{ $copy }}" data-bs-toggle="tooltip" title="複製" class="btn btn-light"><i class="fa-regular fa-copy"></i></button>--}}
         <button type="button" data-bs-toggle="tooltip" title="篩選" onclick="$('#filter-order').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fas fa-filter" style="font-size:18px"></i></button>
         <a href="{{ route('lang.admin.sale.orders.form') }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fas fa-plus"></i></a>
@@ -97,7 +98,7 @@
   </div>
 </div>
 
-<div id="modal-option" class="modal fade">
+<div id="modal-export-loading" class="modal fade">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -111,8 +112,10 @@
       </div>
     </div>
   </div>
-
 </div>
+
+
+
 @endsection
 
 @section('buttom')
@@ -201,7 +204,7 @@ $('#button-filter').on('click', function() {
 $(function(){
   //匯出按鈕
   $('#btn-export-order_products').on('click', function () {
-    $('#modal-option').modal('show');
+    $('#modal-export-loading').modal('show');
     var dataString = $('#filter-form').serialize();
 
     $.ajax({
@@ -226,7 +229,7 @@ $(function(){
         },
         complete: function () {
           console.log('complete');
-         $('#modal-option').modal('hide');
+         $('#modal-export-loading').modal('hide');
          $('#btn-export-order_products').attr("disabled", false);
         },
         fail: function(data) {
@@ -234,6 +237,39 @@ $(function(){
           alert('Not downloaded');
         }
     });
+  });
+  
+  //批次列印按鈕
+  $('#btn-batch_print').on('click', function () {
+    //var button = $(this);
+    var button = this;
+    var dataString = $('#filter-form').serialize();
+
+    $.ajax({
+        type: "POST",
+        url: "{{ $batch_print_url }}",
+        data: dataString,
+        cache: false,
+        xhrFields:{
+            responseType: 'blob'
+        },
+        beforeSend: function () {
+          $(button).prop('disabled', true).addClass('loading');
+        },
+        complete: function () {
+            $(button).prop('disabled', false).removeClass('loading');
+        },
+        success: function(data)
+        {
+          console.log('success');
+          var link = document.createElement('a');
+          link.href = window.URL.createObjectURL(data);
+          link.download = 'order_products.xlsx';
+          link.click();
+        }
+    });
+
+
   });
 })
 </script>

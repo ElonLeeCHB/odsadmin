@@ -111,7 +111,7 @@ Route::group(
                 Route::get('orders/getOrderCommentPhrase', 'Sale\OrderController@getOrderCommentPhrase')->name('orders.getOrderCommentPhrase');
                 Route::get('orders/getOrderExtraCommentPhrase', 'Sale\OrderController@getOrderExtraCommentPhrase')->name('orders.getOrderExtraCommentPhrase');
                 Route::post('orders/product_reports', 'Sale\OrderController@product_reports')->name('orders.product_reports');
-                //Route::get('orders/product_reports', 'Sale\OrderController@product_reports')->name('orders.product_reports');
+                Route::post('orders/batch_print', 'Sale\OrderController@batchPrint')->name('orders.batch_print');
 
                 //常用片語
                 Route::get('phrases', 'Sale\PhraseController@index')->name('phrases.index');

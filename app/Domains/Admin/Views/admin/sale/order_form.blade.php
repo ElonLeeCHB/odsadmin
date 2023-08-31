@@ -167,8 +167,8 @@
                         <td class="col-md-2">
                           <select id="input-is_payment_tin" name="is_payment_tin">
                             <option value="">請選擇</option>
-                            <option value="0" @if($order->is_payment_tin == 0) selected @endif>不需要</option>
-                            <option value="1" @if($order->is_payment_tin == 1) selected @endif>需要</option>
+                            <option value="0" @if($order->is_payment_tin === 0) selected @endif>不需要</option>
+                            <option value="1" @if($order->is_payment_tin === 1) selected @endif>需要</option>
                           </select>
                           <div id="error-is_payment_tin" class="invalid-feedback"></div>
 

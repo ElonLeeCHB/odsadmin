@@ -90,10 +90,11 @@ class OrderController extends BackendController
         //$orders = $this->OrderService->getOrders($url_query_data,1);
 
         $data['export_order_products_url'] = route('lang.admin.sale.orders.product_reports');
-
+        $data['batch_print_url'] = route('lang.admin.sale.orders.batch_print');
+        
         
 
-		//$data['copy'] = route('lang.admin.sale.orders.copy');
+        //$data['copy'] = route('lang.admin.sale.orders.copy');
 
         return view('admin.sale.order', $data);
     }
@@ -106,26 +107,26 @@ class OrderController extends BackendController
 
         $data['lang'] = $this->lang;
 
-		$json = [];
+        $json = [];
 
-		if (isset($paraPost['selected'])) {
-			$selected = $paraPost['selected'];
-		} else {
-			$selected = [];
-		}
+        if (isset($paraPost['selected'])) {
+            $selected = $paraPost['selected'];
+        } else {
+            $selected = [];
+        }
 
         //權限
-		// if (!$this->user->hasPermission('modify', 'catalog/product')) {
-		// 	$json['error'] = $this->language->get('error_permission');
-		// }
+        // if (!$this->user->hasPermission('modify', 'catalog/product')) {
+        //     $json['error'] = $this->language->get('error_permission');
+        // }
 
-		if (!$json) {
-			foreach ($selected as $order_id) {
-				$this->OrderService->copyOrder($order_id);
-			}
+        if (!$json) {
+            foreach ($selected as $order_id) {
+                $this->OrderService->copyOrder($order_id);
+            }
 
-			$json['success'] = $this->lang->text_success;
-		}
+            $json['success'] = $this->lang->text_success;
+        }
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }
@@ -161,16 +162,16 @@ class OrderController extends BackendController
         $orders = $this->OrderService->getOrders($url_query_data);
 
         // statuses
-	    $order_statuses = $this->OrderService->getOrderStatuses();
+        $order_statuses = $this->OrderService->getOrderStatuses();
         
 
-		$status_items = $this->OrderService->getOrderStatuseValues($order_statuses);
+        $status_items = $this->OrderService->getOrderStatuseValues($order_statuses);
 
         if(!empty($orders)){
             foreach ($orders as $row) {
                 $row->edit_url = route('lang.admin.sale.orders.form', array_merge([$row->id], $url_query_data));
                 $row->payment_phone = $row->payment_mobile . "<BR>" . $row->payment_telephone;
-				$row->status_text = $status_items[$row->status_id] ?? '';
+                $row->status_text = $status_items[$row->status_id] ?? '';
             }
         }
 
@@ -352,22 +353,22 @@ class OrderController extends BackendController
         $data['status_id'] = $order->status_id ?? '101';
 
         //Member
-		if(!empty($order)){
+        if(!empty($order)){
             $member = $this->MemberService->findIdFirst($order->customer_id);
-		}
+        }
 
         if(!empty($member)){
-			$data['member'] = (object)$member->toArray();
-		}else{
-			$data['member'] = (object)[
-				'id' => '',
-				'email' => '',
-				'last_name' => '',
-				'telephone' => '',
-				'mobile' => '',
-				'salutation_id' => '',
-			];
-		}
+            $data['member'] = (object)$member->toArray();
+        }else{
+            $data['member'] = (object)[
+                'id' => '',
+                'email' => '',
+                'last_name' => '',
+                'telephone' => '',
+                'mobile' => '',
+                'salutation_id' => '',
+            ];
+        }
         
         $data['countries'] = $this->CountryService->getCountries();
 
@@ -867,25 +868,25 @@ class OrderController extends BackendController
         $order = $this->OrderService->getRow($filter_data);
 
         $order->address = '';
-		if(!empty($order->shipping_state->name)){
-			$order->address .= $order->shipping_state->name;
-		}
-		if(!empty($order->shipping_city->name)){
-			$order->address .= $order->shipping_city->name;
-		}
-		if(!empty($order->shipping_road)){
-			$order->address .= $order->shipping_road;
-		}
-		if(!empty($order->shipping_address1)){
-			$order->address .= $order->shipping_address1;
-		}
+        if(!empty($order->shipping_state->name)){
+            $order->address .= $order->shipping_state->name;
+        }
+        if(!empty($order->shipping_city->name)){
+            $order->address .= $order->shipping_city->name;
+        }
+        if(!empty($order->shipping_road)){
+            $order->address .= $order->shipping_road;
+        }
+        if(!empty($order->shipping_address1)){
+            $order->address .= $order->shipping_address1;
+        }
 
-		$order->telephone_full = $order->telephone;
-		if(!empty($order->telephone_prefix)){
-			$order->telephone_full = $order->telephone_prefix . '-' . $order->telephone;
-		}
+        $order->telephone_full = $order->telephone;
+        if(!empty($order->telephone_prefix)){
+            $order->telephone_full = $order->telephone_prefix . '-' . $order->telephone;
+        }
 
-		$data['order']  = $order;
+        $data['order']  = $order;
 
         $final_drinks = [];
         $final_products = [];
@@ -1030,6 +1031,13 @@ class OrderController extends BackendController
         //echo '<pre>', print_r($data, 1), "</pre>"; exit;
 
         return $this->OrderService->exportOrderProducts($data); 
+    }
+
+
+    public function batchPrint()
+    {
+        $data = $this->request->all();
+        return $this->OrderService->exportOrders($data); 
     }
 
 }
