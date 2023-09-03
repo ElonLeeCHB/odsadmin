@@ -56,7 +56,7 @@
         <div class="mb-3">
           <label class="form-label">{{ $lang->column_is_active }}</label>
           <select name="equal_is_active" id="input-equal_is_active" class="form-select">
-            <option value="">{{ $lang->text_select }}</option>
+            <option value="*">{{ $lang->text_select }}</option>
             <option value="1" selected>{{ $lang->text_yes }}</option>
             <option value="0">{{ $lang->text_no }}</option>
           </select>

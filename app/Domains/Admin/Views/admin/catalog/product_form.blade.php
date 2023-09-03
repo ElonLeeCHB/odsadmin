@@ -109,9 +109,8 @@
                   <label class="col-sm-2 col-form-label">{{ $lang->column_sort_order }}</label>
                   <div class="col-sm-10">
                     <div class="input-group">
-                      <input type="text" name="sort_order" value="{{ $product->sort_order }}" placeholder="{{ $lang->column_main_category }}" id="input-main_category" data-oc-target="autocomplete-main_category_id" class="form-control"/>
+                      <input type="text" id="input-sort_order" name="sort_order" value="{{ $product->sort_order }}" class="form-control"/>
                     </div>
-                    <ul id="autocomplete-sort_order" class="dropdown-menu"></ul>
                     <div class="form-text">有可能會影響列印排版(主餐)</div>
                   </div>
                 </div>

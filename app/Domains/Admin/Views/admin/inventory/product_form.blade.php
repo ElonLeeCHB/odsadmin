@@ -43,13 +43,13 @@
                 <div class="tab-content">
                   @foreach($languages as $language)
                   <div id="language-{{ $language->code }}" class="tab-pane @if ($loop->first)active @endif">
-                    <input type="hidden" name="product_translations[{{ $language->code }}][id]" value="{{ $product_translations[$language->code]['id'] ?? '' }}" >
+                    <input type="hidden" name="translations[{{ $language->code }}][id]" value="{{ $product_translations[$language->code]['id'] ?? '' }}" >
 
                     <div class="row mb-3 required">
                       <label for="input-name-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_name }}</label>
                       <div class="col-sm-10">
                         <div class="input-group">
-                          <input type="text" name="product_translations[{{ $language->code }}][name]" value="{{ $product_translations[$language->code]['name'] ?? ''  }}" placeholder="{{ $lang->column_name }}" id="input-name-{{ $language->code }}" class="form-control">
+                          <input type="text" name="translations[{{ $language->code }}][name]" value="{{ $product_translations[$language->code]['name'] ?? ''  }}" placeholder="{{ $lang->column_name }}" id="input-name-{{ $language->code }}" class="form-control">
                                                   </div>
                         <div id="error-name-{{ $language->code }}" class="invalid-feedback"></div>
                       </div>
@@ -58,7 +58,7 @@
                       <label for="input-full_name-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_full_name }}</label>
                       <div class="col-sm-10">
                         <div class="input-group">
-                          <input type="text" name="product_translations[{{ $language->code }}][full_name]" value="{{ $product_translations[$language->code]['full_name'] ?? ''  }}" placeholder="{{ $lang->column_full_name }}" id="input-name-{{ $language->code }}" class="form-control">
+                          <input type="text" name="translations[{{ $language->code }}][full_name]" value="{{ $product_translations[$language->code]['full_name'] ?? ''  }}" placeholder="{{ $lang->column_full_name }}" id="input-name-{{ $language->code }}" class="form-control">
                                                   </div>
                         <div id="error-full_name-{{ $language->code }}" class="invalid-feedback"></div>
                       </div>
@@ -67,7 +67,7 @@
                       <label for="input-short_name-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_short_name }}</label>
                       <div class="col-sm-10">
                         <div class="input-group">
-                          <input type="text" name="product_translations[{{ $language->code }}][short_name]" value="{{ $product_translations[$language->code]['short_name'] ?? ''  }}" placeholder="{{ $lang->column_short_name }}" id="input-short_name-{{ $language->code }}" class="form-control">
+                          <input type="text" name="translations[{{ $language->code }}][short_name]" value="{{ $product_translations[$language->code]['short_name'] ?? ''  }}" placeholder="{{ $lang->column_short_name }}" id="input-short_name-{{ $language->code }}" class="form-control">
                                                   </div>
                         <div id="error-short_name-{{ $language->code }}" class="invalid-feedback"></div>
                       </div>
@@ -77,7 +77,7 @@
                       <label for="input-meta-title-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_meta_title }}</label>
                       <div class="col-sm-10">
                         <div class="input-group">
-                          <input type="text" name="product_translations[{{ $language->code }}][meta_title]" value="{{ $product_translations[$language->code]['meta_title'] ?? '' }}" placeholder="Meta Tag Title" id="input-meta-title-{{ $language->code }}" class="form-control">
+                          <input type="text" name="translations[{{ $language->code }}][meta_title]" value="{{ $product_translations[$language->code]['meta_title'] ?? '' }}" placeholder="Meta Tag Title" id="input-meta-title-{{ $language->code }}" class="form-control">
                                                   </div>
                         <div id="error-meta-title-{{ $language->code }}" class="invalid-feedback"></div>
                       </div>
@@ -86,7 +86,7 @@
                       <label for="input-meta-description-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_meta_description }}</label>
                       <div class="col-sm-10">
                         <div class="input-group">
-                          <textarea name="product_translations[{{ $language->code }}][meta_description]" rows="5" placeholder="{{ $lang->column_meta_description }}" id="input-meta-description-{{ $language->code }}" class="form-control">{{ $product_translations[$language->code]['meta_description'] ?? '' }}</textarea>
+                          <textarea name="translations[{{ $language->code }}][meta_description]" rows="5" placeholder="{{ $lang->column_meta_description }}" id="input-meta-description-{{ $language->code }}" class="form-control">{{ $product_translations[$language->code]['meta_description'] ?? '' }}</textarea>
                                                   </div>
                       </div>
                     </div>
@@ -94,7 +94,7 @@
                       <label for="input-meta-keyword-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_meta_keyword }}</label>
                       <div class="col-sm-10">
                         <div class="input-group">
-                          <textarea name="product_translations[{{ $language->code }}][meta_keyword]" rows="5" placeholder="{{ $lang->column_meta_keyword }}" id="input-meta-keyword-{{ $language->code }}" class="form-control">{{ $product_translations[$language->code]['meta_keyword'] ?? '' }}</textarea>
+                          <textarea name="translations[{{ $language->code }}][meta_keyword]" rows="5" placeholder="{{ $lang->column_meta_keyword }}" id="input-meta-keyword-{{ $language->code }}" class="form-control">{{ $product_translations[$language->code]['meta_keyword'] ?? '' }}</textarea>
                                                   </div>
                       </div>
                     </div>
