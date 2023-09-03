@@ -10,6 +10,7 @@ use App\Repositories\Eloquent\Localization\LanguageRepository;
 use App\Domains\Admin\Services\Common\OptionService;
 use App\Domains\Admin\Services\Catalog\ProductService;
 use App\Domains\Admin\Services\Catalog\CategoryService;
+use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
 
 class ProductController extends BackendController
 {
@@ -19,6 +20,7 @@ class ProductController extends BackendController
         , private OptionService $OptionService
         , private ProductService $ProductService
         , private CategoryService $CategoryService
+        , private ProductOptionValueRepository $ProductOptionValueRepository
     )
     {
         parent::__construct();
@@ -90,6 +92,7 @@ class ProductController extends BackendController
         if(!isset($query_data['equal_is_active'])){
             $query_data['equal_is_active'] = '1';
         }
+        //echo '<pre>', print_r($query_data, 1), "</pre>"; exit;
 
         // Rows
         $products = $this->ProductService->getRows($query_data);
@@ -255,5 +258,91 @@ class ProductController extends BackendController
         return view('admin.inventory.product_form', $data);
     }
 
+
+    public function save()
+    {
+        $data = $this->request->all();
+        
+        $json = [];
+        
+        // Check
+        foreach ($data['translations'] ?? [] as $locale => $translation) {
+            if(empty($translation['name']) || mb_strlen($translation['name']) < 2){
+                $json['error']['name-' . $locale] = $this->lang->error_name;
+            }
+        }
+
+        // Check product_options
+        if (isset($data['product_options'])) {
+
+            //product_options in form
+            $product_option_value_ids_in_form = [];
+            foreach($data['product_options'] as $product_option){
+                if(!empty($product_option['product_option_values'])){
+                    foreach ($product_option['product_option_values'] as $product_option_value) {
+                        $product_option_value_ids_in_form[] = $product_option_value['product_option_value_id'];
+                    }
+                }
+            }
+
+            if(!empty($product_option_value_ids_in_form)){
+                $product_option_value_ids_in_form = array_unique($product_option_value_ids_in_form);
+                sort($product_option_value_ids_in_form);
+
+                //product_options in database
+                $query_data = [
+                    'equal_product_id' => $data['product_id'],
+                    'pluck' => 'id',
+                    'limit' => 0,
+                    'pagination' => false,
+                    'sort' => 'id',
+                    'order' => 'ASC',
+                ];
+                $existed_product_option_values = $this->ProductOptionValueRepository->getRows($query_data)->toArray();
+                $existed_product_option_values = array_unique($existed_product_option_values);
+
+                // Delete check
+                $delete_product_option_value_ids = array_diff($existed_product_option_values, $product_option_value_ids_in_form);
+
+                foreach ($delete_product_option_value_ids as $product_option_value_id) {
+                    $filter_data = [
+                        'equal_product_option_value_id' => $product_option_value_id,
+                        'pagination' => false,
+                        'select' => ['id','order_id'],
+                    ];
+                    $order_product_options = $this->OrderProductOptionService->getRow($filter_data);
+
+                    if(!empty($order_product_options)){
+                        $json['error']['warning'] = $this->lang->error_product_option_value . ' order_id: ' . $order_product_options->order_id;
+                    }
+                }
+            }
+        }
+
+        if (isset($json['error']) && !isset($json['error']['warning'])) {
+            $json['error']['warning'] = $this->lang->error_warning;
+        }
+
+        if(!$json) {
+            $result = $this->ProductService->updateOrCreate($data);
+
+            if(empty($result['error'])){
+                $json = [
+                    'success' => $this->lang->text_success,
+                    'product_id' => $result['product_id'],
+                    'redirectUrl' => route('lang.admin.catalog.products.form', $result['product_id']),
+                ];
+
+            }else{
+                if(config('app.debug')){
+                    $json['error'] = $result['error'];
+                }else{
+                    $json['error'] = $this->lang->text_fail;
+                }
+            }
+        }
+        
+        return response(json_encode($json))->header('Content-Type','application/json');
+    }
 
 }

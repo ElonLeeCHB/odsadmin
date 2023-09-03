@@ -802,8 +802,7 @@ class OrderService extends Service
 
     public function getOrderPrintData($order)
     {
-        $result['lang'] = $this->lang;
-        $result['base'] = config('app.admin_url');
+
 
         // shipping_address
         $order->shipping_address = '';
@@ -834,7 +833,7 @@ class OrderService extends Service
         // 排序：主分類、商品
         foreach ($order->order_products as $order_product) {
             $order_product->product_sort_order = $order_product->product->sort_order;
-            $order_product->main_category_sort_order = $order_product->product->main_category->sort_order;
+            $order_product->main_category_sort_order = $order_product->product->main_category->sort_order ?? 999;
         }
         $order->order_products->sortBy('main_category_sort_order')->sortBy('product_sort_order');
 
@@ -966,6 +965,11 @@ class OrderService extends Service
 
     public function exportOrders($data)
     {
+
+        $htmlData['lang'] = $this->lang;
+        $htmlData['base'] = config('app.admin_url');
+        $htmlData['underline'] = '_______________';
+
         $data = $this->getListQueryData($data);
 
         $data['with'] = ['order_products.order_product_options.product_option.option'
@@ -977,11 +981,14 @@ class OrderService extends Service
         
         $orders = $query->limit(100)->orderByDesc('delivery_date')->get();
 
-        
+        foreach ($orders as $order) {
+            $htmlData['orders'][] = $this->getOrderPrintData($order);
+        }
 
-        $orderPrintData = $this->getOrderPrintData($orders[0]);
+        $htmlData['countOrders'] = count($htmlData['orders']);
 
-        $view = view('admin.sale.print_order_form', $orderPrintData);
+
+        $view = view('admin.sale.print_order_form', $htmlData);
         $html = $view->render();
 
         $mpdf = new Mpdf([

@@ -616,6 +616,12 @@ class OrderController extends BackendController
             $option = $product_option->cachedOption();
             $product_option_values = $product_option->cachedProductOptionValues();
 
+            $arr_product_option_values = [];
+            
+            foreach ($product_option_values as $product_option_value) {
+                $arr_product_option_values[] = (object) $product_option_value->toArray();
+            }
+
             $data['product_options'][$option->code] = [
                 'product_option_id' => $product_option->id,
                 'option_id' => $option->id,
@@ -623,7 +629,7 @@ class OrderController extends BackendController
                 'option_type' => $option->type,
                 'option_name' => $option->name,
                 'is_fixed' => $product_option->is_fixed,
-                'product_option_values' => $product_option_values,
+                'product_option_values' => $arr_product_option_values,
             ];
 
             if($product_option->is_fixed != 1){
@@ -635,7 +641,7 @@ class OrderController extends BackendController
                     'option_name' => $option->name,
                     'is_fixed' => $product_option->is_fixed,
                     'is_hidden' => $product_option->is_hidden,
-                    'product_option_values' => $product_option_values,
+                    'product_option_values' => $arr_product_option_values,
                 ];
 
             }

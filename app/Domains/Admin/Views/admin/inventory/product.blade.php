@@ -121,7 +121,7 @@
 @endsection
 
 @section('buttom')
-<script type="text/javascript"><!--
+<script type="text/javascript">
 $('#product').on('click', 'thead a, .pagination a', function(e) {
   e.preventDefault();
 
@@ -149,9 +149,15 @@ $('#button-filter').on('click', function() {
     url += '&filter_is_salable=' + encodeURIComponent(filter_is_salable);
   }
 
+  var equal_is_active = $('#input-equal_is_active').val();
+
+  if (equal_is_active) {
+    url += '&equal_is_active=' + encodeURIComponent(equal_is_active);
+  }
+
   url = "{{ route('lang.admin.catalog.products.list') }}?" + url;
 
   $('#product').load(url);
 });
-//--></script>
+</script>
 @endsection

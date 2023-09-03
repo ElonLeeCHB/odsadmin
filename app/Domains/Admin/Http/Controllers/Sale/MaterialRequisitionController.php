@@ -175,6 +175,24 @@ class MaterialRequisitionController extends BackendController
             ];
             $orders = $this->OrderRepository->getRows($filter_data);
             
+            
+            // 從設定檔找出需要除2的潤餅代號
+            $sales_burrito_half_of_6_inch = $this->SettingRepository->getValueByKey('sales_burrito_half_of_6_inch');
+            $burrito_half_of_6inch_ids = array_keys($sales_burrito_half_of_6_inch);
+
+            // 6吋潤餅的 product_id
+            $burrito_6inch_ids = [];
+            foreach ($sales_burrito_half_of_6_inch as $key => $row) {
+                $six_inch_id = $row['new_product_id'];
+                $sales_burrito_6i[$six_inch_id]['six_inch_id'] = $row['new_product_id'];
+                $sales_burrito_6i[$six_inch_id]['six_inch_name'] = $row['new_product_name'];
+                $sales_burrito_6i[$six_inch_id]['three_inch_id'] = $row['product_id'];
+                $sales_burrito_6i[$six_inch_id]['three_inch_name'] = $row['product_name'];
+
+                $burrito_6inch_ids[] = $six_inch_id;
+            }
+
+            
             $arr = [];
 
             foreach ($orders ?? [] as $key1 => $order) {
@@ -197,32 +215,35 @@ class MaterialRequisitionController extends BackendController
                         $product_option_value_id = $order_product_option->product_option_value->id;
                         $option_value = $order_product_option->product_option_value->option_value;
     
-                        // // 選項本身所對應的料件，不是訂單商品。
+                        // 選項本身所對應的料件，不是訂單商品。
                         $ingredient_product_id = $option_value->product_id ?? 999;
                         $ingredient_product_name = $option_value->product->name ?? 'xx';
 
-                        // // 數量
-                        $quantity = $order_product_option->quantity;
+                        // 數量
+                        // 將6吋潤餅轉為3吋潤餅，並且*2。注意：這是為了解決：$upser_data 單點6吋潤餅會覆蓋3吋的問題。
+                        if(in_array($ingredient_product_id, $burrito_6inch_ids)){
+                            $ingredient_product_name = $sales_burrito_6i[$ingredient_product_id]['three_inch_name']; //這行必須在前面
+                            $ingredient_product_id = $sales_burrito_6i[$ingredient_product_id]['three_inch_id']; //轉換 $ingredient_product_id
+                            $quantity = $order_product_option->quantity*2;
+                        }else{
+                            $quantity = $order_product_option->quantity;
+                        }
 
                         if(empty($arr[$required_date][$order_id][$ingredient_product_id]['quantity'])){
                             $arr[$required_date][$order_id][$ingredient_product_id]['quantity'] = 0;
                         }
 
                         $arr[$required_date][$order_id][$ingredient_product_id]['required_time'] = $order->delivery_date;
-                        $arr[$required_date][$order_id][$ingredient_product_id]['product_id'] = $order_product->product_id;
-                        $arr[$required_date][$order_id][$ingredient_product_id]['product_name'] = $order_product->name;
                         $arr[$required_date][$order_id][$ingredient_product_id]['ingredient_product_name'] = $ingredient_product_name;
-                        $arr[$required_date][$order_id][$ingredient_product_id]['quantity'] += $order_product_option->quantity;
-                        
-                        $arr[$required_date][$order_id][$ingredient_product_id]['order_product_option_value'] = $order_product_option->value;
+                        $arr[$required_date][$order_id][$ingredient_product_id]['quantity'] += $quantity;
+                        // $arr[$required_date][$order_id][$ingredient_product_id]['product_id'] = $order_product->product_id;
+                        // $arr[$required_date][$order_id][$ingredient_product_id]['product_name'] = $order_product->name;
+                        // $arr[$required_date][$order_id][$ingredient_product_id]['order_product_option_value'] = $order_product_option->value;
                     }
                 }
             }
 
             //處理3吋潤餅用6吋計算  *之後應改用 bom 表
-            // - 從設定檔找出需要除2的潤餅代號
-            $sales_burrito_half_of_6_inch = $this->SettingRepository->getValueByKey('sales_burrito_half_of_6_inch');
-            $burrito_half_of_6inch_ids = array_keys($sales_burrito_half_of_6_inch);
 
             foreach ($arr as $required_date => $rows1) {
                 foreach ($rows1 as $order_id => $rows2) {
