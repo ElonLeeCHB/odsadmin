@@ -183,6 +183,16 @@ class LayoutComposer
             ];
         }
 
+        //訂單排程
+        if(1) {
+            $sale[] = [
+                'name'	   => $this->lang->text_sales_order_schedule,
+                'icon'	   => '',
+                'href'     => route('lang.admin.sale.order_schedule.index'),
+                'children' => []
+            ];
+        }
+
         //備料單
         if(1) {
             $sale[] = [

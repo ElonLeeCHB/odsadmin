@@ -113,6 +113,10 @@ Route::group(
                 Route::post('orders/product_reports', 'Sale\OrderController@product_reports')->name('orders.product_reports');
                 Route::post('orders/batch_print', 'Sale\OrderController@batchPrint')->name('orders.batch_print');
 
+                Route::get('orders/schedule/list/{delivery_date?}', 'Sale\OrderScheduleController@list')->name('order_schedule.list');
+                Route::post('orders/schedule/save', 'Sale\OrderScheduleController@save')->name('order_schedule.save');
+                Route::get('orders/schedule/{delivery_date?}', 'Sale\OrderScheduleController@index')->name('order_schedule.index');
+
                 //常用片語
                 Route::get('phrases', 'Sale\PhraseController@index')->name('phrases.index');
                 Route::get('phrases/form/{product_id?}', 'Sale\PhraseController@form')->name('phrases.form');

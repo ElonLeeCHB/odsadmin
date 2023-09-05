@@ -17,6 +17,7 @@ use App\Domains\Admin\Services\Localization\DivisionService;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Domains\Admin\ExportsLaravelExcel\OrderProductExport;
 use App\Domains\Admin\ExportsLaravelExcel\UsersExport;
+use Carbon\Carbon;
 
 class OrderController extends BackendController
 {
@@ -153,13 +154,13 @@ class OrderController extends BackendController
 
 
         // Prepare query_data for records
-        $url_query_data = $this->getQueries($this->request->query());
+        $query_data = $this->getQueries($this->request->query());
 
         // Extra
-        //$url_query_data['equal_is_active'] = 1;
+        //$query_data['equal_is_active'] = 1;
 
         // Rows
-        $orders = $this->OrderService->getOrders($url_query_data);
+        $orders = $this->OrderService->getOrders($query_data);
 
         // statuses
         $order_statuses = $this->OrderService->getOrderStatuses();
@@ -169,30 +170,30 @@ class OrderController extends BackendController
 
         if(!empty($orders)){
             foreach ($orders as $row) {
-                $row->edit_url = route('lang.admin.sale.orders.form', array_merge([$row->id], $url_query_data));
+                $row->edit_url = route('lang.admin.sale.orders.form', array_merge([$row->id], $query_data));
                 $row->payment_phone = $row->payment_mobile . "<BR>" . $row->payment_telephone;
                 $row->status_text = $status_items[$row->status_id] ?? '';
             }
         }
 
-        $data['orders'] = $orders->withPath(route('lang.admin.sale.orders.list'))->appends($url_query_data);
+        $data['orders'] = $orders->withPath(route('lang.admin.sale.orders.list'))->appends($query_data);
 
 
         // Prepare links for list table's header
-        if($url_query_data['order'] == 'ASC'){
+        if($query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($url_query_data['sort']);
+        $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
-        $url_query_data = $this->unsetUrlQueryData($url_query_data);
+        $query_data = $this->unsetUrlQueryData($query_data);
 
         $url = '';
 
-        foreach($url_query_data as $key => $value){
+        foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
 
@@ -899,7 +900,7 @@ class OrderController extends BackendController
 
         // 排序：主分類、商品
         foreach ($order->order_products as $order_product) {
-            $order_product->main_category_sort_order = $order_product->product->main_category->sort_order;
+            $order_product->main_category_sort_order = $order_product->product->main_category->sort_order ?? 0;
             $order_product->product_sort_order = $order_product->product->sort_order;
         }
         $order->order_products->sortBy('main_category_sort_order')->sortBy('product_sort_order');

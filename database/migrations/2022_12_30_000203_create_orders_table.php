@@ -52,11 +52,11 @@ return new class extends Migration
             $table->string('shipping_address1',100)->nullable();
             $table->string('shipping_address2',100)->nullable();
             $table->string('shipping_road_abbr',50)->nullable();
-            $table->datetime('shipping_date')->nullable()->comment('The date the product will leave the supplier’s warehouse');
-            $table->string('shipping_time',5)->nullable();
+            $table->datetime('shipping_date')->nullable()->comment('The date the product will leave the supplier’s warehouse'); //出發時間
+            $table->string('shipping_time',5)->nullable(); //可能沒用
             $table->string('shipping_method',50)->nullable();
-            $table->datetime('delivery_date')->nullable()->comment('The date the package will make it to the customer’s doorstep');
-            $table->string('delivery_time',5)->nullable();
+            $table->datetime('delivery_date')->nullable()->comment('The date the package will make it to the customer’s doorstep'); //到達時間
+            $table->string('delivery_time',5)->nullable(); //可能沒用
             $table->string('delivery_time_range',30)->nullable();
             $table->string('delivery_time_comment',30)->nullable();
             $table->string('comment')->nullable(); //訂單備註、客戶備註
@@ -65,6 +65,9 @@ return new class extends Migration
             $table->boolean('is_closed')->default('0');
             $table->boolean('is_payed_off')->default('0');
             $table->string('old_code',10)->nullable(); //舊訂單編號(紙本)
+            $table->datetime('ready_date')->nullable()->comment('The date the product is ready.');
+
+
             $table->timestamps();
         });
         

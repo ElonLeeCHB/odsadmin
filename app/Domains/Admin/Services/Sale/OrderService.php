@@ -55,9 +55,9 @@ class OrderService extends Service
 
         $data = $this->getListQueryData($data);
 
-        $rows = $this->repository->getRows($data, $debug);
+        $orders = $this->repository->getOrders($data, $debug);
 
-        return $rows;
+        return $orders;
     }
 
     public function getListQueryData($data)
@@ -242,6 +242,8 @@ class OrderService extends Service
                 $order->telephone = $telephone ?? '';
                 $order->email = $data['email'] ?? '';
                 $order->order_date = $data['order_date'] ?? null;
+                $order->production_start_time = $data['production_start_time'] ?? '';
+                $order->production_ready_time = $data['production_ready_time'] ?? '';
                 $order->payment_company = $data['payment_company'] ?? '';
                 $order->payment_department= $data['payment_department'] ?? '';
                 $order->payment_tin = $data['payment_tin'] ?? '';
@@ -554,9 +556,12 @@ class OrderService extends Service
                     ];
                     $sort_order++;
                 }
+
+                if(!empty($update_order_totals)){
+                    $this->OrderTotalRepository->newModel()->upsert($update_order_totals,['id']);
+                }
             }
 
-            $this->OrderTotalRepository->newModel()->upsert($update_order_totals,['id']);
 
             DB::commit();
             return ['data' => $order];
@@ -977,9 +982,9 @@ class OrderService extends Service
                         ,'order_products.product.main_category'
                         ];
 
-        $query = $this->getQuery($data);
+        $query = $this->getQuery($data,1);
         
-        $orders = $query->limit(100)->orderByDesc('delivery_date')->get();
+        $orders = $query->limit(50)->orderByDesc('delivery_date')->get();
 
         foreach ($orders as $order) {
             $htmlData['orders'][] = $this->getOrderPrintData($order);

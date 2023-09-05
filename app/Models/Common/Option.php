@@ -39,8 +39,10 @@ class Option extends Model
 
     protected function name(): Attribute
     {
+        $name = $this->translation->name ?? '';
+
         return Attribute::make(
-            get: fn () => $this->translation->name,
+            get: fn () => $name,
         );
     }
 }

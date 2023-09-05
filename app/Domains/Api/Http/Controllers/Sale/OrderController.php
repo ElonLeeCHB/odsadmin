@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
-use App\Domains\Admin\Services\Sale\OrderService;
+use App\Domains\Api\Services\Sale\OrderService;
 use App\Domains\Api\Services\Member\MemberService;
 //use App\Domains\Api\Services\User\UserService;
 use App\Repositories\Eloquent\User\UserRepository;

@@ -16,6 +16,7 @@ return [
 'text_sales_phrase' => '常用片語',
 'text_material_requisition' => '備料表',
 'text_material_requisition_setting' => '備料設定',
+'text_sales_order_schedule' => '訂單排程',
 
 'text_common' => '通用設定',
 'text_common_taxonomy' => '分類標籤性質設定',

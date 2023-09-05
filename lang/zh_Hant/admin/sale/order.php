@@ -33,7 +33,7 @@ return [
 //Column
 //訂單單頭
 'column_code' => '訂單編號',
-'column_delivery_date' => '送達日',
+'column_delivery_date' => '送達日期',
 'column_delivery_day_of_week' => '星期',
 'column_delivery_time' => '時間',
 'column_company' => '公司',

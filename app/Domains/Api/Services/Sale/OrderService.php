@@ -246,6 +246,8 @@ class OrderService extends Service
                 $order->telephone = $telephone ?? '';
                 $order->email = $data['email'] ?? '';
                 $order->order_date = $data['order_date'] ?? null;
+                $order->production_start_time = $data['production_start_time'] ?? '';
+                $order->production_ready_time = $data['production_ready_time'] ?? '';
                 $order->payment_company = $data['payment_company'] ?? '';
                 $order->payment_department= $data['payment_department'] ?? '';
                 $order->payment_tin = $data['payment_tin'] ?? '';
@@ -498,7 +500,7 @@ class OrderService extends Service
             // OrderTotal
             if(!empty($data['order_totals'])){
                 //Delete all
-                $this->OrderTotalRepository->newModel()->where('order_id', $data['order_id'])->delete();
+                OrderTotal::where('order_id', $data['order_id'])->delete();
 
                 $update_order_totals = [];
                 $sort_order = 1;
@@ -512,9 +514,11 @@ class OrderService extends Service
                     ];
                     $sort_order++;
                 }
-            }
 
-            $this->OrderTotalRepository->newModel()->upsert($update_order_totals,['id']);
+                if(!empty($update_order_totals)){
+                    OrderTotal::upsert($update_order_totals,['id']);
+                }
+            }
 
             DB::commit();
             return ['data' => $order];
