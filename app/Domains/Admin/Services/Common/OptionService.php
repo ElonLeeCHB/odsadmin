@@ -3,7 +3,7 @@
 namespace App\Domains\Admin\Services\Common;
 
 use Illuminate\Support\Facades\DB;
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use App\Repositories\Eloquent\Common\OptionRepository;
 use App\Repositories\Eloquent\Common\OptionValueRepository;
 use App\Models\Common\OptionTranslation;

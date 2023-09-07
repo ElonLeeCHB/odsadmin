@@ -5,7 +5,7 @@ namespace App\Domains\Admin\Services\Sale;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Libraries\TranslationLibrary;
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use App\Domains\Admin\Services\Common\OptionService;
 
 use App\Repositories\Eloquent\Common\TermRepository;
@@ -31,9 +31,9 @@ use Mpdf\Mpdf;
 class OrderService extends Service
 {
     protected $modelName = "\App\Models\Sale\Order";
-    private $lang;
 
-    public function __construct(public OrderRepository $repository
+    public function __construct(private OrderRepository $repository
+        , private OrderRepository $OrderRepository //測試
         , private OrderProductRepository $OrderProductRepository
         , private OrderTotalRepository $OrderTotalRepository
         , private OptionService $OptionService
@@ -47,63 +47,9 @@ class OrderService extends Service
 
     public function getOrders($data=[], $debug=0)
     {
-        //if(!empty($data['filter_predifined'])){
-            // if($data['filter_predifined'] == 'tomorrow'){
-            //     $delivery_date = Carbon::now()->addDay()->format('Y-m-d');
-            // }
-        //}
-
-        $data = $this->getListQueryData($data);
-
-        $orders = $this->repository->getOrders($data, $debug);
+        $orders = $this->OrderRepository->getOrders($data, $debug);
 
         return $orders;
-    }
-
-    public function getListQueryData($data)
-    {
-        //送達日 $delivery_date
-        if(!empty($data['filter_delivery_date'])){
-            $rawSql = $this->repository->parseDateToSqlWhere('delivery_date', $data['filter_delivery_date']);
-            if($rawSql){
-                $data['whereRawSqls'][] = $rawSql;
-            }
-            unset($data['filter_delivery_date']);
-        }
-        //
-
-        if(!empty($data['filter_phone'])){
-            $data['filter_phone'] = str_replace('-','',$data['filter_phone']);
-            $data['filter_phone'] = str_replace(' ','',$data['filter_phone']);
-
-            $data['andOrWhere'][] = [
-                'filter_mobile' => $data['filter_phone'],
-                'filter_telephone' => $data['filter_phone'],
-            ];
-            unset($data['filter_phone']);
-        }
-
-        if(!empty($data['filter_keyname'])){
-            $data['andOrWhere'][] = [
-                'filter_personal_name' => $data['filter_keyname'],
-                'filter_shipping_personal_name' => $data['filter_keyname'],
-                'filter_shipping_company' => $data['filter_keyname'],
-                'filter_payment_company' => $data['filter_keyname'],
-            ];
-            unset($data['filter_keyname']);
-        }
-
-        if(!empty($data['filter_shipping_state_id'])){
-            $data['equal_shipping_state_id'] = $data['filter_shipping_state_id'];
-        }
-
-        if(!empty($data['filter_shipping_city_id'])){
-            $data['equal_shipping_city_id'] = $data['filter_shipping_city_id'];
-        }
-
-        $data['with'][] = 'status.translation';
-
-        return $data;
     }
 
 
@@ -760,7 +706,7 @@ class OrderService extends Service
 
     public function exportOrderProducts($data)
     {
-        $data = $this->getListQueryData($data);
+        $data = $this->OrderRepository->getListQueryData($data);
 
         $data['with'][] = 'order_products';
 
@@ -975,7 +921,7 @@ class OrderService extends Service
         $htmlData['base'] = config('app.admin_url');
         $htmlData['underline'] = '_______________';
 
-        $data = $this->getListQueryData($data);
+        $data = $this->OrderRepository->getListQueryData($data);
 
         $data['with'] = ['order_products.order_product_options.product_option.option'
                         ,'order_products.order_product_options.product_option_value'

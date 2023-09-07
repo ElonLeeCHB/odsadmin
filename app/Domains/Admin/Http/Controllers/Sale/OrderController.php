@@ -172,7 +172,7 @@ class OrderController extends BackendController
             foreach ($orders as $row) {
                 $row->edit_url = route('lang.admin.sale.orders.form', array_merge([$row->id], $query_data));
                 $row->payment_phone = $row->payment_mobile . "<BR>" . $row->payment_telephone;
-                $row->status_text = $status_items[$row->status_id] ?? '';
+                $row->status_name = $status_items[$row->status_id] ?? '';
             }
         }
 

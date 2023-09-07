@@ -57,6 +57,9 @@ Route::group([
         Route::get('order/{order_id}', 'Sale\OrderController@details')->name('order.details');
         Route::get('order/{order_id}/header', 'Sale\OrderController@header')->name('order.header');
 
+        Route::get('order/schedule/list/{delivery_date?}', 'Sale\OrderScheduleController@list')->name('order.schedule.list');
+        Route::post('order/schedule/save', 'Sale\OrderScheduleController@save')->name('order.schedule.save');
+
     });
 
     Route::group([

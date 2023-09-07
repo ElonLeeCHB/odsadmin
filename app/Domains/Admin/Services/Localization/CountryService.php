@@ -2,13 +2,12 @@
 
 namespace App\Domains\Admin\Services\Localization;
 
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use App\Repositories\Eloquent\Localization\CountryRepository;
 
 class CountryService extends Service
 {
     protected $modelName = "\App\Models\Localization\Country";
-	private $lang;
 	
 	public function __construct(public CountryRepository $repository)
 	{

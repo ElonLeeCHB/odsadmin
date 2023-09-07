@@ -2,13 +2,12 @@
 
 namespace App\Domains\Admin\Services\Localization;
 
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use App\Repositories\Eloquent\Localization\DivisionRepository;
 
 class DivisionService extends Service
 {
     protected $modelName = "\App\Models\Localization\Division";
-	private $lang;
 
 	public function __construct(public DivisionRepository $repository)
 	{

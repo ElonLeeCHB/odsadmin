@@ -2,7 +2,7 @@
 
 namespace App\Domains\Admin\Services\Sale;
 
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use Illuminate\Support\Facades\DB;
 
 class OrderProductIngredientService extends Service

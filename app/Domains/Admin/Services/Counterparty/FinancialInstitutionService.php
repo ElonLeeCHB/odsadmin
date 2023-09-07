@@ -3,7 +3,7 @@
 namespace App\Domains\Admin\Services\Counterparty;
 
 use Illuminate\Support\Facades\DB;
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use App\Repositories\Eloquent\Counterparty\FinancialInstitutionRepository;
 
 class FinancialInstitutionService extends Service

@@ -38,6 +38,9 @@ trait EloquentTrait
             $this->connection = DB::connection()->getName();
         }
 
+        
+        $this->table_columns = $this->getTableColumns($this->connection);
+
         $this->zh_hant_hans_transform = false;
 
     }
@@ -207,34 +210,36 @@ trait EloquentTrait
 
 
         // is_active can only be: 1, 0, -1, *
-        // - 相容以前的舊寫法
-        if(isset($data['filter_is_active'])){
-            $data['equal_is_active'] = $data['filter_is_active'];
-            unset($data['filter_is_active']);
-        }
-
-        // - 如果 equal_is_active 是 *, 或長度是 0 ，或值小於0，表示不做 is_active 判斷。
-        if(isset($data['equal_is_active']) && ($data['equal_is_active'] == '*' || strlen($data['equal_is_active']) === 0 || $data['equal_is_active'] < 0)){
-            unset($data['equal_is_active']);
-        }
-
-        // - 開始判斷
-        if(isset($data['equal_is_active'])){
-            $equal_is_active = $data['equal_is_active'];
-
-            // -- 變數為值=0，表示不啟用。除了真的是0，把null也算在內。
-            if($equal_is_active == 0){
-                $query->where(function ($query) use($equal_is_active) {
-                    $query->orWhere('is_active', 0);
-                    $query->orWhereNull('is_active');
-                });
-            }else if($equal_is_active == 1){
-                $query->where('is_active', 1);
+        if(in_array('is_active', $this->table_columns)){
+            
+            // - 相容以前的舊寫法
+            if(isset($data['filter_is_active'])){
+                $data['equal_is_active'] = $data['filter_is_active'];
+                unset($data['filter_is_active']);
             }
 
-            unset($data['equal_is_active']);
+            // - 如果 equal_is_active 是 *, 或長度是 0 ，或值小於0，表示不做 is_active 判斷。
+            if(isset($data['equal_is_active']) && ($data['equal_is_active'] == '*' || strlen($data['equal_is_active']) === 0 || $data['equal_is_active'] < 0)){
+                unset($data['equal_is_active']);
+            }
+
+            // - 開始判斷
+            if(isset($data['equal_is_active'])){
+                $equal_is_active = $data['equal_is_active'];
+
+                // -- 變數為值=0，表示不啟用。除了真的是0，把null也算在內。
+                if($equal_is_active == 0){
+                    $query->where(function ($query) use($equal_is_active) {
+                        $query->orWhere('is_active', 0);
+                        $query->orWhereNull('is_active');
+                    });
+                }else if($equal_is_active == 1){
+                    $query->where('is_active', 1);
+                }
+
+                unset($data['equal_is_active']);
+            }
         }
-        // End is_active
 
 
         // Equal

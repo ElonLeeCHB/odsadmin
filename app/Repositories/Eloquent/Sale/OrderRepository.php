@@ -17,12 +17,16 @@ class OrderRepository extends Repository
      */
     public function getOrders($data=[], $debug=0)
     {
+        $data = $this->getListQueryData($data);
+
         $orders = $this->getRows($data, $debug);
 
         $statuses = $this->getOrderStatuses();
 
         foreach ($orders as $row) {
-            $row->status_text = $statuses[$row->status_id]['name'];
+            if(!empty($row->status_id)){
+                $row->status_name = $statuses[$row->status_id]['name'];
+            }
         }
 
         return $orders;
@@ -69,6 +73,51 @@ class OrderRepository extends Repository
         }
 
         return $order_statuses;
+    }
+
+
+    public function getListQueryData($data)
+    {
+        //送達日 $delivery_date
+        if(!empty($data['filter_delivery_date'])){
+            $rawSql = $this->parseDateToSqlWhere('delivery_date', $data['filter_delivery_date']);
+            if($rawSql){
+                $data['whereRawSqls'][] = $rawSql;
+            }
+            unset($data['filter_delivery_date']);
+        }
+        //
+
+        if(!empty($data['filter_phone'])){
+            $data['filter_phone'] = str_replace('-','',$data['filter_phone']);
+            $data['filter_phone'] = str_replace(' ','',$data['filter_phone']);
+
+            $data['andOrWhere'][] = [
+                'filter_mobile' => $data['filter_phone'],
+                'filter_telephone' => $data['filter_phone'],
+            ];
+            unset($data['filter_phone']);
+        }
+
+        if(!empty($data['filter_keyname'])){
+            $data['andOrWhere'][] = [
+                'filter_personal_name' => $data['filter_keyname'],
+                'filter_shipping_personal_name' => $data['filter_keyname'],
+                'filter_shipping_company' => $data['filter_keyname'],
+                'filter_payment_company' => $data['filter_keyname'],
+            ];
+            unset($data['filter_keyname']);
+        }
+
+        if(!empty($data['filter_shipping_state_id'])){
+            $data['equal_shipping_state_id'] = $data['filter_shipping_state_id'];
+        }
+
+        if(!empty($data['filter_shipping_city_id'])){
+            $data['equal_shipping_city_id'] = $data['filter_shipping_city_id'];
+        }
+
+        return $data;
     }
 }
 

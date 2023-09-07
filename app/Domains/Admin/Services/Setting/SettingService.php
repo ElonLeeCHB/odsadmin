@@ -2,7 +2,7 @@
 
 namespace App\Domains\Admin\Services\Setting;
 
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use App\Repositories\Eloquent\Setting\SettingRepository;
 use Illuminate\Support\Facades\DB;
 

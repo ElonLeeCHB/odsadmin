@@ -3,13 +3,12 @@
 namespace App\Domains\Admin\Services\SysData;
 
 use App\Libraries\TranslationLibrary;
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use App\Repositories\Eloquent\SysData\GovUniformInvoiceNumberRepository;
 use Cache;
 
 class GovUniformInvoiceNumberService extends Service
 {
-    private $lang;
     protected $modelName = "\App\Models\SysData\GovUniformInvoiceNumber";
     protected $connection = 'sysdata';
 

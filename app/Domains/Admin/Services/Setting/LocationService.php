@@ -3,7 +3,7 @@
 namespace App\Domains\Admin\Services\Setting;
 
 use Illuminate\Support\Facades\DB;
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use App\Repositories\Eloquent\Setting\LocationRepository;
 
 class LocationService extends Service

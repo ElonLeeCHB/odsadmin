@@ -31,7 +31,7 @@
           <td class="text-start">mob:{{ $row->mobile }}<BR>tel:{{ $row->telephone }}</td>
           <td class="text-start">{{ $row->shipping_road_abbr }}</td>
           <td class="text-start">{{ $row->delivery_date }}</td>
-          <td class="text-start">{{ $row->status_text }}</td>
+          <td class="text-start">{{ $row->status_name }}</td>
           <td class="text-end"><a href="{{ $row->edit_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_edit }}" class="btn btn-primary"><i class="fas fa-pencil-alt"></i></a></td>
         </tr>
         <?php $i++;?>

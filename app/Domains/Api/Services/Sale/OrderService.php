@@ -50,63 +50,11 @@ class OrderService extends Service
 
     public function getOrders($data=[], $debug=0)
     {
-        //if(!empty($data['filter_predifined'])){
-            // if($data['filter_predifined'] == 'tomorrow'){
-            //     $delivery_date = Carbon::now()->addDay()->format('Y-m-d');
-            // }
-        //}
+        $data = $this->repository->getListQueryData($data);
 
-        $data = $this->getListQueryData($data);
+        $orders = $this->repository->getOrders($data, $debug);
 
-        $rows = $this->repository->getRows($data, $debug);
-
-        return $rows;
-    }
-
-    public function getListQueryData($data)
-    {
-        //送達日 $delivery_date
-        if(!empty($data['filter_delivery_date'])){
-            $rawSql = $this->repository->parseDateToSqlWhere('delivery_date', $data['filter_delivery_date']);
-            if($rawSql){
-                $data['whereRawSqls'][] = $rawSql;
-            }
-            unset($data['filter_delivery_date']);
-        }
-        //
-
-        if(!empty($data['filter_phone'])){
-            $data['filter_phone'] = str_replace('-','',$data['filter_phone']);
-            $data['filter_phone'] = str_replace(' ','',$data['filter_phone']);
-
-            $data['andOrWhere'][] = [
-                'filter_mobile' => $data['filter_phone'],
-                'filter_telephone' => $data['filter_phone'],
-            ];
-            unset($data['filter_phone']);
-        }
-
-        if(!empty($data['filter_keyname'])){
-            $data['andOrWhere'][] = [
-                'filter_personal_name' => $data['filter_keyname'],
-                'filter_shipping_personal_name' => $data['filter_keyname'],
-                'filter_shipping_company' => $data['filter_keyname'],
-                'filter_payment_company' => $data['filter_keyname'],
-            ];
-            unset($data['filter_keyname']);
-        }
-
-        if(!empty($data['filter_shipping_state_id'])){
-            $data['equal_shipping_state_id'] = $data['filter_shipping_state_id'];
-        }
-
-        if(!empty($data['filter_shipping_city_id'])){
-            $data['equal_shipping_city_id'] = $data['filter_shipping_city_id'];
-        }
-
-        $data['with'][] = 'status.translation';
-
-        return $data;
+        return $orders;
     }
 
 

@@ -10,7 +10,7 @@ use App\Repositories\Eloquent\Localization\LanguageRepository;
 use App\Domains\Admin\Services\Catalog\ProductService;
 use App\Domains\Admin\Services\Common\OptionService;
 use App\Domains\Admin\Services\Catalog\CategoryService;
-use App\Domains\Admin\Services\Sale\OrderProductOptionService;
+use App\Services\Sale\OrderProductOptionService;
 use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
 
 class ProductController extends BackendController

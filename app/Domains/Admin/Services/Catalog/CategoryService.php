@@ -3,7 +3,7 @@
 namespace App\Domains\Admin\Services\Catalog;
 
 use Illuminate\Support\Facades\DB;
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use App\Repositories\Eloquent\Common\TermRepository;
 
 class CategoryService extends Service

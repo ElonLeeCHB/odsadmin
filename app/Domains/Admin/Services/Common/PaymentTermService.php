@@ -4,7 +4,7 @@ namespace App\Domains\Admin\Services\Common;
 
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use App\Repositories\Eloquent\Common\PaymentTermRepository;
 
 class PaymentTermService extends Service

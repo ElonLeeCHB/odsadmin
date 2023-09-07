@@ -5,13 +5,12 @@ namespace App\Domains\Admin\Services\Admin;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use App\Models\User\UserMeta;
 
 class PermissionService extends Service
 {
     protected $modelName = "\App\Models\User\Permission";
-    private $lang;
 
     public function getPermissions($data, $debug=0)
     {

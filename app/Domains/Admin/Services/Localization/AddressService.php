@@ -2,7 +2,7 @@
 
 namespace App\Domains\Admin\Services\Localization;
 
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use App\Libraries\TranslationLibrary;
 use App\Repositories\Eloquent\Localization\AddressRepository;
 use App\Repositories\Eloquent\Localization\DivisionRepository;
@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Validator;
 class AddressService extends Service
 {
     protected $modelName = "\App\Models\Localization\Address";
-	private $lang;
 
 	public function __construct(public AddressRepository $repository
 		, private DivisionRepository $divisionRepository
