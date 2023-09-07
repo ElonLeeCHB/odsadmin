@@ -15,6 +15,8 @@ use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Common\Term;
 use App\Models\Common\TermTranslation;
 use App\Models\Common\TermRelation;
+use App\Models\Sale\OrderTotal;
+//
 
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
