@@ -24,11 +24,20 @@ class OrderScheduleService extends Service
      */
     public function getOrders($data=[], $debug=0)
     {
+        $data['pagination'] = false;
+        $data['limit'] = 50;
+
         $data['select'] = ['id', 'code', 'personal_name', 'status_id'
             , 'shipping_state_id', 'shipping_city_id', 'shipping_road', 'shipping_address1', 'shipping_address2', 'shipping_road_abbr'
             , 'order_date', 'production_start_time', 'production_ready_time', 'shipping_date', 'delivery_date', 'delivery_time_range'
             , 'production_sort_order_of_the_day'
         ];
+
+        if(empty($data['production_sort_order_of_the_day'])){
+            $data['sort'] = 'production_sort_order_of_the_day';
+            $data['order'] = 'ASC';
+        }
+
         return $this->OrderRepository->getOrders($data, $debug);
     }
     
@@ -52,8 +61,10 @@ class OrderScheduleService extends Service
                 ];
 
                  $this->OrderRepository->newModel()->where('id', $update_date['id'])->update($update_date);
+
+                 $ids[] = $order['order_id'];
             }
-            
+
             DB::commit();
 
             return ['msg' => 'success'];

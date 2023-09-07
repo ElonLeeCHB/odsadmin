@@ -1,6 +1,7 @@
 @extends('admin.app')
 
 @section('pageJsCss')
+
 @endsection
 
 @section('columnLeft')
@@ -53,9 +54,14 @@ $(function(){
   $('#button-search').on('click', function() {
     let delivery_date = $('#input-required_date').val();
 
-    window.location.href = "{{ $index_url }}/" + delivery_date;;
+    let listUrl = "{{ $list_url }}/" + delivery_date;
+    $('#schedule').load(listUrl);
+    
+    let indexUrl = "{{ $index_url }}/" + delivery_date;
+    window.history.pushState(null, null, indexUrl);
   });
 });
 
+list
 </script>
 @endsection

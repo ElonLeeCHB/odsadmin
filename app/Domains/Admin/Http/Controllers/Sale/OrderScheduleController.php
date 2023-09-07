@@ -117,29 +117,31 @@ class OrderScheduleController extends BackendController
     }
 
 
-    public function getList($delivery_date = '')
+    public function getList($delivery_date_string = '')
     {
         $data['lang'] = $this->lang;
 
-        if(empty($delivery_date)){
+        $delivery_date = parseDate($delivery_date_string);
+
+        if($delivery_date == false){
             return null;
         }
 
         // Prepare filter_data for records
         $filter_data = $this->getQueries($this->request->query());
         $filter_data['filter_delivery_date'] = $delivery_date;
-        $filter_data['pagination'] = false;
-        $filter_data['limit'] = 50;
 
         // Rows
         $orders = $this->OrderScheduleService->getOrders($filter_data);
 
         foreach ($orders as $key => $row) {
-            $row->delivery_date = Carbon::parse($row->delivery_date)->format('Y-m-d H:i');
+            $row->delivery_date = Carbon::parse($row->delivery_date)->format('Y-m-d');
+            $row->delivery_time = Carbon::parse($row->delivery_date)->format('H:i');
             $row->edit_url = route('lang.admin.sale.orders.form', array_merge([$row->id]));
         }
 
         $data['orders'] = $orders;
+        $data['delivery_date'] = $delivery_date;
 
         $data['save_url'] = route('lang.admin.sale.order_schedule.save');
         $data['list_url'] = route('lang.admin.sale.order_schedule.list');
@@ -175,7 +177,7 @@ class OrderScheduleController extends BackendController
                 
             }
         }
-        
+
         return response(json_encode($json))->header('Content-Type','application/json');
     }
 

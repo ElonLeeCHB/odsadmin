@@ -32,6 +32,7 @@
 
         <?php $i++;?>
         @endforeach
+        <input type="hidden" name="orders[delivery_date]" value="{{ $delivery_date }}">
       </tbody>
     </table>
   </div>
