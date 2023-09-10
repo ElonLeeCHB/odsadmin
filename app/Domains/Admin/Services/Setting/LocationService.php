@@ -9,27 +9,34 @@ use App\Repositories\Eloquent\Setting\LocationRepository;
 class LocationService extends Service
 {
     protected $modelName = "\App\Models\Setting\Location";
-	public $repository;
+    public $repository;
 
 
     public function __construct(protected LocationRepository $LocationRepository)
     {}
 
 
-	public function updateOrCreate($data)
-	{
+    public function getLocations($data=[], $debug = 0)
+    {
+        $rows = $this->LocationRepository->getLocations($data, $debug);
+
+        return $rows;
+    }
+
+    public function updateOrCreate($data)
+    {
         DB::beginTransaction();
 
         try {
             $location = $this->findIdOrFailOrNew($data['location_id']);
 
-			$location->name = $data['name'];
-			$location->short_name = $data['short_name'] ?? '';
-			$location->telephone = $data['telephone'] ?? '';
-			//$location->geocode = $data['geocode'];
-			$location->owner = $data['owner'] ?? '';
+            $location->name = $data['name'];
+            $location->short_name = $data['short_name'] ?? '';
+            $location->telephone = $data['telephone'] ?? '';
+            //$location->geocode = $data['geocode'];
+            $location->owner = $data['owner'] ?? '';
 
-			$location->save();
+            $location->save();
 
 
             DB::commit();
@@ -44,7 +51,7 @@ class LocationService extends Service
             $result['error'] = $ex->getMessage();
             return $result;
         }
-	}
+    }
 
 
     public function deleteLocation($location_id)

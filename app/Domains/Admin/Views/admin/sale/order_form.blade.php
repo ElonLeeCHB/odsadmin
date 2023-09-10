@@ -699,7 +699,7 @@ $(document).ready(function() {
     $('#input-personal_name').autocomplete({
       'minLength': 1,
       'source': function (request, response) {
-        var regex = /[a-zA-Z0-9\u3105-\u3129]+/;
+        var regex = /[a-zA-Z0-9\u3105-\u3129]+/;//注音符號
         if (regex.test(request)) {
           return;
         }else{

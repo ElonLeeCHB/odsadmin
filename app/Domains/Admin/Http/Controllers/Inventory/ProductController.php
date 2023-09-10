@@ -7,8 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Libraries\TranslationLibrary;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
+use App\Repositories\Eloquent\Localization\UnitRepository;
 use App\Domains\Admin\Services\Common\OptionService;
-use App\Domains\Admin\Services\Catalog\ProductService;
+use App\Services\Inventory\ProductService;
 use App\Domains\Admin\Services\Catalog\CategoryService;
 use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
 
@@ -21,6 +22,7 @@ class ProductController extends BackendController
         , private ProductService $ProductService
         , private CategoryService $CategoryService
         , private ProductOptionValueRepository $ProductOptionValueRepository
+        , private UnitRepository $UnitRepository
     )
     {
         parent::__construct();
@@ -88,15 +90,9 @@ class ProductController extends BackendController
         // Prepare query_data for records
         $query_data = $this->getQueries($this->request->query());
 
-        // Extra
-        if(!isset($query_data['equal_is_active'])){
-            $query_data['equal_is_active'] = '1';
-        }
-        //echo '<pre>', print_r($query_data, 1), "</pre>"; exit;
-
         // Rows
-        $products = $this->ProductService->getRows($query_data);
-
+        $products = $this->ProductService->getProducts($query_data);
+        //echo '<pre>', print_r($products, 1), "</pre>"; exit;
         if(!empty($products)){
             foreach ($products as $row) {
                 $row->edit_url = route('lang.admin.inventory.products.form', array_merge([$row->id], $query_data));
@@ -203,9 +199,16 @@ class ProductController extends BackendController
 
         // Get Record
         $product = $this->ProductService->findIdOrFailOrNew($product_id);
+        $product->supplier_name = $product->supplier->name ?? '';
+        $product->supplier_product_name = $product->supplier_product->name ?? '';
 
-        $product_stdobj = $this->ProductService->toStdObj($product);
-
+        // $product->load('supplier');
+        // $clone_product = $product->toArray();
+        // $clone_product['supplier_name'] = $clone_product['supplier']['name'];
+        // unset($clone_product['supplier']);
+        // unset($clone_product['translation']);
+        // $clone_product = (object) $clone_product;
+        // $data['product']  = $clone_product;
         $data['product']  = $product;
 
         if(!empty($data['product']) && $product_id == $product->id){
@@ -232,7 +235,7 @@ class ProductController extends BackendController
             $ids = $product->categories->pluck('id')->toArray();
             if(!empty($ids)){
                 $cat_filters = [
-                    'whereIn' => $ids,
+                    'whereIn' => ['id', $$ids],
                     'pagination' => false
                 ];
                 $product_categories = $this->CategoryService->getRows($cat_filters);
@@ -253,7 +256,22 @@ class ProductController extends BackendController
         $data['bom_products'] = [];
 
         $data['product_options'] = [];
+        
+        $data['source_codes'] = $this->ProductService->getProductSourceCodes();
 
+        // supplier
+        $data['supplier_autocomplete_url'] = route('lang.admin.counterparty.suppliers.autocomplete');
+
+        // supplier_product
+        $data['supplier_product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
+        
+        // units
+        $filter_data = [
+            'filter_keyword' => $this->request->filter_keyword,
+            'pagination' => false,
+            'limit' => 0,
+        ];
+        $data['units'] = $this->UnitRepository->getActiveUnits($filter_data);
 
         return view('admin.inventory.product_form', $data);
     }
@@ -272,53 +290,6 @@ class ProductController extends BackendController
             }
         }
 
-        // Check product_options
-        if (isset($data['product_options'])) {
-
-            //product_options in form
-            $product_option_value_ids_in_form = [];
-            foreach($data['product_options'] as $product_option){
-                if(!empty($product_option['product_option_values'])){
-                    foreach ($product_option['product_option_values'] as $product_option_value) {
-                        $product_option_value_ids_in_form[] = $product_option_value['product_option_value_id'];
-                    }
-                }
-            }
-
-            if(!empty($product_option_value_ids_in_form)){
-                $product_option_value_ids_in_form = array_unique($product_option_value_ids_in_form);
-                sort($product_option_value_ids_in_form);
-
-                //product_options in database
-                $query_data = [
-                    'equal_product_id' => $data['product_id'],
-                    'pluck' => 'id',
-                    'limit' => 0,
-                    'pagination' => false,
-                    'sort' => 'id',
-                    'order' => 'ASC',
-                ];
-                $existed_product_option_values = $this->ProductOptionValueRepository->getRows($query_data)->toArray();
-                $existed_product_option_values = array_unique($existed_product_option_values);
-
-                // Delete check
-                $delete_product_option_value_ids = array_diff($existed_product_option_values, $product_option_value_ids_in_form);
-
-                foreach ($delete_product_option_value_ids as $product_option_value_id) {
-                    $filter_data = [
-                        'equal_product_option_value_id' => $product_option_value_id,
-                        'pagination' => false,
-                        'select' => ['id','order_id'],
-                    ];
-                    $order_product_options = $this->OrderProductOptionService->getRow($filter_data);
-
-                    if(!empty($order_product_options)){
-                        $json['error']['warning'] = $this->lang->error_product_option_value . ' order_id: ' . $order_product_options->order_id;
-                    }
-                }
-            }
-        }
-
         if (isset($json['error']) && !isset($json['error']['warning'])) {
             $json['error']['warning'] = $this->lang->error_warning;
         }
@@ -330,7 +301,7 @@ class ProductController extends BackendController
                 $json = [
                     'success' => $this->lang->text_success,
                     'product_id' => $result['product_id'],
-                    'redirectUrl' => route('lang.admin.catalog.products.form', $result['product_id']),
+                    'redirectUrl' => route('lang.admin.inventory.products.form', $result['product_id']),
                 ];
 
             }else{
@@ -342,6 +313,46 @@ class ProductController extends BackendController
             }
         }
         
+        return response(json_encode($json))->header('Content-Type','application/json');
+    }
+
+
+    public function autocomplete()
+    {
+        $json = [];
+
+        if(isset($this->request->filter_name)){
+            $filter_name = $this->request->filter_name;
+        }else{
+            $filter_name = '';
+        }
+
+        if(isset($this->request->filter_model)){
+            $filter_model = $this->request->filter_model;
+        }else{
+            $filter_model = '';
+        }
+
+        $filter_data = array(
+            'filter_model' => $filter_model,
+            'filter_name' => $filter_name,
+            'filter_is_salable' => $this->request->filter_is_salable,
+            'limit'   => 10,
+            'pagination'   => false,
+        );
+
+        $rows = $this->ProductService->getProducts($filter_data);
+
+        foreach ($rows as $row) {
+            $json[] = array(
+                'label' => $row->name . '-' . $row->id,
+                'value' => $row->id,
+                'product_id' => $row->id,
+                'product_name' => $row->name,
+                'model' => $row->model,
+            );
+        }
+
         return response(json_encode($json))->header('Content-Type','application/json');
     }
 

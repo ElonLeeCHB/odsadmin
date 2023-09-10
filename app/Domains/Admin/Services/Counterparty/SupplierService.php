@@ -27,7 +27,7 @@ class SupplierService extends Service
 
         $data['with'] = 'payment_term';
 		
-		$rows = $this->getRows($data);
+		$rows = $this->getRows($data, $debug);
 
 		if(!empty($rows)){
             foreach ($rows as $row) {

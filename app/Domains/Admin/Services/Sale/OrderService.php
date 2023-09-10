@@ -706,7 +706,7 @@ class OrderService extends Service
 
     public function exportOrderProducts($data)
     {
-        $data = $this->OrderRepository->getListQueryData($data);
+        $data = $this->OrderRepository->resetQueryData($data);
 
         $data['with'][] = 'order_products';
 
@@ -921,7 +921,7 @@ class OrderService extends Service
         $htmlData['base'] = config('app.admin_url');
         $htmlData['underline'] = '_______________';
 
-        $data = $this->OrderRepository->getListQueryData($data);
+        $data = $this->OrderRepository->resetQueryData($data);
 
         $data['with'] = ['order_products.order_product_options.product_option.option'
                         ,'order_products.order_product_options.product_option_value'

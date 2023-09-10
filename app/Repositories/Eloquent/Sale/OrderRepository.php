@@ -17,7 +17,7 @@ class OrderRepository extends Repository
      */
     public function getOrders($data=[], $debug=0)
     {
-        $data = $this->getListQueryData($data);
+        $data = $this->resetQueryData($data);
 
         $orders = $this->getRows($data, $debug);
 
@@ -76,7 +76,7 @@ class OrderRepository extends Repository
     }
 
 
-    public function getListQueryData($data)
+    public function resetQueryData($data)
     {
         //送達日 $delivery_date
         if(!empty($data['filter_delivery_date'])){

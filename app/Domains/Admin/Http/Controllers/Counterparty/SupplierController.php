@@ -311,21 +311,23 @@ class SupplierController extends BackendController
     {
         $json = [];
 
-        $filter_data = array(
-            'filter_mixed_name'   => $this->request->filter_mixed_name,
-            'filter_contact'   => $this->request->filter_contact,
-            'filter_contact_phone'   => $this->request->filter_contact_phone,
-        );
+        $query_data = $this->request->query();
 
-        if (!empty($this->request->sort)) {
-            if($this->request->sort =='name'){
-                $filter_data['sort'] = '.name';
-            } else if($this->request->sort =='short_name'){
-                $filter_data['sort'] = '.short_name';
-            }
-        }
+        // $filter_data = array(
+        //     'filter_keyword'   => $this->request->filter_keyword,
+        //     'filter_contact'   => $this->request->filter_contact,
+        //     'filter_contact_phone'   => $this->request->filter_contact_phone,
+        // );
 
-        $rows = $this->SupplierService->getRows($filter_data);
+        // if (!empty($this->request->sort)) {
+        //     if($this->request->sort =='name'){
+        //         $filter_data['sort'] = '.name';
+        //     } else if($this->request->sort =='short_name'){
+        //         $filter_data['sort'] = '.short_name';
+        //     }
+        // }
+
+        $rows = $this->SupplierService->getSuppliers($query_data);
 
         if(empty($rows)){
             return false;
@@ -333,11 +335,23 @@ class SupplierController extends BackendController
 
         foreach ($rows as $row) {
             $json[] = array(
+                'label' => $row->name . ', ' . $row->tax_id_num,
+                'value' => $row->id,
                 'supplier_id' => $row->id,
-                'name' => $row->name,
+                'supplier_name' => $row->name,
                 'short_name' => $row->short_name,
+                'tax_id_num' => $row->tax_id_num,
             );
         }
+
+        array_unshift($json,[
+            'value' => 0,
+            'label' => ' -- ',
+            'supplier_id' => '',
+            'supplier_name' => '',
+            'short_name' => '',
+            'tax_id_num' => '',
+        ]);
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }

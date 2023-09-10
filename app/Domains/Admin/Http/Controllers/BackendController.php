@@ -68,10 +68,10 @@ class BackendController extends Controller
             }
         }
 
-        // Extra
-        // if(!isset($query_data['equal_is_active'])){
-        //     $query_data['equal_is_active'] = 1;
-        // }
+        // is_active
+        if(!isset($query_data['equal_is_active'])){
+            $query_data['equal_is_active'] = 1;
+        }
 
         return $query_data;
     }

@@ -321,12 +321,12 @@ class LayoutComposer
             ];
         }
 
-        // 進貨作業
+        // 採購作業
         if(1) {
             $inventory[] = [
-                'name'	   => $this->lang->text_inventory_receiving,
+                'name'	   => $this->lang->text_purchasing_orders,
                 'icon'	   => '',
-                'href'     => route('lang.admin.inventory.receiving.index'),
+                'href'     => route('lang.admin.inventory.purchasing.index'),
                 'children' => []
             ];
         }

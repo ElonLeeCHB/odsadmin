@@ -27,7 +27,7 @@
         <div class="card-body">
           <ul class="nav nav-tabs">
             <li class="nav-item"><a href="#tab-trans" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_trans }}</a></li>
-            <li class="nav-item"><a href="#tab-general" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_general }}</a></li>
+            <li class="nav-item"><a href="#tab-data" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_data }}</a></li>
           </ul>
           <form id="form-product" action="{{ $save }}" method="post" data-oc-toggle="ajax">
             @csrf
@@ -54,22 +54,34 @@
                         <div id="error-name-{{ $language->code }}" class="invalid-feedback"></div>
                       </div>
                     </div>
+
                     <div class="row mb-3 ">
                       <label for="input-full_name-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_full_name }}</label>
                       <div class="col-sm-10">
                         <div class="input-group">
-                          <input type="text" name="translations[{{ $language->code }}][full_name]" value="{{ $product_translations[$language->code]['full_name'] ?? ''  }}" placeholder="{{ $lang->column_full_name }}" id="input-name-{{ $language->code }}" class="form-control">
+                          <input type="text" name="translations[{{ $language->code }}][full_name]" value="{{ $product_translations[$language->code]['full_name'] ?? ''  }}" id="input-name-{{ $language->code }}" class="form-control">
                                                   </div>
                         <div id="error-full_name-{{ $language->code }}" class="invalid-feedback"></div>
                       </div>
                     </div>
+
                     <div class="row mb-3 ">
                       <label for="input-short_name-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_short_name }}</label>
                       <div class="col-sm-10">
                         <div class="input-group">
-                          <input type="text" name="translations[{{ $language->code }}][short_name]" value="{{ $product_translations[$language->code]['short_name'] ?? ''  }}" placeholder="{{ $lang->column_short_name }}" id="input-short_name-{{ $language->code }}" class="form-control">
+                          <input type="text" name="translations[{{ $language->code }}][short_name]" value="{{ $product_translations[$language->code]['short_name'] ?? ''  }}" id="input-short_name-{{ $language->code }}" class="form-control">
                                                   </div>
                         <div id="error-short_name-{{ $language->code }}" class="invalid-feedback"></div>
+                      </div>
+                    </div>
+
+                    <div class="row mb-3 ">
+                      <label for="input-specification-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_specification }}</label>
+                      <div class="col-sm-10">
+                        <div class="input-group">
+                          <input type="text" name="translations[{{ $language->code }}][specification]" value="{{ $product_translations[$language->code]['specification'] ?? ''  }}" id="input-specification-{{ $language->code }}" class="form-control">
+                                                  </div>
+                        <div id="error-specification-{{ $language->code }}" class="invalid-feedback"></div>
                       </div>
                     </div>
 
@@ -103,69 +115,19 @@
                 </div>
               </div>
 
-              <div id="tab-general" class="tab-pane">
-                {{-- main category--}}
-                <div class="row mb-3">
-                  <label class="col-sm-2 col-form-label">{{ $lang->column_main_category }}</label>
-                  <div class="col-sm-10">
-                    <div class="input-group">
-                      <input type="text" name="main_category" value="{{ $product->main_category->translation->name ?? ''}}" placeholder="{{ $lang->column_main_category }}" id="input-main_category" data-oc-target="autocomplete-main_category_id" class="form-control"/>
-                    </div>
-                    <input type="hidden" name="main_category_id" value="{{ $product->main_category_id }}" id="input-main_category_id"/>
-                    <ul id="autocomplete-main_category_id" class="dropdown-menu"></ul>
-                    <div class="form-text">{{ $lang->help_main_category }}</div>
-                  </div>
-                </div>
+              <div id="tab-data" class="tab-pane">
 
-                {{-- product_accounting_category --}}
+                {{-- source_code --}}
                 <div class="row mb-3">
-                  <label class="col-sm-2 col-form-label">{{ $lang->column_accounting_category }}</label>
+                  <label for="input-source_code" class="col-sm-2 col-form-label">{{ $lang->column_source_code }}</label>
                   <div class="col-sm-10">
-                    <div class="input-group">
-                      <input type="text" id="input-product_accounting_category" name="product_accounting_category" value="" data-oc-target="autocomplete-accounting_category_id" class="form-control"/>
-                    </div>
-                    <input type="hidden" id="input-accounting_category_id" name="accounting_category_id" value="" />
-                    <ul id="autocomplete-accounting_category_id" class="dropdown-menu"></ul>
-                    <div class="form-text"></div>
-                  </div>
-                </div>
-
-                {{-- stock_category --}}
-                <div class="row mb-3">
-                  <label class="col-sm-2 col-form-label">{{ $lang->column_stock_category }}</label>
-                  <div class="col-sm-10">
-                    <div class="input-group">
-                      <input type="text" id="input-stock_category" name="stock_category" value="" data-oc-target="autocomplete-stock_category_id" class="form-control"/>
-                    </div>
-                    <input type="hidden" id="input-stock_category_id" name="stock_category_id" value="" />
-                    <ul id="autocomplete-stock_category_id" class="dropdown-menu"></ul>
-                    <div class="form-text"></div>
-                  </div>
-                </div>
-
-                {{-- sales_category --}}
-                <div class="row mb-3">
-                  <label class="col-sm-2 col-form-label">{{ $lang->column_sales_category }}</label>
-                  <div class="col-sm-10">
-                    <div class="input-group">
-                      <input type="text" id="input-sales_category" name="sales_category" value="" data-oc-target="autocomplete-sales_category_id" class="form-control"/>
-                    </div>
-                    <input type="hidden" id="input-sales_category_id" name="sales_category_id" value="" />
-                    <ul id="autocomplete-sales_category_id" class="dropdown-menu"></ul>
-                    <div class="form-text"></div>
-                  </div>
-                </div>
-
-                {{-- part_type --}}
-                <div class="row mb-3">
-                  <label for="input-part_type" class="col-sm-2 col-form-label">{{ $lang->column_part_type }}</label>
-                  <div class="col-sm-10">
-                    <select id="input-part_type" name="part_type" class="form-control">
-                      <option value="P">採購件</option>
-                      <option value="M">自製件</option>
-                      <option value="S">委外加工件</option>
+                    <select id="input-source_code" name="source_code" class="form-control">
+                      <option value="*">{{ $lang->text_select }}</option>
+                      @foreach($source_codes as $source_code)
+                      <option value="{{ $source_code->code }}" @if($product->source_code==$source_code->code) selected @endif>{{ $source_code->name }}</option>
+                      @endforeach
                     </select>
-                    <div id="error-part_type" class="invalid-feedback"></div>
+                    <div id="error-source_code" class="invalid-feedback"></div>
                   </div>
                 </div>
 
@@ -178,24 +140,67 @@
                   </div>
                 </div>
 
-                {{-- weight_class_id --}}
+                {{-- purchasing_unit_code --}}
                 <div class="row mb-3">
-                  <label for="input-weight_class_id" class="col-sm-2 col-form-label">{{ $lang->column_weight_class }}</label>
+                  <label for="input-purchasing_unit_code" class="col-sm-2 col-form-label">{{ $lang->column_purchasing_unit }}</label>
                   <div class="col-sm-10">
-                    <select id="input-weight_class_id" name="weight_class_id" class="form-control">
-                      <option value="KG">公斤</option>
-                      <option value="G">公克</option>
+                    <select id="input-purchasing_unit_code" name="purchasing_unit_code" class="form-control">
+                      <option value="">--</option>
+                      @foreach($units as $code => $unit)
+                      <option value="{{ $unit->code }}" @if($unit->code==$product->purchasing_unit_code) selected @endif>{{ $unit->label }}</option>
+                      @endforeach
                     </select>
-                    <div id="error-weight_class_id" class="invalid-feedback"></div>
+                    <div id="error-purchasing_unit_code" class="invalid-feedback"></div>
                   </div>
                 </div>
 
-                {{-- main_supplier --}}
+                {{-- stock_unit_code --}}
                 <div class="row mb-3">
-                  <label for="input-model" class="col-sm-2 col-form-label">{{ $lang->column_main_supplier }}</label>
+                  <label for="input-stock_unit_code" class="col-sm-2 col-form-label">{{ $lang->column_stock_unit }}</label>
                   <div class="col-sm-10">
-                    <input type="text" id="input-main_supplier" name="main_supplier " value="{{ $product->main_supplier }}" class="form-control"/>
-                    <div id="error-main_supplier " class="invalid-feedback"></div>
+                    <select id="input-stock_unit_code" name="stock_unit_code" class="form-control">
+                      <option value="">--</option>
+                      @foreach($units as $code => $unit)
+                      <option value="{{ $unit->code }}" @if($unit->code==$product->stock_unit_code) selected @endif>{{ $unit->label }}</option>
+                      @endforeach
+                    </select>
+                    <div id="error-stock_unit_code" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                {{-- manufacturing_unit_code --}}
+                <div class="row mb-3">
+                  <label for="input-manufacturing_unit_code" class="col-sm-2 col-form-label">{{ $lang->column_manufacturing_unit }}</label>
+                  <div class="col-sm-10">
+                    <select id="input-manufacturing_unit_code" name="manufacturing_unit_code" class="form-control">
+                      <option value="">--</option>
+                      @foreach($units as $code => $unit)
+                      <option value="{{ $unit->code }}" @if($unit->code==$product->manufacturing_unit_code) selected @endif>{{ $unit->label }}</option>
+                      @endforeach
+                    </select>
+                    <div id="error-manufacturing_unit_code" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                {{-- supplier --}}
+                <div class="row mb-3">
+                  <label for="input-supplier_name" class="col-sm-2 col-form-label">{{ $lang->column_supplier }}</label>
+                  <div class="col-sm-10">
+                    <input type="text" id="input-supplier_name" name="supplier_name" value="{{ $product->supplier_name }}" class="form-control" data-oc-target="autocomplete-supplier_name" />
+                    <input type="hidden" id="input-supplier_id" name="supplier_id" value="{{ $product->supplier_id }}">
+                    <ul id="autocomplete-supplier_name" class="dropdown-menu"></ul>
+                    <div id="error-supplier_name " class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                {{-- supplier_product_name --}}
+                <div class="row mb-3">
+                  <label for="input-supplier_product_name" class="col-sm-2 col-form-label">{{ $lang->column_supplier_product }}</label>
+                  <div class="col-sm-10">
+                    <input type="text" id="input-supplier_product_name" name="supplier_product_name" value="{{ $product->supplier_product_name }}" class="form-control" data-oc-target="autocomplete-supplier_product_name" />
+                    <input type="hidden" id="input-supplier_product_id" name="supplier_product_id" value="{{ $product->supplier_product_id }}">
+                    <ul id="autocomplete-supplier_product_name" class="dropdown-menu"></ul>
+                    <div id="error-supplier_product_name " class="invalid-feedback"></div>
                   </div>
                 </div>
 
@@ -262,7 +267,7 @@
 @endsection
 
 @section('buttom')
-  <script type="text/javascript"><!--
+  <script type="text/javascript">
   $('#input-category').autocomplete({
     'source': function(request, response) {
       $.ajax({
@@ -323,6 +328,59 @@
     }
   });
 
+// 查主供應商
+$(document).ready(function() {
+  $('#input-supplier_name').on('input', function(){
+    $('#input-supplier_name').autocomplete({
+      'minLength': 1,
+      'source': function (request, response) {
+        var regex = /[a-zA-Z0-9\u3105-\u3129]+/; // 注音符號
+        if (regex.test(request)) {
+          return;
+        }else{
+          $.ajax({
+            url: "{{ $supplier_autocomplete_url }}?filter_name=" + encodeURIComponent(request),
+            dataType: 'json',
+            success: function (json) {
+              response(json);
+            }
+          });
+        }
+      },
+      'select': function (item) {
+        $('#input-supplier_id').val(item.supplier_id);
+        $('#input-supplier_name').val(item.supplier_name);
+      }
+    });
+  });
+});
 
-  --></script>
+// 查廠商料件
+$(document).ready(function() {
+  $('#input-supplier_product_name').on('input', function(){
+    $('#input-supplier_product_name').autocomplete({
+      'minLength': 1,
+      'source': function (request, response) {
+        var regex = /[a-zA-Z0-9\u3105-\u3129]+/; // 注音符號
+        if (regex.test(request)) {
+          return;
+        }else{
+          $.ajax({
+            url: "{{ $supplier_product_autocomplete_url }}?equal_source_code=SUP&filter_name=" + encodeURIComponent(request),
+            dataType: 'json',
+            success: function (json) {
+              response(json);
+            }
+          });
+        }
+      },
+      'select': function (item) {
+        $('#input-supplier_product_id').val(item.product_id);
+        $('#input-supplier_product_name').val(item.product_name);
+      }
+    });
+  });
+});
+
+</script>
 @endsection

@@ -25,6 +25,7 @@ return new class extends Migration
             $table->decimal('quantity', $precision = 13, $scale = 4)->nullable();
             $table->decimal('price', $precision = 13, $scale = 4)->nullable();
             $table->string('comment')->nullable();
+            $table->string('source_code',5)->nullable();
             $table->boolean('is_active')->default('1');
             $table->boolean('is_salable')->default('1');
             $table->timestamps();

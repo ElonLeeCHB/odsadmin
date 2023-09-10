@@ -11,6 +11,21 @@ class LocationRepository extends Repository
     public $modelName = "\App\Models\Setting\Location";
 
 
+    public function getLocations($data = [], $debug = 0)
+    {
+        if(!empty($data['filter_keyword'])){
+            $data['andOrWhere'][] = [
+                'filter_name' => $data['filter_keyword'],
+                'filter_short_name' => $data['filter_keyword'],
+            ];
+            unset($data['filter_keyword']);
+        }
+
+        $locations = $this->getRows($data, $debug);
+
+        return $locations;
+    }
+
     public function delete($location_id)
     {
         try {

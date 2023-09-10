@@ -252,10 +252,4 @@ class ProductService extends Service
             return ['error' => $ex->getMessage()];
         }
     }
-
-
-    public function getCategories()
-    {
-        
-    }
 }

@@ -408,13 +408,13 @@ trait EloquentTrait
 
             $column = null;
             
-            if(str_starts_with($key, 'equal_')){ // Must Start with equals_
+            if(str_starts_with($key, 'equal_')){ // Key must start with equal_
                 $column = str_replace('equal_', '', $key);
             }else{
                 continue;
             }
 
-            if(is_array($value)){ // value can not be empty or array
+            if(is_array($value) || empty($value)){ // value can not be empty or array
                 continue;
             }
 
@@ -648,8 +648,8 @@ trait EloquentTrait
         }
     }
 
-	public function getTableColumns($connection = null)
-	{
+    public function getTableColumns($connection = null)
+    {
         if(empty($this->table)){
             $this->table = $this->model->getTable();
         }
@@ -665,7 +665,7 @@ trait EloquentTrait
         }
 
         return $this->table_columns;
-	}
+    }
 
     public static function getQueryContent(Builder $builder)
     {
@@ -942,5 +942,42 @@ trait EloquentTrait
         return false;
     }
 
+    
+    public function unsetRelations($rows, $relations)
+    {
+        if ($rows instanceof \Illuminate\Database\Eloquent\Model) {
+            foreach ($relations as $relation) {
+                $rows->setRelation($relation, null);
+            }
+            
+        }
+        else if(count($rows) > 1){
+            foreach ($rows as $row) {
+                foreach ($relations as $relation) {
+                    $row->setRelation($relation, null);
+                }
+            }
+        }
+
+        return $rows;
+    }
+
+
+    public function getYmSnCode($modelName)
+    {
+        //  年份 2023年 取 23, 2123 取 123
+        $year = (int)substr(date('Y'),1,3);
+        $monty = sprintf("%02d",date('m'));
+        $code_prefix = $year . $monty;
+
+        $modelInstance = new $modelName;
+        $current_max_code = $modelInstance->where('code', 'like', $code_prefix.'%')->max('code');
+
+        $current_sn = (int)substr($current_max_code,-4);
+        $new_sn = empty($current_sn) ? 1 : ($current_sn+1);
+        $new_code = $code_prefix . sprintf("%04d",$new_sn) ;
+        
+        return $new_code;
+    }
 
 }

@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent\Catalog;
 
 use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
+use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
@@ -15,6 +16,37 @@ class ProductRepository extends Repository
 {
     public $modelName = "\App\Models\Catalog\Product";
 
+    private $source_codes;
+
+    public function getProducts($data = [], $debug = 0)
+    {
+        $data = $this->resetQueryData($data);
+
+        $products = $this->getRows($data, $debug);
+
+        $source_codes = $this->getProductSourceCodes();
+
+        foreach ($products as $row) {
+            if(!empty($row->status_id)){
+                $row->source_code_name = $source_codes[$row->source_code]['name'];
+                $row->supplier_name = $row->supplier->name ?? '';
+            }
+        }
+
+        return $products;
+    }
+
+    public function getProduct($data = [], $debug = 0)
+    {
+        $data = $this->resetQueryData($data);
+
+        $row = $this->getRow($data, $debug);
+
+        $row->supplier_name = $row->supplier->name ?? '';
+        echo '<pre>', print_r(999, 1), "</pre>"; exit;
+
+        return $row;
+    }
 
     public function delete($product_id)
     {
@@ -42,6 +74,44 @@ class ProductRepository extends Repository
             DB::rollback();
             return ['error' => $ex->getMessage()];
         }
+    }
+
+    public function resetQueryData($data)
+    {
+        if(!empty($data['filter_keyword'])){
+            $data['filter_name'] = $data['filter_keyword'];
+            $data['filter_short_name'] = $data['filter_keyword'];
+            $data['filter_description'] = $data['filter_keyword'];
+            unset($data['filter_keyword']);
+        }
+
+        return $data;
+    }
+
+
+    public function getProductSourceCodes()
+    {
+        if(!empty($this->source_codes)){
+            return $this->source_codes;
+        }
+
+        $filter_data = [
+            'equal_taxonomy_code' => 'product_source',
+            'pagination' => false,
+            'limit' => 0,
+        ];
+        $collection = (new TermRepository)->getRows($filter_data)->toArray();
+
+        $result = [];
+
+        foreach ($collection as $key => $row) {
+            unset($row['translation']);
+            unset($row['taxonomy']);
+            $code = $row['code'];
+            $result[$code] = (object) $row;
+        }
+
+        return $result;
     }
 }
 

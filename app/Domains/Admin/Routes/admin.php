@@ -215,12 +215,12 @@ Route::group(
                 Route::post('products/delete', 'Inventory\ProductController@delete')->name('products.delete');
                 Route::get('products/autocomplete', 'Inventory\ProductController@autocomplete')->name('products.autocomplete');
 
-                Route::get('receiving', 'Inventory\ReceivingController@index')->name('receiving.index');
-                Route::get('receiving/list', 'Inventory\ReceivingController@list')->name('receiving.list');
-                Route::get('receiving/form/{id?}', 'Inventory\ReceivingController@form')->name('receiving.form');
-                Route::post('receiving/save/{id?}', 'Inventory\ReceivingController@save')->name('receiving.save');
-                Route::post('receiving/delete', 'Inventory\ReceivingController@delete')->name('receiving.delete');
-                Route::get('receiving/autocomplete', 'Inventory\ReceivingController@autocomplete')->name('receiving.autocomplete');
+                Route::get('purchasing', 'Inventory\PurchasingController@index')->name('purchasing.index');
+                Route::get('purchasing/list', 'Inventory\PurchasingController@list')->name('purchasing.list');
+                Route::get('purchasing/form/{id?}', 'Inventory\PurchasingController@form')->name('purchasing.form');
+                Route::post('purchasing/save/{id?}', 'Inventory\PurchasingController@save')->name('purchasing.save');
+                Route::post('purchasing/delete', 'Inventory\PurchasingController@delete')->name('purchasing.delete');
+                Route::get('purchasing/autocomplete', 'Inventory\PurchasingController@autocomplete')->name('purchasing.autocomplete');
             });
 
 
@@ -293,6 +293,7 @@ Route::group(
                 Route::get('locations/form/{location_id?}', 'Setting\LocationController@form')->name('locations.form');
                 Route::post('locations/save', 'Setting\LocationController@save')->name('locations.save');
                 Route::post('locations/delete', 'Setting\LocationController@delete')->name('locations.delete');
+                Route::get('locations/autocomplete', 'Setting\LocationController@autocomplete')->name('locations.autocomplete');
 
                 Route::get('settings', 'Setting\SettingController@index')->name('settings.index');
                 Route::get('settings/list', 'Setting\SettingController@list')->name('settings.list');

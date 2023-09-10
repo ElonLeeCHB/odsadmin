@@ -7,6 +7,7 @@ use App\Traits\Model\Translatable;
 use App\Models\Common\Term;
 use App\Models\Catalog\ProductBom;
 use App\Models\Catalog\ProductOption;
+use App\Models\Counterparty\Organization;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Product extends Model
@@ -14,8 +15,8 @@ class Product extends Model
     use Translatable;
 
     protected $guarded = [];
-    protected $appends = ['name', 'description'];
-    public $translated_attributes = ['name','full_name','short_name','description', 'meta_title', 'meta_description', 'meta_keyword',];
+    protected $appends = ['name','specification','description'];
+    public $translated_attributes = ['name','full_name','short_name','description','specification','meta_title','meta_description','meta_keyword',];
 
     public function main_category()
     {
@@ -60,6 +61,16 @@ class Product extends Model
     }
 
 
+    public function supplier()
+    {
+        return $this->belongsTo(Organization::class, 'supplier_id', 'id');
+    }
+
+    public function supplier_product()
+    {
+        return $this->belongsTo(self::class, 'supplier_product_id', 'id');
+    }
+
     // Attribute
 
     protected function name(): Attribute
@@ -82,11 +93,25 @@ class Product extends Model
             get: fn () => $this->translation->description ?? '',
         );
     }
+
+    protected function specification(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->translation->specification ?? '',
+        );
+    }
     
     protected function price(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => number_format($value),
+        );
+    }
+
+    protected function supplierName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->supplier->name ?? '',
         );
     }
 }
