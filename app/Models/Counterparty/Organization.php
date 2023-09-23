@@ -4,7 +4,6 @@ namespace App\Models\Counterparty;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Localization\Division;
 use App\Models\Counterparty\OrganizationMeta;
 use App\Models\Common\PaymentTerm;
 

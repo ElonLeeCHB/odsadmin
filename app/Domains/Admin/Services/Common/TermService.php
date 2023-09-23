@@ -5,14 +5,35 @@ namespace App\Domains\Admin\Services\Common;
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
 use App\Repositories\Eloquent\Common\TermRepository;
+use App\Repositories\Eloquent\Common\TaxonomyRepository;
 
 class TermService extends Service
 {
     protected $modelName = "\App\Models\Common\Term";
 
 
-    public function __construct(protected TermRepository $TermRepository)
+    public function __construct(protected TermRepository $TermRepository, protected TaxonomyRepository $TaxonomyRepository)
     {}
+
+
+    public function getTerms($data=[], $debug = 0)
+    {
+        if(!empty($data['filter_taxonomy_name'])){
+            $filter_data = [
+                'pluck' => 'code',
+                'filter_name' => $data['filter_taxonomy_name'],
+                'pagination' => false,
+                'limit' => 0
+            ];
+            $taxonomy_ids = $this->TaxonomyRepository->getTaxonomies($filter_data);
+            $data['whereIn']['taxonomy_code'] = $taxonomy_ids;
+            unset($data['filter_taxonomy_name']);
+        }
+
+        $terms = $this->TermRepository->getTerms($data, $debug);
+
+        return $terms;
+    }
 
 
     /**

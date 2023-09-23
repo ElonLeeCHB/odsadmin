@@ -8,7 +8,7 @@ use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Localization\CountryService;
 use App\Domains\Admin\Services\Localization\DivisionService;
 use App\Domains\Admin\Services\Localization\AddressService;
-use App\Domains\Admin\Services\Localization\RoadService;
+use App\Services\Localization\RoadService;
 use DB;
 
 class DivisionController extends Controller

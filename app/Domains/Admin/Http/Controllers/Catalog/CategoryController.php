@@ -259,13 +259,11 @@ class CategoryController extends BackendController
     
     public function autocomplete()
     {
-        $query_data = $this->request->query();
-        $queries = $this->getQueries($this->request->query());
-        $queries['equal_is_active'] = 1;
-        $queries['pagination'] = false;
+        $query_data = $this->getQueries($this->request->query());
+        $query_data['pagination'] = false;
 
         // Rows
-        $rows = $this->CategoryService->getCategories($queries);
+        $rows = $this->CategoryService->getCategories($query_data);
 
         $json = [];
 

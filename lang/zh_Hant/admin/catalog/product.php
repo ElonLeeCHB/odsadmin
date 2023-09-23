@@ -49,7 +49,6 @@ return [
 'column_is_default' => '是否預設',
 'column_category' => '分類',
 
-
 'button_option_value_add' => '新增選項值',
 
 

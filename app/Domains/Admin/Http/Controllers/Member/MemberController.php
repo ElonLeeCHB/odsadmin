@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Libraries\TranslationLibrary;
-use App\Domains\Admin\Services\Member\MemberService;
+use App\Services\Member\MemberService;
 use App\Domains\Admin\Services\Counterparty\OrganizationService;
 use App\Domains\Admin\Services\Localization\CountryService;
 use App\Domains\Admin\Services\Localization\DivisionService;
@@ -351,121 +351,9 @@ class MemberController extends BackendController
 
     public function autocomplete()
     {
-        $json = [];
+        $query_data = $this->request->query();
 
-        //$filter_data['filter_id'] = '>1';
-
-        if(isset($this->request->filter_personal_name) && mb_strlen($this->request->filter_personal_name, 'utf-8') > 0)
-        {
-            $filter_data['filter_name'] = $this->request->filter_personal_name;
-        }
-
-        if(isset($this->request->filter_mobile) && strlen($this->request->filter_mobile) > 2)
-        {
-            $filter_data['filter_mobile'] = $this->request->filter_mobile;
-        }
-
-        if(isset($this->request->filter_telephone) && strlen($this->request->filter_telephone) > 2)
-        {
-            $filter_data['filter_telephone'] = $this->request->filter_telephone;
-        }
-
-        if(isset($this->request->filter_email) && strlen($this->request->filter_email) > 2)
-        {
-            $filter_data['filter_email'] = $this->request->filter_email;
-        }
-
-        if (empty($this->request->sort)) {
-            $filter_data['sort'] = 'name';
-            $filter_data['order'] = 'ASC';
-        }else{
-            $filter_data['sort'] = $this->request->sort;
-            $filter_data['order'] = $this->request->order;
-        }
-
-        if(!empty($this->request->with) )
-        {
-            $filter_data['with'] = $this->request->with;
-        }
-
-        $filter_data['pagination'] = false;
-
-        $members = $this->MemberService->getMembers($filter_data);
-
-        foreach ($members as $row) {
-            //$row = $this->MemberService->parseShippingAddress($row);
-
-            $show_text = '';
-            if(!empty($this->request->show_column1) && !empty($this->request->show_column2)){
-                $col = $this->request->show_column1;
-                $show_text = $row->$col;
-
-                $col = $this->request->show_column2;
-                $show_text .= '_'.$row->$col;
-            }else{
-                $show_text = $row->personal_name . '_' . $row->mobile;
-            }
-
-            $has_order = 0;
-            if(count($row->orders)){
-                $has_order = 1;
-            }
-
-            $json[] = array(
-                'label' => $show_text,
-                'value' => $row->id,
-                'customer_id' => $row->id,
-                'personal_name' => $row->name,
-                'salutation_id' => $row->salutation_id,
-                'telephone' => $row->telephone,
-                'mobile' => $row->mobile,
-                'email' => $row->email,
-                'payment_company' => $row->payment_company,
-                'payment_department' => $row->payment_department,
-                'payment_tin' => $row->payment_tin,
-                'shipping_personal_name' => $row->shipping_personal_name,
-                'shipping_phone' => $row->shipping_phone,
-                'shipping_company' => $row->shipping_company,
-                'shipping_state_id' => $row->shipping_state_id,
-                'shipping_city_id' => $row->shipping_city_id,
-                'shipping_road_id' => $row->shipping_road_id,
-                'shipping_road' => $row->shipping_road,
-                'shipping_address1' => $row->shipping_address1,
-                'shipping_lane' => $row->shipping_lane,
-                'shipping_alley' => $row->shipping_alley,
-                'shipping_no' => $row->shipping_no,
-                'shipping_floor' => $row->shipping_floor,
-                'shipping_room' => $row->shipping_room,
-                'has_order' => $has_order,
-            );
-        }
-
-        array_unshift($json,[
-            'value' => 0,
-            'label' => ' -- ',
-            'customer_id' => '',
-            'personal_name' => '',
-            'salutation_id' => '',
-            'telephone' => '',
-            'mobile' => '',
-            'email' => '',
-            'payment_company' => '',
-            'payment_department' => '',
-            'payment_tin' => '',
-            'shipping_personal_name' => '',
-            'shipping_phone' => '',
-            'shipping_company' => '',
-            'shipping_state_id' => '',
-            'shipping_city_id' => '',
-            'shipping_road_id' => '',
-            'shipping_road' => '',
-            'shipping_address1' => '',
-            'shipping_lane' => '',
-            'shipping_alley' => '',
-            'shipping_no' => '',
-            'shipping_floor' => '',
-            'shipping_room' => '',
-        ]);
+        $json = $this->MemberService->getJsonMembers($query_data);
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }

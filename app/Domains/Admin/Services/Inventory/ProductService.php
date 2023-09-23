@@ -1,20 +1,23 @@
 <?php
 
-namespace App\Services\Inventory;
+namespace App\Domains\Admin\Services\Inventory;
 
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
+use App\Services\Inventory\GlobalProductService;
 use App\Models\Common\TermRelation;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
+use App\Repositories\Eloquent\Catalog\ProductUnitRepository;
+use Carbon\Carbon;
 
 class ProductService extends Service
 {
     public $modelName = "\App\Models\Catalog\Product";
 
 
-    public function __construct(private ProductRepository $ProductRepository)
+    public function __construct(private ProductRepository $ProductRepository,private ProductUnitRepository $ProductUnitRepository)
     {}
 
 
@@ -53,7 +56,11 @@ class ProductService extends Service
             $product->supplier_product_id = $data['supplier_product_id'] ?? 0;
 
             $product->purchasing_unit_code = $data['purchasing_unit_code'] ?? null;
-            $product->stock_unit_code = $data['stock_unit_code'] ?? null;
+
+            if(empty($product->stock_unit_code)){
+                $product->stock_unit_code = $data['stock_unit_code'] ?? null;
+            }
+            
             $product->manufacturing_unit_code = $data['manufacturing_unit_code'] ?? null;
             
             $product->save();
@@ -82,6 +89,32 @@ class ProductService extends Service
                     ];
                 }
                 TermRelation::insert($insert_data);
+            }
+
+            // product_units
+            if(!empty($data['product_units'])){
+                $upsert_data = [];
+                foreach ($data['product_units'] as $product_unit) {
+                    //$product_unit['destination_unit_code'] = $product->stock_unit_code ?? null;
+
+                    if(empty($product_unit['source_quantity']) || empty($product_unit['source_unit_code']) || empty($product_unit['destination_quantity']) || empty($product_unit['destination_unit_code'])){
+                       continue;
+                    }
+
+                    $upsert_data[] = [
+                        'id' => $product_unit['id'] ?? null,
+                        'product_id' => $product->id,
+                        'source_quantity' => $product_unit['source_quantity'],
+                        'source_unit_code' => $product_unit['source_unit_code'],
+                        'destination_unit_code' => $product_unit['destination_unit_code'],
+                        'destination_quantity' => $product_unit['destination_quantity'],
+                    ];
+                }
+                
+                if(!empty($upsert_data)){
+                    $this->ProductUnitRepository->newModel()->where('product_id', $product->id)->delete();
+                    $this->ProductUnitRepository->newModel()->upsert($upsert_data, ['id']);
+                }
             }
 
             DB::commit();

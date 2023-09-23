@@ -7,7 +7,7 @@ use App\Repositories\Eloquent\Localization\DivisionRepository;
 
 class DivisionService extends Service
 {
-    protected $modelName = "\App\Models\Localization\Division";
+    protected $modelName = "\App\Models\SysData\Division";
 
 	public function __construct(public DivisionRepository $repository)
 	{

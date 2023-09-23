@@ -5,76 +5,85 @@ namespace App\Repositories\Eloquent\Sale;
 use App\Repositories\Eloquent\Repository;
 use App\Repositories\Eloquent\Common\OptionRepository;
 use App\Repositories\Eloquent\Common\OptionValueRepository;
+use App\Models\Sale\Order;
+use App\Models\Common\Term;
 use App\Models\Common\Option;
+use App\Models\Common\OptionValue;
 
 class OrderRepository extends Repository
 {
     public $modelName = "\App\Models\Sale\Order";
     private $order_statuses;
 
-    /**
-     * 2023-09-06
-     */
+    public function __construct(private OptionValueRepository $OptionValueRepository)
+    {
+        parent::__construct();
+    }
+
+
+    public function getOrder($data=[], $debug=0)
+    {
+        $data = $this->resetQueryData($data);
+
+        $order = $this->getRow($data, $debug);
+        
+        $order = $this->optimizeRow($order);
+
+        return $order;
+    }
+
+
     public function getOrders($data=[], $debug=0)
     {
         $data = $this->resetQueryData($data);
 
         $orders = $this->getRows($data, $debug);
 
-        $statuses = $this->getOrderStatuses();
-
-        foreach ($orders as $row) {
-            if(!empty($row->status_id)){
-                $row->status_name = $statuses[$row->status_id]['name'];
-            }
+        foreach ($orders as $order) {
+            $order = $this->optimizeRow($order);
         }
 
         return $orders;
     }
 
 
-    /**
-     * 2023-09-06
-     */
-    public function getOrderStatuses()
+    public function optimizeRow($row)
     {
-        if(!empty($this->order_statuses)){
-            return $this->order_statuses;
+        if(!empty($row->status_id)){
+            $row->status_name = $row->status->name;
         }
 
-        // $options = Option::select('option_values.id', 'option_values.option_id', 'option_value_translations.name')
-        //     ->join('option_values', 'options.id', '=', 'option_values.option_id')
-        //     ->join('option_value_translations', 'option_values.id', '=', 'option_value_translations.option_value_id')
-        //     ->where('option_value_translations.locale', 'zh_Hant')
-        //     ->where('options.code', 'order_status')
-        //     ->where('option_values.is_active', 1)
-        //     ->get();
-
-        //Option
-        $option = (new OptionRepository)->getRow(['filter_code'=>'order_status']);
-
-        // Option Values
-        $filter_data = [
-            'equal_option_id' => $option->id,
-            'equal_is_active' => '1',
-            'sort' => 'sort_order',
-            'order' => 'ASC',
-            'pagination' => false,
-            'limit' => 0,
-        ];
-        $option_values = (new OptionValueRepository)->getRows($filter_data)->toArray();
-
-        $order_statuses = [];
-
-        foreach ($option_values as $key => $row) {
-            unset($row['translation']);
-            $status_id = $row['id'];
-            $order_statuses[$status_id] = $row;
-        }
-
-        return $order_statuses;
+        return $row;
     }
 
+    public function sanitizeRow($row)
+    {
+        $arrOrder = $row->toArray();
+
+        if(!empty($arrOrder['status'])){
+            unset($arrOrder['status']);
+        }
+
+        if(!empty($arrOrder['totals'])){
+            $arr = [];
+            foreach ($arrOrder['totals'] as $key => $total) {
+                $arr[$key] = (object) $total->toArray();
+                $arrOrder['totals'] = $arr;
+            }
+        }
+
+        return (object) $arrOrder;
+    }
+
+
+    public function sanitizeRows($rows)
+    {
+        foreach ($rows as $key => $row) {
+            $rows[$key] = $this->sanitizeRow($row);
+        }
+
+        return $rows;
+    }
 
     public function resetQueryData($data)
     {
@@ -119,5 +128,57 @@ class OrderRepository extends Repository
 
         return $data;
     }
+
+    public function getOrderStatuses($data = [])
+    {
+        //Option
+        $option = Option::where('code', 'order_status')->first();
+
+        // Option Values
+        $filter_data = [
+            'filter_option_id' => $option->id,
+            'equal_is_active' => $data['equal_is_active'] ?? '*',
+            'sort' => 'sort_order',
+            'order' => 'ASC',
+            'regexp' => false,
+            'pagination' => false,
+            'limit' => 0,
+        ];
+        $option_values = $this->OptionValueRepository->getRows($filter_data)->toArray();
+
+        $result = [];
+
+        foreach($option_values as $key => $option_value){
+            unset($option_value['translation']);
+            $option_value_id = $option_value['id'];
+            $result[$option_value_id] = (object) $option_value;
+        }
+    }
+
+    public function getCachedActiveOrderStatuses($reset = false)
+    {
+        $cachedStatusesName = app()->getLocale() . '_order_statuses';
+
+        // 取得快取
+        if(empty($data['reset'])){
+            $order_statuses = cache()->get($cachedStatusesName);
+
+            if(!empty($order_statuses)){
+                return $order_statuses;
+            }
+        }
+
+        // 重設
+        $filter_data = [
+            'equal_is_active' => true,
+        ];
+
+        $order_statuses = $this->getOrderStatuses($filter_data);
+
+        cache()->forever($cachedStatusesName, $order_statuses);
+
+        return $order_statuses;
+    }
+    
 }
 

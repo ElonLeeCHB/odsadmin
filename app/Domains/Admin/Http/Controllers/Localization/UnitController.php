@@ -5,7 +5,7 @@ namespace App\Domains\Admin\Http\Controllers\Localization;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use Illuminate\Http\Request;
-use App\Domains\Admin\Services\Localization\UnitService;
+use App\Services\Localization\UnitService;
 
 class UnitController extends BackendController
 {

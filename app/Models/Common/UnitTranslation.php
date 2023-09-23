@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Localization;
+namespace App\Models\Common;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\Model\Translatable;

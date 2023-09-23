@@ -46,12 +46,14 @@ class BackendController extends Controller
             $query_data['order'] = 'DESC';
         }
 
-        if(!empty($data['page'])){
+        if(isset($data['page'])){
             $query_data['page'] = $data['page'];
         }
 
-        if(!empty($data['limit'])){
+        if(isset($data['limit'])){
             $query_data['limit'] = $data['limit'];
+        }else{
+            $query_data['limit'] = 20;
         }
 
         // filter_
@@ -67,9 +69,9 @@ class BackendController extends Controller
                 $query_data[$key] = $value;
             }
         }
-
+        //echo '<pre>', print_r(999, 1), "</pre>"; exit;
         // is_active
-        if(!isset($query_data['equal_is_active'])){
+        if(!isset($data['equal_is_active'])){
             $query_data['equal_is_active'] = 1;
         }
 

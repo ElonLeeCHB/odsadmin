@@ -62,10 +62,10 @@
                       </div>
                     </div>
                     <div class="row mb-3">
-                      <label for="input-uniform_invoice_no" class="col-sm-2 col-form-label">{{ $lang->entry_uniform_invoice_no }}</label>
+                      <label for="input-tax_id_num" class="col-sm-2 col-form-label">{{ $lang->entry_tax_id_num }}</label>
                       <div class="col-sm-10">
-                        <input type="text" name="uniform_invoice_no" value="{{ $organization->uniform_invoice_no }}" placeholder="{{ $lang->entry_uniform_invoice_no }}" id="input-uniform_invoice_no" class="form-control"/>
-                        <div id="error-uniform_invoice_no" class="invalid-feedback"></div>
+                        <input type="text" name="tax_id_num" value="{{ $organization->tax_id_num }}" placeholder="{{ $lang->entry_tax_id_num }}" id="input-tax_id_num" class="form-control"/>
+                        <div id="error-tax_id_num" class="invalid-feedback"></div>
                       </div>
                     </div>
                     <div class="row mb-3">

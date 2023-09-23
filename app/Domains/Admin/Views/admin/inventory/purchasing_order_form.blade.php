@@ -34,11 +34,10 @@
             <input type="hidden" id="input-purchasing_order_id" name="purchasing_order_id" value="{{ $purchasing_order_id }}"/>
 
             <div class="tab-content">
-              <div id="tab-data" class="tab-pane active">
 
+              <div id="tab-data" class="tab-pane active">
                 <fieldset>
                   <legend>{{ $lang->tab_data }}</legend>
-
                   <div class="row mb-3">
                     <label for="input-location_name" class="col-sm-2 col-form-label">{{ $lang->column_location_name }}</label>
                     <div class="col-sm-10">
@@ -115,89 +114,163 @@
 
               <div id="tab-products" class="tab-pane">
 
-                <div class="table-responsive">
-                  <table class="table table-bordered table-hover">
-                    <tr>
-                      <td class="text-start">料件流水號</td>
-                      <td class="text-start">料件名稱</td>
-                      <td class="text-start">規格</td>
-                      <td class="text-start">廠商料件代號</td>
-                      <td class="text-start">廠商料件名稱</td>
-                      <td class="text-start">廠商料件規格</td>
-                    </tr>
-                    
-                    <tr>
-                      <td><input type="text" id="input-product_id" name="product_id" value="" readonly class="form-control"></td>
-                      <td><input type="text" id="input-product_name" name="product_name" value="" class="form-control"></td>
-                      <td><input type="text" id="input-product_specification" name="product_specification" value="" class="form-control"></td>
-                      <td><input type="text" id="input-supplier_product_id" name="supplier_product_id" value="" class="form-control"></td>
-                      <td><input type="text" id="input-supplier_product_name" name="supplier_product_name" value="" class="form-control"></td>
-                      <td><input type="text" id="input-supplier_product_specification" name="supplier_product_specification" value="" class="form-control"></td>
-                    </tr>
-                    <tr>
-                      <td class="text-start">採購單位</td>
-                      <td class="text-start">採購數量</td>
-                      <td class="text-start">庫存單位</td>
-                      <td class="text-start">庫存數量</td>
-                      <td class="text-start">金額</td>
-                      <td></td>
-                    </tr>
-                    
-                    <tr>
-                      <td><input type="text" id="input-purchasing_unit_name" name="purchasing_unit_name" value="" class="form-control"></td>
-                      <td><input type="text" id="input-purchasing_quantity" name="purchasing_quantity" value="" class="form-control"></td>
-                      <td><input type="text" id="input-stock_unit_name" name="stock_unit_name" value="" class="form-control"></td>
-                      <td><input type="text" id="input-stock_quantity" name="stock_quantity" value="" class="form-control"></td>
-                      <td><input type="text" id="input-product_total" name="product_total" value="" class="form-control"></td>
-                      <td></td>
-                    </tr>
-                    </tbody>
-                  </table>
+<style>
+    #tab-products .row1 {
+      border: 1px solid #ccc; /* 添加边框样式 */
+      padding: 2px; /* 添加一些内边距以改善外观 */
+      margin-bottom: 2px; /* 添加一些底部外边距以分隔模块 */
+    }
+</style>
+    <div class="row row1">
+      <div class="row">
+        <div class="module col-md-1 col-sm-1">
+            <label>料件流水號</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-2 col-sm-2">
+            <label>料件名稱</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-2 col-sm-2">
+            <label>料件規格</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+            <label>採購單位</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+            <label>採購數量</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+            <label>盤點單位</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+            <label>盤點數量</label>
+            <input value="" class="form-control">
+        </div>
+      </div>
+      <div class="row">
+        <div class="module col-md-1 col-sm-1">
+            <label>廠商料號</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-2 col-sm-2">
+            <label>廠商料件名稱</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-2 col-sm-2">
+            <label>廠商料件規格</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+          <label for="test">計價數量</label>
+          <input id="test" value="" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+          <label>金額</label>
+          <input value="" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+          <label>成本單位</label>
+          <input value="" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+            <label>每單位成本</label>
+            <input value="" class="form-control">
+        </div>
+      </div>
+    </div>
 
-                  <table class="table table-bordered table-hover">
-                    <tr>
-                      <td class="text-start">料件流水號</td>
-                      <td class="text-start">料件名稱</td>
-                      <td class="text-start">規格</td>
-                      <td class="text-start">廠商料件代號</td>
-                      <td class="text-start">廠商料件名稱</td>
-                      <td class="text-start">廠商料件規格</td>
-                    </tr>
-                    
-                    <tr>
-                      <td><input type="text" id="input-product_id" name="product_id" value="" readonly class="form-control"></td>
-                      <td><input type="text" id="input-product_name" name="product_name" value="" class="form-control"></td>
-                      <td><input type="text" id="input-product_specification" name="product_specification" value="" class="form-control"></td>
-                      <td><input type="text" id="input-supplier_product_id" name="supplier_product_id" value="" class="form-control"></td>
-                      <td><input type="text" id="input-supplier_product_name" name="supplier_product_name" value="" class="form-control"></td>
-                      <td><input type="text" id="input-supplier_product_specification" name="supplier_product_specification" value="" class="form-control"></td>
-                    </tr>
-                    <tr>
-                      <td class="text-start">採購單位</td>
-                      <td class="text-start">採購數量</td>
-                      <td class="text-start">庫存單位</td>
-                      <td class="text-start">庫存數量</td>
-                      <td class="text-start">金額</td>
-                      <td></td>
-                    </tr>
-                    
-                    <tr>
-                      <td><input type="text" id="input-purchasing_unit_name" name="purchasing_unit_name" value="" class="form-control"></td>
-                      <td><input type="text" id="input-purchasing_quantity" name="purchasing_quantity" value="" class="form-control"></td>
-                      <td><input type="text" id="input-stock_unit_name" name="stock_unit_name" value="" class="form-control"></td>
-                      <td><input type="text" id="input-stock_quantity" name="stock_quantity" value="" class="form-control"></td>
-                      <td><input type="text" id="input-product_total" name="product_total" value="" class="form-control"></td>
-                      <td></td>
-                    </tr>
-                    </tbody>
-                  </table>
-                </div>
+    <div class="row row1">
+      <div class="row">
+        <div class="module col-md-1 col-sm-1">
+            <label>料件流水號</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-2 col-sm-2">
+            <label>料件名稱</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-2 col-sm-2">
+            <label>料件規格</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+            <label>採購單位</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+            <label>採購數量</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+            <label>盤點單位</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+            <label>盤點數量</label>
+            <input value="" class="form-control">
+        </div>
+      </div>
+      <div class="row">
+        <div class="module col-md-1 col-sm-1">
+            <label>廠商料號</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-2 col-sm-2">
+            <label>廠商料件名稱</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-2 col-sm-2">
+            <label>廠商料件規格</label>
+            <input value="" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+          <label for="test">計價數量</label>
+          <input id="test" value="" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+          <label>金額</label>
+          <input value="" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+          <label>成本單位</label>
+          <input value="" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+            <label>每單位成本</label>
+            <input value="" class="form-control">
+        </div>
+      </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
               </div>
-
-
-
-
-
             </form>
             </div>
             </div>

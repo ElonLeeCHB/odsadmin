@@ -53,7 +53,7 @@ class CategoryService extends Service
             $category->code = $data['code'] ?? '';
             $category->slug = $data['slug'] ?? '';
             $category->taxonomy = 'product_category';
-            $category->sort_order = $data['sort_order'] ?? 999;
+            $category->sort_order = $data['sort_order'] ?? 1000;
             $category->is_active = $data['is_active'] ?? 0;
 
             $category->save();

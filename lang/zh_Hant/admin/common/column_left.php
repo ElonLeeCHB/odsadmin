@@ -27,9 +27,10 @@ return [
 'text_financial_institution' => '金融機構設定',
 'text_inventory_supplier' => '廠商設定',
 'text_inventory_warehouse' => '倉庫設定',
-'text_inventory_category' => '品號分類設定',
-'text_inventory_products' => '品號建立作業',
+'text_inventory_category' => '料件分類設定',
+'text_inventory_products' => '料件設定',
 'text_purchasing_orders' => '採購作業',
+'text_receiving_orders' => '進貨作業',
 
 'text_member' => '客戶管理',
 'text_individual' => '客戶',

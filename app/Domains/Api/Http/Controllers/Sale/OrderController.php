@@ -82,18 +82,7 @@ class OrderController extends BackendController
         }
 
         $orders = $this->OrderService->getOrders($queries);
-
-        $arr_all_statuses = $this->OrderService->getOrderStatuses();
-        //$arr_all_salutations = $this->OrderService->getOrderStatuses();
-
-        if(!empty($orders)){
-            foreach ($orders as $record) {
-                $record->edit_url = route('api.sale.order.details', array_merge([$record->id], $queries));
-                $record->payment_phone = $record->payment_mobile . "<BR>" . $record->payment_telephone;
-                $record->status_txt = $arr_all_statuses[$record->status_id]->name ?? '';
-            }
-        }
-        
+        $orders = $this->OrderService->sanitizeRows($orders);
 
         return response(json_encode($orders))->header('Content-Type','application/json');
     }
@@ -101,33 +90,28 @@ class OrderController extends BackendController
 
     public function header($order_id)
     {
-        $order = $this->OrderService->findIdOrFailOrNew($order_id);
+        $order = $this->OrderService->findIdOrFailOrNew($order_id, ['sanitize' => true]);
 
-        $arr_all_statuses = $this->OrderService->getOrderStatuses();
+        // Order Total
+        $totals = $this->OrderService->getOrderTotals($order_id)->toArray();
 
-        $order->status_txt = $arr_all_statuses[$order->status_id]['name'] ?? '';
+        $order->totals = $totals;
 
         return response(json_encode($order))->header('Content-Type','application/json');
     }
 
 
+    // 包含訂單的單頭、單身
     public function details($order_id)
     {
         $order = $this->OrderService->findIdOrFailOrNew($order_id);
         $order->load('order_products.order_product_options');
 
-        $arr_all_statuses = $this->OrderService->getOrderStatuses();
+        $order->status_name = $order->status->name ?? '';
 
-        $order->status_txt = $arr_all_statuses[$order->status_id]->name ?? '';
+        $order = $this->OrderService->sanitizeRow($order);
 
         return response(json_encode($order))->header('Content-Type','application/json');
-    }
-
-
-    public function orderProductOptions($order_id)
-    {
-        
-
     }
 
 
@@ -227,9 +211,9 @@ class OrderController extends BackendController
     }
 
 
-    public function getAllStatuses()
+    public function getActiveOrderStatuses()
     {
-        $allStatuses = $this->OrderService->getOrderStatuses();
+        $allStatuses = $this->OrderService->getActiveOrderStatuses();
 
         return response(json_encode($allStatuses))->header('Content-Type','application/json');
     }
@@ -237,7 +221,10 @@ class OrderController extends BackendController
 
     public function getOrderPhrases($taxonomy_code)
     {
-        $json = $this->OrderService->getOrderPhrases($taxonomy_code)->toArray();
+        $post_data = $this->request->post();
+        $post_data['filter_taxonomy_code'] = $taxonomy_code;
+
+        $json = $this->OrderService->getOrderPhrases($post_data)->toArray();
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }

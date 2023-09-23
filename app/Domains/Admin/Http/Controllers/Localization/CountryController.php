@@ -5,14 +5,12 @@ namespace App\Domains\Admin\Http\Controllers\Localization;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Libraries\TranslationLibrary;
-use App\Models\Localization\Division;
-use App\Models\Localization\Country;
+use App\Models\SysData\Country;
 use DB;
 
 class CountryController extends Controller
 {
-
-    public function __construct(Request $request)
+    public function __construct(protected Request $request)
     {
         $this->request = $request;
 

@@ -3,7 +3,7 @@
 namespace App\Models\Localization;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Localization\Division;
+use App\Models\SysData\Division;
 use App\Models\Localization\State;
 use App\Models\Localization\City;
 

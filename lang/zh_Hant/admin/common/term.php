@@ -8,6 +8,7 @@ return [
 
 
 // Column
+'column_taxonomy' => '分類方式',
 'column_code' => '識別碼',
 'column_name' => '名稱',
 'column_short_name' => '簡稱',

@@ -1,58 +1,31 @@
 <?php
 
-namespace App\Domains\Admin\Services\Member;
+namespace App\Services\Member;
 
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
-use App\Repositories\Eloquent\User\UserRepository;
+use App\Repositories\Eloquent\Member\MemberRepository;
 use App\Models\User\UserAddress;
 
 class MemberService extends Service
 {
     protected $modelName = "\App\Models\Member\Member";
 
-    public function __construct(protected UserRepository $UserRepository)
+    public function __construct(protected MemberRepository $MemberRepository)
     {}
 
     public function getSalutations()
     {
-        $UserRepository = new UserRepository;
+        $UserRepository = new MemberRepository;
         return $UserRepository->getSalutations();
     }
 
+    /**
+     * return Eloquent model
+     */
 	public function getMembers($data=[], $debug = 0)
 	{
-        if(!empty($data['filter_phone'])){
-            $data['filter_phone'] = str_replace('-','',$data['filter_phone']);
-            $data['filter_phone'] = str_replace(' ','',$data['filter_phone']);
-
-            $data['andOrWhere'][] = [
-                'filter_mobile' => $data['filter_phone'],
-                'filter_telephone' => $data['filter_phone'],
-                'filter_shipping_phone' => $data['filter_phone'],
-            ];
-            unset($data['filter_phone']);
-        }
-
-        if(!empty($data['filter_name'])){
-            $data['andOrWhere'][] = [
-                'filter_name' => $data['filter_name'],
-                'filter_shipping_personal_name' => $data['filter_name'],
-            ];
-            unset($data['filter_name']);
-        }
-
-        if(!empty($data['filter_company'])){
-            $data['andOrWhere'][] = [
-                'payment_company' => $data['filter_company'],
-                'shipping_company' => $data['filter_company'],
-            ];
-            unset($data['filter_company']);
-        }
-
-        $members = $this->getRows($data, $debug);
-
-        return $members;
+        return $this->MemberRepository->getUsers($data, $debug);
 	}
 
 
@@ -165,6 +138,15 @@ class MemberService extends Service
             DB::rollback();
             return ['error' => $ex->getMessage()];
         }
+    }
+
+
+    public function getJsonMembers($data)
+    {
+        $json = $this->MemberRepository->getJsonList($data);
+
+        return $json;
+
     }
 
 }

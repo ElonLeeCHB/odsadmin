@@ -4,6 +4,8 @@ namespace App\Models\Localization;
 
 //use Illuminate\Database\Eloquent\Model;
 
+use App\Models\SysData\Division;
+
 class State extends Division
 {
     protected $table = 'divisions';

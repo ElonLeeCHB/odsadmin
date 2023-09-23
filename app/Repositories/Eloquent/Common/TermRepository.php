@@ -14,6 +14,20 @@ class TermRepository
     
     public $modelName = "\App\Models\Common\Term";
 
+    public function getTerms($data=[], $debug = 0)
+    {
+        $data = $this->resetQueryData($data);
+
+        $terms = $this->getRows($data, $debug);
+
+        return $terms;
+    }
+
+    public function resetQueryData($data)
+    {
+        return $data;
+    }
+
     public function delete($term_id)
     {
         try {

@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * 將廢棄
+ */
 namespace App\Domains\Api\Http\Controllers\SysData;
 
 use Illuminate\Http\Request;
@@ -36,7 +38,7 @@ class GovUniformInvoiceNumberController extends Controller
         }
 
         $filter_data = [
-            'filter_uniform_invoice_no' => $guin,
+            'filter_tax_id_num' => $guin,
             'regexp' => false,
         ];
 
@@ -77,13 +79,13 @@ class GovUniformInvoiceNumberController extends Controller
     {
         $json = [];
 
-        $filter_uniform_invoice_no = $this->request->filter_payment_tin ?? $this->request->filter_uniform_invoice_no ?? '';
+        $filter_tax_id_num = $this->request->filter_payment_tin ?? $this->request->filter_tax_id_num ?? '';
 
-        if(!empty($filter_uniform_invoice_no)){
-            if(strlen($filter_uniform_invoice_no) < 7 ){
+        if(!empty($filter_tax_id_num)){
+            if(strlen($filter_tax_id_num) < 7 ){
                 return response(json_encode('長度不足'))->header('Content-Type','application/json');
             }
-            $filter_data['filter_uniform_invoice_no'] = $filter_uniform_invoice_no;
+            $filter_data['filter_tax_id_num'] = $filter_tax_id_num;
         }
 
         if(!empty($this->request->filter_name)){
@@ -122,7 +124,7 @@ class GovUniformInvoiceNumberController extends Controller
 
                 $json[] = [
                     //'id' => $row->id,
-                    'uniform_invoice_no' => $row->uniform_invoice_no,
+                    'tax_id_num' => $row->tax_id_num,
                     'name' => $row->name,
                     'short_name' => $row->short_name,
                     'address_parts' => $arr,

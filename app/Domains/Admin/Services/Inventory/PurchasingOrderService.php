@@ -6,26 +6,11 @@ use Illuminate\Support\Facades\DB;
 use App\Services\Service;
 use App\Repositories\Eloquent\Inventory\PurchasingOrderRepository;
 
-// use App\Repositories\Eloquent\Common\TermRepository;
-// use App\Models\Common\Term;
-// use App\Models\Common\TermTranslation;
-// use App\Models\Common\TermRelation;
-
-// use App\Repositories\Eloquent\Sale\OrderRepository;
-// use App\Repositories\Eloquent\Sale\OrderProductRepository;
-// use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
-// use App\Repositories\Eloquent\Sale\OrderTotalRepository;
-// use App\Repositories\Eloquent\Member\MemberRepository;
-// use App\Models\Sale\OrderProductOption;
-// use App\Models\Catalog\ProductTranslation;
-// use Carbon\Carbon;
-
-
 class PurchasingOrderService extends Service
 {
     protected $modelName = "\App\Models\Inventory\PurchasingOrder";
 
-    public function __construct(private PurchasingOrderRepository $PurchasingOrderRepository)
+    public function __construct(protected PurchasingOrderRepository $PurchasingOrderRepository)
     {}
 
 

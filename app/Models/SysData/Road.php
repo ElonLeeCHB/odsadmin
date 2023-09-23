@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Models\Localization;
+namespace App\Models\SysData;
 
 use Illuminate\Database\Eloquent\Model;
 
-class RoadFirstWord extends Model
+class Road extends Model
 {
+    protected $connection = 'sysdata'; 
+    
     public $timestamps = false;
 
     public function city()

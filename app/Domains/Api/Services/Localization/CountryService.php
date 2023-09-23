@@ -7,7 +7,6 @@ use App\Domains\Api\Services\Service;
 class CountryService extends Service
 {
     public $modelName = "\App\Models\Localization\Country";
-	private $lang;
 	
 	public function __construct()
 	{

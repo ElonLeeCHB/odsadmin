@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Repositories\Eloquent\Localization;
+namespace App\Repositories\Eloquent\Common;
 
 use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
-use App\Models\Localization\Unit;
-use App\Models\Localization\UnitTranslation;
+use App\Models\Common\Unit;
+use App\Models\Common\UnitTranslation;
 
 class UnitRepository extends Repository
 {
-    public $modelName = "\App\Models\Localization\Unit";
+    public $modelName = "\App\Models\Common\Unit";
 
 
     public function getActiveUnits($data = [], $debug=0)

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductOption;
 use App\Models\Sale\OrderProduct;
-use App\Models\Localization\Division;
+use App\Models\SysData\Division;
 use App\Models\Member\Organization;
 use App\Models\Common\OptionValue;
 use DateTimeInterface;

@@ -2,13 +2,16 @@
 
 namespace App\Models\Catalog;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\Model\Translatable;
 use App\Models\Common\Term;
-use App\Models\Catalog\ProductBom;
 use App\Models\Catalog\ProductOption;
+use App\Models\Catalog\ProductUnit;
+use App\Models\Catalog\ProductMeta;
+use App\Models\Common\Unit;
+use App\Models\Catalog\ProductBom;
 use App\Models\Counterparty\Organization;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Product extends Model
 {
@@ -17,6 +20,7 @@ class Product extends Model
     protected $guarded = [];
     protected $appends = ['name','specification','description'];
     public $translated_attributes = ['name','full_name','short_name','description','specification','meta_title','meta_description','meta_keyword',];
+    public $meta_keys = ['supplier_product_code','supplier_product_name','supplier_product_specification'];
 
     public function main_category()
     {
@@ -61,6 +65,18 @@ class Product extends Model
     }
 
 
+    public function stock_unit()
+    {
+        return $this->belongsTo(Unit::class, 'stock_unit_code', 'code');
+    }
+
+
+    public function product_units()
+    {
+        return $this->hasMany(ProductUnit::class,'product_id', 'id');
+    }
+
+
     public function supplier()
     {
         return $this->belongsTo(Organization::class, 'supplier_id', 'id');
@@ -70,6 +86,12 @@ class Product extends Model
     {
         return $this->belongsTo(self::class, 'supplier_product_id', 'id');
     }
+
+    public function meta_dataset()
+    {
+        return $this->hasMany(ProductMeta::class);
+    }
+
 
     // Attribute
 
@@ -112,6 +134,13 @@ class Product extends Model
     {
         return Attribute::make(
             get: fn () => $this->supplier->name ?? '',
+        );
+    }
+
+    protected function stockUnitName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->stock_unit->name ?? '',
         );
     }
 }

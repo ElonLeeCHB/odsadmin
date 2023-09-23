@@ -20,7 +20,7 @@
       <div class="float-end">
         <a data-href="{{ $printReceiveForm }}" id="href-printReceiveForm"  target="_blank" data-bs-toggle="tooltip" title="列印訂單簽收單" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
         <button type="submit" id="btn-save-order_form" form="form-order" data-bs-toggle="tooltip" title="Save" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
-        <a href="{{ $back }}" id="href-save" data-bs-toggle="tooltip" title="{{ $lang->button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+        <a href="{{ $back_url }}" id="href-save" data-bs-toggle="tooltip" title="{{ $lang->button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
       </div>
       @include('admin.common.breadcumb')
     </div>
@@ -28,7 +28,7 @@
   <div class="container-fluid">
     <div class="card">
       <div class="card-body">
-        <form id="form-order" action="{{ $save }}" method="post" data-oc-toggle="ajax">
+        <form id="form-order" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
           @csrf
           @method('POST')
           <input type="hidden" id="input-location_id" name="location_id" value="{{ $order->location_id }}" >
@@ -134,12 +134,11 @@
                           <div class="input-group" style="display: flex;margin-right: 5px;width:100%;">
                             <input type="text" id="input-telephone_prefix" name="telephone_prefix" value="{{ $order->telephone_prefix }}" placeholder="區碼" style="width:40px"/>
                             <input type="text" id="input-telephone" name="telephone" value="{{ $order->telephone }}" placeholder="查詢時請輸入至少3個數字" data-oc-target="autocomplete-telephone" class="form-control"/>
-                            <ul id="autocomplete-telephone" class="dropdown-menu"></ul>
                             <div id="error-telephone" class="invalid-feedback"></div>
                             <span id="span-hasOrder" style="color:red"></span>
                           </div>
-
-
+                          <ul id="autocomplete-telephone" class="dropdown-menu"></ul>
+                          
                        </td>
                         <td class="col-md-1 text-end colname-font">訂單標籤</td>
                         <td class="col-md-2">
@@ -548,7 +547,6 @@ $("#input-nav_location_id" ).trigger( "change" );
 //選常用片語
 // $('#table-phrase-comment').DataTable();
 // $('#table-phrase-extra_comment').DataTable();
-//alert(33)
 var phraseType = '';
 
 //客戶備註選常用片語
@@ -760,23 +758,6 @@ $('#input-telephone').autocomplete({
   }
 });
 
-//查email
-$('#input-email').autocomplete({
-  'minLength': 2,
-  'source': function(request, response) {
-    $.ajax({
-      url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_email=" + encodeURIComponent(request) + '&show_column1=name&show_column2=email',
-      dataType: 'json',
-      success: function(json) {
-        response(json);
-      }
-    });
-  },
-  'select': function(event,ui) {
-    setCustomerInfo(event)
-  }
-});
-
 //查客戶之後重設單頭
 function setCustomerInfo(item){
   $('#input-personal_name').val(item.personal_name);
@@ -820,7 +801,7 @@ $('#input-payment_tin').autocomplete({
   source: function(request, response) {
     if(request.length > 7){
       $.ajax({
-        url: "{{ route('lang.admin.member.guin.autocompleteSingle') }}?filter_payment_tin=" + encodeURIComponent(request),
+        url: "{{ $tax_id_nums_list_url }}?filter_tax_id_num=" + encodeURIComponent(request),
         dataType: 'json',
         success: function(json) {
           response(json);
@@ -864,7 +845,7 @@ $('#a-payment_company').on('click', function(){
 function setShippingState(state_id){
   $.ajax({
       type:'get',
-      url: "{{ route('lang.admin.localization.divisions.getJsonCities') }}?filter_parent_id=" + state_id,
+      url: "{{ $cities_list_url }}?filter_parent_id=" + state_id,
       success:function(json){
         html = '<option value=""> -- </option>';
 
@@ -919,7 +900,7 @@ $('#input-shipping_road').autocomplete({
       url += '&filter_name=' + encodeURIComponent(filter_name);
     }
 
-    url = "{{ route('lang.admin.localization.roads.autocomplete') }}?" + url;
+    url = "{{ $roads_list_url }}?" + url;
 
     $.ajax({
       url: url,

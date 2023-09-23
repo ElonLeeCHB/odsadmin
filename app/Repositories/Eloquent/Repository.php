@@ -15,5 +15,4 @@ class Repository
     public function __construct(){
         $this->initialize();
     }
-
 }

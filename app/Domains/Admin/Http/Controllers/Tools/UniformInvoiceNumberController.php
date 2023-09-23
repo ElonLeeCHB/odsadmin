@@ -59,7 +59,7 @@ class UniformInvoiceNumberController extends Controller
         //重要！！ csv檔第一行的欄位名稱與資料庫欄位名稱的對應
         $column_map = [
             '營業地址' => 'address',
-            '統一編號' => 'uniform_invoice_no',
+            '統一編號' => 'tax_id_num',
             '總機構統一編號' => 'headquarter_uin',
             '營業人名稱' => 'name',
             '資本額' => 'capital_amount',
@@ -143,7 +143,7 @@ class UniformInvoiceNumberController extends Controller
 
             if (!empty($insertData) && count($insertData) >= $maxRowsPerRound) {
                 $roundCount++;
-                GovUniformInvoiceNumbers::upsert($insertData, ['uniform_invoice_no']);
+                GovUniformInvoiceNumbers::upsert($insertData, ['tax_id_num']);
                 $insertData = [];
                 //echo '<pre>', print_r("第 $roundCount 回合成功", 1), "</pre>";
             }
@@ -151,7 +151,7 @@ class UniformInvoiceNumberController extends Controller
 
         //剩餘筆數，不足最大，未被清空
         if (!empty($insertData)) {
-           GovUniformInvoiceNumbers::upsert($insertData, ['uniform_invoice_no']);
+           GovUniformInvoiceNumbers::upsert($insertData, ['tax_id_num']);
            $insertData = [];
            echo '<pre>', print_r('剩餘筆數，成功', 1), "</pre>";
         }

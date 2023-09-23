@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Models\Localization;
+namespace App\Models\Common;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\Model\Translatable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Traits\Model\Translatable;
 
 class Unit extends Model
 {

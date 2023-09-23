@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Admin\Services\Localization;
+namespace App\Services\Localization;
 
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;

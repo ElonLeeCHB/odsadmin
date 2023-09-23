@@ -215,12 +215,19 @@ Route::group(
                 Route::post('products/delete', 'Inventory\ProductController@delete')->name('products.delete');
                 Route::get('products/autocomplete', 'Inventory\ProductController@autocomplete')->name('products.autocomplete');
 
-                Route::get('purchasing', 'Inventory\PurchasingController@index')->name('purchasing.index');
-                Route::get('purchasing/list', 'Inventory\PurchasingController@list')->name('purchasing.list');
-                Route::get('purchasing/form/{id?}', 'Inventory\PurchasingController@form')->name('purchasing.form');
-                Route::post('purchasing/save/{id?}', 'Inventory\PurchasingController@save')->name('purchasing.save');
-                Route::post('purchasing/delete', 'Inventory\PurchasingController@delete')->name('purchasing.delete');
-                Route::get('purchasing/autocomplete', 'Inventory\PurchasingController@autocomplete')->name('purchasing.autocomplete');
+                // Route::get('purchasing', 'Inventory\PurchasingController@index')->name('purchasing.index');
+                // Route::get('purchasing/list', 'Inventory\PurchasingController@list')->name('purchasing.list');
+                // Route::get('purchasing/form/{id?}', 'Inventory\PurchasingController@form')->name('purchasing.form');
+                // Route::post('purchasing/save/{id?}', 'Inventory\PurchasingController@save')->name('purchasing.save');
+                // Route::post('purchasing/delete', 'Inventory\PurchasingController@delete')->name('purchasing.delete');
+                // Route::get('purchasing/autocomplete', 'Inventory\PurchasingController@autocomplete')->name('purchasing.autocomplete');
+
+                Route::get('receiving', 'Inventory\ReceivingOrderController@index')->name('receiving.index');
+                Route::get('receiving/list', 'Inventory\ReceivingOrderController@list')->name('receiving.list');
+                Route::get('receiving/form/{id?}', 'Inventory\ReceivingOrderController@form')->name('receiving.form');
+                Route::post('receiving/save/{id?}', 'Inventory\ReceivingOrderController@save')->name('receiving.save');
+                Route::post('receiving/delete', 'Inventory\ReceivingOrderController@delete')->name('receiving.delete');
+                Route::get('receiving/autocomplete', 'Inventory\ReceivingOrderController@autocomplete')->name('receiving.autocomplete');
             });
 
 
@@ -273,14 +280,6 @@ Route::group(
                 Route::get('members/autocomplete', 'Member\MemberController@autocomplete')->name('members.autocomplete');
                 Route::post('members/save/{member_id?}', 'Member\MemberController@save')->name('members.save');
                 Route::post('members/delete', 'Member\MemberController@delete')->name('members.delete');
-
-                // gov_uniform_invoice_numbers
-                Route::get('guin/autocompleteSingle', 'SysData\GovUniformInvoiceNumberController@autocompleteSingle')->name('guin.autocompleteSingle');
-                Route::get('guin/setCache', 'SysData\GovUniformInvoiceNumberController@setCache')->name('guin.setCache');
-
-
-                //Route::get('organizations', 'Member\OrganizationController@index')->name('organizations.index');
-
             });
 
             Route::group([

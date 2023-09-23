@@ -5,7 +5,7 @@ namespace App\Domains\Api\Http\Controllers\Localization;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use Illuminate\Http\Request;
-use App\Domains\Api\Services\Localization\RoadService;
+use App\Services\Localization\RoadService;
 use App\Domains\Api\Services\Localization\DivisionService;
 
 class RoadController extends BackendController

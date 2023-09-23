@@ -28,6 +28,7 @@
           <ul class="nav nav-tabs">
             <li class="nav-item"><a href="#tab-trans" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_trans }}</a></li>
             <li class="nav-item"><a href="#tab-data" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_data }}</a></li>
+            <li class="nav-item"><a href="#tab-units" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_units }}</a></li>
           </ul>
           <form id="form-product" action="{{ $save }}" method="post" data-oc-toggle="ajax">
             @csrf
@@ -56,26 +57,6 @@
                     </div>
 
                     <div class="row mb-3 ">
-                      <label for="input-full_name-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_full_name }}</label>
-                      <div class="col-sm-10">
-                        <div class="input-group">
-                          <input type="text" name="translations[{{ $language->code }}][full_name]" value="{{ $product_translations[$language->code]['full_name'] ?? ''  }}" id="input-name-{{ $language->code }}" class="form-control">
-                                                  </div>
-                        <div id="error-full_name-{{ $language->code }}" class="invalid-feedback"></div>
-                      </div>
-                    </div>
-
-                    <div class="row mb-3 ">
-                      <label for="input-short_name-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_short_name }}</label>
-                      <div class="col-sm-10">
-                        <div class="input-group">
-                          <input type="text" name="translations[{{ $language->code }}][short_name]" value="{{ $product_translations[$language->code]['short_name'] ?? ''  }}" id="input-short_name-{{ $language->code }}" class="form-control">
-                                                  </div>
-                        <div id="error-short_name-{{ $language->code }}" class="invalid-feedback"></div>
-                      </div>
-                    </div>
-
-                    <div class="row mb-3 ">
                       <label for="input-specification-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_specification }}</label>
                       <div class="col-sm-10">
                         <div class="input-group">
@@ -85,31 +66,6 @@
                       </div>
                     </div>
 
-                    <div class="row mb-3">
-                      <label for="input-meta-title-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_meta_title }}</label>
-                      <div class="col-sm-10">
-                        <div class="input-group">
-                          <input type="text" name="translations[{{ $language->code }}][meta_title]" value="{{ $product_translations[$language->code]['meta_title'] ?? '' }}" placeholder="Meta Tag Title" id="input-meta-title-{{ $language->code }}" class="form-control">
-                                                  </div>
-                        <div id="error-meta-title-{{ $language->code }}" class="invalid-feedback"></div>
-                      </div>
-                    </div>
-                    <div class="row mb-3">
-                      <label for="input-meta-description-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_meta_description }}</label>
-                      <div class="col-sm-10">
-                        <div class="input-group">
-                          <textarea name="translations[{{ $language->code }}][meta_description]" rows="5" placeholder="{{ $lang->column_meta_description }}" id="input-meta-description-{{ $language->code }}" class="form-control">{{ $product_translations[$language->code]['meta_description'] ?? '' }}</textarea>
-                                                  </div>
-                      </div>
-                    </div>
-                    <div class="row mb-3">
-                      <label for="input-meta-keyword-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_meta_keyword }}</label>
-                      <div class="col-sm-10">
-                        <div class="input-group">
-                          <textarea name="translations[{{ $language->code }}][meta_keyword]" rows="5" placeholder="{{ $lang->column_meta_keyword }}" id="input-meta-keyword-{{ $language->code }}" class="form-control">{{ $product_translations[$language->code]['meta_keyword'] ?? '' }}</textarea>
-                                                  </div>
-                      </div>
-                    </div>
                   </div>
                   @endforeach
                 </div>
@@ -131,26 +87,39 @@
                   </div>
                 </div>
 
-                {{-- model --}}
+                {{-- code --}}
                 <div class="row mb-3">
-                  <label for="input-model" class="col-sm-2 col-form-label">{{ $lang->column_model }}</label>
+                  <label for="input-code" class="col-sm-2 col-form-label">{{ $lang->column_code }}</label>
                   <div class="col-sm-10">
-                    <input type="text" name="model" value="{{ $product->model }}" placeholder="{{ $lang->placeholder_model }}" id="input-model" class="form-control"/>
-                    <div id="error-model" class="invalid-feedback"></div>
+                    <input type="text" name="code" value="{{ $product->code }}" id="input-code" class="form-control"/>
+                    <div id="error-code" class="invalid-feedback"></div>
                   </div>
                 </div>
 
-                {{-- purchasing_unit_code --}}
+                {{-- supplier_product_code --}}
                 <div class="row mb-3">
-                  <label for="input-purchasing_unit_code" class="col-sm-2 col-form-label">{{ $lang->column_purchasing_unit }}</label>
+                  <label for="input-supplier_product_code" class="col-sm-2 col-form-label">{{ $lang->column_supplier_product_code}}</label>
                   <div class="col-sm-10">
-                    <select id="input-purchasing_unit_code" name="purchasing_unit_code" class="form-control">
-                      <option value="">--</option>
-                      @foreach($units as $code => $unit)
-                      <option value="{{ $unit->code }}" @if($unit->code==$product->purchasing_unit_code) selected @endif>{{ $unit->label }}</option>
-                      @endforeach
-                    </select>
-                    <div id="error-purchasing_unit_code" class="invalid-feedback"></div>
+                    <input type="text" id="input-supplier_product_code" name="supplier_product_code" value="{{ $product->supplier_product_code }}" class="form-control"/>
+                    <div id="error-supplier_product_code" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                {{-- supplier_product_name --}}
+                <div class="row mb-3">
+                  <label for="input-supplier_product_name" class="col-sm-2 col-form-label">{{ $lang->column_supplier_product_name }}</label>
+                  <div class="col-sm-10">
+                    <input type="text" id="input-supplier_product_name" name="supplier_product_name" value="{{ $product->supplier_product_name }}" class="form-control"/>
+                    <div id="error-supplier_product_name" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                {{-- supplier_product_specification --}}
+                <div class="row mb-3">
+                  <label for="input-supplier_product_specification" class="col-sm-2 col-form-label">{{ $lang->column_supplier_product_specification }}</label>
+                  <div class="col-sm-10">
+                    <input type="text" id="input-supplier_product_specification" name="supplier_product_specification" value="{{ $product->supplier_product_specification }}" class="form-control"/>
+                    <div id="error-supplier_product_specification" class="invalid-feedback"></div>
                   </div>
                 </div>
 
@@ -158,7 +127,10 @@
                 <div class="row mb-3">
                   <label for="input-stock_unit_code" class="col-sm-2 col-form-label">{{ $lang->column_stock_unit }}</label>
                   <div class="col-sm-10">
-                    <select id="input-stock_unit_code" name="stock_unit_code" class="form-control">
+                    @php
+                      $disabled = !empty($product->stock_unit_code) ? ' disabled' : '';
+                    @endphp
+                    <select id="input-stock_unit_code" name="stock_unit_code" class="form-control" {{ $disabled }}>
                       <option value="">--</option>
                       @foreach($units as $code => $unit)
                       <option value="{{ $unit->code }}" @if($unit->code==$product->stock_unit_code) selected @endif>{{ $unit->label }}</option>
@@ -256,6 +228,50 @@
                   </div>
                 </div>
               </div>
+
+              <div id="tab-units" class="tab-pane">
+                <div class="table-responsive">
+                  @if(!empty($product->stock_unit_code))
+                  <table class="table table-bordered table-hover">
+                    <tr>
+                      <td class="text-start">來源數量</td>
+                      <td class="text-start">來源單位</td>
+                      <td class="text-start">目的數量</td>
+                      <td class="text-start">目的單位</td>
+                    </tr>
+
+                      @php $product_unit_row = 1; @endphp
+                    @foreach($product_units as $product_unit)
+                    <tr>
+                      <td><input type="text" id="input-units-{{ $product_unit_row }}-source_quantity" name="product_units[{{ $product_unit_row }}][source_quantity]" value="{{ $product_unit->source_quantity ?? 0 }}" class="form-control"></td>
+                      <td>
+                        <select id="input-units-{{ $product_unit_row }}-source_unit_code" name="product_units[{{ $product_unit_row }}][source_unit_code]" class="form-control">
+                          <option value="">--</option>
+                          @foreach($units as $code => $unit)
+                          <option value="{{ $unit->code }}" @if($unit->code==$product_unit->source_unit_code) selected @endif>{{ $unit->label }}</option>
+                          @endforeach
+                        </select>
+                      </td>
+                      <td><input type="text" id="input-units-{{ $product_unit_row }}-stock_quantity" name="product_units[{{ $product_unit_row }}][destination_quantity]" value="{{ $product_unit->destination_quantity ?? 0 }}" class="form-control"></td>
+                      <td>
+                        <select id="input-units-{{ $product_unit_row }}-destination_unit_code" name="product_units[{{ $product_unit_row }}][destination_unit_code]" class="form-control">
+                          <option value="">--</option>
+                          @foreach($destination_units as $destination_unit)
+                          <option value="{{ $destination_unit->code }}" @if($destination_unit->code==$product_unit->destination_unit_code) selected @endif>{{ $destination_unit->name }}</option>
+                          @endforeach
+                        </select>
+                      </td>
+                    </tr>
+                      @php $product_unit_row++; @endphp
+                    @endforeach
+
+                  </table>
+                  @else
+                  請先設定庫存單位(盤點單位)，然後按F5重新整理. 
+                  @endif
+                </div>
+              </div>
+
               <input type="hidden" name="product_id" value="{{ $product_id }}" id="input-product_id"/>
             </div>
           </form>
@@ -380,6 +396,11 @@ $(document).ready(function() {
       }
     });
   });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  var selectElement = document.getElementById("input-destination_unit_code");
+  selectElement.value = "{{ $product->stock_unit_code }}"; // 将 "Option 2" 设置为选中状态
 });
 
 </script>

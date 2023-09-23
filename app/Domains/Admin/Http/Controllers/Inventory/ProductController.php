@@ -5,11 +5,11 @@ namespace App\Domains\Admin\Http\Controllers\Inventory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
-use App\Libraries\TranslationLibrary;
+use App\Domains\Admin\Services\Inventory\ProductService;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
-use App\Repositories\Eloquent\Localization\UnitRepository;
+use App\Repositories\Eloquent\Common\UnitRepository;
+//use App\Repositories\Eloquent\Inventory\ProductUnitRepository;
 use App\Domains\Admin\Services\Common\OptionService;
-use App\Services\Inventory\ProductService;
 use App\Domains\Admin\Services\Catalog\CategoryService;
 use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
 
@@ -223,8 +223,6 @@ class ProductController extends BackendController
         }else{
             foreach ($product->translations as $translation) {
                 $product_translations[$translation->locale] = $translation->toArray();
-                // locale is like zh-something, the hyphen can't be as the key. 
-                // This won't work: $product_translations->zh-Hant->name
             }
         }
         $data['product_translations'] = $product_translations;
@@ -265,6 +263,64 @@ class ProductController extends BackendController
         // supplier_product
         $data['supplier_product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
         
+
+        // product_units & destination_units dropdown menu
+        $product_units = $product->product_units;
+        
+        // 還沒設定任何單位轉換，選單只能出現庫存單位
+        if($product_units->isEmpty() && !empty($product->stock_unit_code)){
+            $codes[$product->stock_unit_code] = $product->stock_unit->name;
+        }
+        // 已有單位轉換，抓出所有不重複的單位
+        else{
+            foreach ($product_units as $product_unit) {
+                $source_unit_code = $product_unit->source_unit_code;
+                $destination_unit_code = $product_unit->destination_unit_code;
+
+                if(empty($codes[$source_unit_code])){
+                    $codes[$source_unit_code] = $product_unit->source_unit->name;
+                }
+
+                if(empty($codes[$destination_unit_code])){
+                    $codes[$destination_unit_code] = $product_unit->destination_unit->name;
+                }
+
+            }
+        }
+        foreach ($codes as $code => $value) {
+            $data['destination_units'][] = (object) [
+                'code' => $code,
+                'name' => $value,
+            ];
+        }
+
+        //echo '<pre>', print_r($product_units->toArray(), 1), "</pre>"; exit;
+
+        //echo '<pre>', print_r($data['destination_units'], 1), "</pre>"; exit;
+
+
+        for ($i = 0; $i < 5; $i++) {
+            if(!empty($product_units[$i])){
+                $product_unit = $product_units[$i];
+                $new_product_units[$i] = (object) [
+                    'source_unit_code' => $product_unit->source_unit_code,
+                    'source_quantity' => $product_unit->source_quantity,
+                    'destination_unit_code' => $product_unit->destination_unit_code,
+                    'destination_quantity' => $product_unit->destination_quantity,
+                    'level' => $product_unit->level,
+                ];
+            }else{
+                $new_product_units[$i] = (object) [
+                    'source_unit_code' => '',
+                    'source_quantity' => 0,
+                    'destination_unit_code' => '',
+                    'destination_quantity' => 0,
+                    'level' => 0,
+                ];
+            }
+        }
+        $data['product_units'] = $new_product_units;
+
         // units
         $filter_data = [
             'filter_keyword' => $this->request->filter_keyword,
@@ -288,6 +344,17 @@ class ProductController extends BackendController
             if(empty($translation['name']) || mb_strlen($translation['name']) < 2){
                 $json['error']['name-' . $locale] = $this->lang->error_name;
             }
+        }
+
+        // Check units
+        $arr_source_unit_code = [];
+        foreach ($data['units'] ?? [] as $key => $unit) {
+            $source_unit_code = $unit['source_unit_code'];
+            if(!empty($source_unit_code) && in_array($source_unit_code, $arr_source_unit_code)){
+                $json['error']['warning'] = '換算單位重複！';
+                break;
+            }
+            $arr_source_unit_code[] = $unit['source_unit_code'];
         }
 
         if (isset($json['error']) && !isset($json['error']['warning'])) {

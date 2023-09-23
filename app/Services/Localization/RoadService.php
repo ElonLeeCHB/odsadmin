@@ -1,13 +1,9 @@
 <?php
 
-namespace App\Domains\Api\Services\Localization;
+namespace App\Services\Localization;
 
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
 use App\Domains\Api\Services\Service;
 use App\Traits\EloquentTrait;
-use App\Libraries\TranslationLibrary;
-//use App\Models\Localization\RoadFirstWord;
 use App\Repositories\Eloquent\Localization\RoadFirstWordRepository;
 
 class RoadService extends Service
@@ -24,7 +20,7 @@ class RoadService extends Service
 	}
 
 
-    public function getFirstWords($data, $debug=0)
+    public function getFirstWords($data = [], $debug = 0)
     {
         $rows = $this->RoadFirstWordRepository->getRows($data, $debug);
 

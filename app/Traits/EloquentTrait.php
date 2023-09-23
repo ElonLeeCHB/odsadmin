@@ -24,6 +24,12 @@ use Illuminate\Support\Facades\DB;
  * setMetaDataset()
  * saveMetaDataset()
  * toStdObj()
+ * 
+ * regexp
+ * pagination
+ * limit
+ * optimize
+ * sanitize
  */
 trait EloquentTrait
 {
@@ -56,14 +62,28 @@ trait EloquentTrait
         return $model;
     }
 
-    public function findIdFirst($id, $data = null)
-    {
-        $record = $this->newModel()->where('id', $id)->first();
 
-        return $record;
+    public function refineRow($row, $data)
+    {
+        if (method_exists($this, 'optimizeRow') && !empty($data['optimize'])) {
+            $row = $this->optimizeRow($row);
+        }
+
+        if (method_exists($this, 'sanitizeRow') && !empty($data['sanitize'])) {
+            $row = $this->sanitizeRow($row);
+        }
+
+        return $row;
     }
 
-    public function findIdOrFailOrNew($id, $data = null)
+    public function findIdFirst($id, $data = null)
+    {
+        $row = $this->newModel()->where('id', $id)->first();
+
+        return $row;
+    }
+
+    public function findIdOrFailOrNew($id, $data = null, $debug = 0)
     {
         //find
         if(!empty(trim($id))){
@@ -192,6 +212,18 @@ trait EloquentTrait
         if(!empty($data['with'])){
             $this->setWith($query, $data['with']);
         }
+
+
+        // whereRelations
+        // if(!empty($data['whereRelations'])){
+        //     foreach ($data['whereRelations'] as $relation_name => $relation) {
+        //         $query->whereRelation($relation_name, function($tmpQuery) use ($relation) {
+        //             foreach ($relation as $column => $value) {
+        //                 $this->setWhereQuery($tmpQuery, $column, $value, 'where');
+        //             }
+        //         });
+        //     }
+        // }
 
 
         // With translation relation
@@ -607,10 +639,10 @@ trait EloquentTrait
 
     private function setWhereHas($query, $data)
     {
-        foreach ($data as $rel_name => $relation) {
-            $query->whereHas($rel_name, function($query) use ($relation) {
-                foreach ($relation as $key => $value) {
-                    $this->setWhereQuery($query, $key, $value, 'where');
+        foreach ($data as $relation_name => $relation) {
+            $query->whereHas($relation_name, function($query) use ($relation) {
+                foreach ($relation as $column => $value) {
+                    $this->setWhereQuery($query, $column, $value, 'where');
                 }
             });
         }
@@ -667,6 +699,7 @@ trait EloquentTrait
         return $this->table_columns;
     }
 
+    // For debug
     public static function getQueryContent(Builder $builder)
     {
         $addSlashes = str_replace('?', "'?'", $builder->toSql());
@@ -824,15 +857,19 @@ trait EloquentTrait
         }
     }
 
-    public function toStdObj($row)
-    {
-        $arr = $row->toArray();
 
-        if(!empty($arr['translation'])){
-            unset($arr['translation']);
+    public function rowsToStdObj($rows)
+    {
+        foreach ($rows as $key => $row) {
+            $rows[$key] = $row = $this->rowToStdObj($row);
         }
 
-        return (object)$arr;
+        return $rows;
+    }
+
+    public function rowToStdObj($row)
+    {
+        return (object) $row->toArray();
     }
 
 

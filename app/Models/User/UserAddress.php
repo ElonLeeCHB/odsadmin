@@ -3,7 +3,7 @@
 namespace App\Models\User;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Localization\Division;
+use App\Models\SysData\Division;
 
 class UserAddress extends Model
 {

@@ -43,7 +43,6 @@ class ProductRepository extends Repository
         $row = $this->getRow($data, $debug);
 
         $row->supplier_name = $row->supplier->name ?? '';
-        echo '<pre>', print_r(999, 1), "</pre>"; exit;
 
         return $row;
     }

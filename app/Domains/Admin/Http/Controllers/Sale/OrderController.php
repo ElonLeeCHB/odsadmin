@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Sale\OrderService;
-use App\Domains\Admin\Services\Member\MemberService; //將移除，改用 UserRepository
+use App\Services\Member\MemberService; //將移除，改用 UserRepository
 use App\Repositories\Eloquent\User\UserRepository;
 use App\Domains\Admin\Services\Catalog\ProductService;
 use App\Domains\Admin\Services\Common\OptionService;
@@ -78,7 +78,7 @@ class OrderController extends BackendController
 
         $data['breadcumbs'] = (object)$breadcumbs;
 
-        $data['order_statuses'] = $this->OrderService->getOrderStatuses();
+        $data['order_statuses'] = $this->OrderService->getCachedActiveOrderStatuses();
 
         $data['states'] = $this->DivisionService->getStates();
 
@@ -162,17 +162,10 @@ class OrderController extends BackendController
         // Rows
         $orders = $this->OrderService->getOrders($query_data);
 
-        // statuses
-        $order_statuses = $this->OrderService->getOrderStatuses();
-        
-
-        $status_items = $this->OrderService->getOrderStatuseValues($order_statuses);
-
         if(!empty($orders)){
             foreach ($orders as $row) {
                 $row->edit_url = route('lang.admin.sale.orders.form', array_merge([$row->id], $query_data));
                 $row->payment_phone = $row->payment_mobile . "<BR>" . $row->payment_telephone;
-                $row->status_name = $status_items[$row->status_id] ?? '';
             }
         }
 
@@ -274,6 +267,7 @@ class OrderController extends BackendController
 
         // Get Record
         $order = $this->OrderService->findIdOrFailOrNew($order_id);
+        
 
         $order->load('order_products.product_options.active_product_option_values.translation');
         $order->load('order_products.order_product_options');
@@ -294,9 +288,13 @@ class OrderController extends BackendController
             $order->customer = '新客戶';
         }
 
-        $data['order']  = $this->order = $order;
+        $this->order = $order;
 
-        $data['location_id'] = 2;
+        $data['order']  = $this->OrderService->refineRow($order, ['optimize' => true, 'sanitize' => true]);
+
+        if(empty($this->request->location_id)){
+            $data['location_id'] = 2;
+        }
 
         //訂單標籤
         $order_tag = $this->OrderService->getOrderTagsByOrderId($order_id);
@@ -325,10 +323,8 @@ class OrderController extends BackendController
         if(!empty($this->request->getReturn)){
             $arrQueries = ['getReturn' => 1];
         }
-        $data['save'] = route('lang.admin.sale.orders.save', $arrQueries);
-        //$data['save'] = route('api.sale.order.save');
-
-        $data['back'] = route('lang.admin.sale.orders.index', $queries);
+        $data['save_url'] = route('lang.admin.sale.orders.save', $arrQueries);
+        $data['back_url'] = route('lang.admin.sale.orders.index', $queries);
 
         if(!empty($data['order']) && $order_id == $order->id){
             $data['order_id'] = $order_id;
@@ -340,16 +336,7 @@ class OrderController extends BackendController
         //$data['shipping_method'] = $order->shipping_method ?? 'shipping_pickup';
         $data['shipping_method'] = $order->shipping_method ?? '';
 
-        // Order Statuses
-        $cachedStatusesName = app()->getLocale() . '_order_statuses';
-        $order_statuses = cache()->get($cachedStatusesName);
-
-        if(empty($order_statuses)){
-            $order_statuses = cache()->remember($cachedStatusesName, 60*60*24*365, function(){
-                return $this->OrderService->getOrderStatuses();
-            });
-        }
-        $data['order_statuses'] = $order_statuses;
+        $data['order_statuses'] = $this->OrderService->getCachedActiveOrderStatuses();
 
         $data['status_id'] = $order->status_id ?? '101';
 
@@ -398,7 +385,7 @@ class OrderController extends BackendController
                 'sort' => 'id',
                 'order' => 'ASC',
             ];
-            $order_totals = $this->OrderService->getOrderTotal($filter_data);
+            $order_totals = $this->OrderService->getOrderTotals($filter_data);
         }
 
         if(isset($order_totals) && !$order_totals->isEmpty()){
@@ -413,6 +400,13 @@ class OrderController extends BackendController
                 'total' => (object)['title' => '總計', 'value' => 0, 'sort_order' => 4],
             ];
         }
+
+        $data['members_list_url'] = route('api.member.member.list');
+        $data['tax_id_nums_list_url'] = route('api.member.tin.list');
+        $data['cities_list_url'] = route('api.localization.division.city.list');
+        $data['roads_list_url'] = route('api.localization.road.list');
+        
+
 
         return view('admin.sale.order_form', $data);
     }

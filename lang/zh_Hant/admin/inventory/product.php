@@ -7,7 +7,8 @@ return [
 // Tab
 // 'tab_general' => '基本資料',
 // 'tab_data' => '明細資料',
-'tab_bom' => 'BOM',
+//'tab_bom' => 'BOM',
+'tab_units' => '單位換算',
 
 // Text
 'text_inventory' => '庫存管理',
@@ -48,9 +49,12 @@ return [
 'column_length' => '長度',
 'column_width' => '寬度',
 'column_height' => '高度',
-//
+
 'column_supplier' => '廠商',
 'column_supplier_product' => '廠商料件',
+'column_supplier_product_code' => '廠商料件編號',
+'column_supplier_product_name' => '廠商料件名稱',
+'column_supplier_product_specification' => '廠商料件規格',
 
 'column_image' => '商品主圖',
 'column_sort_order' => '排序',

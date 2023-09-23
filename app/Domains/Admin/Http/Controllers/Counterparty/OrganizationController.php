@@ -5,7 +5,7 @@ namespace App\Domains\Admin\Http\Controllers\Counterparty;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Libraries\TranslationLibrary;
-use App\Domains\Admin\Services\Member\MemberService;
+use App\Services\Member\MemberService;
 use App\Domains\Admin\Services\Counterparty\OrganizationService;
 use Auth;
 

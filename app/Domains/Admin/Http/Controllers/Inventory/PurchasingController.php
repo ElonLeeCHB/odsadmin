@@ -5,8 +5,8 @@ namespace App\Domains\Admin\Http\Controllers\Inventory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
-use App\Domains\Admin\Services\Inventory\PurchasingOrderService;
-use App\Repositories\Eloquent\Localization\UnitRepository;
+use App\Services\Inventory\PurchasingOrderService;
+use App\Repositories\Eloquent\Common\UnitRepository;
 use App\Models\Setting\Location;
 use App\Models\Localization\Language;
 

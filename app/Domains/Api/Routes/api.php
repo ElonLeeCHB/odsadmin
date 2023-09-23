@@ -49,16 +49,16 @@ Route::group([
         'as' => 'sale.',
     ], function ()
     {
-        Route::get('order/getAllStatuses', 'Sale\OrderController@getAllStatuses')->name('order.getAllStatuses');
-        Route::get('order/getOrderPhrases/{taxonomy_code}', 'Sale\OrderController@getOrderPhrases')->name('order.getOrderPhrases');
+        Route::get('order/statuses', 'Sale\OrderController@getActiveOrderStatuses')->name('order.getActiveOrderStatuses');
+        Route::get('order/phrases/{taxonomy_code}', 'Sale\OrderController@getOrderPhrases')->name('order.getOrderPhrases');
 
         Route::get('order', 'Sale\OrderController@list')->name('order.list');
         Route::post('order/save', 'Sale\OrderController@save')->name('order.save');
         Route::get('order/{order_id}', 'Sale\OrderController@details')->name('order.details');
         Route::get('order/{order_id}/header', 'Sale\OrderController@header')->name('order.header');
 
-        Route::get('order/schedule/list/{delivery_date?}', 'Sale\OrderScheduleController@list')->name('order.schedule.list');
         Route::post('order/schedule/save', 'Sale\OrderScheduleController@save')->name('order.schedule.save');
+        Route::get('order/schedule/{delivery_date?}', 'Sale\OrderScheduleController@list')->name('order.schedule.list');
 
     });
 
@@ -81,10 +81,13 @@ Route::group([
         Route::post('member/save', 'Member\MemberController@save')->name('member.save');
         Route::get('member/{member_id}', 'Member\MemberController@details')->name('member.details');
 
-        Route::get('guin/autocompleteSingle', 'SysData\GovUniformInvoiceNumberController@autocompleteSingle')->name('guin.autocompleteSingle');
+        //將廢棄
         Route::get('guin/autocomplete', 'SysData\GovUniformInvoiceNumberController@autocomplete')->name('guin.autocomplete');
         Route::get('guin/{guin}', 'SysData\GovUniformInvoiceNumberController@details')->name('guin.details');
 
+        Route::get('tin', 'SysData\TaxIdNumController@list')->name('tin.list');
+        Route::get('tin/{guin}', 'SysData\TaxIdNumController@info')->name('tin.info');
+        
     });
 
 
@@ -104,8 +107,8 @@ Route::group([
     ], function ()
     {
         //Route::get('divisions', 'Localization\DivisionController@index')->name('divisions.index');
-        Route::get('division/state', 'Localization\DivisionController@stateList')->name('divisions.state.list');
-        Route::get('division/city', 'Localization\DivisionController@CityList')->name('divisions.city.list');
+        Route::get('division/state', 'Localization\DivisionController@stateList')->name('division.state.list');
+        Route::get('division/city', 'Localization\DivisionController@cityList')->name('division.city.list');
 
         Route::group([
             'prefix' => 'road',

@@ -322,11 +322,21 @@ class LayoutComposer
         }
 
         // 採購作業
+        // if(1) {
+        //     $inventory[] = [
+        //         'name'	   => $this->lang->text_purchasing_orders,
+        //         'icon'	   => '',
+        //         'href'     => route('lang.admin.inventory.purchasing.index'),
+        //         'children' => []
+        //     ];
+        // }
+
+        // 進貨作業
         if(1) {
             $inventory[] = [
-                'name'	   => $this->lang->text_purchasing_orders,
+                'name'	   => $this->lang->text_receiving_orders,
                 'icon'	   => '',
-                'href'     => route('lang.admin.inventory.purchasing.index'),
+                'href'     => route('lang.admin.inventory.receiving.index'),
                 'children' => []
             ];
         }

@@ -2,12 +2,12 @@
 
 namespace App\Repositories\Eloquent\Member;
 
-use App\Traits\EloquentTrait;
+use App\Repositories\Eloquent\User\UserRepository;
 
-class MemberRepository
+class MemberRepository extends UserRepository
 {
-    use EloquentTrait;
-
     public $modelName = "\App\Models\Member\Member";
+
+
 }
 
