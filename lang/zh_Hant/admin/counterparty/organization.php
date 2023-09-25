@@ -34,11 +34,8 @@ return [
 'column_sales_telephone' => '業務聯絡人市話',
 'column_sales_mobile' => '業務聯絡人手機',
 
-'column_supplier_contact_name' => '廠商聯絡人',
-'column_supplier_contact_email' => '廠商聯絡email',
-'column_supplier_contact_jobtitle' => '廠商聯絡人職稱',
-'column_supplier_contact_telephone' => '廠商聯絡人市話',
-'column_supplier_contact_mobile' => '廠商聯絡人手機',
+'column_comment' => '備註',
+'column_bank' => '銀行',
 
 // Entry
 'entry_name' => '單位名稱',

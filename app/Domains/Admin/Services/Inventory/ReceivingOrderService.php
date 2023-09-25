@@ -6,13 +6,13 @@ use Illuminate\Support\Facades\DB;
 use App\Services\Service;
 use App\Services\Inventory\GlobalReceivingOrderService;
 use App\Repositories\Eloquent\Inventory\ReceivingOrderRepository;
-use App\Repositories\Eloquent\Inventory\ReceivingProductRepository;
+use App\Repositories\Eloquent\Inventory\ReceivingOrderProductRepository;
 
 class ReceivingOrderService extends GlobalReceivingOrderService
 {
     protected $modelName = "\App\Models\Inventory\ReceivingOrder";
 
-    public function __construct(protected ReceivingOrderRepository $ReceivingOrderRepository, protected ReceivingProductRepository $ReceivingProductRepository)
+    public function __construct(protected ReceivingOrderRepository $ReceivingOrderRepository, protected ReceivingOrderProductRepository $ReceivingOrderProductRepository)
     {}
 
 

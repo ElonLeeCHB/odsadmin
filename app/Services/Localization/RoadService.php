@@ -4,7 +4,7 @@ namespace App\Services\Localization;
 
 use App\Domains\Api\Services\Service;
 use App\Traits\EloquentTrait;
-use App\Repositories\Eloquent\Localization\RoadFirstWordRepository;
+use App\Repositories\Eloquent\SysData\RoadFirstWordRepository;
 
 class RoadService extends Service
 {
@@ -16,7 +16,7 @@ class RoadService extends Service
 
 	public function __construct(private RoadFirstWordRepository $RoadFirstWordRepository)
 	{
-        $this->modelName = "\App\Models\Localization\Road";
+        $this->modelName = "\App\Models\SysData\Road";
 	}
 
 

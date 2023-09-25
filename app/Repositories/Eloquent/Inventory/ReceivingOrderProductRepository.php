@@ -5,11 +5,11 @@ namespace App\Repositories\Eloquent\Inventory;
 use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
 use App\Models\Inventory\ReceivingOrder;
-use App\Models\Inventory\ReceivingProduct;
+use App\Models\Inventory\ReceivingOrderProduct;
 
-class ReceivingProductRepository extends Repository
+class ReceivingOrderProductRepository extends Repository
 {
-    public $modelName = "\App\Models\Inventory\ReceivingProduct";
+    public $modelName = "\App\Models\Inventory\ReceivingOrderProduct";
 
 
     public function deleteByReceivingOrderId($receiving_order_id)
@@ -18,7 +18,7 @@ class ReceivingProductRepository extends Repository
 
             DB::beginTransaction();
 
-            ReceivingProduct::where('receiving_order_id', $receiving_order_id)->delete();
+            ReceivingOrderProduct::where('receiving_order_id', $receiving_order_id)->delete();
 
             DB::commit();
 

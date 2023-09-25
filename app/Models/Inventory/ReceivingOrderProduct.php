@@ -8,7 +8,7 @@ use App\Models\Catalog\Product;
 use App\Models\Inventory\ReceivingOrder;
 use App\Traits\Model\Translatable;
 
-class ReceivingProduct extends Model
+class ReceivingOrderProduct extends Model
 {
     protected $guarded = [];
 

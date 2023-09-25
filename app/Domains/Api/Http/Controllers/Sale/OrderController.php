@@ -89,7 +89,7 @@ class OrderController extends BackendController
 
 
     public function header($order_id)
-    {
+    {        
         $order = $this->OrderService->findIdOrFailOrNew($order_id, ['sanitize' => true]);
 
         // Order Total
@@ -161,14 +161,14 @@ class OrderController extends BackendController
 
         // Validate
         //驗證表單內容
-        $validator = $this->OrderService->validator($post_data);
+        // $validator = $this->OrderService->validator($post_data);
 
-        if($validator->fails()){
-            $messages = $validator->errors()->toArray();
-            foreach ($messages as $key => $rows) {
-                $json['error'][$key] = $rows[0];
-            }
-        }
+        // if($validator->fails()){
+        //     $messages = $validator->errors()->toArray();
+        //     foreach ($messages as $key => $rows) {
+        //         $json['error'][$key] = $rows[0];
+        //     }
+        // }
 
         //表單驗證成功
         if (!$json) {

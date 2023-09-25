@@ -2,7 +2,7 @@
 
 return [
 // Heading
-'heading_title' => '品號設定',
+'heading_title' => '料件設定',
 
 // Tab
 // 'tab_general' => '基本資料',
@@ -52,9 +52,9 @@ return [
 
 'column_supplier' => '廠商',
 'column_supplier_product' => '廠商料件',
-'column_supplier_product_code' => '廠商料件編號',
-'column_supplier_product_name' => '廠商料件名稱',
-'column_supplier_product_specification' => '廠商料件規格',
+'column_supplier_own_product_code' => '廠商料件編號',
+'column_supplier_own_product_name' => '廠商料件名稱',
+'column_supplier_own_product_specification' => '廠商料件規格',
 
 'column_image' => '商品主圖',
 'column_sort_order' => '排序',
@@ -70,7 +70,7 @@ return [
 'column_points' => '點數',
 'column_is_default' => '預設',
 'column_is_stock_management' => '庫存管理',
-'column_source_code' => '品號屬性',
+'column_source_code' => '料件屬性',
 'column_main_supplier' => '主供應商',
 
 

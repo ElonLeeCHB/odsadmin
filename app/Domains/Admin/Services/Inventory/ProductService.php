@@ -38,6 +38,8 @@ class ProductService extends Service
         DB::beginTransaction();
 
         try {
+
+            // product
             $product = $this->findIdOrFailOrNew($data['product_id']);
 
             $product->model = $data['model'] ?? null;
@@ -51,9 +53,13 @@ class ProductService extends Service
             
             $product->sort_order = $data['sort_order'] ?? 250;
             $product->source_code = $data['source_code'] ?? '';
+            $product->accounting_category_code = $data['accounting_category_code'] ?? '';
             
             $product->supplier_id = $data['supplier_id'] ?? 0;
-            $product->supplier_product_id = $data['supplier_product_id'] ?? 0;
+            //$product->supplier_product_id = $data['supplier_product_id'] ?? 0;
+            $product->supplier_own_product_code = $data['supplier_own_product_code'] ?? '';
+            $product->supplier_own_product_name = $data['supplier_own_product_name'] ?? '';
+            $product->supplier_own_product_specification = $data['supplier_own_product_specification'] ?? '';
 
             $product->purchasing_unit_code = $data['purchasing_unit_code'] ?? null;
 
@@ -67,6 +73,7 @@ class ProductService extends Service
 
             $product_id = $product->id;
 
+            // translations
             if(!empty($data['translations'])){
                 $this->saveTranslationData($product, $data['translations']);
             }
@@ -116,6 +123,9 @@ class ProductService extends Service
                     $this->ProductUnitRepository->newModel()->upsert($upsert_data, ['id']);
                 }
             }
+
+            // product_metas
+            $this->saveMetaDataset($product, $data);
 
             DB::commit();
 

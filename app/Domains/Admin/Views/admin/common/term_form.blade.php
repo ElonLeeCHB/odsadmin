@@ -110,6 +110,18 @@
                   </div>
                 </div>
 
+                {{-- comment --}}
+                <div class="row mb-3">
+                  <label class="col-sm-2 col-form-label">{{ $lang->column_comment }}</label>
+                  <div class="col-sm-10">
+                    <div class="input-group">
+                      <textarea id="input-comment" name="comment" class="form-control">{{ $term->comment }}</textarea>
+                    </div>
+                    <div class="form-text"></div>
+                    <div id="error-comment" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
                 {{-- is_active --}}
                 <div class="row mb-3">
                   <label class="col-sm-2 col-form-label">{{ $lang->column_enable }}</label>

@@ -63,6 +63,18 @@ trait EloquentTrait
     }
 
 
+    public function refineRows($rows, $data)
+    {
+        $new_rows = [];
+        
+        foreach ($rows as $key => $row) {
+            $new_rows[$key] = $this->refineRow($row, $data);
+        }
+
+        return $new_rows;
+    }
+
+    // optimizeRow and sanitizeRow should be defined in FooRepository
     public function refineRow($row, $data)
     {
         if (method_exists($this, 'optimizeRow') && !empty($data['optimize'])) {
@@ -75,6 +87,29 @@ trait EloquentTrait
 
         return $row;
     }
+
+
+    public function sanitizeRows($rows)
+    {
+        $new_rows = [];
+        foreach ($rows as $key => $row) {
+            $new_rows[$key] = $this->sanitizeRow($row);
+        }
+        
+        return $new_rows;
+    }
+
+
+    public function optimizeRows($rows)
+    {
+        $new_rows = [];
+        foreach ($rows as $key => $row) {
+            $new_rows[$key] = $this->optimizeRow($row);
+        }
+        
+        return $new_rows;
+    }
+
 
     public function findIdFirst($id, $data = null)
     {
@@ -785,17 +820,20 @@ trait EloquentTrait
         $meta_dataset = $row->meta_dataset;
 
         foreach ($meta_dataset as $meta_data) {
-            $indexed_meta_dataset[$meta_data->meta_key] = $meta_data->meta_value;
-            $existed_meta_keys[] = $meta_data->meta_key;
+            //$indexed_meta_dataset[$meta_data->meta_key] = $meta_data->meta_value;
+            $row->{$meta_data->meta_key} = $meta_data->meta_value;
         }
 
-        foreach ($meta_keys as $meta_key) {
-            if(empty($indexed_meta_dataset[$meta_key] )){
-                $indexed_meta_dataset[$meta_key] = '';
-            }
-        }
+        // foreach ($meta_keys as $meta_key) {
+        //     if(empty($indexed_meta_dataset[$meta_key])){
+        //         $indexed_meta_dataset[$meta_key] = '';
+        //     }else{
+        //         $indexed_meta_dataset[$meta_key] = $meta_key->meta_value;
+        //     }
+        // }
 
-        return (object)$indexed_meta_dataset;
+        //return (object)$indexed_meta_dataset;
+        return $row;
     }
 
     /**
@@ -817,25 +855,24 @@ trait EloquentTrait
             $existed_meta_key_ids[$row->meta_key] = $row->id;
         }
 
-        foreach ($data as $key => $value) {
+        $meta_keys = $masterModel->meta_keys;
 
-            if(str_starts_with($key, 'meta_data_')){
-                $column = str_replace('meta_data_', '', $key);
+        foreach ($meta_keys as $meta_key) {
+            $key = 'meta_data_' . $meta_key;
+
+            if(!empty($data[$key])){
+                $value = $data[$key];
+            }else if(!empty($data[$meta_key])){
+                $value = $data[$meta_key];
             }else{
                 continue;
             }
+            
+            $new_meta_data[] = [$master_key => $master_id, 'meta_key' => $meta_key, 'meta_value' => $value];
 
-            if(empty($value)){
-                continue;
-            }
-
-            if(!in_array($column, $masterModel->meta_keys)){
-                continue;
-            }
-
-            $new_meta_data[] = [$master_key => $master_id, 'meta_key' => $column, 'meta_value' => $value];
-
-            $new_meta_keys[] = $column;
+            $new_meta_keys[] = $meta_key;
+            
+            
         }
 
         // delete
@@ -853,7 +890,7 @@ trait EloquentTrait
         $masterModel->meta_dataset()->whereIn('id',$delete_ids)->delete();
 
         if(!empty($new_meta_data)){
-            $masterModel->meta_dataset()->getRelated()->upsert($new_meta_data, [$master_key,'meta_key']);
+            $masterModel->meta_dataset()->upsert($new_meta_data, [$master_key,'meta_key']);
         }
     }
 

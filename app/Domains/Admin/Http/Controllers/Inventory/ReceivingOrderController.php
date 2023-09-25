@@ -162,7 +162,8 @@ class ReceivingOrderController extends BackendController
         $receiving_order = $this->ReceivingOrderService->findIdOrFailOrNew($receiving_order_id);
 
         $data['receiving_order'] = $this->ReceivingOrderService->refineRow($receiving_order, ['optimize' => true,'sanitize' => true]);
-        
+        //$data['receiving_order'] = $receiving_order;
+
         if(!empty($receiving_order) && $receiving_order_id == $receiving_order->id){
             $data['receiving_order_id'] = $receiving_order_id;
         }else{

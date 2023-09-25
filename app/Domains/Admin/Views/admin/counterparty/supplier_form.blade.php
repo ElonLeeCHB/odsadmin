@@ -27,10 +27,10 @@
             @csrf
             @method('POST')
           <ul class="nav nav-tabs">
-            <li class="nav-item"><a href="#tab-supplier" data-bs-toggle="tab" class="nav-link active"> {{ $lang->tab_general }}</a></li>
+            <li class="nav-item"><a href="#tab-data" data-bs-toggle="tab" class="nav-link active"> {{ $lang->tab_data }}</a></li>
           </ul>
           <div class="tab-content">
-            <div id="tab-supplier" class="tab-pane active">
+            <div id="tab-data" class="tab-pane active">
 
               <div class="row mb-3">
                 <label for="input-code" class="col-sm-2 col-form-label">{{ $lang->column_code }}</label>
@@ -65,66 +65,87 @@
               </div>
 
               <div class="row mb-3">
-                <label for="input-meta_data_supplier_contact_name" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_name }}</label>
+                <label for="input-telephone" class="col-sm-2 col-form-label">{{ $lang->column_telephone }}</label>
                 <div class="col-sm-10">
-                  <input type="text" id="input-meta_data_supplier_contact_name" name="meta_data_supplier_contact_name" value="{{ $meta_data->supplier_contact_name }}" class="form-control">
-                  <div id="error-meta_data_supplier_contact_name" class="invalid-feedback"></div>
+                  <input type="text" id="input-telephone" name="telephone" value="{{ $supplier->telephone }}" class="form-control">
+                  <div id="error-telephone" class="invalid-feedback"></div>
                 </div>
               </div>
 
               <div class="row mb-3">
-                <label for="input-meta_data_supplier_contact_jobtitle" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_jobtitle }}</label>
+                <label for="input-fax" class="col-sm-2 col-form-label">{{ $lang->column_fax }}</label>
                 <div class="col-sm-10">
-                  <input type="text" id="input-meta_data_supplier_contact_jobtitle" name="meta_data_supplier_contact_jobtitle" value="{{ $meta_data->supplier_contact_jobtitle }}" class="form-control">
-                  <div id="error-meta_data_supplier_contact_jobtitle" class="invalid-feedback"></div>
+                  <input type="text" id="input-fax" name="fax" value="{{ $supplier->fax }}" class="form-control">
+                  <div id="error-fax" class="invalid-feedback"></div>
                 </div>
               </div>
 
               <div class="row mb-3">
-                <label for="input-meta_data_supplier_contact_email" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_email }}</label>
+                <label for="input-www" class="col-sm-2 col-form-label">{{ $lang->column_www }}</label>
                 <div class="col-sm-10">
-                  <input type="text" id="input-meta_data_supplier_contact_email" name="meta_data_supplier_contact_email" value="{{ $meta_data->supplier_contact_email}}" class="form-control">
-                  <div id="error-meta_data_supplier_contact_email" class="invalid-feedback"></div>
+                  <input type="text" id="input-www" name="www" value="{{ $supplier->www }}" class="form-control">
+                  <div id="error-www" class="invalid-feedback"></div>
                 </div>
               </div>
 
               <div class="row mb-3">
-                <label for="input-meta_data_supplier_contact_telephone" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_telephone }}</label>
+                <label for="input-line_at" class="col-sm-2 col-form-label">{{ $lang->column_line_at }}</label>
                 <div class="col-sm-10">
-                  <input type="text" id="input-meta_data_supplier_contact_telephone" name="meta_data_supplier_contact_telephone" value="{{ $meta_data->supplier_contact_telephone }}" class="form-control">
-                  <div id="error-meta_data_supplier_contact_telephone" class="invalid-feedback"></div>
+                  <input type="text" id="input-line_at" name="line_at" value="{{ $supplier->line_at }}" class="form-control">
+                  <div id="error-line_at" class="invalid-feedback"></div>
                 </div>
               </div>
 
               <div class="row mb-3">
-                <label for="input-meta_data_supplier_contact_mobile" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_mobile }}</label>
+                <label for="input-supplier_contact_name" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_name }}</label>
                 <div class="col-sm-10">
-                  <input type="text" id="input-meta_data_supplier_contact_mobile" name="meta_data_supplier_contact_mobile" value="{{ $meta_data->supplier_contact_mobile }}" class="form-control">
-                  <div id="error-meta_data_supplier_contact_mobile" class="invalid-feedback"></div>
+                  <input type="text" id="input-supplier_contact_name" name="supplier_contact_name" value="{{ $supplier->supplier_contact_name }}" class="form-control">
+                  <div id="error-supplier_contact_name" class="invalid-feedback"></div>
                 </div>
               </div>
 
               <div class="row mb-3">
-                <label for="input-meta_data_supplier_bank_name" class="col-sm-2 col-form-label">{{ $lang->column_supplier_bank_name }}</label>
+                <label for="input-supplier_contact_jobtitle" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_jobtitle }}</label>
                 <div class="col-sm-10">
-                  <input type="text" id="input-meta_data_supplier_bank_name" name="meta_data_supplier_bank_name" value="{{ $meta_data->supplier_bank_name }}" class="form-control">
-                  <div id="error-meta_data_supplier_bank_name" class="invalid-feedback"></div>
+                  <input type="text" id="input-supplier_contact_jobtitle" name="meta_data_supplier_contact_jobtitle" value="{{ $supplier->supplier_contact_jobtitle }}" class="form-control">
+                  <div id="error-supplier_contact_jobtitle" class="invalid-feedback"></div>
                 </div>
               </div>
 
               <div class="row mb-3">
-                <label for="input-meta_data_supplier_bank_code" class="col-sm-2 col-form-label">{{ $lang->column_supplier_bank_code }}</label>
+                <label for="input-supplier_contact_email" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_email }}</label>
                 <div class="col-sm-10">
-                  <input type="text" id="input-meta_data_supplier_bank_code" name="meta_data_supplier_bank_code" value="{{ $meta_data->supplier_bank_code }}" class="form-control">
-                  <div id="error-meta_data_supplier_bank_code" class="invalid-feedback"></div>
+                  <input type="text" id="input-supplier_contact_email" name="supplier_contact_email" value="{{ $supplier->supplier_contact_email}}" class="form-control">
+                  <div id="error-supplier_contact_email" class="invalid-feedback"></div>
                 </div>
               </div>
 
               <div class="row mb-3">
-                <label for="input-meta_data_supplier_bank_account" class="col-sm-2 col-form-label">{{ $lang->column_supplier_bank_account }}</label>
+                <label for="input-supplier_contact_telephone" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_telephone }}</label>
                 <div class="col-sm-10">
-                  <input type="text" id="input-meta_data_supplier_bank_account" name="meta_data_supplier_bank_account" value="{{ $meta_data->supplier_bank_account }}" class="form-control">
-                  <div id="error-meta_data_supplier_bank_account" class="invalid-feedback"></div>
+                  <input type="text" id="input-supplier_contact_telephone" name="supplier_contact_telephone" value="{{ $supplier->supplier_contact_telephone }}" class="form-control">
+                  <div id="error-supplier_contact_telephone" class="invalid-feedback"></div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label for="input-supplier_contact_mobile" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_mobile }}</label>
+                <div class="col-sm-10">
+                  <input type="text" id="input-supplier_contact_mobile" name="supplier_contact_mobile" value="{{ $supplier->supplier_contact_mobile }}" class="form-control">
+                  <div id="error-supplier_contact_mobile" class="invalid-feedback"></div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ $lang->column_bank }}</label>
+                <div class="col-sm-10">
+                  <div class="input-group">
+                    <div class="col-sm-1"><input type="text" id="input-supplier_bank_code" name="supplier_bank_code" value="{{ $supplier->supplier_bank_code }}" placeholder="銀行代碼" class="form-control" readonly=""/><div class="form-text">銀行代碼</div></div>
+                    <div class="col-sm-3"><input type="text" id="input-supplier_bank_name" name="supplier_bank_name" value="{{ $supplier->supplier_bank_name }}" placeholder="{{ $lang->column_supplier_bank_name }}" class="form-control" data-oc-target="autocomplete-supplier_bank_name"/><div class="form-text">銀行名稱(可查詢，至少輸入一個字)</div></div>
+                    <div class="col-sm-2"><input type="text" id="input-supplier_bank_account" name="supplier_bank_account" value="{{ $supplier->supplier_bank_account }}" placeholder="{{ $lang->column_supplier_bank_account }}" class="form-control" ><div class="form-text">銀行帳號</div></div>
+                    <div id="error-supplier_bank_code" class="invalid-feedback"></div>
+                    <ul id="autocomplete-supplier_bank_name" class="dropdown-menu"></ul>
+                  </div>
                 </div>
               </div>
 
@@ -148,6 +169,14 @@
                     </div>
                   </div>
                 </div>
+              </div>              
+
+              <div class="row mb-3">
+                <label for="input-comment" class="col-sm-2 col-form-label">{{ $lang->column_comment }}</label>
+                <div class="col-sm-10">
+                  <textarea id="input-comment" name="comment" class="form-control" rows="5">{{ $supplier->comment }}</textarea>
+                  <div id="error-comment" class="invalid-feedback"></div>
+                </div>
               </div>
 
             </div>
@@ -162,6 +191,32 @@
 
 @section('buttom')
 <script type="text/javascript">
+
+$('#input-supplier_bank_name').autocomplete({
+  'source': function (request, response) {
+    $.ajax({
+      url: "{{ route('lang.admin.counterparty.suppliers.autocomplete') }}?filter_name=" + encodeURIComponent(request),
+      dataType: 'json',
+      success: function (json) {
+        json.unshift({
+          manufacturer_id: 0,
+          name: ' --- None --- '
+        });
+
+        response($.map(json, function (item) {
+          return {
+            label: item['name'],
+            value: item['supplier_id']
+          }
+        }));
+      }
+    });
+  },
+  'select': function (item) {
+    $('#input-supplier_bank_name').val(item['label']);
+    $('#input-supplier_bank_code').val(item['value']);
+  }
+});
 
 // Parent
 $('#input-parent_name').autocomplete({

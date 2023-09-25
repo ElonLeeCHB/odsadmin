@@ -58,6 +58,9 @@ class SupplierService extends Service
             $supplier->short_name = $data['short_name'] ?? null;
             $supplier->tax_id_num = $data['tax_id_num'] ?? null;
             $supplier->payment_term_id = $data['payment_term_id'] ?? 0;
+            $supplier->telephone = $data['telephone'] ?? '';
+            $supplier->fax = $data['fax'] ?? '';
+            $supplier->comment = $data['comment'] ?? null;
             $supplier->is_active = $data['is_active'] ?? 1;
             $supplier->is_supplier = 1;
             $supplier->is_customer = $data['is_customer'] ?? 0;

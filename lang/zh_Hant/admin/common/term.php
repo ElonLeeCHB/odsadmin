@@ -14,6 +14,7 @@ return [
 'column_short_name' => '簡稱',
 'column_parent_name' => '上層分類',
 'column_taxonomy_name' => '分類方式',
+'column_comment' => '備註',
 
 
 // Entry

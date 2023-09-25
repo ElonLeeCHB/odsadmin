@@ -20,7 +20,11 @@ class Product extends Model
     protected $guarded = [];
     protected $appends = ['name','specification','description'];
     public $translated_attributes = ['name','full_name','short_name','description','specification','meta_title','meta_description','meta_keyword',];
-    public $meta_keys = ['supplier_product_code','supplier_product_name','supplier_product_specification'];
+    public $meta_keys = [
+        'supplier_own_product_code',
+        'supplier_own_product_name',
+        'supplier_own_product_specification'
+    ];
 
     public function main_category()
     {

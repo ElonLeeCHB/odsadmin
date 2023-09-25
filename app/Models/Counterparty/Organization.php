@@ -13,6 +13,8 @@ class Organization extends Model
     protected $guarded = [];
 
     public $meta_keys = [
+        'www',
+        'line_at',
         'supplier_contact_name',
         'supplier_contact_email',
         'supplier_contact_jobtitle',
@@ -22,9 +24,6 @@ class Organization extends Model
         'supplier_bank_code',
         'supplier_bank_account',
     ];
-
-   // public $appends = ['payment_term_name'];
-
 
     public function payment_term()
     {

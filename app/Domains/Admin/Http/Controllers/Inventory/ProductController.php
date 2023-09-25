@@ -12,6 +12,8 @@ use App\Repositories\Eloquent\Common\UnitRepository;
 use App\Domains\Admin\Services\Common\OptionService;
 use App\Domains\Admin\Services\Catalog\CategoryService;
 use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
+use App\Repositories\Eloquent\Common\TermRepository;
+//use App\Models\Common\Term;
 
 class ProductController extends BackendController
 {
@@ -23,6 +25,7 @@ class ProductController extends BackendController
         , private CategoryService $CategoryService
         , private ProductOptionValueRepository $ProductOptionValueRepository
         , private UnitRepository $UnitRepository
+        , private TermRepository $TermRepository
     )
     {
         parent::__construct();
@@ -251,6 +254,18 @@ class ProductController extends BackendController
 			$data['product_categories'] = [];
 		}
 
+        // product_accounting_category
+        $filter_data = [
+            'equal_taxonomy_code' => 'product_accounting_category',
+            'pagination' => false,
+            'limit' => 30,
+            'sort' => 'code',
+            'order' => 'ASC'
+        ];
+        $accounting_categories = $this->TermRepository->getRows($filter_data);
+        $data['accounting_categories'] = $this->TermRepository->refineRows($accounting_categories, ['optimize' => true,'sanitize' => true]);
+
+
         $data['bom_products'] = [];
 
         $data['product_options'] = [];
@@ -266,6 +281,8 @@ class ProductController extends BackendController
 
         // product_units & destination_units dropdown menu
         $product_units = $product->product_units;
+        
+        $codes = [];
         
         // 還沒設定任何單位轉換，選單只能出現庫存單位
         if($product_units->isEmpty() && !empty($product->stock_unit_code)){
@@ -287,16 +304,13 @@ class ProductController extends BackendController
 
             }
         }
+
         foreach ($codes as $code => $value) {
             $data['destination_units'][] = (object) [
                 'code' => $code,
                 'name' => $value,
             ];
         }
-
-        //echo '<pre>', print_r($product_units->toArray(), 1), "</pre>"; exit;
-
-        //echo '<pre>', print_r($data['destination_units'], 1), "</pre>"; exit;
 
 
         for ($i = 0; $i < 5; $i++) {

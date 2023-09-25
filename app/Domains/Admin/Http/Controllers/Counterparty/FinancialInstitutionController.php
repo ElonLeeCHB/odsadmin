@@ -5,14 +5,12 @@ namespace App\Domains\Admin\Http\Controllers\Counterparty;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
-use App\Repositories\Eloquent\Localization\LanguageRepository;
 use App\Domains\Admin\Services\Counterparty\FinancialInstitutionService;
 
 class FinancialInstitutionController extends BackendController
 {
     public function __construct(
         private Request $request
-        , private LanguageRepository $LanguageRepository
         , private FinancialInstitutionService $FinancialInstitutionService
     )
     {
@@ -123,9 +121,6 @@ class FinancialInstitutionController extends BackendController
     public function form($institution_id = null)
     {
         $data['lang'] = $this->lang;
-
-        // Languages dropdown menu
-        $data['languages'] = $this->LanguageRepository->newModel()->active()->get();
 
         $this->lang->text_form = empty($term_id) ? $this->lang->trans('text_add') : $this->lang->trans('text_edit');
 

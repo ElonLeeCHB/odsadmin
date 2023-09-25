@@ -14,21 +14,11 @@ use App\Models\Sale\OrderTotal;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Catalog\ProductTranslation;
 
-use App\Repositories\Eloquent\Sale\OrderRepository;
-use App\Repositories\Eloquent\Sale\OrderProductRepository;
-use App\Repositories\Eloquent\Member\MemberRepository;
 
 class OrderService extends GlobalOrderService
 {
     protected $modelName = "\App\Models\Sale\Order";
     private $lang;
-
-    public function __construct(protected OrderRepository $OrderRepository
-        , protected OrderProductRepository $OrderProductRepository
-        , protected MemberRepository $MemberRepository
-        , protected OrderProductOptionService $OrderProductOptionService
-    )
-    {}
 
 
     public function updateOrCreate($data)

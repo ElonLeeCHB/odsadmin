@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Carbon;
 use App\Models\Catalog\Product;
-use App\Models\Inventory\ReceivingProduct;
+use App\Models\Inventory\ReceivingOrderProduct;
 use App\Models\Common\Term;
 use App\Models\Setting\Location;
 
@@ -14,7 +14,7 @@ class ReceivingOrder extends Model
 {
     protected $table = 'receiving_orders';
     protected $guarded = [];
-    protected $appends = ['receiving_date_ymd','receiving_date_ymd'];
+    protected $appends = ['purchasing_date_ymd','receiving_date_ymd'];
     protected $with = ['status'];
     protected $casts = [
         'created_at' => 'datetime:Y-m-d H:i:s',
@@ -31,7 +31,7 @@ class ReceivingOrder extends Model
     
     public function receiving_products()
     {
-        return $this->hasMany(ReceivingProduct::class, 'receiving_order_id', 'id');
+        return $this->hasMany(ReceivingOrderProduct::class, 'receiving_order_id', 'id');
     }
 
     public function status()
@@ -41,6 +41,16 @@ class ReceivingOrder extends Model
 
     
     // Attribute
+    
+    protected function purchasingDateYmd(): Attribute
+    {
+        if(!empty($this->purchasing_date)){
+            $newValue = Carbon::parse($this->purchasing_date)->format('Y-m-d');
+        }
+        return Attribute::make(
+            get: fn ($value) => $newValue ?? '',
+        );
+    }
     
     protected function receivingDateYmd(): Attribute
     {

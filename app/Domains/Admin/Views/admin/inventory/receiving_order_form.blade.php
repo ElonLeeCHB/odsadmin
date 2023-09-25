@@ -53,16 +53,16 @@
                   <div class="row mb-3">
                     <label for="input-code" class="col-sm-2 col-form-label">{{ $lang->column_code }}</label>
                     <div class="col-sm-10">
-                      <input type="text" name="code" value="{{ $receiving_order->code }}" id="input-code" class="form-control" readonly/>
+                      <input type="text" name="code" value="{{ $receiving_order->code ?? '' }}" id="input-code" class="form-control" readonly/>
                       <div id="error-code" class="invalid-feedback"></div>
                     </div>
                   </div>
 
                   <div class="row mb-3">
-                    <label for="input-receiving_date" class="col-sm-2 col-form-label">{{ $lang->column_receiving_date }}</label>
+                    <label for="input-purchasing_date" class="col-sm-2 col-form-label">{{ $lang->column_purchasing_date }}</label>
                     <div class="col-sm-10">
-                      <input type="text" name="receiving_date" value="{{ $receiving_order->receiving_date_ymd }}" id="input-receiving_date" class="form-control date"/>
-                      <div id="error-receiving_date" class="invalid-feedback"></div>
+                      <input type="text" name="purchasing_date" value="{{ $receiving_order->purchasing_date_ymd }}" id="input-purchasing_date" class="form-control date"/>
+                      <div id="error-purchasing_date" class="invalid-feedback"></div>
                     </div>
                   </div>
 
@@ -78,7 +78,7 @@
                     <label for="input-supplier" class="col-sm-2 col-form-label">{{ $lang->column_supplier }}</label>
                     <div class="col-sm-10">
                       <div class="input-group">
-                        <div class="col-sm-3"><input type="text" id="input-supplier_id" name="supplier_id" value="{{ $receiving_order->supplier_id }}" placeholder="廠商流水號" class="form-control" readonly=""/><div class="form-text">廠商流水號</div></div>
+                        <div class="col-sm-3"><input type="text" id="input-supplier_id" name="supplier_id" value="{{ $receiving_order->supplier_id ?? 0 }}" placeholder="廠商流水號" class="form-control" readonly=""/><div class="form-text">廠商流水號</div></div>
                         <div class="col-sm-6"><input type="text" id="input-supplier_name" name="supplier_name" value="{{ $receiving_order->supplier_name }}" placeholder="{{ $lang->column_supplier_name }}" class="form-control" data-oc-target="autocomplete-supplier_name"/><div class="form-text">廠商名稱 (可查詢，至少輸入一個字)</div></div>
                         <div class="col-sm-3"><input type="text" id="input-tax_id_num" name="tax_id_num" value="{{ $receiving_order->tax_id_num }}" placeholder="{{ $lang->column_tax_id_num }}" class="form-control" data-oc-target="autocomplete-tax_id_num"/><div class="form-text">統一編號(可查詢現有廠商，請輸入8碼)</div></div>
                         <div id="error-supplier_id" class="invalid-feedback"></div>

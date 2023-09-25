@@ -179,7 +179,8 @@ class SupplierController extends BackendController
         // Get Record
         $supplier = $this->SupplierService->findIdOrFailOrNew($supplier_id);
 
-        $data['meta_data'] = $this->SupplierService->getMetaDataset($supplier);
+        //$data['meta_data'] = $this->SupplierService->getMetaDataset($supplier);
+        $supplier = $this->SupplierService->getMetaDataset($supplier);
 
         $supplier->parent_name = $supplier->parent->name ?? '';
 

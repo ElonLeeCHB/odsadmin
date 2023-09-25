@@ -4,22 +4,34 @@ namespace App\Services\Sale;
 
 use App\Domains\Admin\Services\Service;
 use App\Repositories\Eloquent\Sale\OrderRepository;
+use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderTotalRepository;
+use App\Repositories\Eloquent\Member\MemberRepository;
 use App\Models\Common\Term;
 
 class GlobalOrderService extends Service
 {
     protected $modelName = "\App\Models\Sale\Order";
 
-    public function __construct(protected OrderRepository $OrderRepository, protected OrderTotalRepository $OrderTotalRepository)
-    {}
+
+    public function __construct(protected OrderRepository $OrderRepository
+        , protected OrderProductRepository $OrderProductRepository
+        , protected OrderTotalRepository $OrderTotalRepository
+        , protected MemberRepository $MemberRepository
+        , protected OrderProductOptionService $OrderProductOptionService
+    )
+    {
+        // if (method_exists(parent::class, '__construct')) {
+        //     parent::__construct();
+        // }
+    }
 
 
     public function getOrder($data = [], $debug = 0)
     {
         $order = $this->OrderRepository->getOrder($data, $debug);
 
-        if($data['sanitize']){
+        if(!empty($data['sanitize'])){
             $order = $this->sanitizeRow($order);
         }
 
@@ -38,7 +50,6 @@ class GlobalOrderService extends Service
         return $orders;
     }
 
-
     public function optimizeRow($row)
     {
         return $this->OrderRepository->optimizeRow($row);
@@ -50,6 +61,12 @@ class GlobalOrderService extends Service
         return $this->OrderRepository->sanitizeRow($row);
     }
 
+    public function test($data = [], $debug = 0)
+    {
+        $order = $this->OrderRepository->getRows($data, $debug);
+        $order = $this->OrderTotalRepository->getRows($data, $debug);
+        echo '<pre>', print_r(999, 1), "</pre>"; exit;
+    }
 
     public function getOrderTotals($order_id, $debug = 0)
     {

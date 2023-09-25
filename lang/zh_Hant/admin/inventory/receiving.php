@@ -16,7 +16,7 @@ return [
 'column_supplier' => '廠商',
 'column_supplier_name' => '廠商名稱',
 'column_tax_id_num' => '統一編號',
-//'column_purchasing_date' => '採購日期',
+'column_purchasing_date' => '採購日期',
 'column_receiving_date' => '進貨日期',
 'column_supplier_name' => '廠商名稱',
 'column_product_name' => '料件名稱',

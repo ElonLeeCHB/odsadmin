@@ -73,6 +73,53 @@
 
               <div id="tab-data" class="tab-pane">
 
+                {{-- code --}}
+                <div class="row mb-3">
+                  <label for="input-code" class="col-sm-2 col-form-label">{{ $lang->column_code }}</label>
+                  <div class="col-sm-10">
+                    <input type="text" name="code" value="{{ $product->code }}" id="input-code" class="form-control"/>
+                    <div id="error-code" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                {{-- supplier --}}
+                <div class="row mb-3">
+                  <label for="input-supplier_name" class="col-sm-2 col-form-label">{{ $lang->column_supplier }}</label>
+                  <div class="col-sm-10">
+                    <input type="text" id="input-supplier_name" name="supplier_name" value="{{ $product->supplier_name }}" class="form-control" data-oc-target="autocomplete-supplier_name" />
+                    <input type="hidden" id="input-supplier_id" name="supplier_id" value="{{ $product->supplier_id }}">
+                    <ul id="autocomplete-supplier_name" class="dropdown-menu"></ul>
+                    <div id="error-supplier_name " class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                {{-- supplier_own_product_code --}}
+                <div class="row mb-3">
+                  <label for="input-supplier_own_product_code" class="col-sm-2 col-form-label">{{ $lang->column_supplier_own_product_code }}</label>
+                  <div class="col-sm-10">
+                    <input type="text" id="input-supplier_own_product_code" name="supplier_own_product_code" value="{{ $product->supplier_own_product_code }}" class="form-control"/>
+                    <div id="error-supplier_own_product_code" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                {{-- supplier_own_product_name --}}
+                <div class="row mb-3">
+                  <label for="input-supplier_own_product_name" class="col-sm-2 col-form-label">{{ $lang->column_supplier_own_product_name }}</label>
+                  <div class="col-sm-10">
+                    <input type="text" id="input-supplier_own_product_name" name="supplier_own_product_name" value="{{ $product->supplier_own_product_name }}" class="form-control"/>
+                    <div id="error-supplier_own_product_name" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                {{-- supplier_own_product_specification --}}
+                <div class="row mb-3">
+                  <label for="input-supplier_own_product_specification" class="col-sm-2 col-form-label">{{ $lang->column_supplier_own_product_specification }}</label>
+                  <div class="col-sm-10">
+                    <input type="text" id="input-supplier_own_product_specification" name="supplier_own_product_specification" value="{{ $product->supplier_own_product_specification }}" class="form-control"/>
+                    <div id="error-supplier_own_product_specification" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
                 {{-- source_code --}}
                 <div class="row mb-3">
                   <label for="input-source_code" class="col-sm-2 col-form-label">{{ $lang->column_source_code }}</label>
@@ -87,39 +134,17 @@
                   </div>
                 </div>
 
-                {{-- code --}}
+                {{-- 會計分類 --}}
                 <div class="row mb-3">
-                  <label for="input-code" class="col-sm-2 col-form-label">{{ $lang->column_code }}</label>
+                  <label for="input-accounting_category_code" class="col-sm-2 col-form-label">{{ $lang->column_accounting_category }}</label>
                   <div class="col-sm-10">
-                    <input type="text" name="code" value="{{ $product->code }}" id="input-code" class="form-control"/>
-                    <div id="error-code" class="invalid-feedback"></div>
-                  </div>
-                </div>
-
-                {{-- supplier_product_code --}}
-                <div class="row mb-3">
-                  <label for="input-supplier_product_code" class="col-sm-2 col-form-label">{{ $lang->column_supplier_product_code}}</label>
-                  <div class="col-sm-10">
-                    <input type="text" id="input-supplier_product_code" name="supplier_product_code" value="{{ $product->supplier_product_code }}" class="form-control"/>
-                    <div id="error-supplier_product_code" class="invalid-feedback"></div>
-                  </div>
-                </div>
-
-                {{-- supplier_product_name --}}
-                <div class="row mb-3">
-                  <label for="input-supplier_product_name" class="col-sm-2 col-form-label">{{ $lang->column_supplier_product_name }}</label>
-                  <div class="col-sm-10">
-                    <input type="text" id="input-supplier_product_name" name="supplier_product_name" value="{{ $product->supplier_product_name }}" class="form-control"/>
-                    <div id="error-supplier_product_name" class="invalid-feedback"></div>
-                  </div>
-                </div>
-
-                {{-- supplier_product_specification --}}
-                <div class="row mb-3">
-                  <label for="input-supplier_product_specification" class="col-sm-2 col-form-label">{{ $lang->column_supplier_product_specification }}</label>
-                  <div class="col-sm-10">
-                    <input type="text" id="input-supplier_product_specification" name="supplier_product_specification" value="{{ $product->supplier_product_specification }}" class="form-control"/>
-                    <div id="error-supplier_product_specification" class="invalid-feedback"></div>
+                    <select id="input-accounting_category_code" name="accounting_category_code" class="form-control">
+                      <option value="*">{{ $lang->text_select }}</option>
+                      @foreach($accounting_categories as $accounting_category)
+                      <option value="{{ $accounting_category->code }}" @if($accounting_category->code==$product->accounting_category_code) selected @endif>{{ $accounting_category->name }}</option>
+                      @endforeach
+                    </select>
+                    <div id="error-accounting_category_code" class="invalid-feedback"></div>
                   </div>
                 </div>
 
@@ -151,28 +176,6 @@
                       @endforeach
                     </select>
                     <div id="error-manufacturing_unit_code" class="invalid-feedback"></div>
-                  </div>
-                </div>
-
-                {{-- supplier --}}
-                <div class="row mb-3">
-                  <label for="input-supplier_name" class="col-sm-2 col-form-label">{{ $lang->column_supplier }}</label>
-                  <div class="col-sm-10">
-                    <input type="text" id="input-supplier_name" name="supplier_name" value="{{ $product->supplier_name }}" class="form-control" data-oc-target="autocomplete-supplier_name" />
-                    <input type="hidden" id="input-supplier_id" name="supplier_id" value="{{ $product->supplier_id }}">
-                    <ul id="autocomplete-supplier_name" class="dropdown-menu"></ul>
-                    <div id="error-supplier_name " class="invalid-feedback"></div>
-                  </div>
-                </div>
-
-                {{-- supplier_product_name --}}
-                <div class="row mb-3">
-                  <label for="input-supplier_product_name" class="col-sm-2 col-form-label">{{ $lang->column_supplier_product }}</label>
-                  <div class="col-sm-10">
-                    <input type="text" id="input-supplier_product_name" name="supplier_product_name" value="{{ $product->supplier_product_name }}" class="form-control" data-oc-target="autocomplete-supplier_product_name" />
-                    <input type="hidden" id="input-supplier_product_id" name="supplier_product_id" value="{{ $product->supplier_product_id }}">
-                    <ul id="autocomplete-supplier_product_name" class="dropdown-menu"></ul>
-                    <div id="error-supplier_product_name " class="invalid-feedback"></div>
                   </div>
                 </div>
 
@@ -284,38 +287,6 @@
 
 @section('buttom')
   <script type="text/javascript">
-  $('#input-category').autocomplete({
-    'source': function(request, response) {
-      $.ajax({
-        url: "{{ route('lang.admin.catalog.categories.autocomplete') }}?filter_name=" + encodeURIComponent(request),
-        dataType: 'json',
-        success: function(json) {
-          response($.map(json, function(item) {
-            return {
-              label: item['name'],
-              value: item['category_id']
-            }
-          }));
-        }
-      });
-    },
-    'select': function (item) {
-      $('#input-category').val('');
-
-      $('#product-category-' + item['value']).remove();
-
-      html = '<tr id="product-category-' + item['value'] + '">';
-      html += '  <td>' + item['label'] + '<input type="hidden" name="product_categories[]" value="' + item['value'] + '"/></td>';
-      html += '  <td class="text-end"><button type="button" class="btn btn-danger btn-sm"><i class="fa-solid fa-minus-circle"></i></button></td>';
-      html += '</tr>';
-
-      $('#product-category tbody').append(html);
-    }
-  });
-
-  $('#product-category').on('click', '.btn', function () {
-      $(this).parent().parent().remove();
-  });
 
   // Main Category
   $('#input-main_category').autocomplete({
@@ -398,10 +369,10 @@ $(document).ready(function() {
   });
 });
 
-document.addEventListener("DOMContentLoaded", function () {
-  var selectElement = document.getElementById("input-destination_unit_code");
-  selectElement.value = "{{ $product->stock_unit_code }}"; // 将 "Option 2" 设置为选中状态
-});
+// document.addEventListener("DOMContentLoaded", function () {
+//   var selectElement = document.getElementById("input-destination_unit_code");
+//   selectElement.value = "{{ $product->stock_unit_code }}"; // 将 "Option 2" 设置为选中状态
+// });
 
 </script>
 @endsection
