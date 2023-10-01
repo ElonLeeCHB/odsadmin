@@ -8,12 +8,10 @@ use App\Repositories\Eloquent\Counterparty\FinancialInstitutionRepository;
 
 class FinancialInstitutionService extends Service
 {
-    protected $modelName = "\App\Models\Counterparty\FinancialInstitution";
+    protected $modelName = "\App\Models\SysData\FinancialInstitution";
 
-	public function __construct(protected FinancialInstitutionRepository $FinancialInstitutionRepository)
-	{
-
-	}
+	public function __construct(private FinancialInstitutionRepository $FinancialInstitutionRepository)
+	{}
 
     public function updateOrCreate($data)
     {

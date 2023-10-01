@@ -71,7 +71,7 @@ class CategoryController extends BackendController
         $query_data['equal_is_active'] = 1;
 
         // Rows
-        $categories = $this->CategoryService->getRows($query_data);
+        $categories = $this->CategoryService->getCategories($query_data);
 
         if(!empty($categories)){
             foreach ($categories as $row) {
@@ -154,7 +154,7 @@ class CategoryController extends BackendController
         $data['autocomplete_url'] = route('lang.admin.catalog.categories.autocomplete');
 
         // Get Record
-        $category = $this->CategoryService->findIdOrFailOrNew($category_id,['equal_taxonomy_code' => 'product_category']);
+        $category = $this->CategoryService->findIdOrFailOrNew($category_id, ['equal_taxonomy_code' => 'product_category']);
 
         $data['category']  = $category;
         
@@ -194,13 +194,13 @@ class CategoryController extends BackendController
 
             $data['taxonomy_code'] = 'product_category';
 
-            $result = $this->CategoryService->updateOrCreate($data);
+            $result = $this->CategoryService->updateOrCreateCategory($data);
 
             if(empty($result['error'])){
                 $json = [
-                    'category_id' => $result['category_id'],
+                    'category_id' => $result['term_id'],
                     'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.catalog.categories.form', $result['category_id']),
+                    'redirectUrl' => route('lang.admin.catalog.categories.form', $result['term_id']),
                 ];
             }else if(auth()->user()->username == 'admin'){
                 $json['warning'] = $result['error'];

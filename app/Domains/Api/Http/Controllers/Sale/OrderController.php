@@ -5,17 +5,17 @@ namespace App\Domains\Api\Http\Controllers\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use App\Domains\Api\Http\Controllers\ApiController;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Api\Services\Sale\OrderService;
-use App\Domains\Api\Services\Member\MemberService;
+use App\Domains\Api\Services\Counterparty\MemberService;
 //use App\Domains\Api\Services\User\UserService;
 use App\Repositories\Eloquent\User\UserRepository;
 use App\Domains\Api\Services\Catalog\ProductService;
-use App\Domains\Api\Services\Common\OptionService;
 use App\Domains\Api\Services\Localization\CountryService;
 use App\Domains\Api\Services\Localization\DivisionService;
 
-class OrderController extends BackendController
+class OrderController extends ApiController
 {
     public function __construct(
         private Request $request,
@@ -24,14 +24,11 @@ class OrderController extends BackendController
         //private UserService $UserService,
         private UserRepository $UserRepository,
         private ProductService $ProductService,
-        private OptionService $OptionService,
         private CountryService $CountryService,
         private DivisionService $DivisionService,
         )
     {
         parent::__construct();
-
-        $this->getLang(['admin/common/common','admin/sale/order']);
     }
 
     /**
@@ -41,63 +38,15 @@ class OrderController extends BackendController
      */
     public function list()
     {
-        $data['lang'] = $this->lang;
+        $query_data = $this->request->query();
 
-        // Prepare link for action
-        $queries = [];
+        $filter_data = $this->getQueries($query_data);
 
-        if(!empty($this->request->query('page'))){
-            $page = $queries['page'] = $this->request->input('page');
-        }else{
-            $page = $queries['page'] = 1;
-        }
+        $orders = $this->OrderService->getOrders($filter_data);
 
-        if(!empty($this->request->query('sort'))){
-            $sort = $queries['sort'] = $this->request->input('sort');
-        }else{
-            $sort = $queries['sort'] = 'id';
-        }
-
-        if(!empty($this->request->query('order'))){
-            $order = $queries['order'] = $this->request->query('order');
-        }else{
-            $order = $queries['order'] = 'asc';
-        }
-
-        if(empty($this->request->query('pagination'))){
-           $queries['pagination'] = true;
-        }else{
-            //$queries['pagination'] = $this->request->query('pagination');
-            $queries['pagination'] = false;
-        }
-
-        if(!empty($this->request->query('limit'))){
-            $limit = $queries['limit'] = $this->request->query('limit');
-        }
-
-        foreach($this->request->all() as $key => $value){
-            if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
-            }
-        }
-
-        $orders = $this->OrderService->getOrders($queries);
         $orders = $this->OrderService->sanitizeRows($orders);
 
         return response(json_encode($orders))->header('Content-Type','application/json');
-    }
-
-
-    public function header($order_id)
-    {        
-        $order = $this->OrderService->findIdOrFailOrNew($order_id, ['sanitize' => true]);
-
-        // Order Total
-        $totals = $this->OrderService->getOrderTotals($order_id)->toArray();
-
-        $order->totals = $totals;
-
-        return response(json_encode($order))->header('Content-Type','application/json');
     }
 
 
@@ -110,6 +59,9 @@ class OrderController extends BackendController
         $order->status_name = $order->status->name ?? '';
 
         $order = $this->OrderService->sanitizeRow($order);
+
+        // Order Total
+        $order->totals = $this->OrderService->getOrderTotals($order_id)->toArray();
 
         return response(json_encode($order))->header('Content-Type','application/json');
     }
@@ -213,18 +165,21 @@ class OrderController extends BackendController
 
     public function getActiveOrderStatuses()
     {
-        $allStatuses = $this->OrderService->getActiveOrderStatuses();
+        $allStatuses = $this->OrderService->getCachedActiveOrderStatuses();
 
         return response(json_encode($allStatuses))->header('Content-Type','application/json');
     }
 
 
-    public function getOrderPhrases($taxonomy_code)
+    public function getOrderPhrasesByTaxonomyCode($taxonomy_code)
     {
-        $post_data = $this->request->post();
-        $post_data['filter_taxonomy_code'] = $taxonomy_code;
-
-        $json = $this->OrderService->getOrderPhrases($post_data)->toArray();
+        $query_data = $this->request->query();
+        
+        $filter_data = [
+            'equal_taxonomy_code' => $taxonomy_code,
+            'sanitize' => true,
+        ];
+        $json = $this->OrderService->getOrderPhrasesByTaxonomyCode($filter_data)->toArray();
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }

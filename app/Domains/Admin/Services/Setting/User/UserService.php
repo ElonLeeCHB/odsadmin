@@ -52,9 +52,11 @@ class UserService extends Service
                 $user->password = Hash::make($data['password']);
             }
 
-            $user->is_admin = $data['is_admin'] ?? 0;
+            //$user->is_admin = $data['is_admin'] ?? 0;
             
             $user->save();
+
+            $this->saveMetaDataset($user, $data);
 
             //is_admin
             // $upsertData[] = [

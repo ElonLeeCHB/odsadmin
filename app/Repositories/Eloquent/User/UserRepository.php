@@ -7,7 +7,7 @@ use App\Repositories\Eloquent\Repository;
 use App\Models\User\User;
 use App\Models\User\UserMeta;
 use App\Models\User\UserAddress;
-use App\Models\Common\Option;
+use App\Models\Catalog\Option;
 
 class UserRepository extends Repository
 {
@@ -58,6 +58,12 @@ class UserRepository extends Repository
             $salutations = [];
         }
 
+        foreach ($salutations as $key => $salutation) {
+            $salutation = $salutation->toArray();
+            unset($salutation['translation']);
+            $salutations[$key] = (object) $salutation;
+        }
+        
         return $salutations;
     }
 

@@ -7,10 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Sale\OrderService;
-use App\Services\Member\MemberService; //將移除，改用 UserRepository
+use App\Domains\Admin\Services\Member\MemberService;
 use App\Repositories\Eloquent\User\UserRepository;
 use App\Domains\Admin\Services\Catalog\ProductService;
-use App\Domains\Admin\Services\Common\OptionService;
+use App\Domains\Admin\Services\Catalog\OptionService;
 use App\Domains\Admin\Services\Localization\CountryService;
 use App\Domains\Admin\Services\Localization\DivisionService;
 
@@ -302,8 +302,18 @@ class OrderController extends BackendController
         $data['order_tag'] = $order_tag;
 
         //常用片語
-        $data['order_comment_phrases'] = $this->OrderService->getOrderPhrases('phrase_order_comment');
-        $data['order_extra_comment_phrases'] = $this->OrderService->getOrderPhrases('phrase_order_extra_comment');
+        $filter_data = [
+            'equal_taxonomy_code' => 'phrase_order_comment',
+            'sanitize' => true,
+        ];
+        $data['order_comment_phrases'] = $this->OrderService->getOrderPhrasesByTaxonomyCode($filter_data);
+
+
+        $filter_data = [
+            'equal_taxonomy_code' => 'phrase_order_extra_comment',
+            'sanitize' => true,
+        ];
+        $data['order_extra_comment_phrases'] = $this->OrderService->getOrderPhrasesByTaxonomyCode($filter_data);
 
         if(!empty($order->order_products)){
             $data['product_row'] = count($order->order_products) + 1;
@@ -312,7 +322,7 @@ class OrderController extends BackendController
         }
 
         // Salutation
-        $data['salutations'] = $this->MemberService->getSalutations();
+        $data['salutations'] = (object) $this->MemberService->getSalutations();
 
         $order_id = $order->id ?? ' ';
 
@@ -370,7 +380,13 @@ class OrderController extends BackendController
         }
 
         // 所有可銷售商品
-        $data['salable_products'] = $this->ProductService->getSalableProducts();
+        $filter_data = [
+            'equal_is_salable' => 1,
+            'pagination' => false,
+            'limit' => 0,
+            'with' => ['main_category','translation'],
+        ];
+        $data['salable_products'] = $this->ProductService->getProducts($filter_data);
 
         // Order products
         $data['html_order_products'] = $this->getOrderProductsHtml();
@@ -401,8 +417,8 @@ class OrderController extends BackendController
             ];
         }
 
-        $data['members_list_url'] = route('api.member.member.list');
-        $data['tax_id_nums_list_url'] = route('api.member.tin.list');
+        $data['members_list_url'] = route('api.counterparty.member.list');
+        $data['tax_id_nums_list_url'] = route('api.localization.tax_id_num.list');
         $data['cities_list_url'] = route('api.localization.division.city.list');
         $data['roads_list_url'] = route('api.localization.road.list');
         
@@ -712,14 +728,14 @@ class OrderController extends BackendController
         
         // Validate
         //驗證表單內容
-        $validator = $this->OrderService->validator($postData);
+        // $validator = $this->OrderService->validator($postData);
 
-        if($validator->fails()){
-            $messages = $validator->errors()->toArray();
-            foreach ($messages as $key => $rows) {
-                $json['error'][$key] = $rows[0];
-            }
-        }
+        // if($validator->fails()){
+        //     $messages = $validator->errors()->toArray();
+        //     foreach ($messages as $key => $rows) {
+        //         $json['error'][$key] = $rows[0];
+        //     }
+        // }
 
         if (isset($json['error']) && !isset($json['error']['warning'])) {
             //$warning = $this->lang->error_warning . ' ' . ;
@@ -816,7 +832,7 @@ class OrderController extends BackendController
         $qStr = $this->request->query('q');
 
         //第一個元素使用輸入值
-        $json['items'][] = ['id' => $qStr,'text' => $qStr,];
+        $json[] = ['id' => $qStr, 'text' => $qStr,];
 
         //預設內容
         $items = [];
@@ -832,17 +848,11 @@ class OrderController extends BackendController
             $items = ['幫別的公司訂(做公關)'];
         }
 
-        $tags = $this->OrderService->getOrderTags($qStr);
-        foreach($tags as $tag){
-            if(in_array($tag->translation->name, $items)){
-                continue;
-            }
-            $items[] = $tag->translation->name;
-        }
+        $tags = $this->OrderService->getOrderTags(['qStr' => $qStr, 'sanitize' => true]);
 
-        if(!empty($items)){
-            foreach($items as $value){
-                $json['items'][] = ['id' => $value,'text' => $value];
+        if(!empty($tags)){
+            foreach($tags as $tag){
+                $json[] = ['id' => $tag->id,'text' => $tag->name];
             }
         }
 
@@ -1028,8 +1038,6 @@ class OrderController extends BackendController
     public function product_reports()
     {
         $data = $this->request->all();
-
-        //echo '<pre>', print_r($data, 1), "</pre>"; exit;
 
         return $this->OrderService->exportOrderProducts($data); 
     }

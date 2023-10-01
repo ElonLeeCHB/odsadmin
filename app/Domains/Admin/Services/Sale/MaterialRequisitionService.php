@@ -7,14 +7,8 @@ use App\Services\Service;
 class MaterialRequisitionService extends Service
 {
 
-	public function __construct()
-	{
-	}
-
-
 	public function export($data)
 	{
-
 		$this->getQuery($data);
 	}
 

@@ -3,8 +3,7 @@
 namespace App\Domains\Api\Services\Sale;
 
 use Illuminate\Support\Facades\DB;
-use App\Domains\Admin\Services\Service;
-use App\Services\Sale\GlobalOrderService;
+use App\Services\Sale\OrderService as GlobalOrderService;
 use App\Domains\Api\Services\Sale\OrderProductOptionService;
 
 use App\Models\Common\Term;
@@ -18,8 +17,6 @@ use App\Models\Catalog\ProductTranslation;
 class OrderService extends GlobalOrderService
 {
     protected $modelName = "\App\Models\Sale\Order";
-    private $lang;
-
 
     public function updateOrCreate($data)
     {

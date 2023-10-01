@@ -2,7 +2,7 @@
 
 namespace App\Services\Localization;
 
-use App\Domains\Api\Services\Service;
+use App\Services\Service;
 use App\Traits\EloquentTrait;
 use App\Repositories\Eloquent\SysData\RoadFirstWordRepository;
 

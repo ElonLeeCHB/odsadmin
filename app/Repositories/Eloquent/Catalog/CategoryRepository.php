@@ -2,16 +2,73 @@
 
 namespace App\Repositories\Eloquent\Catalog;
 
-use Illuminate\Support\Facades\DB;
-use App\Repositories\Eloquent\Repository;
-use App\Models\Common\Term;
-use App\Models\Common\TermTranslation;
-use App\Models\Common\TermRelation;
+use App\Repositories\Eloquent\Common\TermRepository;
 
-class CategoryRepository extends Repository
+class CategoryRepository extends TermRepository
 {
-    public $modelName = "\App\Models\Catalog\Category";
+    //public $modelName = "\App\Models\Common\Term";
 
-    public $translationModel = "\App\Models\Common\TermTranslation";
+    // public function __construct(protected TaxonomyRepository $TaxonomyRepository)
+    // {
+    //     parent::__construct();
+    // }
+
+    public function getCategory($data = [], $debug = 0)
+    {
+        $data['equal_taxonomy_code'] = 'product_category';
+        
+        return $this->getTerm($data, $debug);
+    }
+
+
+    public function getCategories($data = [], $debug = 0)
+    {
+        $data['equal_taxonomy_code'] = 'product_category';
+
+        $rows = $this->getTerms($data, $debug);
+
+        return $rows;
+    }
+
+    public function deleteCategory($data, $debug = 0)
+    {
+        return $this->deleteTerm($data, $debug);
+    }
+
+
+    public function updateOrCreateCategory($data)
+    {
+        $data['taxonomy_code'] = 'product_category';
+
+        return $this->updateOrCreateTerm($data);
+    }
+    
+
+    // 尋找關聯，並將關聯值賦予記錄
+    public function optimizeRow($row)
+    {
+        // if(!empty($row->status)){
+        //     $row->status_name = $row->status->name;
+        // }
+
+        return $row;
+    }
+
+
+    // 刪除關聯
+    public function sanitizeRow($row)
+    {
+        $arrOrder = $row->toArray();
+
+        if(!empty($arrOrder['translation'])){
+            unset($arrOrder['translation']);
+        }
+
+        if(!empty($arrOrder['taxonomy'])){
+            unset($arrOrder['taxonomy']);
+        }
+
+        return (object) $arrOrder;
+    }
 }
 

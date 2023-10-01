@@ -7,12 +7,12 @@ use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Libraries\TranslationLibrary;
-use App\Services\Member\MemberService;
+use App\Domains\Admin\Services\Member\MemberService;
 use App\Domains\Admin\Services\Counterparty\OrganizationService;
 use App\Domains\Admin\Services\Localization\CountryService;
 use App\Domains\Admin\Services\Localization\DivisionService;
 use App\Domains\Admin\Services\Localization\AddressService;
-use App\Domains\Admin\Services\Common\OptionService;
+use App\Domains\Admin\Services\Catalog\OptionService;
 
 class MemberController extends BackendController
 {

@@ -5,8 +5,8 @@ namespace App\Models\Catalog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Traits\Model\Translatable;
-use App\Models\Common\OptionValue;
-use App\Models\Common\OptionValueTranslation;
+use App\Models\Catalog\OptionValue;
+use App\Models\Catalog\OptionValueTranslation;
 
 class ProductOptionValue extends Model
 {

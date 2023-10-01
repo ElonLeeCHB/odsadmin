@@ -23,7 +23,6 @@
   </div>
     <div class="container-fluid">
       <div class="card">
-        <div class="card-header"><i class="fas fa-pencil-alt"></i> {{ $lang->text_form }}</div>
         <div class="card-body">
           <ul class="nav nav-tabs">
               <li class="nav-item"><a href="#tab-general" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_general }}</a></li>
@@ -185,14 +184,14 @@
                     <div class="row mb-3">
                       <label for="input-updated_date" class="col-sm-2 col-form-label">{{ $lang->entry_updated_date}}</label>
                       <div class="col-sm-10">
-                        <input type="text" name="updated_date" value="{{ $member->updated_date }}" id="input-updated_date" class="form-control" disabled/>
+                        <input type="text" name="updated_date" value="{{ $member->updated_at }}" id="input-updated_date" class="form-control" disabled/>
                       </div>
                     </div>
 
                     <div class="row mb-3">
                       <label for="input-created_date" class="col-sm-2 col-form-label">{{ $lang->entry_created_date}}</label>
                       <div class="col-sm-10">
-                        <input type="text" name="created_date" value="{{ $member->created_date }}" id="input-created_date" class="form-control" disabled/>
+                        <input type="text" name="created_date" value="{{ $member->created_at }}" id="input-created_date" class="form-control" disabled/>
                       </div>
                     </div>
                                   </fieldset>

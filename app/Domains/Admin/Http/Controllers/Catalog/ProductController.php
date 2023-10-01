@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
 use App\Domains\Admin\Services\Catalog\ProductService;
-use App\Domains\Admin\Services\Common\OptionService;
+use App\Domains\Admin\Services\Catalog\OptionService;
 use App\Domains\Admin\Services\Catalog\CategoryService;
 use App\Services\Sale\OrderProductOptionService;
 use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
@@ -92,9 +92,8 @@ class ProductController extends BackendController
             $query_data['equal_is_active'] = '1';
         }
 
-
         // Rows
-        $products = $this->ProductService->getProducts($query_data);
+        $products = $this->ProductService->getSalableProducts($query_data);
 
         if(!empty($products)){
             $products->load('main_category');
@@ -395,7 +394,7 @@ class ProductController extends BackendController
         }
 
         if(!$json) {
-            $result = $this->ProductService->updateOrCreate($data);
+            $result = $this->ProductService->updateOrCreateProduct($data);
 
             if(empty($result['error'])){
                 $json = [
@@ -487,7 +486,10 @@ class ProductController extends BackendController
                 'value' => $row->id,
                 'product_id' => $row->id,
                 'name' => $row->name,
+                'specification' => $row->specification,
                 'model' => $row->model,
+                'stock_unit_code' => $row->stock_unit_code,
+                'stock_unit_name' => $row->stock_unit_name,
             );
         }
 

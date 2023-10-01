@@ -4,11 +4,15 @@ namespace App\Domains\Admin\Services\Counterparty;
 
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
+use App\Repositories\Eloquent\Counterparty\OrganizationRepository;
 use App\Models\Counterparty\OrganizationMeta;
 
 class OrganizationService extends Service
 {
     protected $modelName = "\App\Models\Counterparty\Organization";
+
+	public function __construct(protected OrganizationRepository $OrganizationRepository)
+	{}
 
 	public function getOrganizations($data=[], $debug = 0)
 	{

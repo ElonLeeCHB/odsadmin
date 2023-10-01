@@ -50,12 +50,11 @@ Route::group([
     ], function ()
     {
         Route::get('order/statuses', 'Sale\OrderController@getActiveOrderStatuses')->name('order.getActiveOrderStatuses');
-        Route::get('order/phrases/{taxonomy_code}', 'Sale\OrderController@getOrderPhrases')->name('order.getOrderPhrases');
+        Route::get('order/phrases/{taxonomy_code}', 'Sale\OrderController@getOrderPhrasesByTaxonomyCode')->name('order.getOrderPhrasesByTaxonomyCode');
 
         Route::get('order', 'Sale\OrderController@list')->name('order.list');
         Route::post('order/save', 'Sale\OrderController@save')->name('order.save');
         Route::get('order/{order_id}', 'Sale\OrderController@details')->name('order.details');
-        Route::get('order/{order_id}/header', 'Sale\OrderController@header')->name('order.header');
 
         Route::post('order/schedule/save', 'Sale\OrderScheduleController@save')->name('order.schedule.save');
         Route::get('order/schedule/{delivery_date?}', 'Sale\OrderScheduleController@list')->name('order.schedule.list');
@@ -67,37 +66,21 @@ Route::group([
         'as' => 'common.',
     ], function ()
     {
-        Route::get('phrase', 'Common\PhraseController@list')->name('phrase.list');
-        Route::get('phrase/{phrase_id}', 'Common\PhraseController@details')->name('phrase.details');
+        Route::get('term', 'Common\TermController@list')->name('term.list');
+        Route::get('term/{term_id}', 'Common\TermController@details')->name('term.details');
     });
 
     Route::group([
-        'prefix' => 'member',
-        'as' => 'member.',
+        'prefix' => 'counterparty',
+        'as' => 'counterparty.',
     ], function ()
     {
-        Route::get('member', 'Member\MemberController@list')->name('member.list');
-        Route::get('member/autocomplete', 'Member\MemberController@autocomplete')->name('member.autocomplete');
-        Route::post('member/save', 'Member\MemberController@save')->name('member.save');
-        Route::get('member/{member_id}', 'Member\MemberController@details')->name('member.details');
-
-        //將廢棄
-        Route::get('guin/autocomplete', 'SysData\GovUniformInvoiceNumberController@autocomplete')->name('guin.autocomplete');
-        Route::get('guin/{guin}', 'SysData\GovUniformInvoiceNumberController@details')->name('guin.details');
-
-        Route::get('tin', 'SysData\TaxIdNumController@list')->name('tin.list');
-        Route::get('tin/{guin}', 'SysData\TaxIdNumController@info')->name('tin.info');
-        
-    });
-
-
-    Route::group([
-        'prefix' => 'user',
-        'as' => 'user.',
-    ], function ()
-    {
-        Route::get('users/getSalutations', 'System\User\UserController@getSalutations')->name('users.getSalutations');
-
+        Route::get('member', 'Counterparty\MemberController@list')->name('member.list');
+        Route::get('member/autocomplete', 'Counterparty\MemberController@autocomplete')->name('member.autocomplete');
+        Route::post('member/save', 'Counterparty\MemberController@save')->name('member.save');
+        Route::get('member/getSalutations', 'Counterparty\MemberController@getSalutations')->name('member.getSalutations');
+        Route::get('member/test', 'Counterparty\MemberController@test')->name('member.test');
+        Route::get('member/{member_id}', 'Counterparty\MemberController@details')->name('member.details');
     });
 
     
@@ -118,6 +101,10 @@ Route::group([
             Route::get('', 'Localization\RoadController@list')->name('list');
             Route::get('fword', 'Localization\RoadController@fword')->name('fword');    
         }); 
+
+        // 統一編號
+        Route::get('tax_id_num', 'Localization\TaxIdNumController@list')->name('tax_id_num.list');
+        Route::get('tax_id_num/{$tax_id_num}', 'Localization\TaxIdNumController@details')->name('tax_id_num.details');
     }); 
 
 });

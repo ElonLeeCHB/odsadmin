@@ -173,12 +173,12 @@ Route::group(
                 Route::get('terms/autocomplete', 'Common\TermController@autocomplete')->name('terms.autocomplete');
                 
                 //(收)付款條件
-                Route::get('payment_terms', 'Common\PaymentTermController@index')->name('payment_terms.index');
-                Route::get('payment_terms/list', 'Common\PaymentTermController@list')->name('payment_terms.list');
-                Route::get('payment_terms/form/{id?}', 'Common\PaymentTermController@form')->name('payment_terms.form');
-                Route::post('payment_terms/save', 'Common\PaymentTermController@save')->name('payment_terms.save');
-                Route::post('payment_terms/delete', 'Common\PaymentTermController@delete')->name('payment_terms.delete');
-                Route::get('payment_terms/autocomplete', 'Common\PaymentTermController@autocomplete')->name('payment_terms.autocomplete');
+                Route::get('payment_terms', 'Counterparty\PaymentTermController@index')->name('payment_terms.index');
+                Route::get('payment_terms/list', 'Counterparty\PaymentTermController@list')->name('payment_terms.list');
+                Route::get('payment_terms/form/{id?}', 'Counterparty\PaymentTermController@form')->name('payment_terms.form');
+                Route::post('payment_terms/save', 'Counterparty\PaymentTermController@save')->name('payment_terms.save');
+                Route::post('payment_terms/delete', 'Counterparty\PaymentTermController@delete')->name('payment_terms.delete');
+                Route::get('payment_terms/autocomplete', 'Counterparty\PaymentTermController@autocomplete')->name('payment_terms.autocomplete');
 
                 //金融機構
                 Route::get('financial_institutions', 'Counterparty\FinancialInstitutionController@index')->name('financial_institutions.index');

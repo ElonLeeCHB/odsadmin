@@ -11,9 +11,7 @@ class SupplierService extends Service
     protected $modelName = "\App\Models\Counterparty\Organization";
 
 	public function __construct(protected OrganizationRepository $OrganizationRepository)
-	{
-        $this->OrganizationRepository = $OrganizationRepository;
-	}
+	{}
 
 	public function getSuppliers($data=[], $debug = 0)
 	{

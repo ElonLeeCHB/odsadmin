@@ -155,7 +155,7 @@ class ReceivingOrderController extends BackendController
 
         $data['save_url'] = route('lang.admin.inventory.receiving.save');
         $data['back_url'] = route('lang.admin.inventory.receiving.index', $query_data);
-        //$data['autocomplete_url'] = route('lang.admin.inventory.receiving.autocomplete');
+        $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
 
 
         // Get Record

@@ -11,9 +11,7 @@ class TaxonomyService extends Service
     protected $modelName = "\App\Models\Common\Taxonomy";
 
 	public function __construct(protected TaxonomyRepository $TaxonomyRepository)
-	{
-        $this->TaxonomyRepository = $TaxonomyRepository;
-	}
+	{}
 
     public function updateOrCreate($data)
     {

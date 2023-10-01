@@ -59,10 +59,13 @@
                   </div>
 
                   <div class="row mb-3">
-                    <label for="input-purchasing_date" class="col-sm-2 col-form-label">{{ $lang->column_purchasing_date }}</label>
+                    <label for="input-form_type" class="col-sm-2 col-form-label">單別</label>
                     <div class="col-sm-10">
-                      <input type="text" name="purchasing_date" value="{{ $receiving_order->purchasing_date_ymd }}" id="input-purchasing_date" class="form-control date"/>
-                      <div id="error-purchasing_date" class="invalid-feedback"></div>
+                      <select id="input-form_type" name="form_type" class="form-select">
+                        <option value="">--</option>
+                        <option value="">原物料</option>
+                        <option value="">費用</option>
+                      </select>
                     </div>
                   </div>
 
@@ -131,62 +134,58 @@
       <div class="row">
         <div class="module col-md-1 col-sm-1">
             <label>料件流水號</label>
-            <input type="text" id="input-row-{{ $product_row }}-product_id" name="products[{{ $product_row }}][product_id]" value="{{ $receiving_product->product_id ?? '' }}" class="form-control" >
+            <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $receiving_product->product_id ?? '' }}" class="form-control" >
+            
         </div>
         <div class="module col-md-2 col-sm-2">
+          <div>
             <label>料件名稱</label>
-            <input type="text" id="input-row-{{ $product_row }}-product_name" name="products[{{ $product_row }}][product_name]" value="{{ $receiving_product->product_name ?? '' }}" class="form-control">
+            <input type="text" id="input-products-name-{{ $product_row }}" name="products[{{ $product_row }}][name]" value="{{ $receiving_product->product_name ?? '' }}" data-rownum="{{ $product_row }}" class="form-control schProductName" data-oc-target="autocomplete-product_name-{{ $product_row }}" autocomplete="off">
+            <ul id="autocomplete-product_name-{{ $product_row }}" class="dropdown-menu"></ul>
+          </div>
         </div>
+          
         <div class="module col-md-2 col-sm-2">
             <label>料件規格</label>
-            <input type="text" id="input-row-{{ $product_row }}-product_specification" name="products[{{ $product_row }}][product_specification]" value="{{ $receiving_product->product_specification ?? '' }}" class="form-control">
+            <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $receiving_product->product_specification ?? '' }}" class="form-control">
         </div>
         <div class="module col-md-1 col-sm-1">
             <label>採購數量</label>
-            <input type="text" id="input-row-{{ $product_row }}-receiving_quantity" name="products[{{ $product_row }}][receiving_quantity]" value="{{ $receiving_product->receiving_quantity ?? '' }}" class="form-control">
+            <input type="text" id="input-products-receiving_quantity-{{ $product_row }}" name="products[{{ $product_row }}][receiving_quantity]" value="{{ $receiving_product->receiving_quantity ?? '' }}" class="form-control" data-rownum="{{ $product_row }}" onfocusout="chkPurchasingQuantity(this)">
         </div>
         <div class="module col-md-1 col-sm-1">
             <label>採購單位</label>
-            <input type="text" id="input-row-{{ $product_row }}-receiving_unit_name" name="products[{{ $product_row }}][receiving_unit_name]" value="{{ $receiving_product->receiving_unit_name ?? '' }}" class="form-control">
-            <input type="hidden" id="input-row-{{ $product_row }}-receiving_unit_code" name="products[{{ $product_row }}][receiving_unit_code]" value="{{ $receiving_product->receiving_unit_code ?? '' }}">
+            <select id="input-products-receiving_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][receiving_unit_code]" class="form-control">
+              <option value=""> -- </option>
+              <option value="{{ $receiving_product->receiving_unit_code ?? '' }}_{{ $receiving_product->receiving_unit_name ?? '' }}" selected>{{ $receiving_product->receiving_unit_name ?? '' }}</option>
+            </select>
         </div>
         <div class="module col-md-1 col-sm-1">
             <label>盤點數量</label>
-            <input type="text" id="input-row-{{ $product_row }}-stock_quantity" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? '' }}" class="form-control">
+            <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? '' }}" class="form-control" data-rownum="{{ $product_row }}">
         </div>
         <div class="module col-md-1 col-sm-1">
             <label>盤點單位</label>
-            <input type="text" id="input-row-{{ $product_row }}-stock_unit_code" name="products[{{ $product_row }}][stock_unit_code]" value="{{ $receiving_product->stock_unit_code ?? '' }}" class="form-control" readonly>
+            <input type="text" id="input-products-stock_unit_name-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_name]" value="{{ $receiving_product->stock_unit_name ?? '' }}" class="form-control" readonly>
+            <input type="hidden" id="input-products-stock_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_code]" value="{{ $receiving_product->stock_unit_code ?? '' }}">
         </div>
         <div class="module col-md-1 col-sm-1">
             <label>採購單價</label>
-            <input type="text" id="input-row-{{ $product_row }}-price" name="products[{{ $product_row }}][price]" value="{{ $receiving_product->price ?? '' }}" class="form-control">
+            <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $receiving_product->price ?? '' }}" class="form-control">
+        </div>
+        <div class="module col-md-1 col-sm-1">
+            <label>盤點單價</label>
+            <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? '' }}" class="form-control">
         </div>
         <div class="module col-md-1 col-sm-1">
             <label>採購金額</label>
-            <input type="text" id="input-row-{{ $product_row }}-total" name="products[{{ $product_row }}][total]" value="{{ $receiving_product->total ?? '' }}" class="form-control">
+            <input type="text" id="input-products-total-{{ $product_row }}" name="products[{{ $product_row }}][total]" value="{{ $receiving_product->total ?? '' }}" class="form-control" data-rownum="{{ $product_row }}" onfocusout="chkPrice(this)">
         </div>
       </div>
 
       @php $product_row++; @endphp
       @endfor
     </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
               </div>
             </form>
@@ -254,6 +253,76 @@ $(document).ready(function() {
     });
   });
 });
+
+var productData = [];
+
+// 查料件名稱
+$(document).ready(function() {
+  $('.schProductName').on('input', function(){
+    $(this).autocomplete({
+      'source': function (request, response) {
+        $.ajax({
+            url: "{{ $product_autocomplete_url }}?filter_name=" + encodeURIComponent(request),
+            dataType: 'json',
+            success: function (json) {
+              response(json);
+            }
+          });
+      },
+      'select': function (item) {
+        var rownum = $(this).data("rownum");
+        $('#input-products-id-'+rownum).val(item.product_id);
+        $('#input-products-name-'+rownum).val(item.name);
+        $('#input-products-specification-'+rownum).val(item.specification);
+        $('#input-products-stock_unit_code-'+rownum).val(item.stock_unit_code);
+        $('#input-products-stock_unit_name-'+rownum).val(item.stock_unit_name);
+
+        $('#input-products-receiving_unit_code-'+rownum).empty();
+
+        for (var i = 0; i < item.product_units.length; i++) {
+          let unitData = item.product_units[i];
+          let option = $('<option></option>');
+          option.val(unitData.source_unit_code + '_' + unitData.source_unit_name);
+          option.text(unitData.source_unit_code + ' ' + unitData.source_unit_name);
+          option.attr('data-multiplier', unitData.destination_quantity);
+          $('#input-products-receiving_unit_code-'+rownum).append(option);
+        }
+      }
+    });
+  });
+
+
+  
+});
+
+function chkPurchasingQuantity(inputElement){
+  var rownum = $(inputElement).data('rownum');
+  var multiplier = $('#input-products-receiving_unit_code-'+rownum + ' option:selected').data('multiplier');
+  var quantity = $(inputElement).val();
+  var destination_quantity = quantity * multiplier
+  console.log('rownum='+rownum+', multiplier='+multiplier + ', destination_quantity='+destination_quantity);
+
+  $('#input-products-stock_quantity-'+rownum).val(destination_quantity);
+}
+
+function chkPrice(inputElement){
+  var rownum = $(inputElement).data('rownum');
+  var total = $(inputElement).val();
+  var receiving_quantity = $('#input-products-receiving_quantity-'+rownum).val();
+  var stock_quantity = $('#input-products-stock_quantity-'+rownum).val();
+  console.log('rownum='+rownum+', total='+total + ', receiving_quantity='+receiving_quantity + ', stock_quantity='+stock_quantity);
+  var price = parseFloat(total/receiving_quantity).toFixed(2);
+  var stock_price = parseFloat(total/stock_quantity).toFixed(2);
+  console.log('price='+price+', stock_price='+stock_price);
+
+  if(!isNaN(price)){
+    $('#input-products-price-'+rownum).val(price);
+  }
+  if(!isNaN(stock_price)){
+  $('#input-products-stock_price-'+rownum).val(stock_price);
+  }
+}
+
 </script>
 @endsection
 

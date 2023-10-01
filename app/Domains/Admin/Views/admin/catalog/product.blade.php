@@ -45,15 +45,6 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">{{ $lang->column_is_salable }}</label>
-          <select name="filter_is_salable" id="input-filter_is_salable" class="form-select">
-            <option value="">{{ $lang->text_select }}</option>
-            <option value="1">{{ $lang->text_yes }}</option>
-            <option value="0">{{ $lang->text_no }}</option>
-          </select>
-        </div>
-
-        <div class="mb-3">
           <label class="form-label">{{ $lang->column_is_active }}</label>
           <select name="equal_is_active" id="input-equal_is_active" class="form-select">
             <option value="*">{{ $lang->text_select }}</option>
@@ -83,7 +74,7 @@
 @endsection
 
 @section('buttom')
-<script type="text/javascript"><!--
+<script type="text/javascript">
 $('#product').on('click', 'thead a, .pagination a', function(e) {
   e.preventDefault();
 
@@ -105,12 +96,6 @@ $('#button-filter').on('click', function() {
     url += '&filter_main_category_id=' + encodeURIComponent(filter_main_category_id);
   }
 
-  var filter_is_salable = $('#input-filter_is_salable').val();
-
-  if (filter_is_salable) {
-    url += '&filter_is_salable=' + encodeURIComponent(filter_is_salable);
-  }
-
   var equal_is_active = $('#input-equal_is_active').val();
 
   if (equal_is_active) {
@@ -124,5 +109,5 @@ $('#button-filter').on('click', function() {
   add_url = $("#button-add").attr("href") + url
   $("#button-add").attr("href", add_url);
 });
-//--></script>
+</script>
 @endsection

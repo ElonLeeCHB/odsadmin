@@ -404,7 +404,7 @@
             @foreach($order_extra_comment_phrases as $phrase)
             <tr>
               <td class="phrase sorting_1">{{ $phrase->sort_order }}</td>
-              <td class="phrase sorting_2" data-phrase-column="product_comment">{{ $phrase->translation->name }}</td>
+              <td class="phrase sorting_2" data-phrase-column="product_comment">{{ $phrase->name }}</td>
             </tr>
             @endforeach
           </tbody>
@@ -437,7 +437,7 @@
             @foreach($order_comment_phrases as $phrase)
             <tr>
               <td class="phrase sorting_1">{{ $phrase->sort_order }}</td>
-              <td class="phrase sorting_2" data-phrase-column="comment">{{ $phrase->translation->name }}</td>
+              <td class="phrase sorting_2" data-phrase-column="comment">{{ $phrase->name }}</td>
             </tr>
             @endforeach
           </tbody>

@@ -160,7 +160,7 @@
 
 
 @section('buttom')
-<script type="text/javascript"><!--
+<script type="text/javascript">
 $('#input-type').on('change', function() {
     if (this.value == 'select' || this.value == 'radio' || this.value == 'checkbox' || this.value == 'options_with_qty' || this.value == 'image') {
         $('#option-value').parent().show();
@@ -243,7 +243,6 @@ $(document).ready(function() {
       },
       'select': function(item) {
         var rownum = $(this).data("rownum");
-        console.log('rownum:'+rownum+', event.product_id:'+item.product_id+', product_name:'+item.label);
         $('#input-option_values-'+rownum+'-product_id').val(item.product_id);
         $('#input-option_values-'+rownum+'-product_name').val(item.label);
       }
@@ -252,6 +251,6 @@ $(document).ready(function() {
 
 });
 
---></script>
+</script>
 @endsection
 

@@ -3,19 +3,22 @@
 namespace App\Repositories\Eloquent\Sale;
 
 use App\Repositories\Eloquent\Repository;
-use App\Repositories\Eloquent\Common\OptionRepository;
-use App\Repositories\Eloquent\Common\OptionValueRepository;
+use App\Repositories\Eloquent\Catalog\OptionRepository;
+use App\Repositories\Eloquent\Catalog\OptionValueRepository;
+use App\Repositories\Eloquent\Sale\OrderTotalRepository;
+use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Sale\Order;
 use App\Models\Common\Term;
-use App\Models\Common\Option;
-use App\Models\Common\OptionValue;
+use App\Models\Catalog\Option;
+use App\Models\Catalog\OptionValue;
 
 class OrderRepository extends Repository
 {
     public $modelName = "\App\Models\Sale\Order";
     private $order_statuses;
 
-    public function __construct(private OptionValueRepository $OptionValueRepository)
+    public function __construct(private OptionValueRepository $OptionValueRepository, private OrderTotalRepository $OrderTotalRepository
+        , private TermRepository $TermRepository)
     {
         parent::__construct();
     }
@@ -26,8 +29,6 @@ class OrderRepository extends Repository
         $data = $this->resetQueryData($data);
 
         $order = $this->getRow($data, $debug);
-        
-        $order = $this->optimizeRow($order);
 
         return $order;
     }
@@ -39,21 +40,27 @@ class OrderRepository extends Repository
 
         $orders = $this->getRows($data, $debug);
 
-        foreach ($orders as $order) {
-            $order = $this->optimizeRow($order);
-        }
-
         return $orders;
     }
 
 
     public function optimizeRow($row)
     {
-        if(!empty($row->status_id)){
+        if(!empty($row->status)){
             $row->status_name = $row->status->name;
         }
 
         return $row;
+    }
+
+
+    public function optimizeRows($rows)
+    {
+        foreach ($rows as $key => $row) {
+            $rows[$key] = $this->optimizeRow($row);
+        }
+
+        return $rows;
     }
 
     public function sanitizeRow($row)
@@ -168,7 +175,7 @@ class OrderRepository extends Repository
             }
         }
 
-        // 重設
+        // 若無快取則重設
         $filter_data = [
             'equal_is_active' => true,
         ];
@@ -179,6 +186,68 @@ class OrderRepository extends Repository
 
         return $order_statuses;
     }
-    
+
+
+    public function getOrderTotals($order_id, $debug = 0)
+    {
+        $filter_data = [
+            'equal_order_id' => $order_id,
+            'sort' => 'sort_order',
+            'order' => 'ASC',
+            'limit' => 0,
+            'pagination' => false,
+        ];
+
+        $totals = $this->OrderTotalRepository->getRows($filter_data, $debug);
+
+        return $this->rowsToStdObj($totals);
+    }
+
+
+    public function getOrderPhrasesByTaxonomyCode($data, $debug = 0)
+    {
+        $allowed_taxonomy_codes = [
+            'phrase_order_comment', 'phrase_order_extra_comment'
+        ];
+
+        if(!in_array($data['equal_taxonomy_code'], $allowed_taxonomy_codes)){
+            return [];
+        }
+
+        $terms = $this->TermRepository->getTerms($data);
+
+        if(!empty($terms) && !empty($data['sanitize'])){
+            foreach ($terms as $key => $term) {
+                $term = $term->toArray();
+                unset($term['translation']);
+                unset($term['taxonomy']);
+                $terms[$key] = (object) $term;
+            }
+        }
+
+        return $terms;
+    }
+
+
+    public function getOrderTags($data, $debug)
+    {
+        $qStr = $data['qStr'];
+
+        $tags = Term::where('taxonomy_code', 'order_tag')->whereHas('translation', function ($query) use ($qStr) {
+            $query->where('name', 'like', '%'.$qStr.'%');
+        })->with('translation')->get();
+
+        if(!empty($data['sanitize'])){
+            foreach ($tags as $key => $tag) {
+                $tag = $tag->toArray();
+                unset($tag['translation']);
+                unset($tag['taxonomy']);
+                $tags[$key] = (object) $tag;
+            }
+
+        }
+
+        return $tags;
+    }
 }
 

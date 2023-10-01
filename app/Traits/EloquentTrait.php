@@ -220,7 +220,6 @@ trait EloquentTrait
 
             if(empty($data['first'])){
                 foreach ($result as $id => $row) {
-                    //echo '<pre>', print_r($row, 1), "</pre>"; exit;
                     $new_row = [];
                     foreach ($row as $column => $value) {
                         if(in_array($column, $data['select'])){
@@ -241,6 +240,10 @@ trait EloquentTrait
 
     public function getQuery($data=[], $debug=0)
     {
+        if(empty($this->table_columns)){
+            $this->table_columns = $this->getTableColumns();
+        }
+        
         $query = $this->newModel()->query();
 
         // With relations
@@ -381,15 +384,13 @@ trait EloquentTrait
     private function setFiltersQuery($query, $data, $debug=0)
     {
         $translated_attributes = $this->model->translated_attributes ?? [];
-
-        $connection = null;
-        
-        // if(!empty($data['connection'])){
-        //     $connection = $data['connection'];
-        // }
-
         $table_columns = $this->getTableColumns($this->connection);
         
+        $meta_keys = $this->model->meta_keys;
+        if(empty($meta_keys)){
+            $meta_keys = [];
+        }
+
         foreach ($data as $key => $value) {
             // $key has prifix 'filter_'
             // $column is the name of database table's column
@@ -408,13 +409,18 @@ trait EloquentTrait
                 continue;
             }
 
-            // Has to be the table's columns
-            if(!in_array($column, $table_columns)){
+            // Translated column is not processed here
+            if(in_array($column, $translated_attributes)){
                 continue;
             }
 
-            // Translated column is not processed here
-            if(in_array($column, $translated_attributes)){
+            // meta_keys is not processed here
+            if(in_array($column, $meta_keys)){
+                continue;
+            }
+
+            // Has to be the table's columns
+            if(!in_array($column, $table_columns)){
                 continue;
             }
 
@@ -438,9 +444,7 @@ trait EloquentTrait
             }
         }
 
-        // set translated whereHas then return data
-        $translated_attributes = $this->model->translated_attributes ?? [];
-
+        // set translated whereHas
         foreach ($data as $key => $value) {
             if(!str_starts_with($key, 'filter_')){
                 continue;
@@ -454,11 +458,24 @@ trait EloquentTrait
             }
         }
 
+        // set meta whereHas
+        foreach ($data as $key => $value) {
+            if(!str_starts_with($key, 'filter_')){
+                continue;
+            }else{
+                $column = str_replace('filter_', '', $key);
+            }
+
+            if(in_array($column, $meta_keys)){
+                $data['whereHas']['meta_dataset'] = ['meta_key' => $column, 'meta_value' => $value];
+                unset($data[$key]);
+            }
+        }
+
         // Filters - relations
         if(!empty($data['whereHas'])){
             $this->setWhereHas($query, $data['whereHas']);
         }
-
 
         // Display sql statement
         if(!empty($debug)){
@@ -470,6 +487,12 @@ trait EloquentTrait
     private function setEqualsQuery($query, $data)
     {
         $table_columns = $this->getTableColumns($this->connection);
+        $translated_attributes = $this->model->translated_attributes ?? [];
+
+        $meta_keys = $this->model->meta_keys;
+        if(empty($meta_keys)){
+            $meta_keys = [];
+        }
 
         foreach ($data as $key => $value) {
 
@@ -485,8 +508,18 @@ trait EloquentTrait
                 continue;
             }
 
-            
-            if(!in_array($column, $table_columns)){ // Has to be the table's columns
+            // Translated column is not processed here
+            if(in_array($column, $translated_attributes)){
+                continue;
+            }
+
+            // meta_keys is not processed here
+            if(in_array($column, $meta_keys)){
+                continue;
+            }
+
+            // Has to be the table's columns
+            if(!in_array($column, $table_columns)){
                 continue;
             }
 
@@ -497,6 +530,40 @@ trait EloquentTrait
             }else{
                 $column = $this->table . '.' . $column;
                 $query->where($column, $value);
+            }
+        }
+
+        // set translated whereHas
+        foreach ($data as $key => $value) {
+            if(!str_starts_with($key, 'equal_')){
+                continue;
+            }else{
+                $column = str_replace('equal_', '', $key);
+            }
+
+            if(in_array($column, $translated_attributes)){
+                $query->whereHas('translation', function ($query) use ($column, $value) {
+                    $query->where('meta_key', $column);
+                    $query->where('meta_value', $value);
+                });
+                unset($data[$key]);
+            }
+        }
+
+        // set meta whereHas
+        foreach ($data as $key => $value) {
+            if(!str_starts_with($key, 'equal_')){
+                continue;
+            }else{
+                $column = str_replace('equal_', '', $key);
+            }
+
+            if(in_array($column, $meta_keys)){
+                $query->whereHas('meta_dataset', function ($query) use ($column, $value) {
+                    $query->where('meta_key', $column);
+                    $query->where('meta_value', $value);
+                });
+                unset($data[$key]);
             }
         }
 
@@ -815,24 +882,12 @@ trait EloquentTrait
      */
      public function getMetaDataset($row)
     {
-        $indexed_meta_dataset = [];
-        $meta_keys = $row->meta_keys;
         $meta_dataset = $row->meta_dataset;
 
         foreach ($meta_dataset as $meta_data) {
-            //$indexed_meta_dataset[$meta_data->meta_key] = $meta_data->meta_value;
             $row->{$meta_data->meta_key} = $meta_data->meta_value;
         }
 
-        // foreach ($meta_keys as $meta_key) {
-        //     if(empty($indexed_meta_dataset[$meta_key])){
-        //         $indexed_meta_dataset[$meta_key] = '';
-        //     }else{
-        //         $indexed_meta_dataset[$meta_key] = $meta_key->meta_value;
-        //     }
-        // }
-
-        //return (object)$indexed_meta_dataset;
         return $row;
     }
 
@@ -898,7 +953,7 @@ trait EloquentTrait
     public function rowsToStdObj($rows)
     {
         foreach ($rows as $key => $row) {
-            $rows[$key] = $row = $this->rowToStdObj($row);
+            $rows[$key] = (object) $row->toArray();
         }
 
         return $rows;
@@ -907,6 +962,16 @@ trait EloquentTrait
     public function rowToStdObj($row)
     {
         return (object) $row->toArray();
+    }
+
+
+    public function deleteRow($data)
+    {
+        $row = $this->getRow($data);
+
+        if(!empty($row)){
+            $row->delete();
+        }
     }
 
 

@@ -10,10 +10,8 @@ class WarehouseService extends Service
 {
     protected $modelName = "\App\Models\Inventory\Warehouse";
 
-	public function __construct(protected WarehouseRepository $WarehouseRepository)
-	{
-        $this->WarehouseRepository = $WarehouseRepository;
-	}
+	public function __construct(private WarehouseRepository $WarehouseRepository)
+	{}
 
 	public function updateOrCreate($data)
 	{

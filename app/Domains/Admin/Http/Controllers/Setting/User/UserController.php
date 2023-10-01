@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use Illuminate\Http\Request;
 use App\Domains\Admin\Services\Setting\User\UserService;
-use Auth;
 
 class UserController extends BackendController
 {
@@ -157,41 +156,14 @@ class UserController extends BackendController
         $data['breadcumbs'] = (object)$breadcumbs;
 
         // Prepare link for save, back
-        $queries = [];
+        $queries = $this->getQueries($this->request->query());
 
-        foreach($this->request->all() as $key => $value){
-            if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
-            }
-        }
-
-        if(!empty($this->request->query('page'))){
-            $queries['page'] = $this->request->query('page');
-        }else{
-            $queries['page'] = 1;
-        }
-
-        if(!empty($this->request->query('sort'))){
-            $queries['sort'] = $this->request->query('sort');
-        }else{
-            $queries['sort'] = 'id';
-        }
-
-        if(!empty($this->request->query('order'))){
-            $queries['order'] = $this->request->query('order');
-        }else{
-            $queries['order'] = 'DESC';
-        }
-
-        if(!empty($this->request->query('limit'))){
-            $queries['limit'] = $this->request->query('limit');
-        }
-
-        $data['save'] = route('lang.admin.setting.user.users.save');
-        $data['back'] = route('lang.admin.setting.user.users.index', $queries);
+        $data['save_url'] = route('lang.admin.setting.user.users.save');
+        $data['back_url'] = route('lang.admin.setting.user.users.index', $queries);
 
         // Get Record
         $user = $this->UserService->findIdOrFailOrNew($user_id);
+        $user = $this->UserService->getMetaDataset($user);
 
         $data['user']  = $user;
 
@@ -233,7 +205,7 @@ class UserController extends BackendController
                 $json['user_id'] = $result['data']['user_id'];
                 $json['success'] = $this->lang->text_success;
             }else{
-                $user_id = Auth::user()->id;
+                $user_id = auth()->user()->id;
                 if($user_id == 1){
                     $json['error'] = $result['error'];
                 }else{

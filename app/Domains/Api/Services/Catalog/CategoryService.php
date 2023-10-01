@@ -2,44 +2,17 @@
 
 namespace App\Domains\Api\Services\Catalog;
 
-
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
-use App\Domains\Api\Services\Service;
-use App\Traits\Model\EloquentTrait;
-use App\Libraries\TranslationLibrary;
+use App\Services\Catalog\CategoryService as GlobalCategoryService;
+use App\Repositories\Eloquent\Catalog\CategoryRepository;
 
-class CategoryService extends Service
+class CategoryService extends GlobalCategoryService
 {
-    use EloquentTrait;
+    protected $modelName = "\App\Models\Common\Term";
 
-    public $modelName;
-    public $model;
-    public $table;
-    public $lang;
-
-	public function __construct()
+	public function __construct(protected CategoryRepository $CategoryRepository)
 	{
-        $this->modelName = "\App\Models\Catalog\Category";
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/catalog/category',]);
-	}
-
-	public function getCategories($data=[], $debug = 0)
-	{
-        if(!empty($data['filter_name'])){
-            $arr['filter_name'] = $data['filter_name'];
-            unset($data['filter_name']);
-        }
-
-        if(!empty($arr)){
-            $data['whereHas']['translation'] = $arr;
-        }
-        
-        $data['with'] = ['translation'];
-
-        $categories = $this->getRecords($data, $debug);
-
-        return $categories;
+        parent::__construct($CategoryRepository);
 	}
 
 
@@ -48,11 +21,11 @@ class CategoryService extends Service
         DB::beginTransaction();
 
         try {
-            $category = $this->findOrNew($data['category_id']);
+            $category = $this->findIdOrFailOrNew($data['category_id']);
 
             $category->code = $data['code'] ?? '';
             $category->slug = $data['slug'] ?? '';
-            $category->taxonomy = 'product_category';
+            $category->taxonomy_code = 'product_category';
             $category->sort_order = $data['sort_order'] ?? 1000;
             $category->is_active = $data['is_active'] ?? 0;
 
@@ -74,17 +47,6 @@ class CategoryService extends Service
         }
     }
 
-    public function validator(array $data)
-    {
-        return Validator::make($data, [
-                'organization_id' =>'nullable|integer',
-                'name' =>'nullable|max:10',
-                'short_name' =>'nullable|max:10',
-            ],[
-                'organization_id.integer' => $this->lang->error_organization_id,
-                'name.*' => $this->lang->error_name,
-                'short_name.*' => $this->lang->error_short_name,
-        ]);
-    }
+
 
 }

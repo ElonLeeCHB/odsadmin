@@ -18,6 +18,13 @@ class ProductRepository extends Repository
 
     private $source_codes;
 
+
+    public function __construct(protected TermRepository $TermRepository)
+    {
+        parent::__construct();
+    }
+
+
     public function getProducts($data = [], $debug = 0)
     {
         $data = $this->resetQueryData($data);
@@ -46,6 +53,17 @@ class ProductRepository extends Repository
 
         return $row;
     }
+
+
+    public function getSalableProducts($data = [], $debug = 0)
+    {
+        $data = $this->resetQueryData($data);
+        
+        $data['equal_is_salable'] = 1;
+
+        return $this->getRows($data);
+    }
+
 
     public function delete($product_id)
     {
@@ -79,9 +97,17 @@ class ProductRepository extends Repository
     {
         if(!empty($data['filter_keyword'])){
             $data['filter_name'] = $data['filter_keyword'];
-            $data['filter_short_name'] = $data['filter_keyword'];
-            $data['filter_description'] = $data['filter_keyword'];
+            $data['filter_specification'] = $data['filter_keyword'];
+            $data['filter_model'] = $data['filter_keyword'];
             unset($data['filter_keyword']);
+        }
+
+        if(!empty($data['filter_name'])){
+            $data['whereHas']['translation'] = ['name' => $data['filter_name']];
+        }
+
+        if(!empty($data['filter_specification'])){
+            $data['whereHas']['translation'] = ['specification' => $data['filter_specification']];
         }
 
         return $data;
@@ -99,7 +125,7 @@ class ProductRepository extends Repository
             'pagination' => false,
             'limit' => 0,
         ];
-        $collection = (new TermRepository)->getRows($filter_data)->toArray();
+        $collection = $this->TermRepository->getRows($filter_data)->toArray();
 
         $result = [];
 
@@ -112,5 +138,31 @@ class ProductRepository extends Repository
 
         return $result;
     }
+
+
+    // 尋找關聯，並將關聯值賦予記錄
+    public function optimizeRow($row)
+    {
+        // if(!empty($row->status)){
+        //     $row->status_name = $row->status->name;
+        // }
+
+        return $row;
+    }
+
+
+    // 刪除關聯
+    public function sanitizeRow($row)
+    {
+        $arrOrder = $row->toArray();
+
+        if(!empty($arrOrder['translation'])){
+            unset($arrOrder['translation']);
+        }
+
+        return (object) $arrOrder;
+    }
+
+
 }
 

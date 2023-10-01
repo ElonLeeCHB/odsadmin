@@ -11,7 +11,7 @@ use App\Models\Catalog\ProductOption;
 use App\Models\Sale\OrderProduct;
 use App\Models\SysData\Division;
 use App\Models\Member\Organization;
-use App\Models\Common\OptionValue;
+use App\Models\Catalog\OptionValue;
 use DateTimeInterface;
 //use Staudenmeir\EloquentHasManyDeep\HasRelationships;
 

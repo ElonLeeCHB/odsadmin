@@ -11,22 +11,20 @@ class SettingService extends Service
     protected $modelName = "\App\Models\Setting\Setting";
 	public $repository;
 
-	public function __construct(SettingRepository $SettingRepository)
-	{
-        $this->repository = $SettingRepository;
-	}
+	public function __construct(private SettingRepository $SettingRepository)
+	{}
 
 	public function getSetting($data)
 	{
         if(!empty($data['id'])){
-            $setting = $this->repository->newModel()->find($data['id']);
+            $setting = $this->SettingRepository->newModel()->find($data['id']);
         }else{
 			$queries = [
 				'filter_orgination_id' => $data['orgination_id'],
 				'filter_group' => $data['group'],
 				'filter_key' => $data['key'],
 			];
-            $setting = $this->repository->getRow($queries); // not yet
+            $setting = $this->SettingRepository->getRow($queries); // not yet
         }
 
         return $setting;
@@ -46,7 +44,7 @@ class SettingService extends Service
 		}
 		$whereColumns = ['location_id','group','setting_key'];
 
-		$this->repository->upsert($allData, $whereColumns, $updateColumns);
+		$this->SettingRepository->upsert($data, $whereColumns, $updateColumns);
 	}
 
 
@@ -55,7 +53,7 @@ class SettingService extends Service
         DB::beginTransaction();
 
         try {
-            $setting = $this->repository->findIdOrFailOrNew($data['setting_id']);
+            $setting = $this->SettingRepository->findIdOrFailOrNew($data['setting_id']);
 			
 			$setting->location_id = $data['location_id'] ?? 0;
 			$setting->group = $data['group'];

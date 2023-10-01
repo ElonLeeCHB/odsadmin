@@ -16,7 +16,6 @@ class ProductService extends Service
 {
     public $modelName = "\App\Models\Catalog\Product";
 
-
     public function __construct(private ProductRepository $ProductRepository,private ProductUnitRepository $ProductUnitRepository)
     {}
 

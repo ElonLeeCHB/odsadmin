@@ -258,10 +258,7 @@
                       <td><input type="text" id="input-units-{{ $product_unit_row }}-stock_quantity" name="product_units[{{ $product_unit_row }}][destination_quantity]" value="{{ $product_unit->destination_quantity ?? 0 }}" class="form-control"></td>
                       <td>
                         <select id="input-units-{{ $product_unit_row }}-destination_unit_code" name="product_units[{{ $product_unit_row }}][destination_unit_code]" class="form-control">
-                          <option value="">--</option>
-                          @foreach($destination_units as $destination_unit)
-                          <option value="{{ $destination_unit->code }}" @if($destination_unit->code==$product_unit->destination_unit_code) selected @endif>{{ $destination_unit->name }}</option>
-                          @endforeach
+                          <option value="{{ $product->stock_unit_code }}">{{ $product->stock_unit_name }}</option>
                         </select>
                       </td>
                     </tr>

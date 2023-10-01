@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Libraries\TranslationLibrary;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
-use App\Domains\Admin\Services\Common\OptionService;
+use App\Domains\Admin\Services\Catalog\OptionService;
 use App\Domains\Admin\Services\Catalog\ProductService;
 
 class OptionController extends BackendController
@@ -110,7 +110,7 @@ class OptionController extends BackendController
         $data['action'] = route('lang.admin.catalog.options.list');
 
         // Rows
-        $options = $this->OptionService->getRows($queries);
+        $options = $this->OptionService->getOptions($queries);
         
         if(!empty($options)){
             foreach ($options as $row) {
@@ -287,7 +287,7 @@ class OptionController extends BackendController
             }
 
             //option_values in database 
-            $option = $this->OptionService->getRow(['filter_id' => $data['option_id']],0);
+            $option = $this->OptionService->getOption(['filter_id' => $data['option_id']],0);
             $option_values = [];
             if(!empty($option->product_option_values)){
                 $option_values = $option->product_option_values->pluck('option_value_id')->toArray() ?? [];
@@ -348,16 +348,17 @@ class OptionController extends BackendController
 		// }
         
 		foreach ($selected as $option_id) {
-			$product_total = $this->ProductService->getTotalProductsByOptionId($option_id);
+            // 若有商品使用則不可刪
+			$product_count = $this->OptionService->getTotalProductsByOptionId($option_id);
             
-			if ($product_total) {
+			if ($product_count) {
 				$json['error'] = $option_id .' - '.$this->lang->error_product;
 			}
 		}
         
 		if (!$json) {
 			foreach ($selected as $option_id) {
-				$this->OptionService->deleteOption($option_id);
+				$this->OptionService->deleteOptionById($option_id);
 			}
 
 			$json['success'] = $this->lang->text_success;
@@ -396,7 +397,7 @@ class OptionController extends BackendController
             'regexp' => false,
             'with' => 'option_values.product',
         );
-        $options = $this->OptionService->getRows($filter_data);
+        $options = $this->OptionService->getOptions($filter_data);
 
         foreach ($options as $option) {
             $filter_data['filter_option_id'] = $option->id;

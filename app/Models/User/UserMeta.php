@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class UserMeta extends Model
 {
-    
-    public $table = 'user_meta';
     public $timestamps = false;    
     protected $guarded = [];
 

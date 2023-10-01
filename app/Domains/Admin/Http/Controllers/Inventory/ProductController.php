@@ -9,7 +9,6 @@ use App\Domains\Admin\Services\Inventory\ProductService;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
 use App\Repositories\Eloquent\Common\UnitRepository;
 //use App\Repositories\Eloquent\Inventory\ProductUnitRepository;
-use App\Domains\Admin\Services\Common\OptionService;
 use App\Domains\Admin\Services\Catalog\CategoryService;
 use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
@@ -20,7 +19,6 @@ class ProductController extends BackendController
     public function __construct(
         protected Request $request
         , private LanguageRepository $languageRepository
-        , private OptionService $OptionService
         , private ProductService $ProductService
         , private CategoryService $CategoryService
         , private ProductOptionValueRepository $ProductOptionValueRepository
@@ -420,17 +418,29 @@ class ProductController extends BackendController
             'filter_is_salable' => $this->request->filter_is_salable,
             'limit'   => 10,
             'pagination'   => false,
+            'with' => ['product_units.source_unit.translation'],
         );
 
         $rows = $this->ProductService->getProducts($filter_data);
 
         foreach ($rows as $row) {
+            $product_units = $row->product_units->toArray();
+
+            foreach ($product_units as $key => $product_unit) {
+                $product_unit['source_unit_name'] = $product_unit['source_unit']['name'];
+                unset($product_unit['source_unit']);
+                $product_units[$key] = $product_unit;
+            }
+
             $json[] = array(
                 'label' => $row->name . '-' . $row->id,
                 'value' => $row->id,
                 'product_id' => $row->id,
-                'product_name' => $row->name,
+                'name' => $row->name,
                 'model' => $row->model,
+                'stock_unit_code' => $row->stock_unit_code,
+                'stock_unit_name' => $row->stock_unit_name,
+                'product_units' => $product_units,
             );
         }
 
