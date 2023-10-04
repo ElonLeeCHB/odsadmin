@@ -3,9 +3,8 @@
 namespace App\Domains\Admin\Services\Member;
 
 use Illuminate\Support\Facades\DB;
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use App\Repositories\Eloquent\User\UserRepository;
-use App\Models\User\UserAddress;
 
 class MemberService extends Service
 {
@@ -14,45 +13,16 @@ class MemberService extends Service
     public function __construct(protected UserRepository $UserRepository)
     {}
 
+
     public function getSalutations()
     {
-        $UserRepository = new UserRepository;
-        return $UserRepository->getSalutations();
+        return $this->UserRepository->getSalutations();
     }
 
-	public function getMembers($data=[], $debug = 0)
+
+	public function getMembers($data = [], $debug = 0)
 	{
-        if(!empty($data['filter_phone'])){
-            $data['filter_phone'] = str_replace('-','',$data['filter_phone']);
-            $data['filter_phone'] = str_replace(' ','',$data['filter_phone']);
-
-            $data['andOrWhere'][] = [
-                'filter_mobile' => $data['filter_phone'],
-                'filter_telephone' => $data['filter_phone'],
-                'filter_shipping_phone' => $data['filter_phone'],
-            ];
-            unset($data['filter_phone']);
-        }
-
-        if(!empty($data['filter_name'])){
-            $data['andOrWhere'][] = [
-                'filter_name' => $data['filter_name'],
-                'filter_shipping_personal_name' => $data['filter_name'],
-            ];
-            unset($data['filter_name']);
-        }
-
-        if(!empty($data['filter_company'])){
-            $data['andOrWhere'][] = [
-                'payment_company' => $data['filter_company'],
-                'shipping_company' => $data['filter_company'],
-            ];
-            unset($data['filter_company']);
-        }
-
-        $members = $this->getRows($data, $debug);
-
-        return $members;
+        return $this->UserRepository->getUsers($data, $debug);
 	}
 
 
@@ -116,23 +86,23 @@ class MemberService extends Service
             
             $member->save();
 
-            if (isset($data['addresses'])) {
-                UserAddress::where('user_id', $member->id)->delete();
+            // if (isset($data['addresses'])) {
+            //     UserAddress::where('user_id', $member->id)->delete();
     
-                foreach ($data['addresses'] as $key => $address){
-                    if(empty($address['is_enabled'])){
-                        continue;
-                    }
+            //     foreach ($data['addresses'] as $key => $address){
+            //         if(empty($address['is_enabled'])){
+            //             continue;
+            //         }
     
-                    $address['user_id'] = $member->id;
+            //         $address['user_id'] = $member->id;
                     
-                    if(isset($data['address_default']) && $data['address_default'] == $key){
-                        $address['is_default'] = 1;
-                    }
+            //         if(isset($data['address_default']) && $data['address_default'] == $key){
+            //             $address['is_default'] = 1;
+            //         }
                     
-                    UserAddress::create($address);
-                }
-            }
+            //         UserAddress::create($address);
+            //     }
+            // }
 
             DB::commit();
 
@@ -165,6 +135,15 @@ class MemberService extends Service
             DB::rollback();
             return ['error' => $ex->getMessage()];
         }
+    }
+
+
+    public function getJsonMembers($data)
+    {
+        $json = $this->MemberRepository->getJsonList($data);
+
+        return $json;
+
     }
 
 }

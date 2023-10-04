@@ -28,7 +28,6 @@ return new class extends Migration
             $table->string('locale',10);
             $table->string('name',100);
             $table->unique(['option_id', 'locale']);
-            $table->timestamps();
         });
         Schema::create('option_values', function (Blueprint $table) {
             $table->id();
@@ -47,7 +46,6 @@ return new class extends Migration
             $table->string('name');
             $table->string('short_name',50);
             $table->unique(['option_value_id', 'locale', 'option_id'],'main_unique_name');
-            $table->timestamps();
         });
     }
 

@@ -43,33 +43,32 @@ if(!function_exists('zhChsToCht')){
 
 /**
  * $dateString = '2023-05-01', '20230501', '23-05-01', '230501'
- * return yyyy-mm-dd
+ * Return yyyy-mm-dd
+ * From 1971-0101 to 2070-12-31
+ * if 710101, means 1971-01-01, if 700101 means 2070-01-01
  */
 if(!function_exists('parseDate')){
     function parseDate(String $dateString)
     {
-        // Only allow numbers and - and / and :
-        if(!preg_match('/^[0-9\-\/:]+$/', $dateString, $matches)){
-            return false;
+        // normal date
+        $pattern = "/^\d{4}[-\/]\d{2}[-\/]\d{2}$/";
+        if (preg_match($pattern, $dateString)) {
+            $strYmd = $dateString;
+        }
+        // 20230501
+        else if (preg_match('/\d{8}/', $dateString, $matches)) {
+            $strYmd = substr($matches[0],0,4) . '-' . substr($matches[0],4,2) . '-' . substr($matches[0],6,2);
+        }
+        // 230501
+        else if (preg_match('/\d{6}/', $dateString, $matches)) {
+            $strYearLast2 = substr($dateString,0,2);
+            $strYear = ($strYearLast2 > 70) ? (1900+$strYearLast2) : (2000+$strYearLast2);
+            $strYmd = $strYear . '-' . substr($dateString,2,2) . '-' . substr($dateString,4,2);
+        }else{
+            $strYmd = false;
         }
 
-        // Only get numbers
-        $matches = [];
-        preg_match_all('/\d+/', $dateString, $matches);
-        $dateString = implode('', $matches[0]);
-
-        // Get full string
-        $year = (int)substr($dateString, 0, -4);
-        $year = $year < 2000 ? $year+2000 : $year;
-
-        $newDateString = $year . '-' . substr($dateString, -4, -2) . '-' . substr($dateString, -2);
-        $validDateString = date('Y-m-d', strtotime($newDateString));
-
-        if($validDateString == $newDateString){
-            return $validDateString;
-        }else{
-			return false;
-		}
+        return $strYmd;
     }
 }
 

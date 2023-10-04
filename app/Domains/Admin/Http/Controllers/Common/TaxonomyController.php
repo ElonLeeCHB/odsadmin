@@ -218,7 +218,7 @@ class TaxonomyController extends BackendController
     {
         $query_data = $this->getQueries($this->request->query());
 
-        if(isset($query_data['equal_code'])){
+        if(!empty($query_data['equal_code'])){
             if (strpos($query_data['equal_code'], ',') !== false) {
                 $arr = explode(',', $query_data['equal_code']);
                 $query_data['whereIn'] = ['code' => $arr];

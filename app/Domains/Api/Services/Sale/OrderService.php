@@ -3,152 +3,17 @@
 namespace App\Domains\Api\Services\Sale;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Carbon;
-use App\Libraries\TranslationLibrary;
-use App\Domains\Admin\Services\Service;
-use App\Domains\Admin\Services\Common\OptionService;
-use App\Domains\Api\Services\Sale\OrderProductService;
-use App\Domains\Api\Services\Sale\OrderProductOptionService;
-
-use App\Repositories\Eloquent\Common\TermRepository;
+use App\Services\Sale\OrderService as GlobalOrderService;
 use App\Models\Common\Term;
 use App\Models\Common\TermTranslation;
 use App\Models\Common\TermRelation;
-
-use App\Repositories\Eloquent\Sale\OrderRepository;
-use App\Repositories\Eloquent\Sale\OrderProductRepository;
-use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
-use App\Repositories\Eloquent\Sale\OrderTotalRepository;
-use App\Repositories\Eloquent\Member\MemberRepository;
+use App\Models\Sale\OrderTotal;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Catalog\ProductTranslation;
-use App\Models\Localization\Division;
-use Maatwebsite\Excel\Facades\Excel;
-//use App\Domains\Admin\ExportsLaravelExcel\OrderProductExport;
-use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
 
-
-class OrderService extends Service
+class OrderService extends GlobalOrderService
 {
     protected $modelName = "\App\Models\Sale\Order";
-    private $lang;
-
-    public function __construct(public OrderRepository $repository
-        , private OrderProductRepository $OrderProductRepository
-        , private OrderTotalRepository $OrderTotalRepository
-        , private OptionService $OptionService
-        , private MemberRepository $MemberRepository
-        , private TermRepository $TermRepository
-        , private OrderProductService $OrderProductService
-        , private OrderProductOptionService $OrderProductOptionService
-    )
-    {
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/sale/order',]);
-    }
-
-
-    public function getOrders($data=[], $debug=0)
-    {
-        //if(!empty($data['filter_predifined'])){
-            // if($data['filter_predifined'] == 'tomorrow'){
-            //     $delivery_date = Carbon::now()->addDay()->format('Y-m-d');
-            // }
-        //}
-
-        $data = $this->getListQueryData($data);
-
-        $rows = $this->repository->getRows($data, $debug);
-
-        return $rows;
-    }
-
-    public function getListQueryData($data)
-    {
-        //送達日 $delivery_date
-        if(!empty($data['filter_delivery_date'])){
-            $rawSql = $this->repository->parseDateToSqlWhere('delivery_date', $data['filter_delivery_date']);
-            if($rawSql){
-                $data['whereRawSqls'][] = $rawSql;
-            }
-            unset($data['filter_delivery_date']);
-        }
-        //
-
-        if(!empty($data['filter_phone'])){
-            $data['filter_phone'] = str_replace('-','',$data['filter_phone']);
-            $data['filter_phone'] = str_replace(' ','',$data['filter_phone']);
-
-            $data['andOrWhere'][] = [
-                'filter_mobile' => $data['filter_phone'],
-                'filter_telephone' => $data['filter_phone'],
-            ];
-            unset($data['filter_phone']);
-        }
-
-        if(!empty($data['filter_keyname'])){
-            $data['andOrWhere'][] = [
-                'filter_personal_name' => $data['filter_keyname'],
-                'filter_shipping_personal_name' => $data['filter_keyname'],
-                'filter_shipping_company' => $data['filter_keyname'],
-                'filter_payment_company' => $data['filter_keyname'],
-            ];
-            unset($data['filter_keyname']);
-        }
-
-        if(!empty($data['filter_shipping_state_id'])){
-            $data['equal_shipping_state_id'] = $data['filter_shipping_state_id'];
-        }
-
-        if(!empty($data['filter_shipping_city_id'])){
-            $data['equal_shipping_city_id'] = $data['filter_shipping_city_id'];
-        }
-
-        $data['with'][] = 'status.translation';
-
-        return $data;
-    }
-
-
-    public function getOrderTagsByOrderId($order_id)
-    {
-        $tags = Term::where('taxonomy_code', 'order_tag')->whereHas('term_relations', function ($query) use ($order_id) {
-            $query->where('object_id', $order_id);
-        })->get();
-
-        if(count($tags)==0){
-            return [];
-        }
-
-        // $result = '';
-        $result = [];
-
-        foreach ($tags as $key => $tag) {
-            //$result .= $tag->translation->name. ',';
-            $result[] = $tag->translation->name;
-        }
-
-        // return rtrim($result, ",");
-        return $result;
-
-    }
-
-
-    public function getOrderTags($qStr)
-    {
-        $tags = Term::where('taxonomy_code', 'order_tag')->whereHas('translation', function ($query) use ($qStr) {
-            $query->where('name', 'like', '%'.$qStr.'%');
-        })->with('translation')->get();
-
-        return $tags;
-    }
-
-    public function getAllOrderTags()
-    {
-        $tags = Term::where('taxonomy_code', 'order_tag')->with('translation')->get();
-        return $tags;
-    }
-
 
     public function updateOrCreate($data)
     {
@@ -236,7 +101,7 @@ class OrderService extends Service
                     }
                 }
 
-                $order = $this->repository->findIdOrFailOrNew($order_id);
+                $order = $this->OrderRepository->findIdOrFailOrNew($order_id);
 
                 $order->location_id = $data['location_id'];
                 $order->personal_name = $data['personal_name'];
@@ -246,6 +111,8 @@ class OrderService extends Service
                 $order->telephone = $telephone ?? '';
                 $order->email = $data['email'] ?? '';
                 $order->order_date = $data['order_date'] ?? null;
+                $order->production_start_time = $data['production_start_time'] ?? '';
+                $order->production_ready_time = $data['production_ready_time'] ?? '';
                 $order->payment_company = $data['payment_company'] ?? '';
                 $order->payment_department= $data['payment_department'] ?? '';
                 $order->payment_tin = $data['payment_tin'] ?? '';
@@ -442,7 +309,7 @@ class OrderService extends Service
             if(!empty($data['order_products'])){
 
                 //重抓 order_product，需要 order_product_id
-                $tmprows = $this->OrderProductService->newModel()->where('order_id', $order->id)->orderBy('sort_order','ASC')->get();
+                $tmprows = $this->OrderProductRepository->newModel()->where('order_id', $order->id)->orderBy('sort_order','ASC')->get();
 
                 if(!empty($tmprows)){
                     foreach ($tmprows as $tmprow) {
@@ -490,7 +357,7 @@ class OrderService extends Service
                     }
                 }
                 if(!empty($update_order_product_options)){
-                    $this->OrderProductOptionService->newModel()->upsert($update_order_product_options,['id']);
+                    OrderProductOption::upsert($update_order_product_options,['id']);
                     unset($update_order_product_options);
                 }
             }
@@ -498,7 +365,7 @@ class OrderService extends Service
             // OrderTotal
             if(!empty($data['order_totals'])){
                 //Delete all
-                $this->OrderTotalRepository->newModel()->where('order_id', $data['order_id'])->delete();
+                OrderTotal::where('order_id', $data['order_id'])->delete();
 
                 $update_order_totals = [];
                 $sort_order = 1;
@@ -512,9 +379,11 @@ class OrderService extends Service
                     ];
                     $sort_order++;
                 }
-            }
 
-            $this->OrderTotalRepository->newModel()->upsert($update_order_totals,['id']);
+                if(!empty($update_order_totals)){
+                    OrderTotal::upsert($update_order_totals,['id']);
+                }
+            }
 
             DB::commit();
             return ['data' => $order];
@@ -523,237 +392,5 @@ class OrderService extends Service
             DB::rollback();
             return ['error' => $ex->getMessage()];
         }
-    }
-
-
-    public function addRow($data)
-    {
-        DB::beginTransaction();
-
-        try {
-            $row = $this->repository->newModel();
-
-            $result = $this->saveRowData($data, $row);
-
-            if($result){
-                $result = $this->saveTranslationData($data, $row);
-            }
-
-            DB::commit();
-
-            return $result;
-
-        } catch (\Exception $ex) {
-            DB::rollback();
-            return response()->json(['error' => $ex->getMessage()], 500);
-        }
-    }
-
-
-    public function editRow($data)
-    {
-        if(empty($data['product_id'])){
-            $json['error']['product_id'] = 'Product Id cannot be null';
-            return response(json_encode($json))->header('Content-Type','application/json');
-        }
-
-        DB::beginTransaction();
-
-        try {
-            $row = $this->repository->newModel()->find($data['product_id']);
-
-            $result = $this->saveRowData($data, $row);
-
-            if($result){
-                $row = $this->repository->newModel()->find($data['product_id']);
-
-                $result = $this->saveTranslationData($data, $row);
-            }
-
-            DB::commit();
-
-            return $result;
-
-        } catch (\Exception $ex) {
-            DB::rollback();
-            return response()->json(['error' => $ex->getMessage()], 500);
-        }
-    }
-
-
-    public function saveRowData($data, $row)
-    {
-        extract($data);
-        $row->slug = $slug ?? null;
-        $row->model = $data['model'] ?? 0;
-        $row->price = $data['price'] ?? 0;
-        $row->quantity = $data['quantity'] ?? 0;
-        $row->is_active = $data['is_active'] ?? 0;
-
-        return $row->save();
-    }
-
-
-    public function validator(array $data)
-    {
-        return Validator::make($data, [
-                'personal_name' =>'required|min:2|max:20',
-                //'mobile' =>'required|min:10|max:20', //市話與手機二擇一，沒辦法在這裡做。在controller處理。
-                //'shipping_personal_name' =>'min:2|max:20',
-                //'shipping_road' =>'min:2|max:50',
-            ],[
-                'personal_name.*' => $this->lang->error_personal_name,
-                //'mobile.*' => $this->lang->error_mobile,
-                //'shipping_personal_name.*' => $this->lang->error_shipping_personal_name,
-                //'shipping_road.*' => $this->lang->error_shipping_road,
-        ]);
-    }
-
-    public function getOrderStatuses()
-    {
-        //Option
-        $option = $this->OptionService->getRow(['filter_code'=>'order_status']);
-
-        // Option Values
-        $filter_data = [
-            'filter_option_id' => $option->id,
-            'filter_is_active' => '1',
-            'sort' => 'sort_order',
-            'order' => 'ASC',
-            'regexp' => false,
-            'pagination' => false,
-            'limit' => 0,
-        ];
-        $option_values = $this->OptionService->getValues($filter_data)->toArray();
-
-        foreach($option_values as $key => $option_value){
-            unset($option_value['translation']);
-            $option_value_id = $option_value['id'];
-            $result[$option_value_id] = (object) $option_value;
-        }
-
-        return $result;
-    }
-
-    public function getOrderStatuseValues($statuses = [])
-    {
-        $result = [];
-
-        if(!empty($statuses)){
-            foreach($statuses as $status){
-                $option_value_id = $status->id;
-                $result[$option_value_id] = $status->name;
-            }
-        }
-
-        return $result;
-    }
-
-
-    public function getOrderTotal($data,$debug=0)
-    {
-        if(!empty($data['regx'])){
-            $regx = $data['regx'];
-        }else{
-            $regx = false;
-        }
-
-        if(!empty($data['limit'])){
-            $limit = $data['limit'];
-        }else{
-            $limit = 0;
-        }
-
-        if(!empty($data['pagination'])){
-            $pagination = $data['pagination'];
-        }else{
-            $pagination = false;
-        }
-
-        if(!empty($data['sort'])){
-            $sort = $data['sort'];
-        }else{
-            $sort = 'sort_order';
-        }
-
-        if(!empty($data['order'])){
-            $order = $data['order'];
-        }else{
-            $order = 'ASC';
-        }
-
-        $filter_data = [
-            'filter_order_id' => $data['filter_order_id'],
-            'regx' => $regx,
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => $limit,
-            'pagination' => $pagination,
-        ];
-
-
-        return $this->OrderTotalRepository->getRows($filter_data,$debug);
-    }
-
-    function validateDate($date, $format = 'Y-m-d')
-    {
-        $d = \DateTime::createFromFormat($format, $date);
-        // The Y ( 4 digits year ) returns TRUE for any integer with any number of digits so changing the comparison
-        //from == to === fixes the issue.
-        return $d && $d->format($format) === $date;
-    }
-
-    public function getOrderPhrases($taxonomy_code)
-    {
-        $result = Term::where('taxonomy_code', $taxonomy_code)->with('translation')->orderBy('sort_order', 'asc')->get();
-        return $result;
-
-    }
-
-
-    public function exportOrderProducts($data)
-    {
-        $data = $this->getListQueryData($data);
-
-        $data['with'][] = 'order_products';
-
-        $query = $this->getQuery($data);
-
-        $orders = $query->limit(2000)->orderByDesc('delivery_date')->get();
-
-        $data = [];
-        $rows = [];
-
-        foreach ($orders as $order) {
-            foreach ($order->order_products as $order_product) {
-                $rows[] = [
-                    'order_id' => $order->id,
-                    'location_name' => $order->location_name,
-                    'order_date' => Carbon::parse($order->order_date)->format('Y/m/d'),
-                    'delivery_date' => Carbon::parse($order->delivery_date)->format('Y/m/d'),
-                    'status_name' => $order->status->translation->name ?? '',
-                    'payment_total' => $order->payment_total,
-                    'shipping_state' => $order->shipping_state->name ?? '',
-                    'shipping_city' => $order->shipping_city->name ?? '',
-                    'created_at' => Carbon::parse($order->created_at)->format('Y/m/d h:i'),
-
-                    'product_id' => $order_product->product_id,
-                    'product_name' => $order_product->name,
-                    'price' => $order_product->price,
-                    'quantity' => $order_product->quantity,
-                    'total' => $order_product->quantity,
-                    'options_total' => $order_product->options_total,
-                    'final_total' => $order_product->final_total,
-                ];
-            }
-        }
-
-        $data['collection'] = collect($rows);
-
-        $data['headings'] = ['Order ID', '門市', '訂購日期', '送達日期', '狀態', '總金額', '縣市', '鄉鎮市區', '打單時間',
-                             '商品代號', '商品名稱', '單價', '數量', '金額', '選項金額', '最終金額'
-                            ];
-
-        return Excel::download(new CommonExport($data), 'order_products.xlsx');
     }
 }

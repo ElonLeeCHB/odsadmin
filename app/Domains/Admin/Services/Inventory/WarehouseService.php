@@ -3,17 +3,15 @@
 namespace App\Domains\Admin\Services\Inventory;
 
 use Illuminate\Support\Facades\DB;
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use App\Repositories\Eloquent\Inventory\WarehouseRepository;
 
 class WarehouseService extends Service
 {
     protected $modelName = "\App\Models\Inventory\Warehouse";
 
-	public function __construct(protected WarehouseRepository $WarehouseRepository)
-	{
-        $this->WarehouseRepository = $WarehouseRepository;
-	}
+	public function __construct(private WarehouseRepository $WarehouseRepository)
+	{}
 
 	public function updateOrCreate($data)
 	{

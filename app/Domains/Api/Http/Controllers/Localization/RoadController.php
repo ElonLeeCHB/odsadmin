@@ -3,18 +3,16 @@
 namespace App\Domains\Api\Http\Controllers\Localization;
 
 use App\Http\Controllers\Controller;
-use App\Domains\Admin\Http\Controllers\BackendController;
+use App\Domains\Api\Http\Controllers\ApiController;
 use Illuminate\Http\Request;
-use App\Domains\Api\Services\Localization\RoadService;
+use App\Services\Localization\RoadService;
 use App\Domains\Api\Services\Localization\DivisionService;
 
-class RoadController extends BackendController
+class RoadController extends ApiController
 {
     public function __construct(protected Request $request, protected RoadService $RoadService, protected DivisionService $DivisionService)
     {
         parent::__construct();
-
-        $this->getLang(['admin/common/common']);
     }
 
 

@@ -67,7 +67,7 @@ class TagController extends BackendController
         $queries['equal_taxonomy_code'] = 'product_tag';
 
         // rows
-        $tags = $this->TagService->getRows($queries);
+        $tags = $this->TagService->getTags($queries);
 
         if(!empty($tags)){
             foreach ($tags as $row) {
@@ -191,12 +191,12 @@ class TagController extends BackendController
             
             $data['taxonomy_code'] = 'product_tag';
 
-            $result = $this->TagService->updateOrCreate($data);
+            $result = $this->TagService->updateOrCreateTag($data);
             if(empty($result['error'])){
                 $json = [
-                    'tag_id' => $result['tag_id'],
+                    'tag_id' => $result['term_id'],
                     'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.catalog.tags.form', $result['tag_id']),
+                    'redirectUrl' => route('lang.admin.catalog.tags.form', $result['term_id']),
                 ];
             }else if(auth()->user()->username == 'admin'){
                 $json['warning'] = $result['error'];
@@ -227,7 +227,7 @@ class TagController extends BackendController
 
 		if (!$json) {
 			foreach ($selected as $tag_id) {
-				$result = $this->TagService->deleteTag($tag_id);
+				$result = $this->TagService->deleteTagById($tag_id);
 
                 if(!empty($result['error'])){
                     if(config('app.debug')){
@@ -257,7 +257,7 @@ class TagController extends BackendController
         $queries['pagination'] = false;
 
         // Rows
-        $rows = $this->TagService->getRows($queries);
+        $rows = $this->TagService->getTags($queries);
 
         $json = [];
 

@@ -4,8 +4,8 @@ namespace App\Models\Catalog;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\Model\Translatable;
-use App\Models\Common\OptionTranslation;
-use App\Models\Common\Option;
+use App\Models\Catalog\OptionTranslation;
+use App\Models\Catalog\Option;
 use App\Models\Catalog\Sale\OrderProductOption;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 

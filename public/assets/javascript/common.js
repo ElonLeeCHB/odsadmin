@@ -34,3 +34,15 @@ String.prototype.zeroToEmpty = function(){
   }
   return num;
 }
+
+
+function isDateValid(dateString) {
+    var date = new Date(dateString);
+
+    if (isNaN(date.getTime())) {
+        return false;
+    }
+
+    return true;
+}
+

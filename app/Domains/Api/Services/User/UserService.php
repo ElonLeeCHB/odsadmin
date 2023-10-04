@@ -5,7 +5,7 @@ namespace App\Domains\Api\Services\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use App\Domains\Api\Services\Service;
-use App\Domains\Api\Services\Common\OptionService;
+use App\Domains\Api\Services\Catalog\OptionService;
 use App\Traits\Model\EloquentTrait;
 
 class UserService extends Service

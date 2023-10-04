@@ -2,7 +2,7 @@
 
 return [
 // Heading
-'heading_title' => '分類設定',
+'heading_title' => '料件分類設定',
 
 // Tab
 

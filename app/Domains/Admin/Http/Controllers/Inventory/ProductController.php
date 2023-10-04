@@ -5,22 +5,25 @@ namespace App\Domains\Admin\Http\Controllers\Inventory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
-use App\Libraries\TranslationLibrary;
+use App\Domains\Admin\Services\Inventory\ProductService;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
-use App\Domains\Admin\Services\Common\OptionService;
-use App\Domains\Admin\Services\Catalog\ProductService;
+use App\Repositories\Eloquent\Common\UnitRepository;
+//use App\Repositories\Eloquent\Inventory\ProductUnitRepository;
 use App\Domains\Admin\Services\Catalog\CategoryService;
 use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
+use App\Repositories\Eloquent\Common\TermRepository;
+//use App\Models\Common\Term;
 
 class ProductController extends BackendController
 {
     public function __construct(
         protected Request $request
         , private LanguageRepository $languageRepository
-        , private OptionService $OptionService
         , private ProductService $ProductService
         , private CategoryService $CategoryService
         , private ProductOptionValueRepository $ProductOptionValueRepository
+        , private UnitRepository $UnitRepository
+        , private TermRepository $TermRepository
     )
     {
         parent::__construct();
@@ -88,15 +91,9 @@ class ProductController extends BackendController
         // Prepare query_data for records
         $query_data = $this->getQueries($this->request->query());
 
-        // Extra
-        if(!isset($query_data['equal_is_active'])){
-            $query_data['equal_is_active'] = '1';
-        }
-        //echo '<pre>', print_r($query_data, 1), "</pre>"; exit;
-
         // Rows
-        $products = $this->ProductService->getRows($query_data);
-
+        $products = $this->ProductService->getProducts($query_data);
+        //echo '<pre>', print_r($products, 1), "</pre>"; exit;
         if(!empty($products)){
             foreach ($products as $row) {
                 $row->edit_url = route('lang.admin.inventory.products.form', array_merge([$row->id], $query_data));
@@ -203,9 +200,16 @@ class ProductController extends BackendController
 
         // Get Record
         $product = $this->ProductService->findIdOrFailOrNew($product_id);
+        $product->supplier_name = $product->supplier->name ?? '';
+        $product->supplier_product_name = $product->supplier_product->name ?? '';
 
-        $product_stdobj = $this->ProductService->toStdObj($product);
-
+        // $product->load('supplier');
+        // $clone_product = $product->toArray();
+        // $clone_product['supplier_name'] = $clone_product['supplier']['name'];
+        // unset($clone_product['supplier']);
+        // unset($clone_product['translation']);
+        // $clone_product = (object) $clone_product;
+        // $data['product']  = $clone_product;
         $data['product']  = $product;
 
         if(!empty($data['product']) && $product_id == $product->id){
@@ -220,8 +224,6 @@ class ProductController extends BackendController
         }else{
             foreach ($product->translations as $translation) {
                 $product_translations[$translation->locale] = $translation->toArray();
-                // locale is like zh-something, the hyphen can't be as the key. 
-                // This won't work: $product_translations->zh-Hant->name
             }
         }
         $data['product_translations'] = $product_translations;
@@ -232,7 +234,7 @@ class ProductController extends BackendController
             $ids = $product->categories->pluck('id')->toArray();
             if(!empty($ids)){
                 $cat_filters = [
-                    'whereIn' => $ids,
+                    'whereIn' => ['id', $$ids],
                     'pagination' => false
                 ];
                 $product_categories = $this->CategoryService->getRows($cat_filters);
@@ -250,10 +252,94 @@ class ProductController extends BackendController
 			$data['product_categories'] = [];
 		}
 
+        // product_accounting_category
+        $filter_data = [
+            'equal_taxonomy_code' => 'product_accounting_category',
+            'pagination' => false,
+            'limit' => 30,
+            'sort' => 'code',
+            'order' => 'ASC'
+        ];
+        $accounting_categories = $this->TermRepository->getRows($filter_data);
+        $data['accounting_categories'] = $this->TermRepository->refineRows($accounting_categories, ['optimize' => true,'sanitize' => true]);
+
+
         $data['bom_products'] = [];
 
         $data['product_options'] = [];
+        
+        $data['source_codes'] = $this->ProductService->getProductSourceCodes();
 
+        // supplier
+        $data['supplier_autocomplete_url'] = route('lang.admin.counterparty.suppliers.autocomplete');
+
+        // supplier_product
+        $data['supplier_product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
+        
+
+        // product_units & destination_units dropdown menu
+        $product_units = $product->product_units;
+        
+        $codes = [];
+        
+        // 還沒設定任何單位轉換，選單只能出現庫存單位
+        if($product_units->isEmpty() && !empty($product->stock_unit_code)){
+            $codes[$product->stock_unit_code] = $product->stock_unit->name;
+        }
+        // 已有單位轉換，抓出所有不重複的單位
+        else{
+            foreach ($product_units as $product_unit) {
+                $source_unit_code = $product_unit->source_unit_code;
+                $destination_unit_code = $product_unit->destination_unit_code;
+
+                if(empty($codes[$source_unit_code])){
+                    $codes[$source_unit_code] = $product_unit->source_unit->name;
+                }
+
+                if(empty($codes[$destination_unit_code])){
+                    $codes[$destination_unit_code] = $product_unit->destination_unit->name;
+                }
+
+            }
+        }
+
+        foreach ($codes as $code => $value) {
+            $data['destination_units'][] = (object) [
+                'code' => $code,
+                'name' => $value,
+            ];
+        }
+
+
+        for ($i = 0; $i < 5; $i++) {
+            if(!empty($product_units[$i])){
+                $product_unit = $product_units[$i];
+                $new_product_units[$i] = (object) [
+                    'source_unit_code' => $product_unit->source_unit_code,
+                    'source_quantity' => $product_unit->source_quantity,
+                    'destination_unit_code' => $product_unit->destination_unit_code,
+                    'destination_quantity' => $product_unit->destination_quantity,
+                    'level' => $product_unit->level,
+                ];
+            }else{
+                $new_product_units[$i] = (object) [
+                    'source_unit_code' => '',
+                    'source_quantity' => 0,
+                    'destination_unit_code' => '',
+                    'destination_quantity' => 0,
+                    'level' => 0,
+                ];
+            }
+        }
+        $data['product_units'] = $new_product_units;
+
+        // units
+        $filter_data = [
+            'filter_keyword' => $this->request->filter_keyword,
+            'pagination' => false,
+            'limit' => 0,
+        ];
+        $data['units'] = $this->UnitRepository->getActiveUnits($filter_data);
 
         return view('admin.inventory.product_form', $data);
     }
@@ -272,51 +358,15 @@ class ProductController extends BackendController
             }
         }
 
-        // Check product_options
-        if (isset($data['product_options'])) {
-
-            //product_options in form
-            $product_option_value_ids_in_form = [];
-            foreach($data['product_options'] as $product_option){
-                if(!empty($product_option['product_option_values'])){
-                    foreach ($product_option['product_option_values'] as $product_option_value) {
-                        $product_option_value_ids_in_form[] = $product_option_value['product_option_value_id'];
-                    }
-                }
+        // Check units
+        $arr_source_unit_code = [];
+        foreach ($data['units'] ?? [] as $key => $unit) {
+            $source_unit_code = $unit['source_unit_code'];
+            if(!empty($source_unit_code) && in_array($source_unit_code, $arr_source_unit_code)){
+                $json['error']['warning'] = '換算單位重複！';
+                break;
             }
-
-            if(!empty($product_option_value_ids_in_form)){
-                $product_option_value_ids_in_form = array_unique($product_option_value_ids_in_form);
-                sort($product_option_value_ids_in_form);
-
-                //product_options in database
-                $query_data = [
-                    'equal_product_id' => $data['product_id'],
-                    'pluck' => 'id',
-                    'limit' => 0,
-                    'pagination' => false,
-                    'sort' => 'id',
-                    'order' => 'ASC',
-                ];
-                $existed_product_option_values = $this->ProductOptionValueRepository->getRows($query_data)->toArray();
-                $existed_product_option_values = array_unique($existed_product_option_values);
-
-                // Delete check
-                $delete_product_option_value_ids = array_diff($existed_product_option_values, $product_option_value_ids_in_form);
-
-                foreach ($delete_product_option_value_ids as $product_option_value_id) {
-                    $filter_data = [
-                        'equal_product_option_value_id' => $product_option_value_id,
-                        'pagination' => false,
-                        'select' => ['id','order_id'],
-                    ];
-                    $order_product_options = $this->OrderProductOptionService->getRow($filter_data);
-
-                    if(!empty($order_product_options)){
-                        $json['error']['warning'] = $this->lang->error_product_option_value . ' order_id: ' . $order_product_options->order_id;
-                    }
-                }
-            }
+            $arr_source_unit_code[] = $unit['source_unit_code'];
         }
 
         if (isset($json['error']) && !isset($json['error']['warning'])) {
@@ -330,7 +380,7 @@ class ProductController extends BackendController
                 $json = [
                     'success' => $this->lang->text_success,
                     'product_id' => $result['product_id'],
-                    'redirectUrl' => route('lang.admin.catalog.products.form', $result['product_id']),
+                    'redirectUrl' => route('lang.admin.inventory.products.form', $result['product_id']),
                 ];
 
             }else{
@@ -342,6 +392,58 @@ class ProductController extends BackendController
             }
         }
         
+        return response(json_encode($json))->header('Content-Type','application/json');
+    }
+
+
+    public function autocomplete()
+    {
+        $json = [];
+
+        if(isset($this->request->filter_name)){
+            $filter_name = $this->request->filter_name;
+        }else{
+            $filter_name = '';
+        }
+
+        if(isset($this->request->filter_model)){
+            $filter_model = $this->request->filter_model;
+        }else{
+            $filter_model = '';
+        }
+
+        $filter_data = array(
+            'filter_model' => $filter_model,
+            'filter_name' => $filter_name,
+            'filter_is_salable' => $this->request->filter_is_salable,
+            'limit'   => 10,
+            'pagination'   => false,
+            'with' => ['product_units.source_unit.translation'],
+        );
+
+        $rows = $this->ProductService->getProducts($filter_data);
+
+        foreach ($rows as $row) {
+            $product_units = $row->product_units->toArray();
+
+            foreach ($product_units as $key => $product_unit) {
+                $product_unit['source_unit_name'] = $product_unit['source_unit']['name'];
+                unset($product_unit['source_unit']);
+                $product_units[$key] = $product_unit;
+            }
+
+            $json[] = array(
+                'label' => $row->name . '-' . $row->id,
+                'value' => $row->id,
+                'product_id' => $row->id,
+                'name' => $row->name,
+                'model' => $row->model,
+                'stock_unit_code' => $row->stock_unit_code,
+                'stock_unit_name' => $row->stock_unit_name,
+                'product_units' => $product_units,
+            );
+        }
+
         return response(json_encode($json))->header('Content-Type','application/json');
     }
 

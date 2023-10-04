@@ -6,6 +6,6 @@ use App\Repositories\Eloquent\Repository;
 
 class DivisionRepository extends Repository
 {
-    public $modelName = "\App\Models\Localization\Division";
+    public $modelName = "\App\Models\SysData\Division";
 }
 

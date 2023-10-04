@@ -5,7 +5,7 @@
       <select id="input-product-{{ $product_row }}-product_id" name="order_products[{{ $product_row }}][product_id]" onchange="getProductDetails(this)">
         <option>--</option>
         @foreach($salable_products as $product)
-          <option value="{{ $product->id }}" @if($product->id == $selected_product_id) selected @endif>{{ $product->name }}</option>
+          <option value="{{ $product->id }}" @if($product->id == $selected_product_id) selected @endif>{{ $product->name }}-{{ $selected_product_id }}</option>
         @endforeach
       </select>
       <div class="input-group-append">

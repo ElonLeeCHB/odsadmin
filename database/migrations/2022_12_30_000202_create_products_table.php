@@ -25,6 +25,7 @@ return new class extends Migration
             $table->decimal('quantity', $precision = 13, $scale = 4)->nullable();
             $table->decimal('price', $precision = 13, $scale = 4)->nullable();
             $table->string('comment')->nullable();
+            $table->string('source_code',5)->nullable();
             $table->boolean('is_active')->default('1');
             $table->boolean('is_salable')->default('1');
             $table->timestamps();
@@ -84,6 +85,18 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('product_units', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('product_id');
+            $table->decimal('source_quantity',8,4);
+            $table->string('source_unit_code');
+            $table->decimal('destination_quantity',8,4);
+            $table->string('destination_unit_code');
+            $table->timestamps();
+            $table->unique(['product_id','source_unit_code','destination_unit_code'], 'unique_product_unit_conversion');
+        });
+
+
         Schema::create('product_boms', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('product_id');
@@ -103,6 +116,7 @@ return new class extends Migration
      */
     public function down()
     {
+        Schema::dropIfExists('product_unit_conversions');
         Schema::dropIfExists('product_boms');
         Schema::dropIfExists('product_option_values');
         Schema::dropIfExists('product_options');

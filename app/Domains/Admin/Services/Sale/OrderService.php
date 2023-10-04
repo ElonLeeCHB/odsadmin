@@ -3,148 +3,34 @@
 namespace App\Domains\Admin\Services\Sale;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use App\Libraries\TranslationLibrary;
-use App\Domains\Admin\Services\Service;
-use App\Domains\Admin\Services\Common\OptionService;
+use App\Services\Service;
+use App\Services\Sale\OrderService as GlobalOrderService;
+use App\Repositories\Eloquent\Sale\OrderRepository;
+use App\Repositories\Eloquent\Sale\OrderProductRepository;
+use App\Repositories\Eloquent\Sale\OrderTotalRepository;
+use App\Repositories\Eloquent\Member\MemberRepository;
 
-use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Common\Term;
 use App\Models\Common\TermTranslation;
 use App\Models\Common\TermRelation;
-
-use App\Repositories\Eloquent\Sale\OrderRepository;
-use App\Repositories\Eloquent\Sale\OrderProductRepository;
-use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
-use App\Repositories\Eloquent\Sale\OrderTotalRepository;
-use App\Repositories\Eloquent\Member\MemberRepository;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Catalog\ProductTranslation;
-use App\Models\Localization\Division;
+
 use Maatwebsite\Excel\Facades\Excel;
-//use App\Domains\Admin\ExportsLaravelExcel\OrderProductExport;
 use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
 use Carbon\Carbon;
-//use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
 use Mpdf\Mpdf;
 
-class OrderService extends Service
+class OrderService extends GlobalOrderService
 {
     protected $modelName = "\App\Models\Sale\Order";
-    private $lang;
-
-    public function __construct(public OrderRepository $repository
-        , private OrderProductRepository $OrderProductRepository
-        , private OrderTotalRepository $OrderTotalRepository
-        , private OptionService $OptionService
-        , private MemberRepository $MemberRepository
-        , private TermRepository $TermRepository
+    
+    public function __construct(protected OrderRepository $OrderRepository
+        , protected OrderProductRepository $OrderProductRepository
+        , protected OrderTotalRepository $OrderTotalRepository
+        , protected MemberRepository $MemberRepository
     )
-    {
-        $this->lang = (new TranslationLibrary())->getTranslations(['admin/sale/order',]);
-    }
-
-
-    public function getOrders($data=[], $debug=0)
-    {
-        //if(!empty($data['filter_predifined'])){
-            // if($data['filter_predifined'] == 'tomorrow'){
-            //     $delivery_date = Carbon::now()->addDay()->format('Y-m-d');
-            // }
-        //}
-
-        $data = $this->getListQueryData($data);
-
-        $rows = $this->repository->getRows($data, $debug);
-
-        return $rows;
-    }
-
-    public function getListQueryData($data)
-    {
-        //送達日 $delivery_date
-        if(!empty($data['filter_delivery_date'])){
-            $rawSql = $this->repository->parseDateToSqlWhere('delivery_date', $data['filter_delivery_date']);
-            if($rawSql){
-                $data['whereRawSqls'][] = $rawSql;
-            }
-            unset($data['filter_delivery_date']);
-        }
-        //
-
-        if(!empty($data['filter_phone'])){
-            $data['filter_phone'] = str_replace('-','',$data['filter_phone']);
-            $data['filter_phone'] = str_replace(' ','',$data['filter_phone']);
-
-            $data['andOrWhere'][] = [
-                'filter_mobile' => $data['filter_phone'],
-                'filter_telephone' => $data['filter_phone'],
-            ];
-            unset($data['filter_phone']);
-        }
-
-        if(!empty($data['filter_keyname'])){
-            $data['andOrWhere'][] = [
-                'filter_personal_name' => $data['filter_keyname'],
-                'filter_shipping_personal_name' => $data['filter_keyname'],
-                'filter_shipping_company' => $data['filter_keyname'],
-                'filter_payment_company' => $data['filter_keyname'],
-            ];
-            unset($data['filter_keyname']);
-        }
-
-        if(!empty($data['filter_shipping_state_id'])){
-            $data['equal_shipping_state_id'] = $data['filter_shipping_state_id'];
-        }
-
-        if(!empty($data['filter_shipping_city_id'])){
-            $data['equal_shipping_city_id'] = $data['filter_shipping_city_id'];
-        }
-
-        $data['with'][] = 'status.translation';
-
-        return $data;
-    }
-
-
-    public function getOrderTagsByOrderId($order_id)
-    {
-        $tags = Term::where('taxonomy_code', 'order_tag')->whereHas('term_relations', function ($query) use ($order_id) {
-            $query->where('object_id', $order_id);
-        })->get();
-
-        if(count($tags)==0){
-            return [];
-        }
-
-        // $result = '';
-        $result = [];
-
-        foreach ($tags as $key => $tag) {
-            //$result .= $tag->translation->name. ',';
-            $result[] = $tag->translation->name;
-        }
-
-        // return rtrim($result, ",");
-        return $result;
-
-    }
-
-
-    public function getOrderTags($qStr)
-    {
-        $tags = Term::where('taxonomy_code', 'order_tag')->whereHas('translation', function ($query) use ($qStr) {
-            $query->where('name', 'like', '%'.$qStr.'%');
-        })->with('translation')->get();
-
-        return $tags;
-    }
-
-    public function getAllOrderTags()
-    {
-        $tags = Term::where('taxonomy_code', 'order_tag')->with('translation')->get();
-        return $tags;
-    }
+    {}
 
 
     public function updateOrCreate($data)
@@ -232,7 +118,7 @@ class OrderService extends Service
                     }
                 }
 
-                $order = $this->repository->findIdOrFailOrNew($order_id);
+                $order = $this->OrderRepository->findIdOrFailOrNew($order_id);
 
                 $order->location_id = $data['location_id'];
                 $order->personal_name = $data['personal_name'];
@@ -242,6 +128,8 @@ class OrderService extends Service
                 $order->telephone = $telephone ?? '';
                 $order->email = $data['email'] ?? '';
                 $order->order_date = $data['order_date'] ?? null;
+                $order->production_start_time = $data['production_start_time'] ?? '';
+                $order->production_ready_time = $data['production_ready_time'] ?? '';
                 $order->payment_company = $data['payment_company'] ?? '';
                 $order->payment_department= $data['payment_department'] ?? '';
                 $order->payment_tin = $data['payment_tin'] ?? '';
@@ -554,9 +442,12 @@ class OrderService extends Service
                     ];
                     $sort_order++;
                 }
+
+                if(!empty($update_order_totals)){
+                    $this->OrderTotalRepository->newModel()->upsert($update_order_totals,['id']);
+                }
             }
 
-            $this->OrderTotalRepository->newModel()->upsert($update_order_totals,['id']);
 
             DB::commit();
             return ['data' => $order];
@@ -565,448 +456,5 @@ class OrderService extends Service
             DB::rollback();
             return ['error' => $ex->getMessage()];
         }
-    }
-
-
-    public function addRow($data)
-    {
-        DB::beginTransaction();
-
-        try {
-            $row = $this->repository->newModel();
-
-            $result = $this->saveRowData($data, $row);
-
-            if($result){
-                $result = $this->saveTranslationData($data, $row);
-            }
-
-            DB::commit();
-
-            return $result;
-
-        } catch (\Exception $ex) {
-            DB::rollback();
-            return response()->json(['error' => $ex->getMessage()], 500);
-        }
-    }
-
-
-    public function editRow($data)
-    {
-        if(empty($data['product_id'])){
-            $json['error']['product_id'] = 'Product Id cannot be null';
-            return response(json_encode($json))->header('Content-Type','application/json');
-        }
-
-        DB::beginTransaction();
-
-        try {
-            $row = $this->repository->newModel()->find($data['product_id']);
-
-            $result = $this->saveRowData($data, $row);
-
-            if($result){
-                $row = $this->repository->newModel()->find($data['product_id']);
-
-                $result = $this->saveTranslationData($data, $row);
-            }
-
-            DB::commit();
-
-            return $result;
-
-        } catch (\Exception $ex) {
-            DB::rollback();
-            return response()->json(['error' => $ex->getMessage()], 500);
-        }
-    }
-
-
-    public function saveRowData($data, $row)
-    {
-        extract($data);
-        $row->slug = $slug ?? null;
-        $row->model = $data['model'] ?? 0;
-        $row->price = $data['price'] ?? 0;
-        $row->quantity = $data['quantity'] ?? 0;
-        $row->is_active = $data['is_active'] ?? 0;
-
-        return $row->save();
-    }
-
-
-    public function validator(array $data)
-    {
-        return Validator::make($data, [
-                'personal_name' =>'required|min:2|max:20',
-                //'mobile' =>'required|min:10|max:20', //市話與手機二擇一，沒辦法在這裡做。在controller處理。
-                //'shipping_personal_name' =>'min:2|max:20',
-                //'shipping_road' =>'min:2|max:50',
-            ],[
-                'personal_name.*' => $this->lang->error_personal_name,
-                //'mobile.*' => $this->lang->error_mobile,
-                //'shipping_personal_name.*' => $this->lang->error_shipping_personal_name,
-                //'shipping_road.*' => $this->lang->error_shipping_road,
-        ]);
-    }
-
-    public function getOrderStatuses()
-    {
-        //Option
-        $option = $this->OptionService->getRow(['filter_code'=>'order_status']);
-
-        // Option Values
-        $filter_data = [
-            'filter_option_id' => $option->id,
-            'filter_is_active' => '1',
-            'sort' => 'sort_order',
-            'order' => 'ASC',
-            'regexp' => false,
-            'pagination' => false,
-            'limit' => 0,
-        ];
-        $option_values = $this->OptionService->getValues($filter_data)->toArray();
-
-        foreach($option_values as $key => $option_value){
-            unset($option_value['translation']);
-            $option_value_id = $option_value['id'];
-            $result[$option_value_id] = (object) $option_value;
-        }
-
-        return $result;
-    }
-
-    public function getOrderStatuseValues($statuses = [])
-    {
-        $result = [];
-
-        if(!empty($statuses)){
-            foreach($statuses as $status){
-                $option_value_id = $status->id;
-                $result[$option_value_id] = $status->name;
-            }
-        }
-
-        return $result;
-    }
-
-
-    public function getOrderTotal($data,$debug=0)
-    {
-        if(!empty($data['regx'])){
-            $regx = $data['regx'];
-        }else{
-            $regx = false;
-        }
-
-        if(!empty($data['limit'])){
-            $limit = $data['limit'];
-        }else{
-            $limit = 0;
-        }
-
-        if(!empty($data['pagination'])){
-            $pagination = $data['pagination'];
-        }else{
-            $pagination = false;
-        }
-
-        if(!empty($data['sort'])){
-            $sort = $data['sort'];
-        }else{
-            $sort = 'sort_order';
-        }
-
-        if(!empty($data['order'])){
-            $order = $data['order'];
-        }else{
-            $order = 'ASC';
-        }
-
-        $filter_data = [
-            'filter_order_id' => $data['filter_order_id'],
-            'regx' => $regx,
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => $limit,
-            'pagination' => $pagination,
-        ];
-
-
-        return $this->OrderTotalRepository->getRows($filter_data,$debug);
-    }
-
-    function validateDate($date, $format = 'Y-m-d')
-    {
-        $d = \DateTime::createFromFormat($format, $date);
-        // The Y ( 4 digits year ) returns TRUE for any integer with any number of digits so changing the comparison
-        //from == to === fixes the issue.
-        return $d && $d->format($format) === $date;
-    }
-
-    public function getOrderPhrases($taxonomy_code)
-    {
-        $result = Term::where('taxonomy_code', $taxonomy_code)->with('translation')->orderBy('sort_order', 'asc')->get();
-        return $result;
-
-    }
-
-
-    public function exportOrderProducts($data)
-    {
-        $data = $this->getListQueryData($data);
-
-        $data['with'][] = 'order_products';
-
-        $query = $this->getQuery($data);
-
-        $orders = $query->limit(2000)->orderByDesc('delivery_date')->get();
-
-        $data = [];
-        $rows = [];
-
-        foreach ($orders as $order) {
-            foreach ($order->order_products as $order_product) {
-                $rows[] = [
-                    'order_id' => $order->id,
-                    'location_name' => $order->location_name,
-                    'order_date' => Carbon::parse($order->order_date)->format('Y/m/d'),
-                    'delivery_date' => Carbon::parse($order->delivery_date)->format('Y/m/d'),
-                    'status_name' => $order->status->translation->name ?? '',
-                    'payment_total' => $order->payment_total,
-                    'shipping_state' => $order->shipping_state->name ?? '',
-                    'shipping_city' => $order->shipping_city->name ?? '',
-                    'created_at' => Carbon::parse($order->created_at)->format('Y/m/d h:i'),
-
-                    'product_id' => $order_product->product_id,
-                    'product_name' => $order_product->name,
-                    'price' => $order_product->price,
-                    'quantity' => $order_product->quantity,
-                    'total' => $order_product->quantity,
-                    'options_total' => $order_product->options_total,
-                    'final_total' => $order_product->final_total,
-                ];
-            }
-        }
-
-        $data['collection'] = collect($rows);
-
-        $data['headings'] = ['Order ID', '門市', '訂購日期', '送達日期', '狀態', '總金額', '縣市', '鄉鎮市區', '打單時間',
-                             '商品代號', '商品名稱', '單價', '數量', '金額', '選項金額', '最終金額'
-                            ];
-
-        return Excel::download(new CommonExport($data), 'order_products.xlsx');
-    }
-
-
-    public function getOrderPrintData($order)
-    {
-
-
-        // shipping_address
-        $order->shipping_address = '';
-        if(!empty($order->shipping_state->name)){
-            $order->shipping_address .= $order->shipping_state->name;
-        }
-        if(!empty($order->shipping_city->name)){
-            $order->shipping_address .= $order->shipping_city->name;
-        }
-        if(!empty($order->shipping_road)){
-            $order->shipping_address .= $order->shipping_road;
-        }
-        if(!empty($order->shipping_address1)){
-            $order->shipping_address .= $order->shipping_address1;
-        }
-
-        // telephone_text
-        $order->telephone_text = $order->telephone;
-        if(!empty($order->telephone_prefix)){
-            $order->telephone_text = $order->telephone_prefix . '-' . $order->telephone;
-        }
-
-        $result['order']  = (object)$order->toArray();
-
-        $final_drinks = [];
-        $final_products = [];
-
-        // 排序：主分類、商品
-        foreach ($order->order_products as $order_product) {
-            $order_product->product_sort_order = $order_product->product->sort_order;
-            $order_product->main_category_sort_order = $order_product->product->main_category->sort_order ?? 999;
-        }
-        $order->order_products->sortBy('main_category_sort_order')->sortBy('product_sort_order');
-
-        // 商品計算
-        foreach ($order->order_products as $order_product) {
-
-            $arr_order_product = [
-                'order_product_id' => $order_product->id,
-                'product_id' => $order_product->product_id,
-                'main_category_code' => $order_product->main_category_code,
-                'name' => $order_product->name,
-                'model' => $order_product->model,
-                'quantity' => $order_product->quantity,
-                'comment' => $order_product->comment,
-            ];
-
-            if(!empty($order_product->order_product_options)){
-                foreach ($order_product->order_product_options as $order_product_option) {
-                    $quantity = $order_product_option->quantity ?? 0;
-
-                    if($quantity == 0){
-                        continue;
-                    }
-
-                    $option_id = $order_product_option->product_option->option->id;
-                    $option_name = $order_product_option->product_option->option->name;
-                    $option_code = $order_product_option->product_option->option->code;
-                    $option_value_id = $order_product_option->product_option_value->option_value_id;
-                    $product_option_value_id = $order_product_option->product_option_value_id;
-                    $parent_product_option_value_id = $order_product_option->parent_product_option_value_id;
-
-                    //主餐
-                    if($option_code == 'main_meal'){
-                        $arr_order_product['main_meal']['name'] = $option_name;
-                        $arr_order_product['main_meal']['option_values'][$option_value_id]['order_product_option_id'] = $order_product_option->id;
-                        $arr_order_product['main_meal']['option_values'][$option_value_id]['product_option_value_id'] = $product_option_value_id;
-                        $arr_order_product['main_meal']['option_values'][$option_value_id]['option_value_id'] = $option_value_id;
-                        $arr_order_product['main_meal']['option_values'][$option_value_id]['name'] = $order_product_option->value;
-                        $arr_order_product['main_meal']['option_values'][$option_value_id]['quantity'] = $order_product_option->quantity;
-
-                        //整合飲料
-                        foreach ($order_product->order_product_options as $drink) {
-                            $drink_code = $drink->product_option->option->code ?? '';
-                            $drink_parent_id = $drink->parent_product_option_value_id;
-                            $drink_option_value_id = $drink->product_option_value->option_value_id;
-                            if($drink_code != 'drink' || empty($drink_parent_id) || $drink_parent_id != $product_option_value_id){
-                                continue;
-                            }
-
-                            $arr_order_product['main_meal']['option_values'][$option_value_id]['drink'][$drink_option_value_id]['name'] = $drink->value;
-                            $arr_order_product['main_meal']['option_values'][$option_value_id]['drink'][$drink_option_value_id]['quantity'] = $drink->quantity;
-
-                        }
-                    }
-
-                    //飲料不配主餐
-                    else if($option_code == 'drink' && empty($parent_product_option_value_id)){
-                        $arr_order_product['drink']['name'] = $option_name;
-                        $arr_order_product['drink']['option_values'][$option_value_id]['order_product_option_id'] = $order_product_option->id;
-                        $arr_order_product['drink']['option_values'][$option_value_id]['product_option_value_id'] = $product_option_value_id;
-                        $arr_order_product['drink']['option_values'][$option_value_id]['option_value_id'] = $option_value_id;
-                        $arr_order_product['drink']['option_values'][$option_value_id]['name'] = $order_product_option->value;
-                        $arr_order_product['drink']['option_values'][$option_value_id]['quantity'] = $order_product_option->quantity;
-
-                        //$arr_order_product['main_meal']['option_values'][$parent_product_option_value_id]['drink'] = [];//飲料配主餐 設為空陣列
-                    }
-
-                    //統計區
-                    $statics[$option_code]['option_id'] = $option_id;
-                    $statics[$option_code]['option_name'] = $option_name;
-                    $statics[$option_code]['option_values'][$option_value_id]['option_value_id'] = $option_value_id;
-                    $statics[$option_code]['option_values'][$option_value_id]['name'] = $order_product_option->value;
-
-                    if(empty($statics[$option_code]['option_values'][$option_value_id]['quantity'])){
-                        $statics[$option_code]['option_values'][$option_value_id]['quantity'] = 0;
-                    }
-
-                    $statics[$option_code]['option_values'][$option_value_id]['quantity'] += (int) $order_product_option->quantity;
-
-                    if(empty($statics[$option_code]['total'])){
-                        $statics[$option_code]['total'] = 0;
-                    }
-
-                    $statics[$option_code]['total'] += (int) $order_product_option->quantity;
-                }
-            }
-
-            $final_products[] = $arr_order_product;
-        }
-
-        $result['final_products'] = [];
-        if(!empty($final_products)){
-            $result['final_products'] = &$final_products;
-        }
-
-        $result['statics'] = [];
-        if(!empty($statics)){
-            $result['statics'] = $statics;
-        }
-
-        $filter_data = [
-            'filter_order_id' => $order->id,
-            'regexp' => false,
-            'limit' => 0,
-            'pagination' => false,
-            'sort' => 'id',
-            'order' => 'ASC',
-        ];
-        $order_totals = $this->getOrderTotal($filter_data);
-
-        if(!$order_totals->isEmpty()){
-            foreach ($order_totals as $key => $order_total) {
-                $result['order_totals'][$order_total->code] = $order_total;
-            }
-        }else{
-            $result['order_totals'] = [
-                'sub_total' => (object)['title' => '商品合計', 'value' => 0, 'sort_order' => 1],
-                'discount' => (object)['title' => '優惠折扣', 'value' => 0, 'sort_order' => 2],
-                'shipping_fee' => (object)['title' => '運費', 'value' => 0, 'sort_order' => 3],
-                'total' => (object)['title' => '總計', 'value' => 0, 'sort_order' => 4],
-            ];
-        }
-
-        $result['underline'] = '_______________';
-
-        return $result;
-    }
-
-
-    public function exportOrders($data)
-    {
-
-        $htmlData['lang'] = $this->lang;
-        $htmlData['base'] = config('app.admin_url');
-        $htmlData['underline'] = '_______________';
-
-        $data = $this->getListQueryData($data);
-
-        $data['with'] = ['order_products.order_product_options.product_option.option'
-                        ,'order_products.order_product_options.product_option_value'
-                        ,'order_products.product.main_category'
-                        ];
-
-        $query = $this->getQuery($data);
-        
-        $orders = $query->limit(100)->orderByDesc('delivery_date')->get();
-
-        foreach ($orders as $order) {
-            $htmlData['orders'][] = $this->getOrderPrintData($order);
-        }
-
-        $htmlData['countOrders'] = count($htmlData['orders']);
-
-
-        $view = view('admin.sale.print_order_form', $htmlData);
-        $html = $view->render();
-
-        $mpdf = new Mpdf([
-            'fontDir' => public_path('fonts/'), // 字体文件路径
-            'fontdata' => [
-                'sourcehanserif' => [
-                    'R' => 'SourceHanSerifTC-VF.ttf', // 思源宋体的.ttf文件路径
-                    // 'B' => 'SourceHanSerif-Bold.ttf', // 如果需要加粗样式，可以配置这里
-                    // 'I' => 'SourceHanSerif-Italic.ttf', // 如果需要斜体样式，可以配置这里
-                ]
-            ]
-        ]);
-        
-        
-        
-        $mpdf->WriteHTML($html);
-        $mpdf->Output('example.pdf', 'D');
-
-        return Excel::download(new CommonExport($data), 'invoices.pdf', \Maatwebsite\Excel\Excel::MPDF);
     }
 }

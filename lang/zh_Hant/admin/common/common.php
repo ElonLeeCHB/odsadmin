@@ -87,6 +87,8 @@ return array (
 'column_sort_order' => '排序',
 'column_payment_company' => '訂餐公司',
 'column_required' => '必填',
+'column_status' => '狀態',
+'column_status_code' => '狀態碼',
 
 
 // Entry

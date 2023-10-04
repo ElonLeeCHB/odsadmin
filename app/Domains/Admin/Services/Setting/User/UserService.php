@@ -5,7 +5,7 @@ namespace App\Domains\Admin\Services\Setting\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use App\Repositories\Eloquent\User\UserRepository;
 use App\Repositories\Eloquent\User\UserMetaRepository;
 
@@ -52,9 +52,11 @@ class UserService extends Service
                 $user->password = Hash::make($data['password']);
             }
 
-            $user->is_admin = $data['is_admin'] ?? 0;
+            //$user->is_admin = $data['is_admin'] ?? 0;
             
             $user->save();
+
+            $this->saveMetaDataset($user, $data);
 
             //is_admin
             // $upsertData[] = [

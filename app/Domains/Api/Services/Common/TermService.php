@@ -2,85 +2,27 @@
 
 namespace App\Domains\Api\Services\Common;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
+use App\Services\Common\TermService as GlobalTermService;
+use App\Repositories\Eloquent\Common\TermRepository;
 
-use App\Domains\Api\Services\Service;
-use App\Traits\Model\EloquentTrait;
-use App\Libraries\TranslationLibrary;
-
-class TermService extends Service
+class TermService extends GlobalTermService
 {
-    use EloquentTrait;
+    protected $modelName = "\App\Models\Common\Term";
 
-    public $modelName;
-    public $model;
-    public $table;
-    public $lang;
-
-	public function __construct()
-	{        
-        $this->modelName = "\App\Models\Common\Term";
-
-        $groups = [
-            'admin/common/common',
-            'admin/common/term',
-        ];
-        $this->lang = (new TranslationLibrary())->getTranslations($groups);
+	public function __construct(protected TermRepository $TermRepository)
+	{
+        parent::__construct($TermRepository);
 	}
     
 
-    public function getTerms($data=[], $debug = 0)
+    public function getTerms($data = [], $debug = 0)
     {
-        if(!empty($data['filter_name'])){
-            $data['whereHas']['translation']['filter_name'] = $data['filter_name'];
-            unset($data['filter_name']);
-        }
-    
-        $records = $this->getModelCollection($data);
-
-        return $records;
+        return $this->TermRepository->getTerms($data, $debug);
     }
 
 
-    /**
-     * $data['id] is necessary.
-     */
-    public function updateOrCreate($data)
+    public function getTerm($data = [], $debug = 0)
     {
-        DB::beginTransaction();
-
-        try {
-
-            $data['id'] = $data['term_id'];
-
-            $record = $this->findOrNew($data);
-
-            $record->parent_id = $data['parent_id'] ?? 0;
-            $record->code = $data['code'] ?? '';
-            $record->slug = $data['slug'] ?? '';
-            $record->taxonomy_code = $data['taxonomy_code'] ?? '';
-            $record->is_active = $data['is_active'] ?? 0;
-            $record->sort_order = $data['sort_order'] ?? 9999;
-
-            $record->save();
-
-            if(!empty($data['translations'])){
-                $this->saveTranslationData($record, $data['translations']);
-            }
-
-            DB::commit();
-
-            $result['data']['record_id'] = $record->id;
-            
-            return $result;
-            
-        } catch (\Exception $ex) {
-            DB::rollback();
-            $msg = $ex->getMessage();
-            return response()->json(['error' => $msg], 500);
-        }
-        
-        return false;
+        return $this->TermRepository->getTerm($data, $debug);
     }
 }

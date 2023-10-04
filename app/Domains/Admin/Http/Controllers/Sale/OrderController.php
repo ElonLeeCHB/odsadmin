@@ -7,16 +7,17 @@ use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Sale\OrderService;
-use App\Domains\Admin\Services\Member\MemberService; //將移除，改用 UserRepository
+use App\Domains\Admin\Services\Member\MemberService;
 use App\Repositories\Eloquent\User\UserRepository;
 use App\Domains\Admin\Services\Catalog\ProductService;
-use App\Domains\Admin\Services\Common\OptionService;
+use App\Domains\Admin\Services\Catalog\OptionService;
 use App\Domains\Admin\Services\Localization\CountryService;
 use App\Domains\Admin\Services\Localization\DivisionService;
 
 use Maatwebsite\Excel\Facades\Excel;
 use App\Domains\Admin\ExportsLaravelExcel\OrderProductExport;
 use App\Domains\Admin\ExportsLaravelExcel\UsersExport;
+use Carbon\Carbon;
 
 class OrderController extends BackendController
 {
@@ -77,7 +78,7 @@ class OrderController extends BackendController
 
         $data['breadcumbs'] = (object)$breadcumbs;
 
-        $data['order_statuses'] = $this->OrderService->getOrderStatuses();
+        $data['order_statuses'] = $this->OrderService->getCachedActiveOrderStatuses();
 
         $data['states'] = $this->DivisionService->getStates();
 
@@ -153,46 +154,39 @@ class OrderController extends BackendController
 
 
         // Prepare query_data for records
-        $url_query_data = $this->getQueries($this->request->query());
+        $query_data = $this->getQueries($this->request->query());
 
         // Extra
-        //$url_query_data['equal_is_active'] = 1;
+        //$query_data['equal_is_active'] = 1;
 
         // Rows
-        $orders = $this->OrderService->getOrders($url_query_data);
-
-        // statuses
-        $order_statuses = $this->OrderService->getOrderStatuses();
-        
-
-        $status_items = $this->OrderService->getOrderStatuseValues($order_statuses);
+        $orders = $this->OrderService->getOrders($query_data);
 
         if(!empty($orders)){
             foreach ($orders as $row) {
-                $row->edit_url = route('lang.admin.sale.orders.form', array_merge([$row->id], $url_query_data));
+                $row->edit_url = route('lang.admin.sale.orders.form', array_merge([$row->id], $query_data));
                 $row->payment_phone = $row->payment_mobile . "<BR>" . $row->payment_telephone;
-                $row->status_text = $status_items[$row->status_id] ?? '';
             }
         }
 
-        $data['orders'] = $orders->withPath(route('lang.admin.sale.orders.list'))->appends($url_query_data);
+        $data['orders'] = $orders->withPath(route('lang.admin.sale.orders.list'))->appends($query_data);
 
 
         // Prepare links for list table's header
-        if($url_query_data['order'] == 'ASC'){
+        if($query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($url_query_data['sort']);
+        $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
-        $url_query_data = $this->unsetUrlQueryData($url_query_data);
+        $query_data = $this->unsetUrlQueryData($query_data);
 
         $url = '';
 
-        foreach($url_query_data as $key => $value){
+        foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
 
@@ -273,6 +267,7 @@ class OrderController extends BackendController
 
         // Get Record
         $order = $this->OrderService->findIdOrFailOrNew($order_id);
+        
 
         $order->load('order_products.product_options.active_product_option_values.translation');
         $order->load('order_products.order_product_options');
@@ -293,9 +288,13 @@ class OrderController extends BackendController
             $order->customer = '新客戶';
         }
 
-        $data['order']  = $this->order = $order;
+        $this->order = $order;
 
-        $data['location_id'] = 2;
+        $data['order']  = $this->OrderService->refineRow($order, ['optimize' => true, 'sanitize' => true]);
+
+        if(empty($this->request->location_id)){
+            $data['location_id'] = 2;
+        }
 
         //訂單標籤
         $order_tag = $this->OrderService->getOrderTagsByOrderId($order_id);
@@ -303,8 +302,18 @@ class OrderController extends BackendController
         $data['order_tag'] = $order_tag;
 
         //常用片語
-        $data['order_comment_phrases'] = $this->OrderService->getOrderPhrases('phrase_order_comment');
-        $data['order_extra_comment_phrases'] = $this->OrderService->getOrderPhrases('phrase_order_extra_comment');
+        $filter_data = [
+            'equal_taxonomy_code' => 'phrase_order_comment',
+            'sanitize' => true,
+        ];
+        $data['order_comment_phrases'] = $this->OrderService->getOrderPhrasesByTaxonomyCode($filter_data);
+
+
+        $filter_data = [
+            'equal_taxonomy_code' => 'phrase_order_extra_comment',
+            'sanitize' => true,
+        ];
+        $data['order_extra_comment_phrases'] = $this->OrderService->getOrderPhrasesByTaxonomyCode($filter_data);
 
         if(!empty($order->order_products)){
             $data['product_row'] = count($order->order_products) + 1;
@@ -313,7 +322,7 @@ class OrderController extends BackendController
         }
 
         // Salutation
-        $data['salutations'] = $this->MemberService->getSalutations();
+        $data['salutations'] = (object) $this->MemberService->getSalutations();
 
         $order_id = $order->id ?? ' ';
 
@@ -324,10 +333,8 @@ class OrderController extends BackendController
         if(!empty($this->request->getReturn)){
             $arrQueries = ['getReturn' => 1];
         }
-        $data['save'] = route('lang.admin.sale.orders.save', $arrQueries);
-        //$data['save'] = route('api.sale.order.save');
-
-        $data['back'] = route('lang.admin.sale.orders.index', $queries);
+        $data['save_url'] = route('lang.admin.sale.orders.save', $arrQueries);
+        $data['back_url'] = route('lang.admin.sale.orders.index', $queries);
 
         if(!empty($data['order']) && $order_id == $order->id){
             $data['order_id'] = $order_id;
@@ -339,16 +346,7 @@ class OrderController extends BackendController
         //$data['shipping_method'] = $order->shipping_method ?? 'shipping_pickup';
         $data['shipping_method'] = $order->shipping_method ?? '';
 
-        // Order Statuses
-        $cachedStatusesName = app()->getLocale() . '_order_statuses';
-        $order_statuses = cache()->get($cachedStatusesName);
-
-        if(empty($order_statuses)){
-            $order_statuses = cache()->remember($cachedStatusesName, 60*60*24*365, function(){
-                return $this->OrderService->getOrderStatuses();
-            });
-        }
-        $data['order_statuses'] = $order_statuses;
+        $data['order_statuses'] = $this->OrderService->getCachedActiveOrderStatuses();
 
         $data['status_id'] = $order->status_id ?? '101';
 
@@ -382,7 +380,13 @@ class OrderController extends BackendController
         }
 
         // 所有可銷售商品
-        $data['salable_products'] = $this->ProductService->getSalableProducts();
+        $filter_data = [
+            'equal_is_salable' => 1,
+            'pagination' => false,
+            'limit' => 0,
+            'with' => ['main_category','translation'],
+        ];
+        $data['salable_products'] = $this->ProductService->getProducts($filter_data);
 
         // Order products
         $data['html_order_products'] = $this->getOrderProductsHtml();
@@ -397,7 +401,7 @@ class OrderController extends BackendController
                 'sort' => 'id',
                 'order' => 'ASC',
             ];
-            $order_totals = $this->OrderService->getOrderTotal($filter_data);
+            $order_totals = $this->OrderService->getOrderTotals($filter_data);
         }
 
         if(isset($order_totals) && !$order_totals->isEmpty()){
@@ -412,6 +416,13 @@ class OrderController extends BackendController
                 'total' => (object)['title' => '總計', 'value' => 0, 'sort_order' => 4],
             ];
         }
+
+        $data['members_list_url'] = route('api.member.member.list');
+        $data['tax_id_nums_list_url'] = route('api.localization.tax_id_num.list');
+        $data['cities_list_url'] = route('api.localization.division.city.list');
+        $data['roads_list_url'] = route('api.localization.road.list');
+        
+
 
         return view('admin.sale.order_form', $data);
     }
@@ -717,14 +728,14 @@ class OrderController extends BackendController
         
         // Validate
         //驗證表單內容
-        $validator = $this->OrderService->validator($postData);
+        // $validator = $this->OrderService->validator($postData);
 
-        if($validator->fails()){
-            $messages = $validator->errors()->toArray();
-            foreach ($messages as $key => $rows) {
-                $json['error'][$key] = $rows[0];
-            }
-        }
+        // if($validator->fails()){
+        //     $messages = $validator->errors()->toArray();
+        //     foreach ($messages as $key => $rows) {
+        //         $json['error'][$key] = $rows[0];
+        //     }
+        // }
 
         if (isset($json['error']) && !isset($json['error']['warning'])) {
             //$warning = $this->lang->error_warning . ' ' . ;
@@ -821,7 +832,7 @@ class OrderController extends BackendController
         $qStr = $this->request->query('q');
 
         //第一個元素使用輸入值
-        $json['items'][] = ['id' => $qStr,'text' => $qStr,];
+        $json[] = ['id' => $qStr, 'text' => $qStr,];
 
         //預設內容
         $items = [];
@@ -837,17 +848,11 @@ class OrderController extends BackendController
             $items = ['幫別的公司訂(做公關)'];
         }
 
-        $tags = $this->OrderService->getOrderTags($qStr);
-        foreach($tags as $tag){
-            if(in_array($tag->translation->name, $items)){
-                continue;
-            }
-            $items[] = $tag->translation->name;
-        }
+        $tags = $this->OrderService->getOrderTags(['qStr' => $qStr, 'sanitize' => true]);
 
-        if(!empty($items)){
-            foreach($items as $value){
-                $json['items'][] = ['id' => $value,'text' => $value];
+        if(!empty($tags)){
+            foreach($tags as $tag){
+                $json[] = ['id' => $tag->id,'text' => $tag->name];
             }
         }
 
@@ -899,7 +904,7 @@ class OrderController extends BackendController
 
         // 排序：主分類、商品
         foreach ($order->order_products as $order_product) {
-            $order_product->main_category_sort_order = $order_product->product->main_category->sort_order;
+            $order_product->main_category_sort_order = $order_product->product->main_category->sort_order ?? 0;
             $order_product->product_sort_order = $order_product->product->sort_order;
         }
         $order->order_products->sortBy('main_category_sort_order')->sortBy('product_sort_order');
@@ -1033,8 +1038,6 @@ class OrderController extends BackendController
     public function product_reports()
     {
         $data = $this->request->all();
-
-        //echo '<pre>', print_r($data, 1), "</pre>"; exit;
 
         return $this->OrderService->exportOrderProducts($data); 
     }

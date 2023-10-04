@@ -68,7 +68,7 @@ class LocationController extends BackendController
         // Prepare query_data for records
         $query_data = $this->getQueries($this->request->query());
 
-        $locations = $this->LocationService->getRows($query_data);
+        $locations = $this->LocationService->getLocations($query_data);
 
         foreach ($locations as $row) {
             $row->edit_url = route('lang.admin.setting.locations.form', array_merge([$row->id], $query_data));
@@ -258,6 +258,50 @@ class LocationController extends BackendController
         if(empty($json['warning'] )){
             $json['success'] = $this->lang->text_success;
         }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
+    }
+
+
+    public function autocomplete()
+    {
+        $json = [];
+
+        $filter_data = array(
+            'filter_keyword'   => $this->request->filter_keyword,
+        );
+
+        if (!empty($this->request->sort)) {
+            if($this->request->sort =='name'){
+                $filter_data['sort'] = '.name';
+            } else if($this->request->sort =='short_name'){
+                $filter_data['sort'] = '.short_name';
+            }
+        }
+
+        $rows = $this->LocationService->getLocations($filter_data);
+
+        if(empty($rows)){
+            return false;
+        }
+
+        foreach ($rows as $row) {
+            $json[] = array(
+                'label' => $row->name,
+                'value' => $row->id,
+                'location_id' => $row->id,
+                'location_name' => $row->name,
+                'short_name' => $row->short_name,
+            );
+        }
+
+        array_unshift($json,[
+            'value' => 0,
+            'label' => ' -- ',
+            'location_id' => '',
+            'location_name' => '',
+            'short_name' => '',
+        ]);
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }

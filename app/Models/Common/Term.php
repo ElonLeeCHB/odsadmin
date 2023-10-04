@@ -15,7 +15,7 @@ class Term extends Model
     public $timestamps = false;
 
     protected $guarded = [];
-    protected $appends = ['name', 'short_name', 'content', 'taxonomy_name'];
+    protected $appends = ['name','short_name', 'content', 'taxonomy_name'];
 
     public function parent()
     {

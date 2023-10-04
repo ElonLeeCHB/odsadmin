@@ -2,16 +2,14 @@
 
 namespace App\Domains\Api\Services\Localization;
 
-use App\Traits\EloquentTrait;
+use App\Services\Service;
 
-class DivisionService
+class DivisionService extends Service
 {
-    use EloquentTrait;
-
     public $modelName;
 
     public function __construct()
     {
-        $this->modelName = "\App\Models\Localization\Division";
+        $this->modelName = "\App\Models\SysData\Division";
     }
 }

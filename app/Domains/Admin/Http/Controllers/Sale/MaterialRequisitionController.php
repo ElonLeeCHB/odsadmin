@@ -16,6 +16,9 @@ use App\Domains\Admin\Services\Sale\MaterialRequisitionService;
 
 class MaterialRequisitionController extends BackendController
 {
+    private $required_date;
+    private $required_date_2ymd;
+
     public function __construct(
         private Request $request,
         private OrderRepository $OrderRepository,
@@ -66,12 +69,19 @@ class MaterialRequisitionController extends BackendController
         // parseDate
         if(!empty($required_date_string)){
             $required_date = parseDate($required_date_string);
+
             if($required_date == false){
                 return redirect(route('lang.admin.sale.mrequisition.form'))->with("warning", "日期格式錯誤");
             }
         }
 
-        $data['required_date'] = $required_date ?? date('Y-m-d');
+        if(empty($required_date)){
+            $required_date = date('Y-m-d');
+        }
+
+        $required_date_2ymd = parseDateStringTo6d($required_date);
+
+        $data['required_date'] = $required_date;
 
         $data['lang'] = $this->lang;
 
@@ -97,19 +107,21 @@ class MaterialRequisitionController extends BackendController
         $data['breadcumbs'] = (object)$breadcumbs;
 
         // Prepare link for save, back
-        // End
-
         $data['save_url'] = route('lang.admin.sale.mrequisition.save');
         $data['back_url'] = route('lang.admin.sale.mrequisition.index');
-        $data['calc'] = '';
+        $data['calc_url'] = '';
 
         // Get Record
-        if(!empty($required_date)){         
-            $mrequisitions = $this->getMrequisitions(required_date:$required_date); //array
+        if(!empty($required_date)){
+            $cacheName = 'OrderProductIngredient_RequiredDate2ymd_' . $required_date_2ymd;
+            $mrequisitions = cache()->get($cacheName);
+
+            if(empty($mrequisitions)){
+                $mrequisitions = $this->setCacheFromIngredientTable($required_date);
+            }
 
             if(!empty($mrequisitions)){
-                $required_date_2ymd = parseDateStringTo6d($required_date);
-                $data['calc_url'] = route('lang.admin.sale.mrequisition.calcMrequisitionsByDate',['required_date' => $required_date_2ymd]);   
+                $data['calc_url'] = route('lang.admin.sale.mrequisition.calcMrequisitionsByDate',['required_date' => $required_date_2ymd]);
             }
             $data['printForm'] = route('lang.admin.sale.mrequisition.printForm',$required_date);
         }
@@ -117,13 +129,8 @@ class MaterialRequisitionController extends BackendController
 
         $data['printForm'] = route('lang.admin.sale.mrequisition.printForm');
 
-        // if(!empty($mrequisitions)){
-        //     $data['material_products_num'] = count($mrequisitions['all_day']);
-        // }
-
         $data['mrequisitions']  = $mrequisitions ?? [];
 
-        //$data['sales_saleable_product_ingredients'] = Setting::where('setting_key','sales_saleable_product_ingredients')->first()->setting_value;
         $data['sales_saleable_product_ingredients'] = '';
         $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
 
@@ -134,13 +141,14 @@ class MaterialRequisitionController extends BackendController
 
 
     /**
-     * 抓取訂單資料，然後寫入資料表 order_product_ingredients
+     * 更新：抓取訂單資料，然後寫入資料表 order_product_ingredients
      */
     public function calcMrequisitionsByDate($required_date)
     {
         $diff_days = parseDiffDays($required_date, date('Y-m-d H:i:s'));
 
-        $n = 7;
+        $n = 14;
+
         if(is_numeric($diff_days) && $diff_days > $n){
             if(auth()->user()->username !== 'admin'){
                 $msg = ['error' => '超過'.$n.'天，禁止執行！'];
@@ -148,19 +156,32 @@ class MaterialRequisitionController extends BackendController
             }
         }
 
+        $this->setIngredientTableFromOrderTable($required_date);
 
+        $this->setCacheFromIngredientTable($required_date);
+
+        $required_date_2ymd = parseDateStringTo6d($required_date);
+
+        return ['required_date_2ymd' => $required_date_2ymd];
+    }
+
+    /**
+     * 抓取訂單資料，然後寫入資料表 order_product_ingredients
+     */
+    private function setIngredientTableFromOrderTable($required_date)
+    {
         DB::beginTransaction();
 
         try {
             $required_date = parseDate($required_date);
             $required_date_2ymd = parseDateStringTo6d($required_date);
-    
+
             $requiredDateRawSql = $this->OrderRepository->parseDateToSqlWhere('delivery_date', $required_date);
-    
+
             if(empty($requiredDateRawSql)){
                 return false;
             }
-    
+
             //需要備料的訂單狀態代號
             $temp_row = $this->SettingRepository->getRow(['equal_setting_key' => 'sales_orders_to_be_prepared_status']);
             $sales_orders_to_be_prepared_status = $temp_row->setting_value; // 必須是陣列
@@ -174,8 +195,8 @@ class MaterialRequisitionController extends BackendController
                 'limit' => 0,
             ];
             $orders = $this->OrderRepository->getRows($filter_data);
-            
-            
+
+
             // 從設定檔找出需要除2的潤餅代號
             $sales_burrito_half_of_6_inch = $this->SettingRepository->getValueByKey('sales_burrito_half_of_6_inch');
             $burrito_half_of_6inch_ids = array_keys($sales_burrito_half_of_6_inch);
@@ -192,7 +213,7 @@ class MaterialRequisitionController extends BackendController
                 $burrito_6inch_ids[] = $six_inch_id;
             }
 
-            
+
             $arr = [];
 
             foreach ($orders ?? [] as $key1 => $order) {
@@ -206,7 +227,7 @@ class MaterialRequisitionController extends BackendController
                         if(empty($order_product_option->product_option_value)){
                             continue;
                         }
-    
+
                         // 選項沒有對應的商品代號，略過
                         if(empty($order_product_option->product_option_value->option_value)){
                             continue;
@@ -214,7 +235,7 @@ class MaterialRequisitionController extends BackendController
 
                         $product_option_value_id = $order_product_option->product_option_value->id;
                         $option_value = $order_product_option->product_option_value->option_value;
-    
+
                         // 選項本身所對應的料件，不是訂單商品。
                         $ingredient_product_id = $option_value->product_id ?? 999;
                         $ingredient_product_name = $option_value->product->name ?? 'xx';
@@ -243,7 +264,7 @@ class MaterialRequisitionController extends BackendController
                 }
             }
 
-            //處理3吋潤餅用6吋計算  *之後應改用 bom 表
+            //處理3吋潤餅用6吋計算
 
             foreach ($arr as $required_date => $rows1) {
                 foreach ($rows1 as $order_id => $rows2) {
@@ -281,7 +302,7 @@ class MaterialRequisitionController extends BackendController
                     $delete_ids[] = $db_ingredient->id;
                 }
             }
-            
+
             if(!empty($delete_ids)){
                 OrderProductIngredient::whereIn('id', $delete_ids)->delete();
             }
@@ -297,146 +318,111 @@ class MaterialRequisitionController extends BackendController
             DB::rollback();
             return response(json_encode($ex->getMessage()))->header('Content-Type','application/json');
         }
-
-        //重新獲取資料
-        try{
-
-            $ingredient_rows = OrderProductIngredient::select('required_time', 'required_date', 'order_id', 'ingredient_product_id', 'ingredient_product_name', DB::raw('SUM(quantity) as quantity'))
-                ->groupBy('required_time', 'required_date', 'order_id', 'ingredient_product_id', 'ingredient_product_name')
-                ->where('required_date', $required_date)->get();
-
-            foreach ($ingredient_rows as $row) {
-                $order_ids[] = $row['order_id'];
-            }
-            $order_ids = array_unique($order_ids);
-
-            $filter_data = [
-                'whereIn' => ['id' => $order_ids],
-                'select' => ['id', 'code'],
-                'limit' => 0,
-                'pagination' => false,
-                'toStdObj' => true,
-                'keyBy' => 'id',
-            ];
-
-            $orders = $this->OrderRepository->getRows($filter_data);
-
-            $result = [];
-            $result['details'] = [];
-
-            foreach ($ingredient_rows as $ingredient) {
-                $order_id = $ingredient->order_id;
-                $ingredient_product_id = $ingredient->ingredient_product_id;
-                $quantity = $ingredient->quantity;
-
-                if(empty($result['details'][$order_id])){
-                    $result['details'][$order_id] = [
-                        'require_date_ymd' => $ingredient->required_date,
-                        'required_date_hi' => $ingredient->required_date_hi,
-                        'source_id' => $ingredient->order_id,
-                        'source_id_url' => route('lang.admin.sale.orders.form', [$order_id]),
-                        'order_code' => substr($orders[$order_id]->code,4,4),
-                        'shipping_road_abbr' => $ingredient->order->shipping_road_abbr,
-
-                    ];
-                }
-
-                $result['details'][$order_id]['items'][$ingredient_product_id]['quantity'] = (int)$quantity;
-
-
-                // all_day
-                if(empty($result['all_day'][$ingredient_product_id]['quantity'])){
-                    $result['all_day'][$ingredient_product_id]['quantity'] = 0;
-                }
-
-                $result['all_day'][$ingredient_product_id]['quantity'] += $quantity;
-                $result['all_day'][$ingredient_product_id]['ingredient_product_name'] = $ingredient_product_name;
-
-
-                // am & pm
-                $carbon_required_time = Carbon::parse($ingredient->required_time);
-
-                $str_cutOffTime = $ingredient->required_date . ' 12:59';
-                $carbon_cutOffTime = Carbon::parse($str_cutOffTime);
-
-                //  - am
-                if (!$carbon_required_time->greaterThanOrEqualTo($carbon_cutOffTime)) {
-                    if(empty($result['am'][$ingredient_product_id]['quantity'])){
-                        $result['am'][$ingredient_product_id]['quantity'] = 0;
-                    }
-
-                    $result['am'][$ingredient_product_id]['quantity'] += (int)$ingredient->quantity;
-                    $result['am'][$ingredient_product_id]['ingredient_product_name'] = $ingredient->ingredient_product_name;
-                }
-                //  - pm
-                else{
-                    if(empty($result['pm'][$ingredient_product_id]['quantity'])){
-                        $result['pm'][$ingredient_product_id]['quantity'] = 0;
-                    }
-
-                    $result['pm'][$ingredient_product_id]['quantity'] += (int)$ingredient->quantity;
-                    $result['pm'][$ingredient_product_id]['ingredient_product_name'] = $ingredient->ingredient_product_name;
-                }
-
-            }
-
-            // 排序
-            if(!empty($result['details'] )){
-                $result['details'] = collect($result['details'])->sortBy('source_idsn')->sortBy('required_date_hi')->values()->all();
-            }
-
-            // 緩存
-            $cacheName = 'OrderProductIngredient_RequiredDate2ymd_' . $required_date_2ymd;
-
-            cache()->forget($cacheName);
-
-            cache()->remember($cacheName, 60*24*90, function () use ($result) {
-                return $result;
-            });
-
-            return ['required_date_2ymd' => $required_date_2ymd];
-
-        } catch (\Exception $ex) {
-            return response(json_encode($ex->getMessage()))->header('Content-Type','application/json');
-        }
     }
 
     /**
-     * 依當前日期，從cache抓資料
+     * 抓取 order_product_ingredients 然後產生快取
      */
-    public function getMrequisitions($required_date = null, $json = 0)
+    private function setCacheFromIngredientTable($required_date)
     {
+        $required_date = parseDate($required_date);
         $required_date_2ymd = parseDateStringTo6d($required_date);
 
+        $ingredient_rows = OrderProductIngredient::select('required_time', 'required_date', 'order_id', 'ingredient_product_id', 'ingredient_product_name', DB::raw('SUM(quantity) as quantity'))
+            ->groupBy('required_time', 'required_date', 'order_id', 'ingredient_product_id', 'ingredient_product_name')
+            ->where('required_date', $required_date)->get();
+
+        $order_ids = [];
+        foreach ($ingredient_rows as $row) {
+            $order_ids[] = $row['order_id'];
+        }
+        $order_ids = array_unique($order_ids);
+
+        $filter_data = [
+            'whereIn' => ['id' => $order_ids],
+            'select' => ['id', 'code'],
+            'limit' => 0,
+            'pagination' => false,
+            'toStdObj' => true,
+            'keyBy' => 'id',
+        ];
+
+        $orders = $this->OrderRepository->getRows($filter_data);
+
         $result = [];
+        $result['details'] = [];
 
-        if(empty($required_date)){
-            $required_date = $this->request->input('required_date');
-        }
+        foreach ($ingredient_rows as $ingredient) {
+            $order_id = $ingredient->order_id;
+            $ingredient_product_id = $ingredient->ingredient_product_id;
+            $ingredient_product_name = $ingredient->ingredient_product_name;
+            $quantity = $ingredient->quantity;
 
-        if(!empty($required_date)){            
-            $cacheName = 'OrderProductIngredient_RequiredDate2ymd_' . $required_date_2ymd;
+            if(empty($result['details'][$order_id])){
+                $result['details'][$order_id] = [
+                    'require_date_ymd' => $ingredient->required_date,
+                    'required_date_hi' => $ingredient->required_date_hi,
+                    'source_id' => $ingredient->order_id,
+                    'source_id_url' => route('lang.admin.sale.orders.form', [$order_id]),
+                    'order_code' => substr($orders[$order_id]->code,4,4),
+                    'shipping_road_abbr' => $ingredient->order->shipping_road_abbr,
 
-            $result = cache()->get($cacheName);
-
-            if(empty($result)){
-                $this->calcMrequisitionsByDate($required_date);
-                $result = cache()->get($cacheName);
+                ];
             }
-        }
+
+            $result['details'][$order_id]['items'][$ingredient_product_id]['quantity'] = (int)$quantity;
 
 
-        $data = $this->request->all();
+            // all_day
+            if(empty($result['all_day'][$ingredient_product_id]['quantity'])){
+                $result['all_day'][$ingredient_product_id]['quantity'] = 0;
+            }
 
-        if(!empty($data['jsonReponse'])){
-            return response(json_encode($result))->header('Content-Type','application/json');
+            $result['all_day'][$ingredient_product_id]['quantity'] += $quantity;
+            $result['all_day'][$ingredient_product_id]['ingredient_product_name'] = $ingredient_product_name;
+
+
+            // am & pm
+            $carbon_required_time = Carbon::parse($ingredient->required_time);
+
+            $str_cutOffTime = $ingredient->required_date . ' 12:59';
+            $carbon_cutOffTime = Carbon::parse($str_cutOffTime);
+
+            //  - am
+            if (!$carbon_required_time->greaterThanOrEqualTo($carbon_cutOffTime)) {
+                if(empty($result['am'][$ingredient_product_id]['quantity'])){
+                    $result['am'][$ingredient_product_id]['quantity'] = 0;
+                }
+
+                $result['am'][$ingredient_product_id]['quantity'] += (int)$ingredient->quantity;
+                $result['am'][$ingredient_product_id]['ingredient_product_name'] = $ingredient->ingredient_product_name;
+            }
+            //  - pm
+            else{
+                if(empty($result['pm'][$ingredient_product_id]['quantity'])){
+                    $result['pm'][$ingredient_product_id]['quantity'] = 0;
+                }
+
+                $result['pm'][$ingredient_product_id]['quantity'] += (int)$ingredient->quantity;
+                $result['pm'][$ingredient_product_id]['ingredient_product_name'] = $ingredient->ingredient_product_name;
+            }
+
         }
-        else if($json){
-            return json_encode($result);
-        }else{
-            return $result; //array
+
+        // 排序
+        if(!empty($result['details'] )){
+            $result['details'] = collect($result['details'])->sortBy('source_idsn')->sortBy('required_date_hi')->values()->all();
         }
+
+        $cacheName = 'OrderProductIngredient_RequiredDate2ymd_' . $required_date_2ymd;
+
+        cache()->forget($cacheName);
+
+        cache()->put($cacheName, $result, 60*60*24*30);
+
+        return $result;
     }
+
 
     public function list()
     {
@@ -476,10 +462,10 @@ class MaterialRequisitionController extends BackendController
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
-        
+
         $this->lang->text_form = $this->lang->text_material_requisition_setting;
 
-        
+
         //需要除2的潤餅
         $sales_burrito_half_of_6_inch = Setting::where('setting_key','sales_burrito_half_of_6_inch')->first()->setting_value;
         $lines = [];
@@ -487,7 +473,7 @@ class MaterialRequisitionController extends BackendController
             $lines[] = $row['product_id'] . ',"' . trim($row['product_name']) .'",' . $row['new_product_id'] . ',"' . trim($row['new_product_name']) . '"';
         }
         $data['sales_burrito_half_of_6_inch'] = implode("\n", $lines);
-        
+
         //顯示項目
         $sales_ingredients_table_items = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
         $lines = [];
@@ -501,7 +487,7 @@ class MaterialRequisitionController extends BackendController
         $data['save_url'] = route('lang.admin.sale.mrequisition.settingSave');
         $data['back_url'] = route('lang.admin.sale.mrequisition.index');
         $data['list_url'] = route('lang.admin.sale.mrequisition.list');
-        
+
 
         return view('admin.sale.material_requisition_setting_form', $data);
     }
@@ -519,7 +505,7 @@ class MaterialRequisitionController extends BackendController
         if(!empty($sales_burrito_half_of_6_inch)){
             $lines = explode("\n", $sales_burrito_half_of_6_inch);  // 將多行文字拆成陣列
             $lines = array_map('trim', $lines);      // 去除每行文字的首尾空白
-        
+
             foreach ($lines as $key => $line) {
                 $line = str_replace(["\r", "\n"], '', $line);
                 $csvData[] = str_getcsv($line);
@@ -580,7 +566,7 @@ class MaterialRequisitionController extends BackendController
 
             try {
 
-                Setting::upsert($updateData, ['location_id', 'setting_key']);                
+                Setting::upsert($updateData, ['location_id', 'setting_key']);
                 $json['success'] = $this->lang->text_success;
 
             } catch (QueryException $e) {
@@ -596,7 +582,7 @@ class MaterialRequisitionController extends BackendController
     {
         $data['lang'] = $this->lang;
         $data['base'] = config('app.admin_url');
-        
+
         // parseDate
         if(!empty($required_date_string)){
             //$required_date = parseDate($required_date_string);
@@ -606,7 +592,7 @@ class MaterialRequisitionController extends BackendController
                 return redirect(route('lang.admin.sale.mrequisition.form'))->with("warning", "日期格式錯誤");
             }
         }
-        
+
         // 列印時抓cache, 不重新計算
         if(!empty($required_date_2ymd)){
             $cacheName = 'OrderProductIngredient_RequiredDate2ymd_' . $required_date_2ymd;
@@ -629,7 +615,7 @@ class MaterialRequisitionController extends BackendController
     public function export()
     {
         $post_data = $this->request->post(); //未來套用驗證
-        
+
         //return $this->MaterialRequisitionService->export($post_data);
         return 123;
 

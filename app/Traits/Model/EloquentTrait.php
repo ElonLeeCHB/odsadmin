@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * 本檔應廢棄
+ */
 namespace App\Traits\Model;
 
 use Illuminate\Database\Eloquent\Builder;

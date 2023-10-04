@@ -863,3 +863,9 @@ div.required .col-form-label:not(span):before, td.required:before {
 td {
     position: relative;
 }
+
+/* customize*/
+
+input[readonly], input[readonly].form-control:focus {
+    background-color: #f2f4f4;
+}

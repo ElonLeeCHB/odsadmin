@@ -183,6 +183,16 @@ class LayoutComposer
             ];
         }
 
+        //訂單排程
+        if(1) {
+            $sale[] = [
+                'name'	   => $this->lang->text_sales_order_schedule,
+                'icon'	   => '',
+                'href'     => route('lang.admin.sale.order_schedule.index'),
+                'children' => []
+            ];
+        }
+
         //備料單
         if(1) {
             $sale[] = [
@@ -311,10 +321,20 @@ class LayoutComposer
             ];
         }
 
+        // 採購作業
+        // if(1) {
+        //     $inventory[] = [
+        //         'name'	   => $this->lang->text_purchasing_orders,
+        //         'icon'	   => '',
+        //         'href'     => route('lang.admin.inventory.purchasing.index'),
+        //         'children' => []
+        //     ];
+        // }
+
         // 進貨作業
         if(1) {
             $inventory[] = [
-                'name'	   => $this->lang->text_inventory_receiving,
+                'name'	   => $this->lang->text_receiving_orders,
                 'icon'	   => '',
                 'href'     => route('lang.admin.inventory.receiving.index'),
                 'children' => []

@@ -5,8 +5,8 @@ namespace App\Domains\Api\Http\Controllers\Localization;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Libraries\TranslationLibrary;
-use App\Models\Localization\Division;
-use App\Models\Localization\Country;
+use App\Models\SysData\Division;
+use App\Models\SysData\Country;
 use DB;
 
 class CountryController extends Controller

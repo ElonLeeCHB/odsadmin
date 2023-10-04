@@ -13,7 +13,7 @@
     <div class="container-fluid">
     <div class="float-end">
         <button type="button" data-bs-toggle="tooltip" title="{{ $lang->text_filter }}" onclick="$('#filter-product').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fas fa-filter" style="font-size:18px"></i></button>
-        <a href="{{ $add_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i></a>
+        <a id="button-add" href="{{ $add_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i></a>
         <button type="submit" form="form-product" formaction="{{ $delete_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_delete }}" onclick="return confirm('{{ $lang->text_confirm }}');" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
       </div>
       <h1>{{ $lang->heading_title }}</h1>
@@ -41,15 +41,6 @@
             @foreach($categories as $category)
             <option value="{{ $category->id }}">{{ $category->name }}</option>
             @endforeach
-          </select>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">{{ $lang->column_is_salable }}</label>
-          <select name="filter_is_salable" id="input-filter_is_salable" class="form-select">
-            <option value="">{{ $lang->text_select }}</option>
-            <option value="1">{{ $lang->text_yes }}</option>
-            <option value="0">{{ $lang->text_no }}</option>
           </select>
         </div>
 
@@ -83,7 +74,7 @@
 @endsection
 
 @section('buttom')
-<script type="text/javascript"><!--
+<script type="text/javascript">
 $('#product').on('click', 'thead a, .pagination a', function(e) {
   e.preventDefault();
 
@@ -91,7 +82,7 @@ $('#product').on('click', 'thead a, .pagination a', function(e) {
 });
 
 $('#button-filter').on('click', function() {
-  url = '';
+  url = '?';
 
   var filter_name = $('#input-filter_name').val();
 
@@ -105,21 +96,18 @@ $('#button-filter').on('click', function() {
     url += '&filter_main_category_id=' + encodeURIComponent(filter_main_category_id);
   }
 
-  var filter_is_salable = $('#input-filter_is_salable').val();
-
-  if (filter_is_salable) {
-    url += '&filter_is_salable=' + encodeURIComponent(filter_is_salable);
-  }
-
   var equal_is_active = $('#input-equal_is_active').val();
 
   if (equal_is_active) {
     url += '&equal_is_active=' + encodeURIComponent(equal_is_active);
   }
 
-  url = "{{ $list_url }}?" + url;
+  list_url = "{{ $list_url }}" + url;
 
-  $('#product').load(url);
+  $('#product').load(list_url);
+
+  add_url = $("#button-add").attr("href") + url
+  $("#button-add").attr("href", add_url);
 });
-//--></script>
+</script>
 @endsection

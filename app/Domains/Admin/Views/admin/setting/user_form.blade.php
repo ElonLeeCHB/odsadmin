@@ -15,7 +15,7 @@
           {{-- <a href="javascript:void(0)" data-bs-toggle="tooltip" title="Orders" class="btn btn-warning"><i class="fas fa-receipt"></i></a> --}}
         {{-- <button type="submit" form="form-user" data-bs-toggle="tooltip" title="Save" class="btn btn-primary"><i class="fas fa-save"></i></button> --}}
         <button type="submit" form="form-user" data-bs-toggle="tooltip" title="{{ $lang->save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
-        <a href="{{ $back }}" data-bs-toggle="tooltip" title="Back" class="btn btn-light"><i class="fas fa-reply"></i></a>
+        <a href="{{ $back_url }}" data-bs-toggle="tooltip" title="Back" class="btn btn-light"><i class="fas fa-reply"></i></a>
       </div>
       <h1>{{ $lang->heading_title }}</h1>
       @include('admin.common.breadcumb')
@@ -29,7 +29,7 @@
               <li class="nav-item"><a href="#tab-general" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_general }}</a></li>
               <!--<li class="nav-item"><a href="#tab-address" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_address }}</a></li>-->
           </ul>
-          <form id="form-user" action="{{ $save }}" method="post" data-oc-toggle="ajax">
+          <form id="form-user" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
             @csrf
             @method('POST')
             <div class="tab-content">

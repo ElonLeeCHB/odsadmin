@@ -2,20 +2,29 @@
 
 namespace App\Models\Catalog;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\Model\Translatable;
 use App\Models\Common\Term;
-use App\Models\Catalog\ProductBom;
 use App\Models\Catalog\ProductOption;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\Catalog\ProductUnit;
+use App\Models\Catalog\ProductMeta;
+use App\Models\Common\Unit;
+use App\Models\Catalog\ProductBom;
+use App\Models\Counterparty\Organization;
 
 class Product extends Model
 {
     use Translatable;
 
     protected $guarded = [];
-    protected $appends = ['name', 'description'];
-    public $translated_attributes = ['name','full_name','short_name','description', 'meta_title', 'meta_description', 'meta_keyword',];
+    protected $appends = ['name','specification','description'];
+    public $translated_attributes = ['name','full_name','short_name','description','specification','meta_title','meta_description','meta_keyword',];
+    public $meta_keys = [
+        'supplier_own_product_code',
+        'supplier_own_product_name',
+        'supplier_own_product_specification'
+    ];
 
     public function main_category()
     {
@@ -60,6 +69,34 @@ class Product extends Model
     }
 
 
+    public function stock_unit()
+    {
+        return $this->belongsTo(Unit::class, 'stock_unit_code', 'code');
+    }
+
+
+    public function product_units()
+    {
+        return $this->hasMany(ProductUnit::class,'product_id', 'id');
+    }
+
+
+    public function supplier()
+    {
+        return $this->belongsTo(Organization::class, 'supplier_id', 'id');
+    }
+
+    public function supplier_product()
+    {
+        return $this->belongsTo(self::class, 'supplier_product_id', 'id');
+    }
+
+    public function meta_dataset()
+    {
+        return $this->hasMany(ProductMeta::class);
+    }
+
+
     // Attribute
 
     protected function name(): Attribute
@@ -82,11 +119,32 @@ class Product extends Model
             get: fn () => $this->translation->description ?? '',
         );
     }
+
+    protected function specification(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->translation->specification ?? '',
+        );
+    }
     
     protected function price(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => number_format($value),
+        );
+    }
+
+    protected function supplierName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->supplier->name ?? '',
+        );
+    }
+
+    protected function stockUnitName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->stock_unit->name ?? '',
         );
     }
 }

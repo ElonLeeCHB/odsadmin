@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent\Catalog;
 
 use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
+use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
@@ -14,6 +15,58 @@ use App\Models\Common\TermRelation;
 class ProductRepository extends Repository
 {
     public $modelName = "\App\Models\Catalog\Product";
+
+    private $source_codes;
+
+
+    public function __construct(protected TermRepository $TermRepository)
+    {
+        parent::__construct();
+    }
+
+
+    public function getProducts($data = [], $debug = 0)
+    {
+        $data = $this->resetQueryData($data);
+
+        $products = $this->getRows($data, $debug);
+
+        $source_codes = $this->getProductSourceCodes();
+
+        foreach ($products as $row) {
+            if(!empty($row->status_id)){
+                $row->source_code_name = $source_codes[$row->source_code]['name'];
+                $row->supplier_name = $row->supplier->name ?? '';
+            }
+        }
+
+        return $products;
+    }
+
+    public function getProduct($data = [], $debug = 0)
+    {
+        $data = $this->resetQueryData($data);
+
+        $row = $this->getRow($data, $debug);
+
+        $row->supplier_name = $row->supplier->name ?? '';
+
+        return $row;
+    }
+
+
+    public function getSalableProducts($data = [], $debug = 0)
+    {
+        $data = $this->resetQueryData($data);
+        
+        $data['equal_is_salable'] = 1;
+        $data['pagination'] = false;
+        $data['limit'] = 0;
+
+        $salable_products = $this->getRows($data);
+
+        return $salable_products;
+    }
 
 
     public function delete($product_id)
@@ -43,5 +96,77 @@ class ProductRepository extends Repository
             return ['error' => $ex->getMessage()];
         }
     }
+
+    public function resetQueryData($data)
+    {
+        if(!empty($data['filter_keyword'])){
+            $data['filter_name'] = $data['filter_keyword'];
+            $data['filter_specification'] = $data['filter_keyword'];
+            $data['filter_model'] = $data['filter_keyword'];
+            unset($data['filter_keyword']);
+        }
+
+        if(!empty($data['filter_name'])){
+            $data['whereHas']['translation'] = ['name' => $data['filter_name']];
+        }
+
+        if(!empty($data['filter_specification'])){
+            $data['whereHas']['translation'] = ['specification' => $data['filter_specification']];
+        }
+
+        return $data;
+    }
+
+
+    public function getProductSourceCodes()
+    {
+        if(!empty($this->source_codes)){
+            return $this->source_codes;
+        }
+
+        $filter_data = [
+            'equal_taxonomy_code' => 'product_source',
+            'pagination' => false,
+            'limit' => 0,
+        ];
+        $collection = $this->TermRepository->getRows($filter_data)->toArray();
+
+        $result = [];
+
+        foreach ($collection as $key => $row) {
+            unset($row['translation']);
+            unset($row['taxonomy']);
+            $code = $row['code'];
+            $result[$code] = (object) $row;
+        }
+
+        return $result;
+    }
+
+
+    // 尋找關聯，並將關聯值賦予記錄
+    public function optimizeRow($row)
+    {
+        // if(!empty($row->status)){
+        //     $row->status_name = $row->status->name;
+        // }
+
+        return $row;
+    }
+
+
+    // 刪除關聯
+    public function sanitizeRow($row)
+    {
+        $arrOrder = $row->toArray();
+
+        if(!empty($arrOrder['translation'])){
+            unset($arrOrder['translation']);
+        }
+
+        return (object) $arrOrder;
+    }
+
+
 }
 

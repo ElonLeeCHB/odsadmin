@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Sale\OrderProduct;
 use App\Models\Catalog\ProductOptionValue;
 use App\Models\Catalog\ProductOption;
-use App\Models\Common\Option;
+use App\Models\Catalog\Option;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class OrderProductOption extends Model

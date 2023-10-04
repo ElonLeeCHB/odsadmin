@@ -5,17 +5,19 @@ namespace App\Domains\Api\Http\Controllers\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use App\Domains\Api\Http\Controllers\ApiController;
 use App\Domains\Admin\Http\Controllers\BackendController;
-use App\Domains\Admin\Services\Sale\OrderService;
+use App\Domains\Api\Services\Sale\OrderService;
 use App\Domains\Api\Services\Member\MemberService;
 //use App\Domains\Api\Services\User\UserService;
 use App\Repositories\Eloquent\User\UserRepository;
 use App\Domains\Api\Services\Catalog\ProductService;
-use App\Domains\Api\Services\Common\OptionService;
+use App\Repositories\Eloquent\Common\TermRepository;
 use App\Domains\Api\Services\Localization\CountryService;
 use App\Domains\Api\Services\Localization\DivisionService;
+use Illuminate\Pagination\LengthAwarePaginator;
 
-class OrderController extends BackendController
+class OrderController extends ApiController
 {
     public function __construct(
         private Request $request,
@@ -23,8 +25,8 @@ class OrderController extends BackendController
         private MemberService $MemberService,
         //private UserService $UserService,
         private UserRepository $UserRepository,
+        private TermRepository $TermRepository,
         private ProductService $ProductService,
-        private OptionService $OptionService,
         private CountryService $CountryService,
         private DivisionService $DivisionService,
         )
@@ -41,93 +43,34 @@ class OrderController extends BackendController
      */
     public function list()
     {
-        $data['lang'] = $this->lang;
+        $query_data = $this->request->query();
 
-        // Prepare link for action
-        $queries = [];
+        $filter_data = $this->getQueries($query_data);
 
-        if(!empty($this->request->query('page'))){
-            $page = $queries['page'] = $this->request->input('page');
-        }else{
-            $page = $queries['page'] = 1;
-        }
+        $orders = $this->OrderService->getOrders($filter_data);
 
-        if(!empty($this->request->query('sort'))){
-            $sort = $queries['sort'] = $this->request->input('sort');
-        }else{
-            $sort = $queries['sort'] = 'id';
-        }
+        $orders = $this->OrderService->optimizeRows($orders);
 
-        if(!empty($this->request->query('order'))){
-            $order = $queries['order'] = $this->request->query('order');
-        }else{
-            $order = $queries['order'] = 'asc';
-        }
-
-        if(empty($this->request->query('pagination'))){
-           $queries['pagination'] = true;
-        }else{
-            //$queries['pagination'] = $this->request->query('pagination');
-            $queries['pagination'] = false;
-        }
-
-        if(!empty($this->request->query('limit'))){
-            $limit = $queries['limit'] = $this->request->query('limit');
-        }
-
-        foreach($this->request->all() as $key => $value){
-            if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
-            }
-        }
-
-        $orders = $this->OrderService->getOrders($queries);
-
-        $arr_all_statuses = $this->OrderService->getOrderStatuses();
-        //$arr_all_salutations = $this->OrderService->getOrderStatuses();
-
-        if(!empty($orders)){
-            foreach ($orders as $record) {
-                $record->edit_url = route('api.sale.order.details', array_merge([$record->id], $queries));
-                $record->payment_phone = $record->payment_mobile . "<BR>" . $record->payment_telephone;
-                $record->status_txt = $arr_all_statuses[$record->status_id]->name ?? '';
-            }
-        }
-        
+        $this->OrderService->unsetRelations($orders, ['status']);
 
         return response(json_encode($orders))->header('Content-Type','application/json');
     }
 
 
-    public function header($order_id)
-    {
-        $order = $this->OrderService->findIdOrFailOrNew($order_id);
-
-        $arr_all_statuses = $this->OrderService->getOrderStatuses();
-
-        $order->status_txt = $arr_all_statuses[$order->status_id]['name'] ?? '';
-
-        return response(json_encode($order))->header('Content-Type','application/json');
-    }
-
-
+    // 包含訂單的單頭、單身
     public function details($order_id)
     {
         $order = $this->OrderService->findIdOrFailOrNew($order_id);
         $order->load('order_products.order_product_options');
 
-        $arr_all_statuses = $this->OrderService->getOrderStatuses();
+        $order->status_name = $order->status->name ?? '';
 
-        $order->status_txt = $arr_all_statuses[$order->status_id]->name ?? '';
+        $order = $this->OrderService->sanitizeRow($order);
+
+        // Order Total
+        $order->totals = $this->OrderService->getOrderTotals($order_id)->toArray();
 
         return response(json_encode($order))->header('Content-Type','application/json');
-    }
-
-
-    public function orderProductOptions($order_id)
-    {
-        
-
     }
 
 
@@ -177,14 +120,14 @@ class OrderController extends BackendController
 
         // Validate
         //驗證表單內容
-        $validator = $this->OrderService->validator($post_data);
+        // $validator = $this->OrderService->validator($post_data);
 
-        if($validator->fails()){
-            $messages = $validator->errors()->toArray();
-            foreach ($messages as $key => $rows) {
-                $json['error'][$key] = $rows[0];
-            }
-        }
+        // if($validator->fails()){
+        //     $messages = $validator->errors()->toArray();
+        //     foreach ($messages as $key => $rows) {
+        //         $json['error'][$key] = $rows[0];
+        //     }
+        // }
 
         //表單驗證成功
         if (!$json) {
@@ -227,19 +170,25 @@ class OrderController extends BackendController
     }
 
 
-    public function getAllStatuses()
+    public function getActiveOrderStatuses()
     {
-        $allStatuses = $this->OrderService->getOrderStatuses();
+        $allStatuses = $this->OrderService->getCachedActiveOrderStatuses();
 
         return response(json_encode($allStatuses))->header('Content-Type','application/json');
     }
 
 
-    public function getOrderPhrases($taxonomy_code)
+    public function getOrderPhrasesByTaxonomyCode($taxonomy_code)
     {
-        $json = $this->OrderService->getOrderPhrases($taxonomy_code)->toArray();
+        $query_data = $this->request->query();
 
-        return response(json_encode($json))->header('Content-Type','application/json');
+        $query_data['equal_taxonomy_code'] = $taxonomy_code;
+
+        $rows = $this->TermRepository->getTerms($query_data)->toArray();
+
+        $rows['data'] = $this->TermRepository->unsetArrayRelations($rows['data'], ['translation', 'taxonomy']);
+        
+        return response(json_encode($rows))->header('Content-Type','application/json');
     }
-
+    
 }

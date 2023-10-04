@@ -25,7 +25,6 @@
   </div>
     <div class="container-fluid">
       <div class="card">
-        <div class="card-header"><i class="fas fa-pencil-alt"></i> {{ $lang->text_form }}</div>
         <div class="card-body">
           <ul class="nav nav-tabs">
               <li class="nav-item"><a href="#tab-general" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_general }}</a></li>
@@ -39,11 +38,6 @@
 
                   <fieldset>
 
-				            <legend class="float-none">日期 
-                      <button type="button" id="getDemandSource" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="重抓需求來源" onclick="calcOrders();"><i class="fa-solid fa-list"></i></button>
-
-                    </legend>
-
                     <div class="row mb-3">
                       <label for="input-required_date" class="col-sm-2 col-form-label">{{ $lang->column_required_date }}</label>
                       <div class="col-sm-10">
@@ -51,14 +45,46 @@
                           <input type="text" id="input-required_date" name="required_date" value="{{ $required_date }}" placeholder="{{ $lang->column_required_date }}" class="form-control date"/>
                           <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
                           <button type="button" id="btn-redirectToRequiredDate" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="查詢" >查詢</button>
+                          <button type="button" id="getDemandSource" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="重抓需求來源" onclick="calcOrders();">更新</button>
                         </div>
                         <div id="error-required_date" class="invalid-feedback"></div>
                       </div>
                     </div>
                     
-                    <div class="table-responsive text-end mx-auto">
+<style>
+#tableContainer {
+  max-height: 700px; /* 设置表格容器的最大高度 */
+  overflow-y: auto; /* 启用垂直滚动条 */
+  position: relative; /* 确保相对定位 */
+}
+
+#tableContainer thead {
+  background-color: #f2f2f2; /* 可选：设置表头的背景颜色 */
+  position: sticky;
+  top: 0; /* 表头初始位置在顶部 */
+  z-index: 1; /* 使表头在上方 */
+}
+</style>
+
+                    <div class="table-responsive text-end mx-auto" id="tableContainer">
                       <table class="table table-bordered table-hover mx-auto">
 
+                        <thead>
+                          <tr>
+                          <td class="text-start"> </td>
+                            <td class="text-start">時間</td>
+                            <td class="text-start">訂單編號<BR>(末4碼)</td>
+                            <td class="text-end">地址簡稱</td>
+                            @foreach($sales_ingredients_table_items as $name)
+                              <?php
+                              $characters = mb_str_split($name);
+                              $new_name = implode('<BR>', $characters);
+                              ?>
+                            <td style="width:30px;">{!! $new_name !!}</td>
+                            @endforeach
+                          </tr>
+
+                          </thead>
                         <tbody id="tbody_body_records">
                           <tr id="option-value-row-0">
                             <td colspan="4">全日統計</td>
@@ -102,19 +128,6 @@
                             </td>
                             @endforeach
                           </tr>
-                          <tr>
-                            <td class="text-start"> </td>
-                            <td class="text-start">時間</td>
-                            <td class="text-start">訂單編號<BR>(末4碼)</td>
-                            <td class="text-end">地址簡稱</td>
-                            @foreach($sales_ingredients_table_items as $name)
-                              <?php
-                              $characters = mb_str_split($name);
-                              $new_name = implode('<BR>', $characters);
-                              ?>
-                            <td style="width:30px;">{!! $new_name !!}</td>
-                            @endforeach
-                          </tr>
                           @if(!empty($mrequisitions['details']))
                           @foreach($mrequisitions['details'] as $key => $detail_row)
                           <tr id="option-value-row-0">
@@ -130,6 +143,15 @@
                           </tr>
                           @endforeach
                           @endif
+
+                          @php
+                              $columns = 4 + count($sales_ingredients_table_items);
+                            @endphp
+                          @for($i=0; $i<20; $i++)
+                          <tr>
+                            <td colspan="{{ $columns }}">&nbsp;&nbsp;</td>
+                          </tr>
+                          @endfor
                         </tbody>
                       </table>
                     </div>

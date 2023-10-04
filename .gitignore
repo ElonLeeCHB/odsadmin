@@ -6,7 +6,6 @@
 /vendor
 !/vendor/barryvdh/laravel-translation-manager
 .env
-.env.backup
 .phpunit.result.cache
 Homestead.json
 Homestead.yaml

@@ -47,21 +47,17 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    //protected $appends = ['user_meta'];
+    // is_admin 必須 appends，會用在後台的 IsAdmin middleware 做判斷。
+    protected $appends = ['is_admin'];
 
     public $meta_keys = [
+        'is_admin',
+        'first_name',
+        'last_name',
+        'short_name',
     ];
 
-    protected static function booted()
-    {
-        parent::booted();
-
-        static::addGlobalScope(function ($query) {
-            $query->with('userMeta');
-        });
-    }
-
-    public function userMeta()
+    public function meta_dataset()
     {
         return $this->hasMany(UserMeta::class, 'user_id', 'id');
     }
@@ -69,7 +65,7 @@ class User extends Authenticatable
     public function __get($key)
     {
         // 檢查屬性是否存在於 UserMeta 中
-        $userMeta = $this->userMeta()->where('meta_key', $key)->first();
+        $userMeta = $this->meta_dataset()->where('meta_key', $key)->first();
 
         if ($userMeta) {
             return $userMeta->meta_value;
@@ -78,49 +74,74 @@ class User extends Authenticatable
         return parent::__get($key);
     }
 
-    // public function isAdmin()
-    // {
-    //     $userMeta = $this->userMeta()->where('meta_key', 'is_admin')->where('meta_value', '1')->first();
-
-    //     $is_admin = 0;
-
-    //     if($userMeta){
-    //         $is_admin = $userMeta->meta_value;
-    //     }
-
-    //     return Attribute::make(
-    //         get: fn ($value) => $is_admin,
-    //     );
-    // }
-
-    protected function firstName(): Attribute
+    public function isAdmin():Attribute
     {
-        if(!empty($this->attributes['firstName'])){
-            $value = ucfirst($value);
+        $userMeta = $this->meta_dataset()->where('meta_key', 'is_admin')->where('meta_value', '1')->first();
+
+        $is_admin = 0;
+
+        if($userMeta){
+            $is_admin = $userMeta->meta_value;
         }
 
         return Attribute::make(
-            get: fn ($value) => $value,
-        );
-    }
-
-    protected function lastName(): Attribute
-    {
-        if(!empty($this->attributes['firstName'])){
-            $value = ucfirst($value);
-        }
-
-        return Attribute::make(
-            get: fn ($value) => $value,
+            get: fn ($value) => $is_admin,
         );
     }
 
     protected function personalName(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => ucfirst($this->name),
-            set: fn ($value) => ucfirst($this->name),
+            get: fn ($value) => $this->name,
+            set: fn ($value) => $this->name,
         );
+    }
+
+    //Attribute
+    protected function mobile(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $this->parsePhone($value),
+        );
+    }
+
+    protected function telephone(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $this->parsePhone($value),
+        );
+    }
+
+    // Mobile or Telephone
+    protected function parsePhone($phone)
+    {
+        $phone = trim($phone);
+		$phone = str_replace('-', '', $phone);
+        
+        $part3 = '';
+        $new_phone = '';
+
+        //Taiwan's mobile
+        if(str_starts_with($phone, '09')){
+            $new_phone = substr($phone, 0, 4) . '-' . substr($phone, 4) ;
+        }
+        // Telephone
+        else{
+            preg_match('/(\d+)#?(\d+)?/', $phone, $matches);
+
+            if(!empty($matches[0])){
+                $part1 = substr($matches[1],0,-4);
+                $part2 = substr($matches[1],-4);
+                if(!empty($matches[2])){
+                    $part3 = '#' . $matches[2];
+                }
+                $new_phone = $part1 . '-' . $part2 . $part3;
+            }else{
+                $new_phone = '';
+            }
+        }
+
+        return $new_phone;
     }
 
     // 最後一次登入

@@ -2,12 +2,13 @@
 
 return [
 // Heading
-'heading_title' => '品號設定',
+'heading_title' => '料件設定',
 
 // Tab
 // 'tab_general' => '基本資料',
 // 'tab_data' => '明細資料',
-'tab_bom' => 'BOM',
+//'tab_bom' => 'BOM',
+'tab_units' => '單位換算',
 
 // Text
 'text_inventory' => '庫存管理',
@@ -23,27 +24,38 @@ return [
 'column_code' => '品號',
 'column_name' => '品名',
 'column_model' => '型號',
+'column_specification' => '規格',
+'column_description' => '介紹',
+'column_full_name' => '產品全稱',
+'column_short_name' => '產品簡稱',
+'column_meta_title' => 'Meta Tag 標籤',
+'column_meta_keyword' => 'Meta Tag 關鍵字',
+'column_meta_description' => 'Meta Tag 描述',
 'column_quantity' => '數量',
 'column_price' => '價格',
 'column_is_active' => '是否啟用',
 'column_is_salable' => '可否銷售',
-'column_full_name' => '產品全稱',
-'column_short_name' => '產品簡稱',
-'column_description' => '詳細介紹',
-'column_meta_title' => 'Meta Tag 標籤',
-'column_meta_keyword' => 'Meta Tag 關鍵字',
-'column_meta_description' => 'Meta Tag 描述',
-'column_model' => '產品型號',
 'column_is_salable' => '可否銷售',
 'column_quantity' => '數量',
 'column_price' => '價格',
 'column_subtract' => '扣減庫存',
+//單位
+'column_purchasing_unit' => '採購單位',
+'column_stock_unit' => '庫存單位',
+'column_manufacturing_unit' => '生產單位',
 'column_weight_class' => '重量單位',
 'column_weight' => '重量',
 'column_length_class' => '長度單位',
 'column_length' => '長度',
 'column_width' => '寬度',
 'column_height' => '高度',
+
+'column_supplier' => '廠商',
+'column_supplier_product' => '廠商料件',
+'column_supplier_own_product_code' => '廠商料件編號',
+'column_supplier_own_product_name' => '廠商料件名稱',
+'column_supplier_own_product_specification' => '廠商料件規格',
+
 'column_image' => '商品主圖',
 'column_sort_order' => '排序',
 'column_reward' => '紅利點數',
@@ -58,7 +70,7 @@ return [
 'column_points' => '點數',
 'column_is_default' => '預設',
 'column_is_stock_management' => '庫存管理',
-'column_part_type' => '品號屬性',
+'column_source_code' => '料件屬性',
 'column_main_supplier' => '主供應商',
 
 

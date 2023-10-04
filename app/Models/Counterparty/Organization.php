@@ -4,9 +4,8 @@ namespace App\Models\Counterparty;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Localization\Division;
 use App\Models\Counterparty\OrganizationMeta;
-use App\Models\Common\PaymentTerm;
+use App\Models\Counterparty\PaymentTerm;
 
 
 class Organization extends Model
@@ -14,6 +13,8 @@ class Organization extends Model
     protected $guarded = [];
 
     public $meta_keys = [
+        'www',
+        'line_at',
         'supplier_contact_name',
         'supplier_contact_email',
         'supplier_contact_jobtitle',
@@ -23,9 +24,6 @@ class Organization extends Model
         'supplier_bank_code',
         'supplier_bank_account',
     ];
-
-   // public $appends = ['payment_term_name'];
-
 
     public function payment_term()
     {

@@ -27,7 +27,7 @@
         <div class="card-body">
           <ul class="nav nav-tabs">
             <li class="nav-item"><a href="#tab-trans" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_trans }}</a></li>
-            <li class="nav-item"><a href="#tab-general" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_general }}</a></li>
+            <li class="nav-item"><a href="#tab-data" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_data }}</a></li>
           </ul>
           <form id="form-term" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
             @csrf
@@ -69,7 +69,7 @@
                 </div>
               </div>
 
-              <div id="tab-general" class="tab-pane">
+              <div id="tab-data" class="tab-pane">
                 {{-- main column_code--}}
                 <div class="row mb-3">
                   <label class="col-sm-2 col-form-label">{{ $lang->column_code }}</label>
@@ -107,6 +107,18 @@
                     <input type="hidden" id="input-parent_id" name="parent_id" value="{{ $term->parent_id }}" />
                     <ul id="autocomplete-parent_name" class="dropdown-menu"></ul>
                     <div class="form-text"></div><?php /* help text */ ?>
+                  </div>
+                </div>
+
+                {{-- comment --}}
+                <div class="row mb-3">
+                  <label class="col-sm-2 col-form-label">{{ $lang->column_comment }}</label>
+                  <div class="col-sm-10">
+                    <div class="input-group">
+                      <textarea id="input-comment" name="comment" class="form-control">{{ $term->comment }}</textarea>
+                    </div>
+                    <div class="form-text"></div>
+                    <div id="error-comment" class="invalid-feedback"></div>
                   </div>
                 </div>
 

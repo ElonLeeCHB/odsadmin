@@ -3,7 +3,7 @@
 namespace App\Domains\Admin\Services\Counterparty;
 
 use Illuminate\Support\Facades\DB;
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
 use App\Repositories\Eloquent\Counterparty\OrganizationRepository;
 
 class SupplierService extends Service
@@ -11,9 +11,7 @@ class SupplierService extends Service
     protected $modelName = "\App\Models\Counterparty\Organization";
 
 	public function __construct(protected OrganizationRepository $OrganizationRepository)
-	{
-        $this->OrganizationRepository = $OrganizationRepository;
-	}
+	{}
 
 	public function getSuppliers($data=[], $debug = 0)
 	{
@@ -27,7 +25,7 @@ class SupplierService extends Service
 
         $data['with'] = 'payment_term';
 		
-		$rows = $this->getRows($data);
+		$rows = $this->getRows($data, $debug);
 
 		if(!empty($rows)){
             foreach ($rows as $row) {
@@ -58,6 +56,9 @@ class SupplierService extends Service
             $supplier->short_name = $data['short_name'] ?? null;
             $supplier->tax_id_num = $data['tax_id_num'] ?? null;
             $supplier->payment_term_id = $data['payment_term_id'] ?? 0;
+            $supplier->telephone = $data['telephone'] ?? '';
+            $supplier->fax = $data['fax'] ?? '';
+            $supplier->comment = $data['comment'] ?? null;
             $supplier->is_active = $data['is_active'] ?? 1;
             $supplier->is_supplier = 1;
             $supplier->is_customer = $data['is_customer'] ?? 0;

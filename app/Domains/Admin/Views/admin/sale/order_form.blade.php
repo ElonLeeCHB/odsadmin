@@ -20,7 +20,7 @@
       <div class="float-end">
         <a data-href="{{ $printReceiveForm }}" id="href-printReceiveForm"  target="_blank" data-bs-toggle="tooltip" title="列印訂單簽收單" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
         <button type="submit" id="btn-save-order_form" form="form-order" data-bs-toggle="tooltip" title="Save" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
-        <a href="{{ $back }}" id="href-save" data-bs-toggle="tooltip" title="{{ $lang->button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+        <a href="{{ $back_url }}" id="href-save" data-bs-toggle="tooltip" title="{{ $lang->button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
       </div>
       @include('admin.common.breadcumb')
     </div>
@@ -28,7 +28,7 @@
   <div class="container-fluid">
     <div class="card">
       <div class="card-body">
-        <form id="form-order" action="{{ $save }}" method="post" data-oc-toggle="ajax">
+        <form id="form-order" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
           @csrf
           @method('POST')
           <input type="hidden" id="input-location_id" name="location_id" value="{{ $order->location_id }}" >
@@ -87,8 +87,8 @@
                         <td class="col-md-2">
                         <input type="text" id="input-delivery_time_range" name="delivery_time_range" value="{{ $order->delivery_time_range }}" placeholder="例如 1130-1230" class="form-control">
                         </td>
-                        <td class="col-md-1 text-end colname-font">出餐時間</td>
-                        <td class="col-md-2"><input type="text" id="input-delivery_date_hi" name="delivery_date_hi"value="{{ $order->delivery_date_hi }}" class="width4char" placeholder="例如 12:00" ></td>
+                        <td class="col-md-1 text-end colname-font">地址簡稱</td>
+                        <td class="col-md-2"><input type="text" id="input-shipping_road_abbr" name="shipping_road_abbr" value="{{ $order->shipping_road_abbr }}" class="form-control"></td>
                       </tr>
                       
                       <tr>
@@ -134,15 +134,22 @@
                           <div class="input-group" style="display: flex;margin-right: 5px;width:100%;">
                             <input type="text" id="input-telephone_prefix" name="telephone_prefix" value="{{ $order->telephone_prefix }}" placeholder="區碼" style="width:40px"/>
                             <input type="text" id="input-telephone" name="telephone" value="{{ $order->telephone }}" placeholder="查詢時請輸入至少3個數字" data-oc-target="autocomplete-telephone" class="form-control"/>
-                            <ul id="autocomplete-telephone" class="dropdown-menu"></ul>
                             <div id="error-telephone" class="invalid-feedback"></div>
                             <span id="span-hasOrder" style="color:red"></span>
                           </div>
-
-
+                          <ul id="autocomplete-telephone" class="dropdown-menu"></ul>
+                          
                        </td>
-                        <td class="col-md-1 text-end colname-font">控單表備註</td>
-                        <td class="col-md-2"><input type="text" id="input-delivery_time_comment" name="delivery_time_comment" value="{{ $order->delivery_time_comment }}" placeholder="a 或 b 或 a,b" class="form-control"></td>
+                        <td class="col-md-1 text-end colname-font">訂單標籤</td>
+                        <td class="col-md-2">
+                          <select id="input-order_tag" name="order_tag[]" class="select2-multiple form-control" multiple="multiple"></select><BR>
+                          <div class="selOrderTag">
+                            <button type="button">會</button>
+                            <button type="button">教</button>
+                            <button type="button">幫</button>
+                            <button type="button">清</button>
+                          </div>
+                        </td>
                       </tr>
 
                       <tr>
@@ -176,8 +183,10 @@
                           <input type="text" id="input-payment_tin" name="payment_tin" value="{{ $order->payment_tin }}" placeholder="統一編號" data-oc-target="autocomplete-payment_tin" class="form-control" autocomplete="off">
                           <ul id="autocomplete-payment_tin" class="dropdown-menu"></ul>
                         </td>
-                        <td class="col-md-1 text-end colname-font">地址簡稱</td>
-                        <td class="col-md-2"><input type="text" id="input-shipping_road_abbr" name="shipping_road_abbr" value="{{ $order->shipping_road_abbr }}" class="form-control"></td>
+                        <td class="col-md-1 text-end colname-font">控單表備註</td>
+                        <td class="col-md-2">
+                          <input type="text" id="input-delivery_time_comment" name="delivery_time_comment" value="{{ $order->delivery_time_comment }}" placeholder="a 或 b 或 a,b" class="form-control">
+                        </td>
                       </tr>
 
                       <tr>
@@ -199,8 +208,11 @@
                             <label for="input-same_order_customer" class="form-check-label">同訂購人</label>
                           </div>
                         </td>
-                        <td class="col-md-1 text-end colname-font"></td>
-                        <td class="col-md-2"></td>
+                        <td class="col-md-1 text-end colname-font">出餐時間<BR>製餐時間</td>
+                        <td class="col-md-2">
+                          <input type="text" id="input-production_ready_time" name="production_ready_time"value="{{ $order->production_ready_time }}" class="width4char" placeholder="例如 11:30" > (完成製作的時間)<BR>
+                          <input type="text" id="input-production_start_time" name="production_start_time"value="{{ $order->production_start_time }}" class="width4char" placeholder="例如 11:30" > (開始製作的時間)
+                        </td>
                       </tr>
 
                       <tr>
@@ -235,16 +247,8 @@
                         </td>
                         <td class="col-md-1 text-end colname-font">收件電話</td>
                         <td class="col-md-2"><input type="text" id="input-shipping_phone" name="shipping_phone" value="{{ $order->shipping_phone }}" class="form-control"></td>
-                        <td class="col-md-1 text-end colname-font">訂單標籤</td>
-                        <td class="col-md-2">
-                          <select id="input-order_tag" name="order_tag[]" class="select2-multiple form-control" multiple="multiple"></select><BR>
-                          <div class="selOrderTag">
-                            <button type="button">會</button>
-                            <button type="button">教</button>
-                            <button type="button">幫</button>
-                            <button type="button">清</button>
-                          </div>
-                        </td>
+                        <td class="col-md-1 text-end colname-font"></td>
+                        <td class="col-md-2"></td>
                       </tr>
 
                       <tr style="display: none;">
@@ -400,7 +404,7 @@
             @foreach($order_extra_comment_phrases as $phrase)
             <tr>
               <td class="phrase sorting_1">{{ $phrase->sort_order }}</td>
-              <td class="phrase sorting_2" data-phrase-column="product_comment">{{ $phrase->translation->name }}</td>
+              <td class="phrase sorting_2" data-phrase-column="product_comment">{{ $phrase->name }}</td>
             </tr>
             @endforeach
           </tbody>
@@ -433,7 +437,7 @@
             @foreach($order_comment_phrases as $phrase)
             <tr>
               <td class="phrase sorting_1">{{ $phrase->sort_order }}</td>
-              <td class="phrase sorting_2" data-phrase-column="comment">{{ $phrase->translation->name }}</td>
+              <td class="phrase sorting_2" data-phrase-column="comment">{{ $phrase->name }}</td>
             </tr>
             @endforeach
           </tbody>
@@ -543,7 +547,6 @@ $("#input-nav_location_id" ).trigger( "change" );
 //選常用片語
 // $('#table-phrase-comment').DataTable();
 // $('#table-phrase-extra_comment').DataTable();
-//alert(33)
 var phraseType = '';
 
 //客戶備註選常用片語
@@ -694,7 +697,7 @@ $(document).ready(function() {
     $('#input-personal_name').autocomplete({
       'minLength': 1,
       'source': function (request, response) {
-        var regex = /[a-zA-Z0-9\u3105-\u3129]+/;
+        var regex = /[a-zA-Z0-9\u3105-\u3129]+/;//注音符號
         if (regex.test(request)) {
           return;
         }else{
@@ -755,23 +758,6 @@ $('#input-telephone').autocomplete({
   }
 });
 
-//查email
-$('#input-email').autocomplete({
-  'minLength': 2,
-  'source': function(request, response) {
-    $.ajax({
-      url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_email=" + encodeURIComponent(request) + '&show_column1=name&show_column2=email',
-      dataType: 'json',
-      success: function(json) {
-        response(json);
-      }
-    });
-  },
-  'select': function(event,ui) {
-    setCustomerInfo(event)
-  }
-});
-
 //查客戶之後重設單頭
 function setCustomerInfo(item){
   $('#input-personal_name').val(item.personal_name);
@@ -815,7 +801,7 @@ $('#input-payment_tin').autocomplete({
   source: function(request, response) {
     if(request.length > 7){
       $.ajax({
-        url: "{{ route('lang.admin.member.guin.autocompleteSingle') }}?filter_payment_tin=" + encodeURIComponent(request),
+        url: "{{ $tax_id_nums_list_url }}?filter_tax_id_num=" + encodeURIComponent(request),
         dataType: 'json',
         success: function(json) {
           response(json);
@@ -859,7 +845,7 @@ $('#a-payment_company').on('click', function(){
 function setShippingState(state_id){
   $.ajax({
       type:'get',
-      url: "{{ route('lang.admin.localization.divisions.getJsonCities') }}?filter_parent_id=" + state_id,
+      url: "{{ $cities_list_url }}?filter_parent_id=" + state_id,
       success:function(json){
         html = '<option value=""> -- </option>';
 
@@ -914,7 +900,7 @@ $('#input-shipping_road').autocomplete({
       url += '&filter_name=' + encodeURIComponent(filter_name);
     }
 
-    url = "{{ route('lang.admin.localization.roads.autocomplete') }}?" + url;
+    url = "{{ $roads_list_url }}?" + url;
 
     $.ajax({
       url: url,

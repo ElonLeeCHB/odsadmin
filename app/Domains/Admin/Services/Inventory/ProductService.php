@@ -1,17 +1,35 @@
 <?php
 
-namespace App\Domains\Admin\Services\Catalog;
+namespace App\Domains\Admin\Services\Inventory;
 
 use Illuminate\Support\Facades\DB;
-use App\Domains\Admin\Services\Service;
+use App\Services\Service;
+use App\Services\Inventory\GlobalProductService;
 use App\Models\Common\TermRelation;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
+use App\Repositories\Eloquent\Catalog\ProductUnitRepository;
+use Carbon\Carbon;
 
 class ProductService extends Service
 {
     public $modelName = "\App\Models\Catalog\Product";
+
+    public function __construct(private ProductRepository $ProductRepository,private ProductUnitRepository $ProductUnitRepository)
+    {}
+
+
+    public function getProducts($data = [], $debug = 0)
+    {
+        return $this->ProductRepository->getProducts($data, $debug);
+    }
+
+
+    public function getProduct($data = [], $debug = 0)
+    {
+        return $this->ProductRepository->getProduct($data, $debug);
+    }
 
 
     public function updateOrCreate($data)
@@ -19,6 +37,8 @@ class ProductService extends Service
         DB::beginTransaction();
 
         try {
+
+            // product
             $product = $this->findIdOrFailOrNew($data['product_id']);
 
             $product->model = $data['model'] ?? null;
@@ -28,12 +48,31 @@ class ProductService extends Service
             $product->comment = $data['comment'] ?? '';
             $product->is_active = $data['is_active'] ?? 0;
             $product->is_salable = $data['is_salable'] ?? 0;
+            $product->is_stock_management = $data['is_stock_management'] ?? 0;
+            
             $product->sort_order = $data['sort_order'] ?? 250;
+            $product->source_code = $data['source_code'] ?? '';
+            $product->accounting_category_code = $data['accounting_category_code'] ?? '';
+            
+            $product->supplier_id = $data['supplier_id'] ?? 0;
+            //$product->supplier_product_id = $data['supplier_product_id'] ?? 0;
+            $product->supplier_own_product_code = $data['supplier_own_product_code'] ?? '';
+            $product->supplier_own_product_name = $data['supplier_own_product_name'] ?? '';
+            $product->supplier_own_product_specification = $data['supplier_own_product_specification'] ?? '';
 
+            $product->purchasing_unit_code = $data['purchasing_unit_code'] ?? null;
+
+            if(empty($product->stock_unit_code)){
+                $product->stock_unit_code = $data['stock_unit_code'] ?? null;
+            }
+            
+            $product->manufacturing_unit_code = $data['manufacturing_unit_code'] ?? null;
+            
             $product->save();
 
             $product_id = $product->id;
 
+            // translations
             if(!empty($data['translations'])){
                 $this->saveTranslationData($product, $data['translations']);
             }
@@ -58,67 +97,34 @@ class ProductService extends Service
                 TermRelation::insert($insert_data);
             }
 
-            // Product Options
-            // Delete all
-            ProductOption::where('product_id', $product->id)->delete();
-            ProductOptionValue::where('product_id', $product->id)->delete();
+            // product_units
+            if(!empty($data['product_units'])){
+                $upsert_data = [];
+                foreach ($data['product_units'] as $product_unit) {
+                    //$product_unit['destination_unit_code'] = $product->stock_unit_code ?? null;
 
-            if(!empty($data['product_options'])){
-                if(!empty($data['product_options'])){
-                    foreach ($data['product_options'] as $product_option) {
-
-                        if ($product_option['type'] == 'options_with_qty' || $product_option['type'] == 'select' || $product_option['type'] == 'radio' || $product_option['type'] == 'checkbox' || $product_option['type'] == 'image') {
-                            if (isset($product_option['product_option_values'])) {
-                                $arr = [
-                                    'id' => $product_option['product_option_id'],
-                                    'option_id' => $product_option['option_id'],
-                                    'required' => $product_option['required'] ?? 0,
-                                    'sort_order' => $product_option['sort_order'] ?? 1000,
-                                    'is_active' => $product_option['is_active'] ?? 1,
-                                    'is_fixed' => $product_option['is_fixed'] ?? 0,
-                                    'is_hidden' => $product_option['is_hidden'] ?? 0,
-                                    'product_id' => $product->id,
-                                    'type' => $product_option['type'],
-                                ];
-                                $product_option_model = ProductOption::create($arr);
-
-                                foreach ($product_option['product_option_values'] as $product_option_value) {
-                                    $arr = [
-                                        'id' => $product_option_value['product_option_value_id'],
-                                        'product_option_id' => $product_option_model->id,
-                                        'option_id' => $product_option['option_id'],
-                                        'option_value_id' => $product_option_value['option_value_id'],
-                                        'product_id' => $product->id,
-                                        'price_prefix' => $product_option_value['price_prefix'],
-                                        'price' => $product_option_value['price'],
-                                        'sort_order' => $product_option_value['sort_order'] ?? 0,
-                                        'is_active' => $product_option_value['is_active'] ?? 1,
-                                        'is_default' => $product_option_value['is_default'] ?? 0,
-                                    ];
-                                    $product_option_value_model = ProductOptionValue::create($arr);
-
-                                    $cacheName = 'ProductId_' . $product->id . '_ProductOptionId_' . $product_option_model->id . '_ ProductOptionValues';
-                                    cache()->forget($cacheName);
-                                }
-                            }
-                        } else {
-                            $arr = [
-                                'id' => $product_option['option_id'],
-                                'option_id' => $product_option['option_id'],
-                                'required' => $product_option['required'],
-                                'sort_order' => $product_option['sort_order'] ?? 1000,
-                                'is_active' => $product_option['is_active'] ?? 1,
-                                'is_fixed' => $option_value['is_fixed'] ?? 0,
-                                'is_hidden' => $option_value['is_hidden'] ?? 0,
-                                'product_id' => $data['product_id'],
-                                'value' => $product_option['value'],
-                                'type' => $product_option['type'],
-                            ];
-                            $product_option = ProductOption::create($arr);
-                        }
+                    if(empty($product_unit['source_quantity']) || empty($product_unit['source_unit_code']) || empty($product_unit['destination_quantity']) || empty($product_unit['destination_unit_code'])){
+                       continue;
                     }
+
+                    $upsert_data[] = [
+                        'id' => $product_unit['id'] ?? null,
+                        'product_id' => $product->id,
+                        'source_quantity' => $product_unit['source_quantity'],
+                        'source_unit_code' => $product_unit['source_unit_code'],
+                        'destination_unit_code' => $product_unit['destination_unit_code'],
+                        'destination_quantity' => $product_unit['destination_quantity'],
+                    ];
+                }
+                
+                if(!empty($upsert_data)){
+                    $this->ProductUnitRepository->newModel()->where('product_id', $product->id)->delete();
+                    $this->ProductUnitRepository->newModel()->upsert($upsert_data, ['id']);
                 }
             }
+
+            // product_metas
+            $this->saveMetaDataset($product, $data);
 
             DB::commit();
 
@@ -205,8 +211,8 @@ class ProductService extends Service
     }
 
 
-    public function getCategories()
+    public function getProductSourceCodes()
     {
-        
+        return $this->ProductRepository->getProductSourceCodes();
     }
 }
