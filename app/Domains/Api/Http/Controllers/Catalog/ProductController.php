@@ -61,7 +61,7 @@ class ProductController extends ApiController
     public function details($product_id)
     {
         $queries = [
-            'equal_product_id' => $product_id,
+            'equal_id' => $product_id,
         ];
         $product = $this->ProductService->getRow($queries);
 

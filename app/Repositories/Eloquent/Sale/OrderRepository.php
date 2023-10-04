@@ -53,16 +53,6 @@ class OrderRepository extends Repository
         return $row;
     }
 
-
-    public function optimizeRows($rows)
-    {
-        foreach ($rows as $key => $row) {
-            $rows[$key] = $this->optimizeRow($row);
-        }
-
-        return $rows;
-    }
-
     public function sanitizeRow($row)
     {
         $arrOrder = $row->toArray();

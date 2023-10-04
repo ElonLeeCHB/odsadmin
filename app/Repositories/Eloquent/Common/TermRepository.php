@@ -158,10 +158,6 @@ class TermRepository extends Repository
     // 尋找關聯，並將關聯值賦予記錄
     public function optimizeRow($row)
     {
-        // if(!empty($row->status)){
-        //     $row->status_name = $row->status->name;
-        // }
-
         return $row;
     }
 

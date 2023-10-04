@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Pagination\LengthAwarePaginator;
 /**
  * initialize()
  * newModel()
@@ -100,14 +100,16 @@ trait EloquentTrait
     }
 
 
-    public function optimizeRows($rows)
+    /**
+     * LengthAwarePaginator
+     */
+    public function optimizeRows($rows): LengthAwarePaginator | Collection
     {
-        $new_rows = [];
         foreach ($rows as $key => $row) {
-            $new_rows[$key] = $this->optimizeRow($row);
+            $rows[$key] = $this->optimizeRow($row);
         }
-        
-        return $new_rows;
+
+        return $rows;
     }
 
 
@@ -1081,26 +1083,50 @@ trait EloquentTrait
         return false;
     }
 
-    
-    public function unsetRelations($rows, $relations)
+
+    public function unsetRelation($row, $relations)
     {
-        if ($rows instanceof \Illuminate\Database\Eloquent\Model) {
+        if ($row instanceof \Illuminate\Database\Eloquent\Model) {
             foreach ($relations as $relation) {
-                $rows->setRelation($relation, null);
+                $row->setRelation($relation, null);
             }
             
         }
-        else if(count($rows) > 1){
-            foreach ($rows as $row) {
-                foreach ($relations as $relation) {
-                    $row->setRelation($relation, null);
-                }
+        else if(is_array($row)){
+            foreach ($relations as $relation) {
+                unset($row[$relation]);
             }
+            
+        }
+
+        return $row;
+    }
+
+    /**
+     * 注意：原本的 appends 欄位會消失
+     */
+    public function unsetRelations($rows, $relations)
+    {
+        foreach ($rows as $key => $row) {
+            $rows[$key] = $this->unsetRelation($row, $relations);
         }
 
         return $rows;
     }
 
+
+    public function unsetArrayRelations($rows, $relations)
+    {
+        foreach ($rows as $key => $row) {
+            foreach ($relations as $relation) {
+                unset($row[$relation]);
+                $rows[$key] = $row;
+            } 
+        }
+
+        return $rows;
+        
+    }
 
     public function getYmSnCode($modelName)
     {

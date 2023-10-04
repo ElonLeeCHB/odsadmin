@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Domains\Api\Services\Counterparty;
+namespace App\Domains\Api\Services\Member;
 
 use Illuminate\Support\Facades\DB;
-use App\Services\Counterparty\MemberService as GlobalMemberService;
+use App\Services\Member\MemberService as GlobalMemberService;
 
 class MemberService extends GlobalMemberService
 {

@@ -184,7 +184,7 @@ class SupplierController extends BackendController
         $supplier->parent_name = $supplier->parent->name ?? '';
 
         $supplier->payment_term_name = $supplier->payment_term->name ?? '';
-        $supplier = $this->unsetRelations($supplier, ['payment_term']);
+        $supplier = $this->SupplierService->unsetRelation($supplier, ['payment_term']);
 
         $data['supplier']  = &$supplier;
 

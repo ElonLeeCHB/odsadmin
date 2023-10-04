@@ -8,12 +8,14 @@ use App\Http\Controllers\Controller;
 use App\Domains\Api\Http\Controllers\ApiController;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Api\Services\Sale\OrderService;
-use App\Domains\Api\Services\Counterparty\MemberService;
+use App\Domains\Api\Services\Member\MemberService;
 //use App\Domains\Api\Services\User\UserService;
 use App\Repositories\Eloquent\User\UserRepository;
 use App\Domains\Api\Services\Catalog\ProductService;
+use App\Repositories\Eloquent\Common\TermRepository;
 use App\Domains\Api\Services\Localization\CountryService;
 use App\Domains\Api\Services\Localization\DivisionService;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class OrderController extends ApiController
 {
@@ -23,12 +25,15 @@ class OrderController extends ApiController
         private MemberService $MemberService,
         //private UserService $UserService,
         private UserRepository $UserRepository,
+        private TermRepository $TermRepository,
         private ProductService $ProductService,
         private CountryService $CountryService,
         private DivisionService $DivisionService,
         )
     {
         parent::__construct();
+
+        $this->getLang(['admin/common/common','admin/sale/order']);
     }
 
     /**
@@ -44,7 +49,9 @@ class OrderController extends ApiController
 
         $orders = $this->OrderService->getOrders($filter_data);
 
-        $orders = $this->OrderService->sanitizeRows($orders);
+        $orders = $this->OrderService->optimizeRows($orders);
+
+        $this->OrderService->unsetRelations($orders, ['status']);
 
         return response(json_encode($orders))->header('Content-Type','application/json');
     }
@@ -174,14 +181,14 @@ class OrderController extends ApiController
     public function getOrderPhrasesByTaxonomyCode($taxonomy_code)
     {
         $query_data = $this->request->query();
+
+        $query_data['equal_taxonomy_code'] = $taxonomy_code;
+
+        $rows = $this->TermRepository->getTerms($query_data)->toArray();
+
+        $rows['data'] = $this->TermRepository->unsetArrayRelations($rows['data'], ['translation', 'taxonomy']);
         
-        $filter_data = [
-            'equal_taxonomy_code' => $taxonomy_code,
-            'sanitize' => true,
-        ];
-        $json = $this->OrderService->getOrderPhrasesByTaxonomyCode($filter_data)->toArray();
-
-        return response(json_encode($json))->header('Content-Type','application/json');
+        return response(json_encode($rows))->header('Content-Type','application/json');
     }
-
+    
 }

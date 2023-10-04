@@ -143,6 +143,15 @@
                           </tr>
                           @endforeach
                           @endif
+
+                          @php
+                              $columns = 4 + count($sales_ingredients_table_items);
+                            @endphp
+                          @for($i=0; $i<20; $i++)
+                          <tr>
+                            <td colspan="{{ $columns }}">&nbsp;&nbsp;</td>
+                          </tr>
+                          @endfor
                         </tbody>
                       </table>
                     </div>

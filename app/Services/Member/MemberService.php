@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Counterparty;
+namespace App\Services\Member;
 
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
@@ -146,6 +146,18 @@ class MemberService extends Service
 
         return $json;
 
+    }
+
+
+    public function optimizeRow($row)
+    {
+        return $this->MemberRepository->optimizeRow($row);
+    }
+
+
+    public function sanitizeRow($row)
+    {
+        return $this->MemberRepository->sanitizeRow($row);
     }
 
 }

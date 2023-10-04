@@ -60,8 +60,12 @@ class ProductRepository extends Repository
         $data = $this->resetQueryData($data);
         
         $data['equal_is_salable'] = 1;
+        $data['pagination'] = false;
+        $data['limit'] = 0;
 
-        return $this->getRows($data);
+        $salable_products = $this->getRows($data);
+
+        return $salable_products;
     }
 
 

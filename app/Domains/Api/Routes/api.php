@@ -71,16 +71,15 @@ Route::group([
     });
 
     Route::group([
-        'prefix' => 'counterparty',
-        'as' => 'counterparty.',
+        'prefix' => 'member',
+        'as' => 'member.',
     ], function ()
     {
-        Route::get('member', 'Counterparty\MemberController@list')->name('member.list');
-        Route::get('member/autocomplete', 'Counterparty\MemberController@autocomplete')->name('member.autocomplete');
-        Route::post('member/save', 'Counterparty\MemberController@save')->name('member.save');
-        Route::get('member/getSalutations', 'Counterparty\MemberController@getSalutations')->name('member.getSalutations');
-        Route::get('member/test', 'Counterparty\MemberController@test')->name('member.test');
-        Route::get('member/{member_id}', 'Counterparty\MemberController@details')->name('member.details');
+        Route::get('member', 'Member\MemberController@list')->name('member.list');
+        Route::get('member/autocomplete', 'Member\MemberController@autocomplete')->name('member.autocomplete');
+        Route::post('member/save', 'Member\MemberController@save')->name('member.save');
+        Route::get('member/getSalutations', 'Member\MemberController@getSalutations')->name('member.getSalutations');
+        Route::get('member/{member_id}', 'Member\MemberController@details')->name('member.details');
     });
 
     

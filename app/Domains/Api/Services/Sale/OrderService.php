@@ -4,15 +4,12 @@ namespace App\Domains\Api\Services\Sale;
 
 use Illuminate\Support\Facades\DB;
 use App\Services\Sale\OrderService as GlobalOrderService;
-use App\Domains\Api\Services\Sale\OrderProductOptionService;
-
 use App\Models\Common\Term;
 use App\Models\Common\TermTranslation;
 use App\Models\Common\TermRelation;
 use App\Models\Sale\OrderTotal;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Catalog\ProductTranslation;
-
 
 class OrderService extends GlobalOrderService
 {
@@ -360,7 +357,7 @@ class OrderService extends GlobalOrderService
                     }
                 }
                 if(!empty($update_order_product_options)){
-                    $this->OrderProductOptionService->newModel()->upsert($update_order_product_options,['id']);
+                    OrderProductOption::upsert($update_order_product_options,['id']);
                     unset($update_order_product_options);
                 }
             }

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Domains\Api\Http\Controllers\Counterparty;
+namespace App\Domains\Api\Http\Controllers\Member;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Domains\Api\Http\Controllers\ApiController;
-use App\Domains\Api\Services\Counterparty\MemberService;
+use App\Domains\Api\Services\Member\MemberService;
 use App\Domains\Api\Services\Localization\CountryService;
 use App\Domains\Api\Services\Localization\DivisionService;
 use App\Domains\Api\Services\Catalog\OptionService;
@@ -30,6 +30,10 @@ class MemberController extends ApiController
         $filter_data = $this->getQueries($query_data);
 
         $members = $this->MemberService->getMembers($filter_data);
+
+        $members = $this->MemberService->optimizeRows($members);
+
+        $members = $this->MemberService->unsetRelations($members, ['status']);
 
         return response(json_encode($members))->header('Content-Type','application/json');
     }
