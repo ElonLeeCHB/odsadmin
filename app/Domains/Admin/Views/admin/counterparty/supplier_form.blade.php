@@ -160,6 +160,19 @@
               </div>
 
               <div class="row mb-3">
+                <label for="input-tax_type" class="col-sm-2 col-form-label">{{ $lang->column_tax_type }}</label>
+                <div class="col-sm-10">
+                  <select id="input-tax_type_code" name="tax_type_code" class="form-control" >
+                    <option value="">{{ $lang->text_select }}</option>
+                    @foreach($tax_types as $tax_type)
+                    <option value="{{ $tax_type->code }}" @if($tax_type->code == $supplier->tax_type_code) selected @endif>{{ $tax_type->name }}</option>
+                    @endforeach
+                  </select>
+                  <div id="error-tax_type" class="invalid-feedback"></div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">{{ $lang->column_enable }}</label>
                 <div class="col-sm-10">
                   <div class="input-group">

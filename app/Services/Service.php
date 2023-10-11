@@ -10,4 +10,25 @@ class Service
 
 	protected $connection = null;
     protected $lang;
+    protected $repository;
+
+
+    public function optimizeRow($row)
+    {
+        if(!empty($this->repository)){
+            return $this->repository->optimizeRow($row);
+        }
+
+        return $row;
+    }
+
+
+    public function sanitizeRow($row)
+    {
+        if(!empty($this->repository)){
+            return $this->repository->sanitizeRow($row);
+        }
+
+        return $row;
+    }
 }

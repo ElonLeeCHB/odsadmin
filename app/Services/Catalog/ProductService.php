@@ -51,6 +51,12 @@ class ProductService extends Service
     }
 
 
+    public function getAllSalableProducts($data = [], $debug = 0)
+    {
+        return $this->ProductRepository->getAllSalableProducts($data, $debug);
+    }
+
+    
     public function updateOrCreateProduct($data)
     {
         DB::beginTransaction();

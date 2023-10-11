@@ -7,12 +7,17 @@ use App\Services\Service;
 use App\Services\Inventory\GlobalReceivingOrderService;
 use App\Repositories\Eloquent\Inventory\ReceivingOrderRepository;
 use App\Repositories\Eloquent\Inventory\ReceivingOrderProductRepository;
+use App\Repositories\Eloquent\Common\TermRepository;
 
 class ReceivingOrderService extends Service
 {
     protected $modelName = "\App\Models\Inventory\ReceivingOrder";
 
-    public function __construct(protected ReceivingOrderRepository $ReceivingOrderRepository, protected ReceivingOrderProductRepository $ReceivingOrderProductRepository)
+    public function __construct(protected ReceivingOrderRepository $ReceivingOrderRepository
+    , protected ReceivingOrderProductRepository $ReceivingOrderProductRepository
+    , protected TermRepository $TermRepository
+    
+    )
     {}
 
 
@@ -42,6 +47,7 @@ class ReceivingOrderService extends Service
             $receiving_order->tax = $data['tax'] ?? 0;
             $receiving_order->after_tax = $data['after_tax'] ?? 0;
             $receiving_order->status_code = $data['status_code'] ?? null;
+            $receiving_order->tax_type_code = $data['tax_type_code'] ?? null;
 
             $receiving_order->save();
 
@@ -174,5 +180,27 @@ class ReceivingOrderService extends Service
     public function getCachedActiveReceivingOrderStatuses($reset = false)
     {
         return $this->ReceivingOrderRepository->getCachedActiveReceivingOrderStatuses($reset);
+    }
+
+    public function getActiveTaxTypesIndexByCode()
+    {
+        $filter_data = [
+            'equal_taxonomy_code' => 'tax_type',
+            'pagination' => false,
+            'limit' => 0,
+            'sort' => 'code',
+            'order' => 'ASC',
+        ];
+        
+        $tax_types = $this->TermRepository->getTerms($filter_data)->toArray();
+
+        foreach ($tax_types as $key => $tax_type) {
+            unset($tax_type['translation']);
+            unset($tax_type['taxonomy']);
+            $tax_type_code = $tax_type['code'];
+            $new_tax_types[$tax_type_code] = (object) $tax_type;
+        }
+
+        return $new_tax_types;
     }
 }

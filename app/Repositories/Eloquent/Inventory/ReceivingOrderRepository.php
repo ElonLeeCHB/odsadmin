@@ -99,14 +99,15 @@ class ReceivingOrderRepository extends Repository
     {
         $cachedStatusesName = app()->getLocale() . '_receiving_order_statuses';
 
-        // 取得快取
-        if($reset){
+        // 不重設
+        if($reset == false){
             $statuses = cache()->get($cachedStatusesName);
 
             if(!empty($statuses)){
                 return $statuses;
             }
         }
+
 
         // 重設
         $filter_data = [

@@ -93,15 +93,15 @@ class CategoryController extends BackendController
         $data['order'] = strtolower($order);
 
         $query_data = $this->unsetUrlQueryData($query_data);
-
+        
+        
+        // link of table header for sorting
         $url = '';
 
         foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
-        
-        
-        // link of table header for sorting        
+
         $route = route('lang.admin.catalog.categories.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;

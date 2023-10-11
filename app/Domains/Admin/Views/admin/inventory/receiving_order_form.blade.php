@@ -21,7 +21,6 @@
   </div>
     <div class="container-fluid">
       <div class="card">
-        <div class="card-header"><i class="fas fa-pencil-alt"></i> {{ $lang->text_form }}</div>
         <div class="card-body">
           <ul class="nav nav-tabs">
             <li class="nav-item"><a href="#tab-data" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_data }}</a></li>
@@ -92,10 +91,35 @@
                   </div>
 
                   <div class="row mb-3">
-                    <label for="input-before_tax" class="col-sm-2 col-form-label">{{ $lang->column_before_tax }}</label>
+                    <label for="input-tax_type_code" class="col-sm-2 col-form-label">{{ $lang->column_tax_type }}</label>
                     <div class="col-sm-10">
-                      <input type="text" name="before_tax" value="{{ $receiving_order->before_tax }}" id="input-before_tax" class="form-control"/>
-                      <div id="error-before_tax" class="invalid-feedback"></div>
+                      <select id="input-tax_type_code" name="tax_type_code" class="form-select">
+                        <option value="">--</option>
+                        @foreach($tax_types as $code => $tax_type)
+                        <option value="{{ $tax_type->code }}" @if($tax_type->code == $receiving_order->tax_type_code) selected @endif>{{ $tax_type->name }}</option>
+                        @endforeach
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="row mb-3">
+                    <label for="hidden_amount" class="col-sm-2 col-form-label">{{ $lang->column_amount }}</label>
+                    <div class="col-sm-10">
+                      <input type="text" id="hidden_amount" value="{{ $receiving_order->amount }}" class="form-control" disabled/>
+                    </div>
+                  </div>
+
+                  <div class="row mb-3">
+                    <label for="hidden_tax" class="col-sm-2 col-form-label">{{ $lang->column_tax }}</label>
+                    <div class="col-sm-10">
+                      <input type="text" id="hidden_tax" value="{{ $receiving_order->tax }}" class="form-control" disabled/>
+                    </div>
+                  </div>
+
+                  <div class="row mb-3">
+                    <label for="hidden_total" class="col-sm-2 col-form-label">{{ $lang->column_total }}</label>
+                    <div class="col-sm-10">
+                      <input type="text" id="hidden_total" value="{{ $receiving_order->total }}" class="form-control" disabled/>
                     </div>
                   </div>
 
@@ -116,15 +140,14 @@
               </div>
 
               <div id="tab-products" class="tab-pane">
-
 <style>
     #tab-products .row1 {
-      border: 1px solid #ccc; /* 添加边框样式 */
-      padding: 2px; /* 添加一些内边距以改善外观 */
-      margin-bottom: 2px; /* 添加一些底部外边距以分隔模块 */
+      border: 1px solid #ccc;
+      padding: 2px;
+      margin-bottom: 2px;
     }
 </style>
-    <div class="row row1">
+    <div class="row row1 overflow-auto" style="height:300px">
       @php
         $product_row = 1;
       @endphp
@@ -186,7 +209,28 @@
       @php $product_row++; @endphp
       @endfor
     </div>
-
+              <table class="table table-bordered">
+                <tbody id="order-totals">
+                  <tr>
+                    <td class="text-end col-sm-2"><strong>{{ $lang->column_amount }}</strong></td>
+                    <td class="text-end">
+                      <input type="text" id="input-total-xxx" name="order_totals[xxx][value]" value="222" class="form-control" onchange="calcTotal()">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-end col-sm-2"><strong>{{ $lang->column_tax }}</strong></td>
+                    <td class="text-end">
+                      <input type="text" id="input-total-xxx" name="order_totals[xxx][value]" value="222" class="form-control" onchange="calcTotal()">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-end col-sm-2"><strong>{{ $lang->column_total }}</strong></td>
+                    <td class="text-end">
+                      <input type="text" id="input-total-xxx" name="order_totals[xxx][value]" value="222" class="form-control" onchange="calcTotal()">
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
               </div>
             </form>
             </div>
@@ -222,6 +266,7 @@ $(document).ready(function() {
         $('#input-supplier_id').val(item.supplier_id);
         $('#input-supplier_name').val(item.supplier_name);
         $('#input-tax_id_num').val(item.tax_id_num);
+        $('#input-tax_type_code').val(item.tax_type_code);
       }
     });
   });
@@ -279,14 +324,29 @@ $(document).ready(function() {
 
         $('#input-products-receiving_unit_code-'+rownum).empty();
 
-        for (var i = 0; i < item.product_units.length; i++) {
-          let unitData = item.product_units[i];
+        console.log(JSON.stringify(item.purchasing_units));
+
+        item.purchasing_units.forEach(function(unitData) {
           let option = $('<option></option>');
           option.val(unitData.source_unit_code + '_' + unitData.source_unit_name);
-          option.text(unitData.source_unit_code + ' ' + unitData.source_unit_name);
+          option.text(unitData.source_unit_name);
           option.attr('data-multiplier', unitData.destination_quantity);
           $('#input-products-receiving_unit_code-'+rownum).append(option);
-        }
+        });
+
+        // item.product_units.forEach(function(unitData) {
+        //   alert(unitData.source_unit_name)
+        // });
+
+
+        // for (var i = 0; i < item.product_units.length; i++) {
+        //   let unitData = item.product_units[i];
+        //   let option = $('<option></option>');
+        //   option.val(unitData.source_unit_code + '_' + unitData.source_unit_name);
+        //   option.text(unitData.source_unit_code + ' ' + unitData.source_unit_name);
+        //   option.attr('data-multiplier', unitData.destination_quantity);
+        //   $('#input-products-receiving_unit_code-'+rownum).append(option);
+        // }
       }
     });
   });
@@ -323,6 +383,12 @@ function chkPrice(inputElement){
   }
 }
 
+function calcTotal(){
+  var ro_amount = 0; //採購金額
+  var ro_total = 0; //金額總計
+  var ro_products_total = 0;
+  var ro_sub_total = 0;
+}
 </script>
 @endsection
 

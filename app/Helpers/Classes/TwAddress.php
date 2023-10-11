@@ -44,160 +44,160 @@ class TwAddress
 
         $pattern = '/([^市]+)市/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['city'] = $matches[1];
-            $result['full_city'] = $matches[0];
-            $address = str_replace($result['full_city'],'',$address);
+            $result['short_city'] = $matches[1];
+            $result['city'] = $matches[0];
+            $address = str_replace($result['city'],'',$address);
             
             if(!empty($result['divsionL1'])){ //有縣有市
-                $result['divsionL2'] = $result['full_city'];
+                $result['divsionL2'] = $result['city'];
             }else{
-                $result['divsionL1'] = $result['full_city'];
+                $result['divsionL1'] = $result['city'];
             }
         }
 
         $pattern = '/([^區]+)區/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['district'] = $matches[1];
-            $result['full_district'] = $matches[0];
-            $address = str_replace($result['full_district'],'',$address);
+            $result['short_district'] = $matches[1];
+            $result['district'] = $matches[0];
+            $address = str_replace($result['district'],'',$address);
             
-            $result['divsionL2'] = $result['full_district'];
+            $result['divsionL2'] = $result['district'];
         }
 
         $pattern = '/([^鄉]+)鄉/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['townshipX'] = $matches[1];
-            $result['full_townshipX'] = $matches[0];
-            $address = str_replace($result['full_townshipX'],'',$address);
+            $result['short_townshipX'] = $matches[1];
+            $result['townshipX'] = $matches[0];
+            $address = str_replace($result['townshipX'],'',$address);
             
-            $result['divsionL2'] = $result['full_townshipX'];
+            $result['divsionL2'] = $result['townshipX'];
         }
 
         $pattern = '/([^鎮]+)鎮/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['townshipZ'] = $matches[1];
-            $result['full_townshipZ'] = $matches[0];
-            $address = str_replace($result['full_townshipZ'],'',$address);
+            $result['short_townshipZ'] = $matches[1];
+            $result['townshipZ'] = $matches[0];
+            $address = str_replace($result['townshipZ'],'',$address);
             
-            $result['divsionL2'] = $result['full_townshipZ'];
+            $result['divsionL2'] = $result['townshipZ'];
         }
 
         $pattern = '/([^里]+)里/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['viliageL'] = $matches[1];
-            $result['full_viliageL'] = $matches[0];
-            $address = str_replace($result['full_viliageL'],'',$address);
+            $result['short_viliageL'] = $matches[1];
+            $result['viliageL'] = $matches[0];
+            $address = str_replace($result['viliageL'],'',$address);
         }
 
         $pattern = '/([^村]+)村/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['viliageC'] = $matches[1];
-            $result['full_viliageC'] = $matches[0];
-            $address = str_replace($result['full_viliageC'],'',$address);
+            $result['short_viliageC'] = $matches[1];
+            $result['viliageC'] = $matches[0];
+            $address = str_replace($result['viliageC'],'',$address);
         }
 
         $pattern = '/([^鄰]+)鄰/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['neighborhood'] = $matches[1];
-            $result['full_neighborhood'] = $matches[0];
-            $address = str_replace($result['full_neighborhood'],'',$address);
+            $result['short_neighborhood'] = $matches[1];
+            $result['neighborhood'] = $matches[0];
+            $address = str_replace($result['neighborhood'],'',$address);
         }
 
         $pattern = '/([^道]+)大道/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['boulevard'] = $matches[1];
-            $result['full_boulevard'] = $matches[0];
-            $address = str_replace($result['full_boulevard'],'',$address);
+            $result['short_boulevard'] = $matches[1];
+            $result['boulevard'] = $matches[0];
+            $address = str_replace($result['boulevard'],'',$address);
         }
 
         $pattern = '/([^路]+)路/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['road'] = $matches[1];
-            $result['full_road'] = $matches[0];
-            $address = str_replace($result['full_road'],'',$address);
+            $result['short_road'] = $matches[1];
+            $result['road'] = $matches[0];
+            $address = str_replace($result['road'],'',$address);
         }
 
         $pattern = '/([^街]+)街/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['street'] = $matches[1];
-            $result['full_street'] = $matches[0];
-            $address = str_replace($result['full_street'],'',$address);
+            $result['short_street'] = $matches[1];
+            $result['street'] = $matches[0];
+            $address = str_replace($result['street'],'',$address);
         }
 
         $pattern = '/([^段]+)段/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['section'] = $matches[1];
-            $result['full_section'] = $matches[0];
-            $address = str_replace($result['full_section'],'',$address);
+            $result['short_section'] = $matches[1];
+            $result['section'] = $matches[0];
+            $address = str_replace($result['section'],'',$address);
 
             //路街與段合併。中華郵政的路名是放在一起的。例如"忠孝東路一段" "忠孝東路二段"
             if(!empty($result['road']) && empty($result['street'])){// 有路無街
-                $result['full_road_section'] = $result['full_road'] . $result['full_section'];
+                $result['road_section'] = $result['road'] . $result['section'];
             }
             // 無路有街
             else if(empty($result['road']) && !empty($result['street'])){
-                $result['full_road_section'] = $result['full_street'] . $result['full_section'];
+                $result['road_section'] = $result['street'] . $result['section'];
             }
         }else{
-            $result['full_road_section'] = $result['full_road'] ?? $result['full_street'] ?? '';
+            $result['road_section'] = $result['road'] ?? $result['street'] ?? '';
         }
 
         $result['after_road_section'] = $address;
 
         $pattern = '/([^巷]+)巷/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['lane'] = $matches[1];
-            $result['full_lane'] = $matches[0];
-            $address = str_replace($result['full_lane'],'',$address);
+            $result['short_lane'] = $matches[1];
+            $result['lane'] = $matches[0];
+            $address = str_replace($result['lane'],'',$address);
         }
 
         $pattern = '/([^弄]+)弄/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['alley'] = $matches[1];
-            $result['full_alley'] = $matches[0];
-            $address = str_replace($result['full_alley'],'',$address);
+            $result['short_alley'] = $matches[1];
+            $result['alley'] = $matches[0];
+            $address = str_replace($result['alley'],'',$address);
         }
 
         $pattern = '/([^號]+)號/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['no'] = $matches[1];
-            $result['full_no'] = $matches[0];
-            $address = str_replace($result['full_no'],'',$address);
+            $result['short_no'] = $matches[1];
+            $result['no'] = $matches[0];
+            $address = str_replace($result['no'],'',$address);
         }
 
         $pattern = '/([^棟]+)棟/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['building'] = $matches[1];
-            $result['full_building'] = $matches[0];
-            $address = str_replace($result['full_building'],'',$address);
+            $result['short_building'] = $matches[1];
+            $result['building'] = $matches[0];
+            $address = str_replace($result['building'],'',$address);
         }
 
         $pattern = '/([^樓]+)大樓/u'; // 群光大樓、新光大樓 ...
         if(preg_match($pattern, $address,$matches)) {
-            $result['floorB'] = $matches[1];
-            $result['full_floorB'] = $matches[0];
-            $address = str_replace($result['full_floorB'],'',$address);
+            $result['short_floorB'] = $matches[1];
+            $result['floorB'] = $matches[0];
+            $address = str_replace($result['floorB'],'',$address);
         }
 
         $pattern = '/([^樓]+)樓/u'; // 1樓, 2樓 ... 
         if(preg_match($pattern, $address,$matches)) {
-            $result['floor'] = $matches[1];
-            $result['full_floor'] = $matches[0];
-            $address = str_replace($result['full_floor'],'',$address);
+            $result['short_floor'] = $matches[1];
+            $result['floor'] = $matches[0];
+            $address = str_replace($result['floor'],'',$address);
         }
 
         $pattern = '/([^房]+)房/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['roomF'] = $matches[1];
-            $result['full_roomF'] = $matches[0];
-            $address = str_replace($result['full_roomF'],'',$address);
+            $result['short_roomF'] = $matches[1];
+            $result['roomF'] = $matches[0];
+            $address = str_replace($result['roomF'],'',$address);
         }
 
         $pattern = '/([^室]+)室/u';
         if(preg_match($pattern, $address,$matches)) {
-            $result['roomS'] = $matches[1];
-            $result['full_roomS'] = $matches[0];
-            $address = str_replace($result['full_roomS'],'',$address);
+            $result['short_roomS'] = $matches[1];
+            $result['roomS'] = $matches[0];
+            $address = str_replace($result['roomS'],'',$address);
         }
 
         if(!empty($address)){

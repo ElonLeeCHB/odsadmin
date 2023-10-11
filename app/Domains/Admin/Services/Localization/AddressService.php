@@ -13,7 +13,7 @@ class AddressService extends Service
 {
     protected $modelName = "\App\Models\Localization\Address";
 
-	public function __construct(public AddressRepository $repository
+	public function __construct(AddressRepository $repository
 		, private DivisionRepository $divisionRepository
 		, private CountryRepository $countryRepository
 	)

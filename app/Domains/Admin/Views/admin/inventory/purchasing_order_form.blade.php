@@ -38,6 +38,7 @@
               <div id="tab-data" class="tab-pane active">
                 <fieldset>
                   <legend>{{ $lang->tab_data }}</legend>
+
                   <div class="row mb-3">
                     <label for="input-location_name" class="col-sm-2 col-form-label">{{ $lang->column_location_name }}</label>
                     <div class="col-sm-10">
@@ -85,6 +86,18 @@
                         <ul id="autocomplete-supplier_name" class="dropdown-menu"></ul>
                         <ul id="autocomplete-tax_id_num" class="dropdown-menu"></ul>
                       </div>
+                    </div>
+                  </div>
+
+                  <div class="row mb-3">
+                    <label for="input-tax_type_code" class="col-sm-2 col-form-label">{{ $lang->column_tax_type }}</label>
+                    <div class="col-sm-10">
+                      <select id="input-tax_type_code" name="tax_type_code" class="form-select">
+                        <option value="">--</option>
+                        @foreach($tax_types as $code => $tax_type)
+                        <option value="{{ $tax_type->code }}" @if($tax_type->code == $purchasing_order->tax_type_code) selected @endif>{{ $tax_type->name }}</option>
+                        @endforeach
+                      </select>
                     </div>
                   </div>
 

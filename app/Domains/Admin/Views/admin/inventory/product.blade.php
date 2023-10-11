@@ -155,7 +155,7 @@ $('#button-filter').on('click', function() {
     url += '&equal_is_active=' + encodeURIComponent(equal_is_active);
   }
 
-  url = "{{ route('lang.admin.catalog.products.list') }}?" + url;
+  url = "{{ $list_url }}?" + url;
 
   $('#product').load(url);
 });

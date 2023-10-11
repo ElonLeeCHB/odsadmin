@@ -301,6 +301,15 @@ class LayoutComposer
             ];
         }
 
+        if(1) {
+            $inventory[] = [
+                'name'	   => $this->lang->text_unit,
+                'icon'	   => '',
+                'href'     => route('lang.admin.inventory.units.index'),
+                'children' => []
+            ];
+        }
+
         // 料件分類建立作業
         if(1) {
             $inventory[] = [

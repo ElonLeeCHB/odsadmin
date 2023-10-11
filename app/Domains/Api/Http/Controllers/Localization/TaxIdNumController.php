@@ -23,35 +23,38 @@ class TaxIdNumController extends ApiController
         parent::__construct();
     }
 
-    public function info($tin)
+    public function detail($tin)
     {
         $data = $this->request->all();
 
+        $json = [];
+
         if(strlen($tin) < 8){
-            return response(json_encode('長度不足'))->header('Content-Type','application/json');
+            $json['error'] = '長度不足';
+            return response(json_encode($json))->header('Content-Type','application/json');
         }
 
         $filter_data = [
-            'filter_tax_id_num' => $tin,
+            'equal_tax_id_num' => $tin,
             'regexp' => false,
         ];
 
-        $record = $this->TaxIdNumberService->getRow($filter_data);
+        $record = $this->TaxIdNumberService->getTaxIdNumRow($filter_data,1);
 
         if(!empty($record)){
             $arr = TwAddress::parseGovProvidedAddress($record->address);
 
             if(!empty($arr['divsionL1'])){
                 $filter_data = [
-                    'filter_level' => 1,
+                    'equal_level' => 1,
                     'filter_name' => $arr['divsionL1'],
                     'regexp' => false,
                 ];
                 $divsionL1 = $this->DivisionService->getRow($filter_data);
 
                 $filter_data = [
-                    'filter_parent_id' => $divsionL1->id,
-                    'filter_level' => 2,
+                    'equal_parent_id' => $divsionL1->id,
+                    'equal_level' => 2,
                     'filter_name' => $arr['divsionL2'],
                     'regexp' => false,
                 ];
@@ -62,10 +65,14 @@ class TaxIdNumController extends ApiController
             }
 
             $record->address_parts = $arr;
+
+            $json = $record;
+        }else{
+            $json = ['error' => '查無資料'];
         }
 
 
-        return response(json_encode($record))->header('Content-Type','application/json');
+        return response(json_encode($json))->header('Content-Type','application/json');
     }
 
 

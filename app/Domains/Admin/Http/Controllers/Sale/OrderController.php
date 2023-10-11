@@ -267,7 +267,6 @@ class OrderController extends BackendController
 
         // Get Record
         $order = $this->OrderService->findIdOrFailOrNew($order_id);
-        
 
         $order->load('order_products.product_options.active_product_option_values.translation');
         $order->load('order_products.order_product_options');
@@ -290,7 +289,8 @@ class OrderController extends BackendController
 
         $this->order = $order;
 
-        $data['order']  = $this->OrderService->refineRow($order, ['optimize' => true, 'sanitize' => true]);
+        //$data['order']  = $this->OrderService->refineRow($order, ['optimize' => true, 'sanitize' => true]);
+        $data['order'] = $order;
 
         if(empty($this->request->location_id)){
             $data['location_id'] = 2;
@@ -393,18 +393,10 @@ class OrderController extends BackendController
 
         // Order Total
         if(!empty($order->id)){
-            $filter_data = [
-                'filter_order_id' => $order->id,
-                'regexp' => false,
-                'limit' => 0,
-                'pagination' => false,
-                'sort' => 'id',
-                'order' => 'ASC',
-            ];
-            $order_totals = $this->OrderService->getOrderTotals($filter_data);
+            $order_totals = $this->OrderService->getOrderTotals($order_id);
         }
 
-        if(isset($order_totals) && !$order_totals->isEmpty()){
+        if(isset($order_totals) && !empty($order_totals)){
             foreach ($order_totals as $key => $order_total) {
                 $data['order_totals'][$order_total->code] = $order_total;
             }
@@ -436,7 +428,7 @@ class OrderController extends BackendController
         $order = $this->order;
 
         // 所有可銷售商品
-        $data['salable_products'] = $this->ProductService->getSalableProducts();
+        $data['salable_products'] = $this->ProductService->getAllSalableProducts();
 
         $products_html = [];
 
@@ -462,7 +454,7 @@ class OrderController extends BackendController
         $data['lang'] = $this->lang;
 
         // 所有可銷售商品
-        $data['salable_products'] = $this->ProductService->getSalableProducts();
+        $data['salable_products'] = $this->ProductService->getAllSalableProducts();
 
         $order_product = [];
         if(!empty($param['order_product'])){
@@ -1014,9 +1006,9 @@ class OrderController extends BackendController
             'sort' => 'id',
             'order' => 'ASC',
         ];
-        $order_totals = $this->OrderService->getOrderTotal($filter_data);
+        $order_totals = $this->OrderService->getOrderTotals($filter_data);
 
-        if(!$order_totals->isEmpty()){
+        if(!empty($order_totals)){
             foreach ($order_totals as $key => $order_total) {
                 $data['order_totals'][$order_total->code] = $order_total;
             }

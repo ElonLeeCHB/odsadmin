@@ -140,7 +140,7 @@ class MemberService extends Service
 
     public function getJsonMembers($data)
     {
-        $json = $this->MemberRepository->getJsonList($data);
+        $json = $this->UserRepository->getJsonList($data);
 
         return $json;
 

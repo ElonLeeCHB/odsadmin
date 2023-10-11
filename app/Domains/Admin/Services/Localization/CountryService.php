@@ -9,8 +9,10 @@ class CountryService extends Service
 {
     protected $modelName = "\App\Models\Localization\Country";
 	
-	public function __construct(public CountryRepository $repository)
-	{}
+	public function __construct(CountryRepository $repository)
+	{
+		$this->repository = $repository;
+    }
 
 	public function getCountries($data = [])
 	{

@@ -20,7 +20,9 @@ class MemberController extends ApiController
         , private DivisionService $DivisionService
         , private OptionService $OptionService
         )
-    {}
+    {
+        $this->getLang(['admin/common/common','admin/member/member']);
+    }
 
 
     public function list()

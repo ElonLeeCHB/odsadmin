@@ -15,7 +15,7 @@ class TermService extends Service
 
     public function updateOrCreate($data)
     {
-        return $this->TermRepository->updateOrCreate($data);
+        return $this->TermRepository->updateOrCreateTerm($data);
     }
     
 

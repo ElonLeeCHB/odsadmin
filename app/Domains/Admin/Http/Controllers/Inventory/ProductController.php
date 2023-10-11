@@ -70,7 +70,7 @@ class ProductController extends BackendController
         $data['add_url']    = route('lang.admin.inventory.products.form');
         $data['delete_url'] = route('lang.admin.inventory.products.delete');
 
-        return view('admin.catalog.product', $data);
+        return view('admin.inventory.product', $data);
     }
 
     public function list()
@@ -93,7 +93,7 @@ class ProductController extends BackendController
 
         // Rows
         $products = $this->ProductService->getProducts($query_data);
-        //echo '<pre>', print_r($products, 1), "</pre>"; exit;
+
         if(!empty($products)){
             foreach ($products as $row) {
                 $row->edit_url = route('lang.admin.inventory.products.form', array_merge([$row->id], $query_data));
@@ -132,7 +132,7 @@ class ProductController extends BackendController
         $data['sort_quantity'] = $route . "?sort=quantity&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
 
-        return view('admin.catalog.product_list', $data);
+        return view('admin.inventory.product_list', $data);
     }
 
 
@@ -195,8 +195,8 @@ class ProductController extends BackendController
             $queries['limit'] = $this->request->query('limit');
         }
 
-        $data['save'] = route('lang.admin.inventory.products.save');
-        $data['back'] = route('lang.admin.inventory.products.index', $queries);
+        $data['save_url'] = route('lang.admin.inventory.products.save');
+        $data['back_url'] = route('lang.admin.inventory.products.index', $queries);
 
         // Get Record
         $product = $this->ProductService->findIdOrFailOrNew($product_id);
@@ -339,7 +339,7 @@ class ProductController extends BackendController
             'pagination' => false,
             'limit' => 0,
         ];
-        $data['units'] = $this->UnitRepository->getActiveUnits($filter_data);
+        $data['units'] = $this->UnitRepository->getAllActiveUnits($filter_data);
 
         return view('admin.inventory.product_form', $data);
     }
@@ -423,13 +423,30 @@ class ProductController extends BackendController
 
         $rows = $this->ProductService->getProducts($filter_data);
 
-        foreach ($rows as $row) {
-            $product_units = $row->product_units->toArray();
+        // units
+        $filter_data = [
+            'to_array' => true,
+        ];
+        $units = $this->UnitRepository->getAllActiveUnits($filter_data);
+        $units = array_values($units);
 
-            foreach ($product_units as $key => $product_unit) {
-                $product_unit['source_unit_name'] = $product_unit['source_unit']['name'];
-                unset($product_unit['source_unit']);
-                $product_units[$key] = $product_unit;
+        foreach ($rows as $row) {
+            $purchasing_units = $row->product_units->toArray();
+
+            if(!empty($purchasing_units)){
+                foreach ($purchasing_units as $key => $product_unit) {
+                    $product_unit['source_unit_name'] = $product_unit['source_unit']['name'];
+                    unset($product_unit['source_unit']);
+                    $purchasing_units[$key] = $product_unit;
+                }
+            }else{
+                foreach ($units as $key => $unit) {
+                    $purchasing_units[$key] = [
+                        'source_unit_code' => $unit['code'],
+                        'source_unit_name' => $unit['name'],
+                        'destination_quantity' => 1,
+                    ];
+                }  
             }
 
             $json[] = array(
@@ -440,7 +457,7 @@ class ProductController extends BackendController
                 'model' => $row->model,
                 'stock_unit_code' => $row->stock_unit_code,
                 'stock_unit_name' => $row->stock_unit_name,
-                'product_units' => $product_units,
+                'purchasing_units' => $purchasing_units,
             );
         }
 

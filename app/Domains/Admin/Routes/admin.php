@@ -200,6 +200,12 @@ Route::group(
                 Route::get('warehouses/form/{id?}', 'Inventory\WarehouseController@form')->name('warehouses.form');
                 Route::post('warehouses/save/{id?}', 'Inventory\WarehouseController@save')->name('warehouses.save');
                 Route::post('warehouses/delete', 'Inventory\WarehouseController@delete')->name('warehouses.delete');
+                
+                Route::get('units', 'Inventory\UnitController@index')->name('units.index');
+                Route::get('units/list', 'Inventory\UnitController@list')->name('units.list');
+                Route::get('units/form/{id?}', 'Inventory\UnitController@form')->name('units.form');
+                Route::post('units/save/{id?}', 'Inventory\UnitController@save')->name('units.save');
+                Route::post('units/delete', 'Inventory\UnitController@delete')->name('units.delete');
 
                 Route::get('categories', 'Inventory\CategoryController@index')->name('categories.index');
                 Route::get('categories/list', 'Inventory\CategoryController@list')->name('categories.list');

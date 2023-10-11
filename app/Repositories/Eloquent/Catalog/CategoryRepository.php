@@ -3,6 +3,7 @@
 namespace App\Repositories\Eloquent\Catalog;
 
 use App\Repositories\Eloquent\Common\TermRepository;
+use App\Models\Common\Term;
 
 class CategoryRepository extends TermRepository
 {
@@ -24,6 +25,16 @@ class CategoryRepository extends TermRepository
     public function getCategories($data = [], $debug = 0)
     {
         $data['equal_taxonomy_code'] = 'product_category';
+
+        // Sort && Order
+        if(isset($data['sort']) && $data['sort'] == 'name'){
+            unset($data['sort']);
+
+            if(!isset($data['order'])){
+                $data['order'] = 'ASC';
+            }
+            $data['orderByRaw'] = '(SELECT name FROM term_translations WHERE term_translations.term_id = terms.id) ' . $data['order'];
+        }
 
         $rows = $this->getTerms($data, $debug);
 

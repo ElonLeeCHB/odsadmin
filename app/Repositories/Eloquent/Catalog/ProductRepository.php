@@ -29,6 +29,20 @@ class ProductRepository extends Repository
     {
         $data = $this->resetQueryData($data);
 
+
+        // Sort && Order
+        if(isset($data['sort']) && $data['sort'] == 'name'){
+            unset($data['sort']);
+
+            if(!isset($data['order'])){
+                $data['order'] = 'ASC';
+            }
+            
+            $locale = app()->getLocale();
+
+            $data['orderByRaw'] = "(SELECT name FROM product_translations WHERE locale='".$locale."' and product_translations.product_id = products.id) " . $data['order'];
+        }
+
         $products = $this->getRows($data, $debug);
 
         $source_codes = $this->getProductSourceCodes();
@@ -57,13 +71,20 @@ class ProductRepository extends Repository
 
     public function getSalableProducts($data = [], $debug = 0)
     {
-        $data = $this->resetQueryData($data);
-        
+        $data['equal_is_salable'] = 1;
+
+        $salable_products = $this->getProducts($data, $debug);
+
+        return $salable_products;
+    }
+
+
+    public function getAllSalableProducts($data = [], $debug = 0)
+    {
         $data['equal_is_salable'] = 1;
         $data['pagination'] = false;
         $data['limit'] = 0;
-
-        $salable_products = $this->getRows($data);
+        $salable_products = $this->getProducts($data, $debug);
 
         return $salable_products;
     }

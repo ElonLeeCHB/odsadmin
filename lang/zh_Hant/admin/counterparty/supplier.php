@@ -25,6 +25,7 @@ return [
 'column_supplier_bank_code' => '銀行代號',
 'column_supplier_bank_account' => '銀行帳號',
 'column_payment_term' => '付款條件',
+'column_tax_type' => '課稅別',
 
 'column_supplier_contact_name' => '聯絡人',
 'column_supplier_contact_email' => '聯絡email',
@@ -32,5 +33,7 @@ return [
 'column_supplier_contact_telephone' => '聯絡人市話',
 'column_supplier_contact_mobile' => '聯絡人手機',
 
+
+'error_short_name' => '簡稱必須2-50個字',
 ];
 

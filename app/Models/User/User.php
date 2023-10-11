@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Sale\Order;
 use App\Traits\Model\ModelTrait;
 
 class User extends Authenticatable
@@ -88,6 +89,12 @@ class User extends Authenticatable
             get: fn ($value) => $is_admin,
         );
     }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'customer_id', 'id');
+    }
+
 
     protected function personalName(): Attribute
     {

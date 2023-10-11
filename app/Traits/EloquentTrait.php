@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
+use PDO;
+
 /**
  * initialize()
  * newModel()
@@ -152,7 +154,7 @@ trait EloquentTrait
      * $data['limit']
      * $data['no_default_translation']  true,false
      */
-    public function getRows($data=[], $debug=0)
+    public function getRows($data = [], $debug = 0)
     {
         $this->initialize($data);
 
@@ -342,28 +344,27 @@ trait EloquentTrait
             }
         }
         
-        // Sort
-        if(empty($data['sort']) || $data['sort'] == 'id'){
-            $sort = $this->model->getTable() . '.id';
-        }else{
-            $sort = $data['sort'];
-        }
-
-        // Order
-        if (isset($data['order']) && ($data['order'] == 'ASC')) {
-            $order = 'ASC';
-        }
-        else{
-            $order = 'DESC';
-        }
-
-        $query->orderBy($sort, $order);
-
-        
-
+        // Sort & Order
         if(!empty($data['orderByRaw'])){
             $query->orderByRaw($data['orderByRaw']);
+        }else{
+            if(empty($data['sort']) || $data['sort'] == 'id'){
+                $sort = $this->model->getTable() . '.id';
+            }else{
+                $sort = $data['sort'];
+            }
+    
+            // Order
+            if (isset($data['order']) && ($data['order'] == 'ASC')) {
+                $order = 'ASC';
+            }
+            else{
+                $order = 'DESC';
+            }
+    
+            $query->orderBy($sort, $order);
         }
+
 
         // Select
         if(isset($data['select'])){
@@ -951,7 +952,7 @@ trait EloquentTrait
         }
     }
 
-
+/*
     public function rowsToStdObj($rows)
     {
         foreach ($rows as $key => $row) {
@@ -960,6 +961,32 @@ trait EloquentTrait
 
         return $rows;
     }
+    */
+
+    public function rowsToStdObj($rows, $data = [])
+    {
+        if(!is_array($rows) && method_exists($rows, 'toArray')) {
+            $rows = $rows->toArray();
+        }
+
+        foreach ($rows as $key => $row) {
+
+            if(!is_array($row) && method_exists($row, 'toArray')) {
+                $row = $row->toArray();
+            }
+            
+            if(!empty($data['unset'])){
+                foreach ($data['unset'] as $key2) {
+                    unset($row[$key2]);
+                }
+            }
+
+            $rows[$key] = (object) $row;
+        }
+
+        return $rows;
+    }
+
 
     public function rowToStdObj($row)
     {

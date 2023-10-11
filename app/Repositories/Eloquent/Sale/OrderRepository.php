@@ -150,6 +150,8 @@ class OrderRepository extends Repository
             $option_value_id = $option_value['id'];
             $result[$option_value_id] = (object) $option_value;
         }
+
+        return $result;
     }
 
     public function getCachedActiveOrderStatuses($reset = false)

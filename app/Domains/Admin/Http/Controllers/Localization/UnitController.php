@@ -6,10 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use Illuminate\Http\Request;
 use App\Services\Localization\UnitService;
+use App\Repositories\Eloquent\Common\UnitRepository;
 
 class UnitController extends BackendController
 {
-    public function __construct(private Request $request, private UnitService $UnitService)
+    public function __construct(private Request $request, private UnitService $UnitService, private UnitRepository $UnitRepository)
     {
         parent::__construct();
 
@@ -62,8 +63,8 @@ class UnitController extends BackendController
             }
         }
 
-        $rows = $this->UnitService->getActiveUnits($filter_data);
-
+        $rows = $this->UnitRepository->getAllActiveUnits($filter_data);
+        
         if(empty($rows)){
             return false;
         }

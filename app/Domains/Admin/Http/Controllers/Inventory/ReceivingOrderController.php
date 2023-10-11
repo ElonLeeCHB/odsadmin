@@ -198,7 +198,9 @@ class ReceivingOrderController extends BackendController
             'filter_keyword' => $this->request->filter_keyword,
             'pagination' => false,
         ];
-        $data['units'] = $this->UnitRepository->getActiveUnits($filter_data);
+        $data['units'] = $this->UnitRepository->getAllActiveUnits($filter_data);
+
+        $data['tax_types'] = $this->ReceivingOrderService->getActiveTaxTypesIndexByCode();
 
         return view('admin.inventory.receiving_order_form', $data);
     }

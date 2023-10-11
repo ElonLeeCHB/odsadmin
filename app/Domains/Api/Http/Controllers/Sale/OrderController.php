@@ -68,7 +68,7 @@ class OrderController extends ApiController
         $order = $this->OrderService->sanitizeRow($order);
 
         // Order Total
-        $order->totals = $this->OrderService->getOrderTotals($order_id)->toArray();
+        $order->totals = $this->OrderService->getOrderTotals($order_id);
 
         return response(json_encode($order))->header('Content-Type','application/json');
     }

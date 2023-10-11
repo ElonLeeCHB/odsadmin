@@ -8,10 +8,11 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Validator;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Admin\Services\Counterparty\SupplierService;
+use App\Repositories\Eloquent\Common\TermRepository;
 
 class SupplierController extends BackendController
 {
-    public function __construct(protected Request $request, protected SupplierService $SupplierService)
+    public function __construct(protected Request $request, protected SupplierService $SupplierService, protected TermRepository $TermRepository)
     {
         parent::__construct();
         
@@ -61,9 +62,11 @@ class SupplierController extends BackendController
     {
         $data['lang'] = $this->lang;
 
+        $query_data = $this->request->query();
+
 
         // Prepare query_data for records
-        $query_data = $this->getQueries($this->request->query());
+        $query_data = $this->getQueries($query_data);
 
         // Extra default
         $query_data['equal_is_supplier'] = 1;
@@ -196,6 +199,17 @@ class SupplierController extends BackendController
         
         $data['payment_term_autocomplete_url'] = route('lang.admin.common.payment_terms.autocomplete');
 
+        $filter_data = [
+            'equal_taxonomy_code' => 'tax_type',
+            'pagination' => false,
+            'limit' => 0,
+            'sort' => 'code',
+            'order' => 'ASC',
+        ];
+        $tax_types = $this->TermRepository->getTerms($filter_data);
+
+        $data['tax_types'] = $this->TermRepository->rowsToStdObj($tax_types, ['unset' => ['translation', 'taxonomy']]);
+
         return view('admin.counterparty.supplier_form', $data);
     }
 
@@ -294,7 +308,7 @@ class SupplierController extends BackendController
                 'supplier_id' =>'nullable|integer',
                 'code' =>'nullable|unique:organizations,code,'.$data['supplier_id'],
                 'name' =>'min:2|max:50',
-                'short_name' =>'min:2|max:10',
+                'short_name' =>'min:2|max:50',
                 'mobile' =>'nullable|min:9|max:20',
                 'telephone' =>'nullable|min:7|max:20',
             ],[
@@ -307,33 +321,36 @@ class SupplierController extends BackendController
         ]);
     }
 
+    public function rowsWithMetaData($rows)
+    {
+        foreach ($rows as $key => $row) {
+            $meta_dataset = $row->meta_dataset;
+            foreach ($meta_dataset as $meta_data) {
+                $row->{$meta_data->meta_key} = $meta_data->meta_value;
+            }
+        }
+        return $rows;
+    }
+
     public function autocomplete()
     {
         $json = [];
-
         $query_data = $this->request->query();
+        $query_data['with'] = ['payment_term', 'meta_dataset'];
 
-        // $filter_data = array(
-        //     'filter_keyword'   => $this->request->filter_keyword,
-        //     'filter_contact'   => $this->request->filter_contact,
-        //     'filter_contact_phone'   => $this->request->filter_contact_phone,
-        // );
+        $suppliers = $this->SupplierService->getSuppliers($query_data);
 
-        // if (!empty($this->request->sort)) {
-        //     if($this->request->sort =='name'){
-        //         $filter_data['sort'] = '.name';
-        //     } else if($this->request->sort =='short_name'){
-        //         $filter_data['sort'] = '.short_name';
-        //     }
-        // }
+        $tax_type_codes = $this->SupplierService->getSuppliers($query_data);
 
-        $rows = $this->SupplierService->getSuppliers($query_data);
-
-        if(empty($rows)){
+        if(empty($suppliers)){
             return false;
         }
+        
+        $suppliers = $this->rowsWithMetaData($suppliers);
 
-        foreach ($rows as $row) {
+        $data['tax_types'] = $this->SupplierService->getActiveTaxTypesIndexByCode();
+
+        foreach ($suppliers as $row) {
             $json[] = array(
                 'label' => $row->name . ', ' . $row->tax_id_num,
                 'value' => $row->id,
@@ -341,6 +358,7 @@ class SupplierController extends BackendController
                 'supplier_name' => $row->name,
                 'short_name' => $row->short_name,
                 'tax_id_num' => $row->tax_id_num,
+                'tax_type_code' => $row->tax_type_code,
             );
         }
 
@@ -351,6 +369,7 @@ class SupplierController extends BackendController
             'supplier_name' => '',
             'short_name' => '',
             'tax_id_num' => '',
+            'tax_type_code' => '',
         ]);
 
         return response(json_encode($json))->header('Content-Type','application/json');

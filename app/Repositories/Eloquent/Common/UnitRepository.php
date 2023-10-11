@@ -12,9 +12,11 @@ class UnitRepository extends Repository
     public $modelName = "\App\Models\Common\Unit";
 
 
-    public function getActiveUnits($data = [], $debug=0)
+    public function getAllActiveUnits($data = [], $debug=0)
     {
         $data['equal_is_active'] = 1;
+        $data['pagination'] = false;
+        $data['limit'] = 0;
 
         if(empty($data['sort'])){
             $data['sort'] = 'code';
@@ -27,7 +29,12 @@ class UnitRepository extends Repository
             unset($row['translation']);
             $code = $row['code'];
             $row['label'] = $row['code'] . ' '. $row['name'];
-            $new_rows[$code] = (object) $row;
+            
+            if(!empty($data['to_array'])){
+                $new_rows[$code] = $row;
+            }else{
+                $new_rows[$code] = (object) $row;
+            }
         }
 
         return $new_rows;

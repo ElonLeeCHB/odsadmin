@@ -12,6 +12,7 @@ use App\Domains\Admin\Services\Catalog\OptionService;
 use App\Domains\Admin\Services\Catalog\CategoryService;
 use App\Services\Sale\OrderProductOptionService;
 use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProductController extends BackendController
 {
@@ -87,12 +88,7 @@ class ProductController extends BackendController
         // Prepare query_data for records
         $query_data = $this->getQueries($this->request->query());
 
-        // Extra
-        if(!isset($query_data['equal_is_active'])){
-            $query_data['equal_is_active'] = '1';
-        }
-
-        // Rows
+        // Rows, LengthAwarePaginator
         $products = $this->ProductService->getSalableProducts($query_data);
 
         if(!empty($products)){
@@ -128,12 +124,13 @@ class ProductController extends BackendController
         // link of table header for sorting        
         $route = route('lang.admin.catalog.products.list');
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
+        $data['sort_main_category_id'] = $route . "?sort=main_category_id&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_model'] = $route . "?sort=model&order=$order" .$url;
         $data['sort_price'] = $route . "?sort=price&order=$order" .$url;
         $data['sort_quantity'] = $route . "?sort=quantity&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
-
+        
         return view('admin.catalog.product_list', $data);
     }
 

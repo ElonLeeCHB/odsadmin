@@ -88,7 +88,6 @@ Route::group([
         'as' => 'localization.',
     ], function ()
     {
-        //Route::get('divisions', 'Localization\DivisionController@index')->name('divisions.index');
         Route::get('division/state', 'Localization\DivisionController@stateList')->name('division.state.list');
         Route::get('division/city', 'Localization\DivisionController@cityList')->name('division.city.list');
 
@@ -103,7 +102,7 @@ Route::group([
 
         // 統一編號
         Route::get('tax_id_num', 'Localization\TaxIdNumController@list')->name('tax_id_num.list');
-        Route::get('tax_id_num/{$tax_id_num}', 'Localization\TaxIdNumController@details')->name('tax_id_num.details');
+        Route::get('tax_id_num/{tax_id_num}', 'Localization\TaxIdNumController@detail')->name('tax_id_num.details');
     }); 
 
 });

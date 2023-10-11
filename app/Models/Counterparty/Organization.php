@@ -23,6 +23,7 @@ class Organization extends Model
         'supplier_bank_name',
         'supplier_bank_code',
         'supplier_bank_account',
+        'tax_type_code',
     ];
 
     public function payment_term()
