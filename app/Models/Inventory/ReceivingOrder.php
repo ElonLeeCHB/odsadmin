@@ -22,6 +22,14 @@ class ReceivingOrder extends Model
     ];
 
 
+    protected static function booted()
+    {
+        parent::boot();
+
+        static::observe(\App\Observers\ReceivingOrderObserver::class);
+    }
+    
+
     // Relation
 
     public function location()
@@ -42,7 +50,7 @@ class ReceivingOrder extends Model
     
     // Attribute
     
-    protected function purchasingDateYmd(): Attribute
+    public function purchasingDateYmd(): Attribute
     {
         if(!empty($this->purchasing_date)){
             $newValue = Carbon::parse($this->purchasing_date)->format('Y-m-d');
@@ -52,7 +60,7 @@ class ReceivingOrder extends Model
         );
     }
     
-    protected function receivingDateYmd(): Attribute
+    public function receivingDateYmd(): Attribute
     {
         if(!empty($this->receiving_date)){
             $newValue = Carbon::parse($this->receiving_date)->format('Y-m-d');
@@ -61,4 +69,27 @@ class ReceivingOrder extends Model
             get: fn ($value) => $newValue ?? '',
         );
     }
+
+    public function amount(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => round($value),
+        );
+    }
+
+    public function tax(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => round($value),
+        );
+    }
+
+    public function total(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => round($value),
+        );
+    }
+
+
 }

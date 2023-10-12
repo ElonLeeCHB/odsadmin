@@ -58,12 +58,12 @@
                   </div>
 
                   <div class="row mb-3">
-                    <label for="input-form_type" class="col-sm-2 col-form-label">單別</label>
+                    <label for="input-form_type_code" class="col-sm-2 col-form-label">單別</label>
                     <div class="col-sm-10">
-                      <select id="input-form_type" name="form_type" class="form-select">
+                      <select id="input-form_type_code" name="form_type_code" class="form-select">
                         <option value="">--</option>
-                        <option value="">原物料</option>
-                        <option value="">費用</option>
+                        <option value="RMT" @if($receiving_order->form_type_code == 'RMT') selected @endif>原物料</option>
+                        <option value="EXP" @if($receiving_order->form_type_code == 'EXP') selected @endif>費用</option>
                       </select>
                     </div>
                   </div>
@@ -80,12 +80,20 @@
                     <label for="input-supplier" class="col-sm-2 col-form-label">{{ $lang->column_supplier }}</label>
                     <div class="col-sm-10">
                       <div class="input-group">
-                        <div class="col-sm-3"><input type="text" id="input-supplier_id" name="supplier_id" value="{{ $receiving_order->supplier_id ?? 0 }}" placeholder="廠商流水號" class="form-control" readonly=""/><div class="form-text">廠商流水號</div></div>
-                        <div class="col-sm-6"><input type="text" id="input-supplier_name" name="supplier_name" value="{{ $receiving_order->supplier_name }}" placeholder="{{ $lang->column_supplier_name }}" class="form-control" data-oc-target="autocomplete-supplier_name"/><div class="form-text">廠商名稱 (可查詢，至少輸入一個字)</div></div>
-                        <div class="col-sm-3"><input type="text" id="input-tax_id_num" name="tax_id_num" value="{{ $receiving_order->tax_id_num }}" placeholder="{{ $lang->column_tax_id_num }}" class="form-control" data-oc-target="autocomplete-tax_id_num"/><div class="form-text">統一編號(可查詢現有廠商，請輸入8碼)</div></div>
-                        <div id="error-supplier_id" class="invalid-feedback"></div>
-                        <ul id="autocomplete-supplier_name" class="dropdown-menu"></ul>
-                        <ul id="autocomplete-tax_id_num" class="dropdown-menu"></ul>
+                        <div class="col-sm-3">
+                          <input type="text" id="input-supplier_id" name="supplier_id" value="{{ $receiving_order->supplier_id ?? 0 }}" placeholder="廠商流水號" class="form-control" readonly=""/>
+                          <div class="form-text">廠商流水號</div>
+                          <div id="error-supplier_id" class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-sm-6">
+                          <input type="text" id="input-supplier_name" name="supplier_name" value="{{ $receiving_order->supplier_name }}" placeholder="{{ $lang->column_supplier_name }}" class="form-control" data-oc-target="autocomplete-supplier_name"/>
+                          <div class="form-text">廠商名稱 (可查詢，至少輸入一個字)</div>
+                          <ul id="autocomplete-supplier_name" class="dropdown-menu"></ul>
+                        </div>
+                        <div class="col-sm-3">
+                          <input type="text" id="input-tax_id_num" name="tax_id_num" value="{{ $receiving_order->tax_id_num }}" placeholder="{{ $lang->column_tax_id_num }}" class="form-control" />
+                          <div class="form-text"></div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -93,12 +101,22 @@
                   <div class="row mb-3">
                     <label for="input-tax_type_code" class="col-sm-2 col-form-label">{{ $lang->column_tax_type }}</label>
                     <div class="col-sm-10">
-                      <select id="input-tax_type_code" name="tax_type_code" class="form-select">
-                        <option value="">--</option>
-                        @foreach($tax_types as $code => $tax_type)
-                        <option value="{{ $tax_type->code }}" @if($tax_type->code == $receiving_order->tax_type_code) selected @endif>{{ $tax_type->name }}</option>
-                        @endforeach
-                      </select>
+                      <div class="input-group">
+                        <div class="col-sm-3">
+                          <select id="input-tax_type_code" name="tax_type_code" class="form-select">
+                            <option value="">--</option>
+                            @foreach($tax_types as $code => $tax_type)
+                            <option value="{{ $tax_type->code }}" @if($tax_type->code == $receiving_order->tax_type_code) selected @endif>{{ $tax_type->name }}</option>
+                            @endforeach
+                          </select>
+                        </div>
+                        <div class="col-sm-3">
+                          <input type="text" id="input-tax_rate" name="tax_rate" value="{{ $receiving_order->tax_rate }}" placeholder="{{ $lang->column_tax_rate }}" class="form-control" />
+                        </div>
+                        <div class="col-sm-1" style="font-size: 1.3rem;">%</div>
+
+                      </div>
+
                     </div>
                   </div>
 
@@ -135,102 +153,109 @@
                     </div>
                   </div>
 
+                  <div class="row mb-3">
+                    <label for="input-comment" class="col-sm-2 col-form-label">{{ $lang->column_comment }}</label>
+                    <div class="col-sm-10">
+                      <textarea id="input-comment" name="comment" class="form-control" >{{ $receiving_order->comment }}</textarea>
+                    </div>
+                  </div>
+
                 </fieldset>
 
               </div>
 
               <div id="tab-products" class="tab-pane">
-<style>
-    #tab-products .row1 {
-      border: 1px solid #ccc;
-      padding: 2px;
-      margin-bottom: 2px;
-    }
-</style>
-    <div class="row row1 overflow-auto" style="height:300px">
-      @php
-        $product_row = 1;
-      @endphp
-      
-      @for($i=0; $i<10; $i++)
-        @php $receiving_product = $receiving_products[$i] ?? []; @endphp
-      <div class="row">
-        <div class="module col-md-1 col-sm-1">
-            <label>料件流水號</label>
-            <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $receiving_product->product_id ?? '' }}" class="form-control" >
-            
-        </div>
-        <div class="module col-md-2 col-sm-2">
-          <div>
-            <label>料件名稱</label>
-            <input type="text" id="input-products-name-{{ $product_row }}" name="products[{{ $product_row }}][name]" value="{{ $receiving_product->product_name ?? '' }}" data-rownum="{{ $product_row }}" class="form-control schProductName" data-oc-target="autocomplete-product_name-{{ $product_row }}" autocomplete="off">
-            <ul id="autocomplete-product_name-{{ $product_row }}" class="dropdown-menu"></ul>
-          </div>
-        </div>
-          
-        <div class="module col-md-2 col-sm-2">
-            <label>料件規格</label>
-            <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $receiving_product->product_specification ?? '' }}" class="form-control">
-        </div>
-        <div class="module col-md-1 col-sm-1">
-            <label>採購數量</label>
-            <input type="text" id="input-products-receiving_quantity-{{ $product_row }}" name="products[{{ $product_row }}][receiving_quantity]" value="{{ $receiving_product->receiving_quantity ?? '' }}" class="form-control" data-rownum="{{ $product_row }}" onfocusout="chkPurchasingQuantity(this)">
-        </div>
-        <div class="module col-md-1 col-sm-1">
-            <label>採購單位</label>
-            <select id="input-products-receiving_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][receiving_unit_code]" class="form-control">
-              <option value=""> -- </option>
-              <option value="{{ $receiving_product->receiving_unit_code ?? '' }}_{{ $receiving_product->receiving_unit_name ?? '' }}" selected>{{ $receiving_product->receiving_unit_name ?? '' }}</option>
-            </select>
-        </div>
-        <div class="module col-md-1 col-sm-1">
-            <label>盤點數量</label>
-            <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? '' }}" class="form-control" data-rownum="{{ $product_row }}">
-        </div>
-        <div class="module col-md-1 col-sm-1">
-            <label>盤點單位</label>
-            <input type="text" id="input-products-stock_unit_name-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_name]" value="{{ $receiving_product->stock_unit_name ?? '' }}" class="form-control" readonly>
-            <input type="hidden" id="input-products-stock_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_code]" value="{{ $receiving_product->stock_unit_code ?? '' }}">
-        </div>
-        <div class="module col-md-1 col-sm-1">
-            <label>採購單價</label>
-            <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $receiving_product->price ?? '' }}" class="form-control">
-        </div>
-        <div class="module col-md-1 col-sm-1">
-            <label>盤點單價</label>
-            <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? '' }}" class="form-control">
-        </div>
-        <div class="module col-md-1 col-sm-1">
-            <label>採購金額</label>
-            <input type="text" id="input-products-total-{{ $product_row }}" name="products[{{ $product_row }}][total]" value="{{ $receiving_product->total ?? '' }}" class="form-control" data-rownum="{{ $product_row }}" onfocusout="chkPrice(this)">
-        </div>
-      </div>
+                <style>
+                    #tab-products .row1 {
+                      border: 1px solid #ccc;
+                      padding: 2px;
+                      margin-bottom: 2px;
+                    }
+                </style>
+                <div class="row row1 overflow-auto" style="height:500px">
+                  @php
+                    $product_row = 1;
+                  @endphp
+                  
+                  @for($i=0; $i<10; $i++)
+                    @php $receiving_product = $receiving_products[$i] ?? []; @endphp
+                  <div class="row">
+                    <div class="module col-md-1 col-sm-1">
+                        <label>料件流水號</label>
+                        <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $receiving_product->product_id ?? '' }}" class="form-control" >
+                        
+                    </div>
+                    <div class="module col-md-2 col-sm-2">
+                      <div>
+                        <label>料件名稱</label>
+                        <input type="text" id="input-products-name-{{ $product_row }}" name="products[{{ $product_row }}][name]" value="{{ $receiving_product->product_name ?? '' }}" data-rownum="{{ $product_row }}" class="form-control schProductName" data-oc-target="autocomplete-product_name-{{ $product_row }}" autocomplete="off">
+                        <ul id="autocomplete-product_name-{{ $product_row }}" class="dropdown-menu"></ul>
+                      </div>
+                    </div>
+                      
+                    <div class="module col-md-2 col-sm-2">
+                        <label>料件規格</label>
+                        <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $receiving_product->product_specification ?? '' }}" class="form-control">
+                    </div>
+                    <div class="module col-md-1 col-sm-1">
+                        <label>採購數量</label>
+                        <input type="text" id="input-products-receiving_quantity-{{ $product_row }}" name="products[{{ $product_row }}][receiving_quantity]" value="{{ $receiving_product->receiving_quantity ?? '' }}" class="form-control" data-rownum="{{ $product_row }}" onfocusout="chkPurchasingQuantity(this)">
+                    </div>
+                    <div class="module col-md-1 col-sm-1">
+                        <label>採購單位</label>
+                        <select id="input-products-receiving_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][receiving_unit_code]" class="form-control">
+                          <option value=""> -- </option>
+                          <option value="{{ $receiving_product->receiving_unit_code ?? '' }}_{{ $receiving_product->receiving_unit_name ?? '' }}" selected>{{ $receiving_product->receiving_unit_name ?? '' }}</option>
+                        </select>
+                    </div>
+                    <div class="module col-md-1 col-sm-1">
+                        <label>盤點數量</label>
+                        <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? '' }}" class="form-control" data-rownum="{{ $product_row }}">
+                    </div>
+                    <div class="module col-md-1 col-sm-1">
+                        <label>盤點單位</label>
+                        <input type="text" id="input-products-stock_unit_name-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_name]" value="{{ $receiving_product->stock_unit_name ?? '' }}" class="form-control" readonly>
+                        <input type="hidden" id="input-products-stock_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_code]" value="{{ $receiving_product->stock_unit_code ?? '' }}">
+                    </div>
+                    <div class="module col-md-1 col-sm-1">
+                        <label>採購單價</label>
+                        <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $receiving_product->price ?? '' }}" class="form-control">
+                    </div>
+                    <div class="module col-md-1 col-sm-1">
+                        <label>盤點單價</label>
+                        <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? '' }}" class="form-control">
+                    </div>
+                    <div class="module col-md-1 col-sm-1">
+                        <label>採購金額</label>
+                        <input type="text" id="input-products-total-{{ $product_row }}" name="products[{{ $product_row }}][total]" value="{{ $receiving_product->total ?? '' }}" class="form-control" data-rownum="{{ $product_row }}" onfocusout="chkPrice(this)">
+                    </div>
+                  </div>
 
-      @php $product_row++; @endphp
-      @endfor
-    </div>
-              <table class="table table-bordered">
-                <tbody id="order-totals">
-                  <tr>
-                    <td class="text-end col-sm-2"><strong>{{ $lang->column_amount }}</strong></td>
-                    <td class="text-end">
-                      <input type="text" id="input-total-xxx" name="order_totals[xxx][value]" value="222" class="form-control" onchange="calcTotal()">
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-end col-sm-2"><strong>{{ $lang->column_tax }}</strong></td>
-                    <td class="text-end">
-                      <input type="text" id="input-total-xxx" name="order_totals[xxx][value]" value="222" class="form-control" onchange="calcTotal()">
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-end col-sm-2"><strong>{{ $lang->column_total }}</strong></td>
-                    <td class="text-end">
-                      <input type="text" id="input-total-xxx" name="order_totals[xxx][value]" value="222" class="form-control" onchange="calcTotal()">
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                  @php $product_row++; @endphp
+                  @endfor
+                </div>
+                <table class="table table-bordered">
+                  <tbody id="order-totals">
+                    <tr>
+                      <td class="text-end col-sm-2"><strong>{{ $lang->column_amount }}</strong></td>
+                      <td class="text-end">
+                        <input type="text" id="input-amount" name="amount" value="{{ $receiving_order->amount }}" class="form-control">
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-end col-sm-2"><strong>{{ $lang->column_tax }}</strong></td>
+                      <td class="text-end">
+                        <input type="text" id="input-tax" name="tax" value="{{ $receiving_order->tax }}" class="form-control">
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-end col-sm-2"><strong>{{ $lang->column_total }}</strong></td>
+                      <td class="text-end">
+                        <input type="text" id="input-total" name="total" value="{{ $receiving_order->total }}" class="form-control">
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </form>
             </div>
@@ -245,7 +270,7 @@
 
 // 查廠商名稱
 $(document).ready(function() {
-  $('#input-supplier_name').on('input', function(){
+  $('#input-supplier_name').on('click', function(){
     $('#input-supplier_name').autocomplete({
       'minLength': 1,
       'source': function (request, response) {
@@ -274,7 +299,7 @@ $(document).ready(function() {
 
 // 查統一編號
 $(document).ready(function() {
-  $('#input-tax_id_num').on('input', function(){
+  $('#input-tax_id_num').on('click', function(){
     $('#input-tax_id_num').autocomplete({
       'minLength': 1,
       'source': function (request, response) {
@@ -301,9 +326,10 @@ $(document).ready(function() {
 
 var productData = [];
 
-// 查料件名稱
+
 $(document).ready(function() {
-  $('.schProductName').on('input', function(){
+  // 查料件名稱
+  $('.schProductName').on('click', function(){
     $(this).autocomplete({
       'source': function (request, response) {
         $.ajax({
@@ -350,9 +376,35 @@ $(document).ready(function() {
       }
     });
   });
+ 
+  // 採購金額
+  $('#input-amount').on('focusout', function(){
+    let num = $(this).val();
+    $('#hidden_amount').val(num);
+  });
+  $('#input-tax').on('focusout', function(){
+    let num = $(this).val();
+    $('#hidden_tax').val(num);
+  });
+  $('#input-total').on('focusout', function(){
+    let num = $(this).val();
+    $('#hidden_total').val(num);
+  });
 
+  // 
+  $('#input-tax_type_code').on('change', function(){
+    let num = $(this).val();
+    if(num == 1){
+      $('#input-tax_rate').val(5);
+    }else if(num == 2){
+      $('#input-tax_rate').val(5);
+    }else if(num == 3){
+      $('#input-tax_rate').val(0);
+    }else if(num == 4){
+      $('#input-tax_rate').val(0);
+    }
+  });
 
-  
 });
 
 function chkPurchasingQuantity(inputElement){
@@ -383,12 +435,6 @@ function chkPrice(inputElement){
   }
 }
 
-function calcTotal(){
-  var ro_amount = 0; //採購金額
-  var ro_total = 0; //金額總計
-  var ro_products_total = 0;
-  var ro_sub_total = 0;
-}
 </script>
 @endsection
 

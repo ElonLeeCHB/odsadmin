@@ -62,6 +62,8 @@ class ProductService extends Service
 
             $product->purchasing_unit_code = $data['purchasing_unit_code'] ?? null;
 
+
+            // 若已存在則不改
             if(empty($product->stock_unit_code)){
                 $product->stock_unit_code = $data['stock_unit_code'] ?? null;
             }
@@ -96,7 +98,7 @@ class ProductService extends Service
                 }
                 TermRelation::insert($insert_data);
             }
-
+            
             // product_units
             if(!empty($data['product_units'])){
                 $upsert_data = [];
@@ -116,11 +118,20 @@ class ProductService extends Service
                         'destination_quantity' => $product_unit['destination_quantity'],
                     ];
                 }
+            }else{
+                $upsert_data[] = [
+                    'id' => $product_unit['id'] ?? null,
+                    'product_id' => $product->id,
+                    'source_quantity' => 1,
+                    'source_unit_code' => $data['stock_unit_code'],
+                    'destination_quantity' => 1,
+                    'destination_unit_code' => $data['stock_unit_code'],
+                ];
+            }
                 
-                if(!empty($upsert_data)){
-                    $this->ProductUnitRepository->newModel()->where('product_id', $product->id)->delete();
-                    $this->ProductUnitRepository->newModel()->upsert($upsert_data, ['id']);
-                }
+            if(!empty($upsert_data)){
+                $this->ProductUnitRepository->newModel()->where('product_id', $product->id)->delete();
+                $this->ProductUnitRepository->newModel()->upsert($upsert_data, ['id']);
             }
 
             // product_metas

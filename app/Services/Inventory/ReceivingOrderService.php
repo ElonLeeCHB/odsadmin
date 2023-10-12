@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Admin\Services\Inventory;
+namespace App\Services\Inventory;
 
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
@@ -36,18 +36,21 @@ class ReceivingOrderService extends Service
 
             $receiving_order = $this->findIdOrFailOrNew($receiving_order_id);
 
-            $receiving_order->code = $this->ReceivingOrderRepository->getYmSnCode($this->modelName);
-
+            $receiving_order->form_type_code = $data['form_type_code'] ?? null;
             $receiving_order->location_id = $data['location_id'] ?? 0;
             $receiving_order->receiving_date = $data['receiving_date'] ?? null;
             $receiving_order->supplier_id = $data['supplier_id'] ?? 0;
             $receiving_order->supplier_name = $data['supplier_name'] ?? null;
             $receiving_order->tax_id_num = $data['tax_id_num'] ?? null;
+            $receiving_order->amount = $data['amount'] ?? 0;
             $receiving_order->before_tax = $data['before_tax'] ?? 0;
+            $receiving_order->tax_rate = $data['tax_rate'] ?? 0;
             $receiving_order->tax = $data['tax'] ?? 0;
             $receiving_order->after_tax = $data['after_tax'] ?? 0;
-            $receiving_order->status_code = $data['status_code'] ?? null;
+            $receiving_order->total = $data['total'] ?? 0;
+            $receiving_order->status_code = $data['status_code'] ?? 'P';
             $receiving_order->tax_type_code = $data['tax_type_code'] ?? null;
+            $receiving_order->comment = $data['comment'] ?? null;
 
             $receiving_order->save();
 

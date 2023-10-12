@@ -28,6 +28,7 @@ return [
 'column_after_tax' => '稅後金額',
 'column_total' => '總金額',
 'column_tax_type' => '課稅別',
+'column_comment' => '備註',
 
 
 

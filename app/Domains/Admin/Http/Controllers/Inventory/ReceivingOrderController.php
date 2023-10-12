@@ -5,7 +5,7 @@ namespace App\Domains\Admin\Http\Controllers\Inventory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
-use App\Domains\Admin\Services\Inventory\ReceivingOrderService;
+use App\Services\Inventory\ReceivingOrderService;
 use App\Repositories\Eloquent\Common\UnitRepository;
 use App\Models\Setting\Location;
 use App\Models\Localization\Language;
@@ -161,6 +161,10 @@ class ReceivingOrderController extends BackendController
         // Get Record
         $receiving_order = $this->ReceivingOrderService->findIdOrFailOrNew($receiving_order_id);
 
+        if(empty($receiving_order->receiving_date)){
+            $receiving_order->receiving_date = date('Y-m-d');
+        }
+
         $data['receiving_order'] = $this->ReceivingOrderService->refineRow($receiving_order, ['optimize' => true,'sanitize' => true]);
         //$data['receiving_order'] = $receiving_order;
 
@@ -212,10 +216,9 @@ class ReceivingOrderController extends BackendController
 
         $json = [];
 
-        // 檢查欄位
-        // do something
+        // * 檢查欄位
         if(empty($post_data['supplier_id'])){
-            $json['error']['supplier_id'] = '廠商流水號不可為空';
+            //$json['error']['supplier_id'] = '廠商流水號不可為空';
         }
 
         if(isset($json['error']) && !isset($json['error']['warning'])) {

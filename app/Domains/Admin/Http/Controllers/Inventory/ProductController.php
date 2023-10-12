@@ -398,7 +398,29 @@ class ProductController extends BackendController
 
     public function autocomplete()
     {
+        $query_data = $this->request->query();
+
         $json = [];
+
+
+        // * 檢查錯誤
+
+        foreach ($query_data as $key => $value) {
+            //檢查查詢字串
+            if(str_starts_with($key, 'filter_') || str_starts_with($key, 'equal_')){
+                //檢查輸入字串是否包含注音符號
+                if (preg_match('/[\x{3105}-\x{3129}\x{02C7}]+/u', $value)) {
+                    $json['error'] = '包含注音符號';
+                } 
+            }
+        }
+
+        if(!empty($json)){
+            return response(json_encode($json))->header('Content-Type','application/json');
+        }
+
+
+        // * Get data
 
         if(isset($this->request->filter_name)){
             $filter_name = $this->request->filter_name;
@@ -454,6 +476,7 @@ class ProductController extends BackendController
                 'value' => $row->id,
                 'product_id' => $row->id,
                 'name' => $row->name,
+                'specification' => $row->specification,
                 'model' => $row->model,
                 'stock_unit_code' => $row->stock_unit_code,
                 'stock_unit_name' => $row->stock_unit_name,
