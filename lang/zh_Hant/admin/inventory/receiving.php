@@ -29,6 +29,7 @@ return [
 'column_total' => '總金額',
 'column_tax_type' => '課稅別',
 'column_comment' => '備註',
+'column_tax_rate' => '稅率',
 
 
 

@@ -84,6 +84,14 @@ class ReceivingOrder extends Model
         );
     }
 
+    public function taxRate(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value*100,
+            set: fn ($value) => $value/100,
+        );
+    }
+
     public function total(): Attribute
     {
         return Attribute::make(

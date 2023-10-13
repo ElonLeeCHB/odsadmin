@@ -25,7 +25,7 @@ class SupplierService extends Service
 		}
 		$rows = $this->getRows($data, $debug);
 
-		if(!empty($rows)){
+        if(!empty($rows)){
             foreach ($rows as $row) {
 				if(!empty($row->company)){
 					$row->company_name = $row->company->name;

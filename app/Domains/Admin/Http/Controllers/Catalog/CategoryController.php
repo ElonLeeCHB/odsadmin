@@ -68,7 +68,6 @@ class CategoryController extends BackendController
 
         // Extra
         $query_data['equal_taxonomy_code'] = 'product_category';
-        $query_data['equal_is_active'] = 1;
 
         // Rows
         $categories = $this->CategoryService->getCategories($query_data);

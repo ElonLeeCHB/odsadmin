@@ -398,10 +398,9 @@ class ProductController extends BackendController
 
     public function autocomplete()
     {
-        $query_data = $this->request->query();
+        $query_data = $this->getQueries($this->request->query());
 
         $json = [];
-
 
         // * 檢查錯誤
 
@@ -410,7 +409,7 @@ class ProductController extends BackendController
             if(str_starts_with($key, 'filter_') || str_starts_with($key, 'equal_')){
                 //檢查輸入字串是否包含注音符號
                 if (preg_match('/[\x{3105}-\x{3129}\x{02C7}]+/u', $value)) {
-                    $json['error'] = '包含注音符號';
+                    $json['error'] = '包含注音符號不允許查詢';
                 } 
             }
         }
@@ -422,28 +421,8 @@ class ProductController extends BackendController
 
         // * Get data
 
-        if(isset($this->request->filter_name)){
-            $filter_name = $this->request->filter_name;
-        }else{
-            $filter_name = '';
-        }
-
-        if(isset($this->request->filter_model)){
-            $filter_model = $this->request->filter_model;
-        }else{
-            $filter_model = '';
-        }
-
-        $filter_data = array(
-            'filter_model' => $filter_model,
-            'filter_name' => $filter_name,
-            'filter_is_salable' => $this->request->filter_is_salable,
-            'limit'   => 10,
-            'pagination'   => false,
-            'with' => ['product_units.source_unit.translation'],
-        );
-
-        $rows = $this->ProductService->getProducts($filter_data);
+        $query_data['with'] = ['product_units'];
+        $rows = $this->ProductService->getProducts($query_data);
 
         // units
         $filter_data = [
@@ -457,18 +436,18 @@ class ProductController extends BackendController
 
             if(!empty($purchasing_units)){
                 foreach ($purchasing_units as $key => $product_unit) {
-                    $product_unit['source_unit_name'] = $product_unit['source_unit']['name'];
+                    $product_unit['source_unit_name'] = $product_unit['source_unit']['name'] ?? '無單位名稱';
                     unset($product_unit['source_unit']);
                     $purchasing_units[$key] = $product_unit;
                 }
             }else{
-                foreach ($units as $key => $unit) {
-                    $purchasing_units[$key] = [
-                        'source_unit_code' => $unit['code'],
-                        'source_unit_name' => $unit['name'],
-                        'destination_quantity' => 1,
-                    ];
-                }  
+                // foreach ($units as $key => $unit) {
+                //     $purchasing_units[$key] = [
+                //         'source_unit_code' => $unit['code'],
+                //         'source_unit_name' => $unit['name'],
+                //         'destination_quantity' => 1,
+                //     ];
+                // }  
             }
 
             $json[] = array(

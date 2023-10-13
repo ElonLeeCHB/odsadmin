@@ -72,6 +72,7 @@ return [
 'column_is_stock_management' => '庫存管理',
 'column_source_code' => '料件屬性',
 'column_main_supplier' => '主供應商',
+'column_source_type' => '料件來源',
 
 
 // Button

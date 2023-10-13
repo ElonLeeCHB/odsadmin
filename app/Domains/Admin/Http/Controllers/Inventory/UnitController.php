@@ -64,14 +64,13 @@ class UnitController extends BackendController
         $query_data = $this->getQueries($this->request->query());
 
         // Rows
-        $units = $this->UnitService->getUnits($query_data);;
+        $units = $this->UnitService->getUnits($query_data);
 
         foreach ($units as $row) {
             $row->edit_url = route('lang.admin.inventory.units.form', array_merge([$row->id], $query_data));
             $row->is_active = ($row->is_active==1) ? $this->lang->text_enabled :$this->lang->text_disabled;
         }
         $data['units'] = $units;
-
 
         // Prepare links for list table's header
         if($query_data['order'] == 'ASC'){

@@ -31,4 +31,5 @@
             </tbody>
     </table>
   </div>
+  {!! $suppliers->links('admin.pagination.default', ['suppliers' => $suppliers]) !!}
 </form>

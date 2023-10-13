@@ -32,11 +32,4 @@
     </table>
   </div>
   {!! $products->links('admin.pagination.default', ['products'=>$products]) !!}
-
-    <?php /*
-    <div class="row">
-        <div class="col-sm-6 text-start">{!! $pagination !!}</div>
-        <div class="col-sm-6 text-end">{{ $results }}</div>
-    </div>
-    */ ?>
 </form>

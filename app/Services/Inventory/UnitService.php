@@ -18,15 +18,7 @@ class UnitService extends Service
 
     public function getUnits($data=[], $debug = 0)
     {
-        if(!isset($data['pagination'])){
-            $data['pagination'] = false;
-        }
-        if(!isset($data['limit'])){
-            $data['limit'] = 0;
-        }
-        $units = $this->repository->getUnits($data, $debug);
-
-        return $units;
+        return $this->repository->getUnits($data, $debug);
     }
 
 

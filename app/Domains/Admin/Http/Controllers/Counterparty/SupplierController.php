@@ -70,19 +70,22 @@ class SupplierController extends BackendController
 
         // Extra default
         $query_data['equal_is_supplier'] = 1;
-
+        $query_data['pagination'] = true;
 
         // Records
         $suppliers = $this->SupplierService->getSuppliers($query_data);
-        
+
         foreach ($suppliers as $row) {
             $row->edit_url = route('lang.admin.counterparty.suppliers.form', array_merge([$row->id], $query_data));
             $row->payment_term_name = $row->payment_term->name ?? '';
         }
-        $suppliers = $this->unsetRelations($suppliers, ['payment_term']);
         
-        $data['suppliers'] = &$suppliers;
+        $suppliers = $suppliers->withPath(route('lang.admin.counterparty.suppliers.list'))->appends($query_data);
 
+        $data['suppliers'] = $suppliers;
+        //$suppliers = $this->unsetRelations($suppliers, ['payment_term']);
+        
+        //$data['suppliers'] = $suppliers;
 
         // Prepare links for list table's header
         if($query_data['order'] == 'ASC'){
@@ -307,8 +310,8 @@ class SupplierController extends BackendController
         return Validator::make($data, [
                 'supplier_id' =>'nullable|integer',
                 'code' =>'nullable|unique:organizations,code,'.$data['supplier_id'],
-                'name' =>'min:2|max:50',
-                'short_name' =>'min:2|max:50',
+                'name' =>'min:2|max:100|unique:organizations,name,'.$data['supplier_id'],
+                'short_name' =>'min:2|max:50|unique:organizations,short_name,'.$data['supplier_id'],
                 'mobile' =>'nullable|min:9|max:20',
                 'telephone' =>'nullable|min:7|max:20',
             ],[

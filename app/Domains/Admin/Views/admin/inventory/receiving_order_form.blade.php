@@ -333,7 +333,7 @@ $(document).ready(function() {
     $(this).autocomplete({
       'source': function (request, response) {
         $.ajax({
-            url: "{{ $product_autocomplete_url }}?filter_name=" + encodeURIComponent(request),
+            url: "{{ $product_autocomplete_url }}?equal_source_code=PUR&equal_is_active=1&filter_name=" + encodeURIComponent(request),
             dataType: 'json',
             success: function (json) {
               response(json);
@@ -350,7 +350,7 @@ $(document).ready(function() {
 
         $('#input-products-receiving_unit_code-'+rownum).empty();
 
-        console.log(JSON.stringify(item.purchasing_units));
+        //console.log(JSON.stringify(item.purchasing_units));
 
         item.purchasing_units.forEach(function(unitData) {
           let option = $('<option></option>');
@@ -378,9 +378,26 @@ $(document).ready(function() {
   });
  
   // 採購金額
+  
   $('#input-amount').on('focusout', function(){
-    let num = $(this).val();
-    $('#hidden_amount').val(num);
+    let amount = $(this).val();
+    $('#hidden_amount').val(amount);
+
+    let tax_rate = $('#input-tax_rate').val();
+    let tax_type_code = $('#input-tax_type_code').val();
+
+    if(tax_type_code == 1){
+      $('#input-tax').val(amount*0.05);
+    }else if(tax_type_code == 2){
+      $('#input-tax').val(amount*0.05);
+    }else if(tax_type_code == 3){
+      $('#input-tax').val(0);
+    }else if(tax_type_code == 4){
+      $('#input-tax').val(0);
+    }
+
+    console.log('amount='+amount+', tax_type_code='+tax_type_code+', tax_rate='+tax_rate);
+    
   });
   $('#input-tax').on('focusout', function(){
     let num = $(this).val();
@@ -433,6 +450,12 @@ function chkPrice(inputElement){
   if(!isNaN(stock_price)){
   $('#input-products-stock_price-'+rownum).val(stock_price);
   }
+}
+
+
+// 稅率與總金額
+function calcTax(){
+  
 }
 
 </script>

@@ -26,3 +26,4 @@
     </table>
   </div>
 </form>
+  {!! $units->links('admin.pagination.default', ['units' => $units]) !!}

@@ -4,7 +4,6 @@ namespace App\Services\Inventory;
 
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
-use App\Services\Inventory\GlobalReceivingOrderService;
 use App\Repositories\Eloquent\Inventory\ReceivingOrderRepository;
 use App\Repositories\Eloquent\Inventory\ReceivingOrderProductRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
@@ -51,6 +50,7 @@ class ReceivingOrderService extends Service
             $receiving_order->status_code = $data['status_code'] ?? 'P';
             $receiving_order->tax_type_code = $data['tax_type_code'] ?? null;
             $receiving_order->comment = $data['comment'] ?? null;
+            $receiving_order->tax_rate = $data['tax_rate'] ?? 0;
 
             $receiving_order->save();
 
