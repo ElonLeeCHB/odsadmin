@@ -100,7 +100,6 @@ class SupplierController extends BackendController
         unset($query_data['sort']);
         unset($query_data['order']);
         unset($query_data['with']);
-        unset($query_data['whereIn']);
 
         $url = '';
 
@@ -192,6 +191,11 @@ class SupplierController extends BackendController
         $supplier->payment_term_name = $supplier->payment_term->name ?? '';
         $supplier = $this->SupplierService->unsetRelation($supplier, ['payment_term']);
 
+        // Default column value
+        if(empty($supplier->id)){
+            $supplier->is_active = 1;
+        }
+
         $data['supplier']  = &$supplier;
 
         if(!empty($data['supplier']) && $supplier_id == $supplier->id){
@@ -221,7 +225,11 @@ class SupplierController extends BackendController
         $postData = $this->request->post();
 
         $json = [];
-        
+
+        if(empty($this->request->tax_type_code)){
+            $json['error']['tax_type_code'] = '請選擇課稅別';
+        }
+
         $postData['is_supplier'] = 1;
         $postData['organization_id'] = $postData['supplier_id'];
 

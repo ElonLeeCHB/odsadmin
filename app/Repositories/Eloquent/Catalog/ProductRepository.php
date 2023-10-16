@@ -43,7 +43,7 @@ class ProductRepository extends Repository
             $data['orderByRaw'] = "(SELECT name FROM product_translations WHERE locale='".$locale."' and product_translations.product_id = products.id) " . $data['order'];
         }
 
-        $products = $this->getRows($data, $debug);
+        $products = $this->getRows($data);
 
         $source_codes = $this->getProductSourceCodes();
 
@@ -53,6 +53,8 @@ class ProductRepository extends Repository
                 $row->supplier_name = $row->supplier->name ?? '';
             }
         }
+
+        
 
         return $products;
     }
@@ -162,6 +164,32 @@ class ProductRepository extends Repository
         }
 
         return $result;
+    }
+
+
+    public function getKeyedSourceCodes()
+    {
+        $filter_data = [
+            'equal_taxonomy_code' => 'product_source',
+            'equal_is_active' => 1,
+            'pagination' => false,
+            'limit' => 0,
+            'sort' => 'code',
+            'order' => 'ASC',
+        ];
+
+        $rows = $this->TermRepository->getRows($filter_data)->toArray();
+        
+        foreach ($rows as $key => $row) {
+            unset($row['translation']);
+            unset($row['taxonomy']);
+            $code = $row['code'];
+            $row['label'] = $row['code'] . ' '. $row['name'];
+            
+            $new_rows[$code] = (object)$row;
+        }
+
+        return $new_rows;
     }
 
 

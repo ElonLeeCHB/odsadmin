@@ -34,22 +34,23 @@
 
             <div class="mb-3">
               <label class="form-label">{{ $lang->column_name }}</label>
-              <input type="text" name="filter_name" value="" placeholder="{{ $lang->column_name }}" id="input-name" list="list-name" class="form-control"/>
+              <input type="text" id="input-filter_name" name="filter_name" value="" placeholder="{{ $lang->column_name }}" list="list-name" class="form-control"/>
               <datalist id="list-name"></datalist>
             </div>
 
             <div class="mb-3">
               <label class="form-label">{{ $lang->column_source_type }}</label>
-              <select name="filter_source_type" id="input-filter_source_type" class="form-select">
+              <select id="input-filter_source_code" name="filter_source_code"  class="form-select">
                 <option value="">{{ $lang->text_select }}</option>
-                <option value="1">{{ $lang->text_yes }}</option>
-                <option value="0">{{ $lang->text_no }}</option>
+                @foreach($source_codes as $source_code)
+                <option value="{{ $source_code->code }}">{{ $source_code->label }}</option>
+                @endforeach
               </select>
             </div>
 
             <div class="mb-3">
               <label class="form-label">{{ $lang->column_is_salable }}</label>
-              <select name="filter_is_salable" id="input-filter_is_salable" class="form-select">
+              <select id="input-filter_is_salable" name="filter_is_salable" class="form-select">
                 <option value="">{{ $lang->text_select }}</option>
                 <option value="1">{{ $lang->text_yes }}</option>
                 <option value="0">{{ $lang->text_no }}</option>
@@ -58,7 +59,7 @@
 
             <div class="mb-3">
               <label class="form-label">{{ $lang->column_is_active }}</label>
-              <select name="equal_is_active" id="input-equal_is_active" class="form-select">
+              <select id="input-equal_is_active" name="equal_is_active" class="form-select">
                 <option value="*"> -- </option>
                 <option value="1" selected>{{ $lang->text_yes }}</option>
                 <option value="0">{{ $lang->text_no }}</option>
@@ -96,16 +97,16 @@ $('#product').on('click', 'thead a, .pagination a', function(e) {
 $('#button-filter').on('click', function() {
   url = '';
 
-  var filter_name = $('#input-name').val();
+  var filter_name = $('#input-filter_name').val();
 
   if (filter_name) {
     url += '&filter_name=' + encodeURIComponent(filter_name);
   }
 
-  var filter_model = $('#input-model').val();
+  var filter_source_code = $('#input-filter_source_code').val();
 
-  if (filter_model) {
-    url += '&filter_model=' + encodeURIComponent(filter_model);
+  if (filter_source_code) {
+    url += '&filter_source_code=' + encodeURIComponent(filter_source_code);
   }
 
   var filter_is_salable = $('#input-filter_is_salable').val();

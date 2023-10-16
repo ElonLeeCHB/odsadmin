@@ -61,9 +61,11 @@ class ProductController extends BackendController
 
 
         // categories
-        $data['categories'] = $this->CategoryService->getCategories();
+        //$data['categories'] = $this->CategoryService->getCategories();
 
-        
+        // 來源碼
+        $data['source_codes'] = $this->ProductService->getKeyedSourceCodes();
+
         $data['list'] = $this->getList();
 
         $data['list_url']   = route('lang.admin.inventory.products.list');
@@ -126,12 +128,13 @@ class ProductController extends BackendController
         $route = route('lang.admin.inventory.products.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
+        $data['sort_specification'] = $route . "?sort=specification&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_model'] = $route . "?sort=model&order=$order" .$url;
         $data['sort_price'] = $route . "?sort=price&order=$order" .$url;
         $data['sort_quantity'] = $route . "?sort=quantity&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
-
+        
         return view('admin.inventory.product_list', $data);
     }
 
@@ -164,52 +167,23 @@ class ProductController extends BackendController
 
         $data['breadcumbs'] = (object)$breadcumbs;
 
+
         // Prepare link for save, back
-        $queries = [];
-
-        foreach($this->request->all() as $key => $value){
-            if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
-            }
-        }
-
-        if(!empty($this->request->query('page'))){
-            $queries['page'] = $this->request->query('page');
-        }else{
-            $queries['page'] = 1;
-        }
-
-        if(!empty($this->request->query('sort'))){
-            $queries['sort'] = $this->request->query('sort');
-        }else{
-            $queries['sort'] = 'id';
-        }
-
-        if(!empty($this->request->query('order'))){
-            $queries['order'] = $this->request->query('order');
-        }else{
-            $queries['order'] = 'DESC';
-        }
-
-        if(!empty($this->request->query('limit'))){
-            $queries['limit'] = $this->request->query('limit');
-        }
+        $queries = $this->getQueries($this->request->query());
 
         $data['save_url'] = route('lang.admin.inventory.products.save');
         $data['back_url'] = route('lang.admin.inventory.products.index', $queries);
 
-        // Get Record
+        // Get record
         $product = $this->ProductService->findIdOrFailOrNew($product_id);
         $product->supplier_name = $product->supplier->name ?? '';
         $product->supplier_product_name = $product->supplier_product->name ?? '';
 
-        // $product->load('supplier');
-        // $clone_product = $product->toArray();
-        // $clone_product['supplier_name'] = $clone_product['supplier']['name'];
-        // unset($clone_product['supplier']);
-        // unset($clone_product['translation']);
-        // $clone_product = (object) $clone_product;
-        // $data['product']  = $clone_product;
+        // Default column value
+        if(empty($product->id)){
+            $product->is_active = 1;
+        }
+
         $data['product']  = $product;
 
         if(!empty($data['product']) && $product_id == $product->id){
@@ -234,7 +208,7 @@ class ProductController extends BackendController
             $ids = $product->categories->pluck('id')->toArray();
             if(!empty($ids)){
                 $cat_filters = [
-                    'whereIn' => ['id', $$ids],
+                    'whereIn' => ['id' => $ids],
                     'pagination' => false
                 ];
                 $product_categories = $this->CategoryService->getRows($cat_filters);
@@ -283,11 +257,11 @@ class ProductController extends BackendController
         $codes = [];
         
         // 還沒設定任何單位轉換，選單只能出現庫存單位
-        if($product_units->isEmpty() && !empty($product->stock_unit_code)){
+        if(count($product_units) == 0 && !empty($product->stock_unit_code)){
             $codes[$product->stock_unit_code] = $product->stock_unit->name;
         }
         // 已有單位轉換，抓出所有不重複的單位
-        else{
+        else if(count($product_units) > 0){
             foreach ($product_units as $product_unit) {
                 $source_unit_code = $product_unit->source_unit_code;
                 $destination_unit_code = $product_unit->destination_unit_code;
@@ -339,7 +313,7 @@ class ProductController extends BackendController
             'pagination' => false,
             'limit' => 0,
         ];
-        $data['units'] = $this->UnitRepository->getAllActiveUnits($filter_data);
+        $data['units'] = $this->UnitRepository->getKeyedAllActiveUnits($filter_data);
 
         return view('admin.inventory.product_form', $data);
     }
@@ -428,15 +402,18 @@ class ProductController extends BackendController
         $filter_data = [
             'to_array' => true,
         ];
-        $units = $this->UnitRepository->getAllActiveUnits($filter_data);
-        $units = array_values($units);
-
+        $units = $this->UnitRepository->getKeyedAllActiveUnits($filter_data);
+        //$units = array_values($units);
+        //echo '<pre>', print_r($units, 1), "</pre>"; exit;
+        
         foreach ($rows as $row) {
             $purchasing_units = $row->product_units->toArray();
 
             if(!empty($purchasing_units)){
                 foreach ($purchasing_units as $key => $product_unit) {
-                    $product_unit['source_unit_name'] = $product_unit['source_unit']['name'] ?? '無單位名稱';
+                    $source_unit_code = $product_unit['source_unit_code'];
+                    //$product_unit['source_unit_name'] = $product_unit['source_unit']['name'] ?? '無單位名稱';
+                    $product_unit['source_unit_name'] = $units[$source_unit_code]['name'] ?? '無單位名稱';
                     unset($product_unit['source_unit']);
                     $purchasing_units[$key] = $product_unit;
                 }

@@ -43,6 +43,7 @@ return [
 'column_purchasing_unit' => '採購單位',
 'column_stock_unit' => '庫存單位',
 'column_manufacturing_unit' => '生產單位',
+'column_base_unit' => '基本單位',
 'column_weight_class' => '重量單位',
 'column_weight' => '重量',
 'column_length_class' => '長度單位',

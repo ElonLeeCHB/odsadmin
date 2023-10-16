@@ -159,8 +159,8 @@
                 </div>
               </div>
 
-              <div class="row mb-3">
-                <label for="input-tax_type" class="col-sm-2 col-form-label">{{ $lang->column_tax_type }}</label>
+              <div class="row mb-3 required">
+                <label for="input-tax_type_code" class="col-sm-2 col-form-label">{{ $lang->column_tax_type }}</label>
                 <div class="col-sm-10">
                   <select id="input-tax_type_code" name="tax_type_code" class="form-control" >
                     <option value="">{{ $lang->text_select }}</option>

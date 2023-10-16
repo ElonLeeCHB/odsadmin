@@ -119,6 +119,11 @@ class ReceivingOrderService extends Service
                         $stock_price = 0;
                     }
 
+                    $receiving_quantity = 0;
+                    if(!empty($fm_receiving_product['receiving_quantity'])){
+                        $receiving_quantity = str_replace(',', '', $fm_receiving_product['receiving_quantity']);
+                    }
+
                     
 
                     $row = [
@@ -130,7 +135,7 @@ class ReceivingOrderService extends Service
 
                         'receiving_unit_code' => $receiving_unit_code ?? '',
                         'receiving_unit_name' => $receiving_unit_name ?? '',
-                        'receiving_quantity' => str_replace(',', '', $fm_receiving_product['receiving_quantity']),
+                        'receiving_quantity' => $receiving_quantity,
 
                         'stock_unit_code' => $fm_receiving_product['stock_unit_code'] ?? '',
                         'stock_unit_name' => $fm_receiving_product['stock_unit_name'] ?? '',
@@ -150,6 +155,7 @@ class ReceivingOrderService extends Service
                     $update_receiving_products[$sort_order] = $row;
                     $sort_order++;
                 }
+                //echo '<pre>', print_r($update_receiving_products, 1), "</pre>"; exit;
 
                 //Upsert
                 if(!empty($update_receiving_products)){

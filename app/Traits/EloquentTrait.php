@@ -203,7 +203,7 @@ trait EloquentTrait
                     $result = $query->limit($limit)->pluck($data['pluck']);
                 }
             }
-            else if($pagination == false && $limit == 0){
+            else if($limit == 0){
                 if(empty($data['pluck'])){
                     $result = $query->get(); // Get all
                 }else{

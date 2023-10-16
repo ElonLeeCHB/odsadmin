@@ -111,7 +111,7 @@
                           </select>
                         </div>
                         <div class="col-sm-3">
-                          <input type="text" id="input-tax_rate" name="tax_rate" value="{{ $receiving_order->tax_rate }}" placeholder="{{ $lang->column_tax_rate }}" class="form-control" readonly/>
+                          <input type="text" id="input-tax_rate" name="tax_rate" value="{{ $receiving_order->tax_rate }}" placeholder="{{ $lang->column_tax_rate }}" class="form-control" />
                         </div>
                         <div class="col-sm-1" style="font-size: 1.3rem;">%</div>
 
@@ -179,7 +179,7 @@
                   
                   @for($i=0; $i<10; $i++)
                     @php $receiving_product = $receiving_products[$i] ?? []; @endphp
-                  <div class="row" data-rownum="{{ $product_row }}">
+                  <div class="row">
                     <div class="module col-md-1 col-sm-1">
                         <label>料件流水號</label>
                         <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $receiving_product->product_id ?? '' }}" class="form-control" readonly>
@@ -198,7 +198,11 @@
                         <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $receiving_product->product_specification ?? '' }}" class="form-control">
                     </div>
                     <div class="module col-md-1 col-sm-1">
-                        <label>進貨單位</label>
+                        <label>採購數量</label>
+                        <input type="text" id="input-products-receiving_quantity-{{ $product_row }}" name="products[{{ $product_row }}][receiving_quantity]" value="{{ $receiving_product->receiving_quantity ?? '' }}" class="form-control" data-rownum="{{ $product_row }}" onfocusout="chkPurchasingQuantity(this)">
+                    </div>
+                    <div class="module col-md-1 col-sm-1">
+                        <label>採購單位</label>
                         <select id="input-products-receiving_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][receiving_unit_code]" class="form-control">
                           <option value=""> -- </option>
                           <option value="{{ $receiving_product->receiving_unit_code ?? '' }}_{{ $receiving_product->receiving_unit_name ?? '' }}" selected>{{ $receiving_product->receiving_unit_name ?? '' }}</option>
@@ -214,20 +218,16 @@
                         <input type="hidden" id="input-products-stock_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_code]" value="{{ $receiving_product->stock_unit_code ?? '' }}">
                     </div>
                     <div class="module col-md-1 col-sm-1">
+                        <label>採購單價</label>
+                        <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $receiving_product->price ?? '' }}" class="form-control">
+                    </div>
+                    <div class="module col-md-1 col-sm-1">
                         <label>庫存單價</label>
-                        <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? 0 }}" class="form-control" readonly>
+                        <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? '' }}" class="form-control" readonly>
                     </div>
                     <div class="module col-md-1 col-sm-1">
-                        <label>進貨數量</label>
-                        <input type="text" id="input-products-receiving_quantity-{{ $product_row }}" name="products[{{ $product_row }}][receiving_quantity]" value="{{ $receiving_product->receiving_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">
-                    </div>
-                    <div class="module col-md-1 col-sm-1">
-                        <label>進貨單價</label>
-                        <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $receiving_product->price ?? 0 }}" class="form-control productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
-                    </div>
-                    <div class="module col-md-1 col-sm-1">
-                        <label>進貨金額</label>
-                        <input type="text" id="input-products-amount-{{ $product_row }}" name="products[{{ $product_row }}][amount]" value="{{ $receiving_product->amount ?? 0 }}" class="form-control productAmountInputs clcProduct" data-rownum="{{ $product_row }}">
+                        <label>採購金額</label>
+                        <input type="text" id="input-products-total-{{ $product_row }}" name="products[{{ $product_row }}][total]" value="{{ $receiving_product->total ?? '' }}" class="form-control amount" data-rownum="{{ $product_row }}">
                     </div>
                   </div>
 
@@ -271,7 +271,9 @@
 
 
 $(document).ready(function() {
-
+  var tax_type_code = $('#input-tax_type_code').val();
+  var tax_rate = $('#input-tax_rate').val();
+  var tax = $('#input-tax').val();
 
   // 查廠商名稱
   $('#input-supplier_name').on('click', function(){
@@ -296,33 +298,30 @@ $(document).ready(function() {
         $('#input-supplier_name').val(item.supplier_name);
         $('#input-tax_id_num').val(item.tax_id_num);
         $('#input-tax_type_code').val(item.tax_type_code);
-        chgTaxRate()
+        tax_type_code = item.tax_type_code;
+
+        // 稅率連帶變更
+        if(tax_type_code == 1){
+          $('#input-tax_rate').val(5);
+          tax_rate = 5;
+        }else if(tax_type_code == 2){
+          $('#input-tax_rate').val(5);
+          tax_rate = 5;
+        }else if(tax_type_code == 3){
+          $('#input-tax_rate').val(0);
+          tax_rate = 0;
+        }else if(tax_type_code == 4){
+          $('#input-tax_rate').val(0);
+          tax_rate = 0;
+        }
       }
     });
   });
 
   // 課稅別
   $('#input-tax_type_code').on("change", function() {
-    //$('#input-tax_type_code').val(tax_type_code); //不允許手動變更，回復原值
-    chgTaxRate()
+    $('#input-tax_type_code').val(tax_type_code); //不允許手動變更，回復原值
   });
-  // 變更稅率
-  function chgTaxRate(){
-    let tax_type_code = $('#input-tax_type_code').val(); 
-    if(tax_type_code == 1){
-      $('#input-tax_rate').val(5);
-      tax_rate = 5;
-    }else if(tax_type_code == 2){
-      $('#input-tax_rate').val(5);
-      tax_rate = 5;
-    }else if(tax_type_code == 3){
-      $('#input-tax_rate').val(0);
-      tax_rate = 0;
-    }else if(tax_type_code == 4){
-      $('#input-tax_rate').val(0);
-      tax_rate = 0;
-    }
-  }
 
   // 查統一編號
   $('#input-tax_id_num').on('click', function(){
@@ -399,67 +398,68 @@ $(document).ready(function() {
   });
  
   // 採購金額變動函數
-  const $productPriceInputs = $('.productPriceInputs'); //單價
-  const $productReceivingQuantityInputs = $('.productReceivingQuantityInputs'); //數量
-  const $productAmountInputs = $('.productAmountInputs'); // 金額
+  const $amountInputs = $('.amount');
   const $before_tax = $('#input-before_tax');
-  const maxProductRow = 20;
+  // 計算同筆記錄的單價
+  function chkPrice(inputElement){
+    var rownum = $(inputElement).data('rownum');
+    var total = $(inputElement).val();
+    var receiving_quantity = $('#input-products-receiving_quantity-'+rownum).val();
+    var stock_quantity = $('#input-products-stock_quantity-'+rownum).val();
+    console.log('rownum='+rownum+', total='+total + ', receiving_quantity='+receiving_quantity + ', stock_quantity='+stock_quantity);
+    var price = parseFloat(total/receiving_quantity).toFixed(2);
+    var stock_price = parseFloat(total/stock_quantity).toFixed(2);
+    console.log('price='+price+', stock_price='+stock_price);
 
-  // 進貨單價、進貨數量、進貨金額 觸發計算
-  $('.clcProduct').on('focusout', function(){
-    let rownum = $(this).closest('[data-rownum]').data('rownum');
-    calcProduct(rownum)
-  });
-  function calcProduct(rownum){
-    let price = $('#input-products-price-'+rownum).val() ?? 0;
-    let receiving_quantity = $('#input-products-receiving_quantity-'+rownum).val() ?? 0;
-    let amount = $('#input-products-amount-'+rownum).val() ?? 0;
-    amount = price*receiving_quantity
-    $('#input-products-amount-'+rownum).val(amount) 
-    //console.log('.clcProduct price='+price+', receiving_quantity='+receiving_quantity+', amount='+amount+', amount='+amount)
-    calcAllProducts()
+    if(!isNaN(price)){
+      $('#input-products-price-'+rownum).val(price);
+    }
+    alert()
+    if(!isNaN(stock_price)){
+      $('#input-products-stock_price-'+rownum).val(stock_price);
+    }
+
+    // 計算單頭
+    calculateTotal()
   }
-  
-
-  function calcAllProducts(){
-    let sum_amount = 0; // 單身金額加總
-    let total = 0; // 單頭稅後總金額
-    $productAmountInputs.each(function() {
-      sum_amount += parseFloat($(this).val()) || 0;
+  function calculateTotal() {
+    let sub_total = 0;
+    $amountInputs.each(function() {
+      sub_total += parseFloat($(this).val()) || 0;
     });
-
-    var tax_type_code = $('#input-tax_type_code').val();
-    var tax_rate_pcnt = $('#input-tax_rate').val()/100;
-    var tax = $('#input-tax').val();
 
     // 應稅內含
     if(tax_type_code == 1){
-      total = sum_amount;
-      before_tax = total/(1+tax_rate_pcnt);
-      before_tax = Math.round(before_tax);
-      tax = total - before_tax;
+      tax = Math.round(sub_total * 0.047619); // 假設未稅100元，稅額5元，總價105，5/105=0.047619
+      input_total = sub_total;
+      before_tax = input_total - tax;
     }
+
     // 應稅外加
     else if(tax_type_code == 2){
-      before_tax = sum_amount;
-      tax = Math.round(sum_amount*tax_rate_pcnt);
-      total = sum_amount + tax;
-    }
-    // 零稅率或免稅
-    else{
-      before_tax = sum_amount;
+      before_tax = sub_total;
+      tax = Math.round(sub_total * 0.05);
+      input_total = sub_total + tax;
+    }else{
+      before_tax = sub_total;
       tax = 0;
-      total = sum_amount;
+      input_total = sub_total;
     }
-    console.log('sum_amount='+sum_amount+', before_tax='+before_tax+', tax='+tax+', total='+total)
 
     $('#input-before_tax').val(before_tax);
-    $('#input-total').val(sum_amount);
+    $('#input-total').val(input_total);
     $('#input-tax').val(tax);
   }
-  
+  // 採購金額變動觸發
+  //$amountInputs.on('focusout', chkPrice);
+  $('.amount').on('focusout', function(){
+    chkPrice(this)
+    // let num = $(this).val();
+    // let rownum = $(this).data('rownum');
+    // alert(rownum)
 
-
+    
+  });
 
   $('#input-tax').on('focusout', function(){
     let num = $(this).val();

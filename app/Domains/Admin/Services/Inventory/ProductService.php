@@ -68,7 +68,7 @@ class ProductService extends Service
                 $product->stock_unit_code = $data['stock_unit_code'] ?? null;
             }
             
-            $product->manufacturing_unit_code = $data['manufacturing_unit_code'] ?? null;
+            $product->base_unit_code = $data['base_unit_code'] ?? null;
             
             $product->save();
 
@@ -118,7 +118,7 @@ class ProductService extends Service
                         'destination_quantity' => $product_unit['destination_quantity'],
                     ];
                 }
-            }else{
+            }else if(!empty($data['stock_unit_code'])){
                 $upsert_data[] = [
                     'id' => $product_unit['id'] ?? null,
                     'product_id' => $product->id,
@@ -226,4 +226,11 @@ class ProductService extends Service
     {
         return $this->ProductRepository->getProductSourceCodes();
     }
+
+
+    public function getKeyedSourceCodes()
+    {
+        return $this->ProductRepository->getKeyedSourceCodes();
+    }
 }
+

@@ -200,7 +200,7 @@ class PurchasingController extends BackendController
             'filter_keyword' => $this->request->filter_keyword,
             'pagination' => false,
         ];
-        $data['units'] = $this->UnitRepository->getAllActiveUnits($filter_data);
+        $data['units'] = $this->UnitRepository->getKeyedAllActiveUnits($filter_data);
 
         return view('admin.inventory.purchasing_order_form', $data);
     }

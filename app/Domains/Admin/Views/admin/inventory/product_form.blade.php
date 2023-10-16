@@ -165,20 +165,6 @@
                   </div>
                 </div>
 
-                {{-- manufacturing_unit_code --}}
-                <div class="row mb-3">
-                  <label for="input-manufacturing_unit_code" class="col-sm-2 col-form-label">{{ $lang->column_manufacturing_unit }}</label>
-                  <div class="col-sm-10">
-                    <select id="input-manufacturing_unit_code" name="manufacturing_unit_code" class="form-control">
-                      <option value="">--</option>
-                      @foreach($units as $code => $unit)
-                      <option value="{{ $unit->code }}" @if($unit->code==$product->manufacturing_unit_code) selected @endif>{{ $unit->label }}</option>
-                      @endforeach
-                    </select>
-                    <div id="error-manufacturing_unit_code" class="invalid-feedback"></div>
-                  </div>
-                </div>
-
                 {{-- is_active --}}
                 <div class="row mb-3">
                   <label class="col-sm-2 col-form-label">{{ $lang->column_enable }}</label>

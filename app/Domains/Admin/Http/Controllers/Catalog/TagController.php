@@ -90,7 +90,6 @@ class TagController extends BackendController
         unset($queries['sort']);
         unset($queries['order']);
         unset($queries['with']);
-        unset($queries['whereIn']);
 
         $url = '';
 
