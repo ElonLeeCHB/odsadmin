@@ -131,7 +131,7 @@ class ProductController extends BackendController
         $data['sort_specification'] = $route . "?sort=specification&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_model'] = $route . "?sort=model&order=$order" .$url;
-        $data['sort_price'] = $route . "?sort=price&order=$order" .$url;
+        $data['sort_supplier_short_name'] = $route . "?sort=supplier_name&order=$order" .$url;
         $data['sort_quantity'] = $route . "?sort=quantity&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
         
@@ -439,6 +439,14 @@ class ProductController extends BackendController
                 'purchasing_units' => $purchasing_units,
             );
         }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
+    }
+
+
+    public function delete()
+    {
+        $json['error'] = '目前不提供刪除！';
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }

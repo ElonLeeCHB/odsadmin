@@ -4,7 +4,6 @@ namespace App\Domains\Admin\Services\Inventory;
 
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
-use App\Services\Inventory\GlobalProductService;
 use App\Models\Common\TermRelation;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
@@ -19,18 +18,15 @@ class ProductService extends Service
     public function __construct(private ProductRepository $ProductRepository,private ProductUnitRepository $ProductUnitRepository)
     {}
 
-
     public function getProducts($data = [], $debug = 0)
     {
         return $this->ProductRepository->getProducts($data, $debug);
     }
 
-
     public function getProduct($data = [], $debug = 0)
     {
         return $this->ProductRepository->getProduct($data, $debug);
     }
-
 
     public function updateOrCreate($data)
     {
@@ -44,12 +40,12 @@ class ProductService extends Service
             $product->model = $data['model'] ?? null;
             $product->main_category_id = $data['main_category_id'] ?? null;
             $product->price = $data['price'] ?? 0;
+            $product->purchasing_price = $data['purchasing_price'] ?? 0;
             $product->quantity = $data['quantity'] ?? 0;
             $product->comment = $data['comment'] ?? '';
             $product->is_active = $data['is_active'] ?? 0;
             $product->is_salable = $data['is_salable'] ?? 0;
             $product->is_stock_management = $data['is_stock_management'] ?? 0;
-            
             $product->sort_order = $data['sort_order'] ?? 250;
             $product->source_code = $data['source_code'] ?? '';
             $product->accounting_category_code = $data['accounting_category_code'] ?? '';
@@ -190,35 +186,6 @@ class ProductService extends Service
         });
 
         return $result;
-    }
-
-
-    public function getSalableProducts($filter_data = [])
-    {
-        $cacheName = app()->getLocale() . '_salable_products';
-
-        $result = cache()->get($cacheName);
-
-        if(empty($result)){
-            $result = $this->resetCachedSalableProducts($filter_data);
-        }
-
-        return $result;
-    }
-
-
-    public function deleteProduct($product_id)
-    {
-        try {
-
-            $this->ProductRepository->delete($product_id);
-
-            return ['success' => true];
-
-        } catch (\Exception $ex) {
-            DB::rollback();
-            return ['error' => $ex->getMessage()];
-        }
     }
 
 

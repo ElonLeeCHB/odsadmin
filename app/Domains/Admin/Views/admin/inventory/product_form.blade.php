@@ -12,8 +12,6 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
-          {{-- <a href="javascript:void(0)" data-bs-toggle="tooltip" title="Orders" class="btn btn-warning"><i class="fas fa-receipt"></i></a> --}}
-        {{-- <button type="submit" form="form-product" data-bs-toggle="tooltip" title="Save" class="btn btn-primary"><i class="fas fa-save"></i></button> --}}
         <button type="submit" form="form-product" data-bs-toggle="tooltip" title="儲存" class="btn btn-primary"><i class="fa fa-save"></i></button>
         <a href="{{ $back_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_back }}" class="btn btn-light"><i class="fas fa-reply"></i></a>
       </div>
@@ -102,7 +100,6 @@
                   </div>
                 </div>
 
-                {{-- supplier_own_product_name --}}
                 <div class="row mb-3">
                   <label for="input-supplier_own_product_name" class="col-sm-2 col-form-label">{{ $lang->column_supplier_own_product_name }}</label>
                   <div class="col-sm-10">
@@ -111,7 +108,6 @@
                   </div>
                 </div>
 
-                {{-- supplier_own_product_specification --}}
                 <div class="row mb-3">
                   <label for="input-supplier_own_product_specification" class="col-sm-2 col-form-label">{{ $lang->column_supplier_own_product_specification }}</label>
                   <div class="col-sm-10">
@@ -120,7 +116,6 @@
                   </div>
                 </div>
 
-                {{-- source_code --}}
                 <div class="row mb-3">
                   <label for="input-source_code" class="col-sm-2 col-form-label">{{ $lang->column_source_code }}</label>
                   <div class="col-sm-10">
@@ -134,7 +129,6 @@
                   </div>
                 </div>
 
-                {{-- 會計分類 --}}
                 <div class="row mb-3">
                   <label for="input-accounting_category_code" class="col-sm-2 col-form-label">{{ $lang->column_accounting_category }}</label>
                   <div class="col-sm-10">
@@ -148,7 +142,6 @@
                   </div>
                 </div>
 
-                {{-- stock_unit_code --}}
                 <div class="row mb-3">
                   <label for="input-stock_unit_code" class="col-sm-2 col-form-label">{{ $lang->column_stock_unit }}</label>
                   <div class="col-sm-10">
@@ -165,7 +158,22 @@
                   </div>
                 </div>
 
-                {{-- is_active --}}
+                <div class="row mb-3">
+                  <label for="input-usage_unit_code" class="col-sm-2 col-form-label">{{ $lang->column_usage_unit_code }}</label>
+                  <div class="col-sm-10">
+                    @php
+                      $disabled = !empty($product->usage_unit_code) ? ' disabled' : '';
+                    @endphp
+                    <select id="input-usage_unit_code" name="usage_unit_code" class="form-control" {{ $disabled }}>
+                      <option value="">--</option>
+                      @foreach($units as $code => $unit)
+                      <option value="{{ $unit->code }}" @if($unit->code==$product->usage_unit_code) selected @endif>{{ $unit->label }}</option>
+                      @endforeach
+                    </select>
+                    <div id="error-usage_unit_code" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
                 <div class="row mb-3">
                   <label class="col-sm-2 col-form-label">{{ $lang->column_enable }}</label>
                   <div class="col-sm-10">
@@ -209,6 +217,15 @@
                     <div id="error-price" class="invalid-feedback"></div>
                   </div>
                 </div>
+
+                <div class="row mb-3">
+                  <label for="input-purchasing_price" class="col-sm-2 col-form-label">{{ $lang->column_purchasing_price }}</label>
+                  <div class="col-sm-10">
+                    <input type="text" name="purchasing_price" value="{{ $product->purchasing_price ?? 0}}" id="input-purchasing_price" class="form-control"/>
+                    <div id="error-purchasing_price" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
                 <div class="row mb-3">
                   <label for="input-quantity" class="col-sm-2 col-form-label">{{ $lang->column_quantity}}</label>
                   <div class="col-sm-10">

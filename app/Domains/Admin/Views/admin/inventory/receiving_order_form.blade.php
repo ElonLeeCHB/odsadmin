@@ -172,7 +172,7 @@
                       margin-bottom: 2px;
                     }
                 </style>
-                <div class="row row1 overflow-auto" style="height:450px">
+                <div class="row row1 overflow-auto" style="height:350px">
                   @php
                     $product_row = 1;
                   @endphp

@@ -18,24 +18,9 @@ class ProductService extends Service
 	{}
 
 
-    public function getProducts($data=[], $debug = 0)
+    public function getProducts($data = [], $debug = 0)
     {
-        $products = $this->ProductRepository->getProducts($data, $debug);
-
-        if(!empty($products) && !empty($data['simplelist'])){
-            foreach ($products as $row) {
-                $simplelist[] = [
-                    'product_id' => $row->id,
-                    'product_name' => $row->name,
-                ];
-            }
-        }
-
-        if(!empty($simplelist)){
-            $products = $simplelist;
-        }
-
-        return $products;
+        return $this->ProductRepository->getProducts($data, $debug);
     }
 
 

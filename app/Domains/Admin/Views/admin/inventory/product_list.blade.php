@@ -1,4 +1,4 @@
-<form id="form-member" method="post" data-oc-toggle="ajax" data-oc-load="{{ route('lang.admin.member.members.list') }}" data-oc-target="#member">
+<form id="form-product" method="post" data-oc-toggle="ajax" data-oc-load="{{ route('lang.admin.member.members.list') }}" data-oc-target="#member">
   @csrf
   @method('POST')
   <div class="table-responsive">
@@ -9,7 +9,7 @@
           <td class="text-end"><a href="{{ $sort_id }}" @if($sort=='id') class="{{ $order }}" @endif>{{ $lang->column_id }}</a></td>
           <td class="text-start"><a href="{{ $sort_name }}" @if($sort=='name') class="{{ $order }}" @endif>{{ $lang->column_name }}</a></td>
           <td class="text-start"><a href="{{ $sort_specification }}" @if($sort=='specification') class="{{ $order }}" @endif>{{ $lang->column_specification }}</a></td>
-          <td class="text-start"><a href="{{ $sort_price }}" @if($sort=='price') class="{{ $order }}" @endif>{{ $lang->column_price }}</a></td>
+          <td class="text-start"><a href="{{ $sort_supplier_short_name }}" @if($sort=='supplier_short_name') class="{{ $order }}" @endif>{{ $lang->column_supplier_short_name }}</a></td>
           <td class="text-start">{{ $lang->column_is_stock_management }}</td>
           <td class="text-start">{{ $lang->column_is_active }}</td>
           <td class="text-end">{{ $lang->column_action }}</td>
@@ -22,7 +22,7 @@
           <td class="text-end">{{ $row->id }}</td>
           <td class="text-start">{{ $row->name }}</td>
           <td class="text-start">{{ $row->specification }}</td>
-          <td class="text-start">{{ $row->price }}</td>
+          <td class="text-start">{{ $row->supplier_short_name }}</td>
           <td class="text-start">@if($row->is_stock_management)
                                   {{ $lang->text_yes }}
                                 @else

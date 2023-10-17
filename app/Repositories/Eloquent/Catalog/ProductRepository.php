@@ -24,37 +24,35 @@ class ProductRepository extends Repository
         parent::__construct();
     }
 
-
     public function getProducts($data = [], $debug = 0)
     {
         $data = $this->resetQueryData($data);
 
-
-        // Sort && Order
-        if(isset($data['sort']) && $data['sort'] == 'name'){
-            unset($data['sort']);
-
-            if(!isset($data['order'])){
-                $data['order'] = 'ASC';
-            }
-            
-            $locale = app()->getLocale();
-
-            $data['orderByRaw'] = "(SELECT name FROM product_translations WHERE locale='".$locale."' and product_translations.product_id = products.id) " . $data['order'];
-        }
-
         $products = $this->getRows($data);
+
+        if(count($products) > 0 && !empty($data['simplelist'])){
+            foreach ($products as $row) {
+                $simplelist[] = (object) [
+                    'product_id' => $row->id,
+                    'product_name' => $row->name,
+                ];
+            }
+
+            return $simplelist;
+        }
 
         $source_codes = $this->getProductSourceCodes();
 
         foreach ($products as $row) {
             if(!empty($row->status_id)){
                 $row->source_code_name = $source_codes[$row->source_code]['name'];
+            }
+
+            if(!empty($row->supplier_id)){
                 $row->supplier_name = $row->supplier->name ?? '';
+                $row->supplier_short_name = $row->supplier->short_name ?? '';
             }
         }
-
-        
 
         return $products;
     }
