@@ -7,12 +7,12 @@ return [
 // Tab
 // 'tab_general' => '基本資料',
 // 'tab_data' => '明細資料',
-//'tab_bom' => 'BOM',
 'tab_units' => '單位換算',
+'tab_bom' => 'BOM',
 
 // Text
 'text_inventory' => '庫存管理',
-'text_product_details' => '商品資料',    
+'text_product_details' => '商品資料',
 
 // Column
 

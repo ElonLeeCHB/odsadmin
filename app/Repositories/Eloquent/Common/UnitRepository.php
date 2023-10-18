@@ -30,11 +30,7 @@ class UnitRepository extends Repository
             $code = $row['code'];
             $row['label'] = $row['code'] . ' '. $row['name'];
             
-            if(!empty($data['to_array'])){
-                $new_rows[$code] = $row;
-            }else{
-                $new_rows[$code] = (object) $row;
-            }
+            $new_rows[$code] = (object) $row;
         }
 
         return $new_rows;

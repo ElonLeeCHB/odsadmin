@@ -39,5 +39,5 @@
       </tbody>
     </table>
   </div>
-  {!! $products->links('admin.pagination.default', ['products'=>$products]) !!}
+  {!! $pagination !!}
 </form>

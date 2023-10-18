@@ -10,7 +10,8 @@ use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductUnit;
 use App\Models\Catalog\ProductMeta;
 use App\Models\Common\Unit;
-use App\Models\Catalog\ProductBom;
+use App\Models\Inventory\Bom;
+use App\Models\Inventory\BomProduct;
 use App\Models\Counterparty\Organization;
 
 class Product extends Model
@@ -38,17 +39,26 @@ class Product extends Model
     }
 
 
-    public function boms()
+    public function bom()
     {
-        return $this->hasMany(ProductBom::class, 'product_id', 'id');
+        return $this->hasMany(Bom::class, 'product_id', 'id');
     }
 
+    public function boms()
+    {
+        return $this->hasMany(Bom::class, 'product_id', 'id');
+    }
 
     public function bom_products()
     {
-        return $this->belongsToMany(Product::class, 'product_boms', 'product_id', 'sub_product_id')
-            ->withPivot(['quantity']);
+        return $this->hasManyThrough(BomProduct::class, Bom::class, 'product_id', 'bom_id', 'id', 'id');
     }
+
+    // public function bom_products()
+    // {
+    //     return $this->belongsToMany(Product::class, 'product_boms', 'product_id', 'sub_product_id')
+    //         ->withPivot(['quantity']);
+    // }
 
 
     public function product_options()

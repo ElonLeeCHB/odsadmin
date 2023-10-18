@@ -25,7 +25,6 @@ use PDO;
  * saveTranslationData()
  * setMetaDataset()
  * saveMetaDataset()
- * toStdObj()
  * 
  * regexp
  * pagination
@@ -214,28 +213,6 @@ trait EloquentTrait
             if(!empty($data['keyBy'])){
                 $result = $result->keyBy($data['keyBy']);
             }
-        }
-
-
-        //toStdObj
-        if(!empty($data['toStdObj'])){
-            $result = $result->toArray();
-            $rows = [];
-
-            if(empty($data['first'])){
-                foreach ($result as $id => $row) {
-                    $new_row = [];
-                    foreach ($row as $column => $value) {
-                        if(in_array($column, $data['select'])){
-                            $new_row[$column] = $value;
-                        }
-                    }
-                    
-                    $rows[$id] = (object) $new_row;
-                }
-            }
-
-            $result =  &$rows;
         }
 
         return $result;
@@ -842,6 +819,41 @@ trait EloquentTrait
         }
 
         return new $translationModelName();
+    }
+
+    public function save($row, $data)
+    {
+        $this->initialize();
+        
+        if(!empty($row->getFillable())){
+            $row->fill($data);
+            return $row->save();
+        }
+        
+        $table_columns = $this->table_columns;
+        $form_columns = array_keys($data);
+
+        foreach ($table_columns as $column) {
+            if(!in_array($column, $form_columns)){
+                continue;
+            }
+
+            $row->$column = $data[$column];
+        }
+
+        try{
+            DB::beginTransaction();
+
+            $row->save();
+
+            DB::commit();
+
+            return ['id' => $row->id];
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return response(json_encode($ex->getMessage()))->header('Content-Type','application/json');
+        }
     }
 
     public function saveTranslationData($masterModel, $data, $translated_attributes=null)

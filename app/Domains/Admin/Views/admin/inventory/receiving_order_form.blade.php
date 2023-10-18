@@ -354,7 +354,7 @@ $(document).ready(function() {
     $(this).autocomplete({
       'source': function (request, response) {
         $.ajax({
-            url: "{{ $product_autocomplete_url }}?equal_source_code=PUR&equal_is_active=1&filter_name=" + encodeURIComponent(request),
+            url: "{{ $product_autocomplete_url }}?equal_source_code=PUR&equal_is_active=1&with=product_units&filter_name=" + encodeURIComponent(request) + '&extra_columns=stock_unit_code,stock_unit_name',
             dataType: 'json',
             success: function (json) {
               response(json);

@@ -28,6 +28,11 @@ class ProductService extends Service
         return $this->ProductRepository->getProduct($data, $debug);
     }
 
+    public function getExtraColumns($row, $columns)
+    {
+        return $this->ProductRepository->getExtraColumns($row, $columns);
+    }
+
     public function updateOrCreate($data)
     {
         DB::beginTransaction();
@@ -64,7 +69,7 @@ class ProductService extends Service
                 $product->stock_unit_code = $data['stock_unit_code'] ?? null;
             }
             
-            $product->base_unit_code = $data['base_unit_code'] ?? null;
+            $product->usage_unit_code = $data['usage_unit_code'] ?? null;
             
             $product->save();
 

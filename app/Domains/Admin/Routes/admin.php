@@ -220,6 +220,12 @@ Route::group(
                 Route::post('products/save/{id?}', 'Inventory\ProductController@save')->name('products.save');
                 Route::post('products/delete', 'Inventory\ProductController@delete')->name('products.delete');
                 Route::get('products/autocomplete', 'Inventory\ProductController@autocomplete')->name('products.autocomplete');
+                
+                Route::get('boms', 'Inventory\BomController@index')->name('boms.index');
+                Route::get('boms/list', 'Inventory\BomController@list')->name('boms.list');
+                Route::get('boms/form/{id?}', 'Inventory\BomController@form')->name('boms.form');
+                Route::post('boms/save/{id?}', 'Inventory\BomController@save')->name('boms.save');
+                Route::post('boms/delete', 'Inventory\BomController@delete')->name('boms.delete');
 
                 // Route::get('purchasing', 'Inventory\PurchasingController@index')->name('purchasing.index');
                 // Route::get('purchasing/list', 'Inventory\PurchasingController@list')->name('purchasing.list');

@@ -81,6 +81,16 @@ class Controller extends BaseController
             $query_data['equal_is_active'] = $data['equal_is_active'];
         }
 
+
+        if(isset($data['with'])){
+            $query_data['with'] = $data['with'];
+        }
+
+        if(!empty($data['extra_columns'])){
+            $query_data['extra_columns'] = $data['extra_columns'];
+        }
+        
+
         return $query_data;
     }
 
@@ -132,13 +142,16 @@ class Controller extends BaseController
 
     public function unsetRelations($rows, $relations)
     {
+        // $rows 其實是單筆
         if ($rows instanceof \Illuminate\Database\Eloquent\Model) {
             foreach ($relations as $relation) {
                 $rows->setRelation($relation, null);
             }
             
         }
-        else if(count($rows) > 1){
+
+        // $rows 是多筆
+        else if(count($rows) > 0){
             foreach ($rows as $row) {
                 foreach ($relations as $relation) {
                     $row->setRelation($relation, null);

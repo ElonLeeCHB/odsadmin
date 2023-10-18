@@ -28,7 +28,7 @@ class ProductRepository extends Repository
     {
         $data = $this->resetQueryData($data);
 
-        $products = $this->getRows($data);
+        $products = $this->getRows($data, $debug);
 
         if(count($products) > 0 && !empty($data['simplelist'])){
             foreach ($products as $row) {
@@ -51,6 +51,9 @@ class ProductRepository extends Repository
             if(!empty($row->supplier_id)){
                 $row->supplier_name = $row->supplier->name ?? '';
                 $row->supplier_short_name = $row->supplier->short_name ?? '';
+            }
+            if(empty($row->supplier_short_name)){
+                $row->supplier_short_name = '';
             }
         }
 
@@ -89,6 +92,21 @@ class ProductRepository extends Repository
         return $salable_products;
     }
 
+    public function getRowExtraColumns($row, $columns)
+    {
+        if(in_array('specification', $columns)){
+            //$row->specification = $row->specification;
+        }
+
+        return $row;
+    }
+
+    public function getRowsExtraColumns($rows, $columns)
+    {
+        foreach ($rows as $row) {
+            $row = $this->getRowExtraColumns($row, $columns);
+        }
+    }
 
     public function delete($product_id)
     {
@@ -127,13 +145,13 @@ class ProductRepository extends Repository
             unset($data['filter_keyword']);
         }
 
-        if(!empty($data['filter_name'])){
-            $data['whereHas']['translation'] = ['name' => $data['filter_name']];
-        }
+        // if(!empty($data['filter_name'])){
+        //     $data['whereHas']['translation'] = ['name' => $data['filter_name']];
+        // }
 
-        if(!empty($data['filter_specification'])){
-            $data['whereHas']['translation'] = ['specification' => $data['filter_specification']];
-        }
+        // if(!empty($data['filter_specification'])){
+        //     $data['whereHas']['translation'] = ['specification' => $data['filter_specification']];
+        // }
 
         return $data;
     }

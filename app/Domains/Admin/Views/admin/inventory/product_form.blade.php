@@ -27,6 +27,7 @@
             <li class="nav-item"><a href="#tab-trans" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_trans }}</a></li>
             <li class="nav-item"><a href="#tab-data" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_data }}</a></li>
             <li class="nav-item"><a href="#tab-units" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_units }}</a></li>
+            <li class="nav-item"><a href="#tab-bom" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_bom }}</a></li>
           </ul>
           <form id="form-product" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
             @csrf
@@ -275,6 +276,55 @@
                 </div>
               </div>
 
+              <div id="tab-bom" class="tab-pane">
+                <div class="table-responsive">
+                  <table id="bom" class="table table-striped table-bordered table-hover">
+                    <thead>
+                      <tr>
+                        <td class="text-left">品名</td>
+                        <td class="text-left">規格</td>
+                        <td class="text-right">用量</td>
+                        <td class="text-right">用量單位</td>
+                        <td class="text-right">損耗率</td>
+                        <td></td>
+                      </tr>
+                    </thead>
+                    <tbody>
+
+                      @php $bom_subproduct_row = 1; @endphp
+                      @foreach($bom_products as $bom_product)
+                      <tr id="bom-row-{{ $bom_subproduct_row }}}}">
+                        <td class="text-left">
+                          <label>料件名稱</label>
+                          <input type="text" id="input-products-name-{{ $bom_subproduct_row }}" name="products[{{ $bom_subproduct_row }}][name]" value="{{ $receiving_product->product_name ?? '' }}" data-rownum="{{ $bom_subproduct_row }}" class="form-control schProductName" data-oc-target="autocomplete-product_name-{{ $bom_subproduct_row }}" autocomplete="off">
+                          <ul id="autocomplete-product_name-{{ $bom_subproduct_row }}" class="dropdown-menu"></ul>
+                        </td>
+                        <td class="text-right"><input type="text" value=" " class="form-control" /></td>
+                        <td class="text-right"><input type="text" name="product_bom[0][quantity]" value="1" class="form-control" onkeyup="calcBOMvalue('bom', '0');" /></td>
+                        <td class="text-right"><input type="text" name="product_bom[0][value]" value="公克" placeholder="Value" class="form-control" readonly="readonly" /></td>
+                        <td class="text-right"><input type="text" name="product_bom[0][making_charge]" value="158.4000" placeholder="Making Charge" class="form-control" onkeyup="priceReadOnly();" /></td>
+                        <td class="text-left">
+                          <button type="button" onclick="$('#bom-row0').remove(); priceNotReadOnly();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>
+                        </td>
+                      </tr>
+                      @php $bom_subproduct_row++; @endphp
+                      @endforeach
+
+                    </tbody>
+
+                    <tfoot>
+                      <tr>
+                        <td colspan="6"></td>
+                        <td class="text-left">
+                          <button type="button" onclick="addBOM(); calcBOMvalues();" data-toggle="tooltip" title="" class="btn btn-primary" data-original-title=""><i class="fa fa-plus-circle"></i></button>
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+
+              </div>
+
               <input type="hidden" name="product_id" value="{{ $product_id }}" id="input-product_id"/>
             </div>
           </form>
@@ -342,28 +392,53 @@ $(document).ready(function() {
   });
 });
 
-// 查廠商料件
+
 $(document).ready(function() {
-  $('#input-supplier_product_name').on('input', function(){
-    $('#input-supplier_product_name').autocomplete({
-      'minLength': 1,
+  // 查料件名稱
+  $('.searchProductName').on('click', function(){
+    $(this).autocomplete({
       'source': function (request, response) {
-        var regex = /[a-zA-Z0-9\u3105-\u3129]+/; // 注音符號
-        if (regex.test(request)) {
-          return;
-        }else{
-          $.ajax({
-            url: "{{ $supplier_product_autocomplete_url }}?equal_source_code=SUP&filter_name=" + encodeURIComponent(request),
+        $.ajax({
+            url: "{{ $product_autocomplete_url }}?equal_source_code=PUR&equal_is_active=1&filter_name=" + encodeURIComponent(request),
             dataType: 'json',
             success: function (json) {
               response(json);
             }
           });
-        }
       },
       'select': function (item) {
-        $('#input-supplier_product_id').val(item.product_id);
-        $('#input-supplier_product_name').val(item.product_name);
+        var rownum = $(this).data("rownum");
+        $('#input-products-id-'+rownum).val(item.product_id);
+        $('#input-products-name-'+rownum).val(item.name);
+        $('#input-products-specification-'+rownum).val(item.specification);
+        $('#input-products-stock_unit_code-'+rownum).val(item.stock_unit_code);
+        $('#input-products-stock_unit_name-'+rownum).val(item.stock_unit_name);
+
+        $('#input-products-receiving_unit_code-'+rownum).empty();
+
+        //console.log(JSON.stringify(item.purchasing_units));
+
+        item.purchasing_units.forEach(function(unitData) {
+          let option = $('<option></option>');
+          option.val(unitData.source_unit_code + '_' + unitData.source_unit_name);
+          option.text(unitData.source_unit_name);
+          option.attr('data-multiplier', unitData.destination_quantity);
+          $('#input-products-receiving_unit_code-'+rownum).append(option);
+        });
+
+        // item.product_units.forEach(function(unitData) {
+        //   alert(unitData.source_unit_name)
+        // });
+
+
+        // for (var i = 0; i < item.product_units.length; i++) {
+        //   let unitData = item.product_units[i];
+        //   let option = $('<option></option>');
+        //   option.val(unitData.source_unit_code + '_' + unitData.source_unit_name);
+        //   option.text(unitData.source_unit_code + ' ' + unitData.source_unit_name);
+        //   option.attr('data-multiplier', unitData.destination_quantity);
+        //   $('#input-products-receiving_unit_code-'+rownum).append(option);
+        // }
       }
     });
   });

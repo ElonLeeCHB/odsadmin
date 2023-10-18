@@ -13,6 +13,8 @@ use App\Domains\Admin\Services\Catalog\CategoryService;
 use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
 //use App\Models\Common\Term;
+use App\Http\Resources\Inventory\ProductCollection;
+use App\Helpers\Classes\CollectionHelper;
 
 class ProductController extends BackendController
 {
@@ -102,7 +104,10 @@ class ProductController extends BackendController
             }
         }
 
-        $data['products'] = $products->withPath(route('lang.admin.inventory.products.list'))->appends($query_data);
+        $products = $products->withPath(route('lang.admin.inventory.products.list'))->appends($query_data);
+
+        $data['products'] = CollectionHelper::collectionToStdObj($products->getCollection());
+        $data['pagination'] = $products->links('admin.pagination.default');
 
 
         // Prepare links for list table's header
@@ -173,6 +178,7 @@ class ProductController extends BackendController
 
         $data['save_url'] = route('lang.admin.inventory.products.save');
         $data['back_url'] = route('lang.admin.inventory.products.index', $queries);
+        $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
 
         // Get record
         $product = $this->ProductService->findIdOrFailOrNew($product_id);
@@ -373,7 +379,7 @@ class ProductController extends BackendController
     public function autocomplete()
     {
         $query_data = $this->getQueries($this->request->query());
-
+        
         $json = [];
 
         // * 檢查錯誤
@@ -394,50 +400,59 @@ class ProductController extends BackendController
 
 
         // * Get data
+        $filter_data = $query_data;
 
-        $query_data['with'] = ['product_units'];
-        $rows = $this->ProductService->getProducts($query_data);
+        // with
+        $filter_data['with'] = [];
+        if(!empty($query_data['with'])){
+            $filter_data['with'] = explode(',', $query_data['with']);
+        }
+
+        // exra_columns
+        $extra_columns = [];
+        if(!empty($query_data['extra_columns'])){
+            $filter_data['extra_columns'] = explode(',', $query_data['extra_columns']);
+            $extra_columns = $filter_data['extra_columns'];
+        }
+        $rows = $this->ProductService->getProducts($filter_data);
 
         // units
         $filter_data = [
             'to_array' => true,
         ];
         $units = $this->UnitRepository->getKeyedAllActiveUnits($filter_data);
-        //$units = array_values($units);
-        //echo '<pre>', print_r($units, 1), "</pre>"; exit;
-        
+
         foreach ($rows as $row) {
-            $purchasing_units = $row->product_units->toArray();
 
-            if(!empty($purchasing_units)){
-                foreach ($purchasing_units as $key => $product_unit) {
-                    $source_unit_code = $product_unit['source_unit_code'];
-                    //$product_unit['source_unit_name'] = $product_unit['source_unit']['name'] ?? '無單位名稱';
-                    $product_unit['source_unit_name'] = $units[$source_unit_code]['name'] ?? '無單位名稱';
-                    unset($product_unit['source_unit']);
-                    $purchasing_units[$key] = $product_unit;
-                }
-            }else{
-                // foreach ($units as $key => $unit) {
-                //     $purchasing_units[$key] = [
-                //         'source_unit_code' => $unit['code'],
-                //         'source_unit_name' => $unit['name'],
-                //         'destination_quantity' => 1,
-                //     ];
-                // }  
-            }
-
-            $json[] = array(
+            $new_row = array(
                 'label' => $row->name . '-' . $row->id,
                 'value' => $row->id,
                 'product_id' => $row->id,
                 'name' => $row->name,
                 'specification' => $row->specification,
-                'model' => $row->model,
-                'stock_unit_code' => $row->stock_unit_code,
-                'stock_unit_name' => $row->stock_unit_name,
-                'purchasing_units' => $purchasing_units,
             );
+
+            // Get all product units as purchasing_units
+            $product_units = [];
+            if(count($row->product_units) > 0){
+                $product_units = $row->product_units->toArray();
+
+                foreach ($product_units as $key => $product_unit) {
+                    $product_units[$key] = $product_unit;
+                }
+            }
+
+            if(!empty($product_units)){
+                $new_row['purchasing_units'] = $product_units;
+            }
+
+            if(!empty($extra_columns)){
+                foreach($extra_columns as $extra_column){
+                    $new_row[$extra_column] = $row->$extra_column;
+                }
+            }
+
+            $json[] = $new_row;
         }
 
         return response(json_encode($json))->header('Content-Type','application/json');

@@ -28,6 +28,7 @@ return [
 'text_inventory_supplier' => '廠商設定',
 'text_inventory_warehouse' => '倉庫設定',
 'text_unit' => '單位設定',
+'text_inventory_bom' => 'BOM表',    
 'text_inventory_category' => '料件分類設定',
 'text_inventory_products' => '料件設定',
 'text_purchasing_orders' => '採購作業',

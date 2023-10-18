@@ -330,6 +330,16 @@ class LayoutComposer
             ];
         }
 
+        // BOM表
+        if(1) {
+            $inventory[] = [
+                'name'	   => $this->lang->text_inventory_bom,
+                'icon'	   => '',
+                'href'     => route('lang.admin.inventory.boms.index'),
+                'children' => []
+            ];
+        }
+
         // 採購作業
         // if(1) {
         //     $inventory[] = [

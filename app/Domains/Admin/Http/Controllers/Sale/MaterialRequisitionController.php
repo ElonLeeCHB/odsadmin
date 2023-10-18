@@ -343,7 +343,7 @@ class MaterialRequisitionController extends BackendController
             'select' => ['id', 'code'],
             'limit' => 0,
             'pagination' => false,
-            'toStdObj' => true,
+            //'toStdObj' => true, 要另外處理
             'keyBy' => 'id',
         ];
 
