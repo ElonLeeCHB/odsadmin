@@ -149,9 +149,11 @@ class BomController extends BackendController
 
 
         // Get record
-        $bom = $this->BomService->findIdOrFailOrNew($bom_id);
+        $filter_data = [
+            'with' => 'bom_products.sub_product.translation',
+        ];
+        $bom = $this->BomService->findIdOrFailOrNew($bom_id, $filter_data);
         $bom = $this->BomService->getExtraColumns($bom, ['product_name']);
-
         // Default column value
         if(empty($bom_id)){
             $bom->is_active = 1;
@@ -167,11 +169,8 @@ class BomController extends BackendController
 
 
         // sub_products
-        $sub_products = $bom->sub_products;
-
-        $data['bom_products'] = $sub_products;
-
-
+        //$sub_products = $bom->sub_products;
+        $data['bom_products'] = $this->BomService->getBomSubProducts($bom);
 
         return view('admin.inventory.bom_form', $data);
     }
@@ -181,13 +180,10 @@ class BomController extends BackendController
     {
         $post_data = $this->request->post();
 
-
         // 檢查
         $json = [];
 
         $bom_id = $post_data['bom_id'] ?? '';
-
-
         
 
         if (isset($json['error']) && !isset($json['error']['warning'])) {
@@ -197,9 +193,9 @@ class BomController extends BackendController
 
         // 檢查通過
         if(!$json) {
-            $bom = $this->BomService->findIdOrFailOrNew($bom_id);
-            $result = $this->BomService->save($bom, $post_data);
-
+            $result = $this->BomService->saveBom($post_data);
+            
+            //$result = $this->BomService->saveBomProducts($post_data);
             if(empty($result['error'])){
                 $json = [
                     'bom_id' => $result['id'],
@@ -207,14 +203,13 @@ class BomController extends BackendController
                     'redirectUrl' => route('lang.admin.inventory.boms.form', $result['id']),
                 ];
             }else if(auth()->user()->username == 'admin'){
-                $json['warning'] = $result['error'];
+                $json['error'] = $result['error'];
             }else{
-                $json['warning'] = $this->lang->text_fail;
+                $json['error'] = $this->lang->text_fail;
             }
         }
         
         return response(json_encode($json))->header('Content-Type','application/json');
-        echo '<pre>', print_r($post_data, 1), "</pre>"; exit;
     }
 
 

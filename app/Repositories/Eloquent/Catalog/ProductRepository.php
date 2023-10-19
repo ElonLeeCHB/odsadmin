@@ -5,6 +5,7 @@ namespace App\Repositories\Eloquent\Catalog;
 use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
 use App\Repositories\Eloquent\Common\TermRepository;
+use App\Repositories\Eloquent\Common\UnitRepository;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
@@ -16,44 +17,72 @@ class ProductRepository extends Repository
 {
     public $modelName = "\App\Models\Catalog\Product";
 
-    private $source_codes;
+    private $source_type_codes;
 
 
-    public function __construct(protected TermRepository $TermRepository)
+    public function __construct(protected TermRepository $TermRepository, protected UnitRepository $UnitRepository)
     {
         parent::__construct();
     }
 
     public function getProducts($data = [], $debug = 0)
     {
-        $data = $this->resetQueryData($data);
+        $filter_data = $this->resetQueryData($data);
 
-        $products = $this->getRows($data, $debug);
+        $products = $this->getRows($filter_data, $debug);
 
-        if(count($products) > 0 && !empty($data['simplelist'])){
-            foreach ($products as $row) {
-                $simplelist[] = (object) [
-                    'product_id' => $row->id,
-                    'product_name' => $row->name,
-                ];
-            }
-
-            return $simplelist;
+        if(count($products) == 0){
+            return $products;
         }
 
-        $source_codes = $this->getProductSourceCodes();
+        
+        $product_unit_codes = ['stock_unit_code', 'purchasing_unit_code', 'usage_unit_code'];
+        $supplier_columns = ['name', 'short_name'];
+        
+
+
+        // 額外欄位 預處理
+        if(!empty($data['extra_columns'])){
+
+            // product_units
+            $matches = array_intersect($product_unit_codes, $data['extra_columns']);
+            if (!empty($matches)) {
+                // units
+                $filter_data = [
+                    'is_active' => 1
+                ];
+                $units = $this->UnitRepository->getKeyedActiveUnits($filter_data);
+            }
+
+            // supplier_columns
+            $matches = array_intersect($supplier_columns, $data['extra_columns']);
+            if (!empty($matches)) {
+                $products->load('supplier_name');
+            }
+        }
 
         foreach ($products as $row) {
-            if(!empty($row->status_id)){
-                $row->source_code_name = $source_codes[$row->source_code]['name'];
-            }
 
-            if(!empty($row->supplier_id)){
-                $row->supplier_name = $row->supplier->name ?? '';
-                $row->supplier_short_name = $row->supplier->short_name ?? '';
-            }
-            if(empty($row->supplier_short_name)){
-                $row->supplier_short_name = '';
+            // 額外欄位 掛載到資料集
+            if(!empty($data['extra_columns'])){
+
+                // product_units
+                $matches = array_intersect($product_unit_codes, $data['extra_columns']);
+                if (!empty($matches)) {
+                    $row->stock_unit_name = $units[$row->stock_unit_code] ?? '';
+                    $row->usage_unit_name = $units[$row->usage_unit_code] ?? '';
+                }
+
+                // supplier_columns
+                $matches = array_intersect($supplier_columns, $data['extra_columns']);
+                if (!empty($matches)) {
+                    $row->supplier_name = $row->supplier->name;
+                    $row->supplier_short_name = $row->supplier->short_name;
+                }
+
+                if(in_array('source_type_name', $data['extra_columns'])){
+                    $row->source_type_name = $row->source_type->name;
+                }
             }
         }
 
@@ -92,22 +121,6 @@ class ProductRepository extends Repository
         return $salable_products;
     }
 
-    public function getRowExtraColumns($row, $columns)
-    {
-        if(in_array('specification', $columns)){
-            //$row->specification = $row->specification;
-        }
-
-        return $row;
-    }
-
-    public function getRowsExtraColumns($rows, $columns)
-    {
-        foreach ($rows as $row) {
-            $row = $this->getRowExtraColumns($row, $columns);
-        }
-    }
-
     public function delete($product_id)
     {
         try {
@@ -138,6 +151,11 @@ class ProductRepository extends Repository
 
     public function resetQueryData($data)
     {
+        // 轉成陣列
+        if(!empty($data['with']) && is_string($data['with'])){
+            $data['with'] = [$data['with']];
+        }
+
         if(!empty($data['filter_keyword'])){
             $data['filter_name'] = $data['filter_keyword'];
             $data['filter_specification'] = $data['filter_keyword'];
@@ -145,22 +163,14 @@ class ProductRepository extends Repository
             unset($data['filter_keyword']);
         }
 
-        // if(!empty($data['filter_name'])){
-        //     $data['whereHas']['translation'] = ['name' => $data['filter_name']];
-        // }
-
-        // if(!empty($data['filter_specification'])){
-        //     $data['whereHas']['translation'] = ['specification' => $data['filter_specification']];
-        // }
-
         return $data;
     }
 
 
     public function getProductSourceCodes()
     {
-        if(!empty($this->source_codes)){
-            return $this->source_codes;
+        if(!empty($this->source_type_codes)){
+            return $this->source_type_codes;
         }
 
         $filter_data = [
@@ -230,6 +240,24 @@ class ProductRepository extends Repository
         }
 
         return (object) $arrOrder;
+    }
+
+    // 單筆記錄
+    private function getRowExtraColumns($row, $columns)
+    {
+        if(in_array('usage_unit_code_name', $columns)){
+            $row->usage_unit_code_name = $row->usage_unit->name ?? 'no name';
+        }
+
+        return $row;
+    }
+
+    // 多筆記錄
+    private function getRowsExtraColumns($rows, $columns)
+    {
+        foreach ($rows as $row) {
+            $row = $this->getRowExtraColumns($row, $columns);
+        }
     }
 
 

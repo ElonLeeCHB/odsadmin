@@ -202,7 +202,7 @@ class ReceivingOrderController extends BackendController
             'filter_keyword' => $this->request->filter_keyword,
             'pagination' => false,
         ];
-        $data['units'] = $this->UnitRepository->getKeyedAllActiveUnits($filter_data);
+        $data['units'] = $this->UnitRepository->getKeyedActiveUnits($filter_data);
 
         $data['tax_types'] = $this->ReceivingOrderService->getActiveTaxTypesIndexByCode();
 

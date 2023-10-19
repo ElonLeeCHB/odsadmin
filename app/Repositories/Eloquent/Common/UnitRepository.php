@@ -12,7 +12,7 @@ class UnitRepository extends Repository
     public $modelName = "\App\Models\Common\Unit";
 
 
-    public function getKeyedAllActiveUnits($data = [], $debug=0)
+    public function getKeyedActiveUnits($data = [], $debug=0)
     {
         $data['equal_is_active'] = 1;
         $data['pagination'] = false;

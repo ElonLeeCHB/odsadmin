@@ -36,10 +36,10 @@
 
             <div class="mb-3">
               <label class="form-label">{{ $lang->column_source_type }}</label>
-              <select id="input-filter_source_code" name="filter_source_code"  class="form-select">
+              <select id="input-filter_source_type_code" name="filter_source_type_code"  class="form-select">
                 <option value="">{{ $lang->text_select }}</option>
-                @foreach($source_codes as $source_code)
-                <option value="{{ $source_code->code }}">{{ $source_code->label }}</option>
+                @foreach($source_codes as $source_type)
+                <option value="{{ $source_type->code }}">{{ $source_type->label }}</option>
                 @endforeach
               </select>
             </div>
@@ -99,10 +99,10 @@ $('#button-filter').on('click', function() {
     url += '&filter_name=' + encodeURIComponent(filter_name);
   }
 
-  var filter_source_code = $('#input-filter_source_code').val();
+  var filter_source_type_code = $('#input-filter_source_type_code').val();
 
-  if (filter_source_code) {
-    url += '&filter_source_code=' + encodeURIComponent(filter_source_code);
+  if (filter_source_type_code) {
+    url += '&filter_source_type_code=' + encodeURIComponent(filter_source_type_code);
   }
 
   var filter_is_salable = $('#input-filter_is_salable').val();

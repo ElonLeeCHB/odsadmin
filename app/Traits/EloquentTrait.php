@@ -125,9 +125,13 @@ trait EloquentTrait
     {
         //find
         if(!empty(trim($id))){
-            $query = $this->newModel()->where('id', $id);
+            $query = $this->newModel();
 
-            $row = $query->firstOrFail();
+            if(!empty($data['with'])){
+                $query->with($data['with']);
+            }
+
+            $row = $query->findOrFail($id);
         }
         //new
         else{
@@ -821,27 +825,29 @@ trait EloquentTrait
         return new $translationModelName();
     }
 
-    public function save($row, $data)
+    public function saveRow($row, $data, $debug = 0)
     {
         $this->initialize();
-        
-        if(!empty($row->getFillable())){
-            $row->fill($data);
-            return $row->save();
-        }
-        
-        $table_columns = $this->table_columns;
-        $form_columns = array_keys($data);
-
-        foreach ($table_columns as $column) {
-            if(!in_array($column, $form_columns)){
-                continue;
-            }
-
-            $row->$column = $data[$column];
-        }
 
         try{
+        
+            if(!empty($row->getFillable())){
+                $row->fill($data);
+                $row->save();
+                return $row->id;
+            }
+            
+            $table_columns = $this->table_columns;
+            $form_columns = array_keys($data);
+            
+            foreach ($table_columns as $column) {
+                if(!in_array($column, $form_columns)){
+                    continue;
+                }
+    
+                $row->$column = $data[$column];
+            }
+            
             DB::beginTransaction();
 
             $row->save();
@@ -852,7 +858,7 @@ trait EloquentTrait
 
         } catch (\Exception $ex) {
             DB::rollback();
-            return response(json_encode($ex->getMessage()))->header('Content-Type','application/json');
+            return ['error' => $ex->getMessage()];
         }
     }
 

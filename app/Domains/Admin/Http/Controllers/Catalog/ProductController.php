@@ -479,8 +479,10 @@ class ProductController extends BackendController
 
         foreach ($rows as $row) {
             $json[] = array(
-                'label' => $row->name . '-' . $row->id,
-                'value' => $row->id,
+                'label' => $row->name . '-' . $row->id, //待廢棄
+                'value' => $row->id, //待廢棄
+                '_label' => $row->name . '-' . $row->id,
+                '_value' => $row->id,
                 'product_id' => $row->id,
                 'name' => $row->name,
                 'specification' => $row->specification,

@@ -159,7 +159,7 @@ class OrderRepository extends Repository
         $cachedStatusesName = app()->getLocale() . '_order_statuses';
 
         // 取得快取
-        if(empty($data['reset'])){
+        if(empty($reset)){
             $order_statuses = cache()->get($cachedStatusesName);
 
             if(!empty($order_statuses)){
@@ -169,7 +169,7 @@ class OrderRepository extends Repository
 
         // 若無快取則重設
         $filter_data = [
-            'equal_is_active' => true,
+            'equal_is_active' => 1,
         ];
 
         $order_statuses = $this->getOrderStatuses($filter_data);

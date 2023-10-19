@@ -54,6 +54,11 @@ class Product extends Model
         return $this->hasManyThrough(BomProduct::class, Bom::class, 'product_id', 'bom_id', 'id', 'id');
     }
 
+    public function source_type()
+    {
+        return $this->hasMany(Term::class,'product_id', 'id')->orderBy('sort_order');
+    }
+
     // public function bom_products()
     // {
     //     return $this->belongsToMany(Product::class, 'product_boms', 'product_id', 'sub_product_id')
@@ -65,7 +70,7 @@ class Product extends Model
     {
         return $this->hasMany(ProductOption::class,'product_id', 'id')->orderBy('sort_order');
     }
-
+    
 
     public function cachedProductOptions()
     {
@@ -84,7 +89,12 @@ class Product extends Model
         return $this->belongsTo(Unit::class, 'stock_unit_code', 'code');
     }
 
+    public function usage_unit()
+    {
+        return $this->belongsTo(Unit::class, 'usage_unit_code', 'code');
+    }
 
+    
     public function product_units()
     {
         return $this->hasMany(ProductUnit::class,'product_id', 'id');

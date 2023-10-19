@@ -63,7 +63,7 @@ class UnitController extends BackendController
             }
         }
 
-        $rows = $this->UnitRepository->getKeyedAllActiveUnits($filter_data);
+        $rows = $this->UnitRepository->getKeyedActiveUnits($filter_data);
         
         if(empty($rows)){
             return false;

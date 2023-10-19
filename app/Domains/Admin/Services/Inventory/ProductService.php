@@ -52,7 +52,7 @@ class ProductService extends Service
             $product->is_salable = $data['is_salable'] ?? 0;
             $product->is_stock_management = $data['is_stock_management'] ?? 0;
             $product->sort_order = $data['sort_order'] ?? 250;
-            $product->source_code = $data['source_code'] ?? '';
+            $product->source_type_code = $data['source_type_code'] ?? '';
             $product->accounting_category_code = $data['accounting_category_code'] ?? '';
             
             $product->supplier_id = $data['supplier_id'] ?? 0;

@@ -105,7 +105,7 @@ class OrderService extends Service
 
     public function getCachedActiveOrderStatuses($reset = false)
     {
-        return $this->OrderRepository->getCachedActiveOrderStatuses($reset);
+        return $this->OrderRepository->getCachedActiveOrderStatuses();
     }
 
 

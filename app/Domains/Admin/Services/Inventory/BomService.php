@@ -22,9 +22,27 @@ class BomService
     }
 
 
+    public function getBomSubProducts($bom)
+    {
+        return $this->BomRepository->getBomSubProducts($bom);
+    }
+
+
     public function getExtraColumns($row, $columns)
     {
         return $this->BomRepository->getExtraColumns($row, $columns);
+    }
+
+
+    public function saveBom($post_data)
+    {
+        return $this->BomRepository->saveBom($post_data);
+    }
+
+
+    public function saveBomProducts($data)
+    {
+        return $this->BomRepository->saveBomProducts($data);
     }
 
 

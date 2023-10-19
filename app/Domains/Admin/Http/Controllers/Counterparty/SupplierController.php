@@ -347,17 +347,33 @@ class SupplierController extends BackendController
     {
         $json = [];
         $query_data = $this->request->query();
-        $query_data['with'] = ['payment_term', 'meta_dataset'];
 
-        $suppliers = $this->SupplierService->getSuppliers($query_data);
+        $filter_data = $query_data;
+        $filter_data['with'] = ['payment_term', 'meta_dataset'];
 
-        $tax_type_codes = $this->SupplierService->getSuppliers($query_data);
+        $hasFilterOrEqual = 9;
+
+        foreach ($filter_data as $key => $value) {
+            if ((strpos($key, 'filter_') === 0 || strpos($key, 'equal_') === 0) && !empty($value)) {
+                $hasFilterOrEqual = true;
+                break;
+            }
+        }
+        
+        // 不存在任何查詢
+        if($hasFilterOrEqual !== true){
+            $filter_data['equal_is_often_used_supplier'] = 1; 
+        }
+
+        $suppliers = $this->SupplierService->getSuppliers($filter_data);
 
         if(empty($suppliers)){
             return false;
         }
         
         $suppliers = $this->rowsWithMetaData($suppliers);
+
+        //$tax_type_codes = $this->SupplierService->getSuppliers($query_data);
 
         $data['tax_types'] = $this->SupplierService->getActiveTaxTypesIndexByCode();
 

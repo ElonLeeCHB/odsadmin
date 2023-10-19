@@ -89,6 +89,10 @@ class Controller extends BaseController
         if(!empty($data['extra_columns'])){
             $query_data['extra_columns'] = $data['extra_columns'];
         }
+
+        if(!empty($data['simplelist'])){
+            $query_data['simplelist'] = $data['simplelist'];
+        }
         
 
         return $query_data;

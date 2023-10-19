@@ -171,6 +171,18 @@
                   <div id="error-tax_type" class="invalid-feedback"></div>
                 </div>
               </div>
+              
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ $lang->column_is_often_used_supplier }}</label>
+                <div class="col-sm-10">
+                  <div class="input-group">
+                    <div id="input-is_often_used_supplier" class="form-check form-switch form-switch-lg">
+                      <input type="hidden" name="is_often_used_supplier" value="0"/>
+                      <input type="checkbox" name="is_often_used_supplier" value="1" class="form-check-input" @if($supplier->is_often_used_supplier) checked @endif/>
+                    </div>
+                  </div>
+                </div>
+              </div>  
 
               <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">{{ $lang->column_enable }}</label>

@@ -95,12 +95,15 @@ class ProductController extends BackendController
         // Prepare query_data for records
         $query_data = $this->getQueries($this->request->query());
 
+        $filter_data = $query_data;
+
         // Rows
-        $products = $this->ProductService->getProducts($query_data);
+        $products = $this->ProductService->getProducts($filter_data);
 
         if(!empty($products)){
             foreach ($products as $row) {
                 $row->edit_url = route('lang.admin.inventory.products.form', array_merge([$row->id], $query_data));
+                $row->supplier_short_name = $row->supplier->short_name ?? '';
             }
         }
 
@@ -248,7 +251,7 @@ class ProductController extends BackendController
 
         $data['product_options'] = [];
         
-        $data['source_codes'] = $this->ProductService->getProductSourceCodes();
+        $data['source_type_codes'] = $this->ProductService->getProductSourceCodes();
 
         // supplier
         $data['supplier_autocomplete_url'] = route('lang.admin.counterparty.suppliers.autocomplete');
@@ -319,7 +322,7 @@ class ProductController extends BackendController
             'pagination' => false,
             'limit' => 0,
         ];
-        $data['units'] = $this->UnitRepository->getKeyedAllActiveUnits($filter_data);
+        $data['units'] = $this->UnitRepository->getKeyedActiveUnits($filter_data);
 
         return view('admin.inventory.product_form', $data);
     }
@@ -403,52 +406,47 @@ class ProductController extends BackendController
         $filter_data = $query_data;
 
         // with
+        $with = [];
         $filter_data['with'] = [];
         if(!empty($query_data['with'])){
-            $filter_data['with'] = explode(',', $query_data['with']);
+            $with = $filter_data['with'] = explode(',', $query_data['with']);
         }
 
         // exra_columns
         $extra_columns = [];
         if(!empty($query_data['extra_columns'])){
-            $filter_data['extra_columns'] = explode(',', $query_data['extra_columns']);
-            $extra_columns = $filter_data['extra_columns'];
+            $extra_columns = $filter_data['extra_columns'] = explode(',', $query_data['extra_columns']);
         }
         $rows = $this->ProductService->getProducts($filter_data);
-
-        // units
-        $filter_data = [
-            'to_array' => true,
-        ];
-        $units = $this->UnitRepository->getKeyedAllActiveUnits($filter_data);
 
         foreach ($rows as $row) {
 
             $new_row = array(
-                'label' => $row->name . '-' . $row->id,
-                'value' => $row->id,
+                'label' => $row->name . '-' . $row->id, //待廢棄
+                'value' => $row->id, //待廢棄
+                '_label' => $row->name . '-' . $row->id,
+                '_value' => $row->id,
                 'product_id' => $row->id,
                 'name' => $row->name,
                 'specification' => $row->specification,
             );
 
-            // Get all product units as purchasing_units
-            $product_units = [];
-            if(count($row->product_units) > 0){
-                $product_units = $row->product_units->toArray();
-
-                foreach ($product_units as $key => $product_unit) {
-                    $product_units[$key] = $product_unit;
-                }
-            }
-
-            if(!empty($product_units)){
-                $new_row['purchasing_units'] = $product_units;
-            }
-
             if(!empty($extra_columns)){
                 foreach($extra_columns as $extra_column){
                     $new_row[$extra_column] = $row->$extra_column;
+                }
+            }
+
+            // product_units
+            if(in_array('product_units', $with)){
+                $product_units = [];
+            
+                if(count($row->product_units) > 0){
+                    $product_units = $row->product_units->toArray();
+    
+                    foreach ($product_units as $key => $product_unit) {
+                        $new_row['product_units'][$key] = $product_unit;
+                    }
                 }
             }
 

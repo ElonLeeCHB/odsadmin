@@ -37,7 +37,7 @@
               <div id="tab-data" class="tab-pane active">
                 <fieldset>
                   <legend>{{ $lang->tab_data }}</legend>
-                  <div class="row mb-3">
+                  <div class="row mb-3 required">
                     <label for="input-location_name" class="col-sm-2 col-form-label">{{ $lang->column_location_name }}</label>
                     <div class="col-sm-10">
                       <select id="input-location_id" name="location_id" class="form-select">
@@ -57,7 +57,7 @@
                     </div>
                   </div>
 
-                  <div class="row mb-3">
+                  <div class="row mb-3 required">
                     <label for="input-form_type_code" class="col-sm-2 col-form-label">單別</label>
                     <div class="col-sm-10">
                       <select id="input-form_type_code" name="form_type_code" class="form-select">
@@ -68,7 +68,7 @@
                     </div>
                   </div>
 
-                  <div class="row mb-3">
+                  <div class="row mb-3 required">
                     <label for="input-receiving_date" class="col-sm-2 col-form-label">{{ $lang->column_receiving_date }}</label>
                     <div class="col-sm-10">
                       <input type="text" name="receiving_date" value="{{ $receiving_order->receiving_date_ymd }}" id="input-receiving_date" class="form-control date"/>
@@ -76,7 +76,7 @@
                     </div>
                   </div>
 
-                  <div class="row mb-3">
+                  <div class="row mb-3 required">
                     <label for="input-supplier" class="col-sm-2 col-form-label">{{ $lang->column_supplier }}</label>
                     <div class="col-sm-10">
                       <div class="input-group">
@@ -87,7 +87,7 @@
                         </div>
                         <div class="col-sm-6">
                           <input type="text" id="input-supplier_name" name="supplier_name" value="{{ $receiving_order->supplier_name }}" placeholder="{{ $lang->column_supplier_name }}" class="form-control" data-oc-target="autocomplete-supplier_name"/>
-                          <div class="form-text">廠商名稱 (可查詢，至少輸入一個字)</div>
+                          <div class="form-text">廠商名稱 (可輸入文字做查詢)</div>
                           <ul id="autocomplete-supplier_name" class="dropdown-menu"></ul>
                         </div>
                         <div class="col-sm-3">
@@ -98,7 +98,7 @@
                     </div>
                   </div>
 
-                  <div class="row mb-3">
+                  <div class="row mb-3 required">
                     <label for="input-tax_type_code" class="col-sm-2 col-form-label">{{ $lang->column_tax_type }}</label>
                     <div class="col-sm-10">
                       <div class="input-group">
@@ -180,14 +180,14 @@
                   @for($i=0; $i<10; $i++)
                     @php $receiving_product = $receiving_products[$i] ?? []; @endphp
                   <div class="row" data-rownum="{{ $product_row }}">
-                    <div class="module col-md-1 col-sm-1">
-                        <label>料件流水號</label>
+                    <div class="module col-md-1 col-sm-1 required">
+                        <label class="col-form-label">料件流水號</label>
                         <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $receiving_product->product_id ?? '' }}" class="form-control" readonly>
                         
                     </div>
-                    <div class="module col-md-2 col-sm-2">
+                    <div class="module col-md-2 col-sm-2 required">
                       <div>
-                        <label>料件名稱</label>
+                        <label class="col-form-label">料件名稱</label>
                         <input type="text" id="input-products-name-{{ $product_row }}" name="products[{{ $product_row }}][name]" value="{{ $receiving_product->product_name ?? '' }}" data-rownum="{{ $product_row }}" class="form-control schProductName" data-oc-target="autocomplete-product_name-{{ $product_row }}" autocomplete="off">
                         <ul id="autocomplete-product_name-{{ $product_row }}" class="dropdown-menu"></ul>
                       </div>
@@ -195,17 +195,29 @@
                       
                     <div class="module col-md-2 col-sm-2">
                         <label>料件規格</label>
-                        <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $receiving_product->product_specification ?? '' }}" class="form-control">
+                        <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $receiving_product->product_specification ?? '' }}" class="form-control" readonly>
                     </div>
-                    <div class="module col-md-1 col-sm-1">
-                        <label>進貨單位</label>
+                    <div class="module col-md-1 col-sm-1 required">
+                        <label class="col-form-label">進貨單位</label>
                         <select id="input-products-receiving_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][receiving_unit_code]" class="form-control">
                           <option value=""> -- </option>
                           <option value="{{ $receiving_product->receiving_unit_code ?? '' }}_{{ $receiving_product->receiving_unit_name ?? '' }}" selected>{{ $receiving_product->receiving_unit_name ?? '' }}</option>
                         </select>
                     </div>
                     <div class="module col-md-1 col-sm-1">
-                        <label>庫存數量</label>
+                        <label>進貨單價</label>
+                        <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $receiving_product->price ?? 0 }}" class="form-control productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
+                    </div>
+                    <div class="module col-md-1 col-sm-1 required">
+                        <label class="col-form-label">進貨數量</label>
+                        <input type="text" id="input-products-receiving_quantity-{{ $product_row }}" name="products[{{ $product_row }}][receiving_quantity]" value="{{ $receiving_product->receiving_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">
+                    </div>
+                    <div class="module col-md-1 col-sm-1">
+                        <label>進貨金額</label>
+                        <input type="text" id="input-products-amount-{{ $product_row }}" name="products[{{ $product_row }}][amount]" value="{{ $receiving_product->amount ?? 0 }}" class="form-control productAmountInputs clcProduct" data-rownum="{{ $product_row }}">
+                    </div>
+                    <div class="module col-md-1 col-sm-1 required">
+                        <label class="col-form-label">庫存數量</label>
                         <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? '' }}" class="form-control" data-rownum="{{ $product_row }}">
                     </div>
                     <div class="module col-md-1 col-sm-1">
@@ -216,18 +228,6 @@
                     <div class="module col-md-1 col-sm-1">
                         <label>庫存單價</label>
                         <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? 0 }}" class="form-control" readonly>
-                    </div>
-                    <div class="module col-md-1 col-sm-1">
-                        <label>進貨數量</label>
-                        <input type="text" id="input-products-receiving_quantity-{{ $product_row }}" name="products[{{ $product_row }}][receiving_quantity]" value="{{ $receiving_product->receiving_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">
-                    </div>
-                    <div class="module col-md-1 col-sm-1">
-                        <label>進貨單價</label>
-                        <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $receiving_product->price ?? 0 }}" class="form-control productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
-                    </div>
-                    <div class="module col-md-1 col-sm-1">
-                        <label>進貨金額</label>
-                        <input type="text" id="input-products-amount-{{ $product_row }}" name="products[{{ $product_row }}][amount]" value="{{ $receiving_product->amount ?? 0 }}" class="form-control productAmountInputs clcProduct" data-rownum="{{ $product_row }}">
                     </div>
                   </div>
 
@@ -274,7 +274,9 @@ $(document).ready(function() {
 
 
   // 查廠商名稱
-  $('#input-supplier_name').on('click', function(){
+  $('#input-supplier_name').on('click', function(e){
+    e.preventDefault();
+
     $('#input-supplier_name').autocomplete({
       'minLength': 1,
       'source': function (request, response) {

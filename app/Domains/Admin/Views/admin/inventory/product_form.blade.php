@@ -118,15 +118,15 @@
                 </div>
 
                 <div class="row mb-3">
-                  <label for="input-source_code" class="col-sm-2 col-form-label">{{ $lang->column_source_code }}</label>
+                  <label for="input-source_type_code" class="col-sm-2 col-form-label">{{ $lang->column_source_type_code }}</label>
                   <div class="col-sm-10">
-                    <select id="input-source_code" name="source_code" class="form-control">
+                    <select id="input-source_type_code" name="source_type_code" class="form-control">
                       <option value="*">{{ $lang->text_select }}</option>
-                      @foreach($source_codes as $source_code)
-                      <option value="{{ $source_code->code }}" @if($product->source_code==$source_code->code) selected @endif>{{ $source_code->name }}</option>
+                      @foreach($source_type_codes as $source_type_code)
+                      <option value="{{ $source_type_code->code }}" @if($product->source_type_code==$source_type_code->code) selected @endif>{{ $source_type_code->name }}</option>
                       @endforeach
                     </select>
-                    <div id="error-source_code" class="invalid-feedback"></div>
+                    <div id="error-source_type_code" class="invalid-feedback"></div>
                   </div>
                 </div>
 
@@ -162,10 +162,7 @@
                 <div class="row mb-3">
                   <label for="input-usage_unit_code" class="col-sm-2 col-form-label">{{ $lang->column_usage_unit_code }}</label>
                   <div class="col-sm-10">
-                    @php
-                      $disabled = !empty($product->usage_unit_code) ? ' disabled' : '';
-                    @endphp
-                    <select id="input-usage_unit_code" name="usage_unit_code" class="form-control" {{ $disabled }}>
+                    <select id="input-usage_unit_code" name="usage_unit_code" class="form-control">
                       <option value="">--</option>
                       @foreach($units as $code => $unit)
                       <option value="{{ $unit->code }}" @if($unit->code==$product->usage_unit_code) selected @endif>{{ $unit->label }}</option>
@@ -244,7 +241,7 @@
                       <td class="text-start">來源數量</td>
                       <td class="text-start">來源單位</td>
                       <td class="text-start">目的數量</td>
-                      <td class="text-start">目的單位</td>
+                      <td class="text-start">目的單位(庫存單位)</td>
                     </tr>
 
                       @php $product_unit_row = 1; @endphp
@@ -399,7 +396,7 @@ $(document).ready(function() {
     $(this).autocomplete({
       'source': function (request, response) {
         $.ajax({
-            url: "{{ $product_autocomplete_url }}?equal_source_code=PUR&equal_is_active=1&filter_name=" + encodeURIComponent(request),
+            url: "{{ $product_autocomplete_url }}?equal_source_type_code=PUR&equal_is_active=1&filter_name=" + encodeURIComponent(request),
             dataType: 'json',
             success: function (json) {
               response(json);
