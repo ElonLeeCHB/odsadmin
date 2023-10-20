@@ -30,7 +30,7 @@
           <div class="mb-3">
             <label class="form-label">{{ $lang->column_status }}</label>
             <select id="input-status_id" name="filter_status_id" class="form-select">
-            <option value="">--</option>
+              <option value="">--</option>
               @foreach($receiving_order_statuses as $status)
               <option value="{{ $status->code }}" >{{ $status->name }}</option>
               @endforeach
@@ -50,6 +50,16 @@
           <div class="mb-3">
             <label data-bs-toggle="tooltip" title="2023-02-20 或不加橫線 20230220 或範圍 20230301-20230331 或大於某日 >20230101 或小於某日 <20230101" style="font-weight: bolder;" >進貨日期 <i class="fa fa-question-circle" aria-hidden="true"></i></label>
             <input type="text" name="filter_receiving_date" value="" placeholder="例如 2023-02-20" id="input-receiving_date" class="form-control"/>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">{{ $lang->column_tax_type }}</label>
+            <select id="input-filter_tax_type_code" name="filter_tax_type_code" class="form-select">
+              <option value="">--</option>
+              @foreach($tax_types as $tax_type)
+              <option value="{{ $tax_type->code }}" >{{ $tax_type->name }}</option>
+              @endforeach
+            </select>
           </div>
 
           <div class="text-end">

@@ -108,10 +108,9 @@ class ProductController extends BackendController
         }
 
         $products = $products->withPath(route('lang.admin.inventory.products.list'))->appends($query_data);
-
-        $data['products'] = CollectionHelper::collectionToStdObj($products->getCollection());
+        
+        $data['products'] = $products;
         $data['pagination'] = $products->links('admin.pagination.default');
-
 
         // Prepare links for list table's header
         if($query_data['order'] == 'ASC'){
@@ -267,7 +266,7 @@ class ProductController extends BackendController
         
         // 還沒設定任何單位轉換，選單只能出現庫存單位
         if(count($product_units) == 0 && !empty($product->stock_unit_code)){
-            $codes[$product->stock_unit_code] = $product->stock_unit->name;
+            $codes[$product->stock_unit_code] = $product->stock_unit->name ?? '';
         }
         // 已有單位轉換，抓出所有不重複的單位
         else if(count($product_units) > 0){
@@ -440,13 +439,22 @@ class ProductController extends BackendController
             // product_units
             if(in_array('product_units', $with)){
                 $product_units = [];
-            
-                if(count($row->product_units) > 0){
+
+                if(!empty($row->product_units)){
                     $product_units = $row->product_units->toArray();
-    
-                    foreach ($product_units as $key => $product_unit) {
-                        $new_row['product_units'][$key] = $product_unit;
+
+                    foreach ($product_units as $product_unit_key => $product_unit) {
+                        if(!empty($product_unit['source_unit'])){
+                            unset($product_unit['source_unit']);
+                        }
+
+                        if(!empty($product_unit['destination_unit'])){
+                            unset($product_unit['destination_unit']);
+                        }
+                        $product_units[$product_unit_key] = $product_unit;
                     }
+
+                    $new_row['product_units']= $product_units;
                 }
             }
 

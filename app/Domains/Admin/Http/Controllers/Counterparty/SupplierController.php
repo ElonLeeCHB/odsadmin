@@ -115,6 +115,7 @@ class SupplierController extends BackendController
         $data['sort_code'] = $route . "?sort=code&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_short_name'] = $route . "?sort=short_name&order=$order" .$url;
+        $data['sort_tax_type_code'] = $route . "?sort=tax_type_code&order=$order" .$url;
         
         $data['list_url'] = route('lang.admin.counterparty.suppliers.list');
         

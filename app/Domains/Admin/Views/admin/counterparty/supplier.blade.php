@@ -29,17 +29,19 @@
             <div class="card-body">
 
               <div class="mb-3">
-                <label class="form-label">{{ $lang->column_code }}</label>
-                <input type="text" id="input-code" name="filter_code" value="{{ $filter_code?? '' }}"  data-oc-target="autocomplete-name" class="form-control" autocomplete="off"/>
-                <ul id="autocomplete-code" class="dropdown-menu"></ul>
+                <label class="form-label">{{ $lang->column_keyword }}</label>
+                <input type="text" id="input-keyword" name="filter_keyword" value="{{ $filter_keyword ?? '' }}" placeholder="名稱、簡稱" class="form-control" autocomplete="off"/>
               </div>
 
               <div class="mb-3">
-                <label class="form-label">{{ $lang->column_keyword }}</label>
-                <input type="text" id="input-keyword" name="filter_keyword" value="{{ $filter_keyword ?? '' }}" placeholder="名稱、簡稱" data-oc-target="autocomplete-keyword" class="form-control" autocomplete="off"/>
-                <ul id="autocomplete-keyword" class="dropdown-menu"></ul>
+                <label class="form-label">{{ $lang->column_tax_id_num }}</label>
+                <input type="text" id="input-filter_tax_id_num" name="filter_tax_id_num" value="{{ $filter_tax_id_num ?? '' }}" placeholder="8碼數字" class="form-control" autocomplete="off"/>
               </div>
 
+              <div class="mb-3">
+                <label class="form-label">{{ $lang->column_telephone }}</label>
+                <input type="text" id="input-filter_telephone" name="filter_telephone" value="{{ $filter_telephone ?? '' }}" placeholder="市話(不含區碼)" class="form-control" autocomplete="off"/>
+              </div>
               <div class="mb-3">
                 <label class="form-label">{{ $lang->column_is_active }}</label>
                 <select name="equal_is_active" id="input-equal_is_active" class="form-select">
@@ -78,18 +80,24 @@ $('#supplier').on('click', 'thead a, .pagination a', function(e) {
 
 $('#button-filter').on('click', function() {
 	url = '';
-
-  var filter_code = $('#input-code').val();
-
-  if (filter_code) {
-    url += '&filter_code=' + encodeURIComponent(filter_code);
-  }
-
+  
 	var filter_keyword = $('#input-keyword').val();
 
 	if (filter_keyword) {
 		url += '&filter_keyword=' + encodeURIComponent(filter_keyword);
 	}
+
+  var filter_tax_id_num = $('#input-filter_tax_id_num').val();
+
+  if (filter_tax_id_num) {
+    url += '&filter_tax_id_num=' + encodeURIComponent(filter_tax_id_num);
+  }
+
+  var filter_telephone = $('#input-filter_telephone').val();
+
+  if (filter_telephone) {
+    url += '&filter_telephone=' + encodeURIComponent(filter_telephone);
+  }
 
   var equal_is_active = $('#input-equal_is_active').val();
 

@@ -101,10 +101,6 @@ class UnitRepository extends Repository
             unset($arrOrder['translation']);
         }
 
-        if(!empty($arrOrder['taxonomy'])){
-            unset($arrOrder['taxonomy']);
-        }
-
         return (object) $arrOrder;
     }
 }

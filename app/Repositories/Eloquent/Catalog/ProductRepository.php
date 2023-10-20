@@ -30,7 +30,7 @@ class ProductRepository extends Repository
         $filter_data = $this->resetQueryData($data);
 
         $products = $this->getRows($filter_data, $debug);
-
+        
         if(count($products) == 0){
             return $products;
         }
@@ -38,7 +38,6 @@ class ProductRepository extends Repository
         
         $product_unit_codes = ['stock_unit_code', 'purchasing_unit_code', 'usage_unit_code'];
         $supplier_columns = ['name', 'short_name'];
-        
 
 
         // 額外欄位 預處理

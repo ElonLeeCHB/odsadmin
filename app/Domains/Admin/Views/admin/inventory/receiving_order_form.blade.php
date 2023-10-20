@@ -180,7 +180,7 @@
                   @for($i=0; $i<10; $i++)
                     @php $receiving_product = $receiving_products[$i] ?? []; @endphp
                   <div class="row" data-rownum="{{ $product_row }}">
-                    <div class="module col-md-1 col-sm-1 required">
+                    <div class="module col-md-1 col-sm-1">
                         <label class="col-form-label">料件流水號</label>
                         <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $receiving_product->product_id ?? '' }}" class="form-control" readonly>
                         
@@ -194,7 +194,7 @@
                     </div>
                       
                     <div class="module col-md-2 col-sm-2">
-                        <label>料件規格</label>
+                        <label class="col-form-label">料件規格</label>
                         <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $receiving_product->product_specification ?? '' }}" class="form-control" readonly>
                     </div>
                     <div class="module col-md-1 col-sm-1 required">
@@ -204,29 +204,29 @@
                           <option value="{{ $receiving_product->receiving_unit_code ?? '' }}_{{ $receiving_product->receiving_unit_name ?? '' }}" selected>{{ $receiving_product->receiving_unit_name ?? '' }}</option>
                         </select>
                     </div>
-                    <div class="module col-md-1 col-sm-1">
-                        <label>進貨單價</label>
+                    <div class="module col-md-1 col-sm-1 required">
+                        <label class="col-form-label">進貨單價</label>
                         <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $receiving_product->price ?? 0 }}" class="form-control productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
                     </div>
                     <div class="module col-md-1 col-sm-1 required">
                         <label class="col-form-label">進貨數量</label>
                         <input type="text" id="input-products-receiving_quantity-{{ $product_row }}" name="products[{{ $product_row }}][receiving_quantity]" value="{{ $receiving_product->receiving_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">
                     </div>
-                    <div class="module col-md-1 col-sm-1">
-                        <label>進貨金額</label>
+                    <div class="module col-md-1 col-sm-1 required">
+                        <label class="col-form-label">進貨金額</label>
                         <input type="text" id="input-products-amount-{{ $product_row }}" name="products[{{ $product_row }}][amount]" value="{{ $receiving_product->amount ?? 0 }}" class="form-control productAmountInputs clcProduct" data-rownum="{{ $product_row }}">
                     </div>
-                    <div class="module col-md-1 col-sm-1 required">
+                    <div class="module col-md-1 col-sm-1">
                         <label class="col-form-label">庫存數量</label>
-                        <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? '' }}" class="form-control" data-rownum="{{ $product_row }}">
+                        <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? '' }}" class="form-control" data-rownum="{{ $product_row }}" readonly>
                     </div>
                     <div class="module col-md-1 col-sm-1">
-                        <label>庫存單位</label>
+                        <label class="col-form-label">庫存單位</label>
                         <input type="text" id="input-products-stock_unit_name-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_name]" value="{{ $receiving_product->stock_unit_name ?? '' }}" class="form-control" readonly>
                         <input type="hidden" id="input-products-stock_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_code]" value="{{ $receiving_product->stock_unit_code ?? '' }}">
                     </div>
                     <div class="module col-md-1 col-sm-1">
-                        <label>庫存單價</label>
+                        <label class="col-form-label">庫存單價</label>
                         <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? 0 }}" class="form-control" readonly>
                     </div>
                   </div>
@@ -356,7 +356,7 @@ $(document).ready(function() {
     $(this).autocomplete({
       'source': function (request, response) {
         $.ajax({
-            url: "{{ $product_autocomplete_url }}?equal_source_code=PUR&equal_is_active=1&with=product_units&filter_name=" + encodeURIComponent(request) + '&extra_columns=stock_unit_code,stock_unit_name',
+            url: "{{ $product_autocomplete_url }}?equal_source_type_code=PUR&equal_is_active=1&with=product_units&filter_name=" + encodeURIComponent(request) + '&extra_columns=stock_unit_code,stock_unit_name',
             dataType: 'json',
             success: function (json) {
               response(json);
@@ -375,7 +375,7 @@ $(document).ready(function() {
 
         //console.log(JSON.stringify(item.purchasing_units));
 
-        item.purchasing_units.forEach(function(unitData) {
+        item.product_units.forEach(function(unitData) {
           let option = $('<option></option>');
           option.val(unitData.source_unit_code + '_' + unitData.source_unit_name);
           option.text(unitData.source_unit_name);

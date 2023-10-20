@@ -15,22 +15,10 @@ class ProductService extends Service
 {
     public $modelName = "\App\Models\Catalog\Product";
 
-    public function __construct(private ProductRepository $ProductRepository,private ProductUnitRepository $ProductUnitRepository)
-    {}
-
-    public function getProducts($data = [], $debug = 0)
+    public function __construct(ProductRepository $repository,
+        private ProductUnitRepository $ProductUnitRepository)
     {
-        return $this->ProductRepository->getProducts($data, $debug);
-    }
-
-    public function getProduct($data = [], $debug = 0)
-    {
-        return $this->ProductRepository->getProduct($data, $debug);
-    }
-
-    public function getExtraColumns($row, $columns)
-    {
-        return $this->ProductRepository->getExtraColumns($row, $columns);
+        $this->repository = $repository;
     }
 
     public function updateOrCreate($data)
@@ -191,18 +179,6 @@ class ProductService extends Service
         });
 
         return $result;
-    }
-
-
-    public function getProductSourceCodes()
-    {
-        return $this->ProductRepository->getProductSourceCodes();
-    }
-
-
-    public function getKeyedSourceCodes()
-    {
-        return $this->ProductRepository->getKeyedSourceCodes();
     }
 }
 

@@ -10,6 +10,7 @@ class ProductUnit extends Model
 {
     public $timestamps = false;
     protected $guarded = [];
+    protected $appends = ['source_unit_name', 'destination_unit_name'];
 
 
     public function source_unit()
@@ -21,4 +22,24 @@ class ProductUnit extends Model
     {
         return $this->belongsTo(Unit::class, 'destination_unit_code', 'code');
     }
+
+
+    // Attribute
+
+    protected function sourceUnitName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->source_unit->name ?? '',
+        );
+    }
+
+    protected function destinationUnitName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->destination_unit->name ?? '',
+        );
+    }
+
 }
+
+

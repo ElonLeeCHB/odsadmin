@@ -68,9 +68,10 @@ class UnitController extends BackendController
 
         foreach ($units as $row) {
             $row->edit_url = route('lang.admin.inventory.units.form', array_merge([$row->id], $query_data));
-            $row->is_active = ($row->is_active==1) ? $this->lang->text_enabled :$this->lang->text_disabled;
+            $row->is_active_name = ($row->is_active==1) ? $this->lang->text_enabled :$this->lang->text_disabled;
         }
-        $data['units'] = $units;
+
+        $data['units'] = $units->withPath(route('lang.admin.inventory.units.list'))->appends($query_data);
 
         // Prepare links for list table's header
         if($query_data['order'] == 'ASC'){
@@ -169,10 +170,18 @@ class UnitController extends BackendController
         // Get Record
         $unit = $this->UnitService->findIdOrFailOrNew($unit_id);
 
-        if(!empty($unit->id)){
-            $unit = $this->UnitService->sanitizeRow($unit);
+
+        // translations
+        if($unit->translations->isEmpty()){
+            $translations = [];
+        }else{
+            foreach ($unit->translations as $translation) {
+                $translations[$translation->locale] = $translation->toArray();
+            }
         }
-        $data['unit']  = $unit;
+        $data['translations'] = $translations;
+        
+        $data['unit']  = $this->UnitService->sanitizeRow($unit);
 
         if(!empty($data['unit']) && $unit_id == $unit->id){
             $data['unit_id'] = $unit_id;

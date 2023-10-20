@@ -52,16 +52,6 @@
                         <div id="error-name-{{ $language->code }}" class="invalid-feedback"></div>
                       </div>
                     </div>
-
-                    <div class="row mb-3">
-                      <label for="input-short_name-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_short_name }}</label>
-                      <div class="col-sm-10">
-                        <div class="input-group">
-                          <input type="text" id="input-short_name-{{ $language->code }}" name="translations[{{ $language->code }}][short_name]" value="{{ $translations[$language->code]['short_name'] ?? '' }}" class="form-control">
-                        </div>
-                        <div id="error-short_name-{{ $language->code }}" class="invalid-feedback"></div>
-                      </div>
-                    </div>
                   </div>
                   @endforeach
                 </div>
@@ -74,7 +64,7 @@
                 <label class="col-sm-2 col-form-label">{{ $lang->column_code }}</label>
                 <div class="col-sm-10">
                   <div class="input-group">
-                    <input type="text" id="input-code" name="code" value="{{ $unit->code ?? ''}}" data-oc-target="autocomplete-code" class="form-control" @if(!empty($unit->code)) disabled @endif />
+                    <input type="text" id="input-code" name="code" value="{{ $unit->code ?? ''}}" data-oc-target="autocomplete-code" class="form-control" @if(!empty($unit->code)) readonly @endif />
                   </div>
                   <div class="form-text">(識別碼有可能用在程式裡面。請小心設定。)</div>
                   <div id="error-code" class="invalid-feedback"></div>

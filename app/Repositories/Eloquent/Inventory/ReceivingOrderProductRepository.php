@@ -12,7 +12,7 @@ class ReceivingOrderProductRepository extends Repository
     public $modelName = "\App\Models\Inventory\ReceivingOrderProduct";
 
 
-    public function deleteByReceivingOrderId($receiving_order_id)
+    public function deleteByReceivingOrderById($receiving_order_id)
     {
         try {
 

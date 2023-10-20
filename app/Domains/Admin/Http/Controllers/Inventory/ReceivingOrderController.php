@@ -47,6 +47,8 @@ class ReceivingOrderController extends BackendController
 
         $data['breadcumbs'] = (object)$breadcumbs;
 
+        // tax_types
+        $data['tax_types'] = [];
 
         // statuses
         $data['receiving_order_statuses'] = $this->ReceivingOrderService->getCachedActiveReceivingOrderStatuses();

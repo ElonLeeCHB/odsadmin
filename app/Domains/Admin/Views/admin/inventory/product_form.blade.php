@@ -27,7 +27,6 @@
             <li class="nav-item"><a href="#tab-trans" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_trans }}</a></li>
             <li class="nav-item"><a href="#tab-data" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_data }}</a></li>
             <li class="nav-item"><a href="#tab-units" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_units }}</a></li>
-            <li class="nav-item"><a href="#tab-bom" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_bom }}</a></li>
           </ul>
           <form id="form-product" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
             @csrf
@@ -271,55 +270,6 @@
                   請先設定庫存單位(盤點單位)，然後按F5重新整理. 
                   @endif
                 </div>
-              </div>
-
-              <div id="tab-bom" class="tab-pane">
-                <div class="table-responsive">
-                  <table id="bom" class="table table-striped table-bordered table-hover">
-                    <thead>
-                      <tr>
-                        <td class="text-left">品名</td>
-                        <td class="text-left">規格</td>
-                        <td class="text-right">用量</td>
-                        <td class="text-right">用量單位</td>
-                        <td class="text-right">損耗率</td>
-                        <td></td>
-                      </tr>
-                    </thead>
-                    <tbody>
-
-                      @php $bom_subproduct_row = 1; @endphp
-                      @foreach($bom_products as $bom_product)
-                      <tr id="bom-row-{{ $bom_subproduct_row }}}}">
-                        <td class="text-left">
-                          <label>料件名稱</label>
-                          <input type="text" id="input-products-name-{{ $bom_subproduct_row }}" name="products[{{ $bom_subproduct_row }}][name]" value="{{ $receiving_product->product_name ?? '' }}" data-rownum="{{ $bom_subproduct_row }}" class="form-control schProductName" data-oc-target="autocomplete-product_name-{{ $bom_subproduct_row }}" autocomplete="off">
-                          <ul id="autocomplete-product_name-{{ $bom_subproduct_row }}" class="dropdown-menu"></ul>
-                        </td>
-                        <td class="text-right"><input type="text" value=" " class="form-control" /></td>
-                        <td class="text-right"><input type="text" name="product_bom[0][quantity]" value="1" class="form-control" onkeyup="calcBOMvalue('bom', '0');" /></td>
-                        <td class="text-right"><input type="text" name="product_bom[0][value]" value="公克" placeholder="Value" class="form-control" readonly="readonly" /></td>
-                        <td class="text-right"><input type="text" name="product_bom[0][making_charge]" value="158.4000" placeholder="Making Charge" class="form-control" onkeyup="priceReadOnly();" /></td>
-                        <td class="text-left">
-                          <button type="button" onclick="$('#bom-row0').remove(); priceNotReadOnly();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>
-                        </td>
-                      </tr>
-                      @php $bom_subproduct_row++; @endphp
-                      @endforeach
-
-                    </tbody>
-
-                    <tfoot>
-                      <tr>
-                        <td colspan="6"></td>
-                        <td class="text-left">
-                          <button type="button" onclick="addBOM(); calcBOMvalues();" data-toggle="tooltip" title="" class="btn btn-primary" data-original-title=""><i class="fa fa-plus-circle"></i></button>
-                        </td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-
               </div>
 
               <input type="hidden" name="product_id" value="{{ $product_id }}" id="input-product_id"/>

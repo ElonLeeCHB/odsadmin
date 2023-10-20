@@ -12,6 +12,14 @@ class Service
     protected $lang;
     protected $repository;
 
+    public function __call($method, $parameters)
+    {
+        if (!method_exists($this, $method) && method_exists($this->repository, $method)) {
+            return call_user_func_array([$this->repository, $method], $parameters);
+        }
+
+        throw new \BadMethodCallException("Method [$method] does not exist.");
+    }
 
     public function optimizeRow($row)
     {

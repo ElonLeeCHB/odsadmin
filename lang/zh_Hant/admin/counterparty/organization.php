@@ -27,6 +27,7 @@ return [
 'column_contact_phone' => '連絡人電話',
 'column_email' => '聯絡email',
 'column_phone' => '電話',
+'column_comment' => '備註',
 
 'column_sales_email' => '業務聯絡email',
 'column_sales_contact' => '業務聯絡人',
@@ -34,8 +35,9 @@ return [
 'column_sales_telephone' => '業務聯絡人市話',
 'column_sales_mobile' => '業務聯絡人手機',
 
-'column_comment' => '備註',
+'column_tax_type_code' => '課稅別',
 'column_bank' => '銀行',
+
 
 // Entry
 'entry_name' => '單位名稱',

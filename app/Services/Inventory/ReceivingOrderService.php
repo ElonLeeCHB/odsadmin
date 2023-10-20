@@ -51,13 +51,12 @@ class ReceivingOrderService extends Service
             $receiving_order->tax_type_code = $data['tax_type_code'] ?? null;
             $receiving_order->comment = $data['comment'] ?? null;
             $receiving_order->tax_rate = $data['tax_rate'] ?? 0;
-
             $receiving_order->save();
 
             // receiving_products
             if(!empty($data['products'])){
                 // Deleta receiving_products
-                $this->ReceivingOrderProductRepository->deleteByReceivingOrderId($receiving_order->id);
+                $this->ReceivingOrderProductRepository->deleteByReceivingOrderById($receiving_order->id);
 
                 $sort_order = 1;
                 $new_sort_order = 100; //前端只允許2位數，到99。這裡從100開始。
@@ -104,9 +103,9 @@ class ReceivingOrderService extends Service
                         $price = 0;
                     }
 
-                    $total = str_replace(',', '', $fm_receiving_product['total']);
-                    if(empty($total)){
-                        $total = 0;
+                    $amount = str_replace(',', '', $fm_receiving_product['amount']);
+                    if(empty($amount)){
+                        $amount = 0;
                     }
 
                     $stock_quantity = str_replace(',', '', $fm_receiving_product['stock_quantity']);
@@ -142,7 +141,7 @@ class ReceivingOrderService extends Service
                         'stock_quantity' => $stock_quantity,
                         'stock_price' => $stock_quantity,
                         'price' => $price,
-                        'total' => $total,
+                        'amount' => $amount,
                         
                         'comment' => $fm_receiving_product['comment'] ?? '',
                         'sort_order' => $fm_receiving_product['sort_order'], //此時 sort_order 必定是從1遞增

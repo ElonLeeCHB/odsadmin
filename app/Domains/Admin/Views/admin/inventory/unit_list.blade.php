@@ -18,7 +18,7 @@
           <td class="text-start">{{ $unit->id }}</td>
           <td class="text-start">{{ $unit->code }}</td>
           <td class="text-start">{{ $unit->name }}</td>
-          <td class="text-start">{{ $unit->is_active }}</td>
+          <td class="text-start">{{ $unit->is_active_name }}</td>
 					<td class="text-end"><a href="{{ $unit->edit_url }}" data-bs-toggle="tooltip" title="Edit" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></a></td>
 				</tr>
         @endforeach
