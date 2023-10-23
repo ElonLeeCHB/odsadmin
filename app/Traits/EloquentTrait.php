@@ -161,7 +161,7 @@ trait EloquentTrait
     {
         $this->initialize($data);
 
-        $query = $this->getQuery($data, $debug);
+        $query = $this->getQueryDebug($data, $debug);
 
         // get result
         $result = [];
@@ -223,7 +223,7 @@ trait EloquentTrait
     }
 
 
-    public function getQuery($data=[], $debug=0)
+    public function getQueryDebug($data=[], $debug=0)
     {
         if(empty($this->table_columns)){
             $this->table_columns = $this->getTableColumns();
@@ -250,7 +250,7 @@ trait EloquentTrait
 
 
         // With translation relation
-        if(!empty($this->model->translated_attributes)){
+        if(!empty($this->model->translation_attributes)){
             $query->with('translation');
         }
         
@@ -324,28 +324,106 @@ trait EloquentTrait
                 $query->whereRaw($rawsql);
             }
         }
-        
+
         // Sort & Order
-        if(!empty($data['orderByRaw'])){
-            $query->orderByRaw($data['orderByRaw']);
+        // 舊寫法
+        // if(!empty($data['orderByRaw'])){
+        //     $query->orderByRaw($data['orderByRaw']);
+        // }else{
+        //     if(empty($data['sort']) || $data['sort'] == 'id'){
+        //         $sort = $this->model->getTable() . '.id';
+        //     }else{
+        //         $sort = $data['sort'];
+        //     }
+    
+        //     // Order
+        //     if (isset($data['order']) && ($data['order'] == 'ASC')) {
+        //         $order = 'ASC';
+        //     }
+        //     else{
+        //         $order = 'DESC';
+        //     }
+    
+        //     $query->orderBy($sort, $order);
+        // }
+
+        
+        
+        /*
+        //  - Sort
+        if(!empty($data['sort']) && !empty($this->model->translation_attributes) && in_array($data['sort'], $this->model->translation_attributes)){
+            $translation_table = $this->getTranslationTable();
+            $master_key = $this->getTranslationMasterKey();
+            $sort = $data['sort'];
+
+            $query->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
+                $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
+                     ->where("{$translation_table}.locale", '=', $this->locale)
+                     ->where("{$translation_table}.meta_key", '=', $sort);
+            });
+
+            $query->orderBy("{$translation_table}.meta_value", $order);
+
+            $query->select("{$this->table}.*");
         }else{
             if(empty($data['sort']) || $data['sort'] == 'id'){
                 $sort = $this->model->getTable() . '.id';
-            }else{
-                $sort = $data['sort'];
-            }
-    
-            // Order
-            if (isset($data['order']) && ($data['order'] == 'ASC')) {
-                $order = 'ASC';
             }
             else{
-                $order = 'DESC';
+                $sort = $data['sort'];
             }
-    
             $query->orderBy($sort, $order);
         }
+        */
 
+
+        // Sort & Order
+        //  - Order
+        if (isset($data['order']) && ($data['order'] == 'ASC')) {
+            $order = 'ASC';
+        }
+        else{
+            $order = 'DESC';
+        }
+        
+        //  - Sort
+        //  -- 指定排序字串
+        if(!empty($data['orderByRaw'])){
+            $query->orderByRaw($data['orderByRaw']);
+        }
+        //  -- 用多語欄位排序
+        else if(!empty($data['sort']) && !empty($this->model->translation_attributes) && in_array($data['sort'], $this->model->translation_attributes)){
+            $translation_table = $this->model->getTranslationTable();
+            $master_key = $this->model->getTranslationMasterKey();
+            $sort = $data['sort'];
+
+            if (str_ends_with($this->model->translation_model_name, 'Meta')) {
+
+                $query->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
+                    $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
+                         ->where("{$translation_table}.locale", '=', $this->locale)
+                         ->where("{$translation_table}.meta_key", '=', $sort);
+                });
+                $query->orderBy("{$translation_table}.meta_value", $order);
+
+            }else{ // 一般用 Translation 做結尾，例如 ProductTranslation
+                $query->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
+                    $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
+                         ->where("{$translation_table}.locale", '=', app()->getLocale());
+                });
+                $query->orderBy("{$translation_table}.{$sort}", $order);
+            }
+        }
+        //  -- 非多語欄位排序
+        else{
+            if(empty($data['sort']) || $data['sort'] == 'id'){
+                $sort = $this->model->getTable() . '.id';
+            }
+            else{
+                $sort = $data['sort'];
+            }
+            $query->orderBy($sort, $order);
+        }
 
         // Select
         if(isset($data['select'])){
@@ -354,6 +432,8 @@ trait EloquentTrait
             }else if($data['select'] !== '*'){
                 $query->select(DB::raw($data['select']));
             }
+        }else{
+            $query->select("{$this->table}.*");
         }
 
         // see the sql statement
@@ -367,7 +447,7 @@ trait EloquentTrait
 
     private function setFiltersQuery($query, $data, $debug=0)
     {
-        $translated_attributes = $this->model->translated_attributes ?? [];
+        $translation_attributes = $this->model->translation_attributes ?? [];
         $table_columns = $this->getTableColumns($this->connection);
         
         $meta_keys = $this->model->meta_keys;
@@ -394,7 +474,7 @@ trait EloquentTrait
             }
 
             // Translated column is not processed here
-            if(in_array($column, $translated_attributes)){
+            if(in_array($column, $translation_attributes)){
                 continue;
             }
 
@@ -436,7 +516,7 @@ trait EloquentTrait
                 $column = str_replace('filter_', '', $key);
             }
 
-            if(in_array($column, $translated_attributes)){
+            if(in_array($column, $translation_attributes) && !empty($data[$key])){
                 $data['whereHas']['translation'][$key] = $data[$key];
                 unset($data[$key]);
             }
@@ -471,7 +551,7 @@ trait EloquentTrait
     private function setEqualsQuery($query, $data)
     {
         $table_columns = $this->getTableColumns($this->connection);
-        $translated_attributes = $this->model->translated_attributes ?? [];
+        $translation_attributes = $this->model->translation_attributes ?? [];
 
         $meta_keys = $this->model->meta_keys;
         if(empty($meta_keys)){
@@ -493,7 +573,7 @@ trait EloquentTrait
             }
 
             // Translated column is not processed here
-            if(in_array($column, $translated_attributes)){
+            if(in_array($column, $translation_attributes)){
                 continue;
             }
 
@@ -525,7 +605,7 @@ trait EloquentTrait
                 $column = str_replace('equal_', '', $key);
             }
 
-            if(in_array($column, $translated_attributes)){
+            if(in_array($column, $translation_attributes)){
                 $query->whereHas('translation', function ($query) use ($column, $value) {
                     $query->where('meta_key', $column);
                     $query->where('meta_value', $value);
@@ -808,23 +888,6 @@ trait EloquentTrait
     }
 
 
-    /**
-     * Translation
-     */
-
-     public function getTranslationModel($translationModelName = null)
-    {
-        if(empty($translationModelName)){
-            $translationModelName = get_class($this->model) . 'Translation';
-        }
-
-        if(empty($translationModelName) && !empty($this->model->translationModelName)){ // Customized
-            $translationModelName = $this->model->translationModelName;
-        }
-
-        return new $translationModelName();
-    }
-
     public function saveRow($row, $data, $debug = 0)
     {
         $this->initialize();
@@ -862,17 +925,17 @@ trait EloquentTrait
         }
     }
 
-    public function saveTranslationData($masterModel, $data, $translated_attributes=null)
+    public function saveTranslationData($masterModel, $data, $translation_attributes=null)
     {
-        if(empty($translated_attributes)){
-            $translated_attributes = $this->model->translated_attributes;
+        if(empty($translation_attributes)){
+            $translation_attributes = $this->model->translation_attributes;
         }
 
-        if(empty($translated_attributes)){
+        if(empty($translation_attributes)){
             return false;
         }
 
-        $translationModel = $this->getTranslationModel();
+        $translationModel = $this->model->getTranslationModel();
 
         // foreign key
         $foreign_key = $translationModel->foreign_key ?? $masterModel->getForeignKey();
@@ -886,7 +949,7 @@ trait EloquentTrait
             }
             $arr['locale'] = $locale;
             $arr[$foreign_key] = $foreign_key_value;
-            foreach ($translated_attributes as $column) {
+            foreach ($translation_attributes as $column) {
                 if(!empty($value[$column])){
                     $arr[$column] = $value[$column];
                 }
@@ -1189,5 +1252,7 @@ trait EloquentTrait
         
         return $new_code;
     }
+
+
 
 }

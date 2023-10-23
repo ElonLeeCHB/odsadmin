@@ -9,10 +9,11 @@ use Illuminate\Support\Facades\Validator;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Admin\Services\Counterparty\SupplierService;
 use App\Repositories\Eloquent\Common\TermRepository;
+use App\Domains\Admin\Services\Localization\DivisionService;
 
 class SupplierController extends BackendController
 {
-    public function __construct(protected Request $request, protected SupplierService $SupplierService, protected TermRepository $TermRepository)
+    public function __construct(protected Request $request, protected SupplierService $SupplierService, protected TermRepository $TermRepository, protected DivisionService $DivisionService)
     {
         parent::__construct();
         
@@ -217,6 +218,14 @@ class SupplierController extends BackendController
         $tax_types = $this->TermRepository->getTerms($filter_data);
 
         $data['tax_types'] = $this->TermRepository->rowsToStdObj($tax_types, ['unset' => ['translation', 'taxonomy']]);
+
+        $data['states'] = $this->DivisionService->getStates();
+
+        if(!empty($supplier->shipping_state_id)){
+            $data['shipping_cities'] = $this->DivisionService->getCities(['filter_parent_id' => $supplier->shipping_state_id]);
+        }else{
+            $data['shipping_cities'] = [];
+        }
 
         return view('admin.counterparty.supplier_form', $data);
     }

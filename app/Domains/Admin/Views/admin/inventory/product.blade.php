@@ -12,6 +12,7 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
+        <button type="button" id="btn-print_inventory_list" data-bs-toggle="tooltip" data-loading-text="Loading..." title="列印盤點表" class="btn btn-info" aria-label="列印盤點表"><i class="fa fa-print"></i></button>
         <button type="button" data-bs-toggle="tooltip" title="Filter" onclick="$('#filter-product').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fas fa-filter" style="font-size:18px"></i></button>
         <a href="{{ $add_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i></a>
         <button type="submit" form="form-product" formaction="{{ $delete_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_delete }}" onclick="return confirm('{{ $lang->text_confirm }}');" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
@@ -120,6 +121,38 @@ $('#button-filter').on('click', function() {
   url = "{{ $list_url }}?" + url;
 
   $('#product').load(url);
+});
+
+//批次盤點表
+$('#btn-print_inventory_list').on('click', function () {
+  //var button = $(this);
+  var button = this;
+
+  $.ajax({
+      type: "GET",
+      url: "{{ $print_inventory_list_url }}",
+      //data: $('#filter-form').serialize();
+      cache: false,
+      xhrFields:{
+          responseType: 'blob'
+      },
+      beforeSend: function () {
+        $(button).prop('disabled', true).addClass('loading');
+      },
+      complete: function () {
+          $(button).prop('disabled', false).removeClass('loading');
+      },
+      success: function(data)
+      {
+        console.log('success');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(data);
+        link.download = 'inventory_list_.xlsx';
+        link.click();
+      }
+  });
+
+
 });
 </script>
 @endsection

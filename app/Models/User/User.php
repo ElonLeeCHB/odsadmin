@@ -9,7 +9,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Sale\Order;
-use App\Traits\Model\ModelTrait;
+use App\Traits\ModelTrait;
 
 class User extends Authenticatable
 {

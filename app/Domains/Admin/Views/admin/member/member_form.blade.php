@@ -132,6 +132,7 @@
                         <div id="error-shipping_phone" class="invalid-feedback"></div>
                       </div>
                     </div>
+                    
                     <div class="row mb-3">
                       <label for="input-length" class="col-sm-2 col-form-label">{{ $lang->entry_shipping_address }}</label>
                       <div class="col-sm-10">

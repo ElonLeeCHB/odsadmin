@@ -11,6 +11,7 @@ use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Setting\SettingRepository;
 use App\Models\Sale\OrderProductIngredient;
+use App\Models\Sale\OrderProductIngredientDaily;
 use App\Models\Setting\Setting;
 use App\Domains\Admin\Services\Sale\MaterialRequisitionService;
 
@@ -170,9 +171,10 @@ class MaterialRequisitionController extends BackendController
      */
     private function setIngredientTableFromOrderTable($required_date)
     {
-        DB::beginTransaction();
 
         try {
+            DB::beginTransaction();
+
             $required_date = parseDate($required_date);
             $required_date_2ymd = parseDateStringTo6d($required_date);
 
@@ -237,11 +239,11 @@ class MaterialRequisitionController extends BackendController
                         $option_value = $order_product_option->product_option_value->option_value;
 
                         // 選項本身所對應的料件，不是訂單商品。
-                        $ingredient_product_id = $option_value->product_id ?? 999;
-                        $ingredient_product_name = $option_value->product->name ?? 'xx';
+                        $ingredient_product_id = $option_value->product_id ?? 0;
+                        $ingredient_product_name = $option_value->product->name ?? '';
 
                         // 數量
-                        // 將6吋潤餅轉為3吋潤餅，並且*2。注意：這是為了解決：$upser_data 單點6吋潤餅會覆蓋3吋的問題。
+                        // 將6吋潤餅轉為3吋潤餅，並且*2。注意：這是為了解決：$upsert_data 單點6吋潤餅會覆蓋3吋的問題。
                         if(in_array($ingredient_product_id, $burrito_6inch_ids)){
                             $ingredient_product_name = $sales_burrito_6i[$ingredient_product_id]['three_inch_name']; //這行必須在前面
                             $ingredient_product_id = $sales_burrito_6i[$ingredient_product_id]['three_inch_id']; //轉換 $ingredient_product_id
@@ -279,7 +281,7 @@ class MaterialRequisitionController extends BackendController
                             $quantity = $row['quantity'];
                         }
 
-                        $upser_data[] = [
+                        $upsert_data[] = [
                             'required_time' => $row['required_time'],
                             'required_date' => $required_date,
                             'order_id' => $order_id,
@@ -308,14 +310,49 @@ class MaterialRequisitionController extends BackendController
             }
 
             //upsert
-            if(!empty($upser_data)){
-                $result = OrderProductIngredient::upsert($upser_data, ['required_date','order_id','ingredient_product_id']);
+            if(!empty($upsert_data)){
+                $result = OrderProductIngredient::upsert($upsert_data, ['required_date','order_id','ingredient_product_id']);
             }
 
+
+            // 寫入每日表 order_product_ingredients_daily
+            
+            if(!empty($upsert_data)){
+                $daily_upsert_data = [];
+
+
+                $old_rows = OrderProductIngredientDaily::where('required_date', $required_date)->get()->keyBy('ingredient_product_id');
+
+                foreach ($upsert_data as $set) {
+                    if(empty($set['ingredient_product_id'])){
+                        continue;
+                    }
+                    $ingredient_product_id = $set['ingredient_product_id'];
+
+                    if(empty($daily_upsert_data[$ingredient_product_id]['quantity'])){
+                        $daily_upsert_data[$ingredient_product_id]['quantity'] = 0;
+                    }
+
+                    $daily_upsert_data[$ingredient_product_id]['id'] = $old_rows[$ingredient_product_id]->id ?? null;
+                    $daily_upsert_data[$ingredient_product_id]['required_date'] = $set['required_date'];
+                    $daily_upsert_data[$ingredient_product_id]['ingredient_product_id'] = $set['ingredient_product_id'];
+                    $daily_upsert_data[$ingredient_product_id]['ingredient_product_name'] = $set['ingredient_product_name'];
+                    $daily_upsert_data[$ingredient_product_id]['quantity'] += $set['quantity'];
+                }
+
+                if(!empty($daily_upsert_data)){
+                    OrderProductIngredientDaily::where('required_date', $required_date)->delete();
+                    OrderProductIngredientDaily::upsert($daily_upsert_data, ['required_date','ingredient_product_id']);
+                }
+            }
+            
             DB::commit();
+
+            return ['status' => 'success'];
 
         } catch (\Exception $ex) {
             DB::rollback();
+            echo '<pre>exception: ', print_r($ex->getMessage(), 1), "</pre>"; exit;
             return response(json_encode($ex->getMessage()))->header('Content-Type','application/json');
         }
     }

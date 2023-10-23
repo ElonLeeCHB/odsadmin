@@ -7,15 +7,15 @@ use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductTranslation;
 use App\Models\Sale\Order;
 
-use App\Traits\Model\ModelTrait;
+use App\Traits\ModelTrait;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Carbon;
 
 class OrderProductIngredient extends Model
 {
     use ModelTrait;
-    protected $appends = ['required_date_ymd', 'required_date_hi', 'required_weekday'];
 
+    protected $appends = ['required_date_ymd', 'required_date_hi', 'required_weekday'];
     protected $guarded = [];
 
 

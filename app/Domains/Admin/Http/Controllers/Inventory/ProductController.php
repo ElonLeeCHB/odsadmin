@@ -73,6 +73,7 @@ class ProductController extends BackendController
         $data['list_url']   = route('lang.admin.inventory.products.list');
         $data['add_url']    = route('lang.admin.inventory.products.form');
         $data['delete_url'] = route('lang.admin.inventory.products.delete');
+        $data['print_inventory_list_url'] = route('lang.admin.inventory.products.print_inventory_list');
 
         return view('admin.inventory.product', $data);
     }
@@ -416,6 +417,7 @@ class ProductController extends BackendController
         if(!empty($query_data['extra_columns'])){
             $extra_columns = $filter_data['extra_columns'] = explode(',', $query_data['extra_columns']);
         }
+
         $rows = $this->ProductService->getProducts($filter_data);
 
         foreach ($rows as $row) {
@@ -470,6 +472,12 @@ class ProductController extends BackendController
         $json['error'] = '目前不提供刪除！';
 
         return response(json_encode($json))->header('Content-Type','application/json');
+    }
+
+
+    public function printInventoryList()
+    {
+        return $this->ProductService->exportOrders(); 
     }
 
 }

@@ -62,6 +62,10 @@ class SupplierService extends Service
             $supplier->is_active = $data['is_active'] ?? 1;
             $supplier->is_supplier = 1;
             $supplier->is_customer = $data['is_customer'] ?? 0;
+            
+            $supplier->shipping_state_id = $data['shipping_state_id'];
+            $supplier->shipping_city_id = $data['shipping_city_id'];
+            $supplier->shipping_address1 = $data['shipping_address1'];
 
             $supplier->save();
 

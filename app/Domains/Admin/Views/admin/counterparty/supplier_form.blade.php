@@ -79,6 +79,33 @@
                   <div id="error-fax" class="invalid-feedback"></div>
                 </div>
               </div>
+                
+              <div class="row mb-3">
+                <label for="input-length" class="col-sm-2 col-form-label">{{ $lang->column_address }}</label>
+                <div class="col-sm-10">
+                  <div class="input-group">
+                    <div class="col-sm-2">
+                      <select id="input-shipping_state_id" name="shipping_state_id" class="form-select">
+                        <option value="">--</option>
+                        @foreach($states as $state)
+                        <option value="{{ $state->id }}" @if($state->id == $supplier->shipping_state_id) selected @endif>{{ $state->name }}</option>
+                        @endforeach
+                      </select>
+                    </div>&nbsp;
+                    <div class="col-sm-2">
+                      <select id="input-shipping_city_id" name="shipping_city_id" class="form-select">
+                        <option value="">--</option>
+                        @foreach($shipping_cities as $city)
+                        <option value="{{ $city->id }}" @if($city->id == $supplier->shipping_city_id) selected @endif>{{ $city->name }}</option>
+                        @endforeach
+                      </select>
+                    </div>&nbsp;
+                    <div class="col-sm-4">
+                      <input type="text" id="input-shipping_address1" name="shipping_address1" value="{{ $supplier->shipping_address1 }}" class="form-control">
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <div class="row mb-3">
                 <label for="input-www" class="col-sm-2 col-form-label">{{ $lang->column_www }}</label>
@@ -216,6 +243,32 @@
 
 @section('buttom')
 <script type="text/javascript">
+
+//選縣市查區
+$('#input-shipping_state_id').on('change', function(){
+  var state_id = $(this).val();
+  if(state_id){
+    $.ajax({
+      type:'get',
+      url: "{{ route('lang.admin.localization.divisions.getJsonCities') }}?filter_parent_id=" + state_id,
+      success:function(data){
+        //console.log(JSON.stringify(data))
+        html = '<option value=""> -- </option>';
+        
+        $.each(data, function(i, item) {
+          html += '<option value="'+item.city_id+'">'+item.name+'</option>';
+        });
+
+        $('#input-shipping_city_id').html(html);
+        
+        $('#input-shipping_road').val('');
+
+      }
+    }); 
+  }else{
+    $('#input-shipping_city_id').html('<option value="">--</option>');
+  }  
+});
 
 $('#input-supplier_bank_name').autocomplete({
   'source': function (request, response) {

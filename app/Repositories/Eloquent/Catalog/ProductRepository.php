@@ -259,6 +259,45 @@ class ProductRepository extends Repository
         }
     }
 
+    public function exportOrders($data = [], $debug = 0)
+    {
+        $filter_data = [];
 
+        $filter_data['equal_is_stock_management'] = 1;
+        $filter_data['limit'] = 0;
+        $filter_data['pagination'] = false;
+        $filter_data['sort'] = 'name';
+        $filter_data['order'] = 'DESC';
+
+        $filter_data['with'] = ['supplier.translation'];
+
+        $products = $this->getProducts($filter_data);
+        echo '<pre>', print_r($products, 1), "</pre>"; exit;
+        foreach ($orders as $order) {
+            $htmlData['orders'][] = $this->getOrderPrintData($order);
+        }
+
+        $htmlData['countOrders'] = count($htmlData['orders']);
+
+
+        $view = view('admin.sale.print_order_form', $htmlData);
+        $html = $view->render();
+
+        $mpdf = new Mpdf([
+            'fontDir' => public_path('fonts/'), // 字体文件路径
+            'fontdata' => [
+                'sourcehanserif' => [
+                    'R' => 'SourceHanSerifTC-VF.ttf', // 思源宋体的.ttf文件路径
+                    // 'B' => 'SourceHanSerif-Bold.ttf', // 如果需要加粗样式，可以配置这里
+                    // 'I' => 'SourceHanSerif-Italic.ttf', // 如果需要斜体样式，可以配置这里
+                ]
+            ]
+        ]);
+        
+        $mpdf->WriteHTML($html);
+        $mpdf->Output('example.pdf', 'D');
+
+        return Excel::download(new CommonExport($data), 'invoices.pdf', \Maatwebsite\Excel\Excel::MPDF);
+    }
 }
 

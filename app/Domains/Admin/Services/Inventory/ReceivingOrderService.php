@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Services\Inventory;
+namespace App\Domains\Admin\Services\Inventory;
 
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
 use App\Repositories\Eloquent\Inventory\ReceivingOrderRepository;
 use App\Repositories\Eloquent\Inventory\ReceivingOrderProductRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
+use App\Models\Catalog\Product;
 
 class ReceivingOrderService extends Service
 {
@@ -113,18 +114,16 @@ class ReceivingOrderService extends Service
                         $stock_quantity = 0;
                     }
 
-                    $stock_price = str_replace(',', '', $fm_receiving_product['stock_price']);
-                    if(empty($stock_price)){
-                        $stock_price = 0;
+                    $stock_unit_price = str_replace(',', '', $fm_receiving_product['stock_unit_price']);
+                    if(empty($stock_unit_price)){
+                        $stock_unit_price = 0;
                     }
 
                     $receiving_quantity = 0;
                     if(!empty($fm_receiving_product['receiving_quantity'])){
                         $receiving_quantity = str_replace(',', '', $fm_receiving_product['receiving_quantity']);
                     }
-
                     
-
                     $row = [
                         'id' => $fm_receiving_product['receiving_product_id'] ?? null,
                         'receiving_order_id' => $receiving_order->id,
@@ -139,7 +138,7 @@ class ReceivingOrderService extends Service
                         'stock_unit_code' => $fm_receiving_product['stock_unit_code'] ?? '',
                         'stock_unit_name' => $fm_receiving_product['stock_unit_name'] ?? '',
                         'stock_quantity' => $stock_quantity,
-                        'stock_price' => $stock_quantity,
+                        'stock_unit_price' => $stock_unit_price,
                         'price' => $price,
                         'amount' => $amount,
                         
@@ -147,27 +146,30 @@ class ReceivingOrderService extends Service
                         'sort_order' => $fm_receiving_product['sort_order'], //此時 sort_order 必定是從1遞增
                     ];
 
-                    // if(!empty($fm_receiving_product['order_product_id'])){
-                    //     $update_receiving_product['id'] = $fm_receiving_product['order_product_id'];
-                    // }
-
                     $update_receiving_products[$sort_order] = $row;
                     $sort_order++;
                 }
-                //echo '<pre>', print_r($update_receiving_products, 1), "</pre>"; exit;
 
                 //Upsert
                 if(!empty($update_receiving_products)){
                     $this->ReceivingOrderProductRepository->upsert($update_receiving_products,['id']);
-                    unset($update_receiving_products);
                 }
-
-
             }
-           // echo '<pre>', print_r($update_receiving_products, 1), "</pre>"; exit;
 
-
-
+            // 將進貨單價回寫料件資料表
+            if($data['form_type_code'] != 'EXP'){ //費用類不回寫
+                $products = [];
+                foreach ($update_receiving_products ?? [] as $row) {
+                    $product_id = $row['product_id'];
+                    $products[$product_id]['id'] = $row['product_id'];
+                    $products[$product_id]['stock_unit_price'] = $row['stock_unit_price'] ?? 0;
+                }
+    
+                if(!empty($products)){
+                    Product::where('id', $product_id)->delete();
+                    Product::upsert($products, ['product_id']);
+                }
+            }
 
             DB::commit();
 

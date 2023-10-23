@@ -39,17 +39,17 @@
           
           <div class="mb-3">
             <label class="form-label">{{ $lang->column_supplier_name }}</label>
-            <input type="text" name="filter_supplier_name" value="" id="input-supplier_name" class="form-control"/>
+            <input type="text" id="input-filter_supplier_name" name="filter_supplier_name" value="" class="form-control"/>
           </div>
           
           <div class="mb-3">
             <label class="form-label">{{ $lang->column_product_name }}</label>
-            <input type="text" name="filter_product_name" value="" id="input-product_name" class="form-control"/>
+            <input type="text" id="input-filter_product_name" name="filter_product_name" value="" class="form-control"/>
           </div>
 
           <div class="mb-3">
             <label data-bs-toggle="tooltip" title="2023-02-20 或不加橫線 20230220 或範圍 20230301-20230331 或大於某日 >20230101 或小於某日 <20230101" style="font-weight: bolder;" >進貨日期 <i class="fa fa-question-circle" aria-hidden="true"></i></label>
-            <input type="text" name="filter_receiving_date" value="" placeholder="例如 2023-02-20" id="input-receiving_date" class="form-control"/>
+            <input type="text" id="input-filter_receiving_date" name="filter_receiving_date" value="" placeholder="例如 2023-02-20" class="form-control"/>
           </div>
           
           <div class="mb-3">
@@ -73,31 +73,12 @@
     <div class="col-lg-9 col-md-12">
     <div class="card">
       <div class="card-header"><i class="fas fa-list"></i> {{ $lang->text_list }}</div>
-      <div id="product" class="card-body">{!! $list !!}</div>
+      <div id="receiving_order" class="card-body">{!! $list !!}</div>
     </div>
     </div>
   </div>
   </div>
 </div>
-
-<div id="modal-export-loading" class="modal fade">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-file-excel"></i> Export</h5> <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="loadingdiv" id="loading" style="display: block;">
-          <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>     
-        </div>
-        
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
 @endsection
 
 @section('buttom')
@@ -128,53 +109,50 @@ $('#input-shipping_state_id').on('change', function(){
   }  
 });
 
-$('#product').on('click', 'thead a, .pagination a', function(e) {
+$('#receiving_order').on('click', 'thead a, .pagination a', function(e) {
   e.preventDefault();
 
-  $('#product').load(this.href);
+  $('#receiving_order').load(this.href);
 });
 
 $('#button-filter').on('click', function() {
   url = '';
 
-  var filter_code = $('#input-code').val();
+  var filter_code = $('#input-filter_code').val();
   if (filter_code) {
     url += '&filter_code=' + encodeURIComponent(filter_code);
   }
   
-  var filter_keyname = $('#input-keyname').val();
+  var filter_keyname = $('#input-filter_keyname').val();
   if (filter_keyname) {
     url += '&filter_keyname=' + encodeURIComponent(filter_keyname);
   }
 
-  var filter_status_code = $('#input-status_code').val();
+  var filter_status_code = $('#input-filter_status_code').val();
   if (filter_status_code) {
     url += '&filter_status_code=' + encodeURIComponent(filter_status_code);
   }
 
-  var filter_supplier_name = $('#input-supplier_name').val();
+  var filter_supplier_name = $('#input-filter_supplier_name').val();
   if (filter_supplier_name) {
     url += '&filter_supplier_name=' + encodeURIComponent(filter_supplier_name);
   }
 
-  var filter_receiving_date = $('#input-receiving_date').val();
+  var filter_receiving_date = $('#input-filter_receiving_date').val();
   if (filter_receiving_date) {
     url += '&filter_receiving_date=' + encodeURIComponent(filter_receiving_date);
   }
 
-  var filter_receiving_date = $('#input-receiving_date').val();
+  var filter_receiving_date = $('#input-filter_receiving_date').val();
   if (filter_receiving_date) {
     url += '&filter_receiving_date=' + encodeURIComponent(filter_receiving_date);
   }
   
-  url = "{{ route('lang.admin.sale.orders.list') }}?" + url;
+  url = "{{ $list_url }}?" + url;
 
-  $('#product').load(url);
+  $('#receiving_order').load(url);
 });
 
 
-$(function(){
-
-})
 </script>
 @endsection

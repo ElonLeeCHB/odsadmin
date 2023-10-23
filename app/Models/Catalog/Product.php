@@ -4,6 +4,7 @@ namespace App\Models\Catalog;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\ModelTrait;
 use App\Traits\Model\Translatable;
 use App\Models\Common\Term;
 use App\Models\Catalog\ProductOption;
@@ -16,11 +17,14 @@ use App\Models\Counterparty\Organization;
 
 class Product extends Model
 {
+    use ModelTrait;
     use Translatable;
 
     protected $guarded = [];
     protected $appends = ['name','specification','description'];
-    public $translated_attributes = ['name','full_name','short_name','description','specification','meta_title','meta_description','meta_keyword',];
+    public $translation_attributes = ['name','full_name','short_name','description','specification','meta_title','meta_description','meta_keyword',];
+    //public $translated_attributes = ['name','full_name','short_name','description','specification','meta_title','meta_description','meta_keyword',];
+    
     public $meta_keys = [
         'supplier_own_product_code',
         'supplier_own_product_name',

@@ -33,6 +33,7 @@ return [
 'column_supplier_contact_telephone' => '聯絡人市話',
 'column_supplier_contact_mobile' => '聯絡人手機',
 'column_is_often_used_supplier' => '是否常用廠商',
+'column_shipping_address' => '地址',
 
 
 'error_name' => '名稱必須2-100個字，並且不可重複',

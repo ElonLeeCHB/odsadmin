@@ -59,6 +59,7 @@ return [
 'column_supplier_own_product_code' => '廠商料件編號',
 'column_supplier_own_product_name' => '廠商料件名稱',
 'column_supplier_own_product_specification' => '廠商料件規格',
+'column_stock_unit_price' => '庫存單位成本',
 
 'column_image' => '商品主圖',
 'column_sort_order' => '排序',

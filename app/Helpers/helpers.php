@@ -42,10 +42,10 @@ if(!function_exists('zhChsToCht')){
 
 
 /**
- * $dateString = '2023-05-01', '20230501', '23-05-01', '230501'
+ * $dateString can be '2023-05-01', '20230501', '23-05-01', '230501'
  * Return yyyy-mm-dd
  * From 1971-0101 to 2070-12-31
- * if 710101, means 1971-01-01, if 700101 means 2070-01-01
+ * If dateString use 6 digits, like 710101, means 1971-01-01, if 700101 means 2070-01-01
  */
 if(!function_exists('parseDate')){
     function parseDate(String $dateString)

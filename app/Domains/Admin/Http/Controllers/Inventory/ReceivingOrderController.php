@@ -5,7 +5,7 @@ namespace App\Domains\Admin\Http\Controllers\Inventory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
-use App\Services\Inventory\ReceivingOrderService;
+use App\Domains\Admin\Services\Inventory\ReceivingOrderService;
 use App\Repositories\Eloquent\Common\UnitRepository;
 use App\Models\Setting\Location;
 use App\Models\Localization\Language;
@@ -158,6 +158,7 @@ class ReceivingOrderController extends BackendController
         $data['save_url'] = route('lang.admin.inventory.receiving.save');
         $data['back_url'] = route('lang.admin.inventory.receiving.index', $query_data);
         $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
+        
 
 
         // Get Record
