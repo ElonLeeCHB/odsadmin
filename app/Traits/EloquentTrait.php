@@ -891,7 +891,7 @@ trait EloquentTrait
     public function saveRow($row, $data, $debug = 0)
     {
         $this->initialize();
-
+        
         try{
         
             if(!empty($row->getFillable())){
@@ -903,14 +903,14 @@ trait EloquentTrait
             $table_columns = $this->table_columns;
             $form_columns = array_keys($data);
             
-            foreach ($table_columns as $column) {
-                if(!in_array($column, $form_columns)){
+            foreach ($form_columns as $column) {
+                if(!in_array($column, $table_columns)){
                     continue;
                 }
     
                 $row->$column = $data[$column];
             }
-            
+                        
             DB::beginTransaction();
 
             $row->save();

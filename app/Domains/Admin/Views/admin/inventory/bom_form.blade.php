@@ -120,7 +120,10 @@
                         </td>
                         <td class="text-right"><input type="text" id="input-bomproducts-sub_product_specification-{{ $bom_product_row }}" name="bom_products[{{ $bom_product_row }}][sub_product_specification]" value="{{ $bom_product->sub_product_specification }}" class="form-control" disabled/></td>
                         <td class="text-right"><input type="text" id="input-bomproducts-quantity-{{ $bom_product_row }}" name="bom_products[{{ $bom_product_row }}][quantity]" value="{{ $bom_product->quantity }}" class="form-control" onkeyup="calcBOMvalue('bom', '0');" /></td>
-                        <td class="text-right"><input type="text" id="input-bomproducts-unit_code-{{ $bom_product_row }}" name="bom_products[{{ $bom_product_row }}][unit_code]" value="{{ $bom_product->unit_code }}" class="form-control" readonly="readonly" /></td>
+                        <td class="text-right xxx">
+                          <input type="text" id="input-bomproducts-usage_unit_name-{{ $bom_product_row }}" name="bom_products[{{ $bom_product_row }}][usage_unit_name]" value="{{ $bom_product->usage_unit_name }}" class="form-control" readonly="readonly" />
+                          <input type="hidden" id="input-bomproducts-usage_unit_code-{{ $bom_product_row }}" name="bom_products[{{ $bom_product_row }}][usage_unit_code]" value="{{ $bom_product->usage_unit_code }}" class="form-control" readonly="readonly" />
+                        </td>
                         <td class="text-right"><input type="text" id="input-bomproducts-cost-{{ $bom_product_row }}" name="bom_products[{{ $bom_product_row }}][cost]" value="{{ $bom_product->cost }}" placeholder="Making Charge" class="form-control" onkeyup="priceReadOnly();" /></td>
                         <td class="text-left">
                           <button type="button" onclick="$('#bom-row{{ $bom_product_row }}').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>
@@ -191,8 +194,8 @@ $(document).ready(function() {
         $('#input-bomproducts-sub_product_name-'+rownum).val(item.name);
         $('#input-bomproducts-sub_product_specification-'+rownum).val(item.specification);
         $('#input-bomproducts-quantity-'+rownum).val(item.quantity);
-        $('#input-bomproducts-unit_code-'+rownum).val(item.usage_unit_code);
-        $('#input-bomproducts-unit_code_name-'+rownum).val(item.usage_unit_code_name);
+        $('#input-bomproducts-usage_unit_code-'+rownum).val(item.usage_unit_code);
+        $('#input-bomproducts-usage_unit_name-'+rownum).val(item.usage_unit_name);
       }
     });
   });
@@ -222,7 +225,9 @@ function addBOM() {
   html += '  </td>';
   html += '  <td><input type="text" id="input-bomproducts-sub_product_specification-'+bom_product_row+'" name="bom_products['+bom_product_row+'][sub_product_specification]" value="" class="form-control schProductName" autocomplete="off"></td>';
   html += '  <td><input type="text" id="input-bomproducts-quantity-'+bom_product_row+'" name="bom_products['+bom_product_row+'][quantity]" value="" class="form-control schProductName" autocomplete="off"></td>';
-  html += '  <td><input type="text" id="input-bomproducts-unit_code-'+bom_product_row+'" name="bom_products['+bom_product_row+'][unit_code]" value="" class="form-control schProductName" autocomplete="off"></td>';
+  html += '  <td><input type="text" id="input-bomproducts-usage_unit_name-'+bom_product_row+'" name="bom_products['+bom_product_row+'][usage_unit_name]" value="" class="form-control schProductName" autocomplete="off"></td>';
+  html += '    <input type="hidden" id="input-bomproducts-usage_unit_code-'+bom_product_row+'" name="bom_products['+bom_product_row+'][usage_unit_code]" value="" class="form-control schProductName" autocomplete="off">';
+  html += '  </td>'
   html += '  <td><input type="text" id="input-bomproducts-cost-'+bom_product_row+'" name="bom_products['+bom_product_row+'][cost]" value="" class="form-control schProductName" autocomplete="off"></td>';
   html += '  <td class="text-left"><button type="button" onclick="$(\'#bom-row'+bom_product_row+'\').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button></td>';
   html += '</tr>';

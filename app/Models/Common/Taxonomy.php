@@ -4,13 +4,13 @@ namespace App\Models\Common;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Traits\Model\Translatable;
+use App\Traits\ModelTrait;
 
 class Taxonomy extends Model
 {
-    use Translatable;
+    use ModelTrait;
     
-    public $translated_attributes = ['name',];
+    public $translation_attributes = ['name',];
     protected $appends = ['name'];
     protected $guarded = [];
    

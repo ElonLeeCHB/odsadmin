@@ -56,8 +56,6 @@ class Controller extends BaseController
 
         if(isset($data['limit'])){
             $query_data['limit'] = $data['limit'];
-        }else{
-            $query_data['limit'] = 20;
         }
 
         // filter_

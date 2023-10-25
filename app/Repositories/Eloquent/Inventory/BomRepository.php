@@ -13,23 +13,44 @@ class BomRepository extends Repository
     public $modelName = "\App\Models\Inventory\Bom";
 
 
-    public function getRows($data = [], $debug = 0)
+    public function getBoms($data = [], $debug = 0)
     {
-        $rows = parent::getRows($data, $debug);
+        $boms = parent::getRows($data, $debug);
 
-        // 獲取關聯欄位
-        if(!empty($data['select_relation_columns'])){
-            $columns = $data['select_relation_columns'];
 
-            foreach ($rows as $row) {
-                if(in_array('product_name', $columns)){
-                    $row->product_name = $row->product->name ?? '-- emtpy --';
+        // 額外欄位
+        
+        if(!empty($data['extra_columns'])){
+            if(in_array('product_name', $data['extra_columns'])){
+                echo '<pre>', print_r(11, 1), "</pre>"; 
+                $boms->load('product');
+            }
+        }
+
+        // // 獲取關聯欄位
+        // if(!empty($data['select_relation_columns'])){
+        //     $columns = $data['select_relation_columns'];
+
+        //     foreach ($boms as $row) {
+        //         if(in_array('product_name', $columns)){
+        //             $row->product_name = $row->product->name ?? '-- emtpy --';
+        //         }
+        //     }
+        // }
+
+        foreach ($boms as $row) {
+
+            // 額外欄位 掛載到資料集
+            if(!empty($data['extra_columns'])){
+
+                if(in_array('product_name', $data['extra_columns'])){
+                    $row->product_name = $row->product->name;
+                    unset($row->product);
                 }
             }
         }
-        
 
-        return $rows;
+        return $boms;
     }
 
     public function saveBom($post_data = [], $debug = 0)
@@ -73,7 +94,7 @@ class BomRepository extends Repository
 
         try{
             $bom_id = $post_data['bom_id'];
-            $product_id = $post_data['product_id'];
+            $product_id = $post_data['product_id']; // 主件
     
             foreach ($post_data['bom_products'] as $bom_product) {
                 $upsert_data[] = [
@@ -82,7 +103,7 @@ class BomRepository extends Repository
                     'product_id' => $product_id,
                     'sub_product_id' => $bom_product['sub_product_id'],
                     'quantity' => $bom_product['quantity'],
-                    'unit_code' => $bom_product['unit_code'],
+                    'usage_unit_code' => $bom_product['usage_unit_code'],
                     'waste_rate' => $bom_product['waste_rate'] ?? 0,
                     'cost' => $bom_product['cost'] ?? 0,
                 ];
@@ -92,7 +113,7 @@ class BomRepository extends Repository
                 BomProduct::where('bom_id', $bom_id)->delete();
                 BomProduct::upsert($upsert_data, ['id']);
             }
-            
+
             DB::commit();
 
             return true;
@@ -107,7 +128,7 @@ class BomRepository extends Repository
     public function getExtraColumns($row, $columns)
     {
         if(in_array('product_name', $columns)){
-            $row->product_name = $row->product->name ?? 'No product name!!';
+            $row->product_name = $row->product->name ?? '';
         }
 
         return $row;

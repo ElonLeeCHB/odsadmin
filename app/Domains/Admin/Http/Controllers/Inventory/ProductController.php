@@ -15,6 +15,7 @@ use App\Repositories\Eloquent\Common\TermRepository;
 //use App\Models\Common\Term;
 use App\Http\Resources\Inventory\ProductCollection;
 use App\Helpers\Classes\CollectionHelper;
+use App\Helpers\Classes\UrlHelper;
 
 class ProductController extends BackendController
 {
@@ -92,42 +93,43 @@ class ProductController extends BackendController
     {
         $data['lang'] = $this->lang;
 
+        $url_queries = $this->request->query();
+
 
         // Prepare query_data for records
-        $query_data = $this->getQueries($this->request->query());
-
-        $filter_data = $query_data;
+        $filter_data = UrlHelper::getUrlQueriesForFilter();
 
         // Rows
         $products = $this->ProductService->getProducts($filter_data);
 
         if(!empty($products)){
             foreach ($products as $row) {
-                $row->edit_url = route('lang.admin.inventory.products.form', array_merge([$row->id], $query_data));
+                $row->edit_url = route('lang.admin.inventory.products.form', array_merge([$row->id], $url_queries));
                 $row->supplier_short_name = $row->supplier->short_name ?? '';
             }
         }
 
-        $products = $products->withPath(route('lang.admin.inventory.products.list'))->appends($query_data);
+        $products = $products->withPath(route('lang.admin.inventory.products.list'))->appends($url_queries);
         
         $data['products'] = $products;
         $data['pagination'] = $products->links('admin.pagination.default');
 
-        // Prepare links for list table's header
-        if($query_data['order'] == 'ASC'){
+        // Prepare links for list table's header for sorting
+        if($filter_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($query_data['sort']);
+        // for blade
+        $data['sort'] = strtolower($filter_data['sort']);
         $data['order'] = strtolower($order);
 
-        $query_data = $this->unsetUrlQueryData($query_data);
+        $url_queries = UrlHelper::unsetUrlQueries(['sort', 'order']);
 
         $url = '';
 
-        foreach($query_data as $key => $value){
+        foreach($url_queries as $key => $value){
             $url .= "&$key=$value";
         }
 
@@ -381,13 +383,13 @@ class ProductController extends BackendController
 
     public function autocomplete()
     {
-        $query_data = $this->getQueries($this->request->query());
+        $url_queries = $this->request->query();
         
         $json = [];
 
         // * 檢查錯誤
 
-        foreach ($query_data as $key => $value) {
+        foreach ($url_queries as $key => $value) {
             //檢查查詢字串
             if(str_starts_with($key, 'filter_') || str_starts_with($key, 'equal_')){
                 //檢查輸入字串是否包含注音符號
@@ -402,31 +404,29 @@ class ProductController extends BackendController
         }
 
 
-        // * Get data
-        $filter_data = $query_data;
+
+        // Prepare query_data for records
+        $filter_data = UrlHelper::getUrlQueriesForFilter();
 
         // with
         $with = [];
-        $filter_data['with'] = [];
         if(!empty($query_data['with'])){
-            $with = $filter_data['with'] = explode(',', $query_data['with']);
+            $with = $filter_data['with']; // will be used later
         }
 
         // exra_columns
         $extra_columns = [];
-        if(!empty($query_data['extra_columns'])){
-            $extra_columns = $filter_data['extra_columns'] = explode(',', $query_data['extra_columns']);
+        if(!empty($url_queries['extra_columns'])){
+            $extra_columns = $filter_data['extra_columns']; ; // will be used later
         }
 
-        $rows = $this->ProductService->getProducts($filter_data);
+        $products = $this->ProductService->getProducts($filter_data);
 
-        foreach ($rows as $row) {
+        foreach ($products as $row) {
 
             $new_row = array(
-                'label' => $row->name . '-' . $row->id, //待廢棄
-                'value' => $row->id, //待廢棄
-                '_label' => $row->name . '-' . $row->id,
-                '_value' => $row->id,
+                'label' => $row->name . '-' . $row->id,
+                'value' => $row->id,
                 'product_id' => $row->id,
                 'name' => $row->name,
                 'specification' => $row->specification,

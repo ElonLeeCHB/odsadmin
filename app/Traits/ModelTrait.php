@@ -7,6 +7,48 @@ use Illuminate\Support\Carbon;
 
 trait ModelTrait
 {
+    // Relations
+
+    public function metas()
+    {
+        $meta_model_name = get_class($this) . 'Meta';
+        return $this->hasMany($meta_model_name);
+    }
+
+    public function translation()
+    {
+        // Using SomeTranslation
+        if(!isset($this->translation_model_name) || str_ends_with($this->translation_model_name, 'Translation')){
+            $translation_model_name = get_class($this) . 'Translation';
+            $translation_model = new $translation_model_name();
+    
+            return $this->hasOne($translation_model::class)->ofMany([
+                'id' => 'max',
+            ], function ($query) {
+                $query->where('locale', app()->getLocale());
+            });
+        }
+
+        // Using SomeMeta 
+        else if (isset($this->translation_model_name) && substr($this->translation_model_name, -4) === 'Meta') {
+            return $this->metas()->where('locale', app()->getLocale());
+        }
+    }
+
+    public function translations()
+    {
+        // Using SomeTranslation
+        if(!isset($this->translation_model_name) || str_ends_with($this->translation_model_name, 'Translation')){
+            $translation_model_name = get_class($this) . 'Translation';
+            $translation_model = new $translation_model_name();
+    
+            return $this->hasMany($translation_model::class);
+        }
+        // Using SomeMeta 
+        else if (isset($this->translation_model_name) && substr($this->translation_model_name, -4) === 'Meta') {
+            return $this->metas()->whereNotNull('locale')->where('locale', '<>', '');
+        }
+    }
 
     public function getTranslationModel()
     {

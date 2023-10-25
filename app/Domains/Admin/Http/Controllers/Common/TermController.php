@@ -195,7 +195,7 @@ class TermController extends BackendController
         }
 
         if(!$json) {
-            $result = $this->TermService->updateOrCreate($data);
+            $result = $this->TermService->saveTerm($data);
 
             if(empty($result['error']) && !empty($result['term_id'])){
                 $json = [

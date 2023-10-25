@@ -70,6 +70,8 @@ class BomController extends BackendController
        // $query_data['select'] = ['id', 'product_id'];
         $filter_data['select_relation_columns'] = ['product_name'];
 
+        $filter_data['extra_columns'][] = 'product_name';
+
         // Rows
         $boms = $this->BomService->getBoms($filter_data);
 

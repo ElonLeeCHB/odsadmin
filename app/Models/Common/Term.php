@@ -3,17 +3,15 @@
 namespace App\Models\Common;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\Model\Translatable;
+use App\Traits\ModelTrait;
 use App\Models\Common\TermRelation;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Term extends Model
 {
-    use Translatable;
+    use ModelTrait;
     
-    public $translated_attributes = ['name', 'short_name',];
-    public $timestamps = false;
-
+    public $translation_attributes = ['name', 'short_name',];
     protected $guarded = [];
     protected $appends = ['name','short_name', 'content', 'taxonomy_name'];
 

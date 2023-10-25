@@ -180,7 +180,7 @@ class TaxonomyController extends BackendController
 
     public function save()
     {
-        $data = $this->request->all();
+        $post_data = $this->request->all();
 
         $json = [];
 
@@ -189,7 +189,7 @@ class TaxonomyController extends BackendController
         }
 
         if(!$json) {
-            $result = $this->TaxonomyService->updateOrCreate($data);
+            $result = $this->TaxonomyService->saveTaxonomy($post_data);
 
             // Success
             if(empty($result['error'])){

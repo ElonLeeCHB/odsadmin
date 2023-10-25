@@ -18,7 +18,7 @@ class BomService
 
     public function getBoms($data=[], $debug = 0)
     {
-        return $this->BomRepository->getRows($data, $debug);
+        return $this->BomRepository->getBoms($data, $debug);
     }
 
 

@@ -117,7 +117,7 @@ class TermRepository extends Repository
     }
 
 
-    public function updateOrCreateTerm($data)
+    public function saveTerm($data)
     {
         DB::beginTransaction();
 

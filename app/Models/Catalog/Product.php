@@ -5,7 +5,6 @@ namespace App\Models\Catalog;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\ModelTrait;
-use App\Traits\Model\Translatable;
 use App\Models\Common\Term;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductUnit;
@@ -18,7 +17,6 @@ use App\Models\Counterparty\Organization;
 class Product extends Model
 {
     use ModelTrait;
-    use Translatable;
 
     protected $guarded = [];
     protected $appends = ['name','specification','description'];

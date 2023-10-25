@@ -28,7 +28,7 @@ class ProductRepository extends Repository
     public function getProducts($data = [], $debug = 0)
     {
         $filter_data = $this->resetQueryData($data);
-
+        
         $products = $this->getRows($filter_data, $debug);
         
         if(count($products) == 0){
@@ -45,10 +45,11 @@ class ProductRepository extends Repository
 
             // product_units
             $matches = array_intersect($product_unit_codes, $data['extra_columns']);
+            
             if (!empty($matches)) {
                 // units
                 $filter_data = [
-                    'is_active' => 1
+                    'equal_is_active' => 1
                 ];
                 $units = $this->UnitRepository->getKeyedActiveUnits($filter_data);
             }
@@ -68,8 +69,8 @@ class ProductRepository extends Repository
                 // product_units
                 $matches = array_intersect($product_unit_codes, $data['extra_columns']);
                 if (!empty($matches)) {
-                    $row->stock_unit_name = $units[$row->stock_unit_code] ?? '';
-                    $row->usage_unit_name = $units[$row->usage_unit_code] ?? '';
+                    $row->stock_unit_name = $units[$row->stock_unit_code]->name ?? '';
+                    $row->usage_unit_name = $units[$row->usage_unit_code]->name ?? '';
                 }
 
                 // supplier_columns
@@ -84,7 +85,7 @@ class ProductRepository extends Repository
                 }
             }
         }
-
+        
         return $products;
     }
 

@@ -9,30 +9,26 @@ class TermService extends Service
 {
     protected $modelName = "\App\Models\Common\Term";
 
-    public function __construct(protected TermRepository $TermRepository)
-    {}
-
-
-    public function updateOrCreate($data)
+    public function __construct(TermRepository $repository)
     {
-        return $this->TermRepository->updateOrCreateTerm($data);
+        $this->repository = $repository;
     }
     
 
     public function getTerm($data = [], $debug = 0)
     {
-        return $this->TermRepository->getTerm($data, $debug);
+        return $this->repository->getTerm($data, $debug);
     }
 
 
     public function getTerms($data = [], $debug = 0)
     {
-        return $this->TermRepository->getTerms($data, $debug);
+        return $this->repository->getTerms($data, $debug);
     }
 
     
     public function deleteTerm($term_id)
     {
-        return $this->TermRepository->delete($term_id);
+        return $this->repository->delete($term_id);
     }
 }
