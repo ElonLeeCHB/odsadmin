@@ -19,7 +19,7 @@
     <div class="container-fluid">
       <div class="float-end">
         <a data-href="{{ $printReceiveForm }}" id="href-printReceiveForm"  target="_blank" data-bs-toggle="tooltip" title="列印訂單簽收單" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
-        <button type="submit" id="btn-save-order_form" form="form-order" data-bs-toggle="tooltip" title="Save" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
+        <button type="submit" id="btn-save-order_form" form="form-order" data-bs-toggle="tooltip" title="{{ $lang->button_save }}" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
         <a href="{{ $back_url }}" id="href-save" data-bs-toggle="tooltip" title="{{ $lang->button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
       </div>
       @include('admin.common.breadcumb')

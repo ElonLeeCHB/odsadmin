@@ -59,12 +59,14 @@ class BomRepository extends Repository
             DB::beginTransaction();
 
             $bom_id = $post_data['bom_id'] ?? null;
-            $bom = parent::findIdOrFailOrNew($bom_id);
-            $result = parent::saveRow($bom, $post_data, $debug);
+            $result = parent::saveRow($bom_id, $post_data, $debug);
 
             if(!empty($result['error'])){
                 throw new \Exception($result['error']);
             }
+
+            
+            $bom = parent::findIdOrFailOrNew($bom_id);
 
             if(!empty($post_data['bom_products'])){
                 $post_data['bom_id'] = $bom->id;
@@ -76,8 +78,8 @@ class BomRepository extends Repository
             }
 
             DB::commit();
-
-            return ['id' => $result['id']];
+            
+            return ['id' => $bom->id];
 
         } catch (\Exception $ex) {
             DB::rollback();

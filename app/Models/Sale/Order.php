@@ -13,11 +13,10 @@ use App\Models\SysData\Division;
 use App\Models\Member\Organization;
 use App\Models\Catalog\OptionValue;
 use DateTimeInterface;
-//use Staudenmeir\EloquentHasManyDeep\HasRelationships;
 
 class Order extends Model
 {
-    //use HasRelationships;
+    // 官網指示這樣寫
     use \Staudenmeir\EloquentHasManyDeep\HasRelationships;
 
     protected $guarded = [];

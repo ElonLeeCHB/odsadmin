@@ -16,11 +16,6 @@ class UnitService extends Service
         $this->repository = $repository;
     }
 
-    public function getUnits($data=[], $debug = 0)
-    {
-        return $this->repository->getUnits($data, $debug);
-    }
-
 
 	public function updateOrCreateUnit($data)
 	{

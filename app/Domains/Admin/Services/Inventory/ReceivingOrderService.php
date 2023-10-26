@@ -8,6 +8,7 @@ use App\Repositories\Eloquent\Inventory\ReceivingOrderRepository;
 use App\Repositories\Eloquent\Inventory\ReceivingOrderProductRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Catalog\Product;
+use App\Helpers\Classes\DataHelper;
 
 class ReceivingOrderService extends Service
 {
@@ -200,7 +201,9 @@ class ReceivingOrderService extends Service
             'limit' => 0,
             'sort' => 'code',
             'order' => 'ASC',
+            'with' => ['taxonomy'],
         ];
+        
         
         $tax_types = $this->TermRepository->getTerms($filter_data)->toArray();
 

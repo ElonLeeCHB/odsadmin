@@ -21,7 +21,7 @@ use PDO;
  * setWhereQuery
  * setWith()
  * getTableColumns()
- * getQueryContent()
+ * getDebugQueryContent()
  * getTranslationModel()
  * saveRow(), saveRowBasicData(), saveTranslationData(), saveRowMetaData()
  * 
@@ -160,7 +160,7 @@ trait EloquentTrait
     {
         $this->initialize($data);
 
-        $query = $this->getQueryDebug($data, $debug);
+        $query = $this->setQuery($data, $debug);
 
         // get result
         $result = [];
@@ -222,7 +222,7 @@ trait EloquentTrait
     }
 
 
-    public function getQueryDebug($data=[], $debug=0)
+    public function setQuery($data=[], $debug=0)
     {
         if(empty($this->table_columns)){
             $this->table_columns = $this->getTableColumns();
@@ -231,9 +231,11 @@ trait EloquentTrait
         $query = $this->newModel()->query();
 
         // With relations
-        if(!empty($data['with'])){
-            $this->setWith($query, $data['with']);
-        }
+        // if(!empty($data['with'])){
+        //     $this->setWith($query, $data['with']);
+        // }
+        $with = $data['with'] ?? [];
+        $this->setWith($query, $with);
 
 
         // whereRelations
@@ -437,7 +439,7 @@ trait EloquentTrait
 
         // see the sql statement
         if(!empty($debug)){
-            $this->getQueryContent($query);
+            $this->getDebugQueryContent($query);
         }
 
         return $query;
@@ -542,7 +544,7 @@ trait EloquentTrait
 
         // Display sql statement
         if(!empty($debug)){
-            $this->getQueryContent($query);
+            $this->getDebugQueryContent($query);
         }
     }
 
@@ -813,17 +815,41 @@ trait EloquentTrait
         }
     }
 
-    private function setWith($query, $funcData)
+    private function setWith($query, $input)
     {
-        // $data['with'] = 'translation'
-        if(!is_array($funcData)){
-            $query->with($funcData);
+        // check translation
+        $has_translation = false;
+        $appends = $this->model->getAppends() ?? [];
+        $translation_attributes = $this->model->translation_attributes ?? [];
+
+        foreach ($appends as $append) {
+            if(in_array($append, $translation_attributes)){
+                $has_translation = true;
+                break;
+            }
+        }
+
+        if(is_string($input)){
+            $width_arr[] = $input;
         }else{
-            foreach ($funcData as $key => $filters) {
+            $width_arr = $input;
+        }
+
+        if($has_translation){
+            $width_arr[] = 'translation';
+        }
+        //
+
+        $width_arr = array_unique($width_arr);
+
+        if(!is_array($width_arr)){
+            $query->with($width_arr);
+        }else{
+            foreach ($width_arr as $key => $filters) {
 
                 // Example: $data['with'] = ['products','members'];
                 if(!is_array($filters)){
-                    $query->with($funcData);
+                    $query->with($width_arr);
                 }
 
                 /* Example:
@@ -833,13 +859,14 @@ trait EloquentTrait
                 ];
                 */
                 else{
-                    // 注意：with 裡面使用Closure函數，只是過濾 with 表，然後附加過來。不會過濾主表
-                    $query->with([$key => function($query) use ($key, $filters) {
-                        foreach ($filters as $column => $value) {
-                            //$query = $this->setWhereQuery($query, $column, $value, 'where');
-                            $query->where("$key.$column", '=', $value);
-                        }
-                    }]);
+                    echo '<pre>', print_r('這裡是 setWith, 將要廢棄', 1), "</pre>"; exit;
+                    // // 注意：with 裡面使用Closure函數，只是過濾 with 表，然後附加過來。不會過濾主表
+                    // $query->with([$key => function($query) use ($key, $filters) {
+                    //     foreach ($filters as $column => $value) {
+                    //         //$query = $this->setWhereQuery($query, $column, $value, 'where');
+                    //         $query->where("$key.$column", '=', $value);
+                    //     }
+                    // }]);
                 }
             }
         }
@@ -865,7 +892,7 @@ trait EloquentTrait
     }
 
     // For debug
-    public static function getQueryContent(Builder $builder)
+    public static function getDebugQueryContent(Builder $builder)
     {
         $addSlashes = str_replace('?', "'?'", $builder->toSql());
 

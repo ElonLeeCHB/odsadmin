@@ -325,17 +325,22 @@ $('.schProductName').autocomplete({
     $('#input-products-stock_unit_code-'+rownum).val(item.stock_unit_code);
     $('#input-products-stock_unit_name-'+rownum).val(item.stock_unit_name);
 
-    $('#input-products-receiving_unit_code-'+rownum).empty();
+    var selectElement = $('#input-products-receiving_unit_code-'+rownum);
+    selectElement.empty();
 
-    item.product_units.forEach(function(unitData) {
-      let option = $('<option></option>');
-      option.val(unitData.source_unit_code + '_' + unitData.source_unit_name);
-      option.text(unitData.source_unit_name);
-      option.attr('data-multiplier', unitData.destination_quantity);
-      $('#input-products-receiving_unit_code-'+rownum).append(option);
+    $.each(item.product_units, function(index, unit) {
+      // 创建一个option元素
+      var option = $('<option></option>');
+
+      // 设置option的值和文本
+      option.val(unit.source_unit_code); // 假设id是选项的值
+      option.text(unit.source_unit_name); // 假设name是选项的显示文本
+      option.attr('data-multiplier', unit.destination_quantity);
+      //console.log('unit.source_unit_code='+unit.source_unit_code+', unit.source_unit_name='+unit.source_unit_name+', unit.destination_quantity='+unit.destination_quantity)
+
+      // 将option添加到select元素中
+      selectElement.append(option);
     });
-
-    console.log(11)
   }
 });
 

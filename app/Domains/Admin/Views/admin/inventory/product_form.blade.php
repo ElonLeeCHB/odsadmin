@@ -363,17 +363,21 @@ $('.searchProductName').autocomplete({
   }
 });
 
-// 使用到的單位
+// 可使用的單位
 $('.source_unit_code').on('focusout change', function() {
   var valuesArray = [];
 
   $('.source_unit_code').each(function() {
-    var value = $(this).val(); // 获取当前元素的值
+    var value = $(this).val();
 
     if(value != ''){
-      valuesArray.push(value); // 将值添加到数组
+      valuesArray.push(value);
     }
   });
+
+  // 放入庫存單位
+  var stock_unit_code = $('#input-stock_unit_code').val();
+  valuesArray.push(stock_unit_code);
   
   var jsonArray = JSON.stringify(valuesArray);
   $('#input-available_unit_codes').val(jsonArray);

@@ -372,8 +372,8 @@ class ProductController extends BackendController
             if(empty($result['error'])){
                 $json = [
                     'success' => $this->lang->text_success,
-                    'product_id' => $result['data']['id'],
-                    'redirectUrl' => route('lang.admin.inventory.products.form', $result['data']['id']),
+                    'product_id' => $result['id'],
+                    'redirectUrl' => route('lang.admin.inventory.products.form', $result['id']),
                 ];
 
             }else{
@@ -428,21 +428,23 @@ class ProductController extends BackendController
             $extra_columns = $filter_data['extra_columns']; ; // will be used later
         }
 
+       // $extra_columns[] = 'source_unit_name';
+
         $products = $this->ProductService->getProducts($filter_data);
 
-        foreach ($products as $row) {
+        foreach ($products as $product) {
 
             $new_row = array(
-                'label' => $row->name . '-' . $row->id,
-                'value' => $row->id,
-                'product_id' => $row->id,
-                'name' => $row->name,
-                'specification' => $row->specification,
+                'label' => $product->name . '-' . $product->id,
+                'value' => $product->id,
+                'product_id' => $product->id,
+                'name' => $product->name,
+                'specification' => $product->specification,
             );
 
             if(!empty($extra_columns)){
                 foreach($extra_columns as $extra_column){
-                    $new_row[$extra_column] = $row->$extra_column;
+                    $new_row[$extra_column] = $product->$extra_column;
                 }
             }
 
@@ -450,27 +452,31 @@ class ProductController extends BackendController
             if(in_array('product_units', $with)){
                 $product_units = [];
 
-                if(!empty($row->product_units)){
-                    $product_units = $row->product_units->keyBy('source_unit_code')->toArray();
+                if(!empty($product->product_units)){
+                    $product_units = $product->product_units->keyBy('source_unit_code')->toArray();
 
-                   // $product_units = data_forget($product_units, 'source_unit');
-                    data_forget($product_units, 'article.comments.*.name');
-                    echo '<pre>', print_r($product_units, 1), "</pre>"; exit;
+                    data_forget($product_units, '*.source_unit');
+                    data_forget($product_units, '*.destination_unit');
+                    
                     foreach ($product_units as $product_unit_key => $product_unit) {
-                        if(!empty($product_unit['source_unit'])){
-                            unset($product_unit['source_unit']);
-                        }
-
-                        if(!empty($product_unit['destination_unit'])){
-                            unset($product_unit['destination_unit']);
-                        }
                         $product_units[$product_unit_key] = $product_unit;
                     }
 
-                    $new_row['product_units']= $product_units;
+                    $new_row['product_units'] = $product_units;
+                }
+
+                if(empty($new_row['product_units'][$product->stock_unit_code])){
+                    $new_row['product_units'][$product->stock_unit_code] = [
+                        'source_unit_name' => $product->stock_unit_name,
+                        'source_unit_code' => $product->stock_unit_code,
+                        'source_quantity' => 1,
+                        'destination_unit_code' => $product->stock_unit_code,
+                        'destination_quantity' => 1,
+
+                    ];
+
                 }
             }
-            echo '<pre>', print_r($new_row, 1), "</pre>"; exit;
 
             $json[] = $new_row;
         }

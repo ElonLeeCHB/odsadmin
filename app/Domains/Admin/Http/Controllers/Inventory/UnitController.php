@@ -209,13 +209,13 @@ class UnitController extends BackendController
         }
 
         if(!$json) {
-            $result = $this->UnitService->updateOrCreateUnit($data);
+            $result = $this->UnitService->saveUnit($data);
 
-            if(empty($result['error']) && !empty($result['unit_id'])){
+            if(empty($result['error']) && !empty($result['id'])){
                 $json = [
-                    'unit_id' => $result['unit_id'],
                     'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.inventory.units.form', $result['unit_id']),
+                    'product_id' => $result['id'],
+                    'redirectUrl' => route('lang.admin.inventory.units.form', $result['id']),
                 ];
             }else{
 

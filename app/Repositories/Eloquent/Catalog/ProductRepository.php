@@ -154,8 +154,6 @@ class ProductRepository extends Repository
 
             $product_id = $post_data['product_id'] ?? $post_data['id'] ?? null;
 
-            $product = $this->findIdOrFailOrNew($product_id);
-
             // 若庫存單位已存在則不改
             // if(!empty($product->stock_unit_code)){
             //     unset($product->stock_unit_code);
@@ -169,6 +167,9 @@ class ProductRepository extends Repository
             if(!empty($result['error'])){
                 throw new \Exception($result['error']);
             }
+
+
+            $product = $this->findIdOrFailOrNew($product_id);
 
             // 商品單位表 product_units
             if(!empty($post_data['product_units'])){
@@ -195,7 +196,7 @@ class ProductRepository extends Repository
                 }
             }
     
-            return ['data' => ['id' => $product->id]];
+            return ['id' => $product->id];
 
         } catch (\Exception $ex) {
             $result['error'] = 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage();

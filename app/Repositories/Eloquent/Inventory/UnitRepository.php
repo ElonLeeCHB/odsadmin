@@ -49,34 +49,25 @@ class UnitRepository extends Repository
     }
 
 
-	public function updateOrCreateUnit($data)
+	public function saveUnit($post_data, $debug = 0)
 	{
         DB::beginTransaction();
         
         try {
-            $unit = $this->findIdOrFailOrNew($data['unit_id']);
-            
-			$unit->code = $data['code'] ?? '';
-			$unit->sort_order = $data['sort_order'] ?? 999;
-			$unit->is_active = $data['is_active'] ?? 0;
-			$unit->comment = $data['comment'] ?? '';
-            
-			$unit->save();
+            $unit_id = $post_data['unit_id'] ?? null;
 
-            // 儲存多語資料
-            if(!empty($data['translations'])){
-                $this->saveTranslationData($unit, $data['translations']);
-            }
+            $result = $this->saveRow($unit_id, $post_data);
 
             DB::commit();
 
-            $result['unit_id'] = $unit->id;
-    
-            return $result;
+            $unit = $this->findIdOrFailOrNew($unit_id);
+
+            return ['id' => $unit->id];
 
 
         } catch (\Exception $ex) {
             DB::rollback();
+            echo '<pre>', print_r($ex->getMessage(), 1), "</pre>"; exit;
             return ['error' => $ex->getMessage()];
         }
 	}

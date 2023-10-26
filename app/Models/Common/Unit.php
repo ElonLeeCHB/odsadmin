@@ -3,14 +3,15 @@
 namespace App\Models\Common;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\ModelTrait;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Traits\Model\Translatable;
 
 class Unit extends Model
 {
-    use Translatable;
+    use ModelTrait;
     
-    public $translated_attributes = ['name'];
+    public $translation_attributes = ['name'];
     public $timestamps = false;
     protected $guarded = [];
     protected $appends = ['name'];
