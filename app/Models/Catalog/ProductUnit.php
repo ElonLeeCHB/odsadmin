@@ -4,10 +4,13 @@ namespace App\Models\Catalog;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Traits\ModelTrait;
 use App\Models\Common\Unit;
 
 class ProductUnit extends Model
 {
+    use ModelTrait;
+
     public $timestamps = false;
     protected $guarded = [];
     protected $appends = ['source_unit_name', 'destination_unit_name'];

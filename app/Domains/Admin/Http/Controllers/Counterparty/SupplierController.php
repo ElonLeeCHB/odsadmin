@@ -186,7 +186,7 @@ class SupplierController extends BackendController
         // Get Record
         $supplier = $this->SupplierService->findIdOrFailOrNew($supplier_id);
 
-        $supplier = $this->SupplierService->getMetaDataset($supplier);
+        $supplier = $this->SupplierService->getMetaRows($supplier);
 
         $supplier->parent_name = $supplier->parent->name ?? '';
 
@@ -345,9 +345,9 @@ class SupplierController extends BackendController
     public function rowsWithMetaData($rows)
     {
         foreach ($rows as $key => $row) {
-            $meta_dataset = $row->meta_dataset;
-            foreach ($meta_dataset as $meta_data) {
-                $row->{$meta_data->meta_key} = $meta_data->meta_value;
+            $meta_rows = $row->meta_rows;
+            foreach ($meta_rows as $meta_row) {
+                $row->{$meta_row->meta_key} = $meta_row->meta_value;
             }
         }
         return $rows;
@@ -359,7 +359,7 @@ class SupplierController extends BackendController
         $query_data = $this->request->query();
 
         $filter_data = $query_data;
-        $filter_data['with'] = ['payment_term', 'meta_dataset'];
+        $filter_data['with'] = ['payment_term', 'meta_rows'];
 
         $hasFilterOrEqual = 9;
 

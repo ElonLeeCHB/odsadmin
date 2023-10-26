@@ -137,7 +137,7 @@ class TermRepository extends Repository
 
             // 儲存多語資料
             if(!empty($data['translations'])){
-                $this->saveTranslationData($term, $data['translations']);
+                $this->saveRowTranslationData($term, $data['translations']);
             }
 
             DB::commit();

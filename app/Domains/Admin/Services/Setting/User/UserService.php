@@ -56,7 +56,7 @@ class UserService extends Service
             
             $user->save();
 
-            $this->saveMetaDataset($user, $data);
+            $this->saveRowMetaData($user, $data);
 
             //is_admin
             // $upsertData[] = [

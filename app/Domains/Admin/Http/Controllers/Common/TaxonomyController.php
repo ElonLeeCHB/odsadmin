@@ -81,7 +81,6 @@ class TaxonomyController extends BackendController
         if(!empty($taxonomies)){
             foreach ($taxonomies as $row) {
                 $row->edit_url = route('lang.admin.common.taxonomies.form', array_merge([$row->id], $queries));
-                $row->is_active = $row->is_active ? $this->lang->text_enabled : $this->lang->text_disabled;
                 unset($row->translation);
             }
         }

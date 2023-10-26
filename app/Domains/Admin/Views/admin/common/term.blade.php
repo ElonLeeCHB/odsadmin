@@ -46,6 +46,15 @@
                 <ul id="autocomplete-name" class="dropdown-menu"></ul>
               </div>
 
+              <div class="mb-3">
+                <label class="form-label">{{ $lang->column_is_active }}</label>
+                <select name="equal_is_active" id="input-equal_is_active" class="form-select">
+                  <option value="*">{{ $lang->text_select }}</option>
+                  <option value="1" selected>{{ $lang->text_yes }}</option>
+                  <option value="0">{{ $lang->text_no }}</option>
+                </select>
+              </div>
+
               <div class="text-end">
                 <button type="reset" id="button-clear" class="btn btn-light"><i class="fa fa-refresh" aria-hidden="true"></i> {{ $lang->button_reset }}</button>
                 <button type="button" id="button-filter" class="btn btn-light"><i class="fa-solid fa-filter"></i> {{ $lang->button_filter }}</button>

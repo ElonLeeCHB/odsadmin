@@ -32,7 +32,7 @@ class TaxonomyRepository extends Repository
             $taxonomy->save();
 
             if(!empty($post_data['translations'])){
-                $this->saveTranslationData($taxonomy, $post_data['translations']);
+                $this->saveRowTranslationData($taxonomy, $post_data['translations']);
             }
 
             DB::commit();

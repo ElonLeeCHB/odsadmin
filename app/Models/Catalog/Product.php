@@ -19,15 +19,16 @@ class Product extends Model
     use ModelTrait;
 
     protected $guarded = [];
-    protected $appends = ['name','specification','description'];
+    protected $appends = ['name','specification','description',];
     public $translation_attributes = ['name','full_name','short_name','description','specification','meta_title','meta_description','meta_keyword',];
     //public $translated_attributes = ['name','full_name','short_name','description','specification','meta_title','meta_description','meta_keyword',];
     
-    public $meta_keys = [
+    public $meta_attributes = [
         'supplier_own_product_code',
         'supplier_own_product_name',
-        'supplier_own_product_specification'
+        'supplier_own_product_specification',
     ];
+
 
     public function main_category()
     {
@@ -113,7 +114,7 @@ class Product extends Model
         return $this->belongsTo(self::class, 'supplier_product_id', 'id');
     }
 
-    public function meta_dataset()
+    public function meta_rows()
     {
         return $this->hasMany(ProductMeta::class);
     }
@@ -169,4 +170,6 @@ class Product extends Model
             get: fn () => $this->stock_unit->name ?? '',
         );
     }
+
+    
 }

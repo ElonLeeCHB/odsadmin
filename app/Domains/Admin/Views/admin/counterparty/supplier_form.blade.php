@@ -81,7 +81,7 @@
               </div>
                 
               <div class="row mb-3">
-                <label for="input-length" class="col-sm-2 col-form-label">{{ $lang->column_address }}</label>
+                <label for="input-length" class="col-sm-2 col-form-label">{{ $lang->column_shipping_address }}</label>
                 <div class="col-sm-10">
                   <div class="input-group">
                     <div class="col-sm-2">

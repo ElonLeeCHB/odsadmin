@@ -3,6 +3,7 @@
 namespace App\Repositories\Eloquent\Inventory;
 
 use App\Repositories\Eloquent\Repository;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class SupplierRepository extends Repository
 {
@@ -22,7 +23,7 @@ class SupplierRepository extends Repository
 		$extra_columns = $data['extra_columns'] ?? [];
 
 		if(!empty($extra_columns)){
-			$rows = $rows->map(function ($row) use ($extra_columns) {
+			$new_data = $rows->map(function ($row) use ($extra_columns) {
 				foreach ($extra_columns as $column) {
 					if ($column === 'company_name' && $row->company_id) { // 所屬公司法人
 						$row->company_name = $row->company->name;
@@ -33,6 +34,8 @@ class SupplierRepository extends Repository
 			
 				return $row;
 			});
+
+			$rows = new LengthAwarePaginator($new_data, $rows->total(), $rows->perPage());
 		}
 
 		return $rows;

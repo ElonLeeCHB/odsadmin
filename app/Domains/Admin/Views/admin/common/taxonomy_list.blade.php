@@ -16,7 +16,11 @@
 				<tr>
 					<td class="text-start">{{ $row->code }}</td>
 					<td class="text-start">{{ $row->name }}</td>
-					<td class="text-start">{{ $row->is_active }}</td>
+					<td class="text-start">@if($row->is_active)
+                                  {{ $lang->text_yes }}
+                                @else
+                                  {{ $lang->text_no }}
+                                @endif</td>
 					<td class="text-end"><a href="{{ $row->edit_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_edit }}" class="btn btn-primary"><i class="fas fa-pencil-alt"></i></a></td>
 				</tr>
 				@endforeach

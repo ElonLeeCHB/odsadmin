@@ -95,14 +95,14 @@ class UrlHelper
         return $filter_data;
     }
 
-    public static function unsetUrlQueries($unset_arr = [])
+    public static function resetUrlQueries($unset_arr = [], $keep_arr = [])
     {
         $request = request();
 
         $queries = $request->query();
 
         foreach ($queries as $key => $value) {
-            if(in_array($key, $unset_arr)){
+            if(in_array($key, $unset_arr) && !in_array($key, $keep_arr)){
                 unset($queries[$key]);
             }
         }

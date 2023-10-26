@@ -19,8 +19,8 @@ return [
 'text_sales_order_schedule' => '訂單排程',
 
 'text_common' => '通用設定',
-'text_common_taxonomy' => '分類標籤性質設定',
-'text_common_term' => '分類標籤設定',
+'text_common_taxonomy' => '詞語屬性',
+'text_common_term' => '詞語',
 'text_common_payment_term' => '付款條件',
 
 'text_inventory' => '庫存管理',

@@ -62,8 +62,8 @@ class OrganizationService extends Service
             $organization->tax_id_num = $data['tax_id_num'] ?? null;
 
             $organization->save();
-            echo '<pre>', print_r(999, 1), "</pre>"; exit;
-            $this->saveMetaDataset($organization, $data);
+
+            $this->saveRowMetaData($organization, $data);
 
             DB::commit();
             

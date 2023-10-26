@@ -125,7 +125,7 @@ class ProductController extends BackendController
         $data['sort'] = strtolower($filter_data['sort']);
         $data['order'] = strtolower($order);
 
-        $url_queries = UrlHelper::unsetUrlQueries(['sort', 'order']);
+        $url_queries = UrlHelper::resetUrlQueries(unset_arr:['sort', 'order']);
 
         $url = '';
 
@@ -187,8 +187,15 @@ class ProductController extends BackendController
 
         // Get record
         $product = $this->ProductService->findIdOrFailOrNew($product_id);
-        $product->supplier_name = $product->supplier->name ?? '';
-        $product->supplier_product_name = $product->supplier_product->name ?? '';
+
+        $extra_columns = $queries['extra_columns'] ?? [];
+        $extra_columns[] = ['supplier_name'];
+        $extra_columns[] = ['supplier_product_name'];
+        $extra_columns[] = ['avaible_unit_codes'];
+        $product = $this->ProductService->setRowExtraColumns($product, $extra_columns);
+        $product = $this->ProductService->setMetaRows($product);
+
+
 
         // Default column value
         if(empty($product->id)){
@@ -300,6 +307,7 @@ class ProductController extends BackendController
             if(!empty($product_units[$i])){
                 $product_unit = $product_units[$i];
                 $new_product_units[$i] = (object) [
+                    'id' => $product_unit->id,
                     'source_unit_code' => $product_unit->source_unit_code,
                     'source_quantity' => $product_unit->source_quantity,
                     'destination_unit_code' => $product_unit->destination_unit_code,
@@ -359,13 +367,13 @@ class ProductController extends BackendController
         }
 
         if(!$json) {
-            $result = $this->ProductService->updateOrCreate($data);
+            $result = $this->ProductService->saveProduct($data);
 
             if(empty($result['error'])){
                 $json = [
                     'success' => $this->lang->text_success,
-                    'product_id' => $result['product_id'],
-                    'redirectUrl' => route('lang.admin.inventory.products.form', $result['product_id']),
+                    'product_id' => $result['data']['id'],
+                    'redirectUrl' => route('lang.admin.inventory.products.form', $result['data']['id']),
                 ];
 
             }else{
@@ -410,13 +418,13 @@ class ProductController extends BackendController
 
         // with
         $with = [];
-        if(!empty($query_data['with'])){
+        if(!empty($filter_data['with'])){
             $with = $filter_data['with']; // will be used later
         }
 
         // exra_columns
         $extra_columns = [];
-        if(!empty($url_queries['extra_columns'])){
+        if(!empty($filter_data['extra_columns'])){
             $extra_columns = $filter_data['extra_columns']; ; // will be used later
         }
 
@@ -443,8 +451,11 @@ class ProductController extends BackendController
                 $product_units = [];
 
                 if(!empty($row->product_units)){
-                    $product_units = $row->product_units->toArray();
+                    $product_units = $row->product_units->keyBy('source_unit_code')->toArray();
 
+                   // $product_units = data_forget($product_units, 'source_unit');
+                    data_forget($product_units, 'article.comments.*.name');
+                    echo '<pre>', print_r($product_units, 1), "</pre>"; exit;
                     foreach ($product_units as $product_unit_key => $product_unit) {
                         if(!empty($product_unit['source_unit'])){
                             unset($product_unit['source_unit']);
@@ -459,6 +470,7 @@ class ProductController extends BackendController
                     $new_row['product_units']= $product_units;
                 }
             }
+            echo '<pre>', print_r($new_row, 1), "</pre>"; exit;
 
             $json[] = $new_row;
         }

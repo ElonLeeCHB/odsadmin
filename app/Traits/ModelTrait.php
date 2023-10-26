@@ -7,6 +7,8 @@ use Illuminate\Support\Carbon;
 
 trait ModelTrait
 {
+
+
     // Relations
 
     public function metas()
@@ -48,6 +50,17 @@ trait ModelTrait
         else if (isset($this->translation_model_name) && substr($this->translation_model_name, -4) === 'Meta') {
             return $this->metas()->whereNotNull('locale')->where('locale', '<>', '');
         }
+    }
+
+    public function getMetaModel()
+    {
+        if(!empty($this->model->meta_model_name)){
+            $meta_model_name = $this->model->meta_model_name;
+        }else{
+            $meta_model_name = get_class($this) . 'Meta';
+        }
+
+        return new $meta_model_name();
     }
 
     public function getTranslationModel()
@@ -106,6 +119,7 @@ trait ModelTrait
         );
     }    
 
+    // 目前用在自定義的 App\Providers\SettingServiceProvider，為了在沒有 settings 表存在的時候系統也能運行;
     public function tableExists()
     {
         $connection = $this->getConnection();
@@ -114,5 +128,7 @@ trait ModelTrait
 
         return $schemaBuilder->hasTable($tableName);
     }
+
+    //
     
 }

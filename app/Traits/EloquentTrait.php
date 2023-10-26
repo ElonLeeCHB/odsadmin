@@ -5,6 +5,7 @@ namespace App\Traits;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use PDO;
@@ -22,9 +23,7 @@ use PDO;
  * getTableColumns()
  * getQueryContent()
  * getTranslationModel()
- * saveTranslationData()
- * setMetaDataset()
- * saveMetaDataset()
+ * saveRow(), saveRowBasicData(), saveTranslationData(), saveRowMetaData()
  * 
  * regexp
  * pagination
@@ -531,7 +530,7 @@ trait EloquentTrait
             }
 
             if(in_array($column, $meta_keys)){
-                $data['whereHas']['meta_dataset'] = ['meta_key' => $column, 'meta_value' => $value];
+                $data['whereHas']['meta_rows'] = ['meta_key' => $column, 'meta_value' => $value];
                 unset($data[$key]);
             }
         }
@@ -623,7 +622,7 @@ trait EloquentTrait
             }
 
             if(in_array($column, $meta_keys)){
-                $query->whereHas('meta_dataset', function ($query) use ($column, $value) {
+                $query->whereHas('meta_rows', function ($query) use ($column, $value) {
                     $query->where('meta_key', $column);
                     $query->where('meta_value', $value);
                 });
@@ -887,150 +886,225 @@ trait EloquentTrait
         echo "<pre>".print_r($arr , 1)."</pre>"; exit;
     }
 
+    /**
+     * Save
+     */
 
-    public function saveRow($row, $data, $debug = 0)
+    // must be public
+    public function saveRow($id, $post_data)
+    {
+        try{
+
+            $modelInstance = $this->findIdOrFailOrNew($id);
+
+            // save basic data
+            $result = $this->saveRowBasicData($modelInstance, $post_data);
+
+            if(!empty($result['error'])){
+                throw new \Exception($result['error']);
+            }
+
+            //$modelInstance->refresh();
+            $result = null;
+
+            // save translation data
+            if(!empty($post_data['translations'])){
+                $result = $this->saveRowTranslationData($modelInstance, $post_data['translations']);
+
+                if(!empty($result['error'])){
+                    throw new \Exception($result['error']);
+                }
+            }
+
+            // save meta data
+            $this->saveRowMetaData($modelInstance, $post_data);
+
+            return ['data' =>['id' => $modelInstance->id]];
+        } catch (\Exception $ex) {
+            $result['error'] = 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage();
+            return $result;
+        }
+
+    }
+
+    // must be public
+    public function saveRowBasicData($modelInstance, $post_data)
     {
         $this->initialize();
-        
+
         try{
-        
-            if(!empty($row->getFillable())){
-                $row->fill($data);
-                $row->save();
-                return $row->id;
-            }
-            
-            $table_columns = $this->table_columns;
-            $form_columns = array_keys($data);
-            
-            foreach ($form_columns as $column) {
-                if(!in_array($column, $table_columns)){
-                    continue;
-                }
-    
-                $row->$column = $data[$column];
-            }
-                        
             DB::beginTransaction();
 
-            $row->save();
+            // If $model->fillable exists, save() then return
+            if(!empty($modelInstance->getFillable())){
+                $modelInstance->fill($post_data);
+                $modelInstance->save();
+                return $modelInstance->id;
+            }
+            
+            // Save matched columns
+            $table_columns = $this->table_columns;
+            $form_columns = array_keys($post_data);
+
+            foreach ($form_columns as $column) {
+                if(!in_array($column, $table_columns)){
+                    unset($modelInstance->name);
+                    continue;
+                }
+
+                $modelInstance->$column = $post_data[$column];
+            }
+            $modelInstance->save();
 
             DB::commit();
 
-            return ['id' => $row->id];
+            return $modelInstance->id;
 
         } catch (\Exception $ex) {
             DB::rollback();
-            return ['error' => $ex->getMessage()];
+            $result['error'] = 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage();
+            return $result;
         }
     }
 
-    public function saveTranslationData($masterModel, $data, $translation_attributes=null)
+    // must be public
+    public function saveRowTranslationData($masterModelInstance, $translation_data)
     {
-        if(empty($translation_attributes)){
-            $translation_attributes = $this->model->translation_attributes;
-        }
+        $this->initialize();
 
-        if(empty($translation_attributes)){
-            return false;
-        }
+        try{
+            $translation_model = $this->model->getTranslationModel();
 
-        $translationModel = $this->model->getTranslationModel();
+            // master
+            $master_key = $translation_model->master_key ?? $masterModelInstance->getForeignKey();
+            $master_key_value = $masterModelInstance->id;
 
-        // foreign key
-        $foreign_key = $translationModel->foreign_key ?? $masterModel->getForeignKey();
-
-        $foreign_key_value = $masterModel->id;
-
-        foreach($data as $locale => $value){
-            $arr = [];
-            if(!empty($value['id'])){
-                $arr['id'] = $value['id'];
-            }
-            $arr['locale'] = $locale;
-            $arr[$foreign_key] = $foreign_key_value;
-            foreach ($translation_attributes as $column) {
-                if(!empty($value[$column])){
-                    $arr[$column] = $value[$column];
+            foreach($translation_data as $locale => $value){
+                $arr = [];
+                if(!empty($value['id'])){
+                    $arr['id'] = $value['id'];
                 }
+                $arr['locale'] = $locale;
+                $arr[$master_key] = $master_key_value;
+                foreach ($this->model->translation_attributes as $column) {
+                    if(!empty($value[$column])){
+                        $arr[$column] = $value[$column];
+                    }
+                }
+
+                $arrs[] = $arr;
             }
 
-            $arrs[] = $arr;
-        }
+            $translation_model->upsert($arrs,['id', $master_key, 'locale']);
 
-        $translationModel->upsert($arrs,['id', $foreign_key, 'locale']);
+        } catch (\Exception $ex) {
+            DB::rollback();
+            $result['error'] = 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage();
+            return $result;
+        }
     }
+
+    // must be public
+    public function saveRowMetaData($masterModelInstance, $post_data)
+    {
+        $this->initialize();
+
+        try {
+            DB::beginTransaction();
+
+            $meta_model = $masterModelInstance->getMetaModel();
+            $meta_table = $meta_model->getTable();
+
+            // Keys
+            $master_key = $meta_model->master_key ?? $masterModelInstance->getForeignKey();
+            $master_key_value = $masterModelInstance->id;
+
+            //先取出舊資料
+            $all_meta = $masterModelInstance->metas()->get()->keyBy('meta_key')->toArray();
+            //全刪
+            $masterModelInstance->metas()->where($master_key, $master_key_value)->delete();
+            
+            $upsert_data = [];
+            foreach($post_data as $column => $value){
+                if(!in_array($column, $this->model->meta_attributes) || empty($value)){
+                    continue;
+                }
+
+                $arr['id'] = $all_meta[$column]['id'] ?? null; // 將原本的 id 值塞回去。
+                $arr[$master_key] = $master_key_value;
+                $arr['meta_key'] = $column;
+                $arr['meta_value'] = $value;
+                $upsert_data[] = $arr;
+            }
+
+            $meta_model->upsert($upsert_data,['id']);
+            
+            DB::commit();
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            $result['error'] = 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage();
+            return $result;
+        }
+    }
+
+    // public function saveTranslationData($masterModel, $data, $translation_attributes=null)
+    // {
+    //     if(empty($translation_attributes)){
+    //         $translation_attributes = $this->model->translation_attributes;
+    //     }
+
+    //     if(empty($translation_attributes)){
+    //         return false;
+    //     }
+
+    //     $translationModel = $this->model->getTranslationModel();
+
+    //     // foreign key
+    //     $foreign_key = $translationModel->foreign_key ?? $masterModel->getForeignKey();
+
+    //     $foreign_key_value = $masterModel->id;
+
+    //     foreach($data as $locale => $value){
+    //         $arr = [];
+    //         if(!empty($value['id'])){
+    //             $arr['id'] = $value['id'];
+    //         }
+    //         $arr['locale'] = $locale;
+    //         $arr[$foreign_key] = $foreign_key_value;
+    //         foreach ($translation_attributes as $column) {
+    //             if(!empty($value[$column])){
+    //                 $arr[$column] = $value[$column];
+    //             }
+    //         }
+
+    //         $arrs[] = $arr;
+    //     }
+
+    //     $translationModel->upsert($arrs,['id', $foreign_key, 'locale']);
+    // }
 
     /**
      * 獲取 meta_data，並根據 meta_keys ，若 meta_key 不存在，設為空值 ''
      */
-     public function getMetaDataset($row)
+     public function getMetaRows($row)
     {
-        $meta_dataset = $row->meta_dataset;
+        $meta_rows = $row->meta_rows;
 
-        foreach ($meta_dataset as $meta_data) {
+        foreach ($meta_rows as $meta_data) {
             $row->{$meta_data->meta_key} = $meta_data->meta_value;
         }
 
         return $row;
     }
-
-    /**
-     * saveMetaDataset
-     */
-    public function saveMetaDataset($masterModel, $data)
+    
+    public function setMetaRows($row)
     {
-        //$organization_id = $masterModel->id;
-        $master_id = $masterModel->id;
-        $master_key = $masterModel->getForeignKey();
+        $row = $this->getMetaRows($row);
 
-        $existed_meta_data = $masterModel->meta_dataset()->select('id','meta_key')->get();
+        unset($row->meta_rows);
 
-        $existed_meta_keys = [];
-        $new_meta_keys = [];
-
-        foreach ($existed_meta_data as $row) {
-            $existed_meta_keys[] = $row->meta_key;
-            $existed_meta_key_ids[$row->meta_key] = $row->id;
-        }
-
-        $meta_keys = $masterModel->meta_keys;
-
-        foreach ($meta_keys as $meta_key) {
-            $key = 'meta_data_' . $meta_key;
-
-            if(!empty($data[$key])){
-                $value = $data[$key];
-            }else if(!empty($data[$meta_key])){
-                $value = $data[$meta_key];
-            }else{
-                continue;
-            }
-            
-            $new_meta_data[] = [$master_key => $master_id, 'meta_key' => $meta_key, 'meta_value' => $value];
-
-            $new_meta_keys[] = $meta_key;
-            
-            
-        }
-
-        // delete
-        $delete_meta_keys = array_diff($existed_meta_keys, $new_meta_keys);
-
-        $delete_ids = [];
-
-        foreach ($delete_meta_keys as $serialNumber => $metaKey) {
-            if (isset($existed_meta_key_ids[$metaKey])) {
-                $delete_ids[$serialNumber] = $existed_meta_key_ids[$metaKey];
-            }
-        }
-
-        // upsert
-        $masterModel->meta_dataset()->whereIn('id',$delete_ids)->delete();
-
-        if(!empty($new_meta_data)){
-            $masterModel->meta_dataset()->upsert($new_meta_data, [$master_key,'meta_key']);
-        }
+        return $row;
     }
 
 /*

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Repositories\Eloquent\Common\UnitRepository;
+use App\Repositories\Eloquent\Catalog\ProductUnitRepository;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
@@ -20,7 +21,7 @@ class ProductRepository extends Repository
     private $source_type_codes;
 
 
-    public function __construct(protected TermRepository $TermRepository, protected UnitRepository $UnitRepository)
+    public function __construct(private TermRepository $TermRepository, private UnitRepository $UnitRepository, private ProductUnitRepository $ProductUnitRepository)
     {
         parent::__construct();
     }
@@ -35,24 +36,22 @@ class ProductRepository extends Repository
             return $products;
         }
 
-        
-        $product_unit_codes = ['stock_unit_code', 'purchasing_unit_code', 'usage_unit_code'];
         $supplier_columns = ['name', 'short_name'];
 
-
-        // 額外欄位 預處理
+        // 額外欄位 預先處理是否需要 load() 或是抓取其它資料集
         if(!empty($data['extra_columns'])){
 
-            // product_units
+            // units
+            $product_unit_codes = ['stock_unit_code', 'purchasing_unit_code', 'usage_unit_code']; // 如果有用到這些單位
             $matches = array_intersect($product_unit_codes, $data['extra_columns']);
             
-            if (!empty($matches)) {
-                // units
+            if (!empty($matches) || in_array('available_units', $data['extra_columns'])) {
                 $filter_data = [
                     'equal_is_active' => 1
                 ];
                 $units = $this->UnitRepository->getKeyedActiveUnits($filter_data);
             }
+
 
             // supplier_columns
             $matches = array_intersect($supplier_columns, $data['extra_columns']);
@@ -149,6 +148,61 @@ class ProductRepository extends Repository
         }
     }
 
+    public function saveProduct($post_data, $debug = 0)
+    {
+        try {
+
+            $product_id = $post_data['product_id'] ?? $post_data['id'] ?? null;
+
+            $product = $this->findIdOrFailOrNew($product_id);
+
+            // 若庫存單位已存在則不改
+            // if(!empty($product->stock_unit_code)){
+            //     unset($product->stock_unit_code);
+            // }
+            // if(!empty($post_data['stock_unit_code'])){
+            //     unset($post_data['stock_unit_code']);
+            // }
+            
+            $result = $this->saveRow($product_id, $post_data);
+
+            if(!empty($result['error'])){
+                throw new \Exception($result['error']);
+            }
+
+            // 商品單位表 product_units
+            if(!empty($post_data['product_units'])){
+                $upsert_data = [];
+                foreach ($post_data['product_units'] as $product_unit) {
+
+                    if(empty($product_unit['source_quantity']) || empty($product_unit['source_unit_code']) || empty($product_unit['destination_quantity']) || empty($product_unit['destination_unit_code'])){
+                       continue;
+                    }
+
+                    $upsert_data[] = [
+                        'id' => $product_unit['id'] ?? null,
+                        'product_id' => $product->id,
+                        'source_quantity' => $product_unit['source_quantity'],
+                        'source_unit_code' => $product_unit['source_unit_code'],
+                        'destination_unit_code' => $product_unit['destination_unit_code'],
+                        'destination_quantity' => $product_unit['destination_quantity'],
+                    ];
+                }
+                
+                if(!empty($upsert_data)){
+                    $this->ProductUnitRepository->newModel()->where('product_id', $product->id)->delete();
+                    $this->ProductUnitRepository->newModel()->upsert($upsert_data, ['id']);
+                }
+            }
+    
+            return ['data' => ['id' => $product->id]];
+
+        } catch (\Exception $ex) {
+            $result['error'] = 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage();
+            return $result;
+        }
+    }
+
     public function resetQueryData($data)
     {
         // 轉成陣列
@@ -242,21 +296,35 @@ class ProductRepository extends Repository
         return (object) $arrOrder;
     }
 
-    // 單筆記錄
-    private function getRowExtraColumns($row, $columns)
+
+    // 額外欄位 - 單筆記錄
+    public function setRowExtraColumns($row, $columns)
     {
         if(in_array('usage_unit_code_name', $columns)){
-            $row->usage_unit_code_name = $row->usage_unit->name ?? 'no name';
+            $row->usage_unit_code_name = $row->usage_unit->name ?? '';
         }
+
+        // if(in_array('avaible_unit_codes', $columns) && !empty($row->avaible_unit_codes)){
+        //     // $arr = json_decode($this->avaible_unit_codes);
+        //     // $row->avaible_unit_codes = 
+        // }
+
+        if(in_array('available_units', $columns) && !empty($row->avaible_unit_codes)){
+            echo '<pre>', print_r(999, 1), "</pre>"; exit;
+            $available_units = 11;
+        }
+
+        
 
         return $row;
     }
+    
 
-    // 多筆記錄
+    // 額外欄位 - 多筆記錄
     private function getRowsExtraColumns($rows, $columns)
     {
         foreach ($rows as $row) {
-            $row = $this->getRowExtraColumns($row, $columns);
+            $row = $this->setRowExtraColumns($row, $columns);
         }
     }
 

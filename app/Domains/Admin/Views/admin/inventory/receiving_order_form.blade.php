@@ -310,7 +310,7 @@ $('.schProductName').autocomplete({
       supplier_url = '&equal_supplier_id=' + supplier_id + '&limit=0&pagination=0';
     }
     $.ajax({
-        url: "{{ $product_autocomplete_url }}?equal_source_type_code=PUR&equal_is_active=1&with=product_units&filter_name=" + encodeURIComponent(request) + '&extra_columns=stock_unit_code,stock_unit_name' + supplier_url,
+        url: "{{ $product_autocomplete_url }}?equal_is_management=1&equal_is_active=1&with=product_units&filter_name=" + encodeURIComponent(request) + '&extra_columns=stock_unit_code,stock_unit_name' + supplier_url,
         dataType: 'json',
         success: function (json) {
           response(json);
@@ -334,6 +334,8 @@ $('.schProductName').autocomplete({
       option.attr('data-multiplier', unitData.destination_quantity);
       $('#input-products-receiving_unit_code-'+rownum).append(option);
     });
+
+    console.log(11)
   }
 });
 

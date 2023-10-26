@@ -21,6 +21,7 @@ class ProductService extends Service
         $this->repository = $repository;
     }
 
+    // 用在商品管理的商品基本資料
     public function updateOrCreate($data)
     {
         DB::beginTransaction();
@@ -68,25 +69,7 @@ class ProductService extends Service
                 $this->saveTranslationData($product, $data['translations']);
             }
 
-            // Product Categories - many to many
-            if(!empty($data['product_categories'])){
-                // Delete all
-                TermRelation::where('object_id',$product->id)
-                            ->join('terms', function($join){
-                                $join->on('term_id', '=', 'terms.id');
-                                $join->where('terms.taxonomy','=','product_category');
-                            })
-                            ->delete();
 
-                // Add new
-                foreach ($data['product_categories'] as $category_id) {
-                    $insert_data[] = [
-                        'object_id' => $product->id,
-                        'term_id' => $category_id,
-                    ];
-                }
-                TermRelation::insert($insert_data);
-            }
             
             // product_units
             if(!empty($data['product_units'])){
@@ -124,7 +107,7 @@ class ProductService extends Service
             }
 
             // product_metas
-            $this->saveMetaDataset($product, $data);
+            $this->saveRowMetaData($product, $data);
 
             DB::commit();
 

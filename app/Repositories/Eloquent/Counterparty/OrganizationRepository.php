@@ -12,13 +12,6 @@ class OrganizationRepository extends Repository
 {
     public $modelName = "\App\Models\Counterparty\Organization";
 
-    public function getMetaDataset($organization_id)
-    {
-        $rows = OrganizationMeta::where('organization_id', $organization_id)->get();
-
-        return $rows;
-    }
-
     public function delete($organization_id)
     {
         try {

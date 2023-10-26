@@ -32,7 +32,7 @@ class Organization extends Model
         return $this->belongsTo(PaymentTerm::class);
     }
 
-    public function meta_dataset()
+    public function meta_rows()
     {
         return $this->hasMany(OrganizationMeta::class);
     }

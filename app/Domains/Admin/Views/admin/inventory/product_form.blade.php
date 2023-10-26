@@ -117,7 +117,7 @@
                 <label for="input-source_type_code" class="col-sm-2 col-form-label">{{ $lang->column_source_type_code }}</label>
                 <div class="col-sm-10">
                   <select id="input-source_type_code" name="source_type_code" class="form-control">
-                    <option value="*">{{ $lang->text_select }}</option>
+                    <option value="">{{ $lang->text_select }}</option>
                     @foreach($source_type_codes as $source_type_code)
                     <option value="{{ $source_type_code->code }}" @if($product->source_type_code==$source_type_code->code) selected @endif>{{ $source_type_code->name }}</option>
                     @endforeach
@@ -130,7 +130,7 @@
                 <label for="input-accounting_category_code" class="col-sm-2 col-form-label">{{ $lang->column_accounting_category }}</label>
                 <div class="col-sm-10">
                   <select id="input-accounting_category_code" name="accounting_category_code" class="form-control">
-                    <option value="*">{{ $lang->text_select }}</option>
+                    <option value="">{{ $lang->text_select }}</option>
                     @foreach($accounting_categories as $accounting_category)
                     <option value="{{ $accounting_category->code }}" @if($accounting_category->code==$product->accounting_category_code) selected @endif>{{ $accounting_category->name }}</option>
                     @endforeach
@@ -239,6 +239,9 @@
 
             <div id="tab-units" class="tab-pane">
               <div class="table-responsive">
+
+                <input type="hidden" id="input-available_unit_codes" name="available_unit_codes" value="{{ $product->available_unit_codes ?? ''}}" >
+
                 @if(!empty($product->stock_unit_code))
                 <table class="table table-bordered table-hover">
                   <tr>
@@ -250,10 +253,12 @@
 
                     @php $product_unit_row = 1; @endphp
                   @foreach($product_units as $product_unit)
+
+                    <input type="hidden" name="product_units[{{ $product_unit_row }}][id]" value="{{ $product_unit->id ?? '' }}" >
                   <tr>
                     <td><input type="text" id="input-units-{{ $product_unit_row }}-source_quantity" name="product_units[{{ $product_unit_row }}][source_quantity]" value="{{ $product_unit->source_quantity ?? 0 }}" class="form-control"></td>
                     <td>
-                      <select id="input-units-{{ $product_unit_row }}-source_unit_code" name="product_units[{{ $product_unit_row }}][source_unit_code]" class="form-control">
+                      <select id="input-units-{{ $product_unit_row }}-source_unit_code" name="product_units[{{ $product_unit_row }}][source_unit_code]" class="form-control source_unit_code">
                         <option value="">--</option>
                         @foreach($units as $code => $unit)
                         <option value="{{ $unit->code }}" @if($unit->code==$product_unit->source_unit_code) selected @endif>{{ $unit->label }}</option>
@@ -358,5 +363,21 @@ $('.searchProductName').autocomplete({
   }
 });
 
+// 使用到的單位
+$('.source_unit_code').on('focusout change', function() {
+  var valuesArray = [];
+
+  $('.source_unit_code').each(function() {
+    var value = $(this).val(); // 获取当前元素的值
+
+    if(value != ''){
+      valuesArray.push(value); // 将值添加到数组
+    }
+  });
+  
+  var jsonArray = JSON.stringify(valuesArray);
+  $('#input-available_unit_codes').val(jsonArray);
+  console.log(jsonArray);
+});
 </script>
 @endsection
