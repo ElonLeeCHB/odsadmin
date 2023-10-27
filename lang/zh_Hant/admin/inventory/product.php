@@ -17,7 +17,7 @@ return [
 // Column
 
 'column_main_category' => '主分類',
-'column_accounting_category' => '會計分類',
+'column_accounting_category_code' => '會計分類',
 'column_stock_category' => '庫存分類',
 'column_sales_category' => '銷售分類',
 
@@ -44,6 +44,7 @@ return [
 //單位
 'column_purchasing_unit' => '採購單位',
 'column_stock_unit' => '庫存單位',
+'column_counting_unit' => '盤點單位',
 'column_manufacturing_unit' => '生產單位',
 'column_usage_unit_code' => '用量單位',
 'column_base_unit' => '基本單位',
@@ -74,7 +75,7 @@ return [
 'column_category' => '分類',
 'column_points' => '點數',
 'column_is_default' => '預設',
-'column_is_stock_management' => '庫存管理',
+'column_is_inventory_managed' => '庫存管理',
 'column_source_type_code' => '料件屬性',
 'column_main_supplier' => '主供應商',
 'column_source_type' => '料件來源',

@@ -12,7 +12,7 @@ class UnitRepository extends Repository
     public $modelName = "\App\Models\Inventory\Unit";
 
 
-    public function getUnits($data = [], $debug)
+    public function getUnits($data = [], $debug = 0)
     {
         // Sort && Order
         if(isset($data['sort']) && $data['sort'] == 'name'){

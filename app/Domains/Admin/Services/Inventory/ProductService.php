@@ -39,7 +39,7 @@ class ProductService extends Service
             $product->comment = $data['comment'] ?? '';
             $product->is_active = $data['is_active'] ?? 0;
             $product->is_salable = $data['is_salable'] ?? 0;
-            $product->is_stock_management = $data['is_stock_management'] ?? 0;
+            $product->is_inventory_managed = $data['is_inventory_managed'] ?? 0;
             $product->sort_order = $data['sort_order'] ?? 250;
             $product->source_type_code = $data['source_type_code'] ?? '';
             $product->accounting_category_code = $data['accounting_category_code'] ?? '';

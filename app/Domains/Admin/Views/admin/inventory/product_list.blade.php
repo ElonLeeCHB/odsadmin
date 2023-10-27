@@ -9,8 +9,9 @@
           <td class="text-end"><a href="{{ $sort_id }}" @if($sort=='id') class="{{ $order }}" @endif>{{ $lang->column_id }}</a></td>
           <td class="text-start"><a href="{{ $sort_name }}" @if($sort=='name') class="{{ $order }}" @endif>{{ $lang->column_name }}</a></td>
           <td class="text-start"><a href="{{ $sort_specification }}" @if($sort=='specification') class="{{ $order }}" @endif>{{ $lang->column_specification }}</a></td>
+          <td class="text-start"><a href="{{ $sort_accounting_category_code }}" @if($sort=='accounting_category_code') class="{{ $order }}" @endif>{{ $lang->column_accounting_category_code }}</a></td>
           <td class="text-start">{{ $lang->column_supplier_short_name }}</td>
-          <td class="text-start">{{ $lang->column_is_stock_management }}</td>
+          <td class="text-start">{{ $lang->column_is_inventory_managed }}</td>
           <td class="text-start">{{ $lang->column_is_active }}</td>
           <td class="text-end">{{ $lang->column_action }}</td>
         </tr>
@@ -22,8 +23,9 @@
           <td class="text-end">{{ $row->id }}</td>
           <td class="text-start">{{ $row->name }}</td>
           <td class="text-start">{{ $row->specification }}</td>
+          <td class="text-start">{{ $row->accounting_category_name }}</td>
           <td class="text-start">{{ $row->supplier_short_name }}</td>
-          <td class="text-start">@if($row->is_stock_management)
+          <td class="text-start">@if($row->is_inventory_managed)
                                   {{ $lang->text_yes }}
                                 @else
                                   {{ $lang->text_no }}

@@ -14,6 +14,21 @@ class UrlHelper
 
         $filter_data = [];
 
+        
+        // is_active
+        //  - 將 filter_is_active 轉為 equal_is_active
+        if(isset($queries['filter_is_active'])){
+            $filter_data['equal_is_active'] = $queries['filter_is_active'];
+            unset($queries['filter_is_active']);
+        }
+
+        // - 判斷 equal_is_active
+        if(isset($queries['equal_is_active'])){
+            $filter_data['equal_is_active'] = $queries['equal_is_active'];
+        }else{
+            $filter_data['equal_is_active'] = 1;
+        }
+
         // filters
         foreach($queries as $key => $value){
             if(str_starts_with($key, 'filter_')){
@@ -25,19 +40,6 @@ class UrlHelper
                 unset($queries[$key]);
             }
         }
-
-        // is_active
-        if(isset($queries['filter_is_active'])){
-            $filter_data['equal_is_active'] = 1;
-            unset($queries['filter_is_active']);
-        }
-
-        if(isset($queries['equal_is_active'])){
-            $filter_data['equal_is_active'] = $queries['equal_is_active'];
-        }else{
-            $filter_data['equal_is_active'] = 1;
-        }
-        unset($queries['equal_is_active']);
 
         if(!empty($queries['sort'])){
             $filter_data['sort'] = $queries['sort'];

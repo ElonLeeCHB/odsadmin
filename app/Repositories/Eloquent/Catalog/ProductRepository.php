@@ -18,8 +18,6 @@ class ProductRepository extends Repository
 {
     public $modelName = "\App\Models\Catalog\Product";
 
-    private $source_type_codes;
-
 
     public function __construct(private TermRepository $TermRepository, private UnitRepository $UnitRepository, private ProductUnitRepository $ProductUnitRepository)
     {
@@ -29,6 +27,9 @@ class ProductRepository extends Repository
     public function getProducts($data = [], $debug = 0)
     {
         $filter_data = $this->resetQueryData($data);
+
+
+       // echo '<pre>', print_r($filter_data, 1), "</pre>"; exit;
         
         $products = $this->getRows($filter_data, $debug);
         
@@ -36,12 +37,11 @@ class ProductRepository extends Repository
             return $products;
         }
 
-        $supplier_columns = ['name', 'short_name'];
-
         // 額外欄位 預先處理是否需要 load() 或是抓取其它資料集
+        // 沒有用 with, 有時候好像 with 會失敗
         if(!empty($data['extra_columns'])){
 
-            // units
+            // units table
             $product_unit_codes = ['stock_unit_code', 'purchasing_unit_code', 'usage_unit_code']; // 如果有用到這些單位
             $matches = array_intersect($product_unit_codes, $data['extra_columns']);
             
@@ -54,10 +54,21 @@ class ProductRepository extends Repository
 
 
             // supplier_columns
+            $supplier_columns = ['supplier_name', 'supplier_short_name'];
             $matches = array_intersect($supplier_columns, $data['extra_columns']);
+
             if (!empty($matches)) {
-                $products->load('supplier_name');
+                $products->load('supplier');
             }
+
+            // terms table
+            $term_columns = ['accounting_category_name'];
+            $matches = array_intersect($term_columns, $data['extra_columns']);
+            
+            if (!empty($matches)) {
+                $products->load('accounting_category.translation');
+            }
+            
         }
 
         foreach ($products as $row) {
@@ -82,9 +93,13 @@ class ProductRepository extends Repository
                 if(in_array('source_type_name', $data['extra_columns'])){
                     $row->source_type_name = $row->source_type->name;
                 }
+
+                if(in_array('accounting_category_name', $data['extra_columns'])){
+                    $row->accounting_category_name = !empty($row->accounting_category->name) ? $row->accounting_category->code . ':' .$row->accounting_category->name : '';
+                }
             }
         }
-        
+
         return $products;
     }
 
@@ -218,20 +233,21 @@ class ProductRepository extends Repository
             unset($data['filter_keyword']);
         }
 
+        if(!empty($data['filter_supplier_name'])){
+            $data['whereHas'] = ['supplier' => ['name' => $data['filter_supplier_name']]];
+        }
+
         return $data;
     }
 
 
     public function getProductSourceCodes()
     {
-        if(!empty($this->source_type_codes)){
-            return $this->source_type_codes;
-        }
-
         $filter_data = [
-            'equal_taxonomy_code' => 'product_source',
+            'equal_taxonomy_code' => 'product_source_type',
             'pagination' => false,
             'limit' => 0,
+            'with' => 'taxonomy.translation',
         ];
         $collection = $this->TermRepository->getRows($filter_data)->toArray();
 
@@ -251,15 +267,46 @@ class ProductRepository extends Repository
     public function getKeyedSourceCodes()
     {
         $filter_data = [
-            'equal_taxonomy_code' => 'product_source',
+            'equal_taxonomy_code' => 'product_source_type',
             'equal_is_active' => 1,
             'pagination' => false,
             'limit' => 0,
             'sort' => 'code',
             'order' => 'ASC',
+            'with' => ['taxonomy.translation'],
         ];
 
         $rows = $this->TermRepository->getRows($filter_data)->toArray();
+        
+        $new_rows = [];
+        foreach ($rows as $key => $row) {
+            unset($row['translation']);
+            unset($row['taxonomy']);
+            $code = $row['code'];
+            $row['label'] = $row['code'] . ' '. $row['name'];
+            
+            $new_rows[$code] = (object)$row;
+        }
+
+        return $new_rows;
+    }
+
+    // 會計分類
+    public function getKeyedAccountingCategory()
+    {
+        $filter_data = [
+            'equal_taxonomy_code' => 'product_accounting_category',
+            'equal_is_active' => 1,
+            'pagination' => false,
+            'limit' => 0,
+            'sort' => 'code',
+            'order' => 'ASC',
+            'with' => ['taxonomy.translation'],
+        ];
+
+        $rows = $this->TermRepository->getRows($filter_data)->toArray();
+
+        $new_rows = [];
         
         foreach ($rows as $key => $row) {
             unset($row['translation']);
@@ -333,7 +380,7 @@ class ProductRepository extends Repository
     {
         $filter_data = [];
 
-        $filter_data['equal_is_stock_management'] = 1;
+        $filter_data['equal_is_inventory_managed'] = 1;
         $filter_data['limit'] = 0;
         $filter_data['pagination'] = false;
         $filter_data['sort'] = 'name';

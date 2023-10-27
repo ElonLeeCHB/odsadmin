@@ -822,7 +822,7 @@ CREATE TABLE `products` (
   `purchasing_price` decimal(13,4) DEFAULT 0.0000,
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `is_salable` tinyint(1) NOT NULL DEFAULT 1,
-  `is_stock_management` tinyint(1) DEFAULT 0,
+  `is_inventory_managed` tinyint(1) DEFAULT 0,
   `purchasing_unit_code` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT '',
   `stock_unit_code` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT '',
   `usage_unit_code` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT '',

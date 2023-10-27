@@ -59,9 +59,14 @@ class Product extends Model
 
     public function source_type()
     {
-        return $this->hasMany(Term::class,'product_id', 'id')->orderBy('sort_order');
+        return $this->hasMany(Term::class,'code', 'source_type_code')->where('taxonomy_code', 'product_source_type');
     }
 
+    public function accounting_category()
+    {
+        return $this->belongsTo(Term::class, 'accounting_category_code', 'code')->where('taxonomy_code', 'product_accounting_category');
+    }
+    
     // public function bom_products()
     // {
     //     return $this->belongsToMany(Product::class, 'product_boms', 'product_id', 'sub_product_id')

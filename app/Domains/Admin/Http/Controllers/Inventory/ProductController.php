@@ -13,8 +13,7 @@ use App\Domains\Admin\Services\Catalog\CategoryService;
 use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
 //use App\Models\Common\Term;
-use App\Http\Resources\Inventory\ProductCollection;
-use App\Helpers\Classes\CollectionHelper;
+use App\Helpers\Classes\DataHelper;
 use App\Helpers\Classes\UrlHelper;
 
 class ProductController extends BackendController
@@ -69,6 +68,9 @@ class ProductController extends BackendController
         // 來源碼
         $data['source_codes'] = $this->ProductService->getKeyedSourceCodes();
 
+        // 會計分類
+        $data['accounting_categories'] = $this->ProductService->getKeyedAccountingCategory();
+
         $data['list'] = $this->getList();
 
         $data['list_url']   = route('lang.admin.inventory.products.list');
@@ -99,6 +101,12 @@ class ProductController extends BackendController
         // Prepare query_data for records
         $filter_data = UrlHelper::getUrlQueriesForFilter();
 
+        $extra_columns = $filter_data['extra_columns'] ?? [];
+        $filter_data['extra_columns'] = DataHelper::addToArray($extra_columns, 'accounting_category_name');
+        
+        $with = $filter_data['with'] ?? [];
+       $filter_data['with'] = DataHelper::addToArray($with, 'source_type');
+        
         // Rows
         $products = $this->ProductService->getProducts($filter_data);
 
@@ -141,6 +149,7 @@ class ProductController extends BackendController
         $data['sort_specification'] = $route . "?sort=specification&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_model'] = $route . "?sort=model&order=$order" .$url;
+        $data['sort_accounting_category_code'] = $route . "?sort=accounting_category_code&order=$order" .$url;
         $data['sort_supplier_short_name'] = $route . "?sort=supplier_name&order=$order" .$url;
         $data['sort_quantity'] = $route . "?sort=quantity&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;

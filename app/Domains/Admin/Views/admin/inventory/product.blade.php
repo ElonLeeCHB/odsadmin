@@ -36,6 +36,12 @@
             </div>
 
             <div class="mb-3">
+              <label class="form-label">{{ $lang->column_supplier }}</label>
+              <input type="text" id="input-filter_supplier_name" name="filter_supplier_name" value="" placeholder="{{ $lang->column_supplier }}" list="list-supplier" class="form-control"/>
+              <datalist id="list-supplier"></datalist>
+            </div>
+
+            <div class="mb-3">
               <label class="form-label">{{ $lang->column_source_type }}</label>
               <select id="input-filter_source_type_code" name="filter_source_type_code"  class="form-select">
                 <option value="">{{ $lang->text_select }}</option>
@@ -46,10 +52,29 @@
             </div>
 
             <div class="mb-3">
+              <label class="form-label">{{ $lang->column_accounting_category_code }}</label>
+              <select id="input-filter_accounting_category_code" name="filter_accounting_category_code"  class="form-select">
+                <option value="">{{ $lang->text_select }}</option>
+                @foreach($accounting_categories as $accounting_category)
+                <option value="{{ $accounting_category->code }}">{{ $accounting_category->label }}</option>
+                @endforeach
+              </select>
+            </div>
+
+            <div class="mb-3">
               <label class="form-label">{{ $lang->column_is_salable }}</label>
               <select id="input-filter_is_salable" name="filter_is_salable" class="form-select">
-                <option value="">{{ $lang->text_select }}</option>
+                <option value="*">{{ $lang->text_select }}</option>
                 <option value="1">{{ $lang->text_yes }}</option>
+                <option value="0">{{ $lang->text_no }}</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ $lang->column_is_inventory_managed }}</label>
+              <select id="input-filter_is_inventory_managed" name="filter_is_inventory_managed" class="form-select">
+                <option value="">{{ $lang->text_select }}</option>
+                <option value="1" selected>{{ $lang->text_yes }}</option>
                 <option value="0">{{ $lang->text_no }}</option>
               </select>
             </div>
@@ -57,7 +82,7 @@
             <div class="mb-3">
               <label class="form-label">{{ $lang->column_is_active }}</label>
               <select id="input-equal_is_active" name="equal_is_active" class="form-select">
-                <option value="*"> -- </option>
+                <option value=""> -- </option>
                 <option value="1" selected>{{ $lang->text_yes }}</option>
                 <option value="0">{{ $lang->text_no }}</option>
               </select>
@@ -97,7 +122,13 @@ $('#button-filter').on('click', function() {
   var filter_name = $('#input-filter_name').val();
 
   if (filter_name) {
-    url += '&filter_name=' + encodeURIComponent(filter_name);
+    url += 'filter_name=' + encodeURIComponent(filter_name);
+  }
+  
+  var filter_supplier_name = $('#input-filter_supplier_name').val();
+
+  if (filter_supplier_name) {
+    url += '&filter_supplier_name=' + encodeURIComponent(filter_supplier_name);
   }
 
   var filter_source_type_code = $('#input-filter_source_type_code').val();
@@ -106,12 +137,24 @@ $('#button-filter').on('click', function() {
     url += '&filter_source_type_code=' + encodeURIComponent(filter_source_type_code);
   }
 
+  var filter_accounting_category_code = $('#input-filter_accounting_category_code').val();
+
+  if (filter_accounting_category_code) {
+    url += '&filter_accounting_category_code=' + encodeURIComponent(filter_accounting_category_code);
+  }
+  
   var filter_is_salable = $('#input-filter_is_salable').val();
 
   if (filter_is_salable) {
     url += '&filter_is_salable=' + encodeURIComponent(filter_is_salable);
   }
 
+  var filter_is_inventory_managed = $('#input-filter_is_inventory_managed').val();
+
+  if (filter_is_inventory_managed) {
+    url += '&filter_is_inventory_managed=' + encodeURIComponent(filter_is_inventory_managed);
+  }
+  
   var equal_is_active = $('#input-equal_is_active').val();
 
   if (equal_is_active) {

@@ -308,17 +308,6 @@ trait EloquentTrait
             $query->distinct();
         }
 
-        // whereHas
-        if(!empty($data['whereHas'])){
-            foreach ($data['whereHas'] as $relation_name => $relation) {
-                $query->whereHas($relation_name, function($query) use ($relation) {
-                    foreach ($relation as $key => $value) {
-                        $this->setWhereQuery($query, $key, $value, 'where');
-                    }
-                });
-            }
-        }
-
         // whereRawSqls
         if(!empty($data['whereRawSqls']) && is_array($data['whereRawSqls'])){
             foreach($data['whereRawSqls'] as $rawsql){

@@ -127,7 +127,7 @@
               </div>
 
               <div class="row mb-3">
-                <label for="input-accounting_category_code" class="col-sm-2 col-form-label">{{ $lang->column_accounting_category }}</label>
+                <label for="input-accounting_category_code" class="col-sm-2 col-form-label">{{ $lang->column_accounting_category_code }}</label>
                 <div class="col-sm-10">
                   <select id="input-accounting_category_code" name="accounting_category_code" class="form-control">
                     <option value="">{{ $lang->text_select }}</option>
@@ -152,6 +152,22 @@
                     @endforeach
                   </select>
                   <div id="error-stock_unit_code" class="invalid-feedback"></div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label for="input-counting_unit_code" class="col-sm-2 col-form-label">{{ $lang->column_counting_unit }}</label>
+                <div class="col-sm-10">
+                  @php
+                    $disabled = !empty($product->counting_unit_code) ? ' disabled' : '';
+                  @endphp
+                  <select id="input-counting_unit_code" name="counting_unit_code" class="form-control">
+                    <option value="">--</option>
+                    @foreach($units as $code => $unit)
+                    <option value="{{ $unit->code }}" @if($unit->code==$product->counting_unit_code) selected @endif>{{ $unit->label }}</option>
+                    @endforeach
+                  </select>
+                  <div id="error-counting_unit_code" class="invalid-feedback"></div>
                 </div>
               </div>
 
@@ -189,12 +205,12 @@
               </div>
 
               <div class="row mb-3">
-                <label class="col-sm-2 col-form-label">{{ $lang->column_is_stock_management }}</label>
+                <label class="col-sm-2 col-form-label">{{ $lang->column_is_inventory_managed }}</label>
                 <div class="col-sm-10">
                   <div class="input-group">
-                    <div id="input-is_stock_management" class="form-check form-switch form-switch-lg">
-                      <input type="hidden" name="is_stock_management" value="0"/>
-                      <input type="checkbox" name="is_stock_management" value="1" class="form-check-input" @if($product->is_stock_management) checked @endif/>
+                    <div id="input-is_inventory_managed" class="form-check form-switch form-switch-lg">
+                      <input type="hidden" name="is_inventory_managed" value="0"/>
+                      <input type="checkbox" name="is_inventory_managed" value="1" class="form-check-input" @if($product->is_inventory_managed) checked @endif/>
                     </div>
                   </div>
                 </div>

@@ -36,7 +36,6 @@
 
               <div id="tab-data" class="tab-pane active">
                 <fieldset>
-                  <legend>{{ $lang->tab_data }}</legend>
                   <div class="row mb-3 required">
                     <label for="input-location_name" class="col-sm-2 col-form-label">{{ $lang->column_location_name }}</label>
                     <div class="col-sm-10">
