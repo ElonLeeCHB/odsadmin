@@ -13,6 +13,10 @@ use App\Models\Catalog\ProductOptionValue;
 use App\Models\Catalog\ProductBom;
 use App\Models\Catalog\ProductTranslation;
 use App\Models\Common\TermRelation;
+use Carbon\Carbon;
+
+use Maatwebsite\Excel\Facades\Excel;
+use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
 
 class ProductRepository extends Repository
 {
@@ -42,8 +46,8 @@ class ProductRepository extends Repository
         if(!empty($data['extra_columns'])){
 
             // units table
-            $product_unit_codes = ['stock_unit_code', 'purchasing_unit_code', 'usage_unit_code']; // 如果有用到這些單位
-            $matches = array_intersect($product_unit_codes, $data['extra_columns']);
+            $product_unit_names = ['stock_unit_name', 'counting_unit_name', 'usage_unit_name']; // 如果有用到這些單位
+            $matches = array_intersect($product_unit_names, $data['extra_columns']);
             
             if (!empty($matches) || in_array('available_units', $data['extra_columns'])) {
                 $filter_data = [
@@ -51,7 +55,6 @@ class ProductRepository extends Repository
                 ];
                 $units = $this->UnitRepository->getKeyedActiveUnits($filter_data);
             }
-
 
             // supplier_columns
             $supplier_columns = ['supplier_name', 'supplier_short_name'];
@@ -68,6 +71,13 @@ class ProductRepository extends Repository
             if (!empty($matches)) {
                 $products->load('accounting_category.translation');
             }
+
+            $term_columns = ['source_type_name'];
+            $matches = array_intersect($term_columns, $data['extra_columns']);
+            
+            if (!empty($matches)) {
+                $products->load('source_type.translation');
+            }
             
         }
 
@@ -77,21 +87,22 @@ class ProductRepository extends Repository
             if(!empty($data['extra_columns'])){
 
                 // product_units
-                $matches = array_intersect($product_unit_codes, $data['extra_columns']);
+                $matches = array_intersect($product_unit_names, $data['extra_columns']);
                 if (!empty($matches)) {
                     $row->stock_unit_name = $units[$row->stock_unit_code]->name ?? '';
+                    $row->counting_unit_name = $units[$row->counting_unit_code]->name ?? '';
                     $row->usage_unit_name = $units[$row->usage_unit_code]->name ?? '';
                 }
 
                 // supplier_columns
                 $matches = array_intersect($supplier_columns, $data['extra_columns']);
                 if (!empty($matches)) {
-                    $row->supplier_name = $row->supplier->name;
-                    $row->supplier_short_name = $row->supplier->short_name;
+                    $row->supplier_name = $row->supplier->name ?? '';
+                    $row->supplier_short_name = $row->supplier->short_name ?? '';
                 }
 
                 if(in_array('source_type_name', $data['extra_columns'])){
-                    $row->source_type_name = $row->source_type->name;
+                    $row->source_type_name = $row->source_type->name ?? '';
                 }
 
                 if(in_array('accounting_category_name', $data['extra_columns'])){
@@ -221,16 +232,19 @@ class ProductRepository extends Repository
 
     public function resetQueryData($data)
     {
-        // 轉成陣列
-        if(!empty($data['with']) && is_string($data['with'])){
-            $data['with'] = [$data['with']];
-        }
-
         if(!empty($data['filter_keyword'])){
             $data['filter_name'] = $data['filter_keyword'];
             $data['filter_specification'] = $data['filter_keyword'];
             $data['filter_model'] = $data['filter_keyword'];
             unset($data['filter_keyword']);
+        }
+
+        foreach ($data as $key => $value) {
+            if(str_starts_with($key, 'filter_') || str_starts_with($key, 'equal_')){
+                if($value == ''){
+                    unset($data[$key]);
+                }
+            }
         }
 
         if(!empty($data['filter_supplier_name'])){
@@ -358,7 +372,7 @@ class ProductRepository extends Repository
         // }
 
         if(in_array('available_units', $columns) && !empty($row->avaible_unit_codes)){
-            echo '<pre>', print_r(999, 1), "</pre>"; exit;
+           // echo '<pre>', print_r(999, 1), "</pre>"; exit;
             $available_units = 11;
         }
 
@@ -376,45 +390,58 @@ class ProductRepository extends Repository
         }
     }
 
-    public function exportOrders($data = [], $debug = 0)
+    public function exportEmtpyInventoryList($post_data = [], $debug = 0)
     {
-        $filter_data = [];
+        $post_data = $this->resetQueryData($post_data);
 
-        $filter_data['equal_is_inventory_managed'] = 1;
-        $filter_data['limit'] = 0;
-        $filter_data['pagination'] = false;
-        $filter_data['sort'] = 'name';
-        $filter_data['order'] = 'DESC';
+        $post_data['pagination'] = false;
+        $post_data['limit'] = 1000;
+        $post_data['extra_columns'] = ['supplier_name', 'accounting_category_name','source_type_name'
+                                        , 'stock_unit_name', 'counting_unit_name', 'usage_unit_name'
+                                      ];
 
-        $filter_data['with'] = ['supplier.translation'];
+        $products = $this->getProducts($post_data);
 
-        $products = $this->getProducts($filter_data);
-        echo '<pre>', print_r($products, 1), "</pre>"; exit;
-        foreach ($orders as $order) {
-            $htmlData['orders'][] = $this->getOrderPrintData($order);
+        $data = [];
+        $rows = [];
+
+        foreach ($products as $product) {
+            $rows[] = [
+                'id' => $product->id,
+                'code' => $product->code,
+                'name' => $product->name,
+                'specification' => $product->specification,
+
+                'supplier_product_code' => $product->supplier_product_code,
+                'supplier_product_name' => $product->supplier_product_name,
+                'supplier_product_specification' => $product->supplier_product_specification,
+                'supplier_id' => $product->supplier_id,
+                'supplier_name' => $product->supplier_name,
+                'source_type_code' => $product->source_type_code,
+                'source_type_name' => $product->source_type_name,
+
+                'accounting_category_code' => $product->accounting_category_code,
+                'accounting_category_name' => $product->accounting_category_name,
+                'stock_unit_code' => $product->stock_unit_code,
+                'stock_unit_name' => $product->stock_unit_name,
+                'counting_unit_code' => $product->counting_unit_code,
+                'counting_unit_name' => $product->counting_unit_name,
+                'usage_unit_code' => $product->usage_unit_code,
+                'usage_unit_name' => $product->usage_unit_name,
+                'is_inventory_managed' => $product->is_inventory_managed,
+                'is_active' => $product->is_active,
+                
+            ];
         }
 
-        $htmlData['countOrders'] = count($htmlData['orders']);
+        $data['collection'] = collect($rows);
 
+        $data['headings'] = ['ID', '品號', '品名', '規格',
+                             '廠商品號', '廠商品名', '廠商規格', '廠商ID', '廠商名稱', '來源碼', '來源名稱',
+                             '會計分類碼', '會計分類', '庫存單位', '名稱', '盤點單位', '名稱', '用量單位', '名稱', '庫存管理', '啟用'
+                            ];
 
-        $view = view('admin.sale.print_order_form', $htmlData);
-        $html = $view->render();
-
-        $mpdf = new Mpdf([
-            'fontDir' => public_path('fonts/'), // 字体文件路径
-            'fontdata' => [
-                'sourcehanserif' => [
-                    'R' => 'SourceHanSerifTC-VF.ttf', // 思源宋体的.ttf文件路径
-                    // 'B' => 'SourceHanSerif-Bold.ttf', // 如果需要加粗样式，可以配置这里
-                    // 'I' => 'SourceHanSerif-Italic.ttf', // 如果需要斜体样式，可以配置这里
-                ]
-            ]
-        ]);
-        
-        $mpdf->WriteHTML($html);
-        $mpdf->Output('example.pdf', 'D');
-
-        return Excel::download(new CommonExport($data), 'invoices.pdf', \Maatwebsite\Excel\Excel::MPDF);
+        return Excel::download(new CommonExport($data), 'inventory_products.xlsx');
     }
 }
 

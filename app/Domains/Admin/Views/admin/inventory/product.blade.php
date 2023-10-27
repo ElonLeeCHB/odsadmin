@@ -12,7 +12,7 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
-        <button type="button" id="btn-print_inventory_list" data-bs-toggle="tooltip" data-loading-text="Loading..." title="列印盤點表" class="btn btn-info" aria-label="列印盤點表"><i class="fa fa-print"></i></button>
+        <button type="button" id="btn-empty_inventory_list" data-bs-toggle="tooltip" data-loading-text="Loading..." title="列印盤點表" class="btn btn-info" aria-label="列印盤點表"><i class="fa fa-print"></i></button>
         <button type="button" data-bs-toggle="tooltip" title="Filter" onclick="$('#filter-product').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fas fa-filter" style="font-size:18px"></i></button>
         <a href="{{ $add_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i></a>
         <button type="submit" form="form-product" formaction="{{ $delete_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_delete }}" onclick="return confirm('{{ $lang->text_confirm }}');" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
@@ -64,7 +64,7 @@
             <div class="mb-3">
               <label class="form-label">{{ $lang->column_is_salable }}</label>
               <select id="input-filter_is_salable" name="filter_is_salable" class="form-select">
-                <option value="*">{{ $lang->text_select }}</option>
+                <option value="">{{ $lang->text_select }}</option>
                 <option value="1">{{ $lang->text_yes }}</option>
                 <option value="0">{{ $lang->text_no }}</option>
               </select>
@@ -104,6 +104,22 @@
     </div>
     </div>
   </div>
+  </div>
+</div>
+
+<div id="modal-export-loading" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-file-excel"></i> Export</h5> <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="loadingdiv" id="loading" style="display: block;">
+          <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>     
+        </div>
+        
+      </div>
+    </div>
   </div>
 </div>
 @endsection
@@ -166,36 +182,42 @@ $('#button-filter').on('click', function() {
   $('#product').load(url);
 });
 
-//批次盤點表
-$('#btn-print_inventory_list').on('click', function () {
-  //var button = $(this);
-  var button = this;
+//匯出盤點表
+$('#btn-empty_inventory_list').on('click', function () {
+  $('#modal-export-loading').modal('show');
+  var dataString = $('#filter-form').serialize();
 
   $.ajax({
-      type: "GET",
-      url: "{{ $print_inventory_list_url }}",
-      //data: $('#filter-form').serialize();
+      type: "POST",
+      url: "{{ $empty_inventory_list_url }}",
+      data: dataString,
       cache: false,
       xhrFields:{
           responseType: 'blob'
       },
       beforeSend: function () {
-        $(button).prop('disabled', true).addClass('loading');
-      },
-      complete: function () {
-          $(button).prop('disabled', false).removeClass('loading');
+        console.log('beforeSend');
+       // $('#btn-empty_inventory_list').attr("disabled", true);
       },
       success: function(data)
       {
         console.log('success');
         var link = document.createElement('a');
         link.href = window.URL.createObjectURL(data);
-        link.download = 'inventory_list_.xlsx';
+        link.download = 'empty_inventory_product_list.xlsx';
         link.click();
+      },
+      complete: function () {
+        console.log('complete');
+        $('#modal-export-loading').modal('hide');
+        $('#btn-empty_inventory_list').attr("disabled", false);
+      },
+      fail: function(data) {
+        console.log('fail');
+        alert('Not downloaded');
       }
   });
-
-
 });
+
 </script>
 @endsection

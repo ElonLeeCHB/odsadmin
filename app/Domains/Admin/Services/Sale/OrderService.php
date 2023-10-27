@@ -4,7 +4,6 @@ namespace App\Domains\Admin\Services\Sale;
 
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
-use App\Services\Sale\OrderService as GlobalOrderService;
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderTotalRepository;
@@ -21,7 +20,7 @@ use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
 use Carbon\Carbon;
 use Mpdf\Mpdf;
 
-class OrderService extends GlobalOrderService
+class OrderService extends Service
 {
     protected $modelName = "\App\Models\Sale\Order";
     
@@ -30,7 +29,9 @@ class OrderService extends GlobalOrderService
         , protected OrderTotalRepository $OrderTotalRepository
         , protected MemberRepository $MemberRepository
     )
-    {}
+    {
+        $this->repository = $OrderRepository;
+    }
 
 
     public function updateOrCreate($data)

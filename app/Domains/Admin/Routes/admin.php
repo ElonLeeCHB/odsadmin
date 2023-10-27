@@ -220,7 +220,7 @@ Route::group(
                 Route::post('products/save/{id?}', 'Inventory\ProductController@save')->name('products.save');
                 Route::post('products/delete', 'Inventory\ProductController@delete')->name('products.delete');
                 Route::get('products/autocomplete', 'Inventory\ProductController@autocomplete')->name('products.autocomplete');
-                Route::get('products/print_inventory_list', 'Inventory\ProductController@printInventoryList')->name('products.print_inventory_list');
+                Route::post('products/empty_inventory_list', 'Inventory\ProductController@exportEmtpyInventoryList')->name('products.empty_inventory_list');
                 
                 Route::get('boms', 'Inventory\BomController@index')->name('boms.index');
                 Route::get('boms/list', 'Inventory\BomController@list')->name('boms.list');

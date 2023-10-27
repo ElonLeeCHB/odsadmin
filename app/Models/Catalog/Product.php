@@ -59,7 +59,7 @@ class Product extends Model
 
     public function source_type()
     {
-        return $this->hasMany(Term::class,'code', 'source_type_code')->where('taxonomy_code', 'product_source_type');
+        return $this->belongsTo(Term::class,'source_type_code', 'code')->where('taxonomy_code', 'product_source_type');
     }
 
     public function accounting_category()

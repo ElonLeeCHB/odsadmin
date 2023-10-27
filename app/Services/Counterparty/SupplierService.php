@@ -69,7 +69,7 @@ class SupplierService extends Service
 
             $supplier->save();
 
-            $this->saveMetaDataset($supplier, $data);
+            $this->saveRowMetaData($supplier, $data);
 
             DB::commit();
 

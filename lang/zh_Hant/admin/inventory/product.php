@@ -36,8 +36,7 @@ return [
 'column_quantity' => '數量',
 'column_subtract' => '扣減庫存',
 'column_purchasing_price' => '採購價',
-'column_is_active' => '是否啟用',
-'column_is_salable' => '可否銷售',
+'column_is_active' => '啟用',
 'column_is_salable' => '可否銷售',
 'column_supplier_short_name' => '廠商',
 

@@ -113,9 +113,6 @@
     </div>
   </div>
 </div>
-
-
-
 @endsection
 
 @section('buttom')

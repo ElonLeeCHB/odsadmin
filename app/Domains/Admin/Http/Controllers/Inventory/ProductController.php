@@ -76,7 +76,7 @@ class ProductController extends BackendController
         $data['list_url']   = route('lang.admin.inventory.products.list');
         $data['add_url']    = route('lang.admin.inventory.products.form');
         $data['delete_url'] = route('lang.admin.inventory.products.delete');
-        $data['print_inventory_list_url'] = route('lang.admin.inventory.products.print_inventory_list');
+        $data['empty_inventory_list_url'] = route('lang.admin.inventory.products.empty_inventory_list');
 
         return view('admin.inventory.product', $data);
     }
@@ -502,9 +502,10 @@ class ProductController extends BackendController
     }
 
 
-    public function printInventoryList()
+    public function exportEmtpyInventoryList()
     {
-        return $this->ProductService->exportOrders(); 
+        $post_data = request()->post();
+        return $this->ProductService->exportEmtpyInventoryList($post_data); 
     }
 
 }

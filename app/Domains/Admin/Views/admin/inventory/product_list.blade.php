@@ -11,6 +11,7 @@
           <td class="text-start"><a href="{{ $sort_specification }}" @if($sort=='specification') class="{{ $order }}" @endif>{{ $lang->column_specification }}</a></td>
           <td class="text-start"><a href="{{ $sort_accounting_category_code }}" @if($sort=='accounting_category_code') class="{{ $order }}" @endif>{{ $lang->column_accounting_category_code }}</a></td>
           <td class="text-start">{{ $lang->column_supplier_short_name }}</td>
+          <td class="text-start">{{ $lang->column_stock_unit }}</td>
           <td class="text-start">{{ $lang->column_is_inventory_managed }}</td>
           <td class="text-start">{{ $lang->column_is_active }}</td>
           <td class="text-end">{{ $lang->column_action }}</td>
@@ -25,6 +26,7 @@
           <td class="text-start">{{ $row->specification }}</td>
           <td class="text-start">{{ $row->accounting_category_name }}</td>
           <td class="text-start">{{ $row->supplier_short_name }}</td>
+          <td class="text-start">{{ $row->stock_unit_name }}</td>
           <td class="text-start">@if($row->is_inventory_managed)
                                   {{ $lang->text_yes }}
                                 @else
