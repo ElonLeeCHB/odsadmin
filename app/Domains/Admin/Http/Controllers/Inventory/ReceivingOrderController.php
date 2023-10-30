@@ -169,7 +169,6 @@ class ReceivingOrderController extends BackendController
         }
 
         $data['receiving_order'] = $this->ReceivingOrderService->refineRow($receiving_order, ['optimize' => true,'sanitize' => true]);
-        //$data['receiving_order'] = $receiving_order;
 
         if(!empty($receiving_order) && $receiving_order_id == $receiving_order->id){
             $data['receiving_order_id'] = $receiving_order_id;
@@ -193,9 +192,16 @@ class ReceivingOrderController extends BackendController
         // statuses
         $data['statuses'] = $this->ReceivingOrderService->getCachedActiveReceivingOrderStatuses();
         
-        // products
+        // receiving_products
         if(!empty($receiving_order)){
-            $receiving_order->load('receiving_products');
+            $receiving_order->load('receiving_products.product_units');
+
+            foreach ($receiving_order->receiving_products as $receiving_product) {
+                foreach ($receiving_product->product_units as $product_unit) {
+                    // multiplier 原應設為 $product_unit 的屬性。暫時設到 $receiving_product
+                    $receiving_product->multiplier = $product_unit->destination_quantity / $product_unit->source_quantity ;
+                }
+            }
         }
 
         $data['receiving_products'] = $receiving_order->receiving_products;

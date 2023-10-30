@@ -4,16 +4,16 @@ namespace App\Models\Inventory;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Traits\Model\Translatable;
+use App\Traits\ModelTrait;
 
 class Unit extends Model
 {
-    use Translatable;
+    use ModelTrait;
     
     protected $guarded = [];
     public $timestamps = false;
     protected $appends = ['name'];
-    public $translated_attributes = ['name'];
+    public $translation_attributes = ['name'];
 
     
 

@@ -444,7 +444,7 @@ class ProductController extends BackendController
         foreach ($products as $product) {
 
             $new_row = array(
-                'label' => $product->name . '-' . $product->id,
+                'label' => $product->name . '-' . $product->specification . '-' . $product->id,
                 'value' => $product->id,
                 'product_id' => $product->id,
                 'name' => $product->name,

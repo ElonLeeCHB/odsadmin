@@ -33,8 +33,14 @@ use PDO;
  */
 trait EloquentTrait
 {
+    private $initialized = false;
+
     public function initialize($data = null)
     {
+        if($this->initialized){
+            return true;
+        }
+
         $this->model = new $this->modelName;
         $this->table = $this->model->getTable();
 
@@ -44,11 +50,9 @@ trait EloquentTrait
             $this->connection = DB::connection()->getName();
         }
 
-        
         $this->table_columns = $this->getTableColumns($this->connection);
-
         $this->zh_hant_hans_transform = false;
-
+        $this->initialized = true;
     }
 
     public function newModel()
@@ -909,6 +913,10 @@ trait EloquentTrait
     // must be public
     public function saveRow($id, $post_data)
     {
+        $this->initialize();
+
+        DB::beginTransaction();
+        
         try{
 
             $modelInstance = $this->findIdOrFailOrNew($id);
@@ -917,6 +925,7 @@ trait EloquentTrait
             $result = $this->saveRowBasicData($modelInstance, $post_data);
 
             if(!empty($result['error'])){
+                DB::rollBack();
                 throw new \Exception($result['error']);
             }
 
@@ -928,14 +937,18 @@ trait EloquentTrait
                 $result = $this->saveRowTranslationData($modelInstance, $post_data['translations']);
 
                 if(!empty($result['error'])){
+                    DB::rollBack();
                     throw new \Exception($result['error']);
                 }
             }
 
             // save meta data
-            $this->saveRowMetaData($modelInstance, $post_data);
+            //$this->saveRowMetaData($modelInstance, $post_data);
 
-            return ['data' =>['id' => $modelInstance->id]];
+            DB::commit();
+
+            return ['id' => $modelInstance->id];
+            
         } catch (\Exception $ex) {
             $result['error'] = 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage();
             return $result;
@@ -962,14 +975,14 @@ trait EloquentTrait
             $table_columns = $this->table_columns;
             $form_columns = array_keys($post_data);
 
-            foreach ($form_columns as $column) {
+            foreach ($form_columns as $key => $column) {
                 if(!in_array($column, $table_columns)){
-                    unset($modelInstance->name);
                     continue;
                 }
 
                 $modelInstance->$column = $post_data[$column];
             }
+
             $modelInstance->save();
 
             DB::commit();
@@ -1018,6 +1031,46 @@ trait EloquentTrait
             $result['error'] = 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage();
             return $result;
         }
+    }
+
+    // 這是比較舊的寫法
+    public function saveTranslationData($master_model, $translation_data)
+    {
+        if(empty($master_model->translation_attributes)){
+            return false;
+        }else{
+            $translation_attributes = $master_model->translation_attributes;
+        }
+
+        // translationModel
+        $translationModelName = get_class($master_model) . 'Translation';
+        if(class_exists($translationModelName)){
+            $translationModel = new $translationModelName;
+        }else{
+            return false;
+        }
+
+        // foreigh_key
+        $foreigh_key = $translationModel->foreign_key;
+        $foreigh_key_value = $master_model->id;
+
+        foreach($translation_data as $locale => $value){
+            $arr = [];
+            if(!empty($value['id'])){
+                $arr['id'] = $value['id'];
+            }
+            $arr['locale'] = $locale;
+            $arr[$foreigh_key] = $foreigh_key_value;
+            foreach ($translation_attributes as $column) {
+                if(!empty($value[$column])){
+                    $arr[$column] = $value[$column];
+                }
+            }
+
+            $arrs[] = $arr;
+        }
+
+        $translationModel->upsert($arrs,['id', $foreigh_key, 'locale']);
     }
 
     // must be public

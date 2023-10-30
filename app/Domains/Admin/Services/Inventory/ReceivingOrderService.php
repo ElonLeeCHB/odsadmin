@@ -7,6 +7,7 @@ use App\Services\Service;
 use App\Repositories\Eloquent\Inventory\ReceivingOrderRepository;
 use App\Repositories\Eloquent\Inventory\ReceivingOrderProductRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
+use App\Repositories\Eloquent\Common\UnitRepository;
 use App\Models\Catalog\Product;
 use App\Helpers\Classes\DataHelper;
 
@@ -17,6 +18,7 @@ class ReceivingOrderService extends Service
     public function __construct(protected ReceivingOrderRepository $ReceivingOrderRepository
     , protected ReceivingOrderProductRepository $ReceivingOrderProductRepository
     , protected TermRepository $TermRepository
+    , protected UnitRepository $UnitRepository
     
     )
     {}
@@ -54,9 +56,12 @@ class ReceivingOrderService extends Service
             $receiving_order->comment = $data['comment'] ?? null;
             $receiving_order->tax_rate = $data['tax_rate'] ?? 0;
             $receiving_order->save();
-
+            
             // receiving_products
             if(!empty($data['products'])){
+
+                $units = $this->UnitRepository->getKeyedActiveUnits();
+
                 // Deleta receiving_products
                 $this->ReceivingOrderProductRepository->deleteByReceivingOrderById($receiving_order->id);
 
@@ -90,13 +95,14 @@ class ReceivingOrderService extends Service
                 $sort_order = 1;
                 $update_receiving_products = [];
                 foreach ($data['products'] as $key => $fm_receiving_product) {
+                    
                     $product_id = $fm_receiving_product['id'];
 
                     if(!empty($fm_receiving_product['receiving_unit_code'])){
                         $arr = explode('_', $fm_receiving_product['receiving_unit_code']);
                         if(!empty($arr)){
                             $receiving_unit_code = $arr[0];
-                            $receiving_unit_name = $arr[1];
+                            $receiving_unit_name = $arr[1] ?? '';
                         }
                     }
 
@@ -115,9 +121,9 @@ class ReceivingOrderService extends Service
                         $stock_quantity = 0;
                     }
 
-                    $stock_unit_price = str_replace(',', '', $fm_receiving_product['stock_unit_price']);
-                    if(empty($stock_unit_price)){
-                        $stock_unit_price = 0;
+                    $stock_price = str_replace(',', '', $fm_receiving_product['stock_price']);
+                    if(empty($stock_price)){
+                        $stock_price = 0;
                     }
 
                     $receiving_quantity = 0;
@@ -133,13 +139,13 @@ class ReceivingOrderService extends Service
                         'product_specification' => $fm_receiving_product['specification'] ?? '',
 
                         'receiving_unit_code' => $receiving_unit_code ?? '',
-                        'receiving_unit_name' => $receiving_unit_name ?? '',
+                        'receiving_unit_name' => $units[$receiving_unit_code]->name,
                         'receiving_quantity' => $receiving_quantity,
 
                         'stock_unit_code' => $fm_receiving_product['stock_unit_code'] ?? '',
                         'stock_unit_name' => $fm_receiving_product['stock_unit_name'] ?? '',
                         'stock_quantity' => $stock_quantity,
-                        'stock_unit_price' => $stock_unit_price,
+                        'stock_price' => $stock_price,
                         'price' => $price,
                         'amount' => $amount,
                         
@@ -149,6 +155,7 @@ class ReceivingOrderService extends Service
 
                     $update_receiving_products[$sort_order] = $row;
                     $sort_order++;
+                    
                 }
 
                 //Upsert
@@ -163,7 +170,7 @@ class ReceivingOrderService extends Service
                 foreach ($update_receiving_products ?? [] as $row) {
                     $product_id = $row['product_id'];
                     $products[$product_id]['id'] = $row['product_id'];
-                    $products[$product_id]['stock_unit_price'] = $row['stock_unit_price'] ?? 0;
+                    $products[$product_id]['stock_price'] = $row['stock_price'] ?? 0;
                 }
     
                 if(!empty($products)){

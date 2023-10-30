@@ -2,9 +2,16 @@
 
 namespace App\Domains\Api\Services\Catalog;
 
-use App\Services\Catalog\ProductService as GlobalProductService;
+use App\Services\Service;
+use App\Repositories\Eloquent\Catalog\ProductRepository;
 
-class ProductService extends GlobalProductService
+class ProductService extends Service
 {
     public $modelName = "\App\Models\Catalog\Product";
+    protected $repository;
+
+	public function __construct(protected ProductRepository $ProductRepository)
+	{
+        $this->repository = $ProductRepository;
+    }
 }

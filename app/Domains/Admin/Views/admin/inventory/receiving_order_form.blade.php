@@ -185,6 +185,8 @@
                   </tr>
                 </tbody>
               </table>
+
+
               <div id="tab-products" class="tab-pane">
                 <style>
                     #tab-products .row1 {
@@ -193,69 +195,88 @@
                       margin-bottom: 2px;
                     }
                 </style>
-                <div class="row row1" >
-                  @php
-                    $product_row = 1;
-                  @endphp
-                  
-                  @for($i=0; $i<10; $i++)
-                    @php $receiving_product = $receiving_products[$i] ?? []; @endphp
-                  <div class="row" data-rownum="{{ $product_row }}">
-                    <div class="module col-md-1 col-sm-1">
-                        <label class="col-form-label">料件流水號</label>
-                        <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $receiving_product->product_id ?? '' }}" class="form-control" readonly>
-                        
-                    </div>
-                    <div class="module col-md-2 col-sm-2 required">
-                      <div>
-                        <label class="col-form-label">料件名稱</label>
+
+
+
+
+              @php $product_row = 1; @endphp
+              <div class="table-responsive">
+                <table id="products" class="table table-striped table-bordered table-hover">
+                  <thead>
+                    <tr>
+                      <td class="text-left"></td>
+                      <td class="text-left">品名</td>
+                      <td class="text-left">規格</td>
+                      <td class="text-left" style="width:100px;">進貨<BR>單價</td>
+                      <td class="text-left" style="width:100px;">進貨<BR>數量</td>
+                      <td class="text-left" style="width:100px;">進貨<BR>金額</td>
+                      <td class="text-left" style="width:80px;">進貨<BR>單位</td>
+                      <td class="text-left" style="width:100px;">庫存<BR>數量</td>
+                      <td class="text-left" style="width:100px;">庫存<BR>單價</td>
+                      <td class="text-left" style="width:80px;">庫存<BR>單位</td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @foreach($receiving_products as $receiving_product)
+                    <tr id="product-row{{ $product_row }}" data-rownum="{{ $product_row }}">
+                      <td class="text-left">
+                        <button type="button" onclick="$('#product-row{{ $product_row }}').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>
+                      </td>
+                      <td class="text-left">
                         <input type="text" id="input-products-name-{{ $product_row }}" name="products[{{ $product_row }}][name]" value="{{ $receiving_product->product_name ?? '' }}" data-rownum="{{ $product_row }}" class="form-control schProductName" data-oc-target="autocomplete-product_name-{{ $product_row }}" autocomplete="off">
-                        
-                      </div>
-                      <ul id="autocomplete-product_name-{{ $product_row }}" class="dropdown-menu"></ul>
-                    </div>
-                      
-                    <div class="module col-md-2 col-sm-2">
-                        <label class="col-form-label">料件規格</label>
+                        <ul id="autocomplete-product_name-{{ $product_row }}" class="dropdown-menu"></ul>
+                        <input type="hidden" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $receiving_product->product_id ?? '' }}" class="form-control" readonly>
+                      </td>
+                      <td class="text-left">
                         <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $receiving_product->product_specification ?? '' }}" class="form-control" readonly>
-                    </div>
-                    <div class="module col-md-1 col-sm-1 required">
-                        <label class="col-form-label">進貨單位</label>
+                      </td>
+                      <td class="text-left">
+                        <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $receiving_product->price ?? 0 }}" class="form-control productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
+                      </td>
+                      <td class="text-left">
+                        <input type="text" id="input-products-receiving_quantity-{{ $product_row }}" name="products[{{ $product_row }}][receiving_quantity]" value="{{ $receiving_product->receiving_quantity }}" class="form-control productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
+                      </td>
+                      <td class="text-left">
+                        <input type="text" id="input-products-amount-{{ $product_row }}" name="products[{{ $product_row }}][amount]" value="{{ $receiving_product->amount ?? 0 }}" class="form-control productAmountInputs clcProduct" data-rownum="{{ $product_row }}" readonly>
+                      </td>
+                      <td class="text-left">
                         <select id="input-products-receiving_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][receiving_unit_code]" class="form-control">
                           <option value=""> -- </option>
-                          <option value="{{ $receiving_product->receiving_unit_code ?? '' }}_{{ $receiving_product->receiving_unit_name ?? '' }}" selected>{{ $receiving_product->receiving_unit_name ?? '' }}</option>
+                          <option value="{{ $receiving_product->receiving_unit_code ?? '' }}_{{ $receiving_product->receiving_unit_name ?? '' }}" selected data-multiplier="{{ $receiving_product->multiplier }}">{{ $receiving_product->receiving_unit_name ?? '' }}</option>
                         </select>
-                    </div>
-                    <div class="module col-md-1 col-sm-1 required">
-                        <label class="col-form-label">進貨單價</label>
-                        <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $receiving_product->price ?? 0 }}" class="form-control productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
-                    </div>
-                    <div class="module col-md-1 col-sm-1 required">
-                        <label class="col-form-label">進貨數量</label>
-                        <input type="text" id="input-products-receiving_quantity-{{ $product_row }}" name="products[{{ $product_row }}][receiving_quantity]" value="{{ $receiving_product->receiving_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">
-                    </div>
-                    <div class="module col-md-1 col-sm-1">
-                        <label class="col-form-label">進貨金額</label>
-                        <input type="text" id="input-products-amount-{{ $product_row }}" name="products[{{ $product_row }}][amount]" value="{{ $receiving_product->amount ?? 0 }}" class="form-control productAmountInputs clcProduct" data-rownum="{{ $product_row }}" readonly>
-                    </div>
-                    <div class="module col-md-1 col-sm-1">
-                        <label class="col-form-label">庫存數量</label>
-                        <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? '' }}" class="form-control" data-rownum="{{ $product_row }}" readonly>
-                    </div>
-                    <div class="module col-md-1 col-sm-1">
-                        <label class="col-form-label">庫存單位</label>
+                      </td>
+                      <td class="text-left">
+                        <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->receiving_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">
+                      </td>
+                      <td class="text-left">
+                        <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? 0 }}" class="form-control" readonly>
+                      </td>
+                      <td class="text-left">
                         <input type="text" id="input-products-stock_unit_name-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_name]" value="{{ $receiving_product->stock_unit_name ?? '' }}" class="form-control" readonly>
                         <input type="hidden" id="input-products-stock_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_code]" value="{{ $receiving_product->stock_unit_code ?? '' }}">
-                    </div>
-                    <div class="module col-md-1 col-sm-1">
-                        <label class="col-form-label">庫存單價</label>
-                        <input type="text" id="input-products-stock_unit_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_price]" value="{{ $receiving_product->stock_unit_price ?? 0 }}" class="form-control" readonly>
-                    </div>
-                  </div>
+                      </td>
+                    </tr>
+                    @php $product_row++; @endphp
+                    @endforeach
+                  </tbody>
 
-                  @php $product_row++; @endphp
-                  @endfor
-                </div>
+                  <tfoot>
+                    <tr>
+                      <td colspan="10" class="text-left">
+                        <button type="button" onclick="addReceivingProduct()" data-toggle="tooltip" title="" class="btn btn-primary" data-original-title=""><i class="fa fa-plus-circle"></i></button>
+                      </td>
+                    </tr>
+                  </tfoot>
+
+
+
+                </table>
+              </div>
+
+
+
+
+
               </div>
             </form>
             </div>
@@ -300,48 +321,51 @@ $('#input-supplier_name').on('click', function(e){
 });
 
 // 查料件名稱
-$('.schProductName').autocomplete({
-  'source': function (request, response) {
-    let supplier_id = $('#input-supplier_id').val();
-    let supplier_url = '';
+$(document).on('click', '.schProductName', function() {
+  $(this).autocomplete({
+    'source': function (request, response) {
+      let supplier_id = $('#input-supplier_id').val();
+      let supplier_url = '';
 
-    if($.isNumeric(supplier_id) && supplier_id > 0){
-      supplier_url = '&equal_supplier_id=' + supplier_id + '&limit=0&pagination=0';
-    }
-    $.ajax({
-        url: "{{ $product_autocomplete_url }}?equal_is_management=1&equal_is_active=1&with=product_units&filter_name=" + encodeURIComponent(request) + '&extra_columns=stock_unit_code,stock_unit_name' + supplier_url,
-        dataType: 'json',
-        success: function (json) {
-          response(json);
-        }
+      if(request.length == 0 && $.isNumeric(supplier_id) && supplier_id > 0){
+        supplier_url = '&equal_supplier_id=' + supplier_id + '&limit=0&pagination=0';
+      }
+      $.ajax({
+          url: "{{ $product_autocomplete_url }}?equal_is_inventory_managed=1&equal_is_active=1&with=product_units&filter_name=" + encodeURIComponent(request) + '&extra_columns=stock_unit_code,stock_unit_name' + supplier_url,
+          dataType: 'json',
+          success: function (json) {
+            response(json);
+          }
+        });
+    },
+    'select': function (item) {
+      var rownum = $(this).data("rownum");
+      $('#input-products-id-'+rownum).val(item.product_id);
+      $('#input-products-name-'+rownum).val(item.name);
+      $('#input-products-specification-'+rownum).val(item.specification);
+      $('#input-products-stock_unit_code-'+rownum).val(item.stock_unit_code);
+      $('#input-products-stock_unit_name-'+rownum).val(item.stock_unit_name);
+
+      var selectElement = $('#input-products-receiving_unit_code-'+rownum);
+      selectElement.empty();
+
+      $.each(item.product_units, function(index, product_unit) {
+        // 创建一个option元素
+        var option = $('<option></option>');
+
+        // 设置option的值和文本
+        option.val(product_unit.source_unit_code); // 假设id是选项的值
+        option.text(product_unit.source_unit_name); // 假设name是选项的显示文本
+        option.attr('data-multiplier', product_unit.destination_quantity);
+        //console.log('unit.source_unit_code='+unit.source_unit_code+', unit.source_unit_name='+unit.source_unit_name+', unit.destination_quantity='+unit.destination_quantity)
+
+        // 将option添加到select元素中
+        selectElement.append(option);
       });
-  },
-  'select': function (item) {
-    var rownum = $(this).data("rownum");
-    $('#input-products-id-'+rownum).val(item.product_id);
-    $('#input-products-name-'+rownum).val(item.name);
-    $('#input-products-specification-'+rownum).val(item.specification);
-    $('#input-products-stock_unit_code-'+rownum).val(item.stock_unit_code);
-    $('#input-products-stock_unit_name-'+rownum).val(item.stock_unit_name);
-
-    var selectElement = $('#input-products-receiving_unit_code-'+rownum);
-    selectElement.empty();
-
-    $.each(item.product_units, function(index, unit) {
-      // 创建一个option元素
-      var option = $('<option></option>');
-
-      // 设置option的值和文本
-      option.val(unit.source_unit_code); // 假设id是选项的值
-      option.text(unit.source_unit_name); // 假设name是选项的显示文本
-      option.attr('data-multiplier', unit.destination_quantity);
-      //console.log('unit.source_unit_code='+unit.source_unit_code+', unit.source_unit_name='+unit.source_unit_name+', unit.destination_quantity='+unit.destination_quantity)
-
-      // 将option添加到select元素中
-      selectElement.append(option);
-    });
-  }
+    }
+  });
 });
+
 
 // 課稅別
 $('#input-tax_type_code').on("change", function() {
@@ -398,11 +422,14 @@ const $productAmountInputs = $('.productAmountInputs'); // 金額
 const $before_tax = $('#input-before_tax');
 const maxProductRow = 20;
 
+
 // 進貨單價、進貨數量、進貨金額 觸發計算
-$('.clcProduct').on('focusout', function(){
+$('#products').on('focusout', '.clcProduct', function(){
   let rownum = $(this).closest('[data-rownum]').data('rownum');
   calcProduct(rownum)
 });
+
+
 function calcProduct(rownum){
   let price = $('#input-products-price-'+rownum).val() ?? 0;
   let receiving_quantity = $('#input-products-receiving_quantity-'+rownum).val() ?? 0;
@@ -418,17 +445,17 @@ function calcProduct(rownum){
     destination_quantity = receiving_quantity * multiplier
   }
 
-  let stock_unit_price = 0;
+  let stock_price = 0;
   if ($.isNumeric(receiving_quantity) && destination_quantity > 0) {
-    stock_unit_price = amount / destination_quantity;
+    stock_price = amount / destination_quantity;
   }
-  //console.log('amount='+amount+', receiving_quantity='+receiving_quantity+', destination_quantity='+destination_quantity+', multiplier='+multiplier);
+  console.log('amount='+amount+', receiving_quantity='+receiving_quantity+', multiplier='+multiplier+', destination_quantity='+destination_quantity+', multiplier='+multiplier);
 
   // 庫存數量
   $('#input-products-stock_quantity-'+rownum).val(destination_quantity);
 
   // 庫存單價 = 進貨金額/庫存數量
-  $('#input-products-stock_unit_price-'+rownum).val(stock_unit_price);
+  $('#input-products-stock_price-'+rownum).val(stock_price);
   
   calcAllProducts()
 }
@@ -481,7 +508,76 @@ $('#input-total').on('focusout', function(){
   $('#hidden_total').val(num);
 });
 
+var product_row = {{ $product_row }};
 
+function addReceivingProduct(){
+  //<tr id="product-row{{ $product_row }}" data-rownum="{{ $product_row }}">
+  // html  = '<tr id="product-row'+product_row+'" data-rownum="'+product_row+'">';
+  // html += '  <td>';
+  // html += '  </td>';
+  // html += '  <td>';
+  // html += '  </td>';
+  // html += '  <td>';
+  // html += '  </td>';
+  // html += '  <td>';
+  // html += '  </td>';
+  // html += '  <td>';
+  // html += '  </td>';
+  // html += '  <td>';
+  // html += '  </td>';
+  // html += '  <td>';
+  // html += '  </td>';
+  // html += '  <td>';
+  // html += '  </td>';
+  // html += '  <td>xx';
+  // html += '  </td>';
+  // html += '  <td>xx';
+  // html += '  </td>';
+  // html += '</tr>'
+
+  html = '<tr id="product-row'+product_row+'" data-rownum="'+product_row+'">';
+  html += '  <td class="text-left">';
+  html += '    <button type="button" onclick="$(\'#product-row\').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-name-'+product_row+'" name="products['+product_row+'][name]" value="" data-rownum="'+product_row+'" class="form-control schProductName" data-oc-target="autocomplete-product_name-'+product_row+'" autocomplete="off">';
+  html += '    <ul id="autocomplete-product_name-'+product_row+'" class="dropdown-menu"></ul>';
+  html += '    <input type="hidden" id="input-products-id-'+product_row+'" name="products['+product_row+'][id]" value="" class="form-control" readonly>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-specification-'+product_row+'" name="products['+product_row+'][specification]" value="" class="form-control" readonly>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-price-'+product_row+'" name="products['+product_row+'][price]" value="" class="form-control productPriceInputs clcProduct" data-rownum="'+product_row+'">';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-receiving_quantity-'+product_row+'" name="products['+product_row+'][receiving_quantity]" value="" class="form-control productPriceInputs clcProduct" data-rownum="'+product_row+'">';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-amount-'+product_row+'" name="products['+product_row+'][amount]" value="" class="form-control productAmountInputs clcProduct" data-rownum="'+product_row+'" readonly>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <select id="input-products-receiving_unit_code-'+product_row+'" name="products['+product_row+'][receiving_unit_code]" class="form-control">';
+  html += '      <option value=""> -- </option>';
+  html += '    </select>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-stock_quantity-'+product_row+'" name="products['+product_row+'][stock_quantity]" value="" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="'+product_row+'">';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-stock_price-'+product_row+'" name="products['+product_row+'][stock_price]" value="" class="form-control" readonly>';
+  html += '  </td>';
+  html += ' <td class="text-left">';
+  html += '   <input type="text" id="input-products-stock_unit_name-'+product_row+'" name="products['+product_row+'][stock_unit_name]" value="" class="form-control" readonly>';
+  html += '   <input type="hidden" id="input-products-stock_unit_code-'+product_row+'" name="products['+product_row+'][stock_unit_code]" value="">';
+  html += ' </td>';
+  html += '</tr>';
+
+
+	$('#products tbody').append(html);
+
+	product_row++;
+}
 
 
 </script>

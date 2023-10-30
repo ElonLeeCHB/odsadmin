@@ -50,24 +50,19 @@ class UnitRepository extends Repository
 
 
 	public function saveUnit($post_data, $debug = 0)
-	{
-        DB::beginTransaction();
-        
+	{        
         try {
             $unit_id = $post_data['unit_id'] ?? null;
 
             $result = $this->saveRow($unit_id, $post_data);
 
-            DB::commit();
+            if(!empty($result['error'])){
+                throw new \Exception($result['error']);
+            }
 
-            $unit = $this->findIdOrFailOrNew($unit_id);
-
-            return ['id' => $unit->id];
-
+            return $result;
 
         } catch (\Exception $ex) {
-            DB::rollback();
-            echo '<pre>', print_r($ex->getMessage(), 1), "</pre>"; exit;
             return ['error' => $ex->getMessage()];
         }
 	}
@@ -86,12 +81,24 @@ class UnitRepository extends Repository
     // 刪除關聯
     public function sanitizeRow($row)
     {
-        $arrOrder = $row->toArray();
-
-        if(!empty($arrOrder['translation'])){
-            unset($arrOrder['translation']);
+        if(empty($row->id)){
+            $row->name = '';
+            $row->comment = '';
+            $row->code = '';
+            $row->master_code = '';
+            $row->type = '';
+            $row->sort_order = '';
+            $row->created_at = '';
+            $row->updated_at = '';
+            $row->is_active = '';
         }
 
-        return (object) $arrOrder;
+        $result = $row->toArray();
+
+        if(!empty($result['translation'])){
+            unset($result['translation']);
+        }
+
+        return (object) $result;
     }
 }
