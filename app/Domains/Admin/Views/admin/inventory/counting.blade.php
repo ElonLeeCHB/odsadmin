@@ -29,21 +29,22 @@
             <div class="card-body">
 
               <div class="mb-3">
-                <label class="form-label">{{ $lang->column_code }}</label>
-                <input type="text" id="input-code" name="filter_code" value="{{ $filter_code?? '' }}"  data-oc-target="autocomplete-name" class="form-control" autocomplete="off"/>
+                <label class="form-label">{{ $lang->column_task_date }}</label>
+                <input type="text" id="input-filter_task_date" name="filter_task_date" value="{{ $filter_code ?? '' }}"  class="form-control" autocomplete="off"/>
               </div>
 
               <div class="mb-3">
-                <label class="form-label">{{ $lang->column_name }}</label>
-                <input type="text" id="input-name" name="filter_name" value="{{ $filter_name ?? '' }}"  data-oc-target="autocomplete-name" class="form-control" autocomplete="off"/>
+                <label class="form-label">{{ $lang->column_product_name }}</label>
+                <input type="text" id="input-filter_product_name" name="filter_product_name" value="{{ $filter_product_name ?? '' }}"  data-oc-target="autocomplete-filter_product_name" class="form-control" autocomplete="off"/>
               </div>
 
               <div class="mb-3">
-                <label class="form-label">{{ $lang->column_is_active }}</label>
-                <select name="equal_is_active" id="input-equal_is_active" class="form-select">
+                <label class="form-label">{{ $lang->column_status_code }}</label>
+                <select name="equal_status_code" id="input-equal_status_code" class="form-select">
                   <option value="*"> -- </option>
-                  <option value="1" selected>{{ $lang->text_yes }}</option>
-                  <option value="0">{{ $lang->text_no }}</option>
+                  <option value="Y" selected>{{ $lang->text_status_confirmed }}</option>
+                  <option value="N">{{ $lang->text_status_unconfirmed }}</option>
+                  <option value="V">{{ $lang->text_status_voided }}</option>
                 </select>
               </div>
 
@@ -68,10 +69,10 @@
 
 @section('buttom')
 <script type="text/javascript"><!--
-$('#unit').on('click', 'thead a, .pagination a', function(e) {
+$('#counting').on('click', 'thead a, .pagination a', function(e) {
 	e.preventDefault();
 
-	$('#unit').load(this.href);
+	$('#counting').load(this.href);
 });
 
 $('#button-filter').on('click', function() {
@@ -89,15 +90,15 @@ $('#button-filter').on('click', function() {
 		url += '&filter_name=' + encodeURIComponent(filter_name);
 	}
 
-  var equal_is_active = $('#input-equal_is_active').val();
+  var equal_status_code = $('#input-equal_status_code').val();
 
-  if (equal_is_active) {
-    url += '&equal_is_active=' + encodeURIComponent(equal_is_active);
+  if (equal_status_code) {
+    url += '&equal_status_code=' + encodeURIComponent(equal_status_code);
   }
 
 	url = "{{ $list_url }}?" + url;
 
-	$('#unit').load(url);
+	$('#counting').load(url);
 });
 //--></script>
 @endsection

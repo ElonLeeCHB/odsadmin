@@ -259,7 +259,6 @@
                     @php $product_row++; @endphp
                     @endforeach
                   </tbody>
-
                   <tfoot>
                     <tr>
                       <td colspan="10" class="text-left">
@@ -267,9 +266,6 @@
                       </td>
                     </tr>
                   </tfoot>
-
-
-
                 </table>
               </div>
 

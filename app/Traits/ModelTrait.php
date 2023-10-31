@@ -8,7 +8,6 @@ use Illuminate\Support\Carbon;
 trait ModelTrait
 {
 
-
     // Relations
 
     public function metas()
@@ -39,6 +38,10 @@ trait ModelTrait
 
     public function translations()
     {
+        if(empty($this->translation_attributes)){
+            return false;
+        }
+        
         // Using SomeTranslation
         if(!isset($this->translation_model_name) || str_ends_with($this->translation_model_name, 'Translation')){
             $translation_model_name = get_class($this) . 'Translation';

@@ -38,6 +38,27 @@ class UnitRepository extends Repository
     }
 
 
+    public function getLocaleKeyedActiveUnits($data = [], $debug=0)
+    {
+        $data['equal_is_active'] = 1;
+        $data['pagination'] = false;
+        $data['limit'] = 0;
+
+        if(empty($data['sort'])){
+            $data['sort'] = 'code';
+            $data['order'] = 'ASC';    
+        }
+
+        $rows = $this->getRows($data, $debug)->keyBy('name')->toArray();
+        
+        foreach ($rows as $key => $row) {
+            unset($rows[$key]['translation']);
+        }
+
+        return $rows;
+    }
+
+
     public function delete($unit_id)
     {
         UnitTranslation::where('product_id', $unit_id)->delete();

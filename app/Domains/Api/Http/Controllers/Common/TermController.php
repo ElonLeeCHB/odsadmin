@@ -22,7 +22,7 @@ class TermController extends ApiController
 
         $phrases = $this->TermService->getTerms($filter_data);
         
-        $phrases = $this->TermService->unsetRelations($phrases, ['translation', 'taxonomy']);
+        //$phrases = $this->TermService->unsetRelations($phrases, ['translation', 'taxonomy']);
         
         return response(json_encode($phrases))->header('Content-Type','application/json');
     }

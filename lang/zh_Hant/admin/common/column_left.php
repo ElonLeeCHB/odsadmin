@@ -33,6 +33,7 @@ return [
 'text_inventory_products' => '料件設定',
 'text_purchasing_orders' => '採購作業',
 'text_receiving_orders' => '進貨作業',
+'text_counting_task' => '盤點結餘作業',
 
 'text_member' => '客戶管理',
 'text_individual' => '客戶',

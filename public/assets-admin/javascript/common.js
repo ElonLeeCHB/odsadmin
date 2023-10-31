@@ -342,6 +342,18 @@ $(document).on('click', '[data-oc-toggle=\'upload\']', function () {
 
                             $(element).parent().find('[data-oc-toggle=\'download\'], [data-oc-toggle=\'clear\']').prop('disabled', false);
                         }
+
+                        //20231031 ronrun
+                        if (json['redirectUrl']) {
+                            redirectUrl = json['redirectUrl'];
+                            window.history.pushState(null, null, redirectUrl);
+
+                            // 從 ajax 段落複製過來
+                            for (key in json) {
+                                $(document).find('[name=\'' + key + '\']').val(json[key]);
+                            }
+                        }
+                        //end
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
                         console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);

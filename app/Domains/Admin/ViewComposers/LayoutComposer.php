@@ -360,6 +360,16 @@ class LayoutComposer
             ];
         }
 
+        // 盤點結餘作業 Inventory Counting Task
+        if(1) {
+            $inventory[] = [
+                'name'	   => $this->lang->text_counting_task,
+                'icon'	   => '',
+                'href'     => route('lang.admin.inventory.countings.index'),
+                'children' => []
+            ];
+        }
+
         // add to Menus
         if(!empty($inventory)) {
             $menus[] = [
