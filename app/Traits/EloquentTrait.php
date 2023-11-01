@@ -51,6 +51,7 @@ trait EloquentTrait
         }
 
         $this->table_columns = $this->getTableColumns($this->connection);
+        $this->translation_attributes = $this->model->translation_attributes ?? [];
         $this->zh_hant_hans_transform = false;
         $this->initialized = true;
     }
@@ -385,31 +386,39 @@ trait EloquentTrait
         if(!empty($data['orderByRaw'])){
             $query->orderByRaw($data['orderByRaw']);
         }
-        //  -- 用多語欄位排序
-        else if(!empty($data['sort']) && !empty($this->model->translation_attributes) && in_array($data['sort'], $this->model->translation_attributes)){
-            $translation_table = $this->model->getTranslationTable();
-            $master_key = $this->model->getTranslationMasterKey();
-            $sort = $data['sort'];
-
-            if (str_ends_with($this->model->translation_model_name, 'Meta')) {
-
-                $query->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
-                    $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
-                         ->where("{$translation_table}.locale", '=', $this->locale)
-                         ->where("{$translation_table}.meta_key", '=', $sort);
-                });
-                $query->orderBy("{$translation_table}.meta_value", $order);
-
-            }else{ // 一般用 Translation 做結尾，例如 ProductTranslation
-                $query->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
-                    $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
-                         ->where("{$translation_table}.locale", '=', app()->getLocale());
-                });
-                $query->orderBy("{$translation_table}.{$sort}", $order);
+        // -- 指定排序欄位
+        else if(!empty($data['sort'])){
+            // 非多語欄位
+            if(!in_array($data['sort'], $this->translation_attributes)){
+                $query->orderBy($data['sort'], $order);
             }
+            // 多語欄位
+            else{
+                $translation_table = $this->model->getTranslationTable();
+                $master_key = $this->model->getTranslationMasterKey();
+                $sort = $data['sort'];
+    
+                if (str_ends_with($this->model->translation_model_name, 'Meta')) {
+    
+                    $query->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
+                        $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
+                             ->where("{$translation_table}.locale", '=', $this->locale)
+                             ->where("{$translation_table}.meta_key", '=', $sort);
+                    });
+                    $query->orderBy("{$translation_table}.meta_value", $order);
+    
+                }else{ // 一般用 Translation 做結尾，例如 ProductTranslation
+                    $query->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
+                        $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
+                             ->where("{$translation_table}.locale", '=', app()->getLocale());
+                    });
+                    $query->orderBy("{$translation_table}.{$sort}", $order);
+                }
+            }
+
         }
-        // 如果資料表欄位有 sort_order
-        else if(in_array('sort_order', $this->table_columns)){
+        // 未指定排序欄位，但資料表欄位有 sort_order
+        else if(empty($data['sort']) && in_array('sort_order', $this->table_columns)){
             $query->orderBy('sort_order', $order);
         }
         //  -- 其它情況
@@ -832,11 +841,10 @@ trait EloquentTrait
             $width_arr = $input;
         }
 
-        if($has_translation){
-            $width_arr[] = 'translation';
-        }
+        // if($has_translation){
+        //     $width_arr[] = 'translation';
+        // }
         //
-
         $width_arr = array_unique($width_arr);
 
         if(!is_array($width_arr)){

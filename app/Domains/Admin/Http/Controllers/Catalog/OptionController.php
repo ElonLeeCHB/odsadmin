@@ -397,6 +397,7 @@ class OptionController extends BackendController
             'regexp' => false,
             'with' => 'option_values.product',
         );
+
         $options = $this->OptionService->getOptions($filter_data);
 
         foreach ($options as $option) {

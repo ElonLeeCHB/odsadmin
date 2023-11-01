@@ -192,7 +192,7 @@ return [
         // 'Example' => App\Facades\Example::class,
     ])->toArray(),
 
-    'app_admin_url' => env('APP_ADMIN_URL', 'http://localhost/admin'),
+    'admin_url' => env('ADMIN_URL', 'http://localhost/admin'),
     'translatoin_driver' => env('TRANSLATION_DRIVER', 'file'),
 
 ];

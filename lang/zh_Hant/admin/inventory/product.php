@@ -56,9 +56,9 @@ return [
 
 'column_supplier' => '廠商',
 'column_supplier_product' => '廠商料件',
-'column_supplier_own_product_code' => '廠商料件編號',
-'column_supplier_own_product_name' => '廠商料件名稱',
-'column_supplier_own_product_specification' => '廠商料件規格',
+'column_supplier_own_product_code' => '廠商品號',
+'column_supplier_own_product_name' => '廠商品名',
+'column_supplier_own_product_specification' => '廠商規格',
 'column_stock_unit_price' => '庫存單位成本',
 
 'column_image' => '商品主圖',
@@ -99,6 +99,6 @@ return [
 'error_model' => '商品型號必須在 2 到 64 個字！',
 'error_seo_url' => '靜態網址不可重複',
 'error_product_option' => '警告: 此選項不能被刪除，因為已有訂單使用中！',
-'error_product_option_value' => '警告: 此選項不能被刪除，因為已有訂單使用中！',
+'error_product_option_value' => '警告: 此選項值不能被刪除，因為已有訂單使用中！',
 
 ];

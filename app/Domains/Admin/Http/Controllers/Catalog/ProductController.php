@@ -70,7 +70,6 @@ class ProductController extends BackendController
         $data['list_url']   = route('lang.admin.catalog.products.list');
         $data['add_url']    = route('lang.admin.catalog.products.form');
         $data['delete_url'] = route('lang.admin.catalog.products.delete');
-
         return view('admin.catalog.product', $data);
     }
 
@@ -130,7 +129,7 @@ class ProductController extends BackendController
         $data['sort_price'] = $route . "?sort=price&order=$order" .$url;
         $data['sort_quantity'] = $route . "?sort=quantity&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
-        
+
         return view('admin.catalog.product_list', $data);
     }
 
@@ -380,7 +379,7 @@ class ProductController extends BackendController
                     $order_product_options = $this->OrderProductOptionService->getRow($filter_data);
 
                     if(!empty($order_product_options)){
-                        $json['error']['warning'] = $this->lang->error_product_option_value . ' order_id: ' . $order_product_options->order_id;
+                        $json['error']['warning'] = $this->lang->error_product_option_value . 'product_option_value_id:'.$product_option_value_id.', order_id: ' . $order_product_options->order_id;
                     }
                 }
             }

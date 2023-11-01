@@ -64,7 +64,7 @@
             <div class="mb-3">
               <label class="form-label">{{ $lang->column_is_salable }}</label>
               <select id="input-filter_is_salable" name="filter_is_salable" class="form-select">
-                <option value="">{{ $lang->text_select }}</option>
+                <option value=""> -- </option>
                 <option value="1">{{ $lang->text_yes }}</option>
                 <option value="0">{{ $lang->text_no }}</option>
               </select>
@@ -73,7 +73,7 @@
             <div class="mb-3">
               <label class="form-label">{{ $lang->column_is_inventory_managed }}</label>
               <select id="input-filter_is_inventory_managed" name="filter_is_inventory_managed" class="form-select">
-                <option value="">{{ $lang->text_select }}</option>
+                <option value=""> -- </option>
                 <option value="1" selected>{{ $lang->text_yes }}</option>
                 <option value="0">{{ $lang->text_no }}</option>
               </select>
@@ -82,7 +82,7 @@
             <div class="mb-3">
               <label class="form-label">{{ $lang->column_is_active }}</label>
               <select id="input-equal_is_active" name="equal_is_active" class="form-select">
-                <option value=""> -- </option>
+                <option value="*"> -- </option> {{-- 這裡的 value 必須是 * ，其它篩選則不必。--}}
                 <option value="1" selected>{{ $lang->text_yes }}</option>
                 <option value="0">{{ $lang->text_no }}</option>
               </select>

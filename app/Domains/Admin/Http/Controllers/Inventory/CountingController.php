@@ -324,11 +324,7 @@ class CountingController extends BackendController
     public function exportCountingProductList()
     {
         $post_data = request()->post();
-
-        // 檔名設定無效，依然會使用前端的 link.download
-        $customFileName = '盤點表_'.date('Y-m-d_H-i-s').'.xlsx';
-        header('Content-Disposition: attachment; filename=' . $customFileName);
-
+        
         return $this->CountingService->exportCountingProductList($post_data); 
     }
 

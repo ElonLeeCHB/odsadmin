@@ -12,6 +12,7 @@ use App\Traits\EloquentTrait;
 
 use Maatwebsite\Excel\Facades\Excel;
 use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
+use App\Domains\Admin\Exports\InventoryCountingListExport;
 
 class CountingRepository
 {
@@ -37,8 +38,6 @@ class CountingRepository
         DB::beginTransaction();
 
         try {
-
-            
 
             //Warehouse::where('id', $warehouse_id)->delete();
 
@@ -137,9 +136,14 @@ class CountingRepository
     }
 
 
-    public function exportCountingProductList()
+    public function exportCountingProductList($post_data = [], $debug = 0)
     {
+        $filename = '盤點表_'.date('Y-m-d_H-i-s').'.xlsx';
 
+        return Excel::download(new InventoryCountingListExport($post_data, $this->ProductRepository), $filename);
+        
+        /* 下面移到 InventoryCountingListExport
+        
         $post_data['equal_is_inventory_managed'] = 1;
         $post_data['pagination'] = false;
         $post_data['limit'] = 1000;
@@ -158,6 +162,7 @@ class CountingRepository
                 'name' => $product->name,
                 'specification' => $product->specification,
 
+                'stock_price' => is_numeric($product->stock_price) ? $product->stock_price : ' - ',
                 'stock_unit_name' => $product->stock_unit_name,
                 'counting_unit_name' => $product->counting_unit_name,
 
@@ -169,10 +174,9 @@ class CountingRepository
         $data['collection'] = collect($rows);
 
         $data['headings'] = ['ID', '品名', '規格',
-                             '庫存單位', '盤點單位', 
+                             '庫存單價', '庫存單位', '盤點單位', 
                              '盤點數量',
                             ];
-
-        return Excel::download(new CommonExport($data), 'inventory_counting_products.xlsx');
+        */
     }
 }

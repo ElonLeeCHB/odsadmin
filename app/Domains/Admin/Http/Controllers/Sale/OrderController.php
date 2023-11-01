@@ -37,17 +37,6 @@ class OrderController extends BackendController
         parent::__construct();
 
         $this->getLang(['admin/common/common','admin/sale/order']);
-
-        // $this->request = $request;
-        // $this->OrderService = $OrderService;
-        // $this->MemberService = $MemberService;
-        // $this->ProductService = $ProductService;
-        // $this->OptionService = $OptionService;
-        // $this->CountryService = $CountryService;
-        // $this->DivisionService = $DivisionService;
-
-
-        // $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/sale/order',]);
     }
 
     /**
@@ -384,7 +373,7 @@ class OrderController extends BackendController
             'equal_is_salable' => 1,
             'pagination' => false,
             'limit' => 0,
-            'with' => ['main_category','translation'],
+            'with' => ['main_category'],
         ];
         $data['salable_products'] = $this->ProductService->getProducts($filter_data);
 
@@ -534,7 +523,7 @@ class OrderController extends BackendController
             $filter_data = [
                 'filter_id' => $this->request->filter_product_id,
                 'regexp' => false,
-                'with' =>['product_options' => ['is_active'=>1]],
+                'with' =>['product_options'],
             ];
             $product = $this->ProductService->getProduct($filter_data);
 
@@ -564,7 +553,6 @@ class OrderController extends BackendController
         if(!empty($data['main_category_code']) && in_array($data['main_category_code'], $arr)){
             $data['is_main_meal_title'] = 1;
         }
-
 
         //order_product
         if(!empty($order_product)){

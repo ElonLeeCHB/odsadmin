@@ -23,8 +23,8 @@ class UrlHelper
         }
 
         // - 判斷 equal_is_active
-        if(isset($queries['equal_is_active'])){
-            $filter_data['equal_is_active'] = $queries['equal_is_active'];
+        if(isset($filter_data['equal_is_active'])){
+            $filter_data['equal_is_active'] = $filter_data['equal_is_active'];
         }else{
             $filter_data['equal_is_active'] = 1;
         }
@@ -89,11 +89,10 @@ class UrlHelper
         }
 
         
-
         foreach ($queries as $key => $value) {
             $filter_data[$key] = $value;
         }
-        
+
         return $filter_data;
     }
 

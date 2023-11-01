@@ -382,7 +382,6 @@ class ProductRepository extends Repository
             $code = $row['code'];
             $result[$code] = (object) $row;
         }
-
         return $result;
     }
 
