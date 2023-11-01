@@ -258,5 +258,4 @@ class ReceivingOrderController extends BackendController
     }
 
 
-
 }

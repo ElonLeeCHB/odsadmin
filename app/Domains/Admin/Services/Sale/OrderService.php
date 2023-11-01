@@ -163,47 +163,58 @@ class OrderService extends Service
                 // 訂單單頭結束
             }
 
-            // 標籤
-            if(!empty($data['order_tag'])){
+            // 公司分類的寫入功能 待處理
+            //if(!empty($data['order_tag'])){
+            if(0){
                 if(!is_array($data['order_tag'])){
                     $tags = explode(',', $data['order_tag']);
                 }else{
                     $tags = $data['order_tag'];
                 }
 
-                foreach ($tags as $key => $tag) {
-                    $tag = trim($tag);
-                    if(empty($tag)){
-                        continue;
-                    }
+                // 若無此標籤則新增
+                // foreach ($tags as $key => $tag) {
+                //     $tag = trim($tag);
+                //     if(empty($tag)){
+                //         continue;
+                //     }
 
-                    $term_translation = TermTranslation::where('name', $tag)->where('locale', app()->getLocale())->select(['id','term_id'])->first();
+                //     $term_translation = TermTranslation::where('name', $tag)->where('locale', app()->getLocale())->select(['id','term_id'])->first();
 
-                    // 若無此標籤則新增
-                    if($term_translation == null){
-                        $term = new Term;
-                        $term->taxonomy_code = 'order_tag';
-                        $term->object_model = 'App\Models\Sale\Order';
-                        $term->is_active = 1;
-                        $term->save();
+                //     if($term_translation == null){
+                //         $term = new Term;
+                //         $term->taxonomy_code = 'order_tag';
+                //         $term->object_model = 'App\Models\Sale\Order';
+                //         $term->is_active = 1;
+                //         $term->save();
 
-                        $term_translation = new TermTranslation;
-                        $term_translation->term_id = $term->id;
-                        $term_translation->locale = app()->getLocale();
-                        $term_translation->name = $tag;
-                        $term_translation->save();
-                    }
+                //         $term_translation = new TermTranslation;
+                //         $term_translation->term_id = $term->id;
+                //         $term_translation->locale = app()->getLocale();
+                //         $term_translation->name = $tag;
+                //         $term_translation->save();
+                //     }
 
-                    $insert_term_ids[] = $term_translation->term_id;
+                //     $insert_term_ids[] = $term_translation->term_id;
 
-                    // 新增到 term_relations
-                    $insertRows[] = [
-                        'object_id' => $order_id,
-                        'term_id' => $term_translation->term_id,
-                    ];
-                }
+                //     // 新增到 term_relations
+                //     $insertRows[] = [
+                //         'object_id' => $order_id,
+                //         'term_id' => $term_translation->term_id,
+                //     ];
+                // }
 
                 // 新增前先找出已有的 term_id
+
+
+                //$taxonomy_order = $this->
+
+
+                // 用新式的 whereHas 找 terms taxonomy_code=sys_tables，獲得 orders 表的 term_id，然後令 table_id=這個term_id
+
+
+
+
                 $original_term_ids = Term::where('taxonomy_code', 'order_tag')->whereHas('term_relations', function ($query) use ($order_id) {
                     $query->where('object_id', $order_id);
                 })->pluck('id')->toArray();

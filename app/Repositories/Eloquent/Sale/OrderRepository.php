@@ -15,6 +15,7 @@ use Carbon\Carbon;
 
 use Maatwebsite\Excel\Facades\Excel;
 use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
+use App\Helpers\Classes\DataHelper;
 
 class OrderRepository extends Repository
 {
@@ -225,23 +226,39 @@ class OrderRepository extends Repository
     }
 
 
-    public function getOrderTags($data, $debug)
+    public function getOrderTags($data, $debug = 0)
     {
-        $qStr = $data['qStr'];
+        $data['equal_taxonomy_code'] = 'order_tag';
 
-        $tags = Term::where('taxonomy_code', 'order_tag')->whereHas('translation', function ($query) use ($qStr) {
-            $query->where('name', 'like', '%'.$qStr.'%');
-        })->with('translation')->get();
+        $rows = $this->TermRepository->getTerms($data);
 
-        if(!empty($data['sanitize'])){
-            foreach ($tags as $key => $tag) {
-                $tag = $tag->toArray();
-                unset($tag['translation']);
-                unset($tag['taxonomy']);
-                $tags[$key] = (object) $tag;
+        //$rows = DataHelper::collectionToArray
+        
+        $tags = [];
+
+        foreach ($rows as $key => $row) {
+            $arr = [
+                'term_id' => $row->id,
+                'name' => $row->name,
+                'short_name' => $row->short_name,
+                'taxonomy_code' => $row->taxonomy_code,
+                'taxonomy_name' => $row->taxonomy_name,
+                'parent_id' => $row->parent_id,
+                'sort_order' => $row->sort_order,
+                'is_active' => $row->is_active,
+
+            ];
+
+            // default object
+            if(isset($data['collection_type']) && $data['collection_type'] == 'array'){
+                $tags[] = $arr;
+            }else{
+                $tags[] = (object) $arr;
             }
 
         }
+
+        unset($rows);
 
         return $tags;
     }

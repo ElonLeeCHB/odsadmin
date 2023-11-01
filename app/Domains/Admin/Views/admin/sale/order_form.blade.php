@@ -140,15 +140,10 @@
                           <ul id="autocomplete-telephone" class="dropdown-menu"></ul>
                           
                        </td>
-                        <td class="col-md-1 text-end colname-font">訂單標籤</td>
+                        <td class="col-md-1 text-end colname-font">公司分類</td>
                         <td class="col-md-2">
-                          <select id="input-order_tag" name="order_tag[]" class="select2-multiple form-control" multiple="multiple"></select><BR>
-                          <div class="selOrderTag">
-                            <button type="button">會</button>
-                            <button type="button">教</button>
-                            <button type="button">幫</button>
-                            <button type="button">清</button>
-                          </div>
+                          <select id="input-order_tag" name="order_tag[]" class="select2-multiple form-control" multiple="multiple"></select>
+                          (暫時勿用)
                         </td>
                       </tr>
 
@@ -616,15 +611,6 @@ $(document).on("click",'.phrase', function(){
 // 訂單標籤
 var orderTagBtnTxt = '   ';
 var qStr = '';
-$('.selOrderTag button').on('click', function(){
-  var addStr = $('#input-order_tag').val();
-  var buttonText = $(this).text();
-  if(buttonText=='清'){
-    orderTagBtnTxt = '  ';
-    return;
-  }
-  orderTagBtnTxt = buttonText
-});
 
 //已存的訂單標籤
 @foreach($order_tag ?? [] as $tag)
@@ -634,48 +620,28 @@ $('.selOrderTag button').on('click', function(){
 $('.select2-multiple').select2({
   multiple: true,
   ajax: {
-    url: "{{ route('lang.admin.sale.orders.autocompleteAllOrderTags') }}",
+    url: "{{ route('lang.admin.sale.orders.autocompleteOrderTags') }}",
       dataType: 'json',
       delay: 250,
       data: function(params) {
-        orderTagBtnTxt = orderTagBtnTxt.replace(/\s+/g, "");
-        if(orderTagBtnTxt.length>0){
-          qStr = orderTagBtnTxt;
-        }else{
-          qStr = params.term;
-        }
-
         return {
-            q: qStr, // 使用者輸入的搜尋關鍵字
-            page: params.page // 目前頁數
+            filter_name: params.term,
         };
       },
       processResults: function(data, params) {
-          // 將 API 回傳的資料轉換成 Select2 可用的格式
           return {
-            results: data.items, // 替換為實際的資料欄位名稱
-            pagination: {
-                more: data.more // 替換為實際的分頁資訊
-            }
+            results: data.data,
           };
       },
       cache: true
   },
   // 設定顯示在下拉選單中的資料格式
   templateResult: function(item) {
-    if (item.loading) {
-        //return '載入中...';
-    }
-    return item.text;
+    return item.name;
   },
   // 設定選取項目後要顯示在選取框中的格式
   templateSelection: function(item) {
-    //if (item.id === '') {
-    if (item.text === '') {
-        //return '請選擇';
-        return '';
-    }
-    return item.text;
+    return item.name ?? '';
   }
 });
 

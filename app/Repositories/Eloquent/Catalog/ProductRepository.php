@@ -499,7 +499,7 @@ class ProductRepository extends Repository
         }
     }
 
-    public function exportEmtpyInventoryList($post_data = [], $debug = 0)
+    public function exportInventoryProductList($post_data = [], $debug = 0)
     {
         $post_data = $this->resetQueryData($post_data);
 

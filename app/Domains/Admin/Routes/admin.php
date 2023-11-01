@@ -101,7 +101,7 @@ Route::group(
                 Route::get('orders/form/{order_id?}', 'Sale\OrderController@form')->name('orders.form');
                 Route::get('orders/list', 'Sale\OrderController@list')->name('orders.list');
                 Route::get('orders/autocomplete', 'Sale\OrderController@autocomplete')->name('orders.autocomplete');
-                Route::get('orders/autocompleteAllOrderTags', 'Sale\OrderController@autocompleteAllOrderTags')->name('orders.autocompleteAllOrderTags');
+                Route::get('orders/autocompleteOrderTags', 'Sale\OrderController@autocompleteOrderTags')->name('orders.autocompleteOrderTags');
                 Route::post('orders/save', 'Sale\OrderController@save')->name('orders.save');
                 //Route::post('orders/copy', 'Sale\OrderController@copy')->name('orders.copy');
                 Route::get('orders/printOrderProducts/{order_id}', 'Sale\OrderController@printOrderProducts')->name('orders.printOrderProducts');
@@ -220,7 +220,7 @@ Route::group(
                 Route::post('products/save/{id?}', 'Inventory\ProductController@save')->name('products.save');
                 Route::post('products/delete', 'Inventory\ProductController@delete')->name('products.delete');
                 Route::get('products/autocomplete', 'Inventory\ProductController@autocomplete')->name('products.autocomplete');
-                Route::post('products/empty_inventory_list', 'Inventory\ProductController@exportEmtpyInventoryList')->name('products.empty_inventory_list');
+                Route::post('products/export_inventory_product_list', 'Inventory\ProductController@exportInventoryProductList')->name('products.export_inventory_product_list');
                 
                 Route::get('boms', 'Inventory\BomController@index')->name('boms.index');
                 Route::get('boms/list', 'Inventory\BomController@list')->name('boms.list');
@@ -248,6 +248,8 @@ Route::group(
                 Route::post('countings/save/{id?}', 'Inventory\CountingController@save')->name('countings.save');
                 Route::post('countings/delete', 'Inventory\CountingController@delete')->name('countings.delete');
                 Route::post('countings/import/{id?}', 'Inventory\CountingController@import')->name('countings.import');
+                Route::post('countings/export_counting_product_list', 'Inventory\CountingController@exportCountingProductList')->name('countings.export_counting_product_list');
+
             });
 
 

@@ -65,6 +65,9 @@ class ProductController extends ApiController
         ];
         $product = $this->ProductService->getRow($queries);
 
+
+
+        //echo '<pre>', print_r($product->translation, 1), "</pre>"; exit;
         $product->load('product_options');
         $product->load('product_options.product_option_values');
 

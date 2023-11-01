@@ -7,8 +7,11 @@ use App\Repositories\Eloquent\Repository;
 use App\Models\Inventory\Counting;
 use App\Models\Inventory\CountingProduct;
 use App\Repositories\Eloquent\Common\UnitRepository;
+use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Traits\EloquentTrait;
+
 use Maatwebsite\Excel\Facades\Excel;
+use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
 
 class CountingRepository
 {
@@ -17,7 +20,7 @@ class CountingRepository
     public $modelName = "\App\Models\Inventory\Counting";
 
 
-    public function __construct(private UnitRepository $UnitRepository)
+    public function __construct(private UnitRepository $UnitRepository, private ProductRepository $ProductRepository)
     {}
 
     
@@ -131,5 +134,45 @@ class CountingRepository
         } 
         
 
+    }
+
+
+    public function exportCountingProductList()
+    {
+
+        $post_data['equal_is_inventory_managed'] = 1;
+        $post_data['pagination'] = false;
+        $post_data['limit'] = 1000;
+        $post_data['extra_columns'] = ['supplier_name', 'accounting_category_name','source_type_name'
+                                        , 'stock_unit_name', 'counting_unit_name', 'usage_unit_name'
+                                      ];
+
+        $products = $this->ProductRepository->getProducts($post_data);
+
+        $data = [];
+        $rows = [];
+
+        foreach ($products as $product) {
+            $rows[] = [
+                'id' => $product->id,
+                'name' => $product->name,
+                'specification' => $product->specification,
+
+                'stock_unit_name' => $product->stock_unit_name,
+                'counting_unit_name' => $product->counting_unit_name,
+
+                '' => '',
+                
+            ];
+        }
+
+        $data['collection'] = collect($rows);
+
+        $data['headings'] = ['ID', '品名', '規格',
+                             '庫存單位', '盤點單位', 
+                             '盤點數量',
+                            ];
+
+        return Excel::download(new CommonExport($data), 'inventory_counting_products.xlsx');
     }
 }

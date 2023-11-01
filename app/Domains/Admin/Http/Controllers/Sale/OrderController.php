@@ -819,32 +819,15 @@ class OrderController extends BackendController
         return response(json_encode($json))->header('Content-Type','application/json');
     }
 
-    public function autocompleteAllOrderTags()
+    public function autocompleteOrderTags()
     {
-        $qStr = $this->request->query('q');
+        $data = request()->all();
 
-        //第一個元素使用輸入值
-        $json[] = ['id' => $qStr, 'text' => $qStr,];
-
-        //預設內容
-        $items = [];
-        if(mb_substr($qStr,0,1) == '會'){
-            $items = ['股東會','會議','教會','廟會'];
-        }
-
-        if(mb_substr($qStr,0,1) == '教'){
-            $items = ['宗教','教會'];
-        }
-
-        if(mb_substr($qStr,0,1) == '幫'){
-            $items = ['幫別的公司訂(做公關)'];
-        }
-
-        $tags = $this->OrderService->getOrderTags(['qStr' => $qStr, 'sanitize' => true]);
+        $tags = $this->OrderService->getOrderTags($data);
 
         if(!empty($tags)){
             foreach($tags as $tag){
-                $json[] = ['id' => $tag->id,'text' => $tag->name];
+                $json['data'][] = ['id' => $tag->term_id, 'name' => $tag->name];
             }
         }
 

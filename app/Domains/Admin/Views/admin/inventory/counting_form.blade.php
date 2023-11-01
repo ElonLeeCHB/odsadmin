@@ -162,58 +162,21 @@
 
 @section('buttom')
 <script type="text/javascript">
-
 var current_url = window.location.href;
 var path_url = current_url.split('?')[0];
 var query_url = current_url.split('?')[1];
-//console.log('path_url='+path_url+', query_url='+query_url);
 
-// 拆解網址路徑
-var parts = path_url.split('/');
-var secondToLastPart = parts[parts.length - 2];
-var lastPart = parts[parts.length - 1];
+$('#btn-import').on('click', function(){
+  let counting_id = $('#input-counting_id').val();
+  let import_url = path_url + '/' + counting_id; //若是新增單據，檔案上傳後會取得新id，要跟著變化，若連續上傳(匯入)，要更新到同一張單據。
+  console.log('import_url='+import_url);
+  console.log('current_url='+current_url);
+  console.log('path_url='+path_url);
+  console.log('query_url='+query_url);
+  console.log('counting_id='+counting_id);
+  $('#input-trigger-upload').data('oc-url', import_url);
+  $('#input-trigger-upload').trigger('click');
 
-if(secondToLastPart == 'form' && $.isNumeric(lastPart)){
-  import_url = currentURL;
-}else if(lastPart == 'form'){
-  import_url = 
-}
-
-//var parts = currentURL.split('?')[0].split('/'); //問號之前的網址，以 / 分隔
-
-
-
-// var default_import_url = "{{ $import_url }}";
-// var import_url = '';
-// var import_url_without_counting_id = '';
-// //var result = parts.pop(); // 最後一部份
-// var secondToLastPart = parts[parts.length - 2];
-// var lastPart = parts[parts.length - 1];
-
-// if(secondToLastPart == 'form' && $.isNumeric(lastPart)){
-//   import_url = currentURL;
-// }else if(lastPart == 'form'){
-//   import_url_without_counting_id = 123;
-// }
-
-
-
-
-// console.log('secondToLastPart='+secondToLastPart+', lastPart='+lastPart);
-
-
-// $(document).ready(function() {
-
-//   $('#btn-import').on('click', function(){
-//     let counting_id =  $('#input-counting_id').val();
-//     let import_url = original_import_url + '/' + counting_id;
-// alert(import_url)
-//     // $('#input-trigger-upload').data('oc-url', import_url);
-//     // $('#input-trigger-upload').trigger('click');
-//   });
-
-
-
-// });
+});
 </script>
 @endsection

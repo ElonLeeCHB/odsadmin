@@ -372,14 +372,14 @@ trait EloquentTrait
 
 
         // Sort & Order
-        //  - Order
+        //  - Order (default DESC)
         if (isset($data['order']) && ($data['order'] == 'ASC')) {
             $order = 'ASC';
         }
         else{
             $order = 'DESC';
         }
-        
+
         //  - Sort
         //  -- 指定排序字串
         if(!empty($data['orderByRaw'])){
@@ -408,7 +408,11 @@ trait EloquentTrait
                 $query->orderBy("{$translation_table}.{$sort}", $order);
             }
         }
-        //  -- 非多語欄位排序
+        // 如果資料表欄位有 sort_order
+        else if(in_array('sort_order', $this->table_columns)){
+            $query->orderBy('sort_order', $order);
+        }
+        //  -- 其它情況
         else{
             if(empty($data['sort']) || $data['sort'] == 'id'){
                 $sort = $this->model->getTable() . '.id';

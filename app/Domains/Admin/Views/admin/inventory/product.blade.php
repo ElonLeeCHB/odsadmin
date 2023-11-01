@@ -12,7 +12,7 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
-        <button type="button" id="btn-empty_inventory_list" data-bs-toggle="tooltip" data-loading-text="Loading..." title="列印盤點表" class="btn btn-info" aria-label="列印盤點表"><i class="fa fa-print"></i></button>
+        <button type="button" id="btn-inventory_product_list" data-bs-toggle="tooltip" data-loading-text="Loading..." title="列印盤點表" class="btn btn-info" aria-label="列印盤點表"><i class="fa fa-print"></i></button>
         <button type="button" data-bs-toggle="tooltip" title="Filter" onclick="$('#filter-product').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fas fa-filter" style="font-size:18px"></i></button>
         <a href="{{ $add_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i></a>
         <button type="submit" form="form-product" formaction="{{ $delete_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_delete }}" onclick="return confirm('{{ $lang->text_confirm }}');" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
@@ -183,13 +183,13 @@ $('#button-filter').on('click', function() {
 });
 
 //匯出盤點表
-$('#btn-empty_inventory_list').on('click', function () {
+$('#btn-inventory_product_list').on('click', function () {
   $('#modal-export-loading').modal('show');
   var dataString = $('#filter-form').serialize();
 
   $.ajax({
       type: "POST",
-      url: "{{ $empty_inventory_list_url }}",
+      url: "{{ $export_inventory_product_list }}",
       data: dataString,
       cache: false,
       xhrFields:{
@@ -197,20 +197,20 @@ $('#btn-empty_inventory_list').on('click', function () {
       },
       beforeSend: function () {
         console.log('beforeSend');
-       // $('#btn-empty_inventory_list').attr("disabled", true);
+       // $('#btn-inventory_product_list').attr("disabled", true);
       },
       success: function(data)
       {
         console.log('success');
         var link = document.createElement('a');
         link.href = window.URL.createObjectURL(data);
-        link.download = 'empty_inventory_product_list.xlsx';
+        link.download = '料件.xlsx';
         link.click();
       },
       complete: function () {
         console.log('complete');
         $('#modal-export-loading').modal('hide');
-        $('#btn-empty_inventory_list').attr("disabled", false);
+        $('#btn-inventory_product_list').attr("disabled", false);
       },
       fail: function(data) {
         console.log('fail');

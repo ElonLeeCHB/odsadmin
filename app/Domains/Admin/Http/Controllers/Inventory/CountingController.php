@@ -46,6 +46,7 @@ class CountingController extends BackendController
         $data['list_url'] = route('lang.admin.inventory.countings.list'); //本參數在 getList() 也必須存在。
         $data['add_url'] = route('lang.admin.inventory.countings.form');
         $data['delete_url'] = route('lang.admin.inventory.countings.delete');
+        $data['export_counting_product_list'] = route('lang.admin.inventory.countings.export_counting_product_list');
         
         return view('admin.inventory.counting', $data);
     }
@@ -275,9 +276,11 @@ class CountingController extends BackendController
 
     public function import($counting_id = null)
     {
-        $data = request()->all;
-        echo '<pre>data ', print_r($data, 1), "</pre>"; exit;
+        $data = request()->all();
         //$post_data = request()->post();
+
+        $counting_id = !empty($data['counting_id']) ? $data['counting_id'] : null;
+
         $query_data = [];
 
         if (request()->hasFile('file')) {
@@ -292,6 +295,7 @@ class CountingController extends BackendController
             
             //重新設定 $filename
             $filename = $newfile->getPathname();
+
             $result = $this->CountingService->import($filename, $counting_id);
 
             
@@ -306,6 +310,7 @@ class CountingController extends BackendController
                     'redirectUrl' => route('lang.admin.inventory.countings.form', array_merge(['id' => $counting_id], $query_data)),
                 ];
                 return response()->json($json);
+
             }else if(!empty($result['error'])){
                 return response()->json(['error' => "檔案上傳成功但解析失敗。<BR>\r\n錯誤：" . $result['error']]);
             }
@@ -313,6 +318,18 @@ class CountingController extends BackendController
         }
     
         return response()->json(['message' => '请选择一个有效的文件xxx'], 422);
+    }
+
+
+    public function exportCountingProductList()
+    {
+        $post_data = request()->post();
+
+        // 檔名設定無效，依然會使用前端的 link.download
+        $customFileName = '盤點表_'.date('Y-m-d_H-i-s').'.xlsx';
+        header('Content-Disposition: attachment; filename=' . $customFileName);
+
+        return $this->CountingService->exportCountingProductList($post_data); 
     }
 
 }

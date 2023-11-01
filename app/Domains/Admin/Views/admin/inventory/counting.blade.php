@@ -12,6 +12,7 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
+        <button type="button" id="btn-inventory_product_list" data-bs-toggle="tooltip" data-loading-text="Loading..." title="匯出盤點表" class="btn btn-info" aria-label="匯出盤點表"><i class="fas fa-file-export"></i></button>
         <button type="button" data-bs-toggle="tooltip" title="{{ $lang->button_filter }}" onclick="$('#filter-unit').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fa-solid fa-filter"></i></button>
         <a href="{{ $add_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i></a>
         <button type="submit" form="form-unit" formaction="{{ $delete_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_delete }}" onclick="return confirm('{{ $lang->text_confirm }}');" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
@@ -99,6 +100,44 @@ $('#button-filter').on('click', function() {
 	url = "{{ $list_url }}?" + url;
 
 	$('#counting').load(url);
+});
+
+
+//匯出盤點表
+$('#btn-inventory_product_list').on('click', function () {
+  $('#modal-export-loading').modal('show');
+  var dataString = $('#filter-form').serialize();
+
+  $.ajax({
+      type: "POST",
+      url: "{{ $export_counting_product_list }}",
+      data: dataString,
+      cache: false,
+      xhrFields:{
+          responseType: 'blob'
+      },
+      beforeSend: function () {
+        console.log('beforeSend');
+       // $('#btn-inventory_product_list').attr("disabled", true);
+      },
+      success: function(data)
+      {
+        console.log('success');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(data);
+        link.download = '盤點表.xlsx';
+        link.click();
+      },
+      complete: function () {
+        console.log('complete');
+        $('#modal-export-loading').modal('hide');
+        $('#btn-inventory_product_list').attr("disabled", false);
+      },
+      fail: function(data) {
+        console.log('fail');
+        alert('Not downloaded');
+      }
+  });
 });
 //--></script>
 @endsection
