@@ -247,7 +247,8 @@ Route::group(
                 Route::get('countings/list', 'Inventory\CountingController@list')->name('countings.list');
                 Route::post('countings/save/{id?}', 'Inventory\CountingController@save')->name('countings.save');
                 Route::post('countings/delete', 'Inventory\CountingController@delete')->name('countings.delete');
-                Route::post('countings/import/{id?}', 'Inventory\CountingController@import')->name('countings.import');
+                //Route::post('countings/import/{id?}', 'Inventory\CountingController@import')->name('countings.import');
+                Route::post('countings/import/{id?}', 'Inventory\CountingController@readExcel')->name('countings.import');
                 Route::post('countings/export_counting_product_list', 'Inventory\CountingController@exportCountingProductList')->name('countings.export_counting_product_list');
                 Route::get('countings/export_counting_product_list', 'Inventory\CountingController@exportCountingProductList')->name('countings.export_counting_product_list');
 

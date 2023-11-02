@@ -346,16 +346,13 @@ $(document).on('click', '.schProductName', function() {
       selectElement.empty();
 
       $.each(item.product_units, function(index, product_unit) {
-        // 创建一个option元素
         var option = $('<option></option>');
 
-        // 设置option的值和文本
-        option.val(product_unit.source_unit_code); // 假设id是选项的值
-        option.text(product_unit.source_unit_name); // 假设name是选项的显示文本
+        option.val(product_unit.source_unit_code);
+        option.text(product_unit.source_unit_name);
         option.attr('data-multiplier', product_unit.destination_quantity);
         //console.log('unit.source_unit_code='+unit.source_unit_code+', unit.source_unit_name='+unit.source_unit_name+', unit.destination_quantity='+unit.destination_quantity)
 
-        // 将option添加到select元素中
         selectElement.append(option);
       });
     }
@@ -418,12 +415,14 @@ const $productAmountInputs = $('.productAmountInputs'); // 金額
 const $before_tax = $('#input-before_tax');
 const maxProductRow = 20;
 
-
-// 進貨單價、進貨數量、進貨金額 觸發計算
-$('#products').on('focusout', '.clcProduct', function(){
-  let rownum = $(this).closest('[data-rownum]').data('rownum');
-  calcProduct(rownum)
+$(document).ready(function () {
+  // 進貨單價、進貨數量、進貨金額 觸發計算
+  $('#products').on('focusout', '.clcProduct', function(){
+    let rownum = $(this).closest('[data-rownum]').data('rownum');
+    calcProduct(rownum)
+  });
 });
+
 
 
 function calcProduct(rownum){
@@ -507,29 +506,6 @@ $('#input-total').on('focusout', function(){
 var product_row = {{ $product_row }};
 
 function addReceivingProduct(){
-  //<tr id="product-row{{ $product_row }}" data-rownum="{{ $product_row }}">
-  // html  = '<tr id="product-row'+product_row+'" data-rownum="'+product_row+'">';
-  // html += '  <td>';
-  // html += '  </td>';
-  // html += '  <td>';
-  // html += '  </td>';
-  // html += '  <td>';
-  // html += '  </td>';
-  // html += '  <td>';
-  // html += '  </td>';
-  // html += '  <td>';
-  // html += '  </td>';
-  // html += '  <td>';
-  // html += '  </td>';
-  // html += '  <td>';
-  // html += '  </td>';
-  // html += '  <td>';
-  // html += '  </td>';
-  // html += '  <td>xx';
-  // html += '  </td>';
-  // html += '  <td>xx';
-  // html += '  </td>';
-  // html += '</tr>'
 
   html = '<tr id="product-row'+product_row+'" data-rownum="'+product_row+'">';
   html += '  <td class="text-left">';

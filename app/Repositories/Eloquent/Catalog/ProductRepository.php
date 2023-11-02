@@ -52,6 +52,8 @@ class ProductRepository extends Repository
                     'equal_is_active' => 1
                 ];
                 $units = $this->UnitRepository->getKeyedActiveUnits($filter_data);
+                
+                $products->load('stock_unit.translation');
             }
 
             // supplier_columns
@@ -90,6 +92,8 @@ class ProductRepository extends Repository
                     $row->stock_unit_name = $units[$row->stock_unit_code]->name ?? '';
                     $row->counting_unit_name = $units[$row->counting_unit_code]->name ?? '';
                     $row->usage_unit_name = $units[$row->usage_unit_code]->name ?? '';
+
+                    
                 }
 
                 // supplier_columns
@@ -382,6 +386,7 @@ class ProductRepository extends Repository
             $code = $row['code'];
             $result[$code] = (object) $row;
         }
+
         return $result;
     }
 

@@ -22,21 +22,23 @@ class InventoryCountingListExport implements FromCollection, WithHeadings, WithE
     private $query;
     private $collection;
     private $headings;
-
     private $current_row = 6;
+
 
     public function __construct(private $filter_data, private $ProductRepository )
     {}
+
 
     public function startCell(): string
     {
         return 'A5';
     }
 
+
     public function headings(): array
     {
         return ['ID', '品名', '規格',
-                '庫存單位', '盤點單位', '庫存單價', '盤點數量', '盤點金額',
+                "庫存\r\n單位", "盤點\r\n單位", '庫存單價', '盤點數量', '盤點金額',
                ];
     }
 
@@ -44,50 +46,17 @@ class InventoryCountingListExport implements FromCollection, WithHeadings, WithE
     public function collection()
     {
         // 以下寫死
+        $this->filter_data['filter_is_inventory_managed'] = 1;
+        $this->filter_data['filter_is_active'] = 1;
         $this->filter_data['pagination'] = false;
         $this->filter_data['limit'] = 1000;
         $this->filter_data['extra_columns'] = ['supplier_name', 'accounting_category_name','source_type_name'
                                         , 'stock_unit_name', 'counting_unit_name', 'usage_unit_name'
                                       ];
 
-        
-        /*
-        foreach ($products as $product) {
-            $rows[] = [
-                'id' => $product->id,
-                'name' => $product->name,
-                'specification' => $product->specification,
-
-                'stock_price' => is_numeric($product->stock_price) ? $product->stock_price : ' - ',
-                'stock_unit_name' => $product->stock_unit_name,
-                'counting_unit_name' => $product->counting_unit_name,
-
-                '' => '',
-                
-            ];
-        }
-        */
-        $rows = $this->ProductRepository->getProducts($this->filter_data);
-        
-        // foreach ($rows as $product) {
-        //     $products[] = [
-        //         'id' => $product->id,
-        //         'name' => $product->name,
-        //         'specification' => $product->specification,
-
-        //         'stock_unit_name' => $product->stock_unit_name,
-        //         'counting_unit_name' => $product->counting_unit_name,
-        //         'stock_price' => is_numeric($product->stock_price) ? $product->stock_price : ' - ',
-
-        //         '' => '',
-                
-        //     ];
-        // }
-
-        // $result = collect($products);
-
-        return $rows;
+        return $this->ProductRepository->getProducts($this->filter_data);
     }
+
 
     public function map($row): array
     {
@@ -121,6 +90,9 @@ class InventoryCountingListExport implements FromCollection, WithHeadings, WithE
         return [
             AfterSheet::class => function(AfterSheet $event) {
                 $workSheet = $event->sheet->getDelegate();
+
+                $highest_row = $workSheet->getHighestRow();
+
                 $workSheet->freezePane('A6'); // freezing here
 
                 $workSheet->mergeCells('B1:C1');
@@ -139,7 +111,50 @@ class InventoryCountingListExport implements FromCollection, WithHeadings, WithE
                 $workSheet->setCellValue('B3', date('Y-m-d'));
 
                 $workSheet->setCellValue('D1', '備註');
-                
+
+                $workSheet->getColumnDimension('B')->setWidth(20);
+                $workSheet->getColumnDimension('C')->setWidth(20);
+
+                $workSheet->getStyle('D')->getAlignment()->setWrapText(true);
+                $workSheet->getColumnDimension('D')->setWidth(5);
+
+                $workSheet->getStyle('E')->getAlignment()->setWrapText(true);
+                $workSheet->getColumnDimension('E')->setWidth(5);
+
+                //單頭框線
+                $styleArray = [
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'color' => ['argb' => 'ccc'],
+                        ]
+                    ]
+                ];
+                $workSheet->getStyle('A1:H3')->applyFromArray($styleArray);
+
+                //單身框線
+                $styleArray = [
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'color' => ['argb' => 'ccc'],
+                        ]
+                    ]
+                ];
+                $workSheet->getStyle('A5:H'.$highest_row)->applyFromArray($styleArray);
+
+                // 單頭欄位預設垂直置中、左右置中
+                $workSheet->getStyle('A1:H5')
+                                ->getAlignment()
+                                ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
+                                ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+
+                //備註內容靠左
+                $workSheet->getStyle('E1')
+                                ->getAlignment()
+                                ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
+   
+
             },
         ];
     }

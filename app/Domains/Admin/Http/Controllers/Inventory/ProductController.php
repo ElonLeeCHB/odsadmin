@@ -293,7 +293,7 @@ class ProductController extends BackendController
                 $destination_unit_code = $product_unit->destination_unit_code;
 
                 if(empty($codes[$source_unit_code])){
-                    $codes[$source_unit_code] = $product_unit->source_unit->name;
+                    $codes[$source_unit_code] = $product_unit->source_unit->name ?? '';
                 }
 
                 if(empty($codes[$destination_unit_code])){

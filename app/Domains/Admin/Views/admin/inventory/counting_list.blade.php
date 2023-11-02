@@ -5,7 +5,7 @@
         <tr>
   				<td class="text-center" style="width: 1px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></td>
           <td class="text-start"><a href="{{ $sort_id }}" @if($sort=='id') class="{{ $order }}" @endif>{{ $lang->column_id }}</a></td>
-          <td class="text-start"><a href="{{ $sort_task_date }}" @if($sort=='task_date') class="{{ $order }}" @endif>{{ $lang->column_task_date }}</a></td>
+          <td class="text-start"><a href="{{ $sort_task_date }}" @if($sort=='task_date') class="{{ $order }}" @endif>{{ $lang->column_form_date }}</a></td>
           <td class="text-start">{{ $lang->column_status }}</td>
           <td class="text-end">{{ $lang->column_action }}</td>
         </tr>

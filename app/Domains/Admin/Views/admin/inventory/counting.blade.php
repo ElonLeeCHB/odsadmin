@@ -30,7 +30,7 @@
             <div class="card-body">
 
               <div class="mb-3">
-                <label class="form-label">{{ $lang->column_task_date }}</label>
+                <label class="form-label">{{ $lang->column_form_date }}</label>
                 <input type="text" id="input-filter_task_date" name="filter_task_date" value="{{ $filter_code ?? '' }}"  class="form-control" autocomplete="off"/>
               </div>
 
@@ -39,13 +39,33 @@
                 <input type="text" id="input-filter_product_name" name="filter_product_name" value="{{ $filter_product_name ?? '' }}"  data-oc-target="autocomplete-filter_product_name" class="form-control" autocomplete="off"/>
               </div>
 
+            <div class="mb-3">
+              <label class="form-label">{{ $lang->column_accounting_category_code }}</label>
+              <select id="input-filter_accounting_category_code" name="filter_accounting_category_code"  class="form-select">
+                <option value="">{{ $lang->text_select }}</option>
+                @foreach($accounting_categories as $accounting_category)
+                <option value="{{ $accounting_category->code }}">{{ $accounting_category->label }}</option>
+                @endforeach
+              </select>
+            </div>
+
+              <div class="mb-3">
+                <label class="form-label">{{ $lang->column_is_inventory_managed }}</label>
+                <select id="input-filter_is_inventory_managed" name="filter_is_inventory_managed" class="form-select">
+                  <option value=""> -- </option>
+                  <option value="1" selected>{{ $lang->text_yes }}</option>
+                  <option value="0">{{ $lang->text_no }}</option>
+                </select>
+              </div>
+
               <div class="mb-3">
                 <label class="form-label">{{ $lang->column_status_code }}</label>
                 <select name="equal_status_code" id="input-equal_status_code" class="form-select">
                   <option value="*"> -- </option>
-                  <option value="Y" selected>{{ $lang->text_status_confirmed }}</option>
+                  <option value="Y">{{ $lang->text_status_confirmed }}</option>
                   <option value="N">{{ $lang->text_status_unconfirmed }}</option>
                   <option value="V">{{ $lang->text_status_voided }}</option>
+                  <option value="WithoutV" selected>{{ $lang->text_status_without_voided }}</option>
                 </select>
               </div>
 
@@ -123,9 +143,10 @@ $('#btn-inventory_product_list').on('click', function () {
       success: function(data)
       {
         console.log('success');
-        var link = document.createElement('a');
+        let link = document.createElement('a');
         link.href = window.URL.createObjectURL(data);
-        link.download = '盤點表.xlsx';
+        let now_string = moment().format('YYYY-MM-DD_hh-mm-ss');
+        link.download = '盤點表_'+now_string+'.xlsx';
         link.click();
       },
       complete: function () {
