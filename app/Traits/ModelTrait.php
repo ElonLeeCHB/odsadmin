@@ -95,6 +95,21 @@ trait ModelTrait
         }
     }
 
+    // 目前用在自定義的 App\Providers\SettingServiceProvider，為了在沒有 settings 表存在的時候系統也能運行;
+    public function tableExists()
+    {
+        $connection = $this->getConnection();
+        $tableName = $this->getTable();
+        $schemaBuilder = $connection->getSchemaBuilder();
+
+        return $schemaBuilder->hasTable($tableName);
+    }
+
+
+
+    // Attribute
+
+
 
     public function dateCreated(): Attribute
     {
@@ -120,18 +135,33 @@ trait ModelTrait
         return Attribute::make(
             get: fn ($value) => $date_modified,
         );
-    }    
-
-    // 目前用在自定義的 App\Providers\SettingServiceProvider，為了在沒有 settings 表存在的時候系統也能運行;
-    public function tableExists()
-    {
-        $connection = $this->getConnection();
-        $tableName = $this->getTable();
-        $schemaBuilder = $connection->getSchemaBuilder();
-
-        return $schemaBuilder->hasTable($tableName);
     }
 
-    //
+    public function createdAtYmd(): Attribute
+    {
+        $new_value = '';
+
+        if(isset($this->created_at)){
+            $new_value = Carbon::parse($this->created_at)->format('Y-m-d H:i');
+        }
+
+        return Attribute::make(
+            get: fn ($value) => $new_value,
+        );
+    }   
+
+    public function updatedAtMinute(): Attribute
+    {
+        $new_value = '';
+
+        if(isset($this->updated_at)){
+            $new_value = Carbon::parse($this->updated_at)->format('Y-m-d H:i');
+        }
+
+        return Attribute::make(
+            get: fn ($value) => $new_value,
+        );
+    }   
+    
     
 }

@@ -7,14 +7,21 @@ use Illuminate\Http\UploadedFile;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Admin\Services\Inventory\CountingService;
+use App\Repositories\Eloquent\Catalog\ProductRepository;
+use App\Http\Resources\Inventory\CountingProductCollection;
+use App\Http\Resources\Inventory\CountingProductResource;
+use App\Http\Resources\Inventory\CountingResource;
+use App\Models\Inventory\Counting;
+use App\Helpers\Classes\DataHelper;
+use App\Helpers\Classes\UrlHelper;
 
 class CountingController extends BackendController
 {
-    public function __construct(private Request $request, private CountingService $CountingService)
+    public function __construct(private Request $request, private CountingService $CountingService, private ProductRepository $ProductRepository)
     {
         parent::__construct();
         
-        $this->getLang(['admin/common/common','admin/inventory/counting']);
+        $this->getLang(['admin/common/common','admin/inventory/product','admin/inventory/counting']);
     }
 
 
@@ -41,6 +48,11 @@ class CountingController extends BackendController
 
         $data['breadcumbs'] = (object)$breadcumbs;
 
+
+        // 狀態
+        $data['statuses'] = $this->CountingService->getKeyedStatuses();
+
+
         $data['list'] = $this->getList();
 
         $data['list_url'] = route('lang.admin.inventory.countings.list'); //本參數在 getList() 也必須存在。
@@ -60,51 +72,57 @@ class CountingController extends BackendController
     {
         $data['lang'] = $this->lang;
 
+        $url_queries = $this->request->query();
+
 
         // Prepare query_data for records
-        $query_data = $this->getQueries($this->request->query());
+        $filter_data = UrlHelper::getUrlQueriesForFilter();
 
+        $extra_columns = $filter_data['extra_columns'] ?? [];
+        $filter_data['extra_columns'] = DataHelper::addToArray($extra_columns, 'accounting_category_name');
+        
+        $with = $filter_data['with'] ?? [];
+        $filter_data['with'] = DataHelper::addToArray($with, 'unit');
+        
         // Rows
-        $countings = $this->CountingService->getCountingTasks($query_data);
+        $countings = $this->CountingService->getCountings($filter_data);
 
-        foreach ($countings as $row) {
-            $row->edit_url = route('lang.admin.inventory.countings.form', array_merge([$row->id], $query_data));
-            $row->is_active_name = ($row->is_active==1) ? $this->lang->text_enabled :$this->lang->text_disabled;
+        foreach ($countings ?? [] as $row) {
+            $row->edit_url = route('lang.admin.inventory.countings.form', array_merge([$row->id], $url_queries));
+            $row->unit_name = $row->unit->name ?? '';
         }
 
-        if(count($countings) > 0){
-            $data['countings'] = $countings->withPath(route('lang.admin.inventory.countings.list'))->appends($query_data);
-        }else{
-            $data['countings'] = [];
-        }
+        $data['countings'] = $countings->withPath(route('lang.admin.inventory.countings.list'))->appends($url_queries);
 
+        //$data['pagination'] = $countings->links('admin.pagination.default');
 
-        // Prepare links for list table's header
-        if($query_data['order'] == 'ASC'){
+        // For list table's header: sorting
+        if($filter_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($query_data['sort']);
+        // for blade
+        $data['sort'] = strtolower($filter_data['sort']);
         $data['order'] = strtolower($order);
 
-        $query_data = $this->unsetUrlQueryData($query_data);
-        
-        
-        // link of table header for sorting
+        $url_queries = UrlHelper::resetUrlQueries(unset_arr:['sort', 'order']);
+
         $url = '';
 
-        foreach($query_data as $key => $value){
+        foreach($url_queries as $key => $value){
             $url .= "&$key=$value";
         }
+        
+        
+        // For list table's header: link
 
-        $route = route('lang.admin.inventory.units.list');
+        $route = route('lang.admin.inventory.countings.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
-        $data['sort_task_date'] = $route . "?sort=task_date&order=$order" .$url;
-        $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
-        $data['sort_is_active'] = $route . "?sort=is_active&order=$order" .$url;
+        $data['sort_form_date'] = $route . "?sort=form_date&order=$order" .$url;
+        $data['sort_status_code'] = $route . "?sort=status_code&order=$order" .$url;
         
         $data['list_url'] = route('lang.admin.inventory.countings.list');
         
@@ -173,8 +191,16 @@ class CountingController extends BackendController
 
         // Get Record
         $counting = $this->CountingService->findIdOrFailOrNew($counting_id);
+
+        $data['counting'] = $counting;
         
-        $data['counting']  = $counting;
+        $counting->load([
+            'counting_products.product.translation',
+            'counting_products.product.stock_unit.translation',
+            'counting_products.unit.translation',
+        ]);
+
+        $data['counting_products'] = (new CountingResource($counting))->getCountingProductsObject();
 
         if(!empty($data['counting']) && $counting_id == $counting->id){
             $data['counting_id'] = $counting_id;
@@ -182,9 +208,22 @@ class CountingController extends BackendController
             $data['counting_id'] = null;
         }
 
-        $data['counting_products'] = [];
+        $data['counting_product_list'] = $this->getCountingProductList($data['counting_products']);
+
+        
+        // 狀態
+        $data['statuses'] = $this->CountingService->getKeyedStatuses();
+        
 
         return view('admin.inventory.counting_form', $data);
+    }
+
+    public function getCountingProductList($counting_products)
+    {
+
+        $data['counting_products'] = $counting_products;
+
+        return view('admin.inventory.counting_form_products', $data);
     }
 
     public function save()
@@ -204,15 +243,16 @@ class CountingController extends BackendController
         }
 
         if(!$json) {
-            $result = $this->CountingService->saveUnit($data);
-
-            $unit_id = $result['id'];
+            $result = $this->CountingService->saveCounting($data);
 
             if(empty($result['error'])){
+                $counting_id = $result['id'];
+
                 $json = [
                     'success' => $this->lang->text_success,
-                    'unit_id' => $unit_id,
-                    'redirectUrl' => route('lang.admin.inventory.units.form', $unit_id),
+                    'counting_id' => $counting_id,
+                    'code' => $result['code'],
+                    'redirectUrl' => route('lang.admin.inventory.countings.form', $counting_id),
                 ];
             }else{
 
@@ -274,10 +314,54 @@ class CountingController extends BackendController
     }
 
 
-    public function import($counting_id = null)
+    // ok，但暫時不用
+    // public function import($counting_id = null)
+    // {
+    //     $data = request()->all();
+
+    //     $counting_id = !empty($data['counting_id']) ? $data['counting_id'] : null;
+
+    //     $query_data = [];
+
+    //     if (request()->hasFile('file')) {
+    //         $file = request()->file('file');
+    //         $filename = date('Y-m-d_H-i-s') . '.' . $file->getClientOriginalExtension();
+
+
+    //         $file->move(storage_path('app/imports/receiving_orders'), $filename);
+
+    //         $fullpath = storage_path('app/imports/receiving_orders') . '/' . $filename;
+    //         $newfile = new UploadedFile($fullpath, $filename, $file->getClientMimeType());
+            
+    //         //重新設定 $filename
+    //         $filename = $newfile->getPathname();
+
+    //         $result = $this->CountingService->import($filename, $counting_id);
+            
+
+    //         if(!empty($result['id'])){
+    //             $counting_id = $result['id'];
+
+    //             $json = [
+    //                 'success' => '檔案上傳成功',
+    //                 'counting_id' => $result['id'],
+    //                 'code' => $result['code'],
+    //                 'redirectUrl' => route('lang.admin.inventory.countings.form', array_merge(['id' => $counting_id], $query_data)),
+    //             ];
+    //             return response()->json($json);
+
+    //         }else if(!empty($result['error'])){
+    //             return response()->json(['error' => "檔案上傳成功但解析失敗。<BR>\r\n錯誤：" . $result['error']]);
+    //         }
+    
+    //     }
+    
+    //     return response()->json(['message' => '请选择一个有效的文件xxx'], 422);
+    // }
+
+    public function readExcel($counting_id = null)
     {
         $data = request()->all();
-        //$post_data = request()->post();
 
         $counting_id = !empty($data['counting_id']) ? $data['counting_id'] : null;
 
@@ -296,35 +380,21 @@ class CountingController extends BackendController
             //重新設定 $filename
             $filename = $newfile->getPathname();
 
-            $result = $this->CountingService->import($filename, $counting_id);
+            $result = $this->CountingService->readExcel($filename, $counting_id);
 
+            $data['counting_products'] = $result['counting_products'];
             
-
-            if(!empty($result['id'])){
-                $counting_id = $result['id'];
-
-                $json = [
-                    'success' => '檔案上傳成功',
-                    'counting_id' => $result['id'],
-                    'code' => $result['code'],
-                    'redirectUrl' => route('lang.admin.inventory.countings.form', array_merge(['id' => $counting_id], $query_data)),
-                ];
-                return response()->json($json);
-
-            }else if(!empty($result['error'])){
-                return response()->json(['error' => "檔案上傳成功但解析失敗。<BR>\r\n錯誤：" . $result['error']]);
-            }
-    
+            return view('admin.inventory.counting_form_products', $data);
+             
         }
-    
-        return response()->json(['message' => '请选择一个有效的文件xxx'], 422);
-    }
 
+        return response()->json(['message' => 'Error !!!'], 422);
+    }
 
     public function exportCountingProductList()
     {
         $post_data = request()->post();
-        
+
         return $this->CountingService->exportCountingProductList($post_data); 
     }
 

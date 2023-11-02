@@ -1,6 +1,7 @@
 @extends('admin.app')
 
 @section('pageJsCss')
+  <script src="{{ asset('assets/vendor/moment-with-locales.js') }}" type="text/javascript"></script>
 @endsection
 
 @section('columnLeft')
@@ -35,8 +36,7 @@
           </ul>
           <div class="tab-content">
             <div id="tab-general" class="tab-pane active">
-
-
+              
               <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">匯入檔案</label>
                 <div class="col-sm-10">
@@ -44,33 +44,58 @@
                     <button type="button" id="btn-import" data-bs-toggle="tooltip" data-loading-text="Loading..." title="匯入檔案" class="btn btn-info" 
                         aria-label="匯入檔案">上傳</button>
                   </div>
-                  <div class="form-text">若有匯入檔案，本次作業所有內容會以此檔作更新，請注意！</div>
+                  <div class="form-text"></div>
                   <div id="error-code" class="invalid-feedback"></div>
                 </div>
               </div>
 
-              {{-- column_code--}}
+              {{-- column_form_code--}}
               <div class="row mb-3">
-                <label class="col-sm-2 col-form-label">{{ $lang->column_code }}</label>
+                <label class="col-sm-2 col-form-label">{{ $lang->column_form_code }}</label>
                 <div class="col-sm-10">
                   <div class="input-group">
-                  <input type="text" id="input-code" name="code" value="{{ $counting->code }}" data-oc-target="autocomplete-code" class="form-control" @if(!empty($counting->code)) readonly @endif />
-                  <input type="text" id="input-counting_id" name="counting_id" value="{{ $counting->counting_id }}" placeholder="盤點單的流水號" class="form-control" readonly/>
+                  <input type="text" id="input-code" name="code" value="{{ $counting->code }}" data-oc-target="autocomplete-code" placeholder="單號" class="form-control" readonly/>
+                  <input type="text" id="input-counting_id" name="counting_id" value="{{ $counting_id }}" placeholder="流水號" class="form-control" readonly/>
                   </div>
                   <div class="form-text"></div>
                   <div id="error-code" class="invalid-feedback"></div>
                 </div>
               </div>
                 
-              {{-- column_task_date--}}
+              {{-- column_form_date--}}
               <div class="row mb-3 required">
-                <label class="col-sm-2 col-form-label">{{ $lang->column_task_date }}</label>
+                <label class="col-sm-2 col-form-label">{{ $lang->column_form_date }}</label>
                 <div class="col-sm-10">
                   <div class="input-group">
-                    <input type="text" id="input-task_date" name="task_date" value="{{ $counting->task_date }}" class="form-control" />
+                    <input type="text" id="input-form_date" name="form_date" value="{{ $counting->form_date_ymd }}" class="form-control date" />
                   </div>
-                  <div class="form-text">(識別碼有可能用在程式裡面。請小心設定。)</div>
+                  <div class="form-text"></div>
                   <div id="error-code" class="invalid-feedback"></div>
+                </div>
+              </div>
+                
+              {{-- column_total--}}
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">總金額</label>
+                <div class="col-sm-10">
+                  <div class="input-group">
+                    <input type="text" id="input-total" name="total" value="{{ $counting->total }}" class="form-control" />
+                  </div>
+                  <div class="form-text"></div>
+                  <div id="error-total" class="invalid-feedback"></div>
+                </div>
+              </div>
+
+              {{-- status_code--}}
+              <div class="row mb-3">
+                <label for="input-status_code" class="col-sm-2 col-form-label">{{ $lang->column_status }}</label>
+                <div class="col-sm-10">
+                  <select id="input-status_code" name="status_code" class="form-select">
+                    <option value="">--</option>
+                      @foreach($statuses as $status)
+                      <option value="{{ $status->code }}" @if($status->code == $counting->status_code) selected @endif>{{ $status->name }}</option>
+                      @endforeach
+                  </select>
                 </div>
               </div>
 
@@ -85,69 +110,10 @@
                 </div>
               </div>
 
-
-
-
-
-
-
-
-
-              @php $product_row = 1; @endphp
-              <div class="table-responsive">
-                <table id="products" class="table table-striped table-bordered table-hover">
-                  <thead>
-                    <tr>
-                      <td class="text-left"></td>
-                      <td class="text-left">流水號</td>
-                      <td class="text-left">品名</td>
-                      <td class="text-left">規格</td>
-                      <td class="text-left" style="width:100px;">庫存單位</td>
-                      <td class="text-left" style="width:100px;">盤點單位</td>
-                      <td class="text-left" style="width:100px;">盤點數量</td>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @foreach($counting_products as $counting_product)
-                    <tr id="product-row{{ $product_row }}" data-rownum="{{ $product_row }}">
-                      <td class="text-left">
-                        <button type="button" onclick="$('#product-row{{ $product_row }}').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>
-                      </td>
-                      <td class="text-left">
-                        <input type="text" id="input-products-product_id-{{ $product_row }}" name="products[{{ $product_row }}][product_id]" value="{{ $counting_product->product_id ?? '' }}" data-rownum="{{ $product_row }}" class="form-control" readonly>
-                        <ul id="autocomplete-product_name-{{ $product_row }}" class="dropdown-menu"></ul>
-                        <input type="hidden" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $counting_product->product_id ?? '' }}" class="form-control" readonly>
-                      </td>
-                      <td class="text-left">
-                        <input type="text" id="input-products-name-{{ $product_row }}" name="products[{{ $product_row }}][name]" value="{{ $counting_product->product_name ?? '' }}" data-rownum="{{ $product_row }}" class="form-control schProductName" data-oc-target="autocomplete-product_name-{{ $product_row }}" autocomplete="off">
-                        <ul id="autocomplete-product_name-{{ $product_row }}" class="dropdown-menu"></ul>
-                        <input type="hidden" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $counting_product->product_id ?? '' }}" class="form-control" readonly>
-                      </td>
-                      <td class="text-left">
-                        <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $counting_product->product_specification ?? '' }}" class="form-control" readonly>
-                      </td>
-                      <td class="text-left">
-                        <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $counting_product->price ?? 0 }}" class="form-control productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
-                      </td>
-                      <td class="text-left">
-                        <input type="text" id="input-products-receiving_quantity-{{ $product_row }}" name="products[{{ $product_row }}][receiving_quantity]" value="{{ $counting_product->receiving_quantity }}" class="form-control productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
-                      </td>
-                      <td class="text-left">
-                        <input type="text" id="input-products-amount-{{ $product_row }}" name="products[{{ $product_row }}][amount]" value="{{ $counting_product->amount ?? 0 }}" class="form-control productAmountInputs clcProduct" data-rownum="{{ $product_row }}" readonly>
-                      </td>
-                    </tr>
-                    @php $product_row++; @endphp
-                    @endforeach
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colspan="10" class="text-left">
-                        <button type="button" onclick="addReceivingProduct()" data-toggle="tooltip" title="" class="btn btn-primary" data-original-title=""><i class="fa fa-plus-circle"></i></button>
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
+              <div id="counting_products_wrapper" class="table-responsive">
+              {!! $counting_product_list !!}
               </div>
+
             </div>
           </div>
         </form>
@@ -156,8 +122,8 @@
   </div>
 </div>
 
+<input type="hidden" id="input-trigger-upload" data-oc-toggle="readExcel" data-oc-url="{{ $import_url }}" >
 
-<input type="hidden" id="input-trigger-upload" data-oc-toggle="upload" data-oc-url="{{ $import_url }}" >
 @endsection
 
 @section('buttom')
@@ -166,17 +132,105 @@ var current_url = window.location.href;
 var path_url = current_url.split('?')[0];
 var query_url = current_url.split('?')[1];
 
+// $('#btn-import').on('click', function(){
+//   let counting_id = $('#input-counting_id').val();
+//   let import_url = path_url + '/' + counting_id; //若是新增單據，檔案上傳後會取得新id，要跟著變化，若連續上傳(匯入)，要更新到同一張單據。
+//   let today = moment().format('YYYY-MM-DD');
+//   console.log('import_url='+import_url);
+//   console.log('current_url='+current_url);
+//   console.log('path_url='+path_url);
+//   console.log('query_url='+query_url);
+//   console.log('counting_id='+counting_id);
+//   $('#input-trigger-upload').data('oc-url', import_url);
+//   $('#input-trigger-upload').trigger('click');
+// });
 $('#btn-import').on('click', function(){
   let counting_id = $('#input-counting_id').val();
   let import_url = path_url + '/' + counting_id; //若是新增單據，檔案上傳後會取得新id，要跟著變化，若連續上傳(匯入)，要更新到同一張單據。
-  console.log('import_url='+import_url);
-  console.log('current_url='+current_url);
-  console.log('path_url='+path_url);
-  console.log('query_url='+query_url);
-  console.log('counting_id='+counting_id);
+  //let today = moment().format('YYYY-MM-DD');
   $('#input-trigger-upload').data('oc-url', import_url);
   $('#input-trigger-upload').trigger('click');
+});
 
+// 單價、數量 觸發計算
+$('#products').on('focusout', '.clcProduct', function(){
+  let rownum = $(this).closest('[data-rownum]').data('rownum');
+  calcProduct(rownum)
+});
+function calcProduct(rownum){
+  let price = $('#input-products-price-'+rownum).val() ?? 0;
+  let quantity = $('#input-products-quantity-'+rownum).val() ?? 0;
+  let amount = price * quantity;
+  
+  quantity = $('#input-products-amount-'+rownum).val(amount);
+  //console.log('price='+price+', quantity='+quantity+', amount='+amount);
+  sumTotal();
+}
+
+function sumTotal(){
+  let counting_amount = 0;
+
+  $('.productAmountInputs').each(function() {
+    var inputValue = parseFloat($(this).val()) || 0;
+    counting_amount += inputValue;
+  });
+
+  $('#input-total').val(counting_amount);
+}
+
+
+// Read Excel
+$(document).on('click', '[data-oc-toggle=\'readExcel\']', function () {
+    var element = this;
+
+    if (!$(element).prop('disabled')) {
+        $('#form-upload').remove();
+
+        $('body').prepend('<form enctype="multipart/form-data" id="form-upload" style="display: none;"><input type="file" name="file" value=""/></form>');
+
+        $('#form-upload input[name=\'file\']').trigger('click');
+
+        $('#form-upload input[name=\'file\']').on('change', function (e) {
+            if ((this.files[0].size / 1024) > $(element).attr('data-oc-size-max')) {
+                alert($(element).attr('data-oc-size-error'));
+
+                $(this).val('');
+            }
+        });
+
+        if (typeof timer != 'undefined') {
+            clearInterval(timer);
+        }
+
+        var timer = setInterval(function () {
+            if ($('#form-upload input[name=\'file\']').val() != '') {
+                clearInterval(timer);
+
+                $.ajax({
+                    url: $(element).attr('data-oc-url'),
+                    type: 'post',
+                    data: new FormData($('#form-upload')[0]),
+                    dataType: 'html',
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+
+                    beforeSend: function () {
+                        $(element).prop('disabled', true).addClass('loading');
+                    },
+                    complete: function () {
+                        $(element).prop('disabled', false).removeClass('loading');
+                    },
+                    success: function (response) {
+                        $('#counting_products_wrapper').html(response);
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+                    }
+                });
+            }
+        }, 500);
+    }
 });
 </script>
 @endsection

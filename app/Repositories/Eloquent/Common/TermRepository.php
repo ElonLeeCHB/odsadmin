@@ -37,6 +37,40 @@ class TermRepository extends Repository
         return $terms;
     }
 
+    //要寫成快取
+    public function getKeyedTermsByTaxonomyCode($taxonomy_code, $data = null, $debug = 0)
+    {
+        $filter_data = $data;
+
+        //強制必須
+        $filter_data['equal_taxonomy_code'] = $taxonomy_code;
+
+        if(isset($data['pagination'])){
+            $filter_data['pagination'] = $data['pagination'];
+        }else{
+            $filter_data['pagination'] = false;
+        }
+
+        if(isset($data['limit'])){
+            $filter_data['limit'] = $data['limit'];
+        }else{
+            $filter_data['limit'] = 0;
+        }
+
+        $terms = $this->getRows($filter_data)->toArray();
+
+        foreach ($terms as $key => $row) {
+            unset($row['translation']);
+            unset($row['taxonomy']);
+            $code = $row['code'];
+            
+            $rows[$code] = (object) $row;
+        }
+
+
+        return $rows;
+    }
+
     public function resetQueryData($data)
     {
         // Find taxonomy_codes from taxonomies table

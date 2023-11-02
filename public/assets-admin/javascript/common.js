@@ -363,7 +363,6 @@ $(document).on('click', '[data-oc-toggle=\'upload\']', function () {
         }, 500);
     }
 });
-
 $(document).on('click', '[data-oc-toggle=\'download\']', function (e) {
     var element = this;
 

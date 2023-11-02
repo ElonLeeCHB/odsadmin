@@ -52,6 +52,8 @@ class ProductRepository extends Repository
                     'equal_is_active' => 1
                 ];
                 $units = $this->UnitRepository->getKeyedActiveUnits($filter_data);
+                
+                $products->load('stock_unit.translation');
             }
 
             // supplier_columns
@@ -319,6 +321,7 @@ class ProductRepository extends Repository
 
         if(!empty($data['filter_supplier_name'])){
             $data['whereHas'] = ['supplier' => ['name' => $data['filter_supplier_name']]];
+            unset($data['filter_supplier_name']);
         }
 
         return $data;
@@ -382,6 +385,7 @@ class ProductRepository extends Repository
             $code = $row['code'];
             $result[$code] = (object) $row;
         }
+
         return $result;
     }
 

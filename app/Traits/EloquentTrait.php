@@ -132,7 +132,7 @@ trait EloquentTrait
             $query = $this->newModel();
 
             if(!empty($data['with'])){
-                $query->with($data['with']);
+                $query = $this->setWith($query, $data['with']);
             }
 
             $row = $query->findOrFail($id);
@@ -419,7 +419,7 @@ trait EloquentTrait
         }
         // 未指定排序欄位，但資料表欄位有 sort_order
         else if(empty($data['sort']) && in_array('sort_order', $this->table_columns)){
-            $query->orderBy('sort_order', $order);
+            $query->orderBy('sort_order', 'ASC');
         }
         //  -- 其它情況
         else{
@@ -850,11 +850,11 @@ trait EloquentTrait
         if(!is_array($width_arr)){
             $query->with($width_arr);
         }else{
-            foreach ($width_arr as $key => $filters) {
+            foreach ($width_arr as $key => $with) {
 
                 // Example: $data['with'] = ['products','members'];
-                if(!is_array($filters)){
-                    $query->with($width_arr);
+                if(!is_array($with)){
+                    $query->with($with);
                 }
 
                 /* Example:
@@ -875,6 +875,8 @@ trait EloquentTrait
                 }
             }
         }
+
+        return $query;
     }
 
     public function getTableColumns($connection = null)

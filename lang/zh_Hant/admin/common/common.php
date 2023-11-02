@@ -92,6 +92,7 @@ return array (
 'column_required' => '必填',
 'column_status' => '狀態',
 'column_status_code' => '狀態碼',
+'column_last_modified_time' => '最後修改時間',
 
 
 // Entry

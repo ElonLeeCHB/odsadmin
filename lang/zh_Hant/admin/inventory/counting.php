@@ -9,9 +9,11 @@ return [
 
 // Text
 'text_menu_inventory' => '庫存管理',
+'text_status_without_voided' => '不含作廢',
 
 // Column
-'column_task_date' => '盤點日期',
+'column_form_code' => '單號',
+'column_form_date' => '盤點日期',
 'column_product_name' => '料件名稱',
 
 

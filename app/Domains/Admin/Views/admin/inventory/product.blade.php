@@ -12,7 +12,7 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
-        <button type="button" id="btn-inventory_product_list" data-bs-toggle="tooltip" data-loading-text="Loading..." title="列印盤點表" class="btn btn-info" aria-label="列印盤點表"><i class="fa fa-print"></i></button>
+        <button type="button" id="btn-inventory_product_list" data-bs-toggle="tooltip" data-loading-text="Loading..." title="匯出" class="btn btn-info" aria-label="匯出"><i class="fas fa-file-export"></i></button>
         <button type="button" data-bs-toggle="tooltip" title="Filter" onclick="$('#filter-product').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fas fa-filter" style="font-size:18px"></i></button>
         <a href="{{ $add_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i></a>
         <button type="submit" form="form-product" formaction="{{ $delete_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_delete }}" onclick="return confirm('{{ $lang->text_confirm }}');" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>

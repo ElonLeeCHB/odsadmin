@@ -105,7 +105,7 @@ class ProductController extends BackendController
         $filter_data['extra_columns'] = DataHelper::addToArray($extra_columns, 'accounting_category_name');
         
         $with = $filter_data['with'] ?? [];
-       $filter_data['with'] = DataHelper::addToArray($with, 'source_type');
+        $filter_data['with'] = DataHelper::addToArray($with, 'source_type');
         
         // Rows
         $products = $this->ProductService->getProducts($filter_data);
@@ -122,14 +122,13 @@ class ProductController extends BackendController
         $data['products'] = $products;
         $data['pagination'] = $products->links('admin.pagination.default');
 
-        // Prepare links for list table's header for sorting
+        // For list table's header: sorting
         if($filter_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        // for blade
         $data['sort'] = strtolower($filter_data['sort']);
         $data['order'] = strtolower($order);
 
@@ -142,7 +141,7 @@ class ProductController extends BackendController
         }
 
 
-        // link of table header for sorting        
+        // For list table's header: link
         $route = route('lang.admin.inventory.products.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
@@ -293,7 +292,7 @@ class ProductController extends BackendController
                 $destination_unit_code = $product_unit->destination_unit_code;
 
                 if(empty($codes[$source_unit_code])){
-                    $codes[$source_unit_code] = $product_unit->source_unit->name;
+                    $codes[$source_unit_code] = $product_unit->source_unit->name ?? '';
                 }
 
                 if(empty($codes[$destination_unit_code])){
