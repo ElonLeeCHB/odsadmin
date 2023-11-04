@@ -30,7 +30,7 @@ class BomController extends BackendController
         ];
         
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_inventory,
+            'text' => $this->lang->text_menu_inventory,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];

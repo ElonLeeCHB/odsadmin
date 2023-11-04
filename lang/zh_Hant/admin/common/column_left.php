@@ -23,7 +23,7 @@ return [
 'text_common_term' => '詞語',
 'text_common_payment_term' => '付款條件',
 
-'text_inventory' => '庫存管理',
+'text_menu_inventory' => '庫存管理',
 'text_financial_institution' => '金融機構設定',
 'text_inventory_supplier' => '廠商設定',
 'text_inventory_warehouse' => '倉庫設定',

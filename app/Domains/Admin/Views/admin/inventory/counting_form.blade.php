@@ -25,9 +25,6 @@
       <?php /*<div class="card-header"><i class="fa-solid fa-pencil"></i> {{ $lang->text_form }}</div>*/ ?>
       <div class="card-body">
 
-
-
-
         <form id="form-counting" action="{{ $save_url }}" method="post" data-oc-toggle="ajax" enctype="multipart/form-data">
             @csrf
             @method('POST')
@@ -73,8 +70,7 @@
                   <div id="error-code" class="invalid-feedback"></div>
                 </div>
               </div>
-                
-              {{-- column_total--}}
+
               <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">總金額</label>
                 <div class="col-sm-10">
@@ -83,19 +79,6 @@
                   </div>
                   <div class="form-text"></div>
                   <div id="error-total" class="invalid-feedback"></div>
-                </div>
-              </div>
-
-              {{-- status_code--}}
-              <div class="row mb-3">
-                <label for="input-status_code" class="col-sm-2 col-form-label">{{ $lang->column_status }}</label>
-                <div class="col-sm-10">
-                  <select id="input-status_code" name="status_code" class="form-select">
-                    <option value="">--</option>
-                      @foreach($statuses as $status)
-                      <option value="{{ $status->code }}" @if($status->code == $counting->status_code) selected @endif>{{ $status->name }}</option>
-                      @endforeach
-                  </select>
                 </div>
               </div>
 
@@ -131,19 +114,53 @@
 var current_url = window.location.href;
 var path_url = current_url.split('?')[0];
 var query_url = current_url.split('?')[1];
+var product_row = {{ $product_row }};
 
-// $('#btn-import').on('click', function(){
-//   let counting_id = $('#input-counting_id').val();
-//   let import_url = path_url + '/' + counting_id; //若是新增單據，檔案上傳後會取得新id，要跟著變化，若連續上傳(匯入)，要更新到同一張單據。
-//   let today = moment().format('YYYY-MM-DD');
-//   console.log('import_url='+import_url);
-//   console.log('current_url='+current_url);
-//   console.log('path_url='+path_url);
-//   console.log('query_url='+query_url);
-//   console.log('counting_id='+counting_id);
-//   $('#input-trigger-upload').data('oc-url', import_url);
-//   $('#input-trigger-upload').trigger('click');
-// });
+// 查料件名稱
+$(document).on('click', '.schProductName', function() {
+  $(this).autocomplete({
+    'source': function (request, response) {
+      let supplier_id = $('#input-supplier_id').val();
+      let supplier_url = '';
+
+      if(request.length == 0 && $.isNumeric(supplier_id) && supplier_id > 0){
+        supplier_url = '&equal_supplier_id=' + supplier_id + '&limit=0&pagination=0';
+      }
+      $.ajax({
+          url: "{{ $product_autocomplete_url }}?equal_is_inventory_managed=1&equal_is_active=1&with=product_units&filter_name=" + encodeURIComponent(request) + '&extra_columns=stock_unit_code,stock_unit_name,counting_unit_name' + supplier_url,
+          dataType: 'json',
+          success: function (json) {
+            response(json);
+          }
+        });
+    },
+    'select': function (item) {
+      var rownum = $(this).data("rownum");
+      $('#input-products-id-'+rownum).val(item.product_id);
+      $('#input-products-name-'+rownum).val(item.name);
+      $('#input-products-specification-'+rownum).val(item.specification);
+      $('#input-products-stock_unit_code-'+rownum).val(item.stock_unit_code);
+      $('#input-products-stock_unit_name-'+rownum).val(item.stock_unit_name);
+      $('#input-products-unit_name-'+rownum).val(item.counting_unit_name);
+
+      var selectElement = $('#input-products-receiving_unit_code-'+rownum);
+      selectElement.empty();
+
+      $.each(item.product_units, function(index, product_unit) {
+        var option = $('<option></option>');
+
+        option.val(product_unit.source_unit_code);
+        option.text(product_unit.source_unit_name);
+        option.attr('data-multiplier', product_unit.destination_quantity);
+        //console.log('unit.source_unit_code='+unit.source_unit_code+', unit.source_unit_name='+unit.source_unit_name+', unit.destination_quantity='+unit.destination_quantity)
+
+        selectElement.append(option);
+      });
+    }
+  });
+});
+
+
 $('#btn-import').on('click', function(){
   let counting_id = $('#input-counting_id').val();
   let import_url = path_url + '/' + counting_id; //若是新增單據，檔案上傳後會取得新id，要跟著變化，若連續上傳(匯入)，要更新到同一張單據。
@@ -153,7 +170,7 @@ $('#btn-import').on('click', function(){
 });
 
 // 單價、數量 觸發計算
-$('#products').on('focusout', '.clcProduct', function(){
+$('#counting_products_wrapper').on('focusout', '.clcProduct', function(){
   let rownum = $(this).closest('[data-rownum]').data('rownum');
   calcProduct(rownum)
 });
@@ -232,5 +249,45 @@ $(document).on('click', '[data-oc-toggle=\'readExcel\']', function () {
         }, 500);
     }
 });
+
+
+function addCountingProduct(){
+  let html = '';
+  html += '<tr id="product-row'+product_row +'" data-rownum="'+product_row +'">';
+  html += '  <td class="text-left">';
+  html += '    <button type="button" onclick="$(\'#product-row'+product_row +'\').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>';
+  html += '  </td>';
+  html += '  <td class="text-right">'+product_row +'</td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-id-'+product_row +'" name="products['+product_row +'][id]" value="" data-rownum="'+product_row +'" class="form-control" readonly>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-name-'+product_row +'" name="products['+product_row +'][name]" value="" data-rownum="'+product_row +'" class="form-control schProductName" data-oc-target="autocomplete-product_name-'+product_row +'" autocomplete="off">';
+  html += '    <ul id="autocomplete-product_name-'+product_row +'" class="dropdown-menu"></ul>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-specification-'+product_row +'" name="products['+product_row +'][specification]" value="" class="form-control" readonly>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-stock_unit_name-'+product_row +'" name="products['+product_row +'][stock_unit_name]" value="" class="form-control" readonly>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-unit_name-'+product_row +'" name="products['+product_row +'][unit_name]" value="" class="form-control" readonly>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-price-'+product_row +'" name="products['+product_row +'][price]" value="" class="form-control productPriceInputs clcProduct" data-rownum="'+product_row +'">';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-quantity-'+product_row +'" name="products['+product_row +'][quantity]" value="" class="form-control productPriceInputs clcProduct" data-rownum="'+product_row +'">';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-amount-'+product_row +'" name="products['+product_row +'][amount]" value="" class="form-control productAmountInputs" data-rownum="'+product_row +'" readonly>';
+  html += '  </td>';
+  html += '</tr>';
+
+  $('#products tbody').append(html);
+
+  product_row++;
+}
 </script>
 @endsection

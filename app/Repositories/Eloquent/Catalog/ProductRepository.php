@@ -92,6 +92,8 @@ class ProductRepository extends Repository
                     $row->stock_unit_name = $units[$row->stock_unit_code]->name ?? '';
                     $row->counting_unit_name = $units[$row->counting_unit_code]->name ?? '';
                     $row->usage_unit_name = $units[$row->usage_unit_code]->name ?? '';
+
+                    
                 }
 
                 // supplier_columns

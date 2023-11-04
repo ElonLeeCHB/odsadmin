@@ -9,6 +9,7 @@ return [
 
 
 // Text
+'text_menu_inventory' => '庫存管理',
 
 
 // Column

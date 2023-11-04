@@ -375,7 +375,7 @@ class LayoutComposer
             $menus[] = [
                 'id'       => 'menu-inventory',
                 'icon'	   => 'fas fa-user',
-                'name'	   => $this->lang->text_inventory,
+                'name'	   => $this->lang->text_menu_inventory,
                 'href'     => '',
                 'children' => $inventory
             ];

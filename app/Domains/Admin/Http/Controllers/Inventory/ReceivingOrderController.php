@@ -35,7 +35,7 @@ class ReceivingOrderController extends BackendController
         ];
         
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_product,
+            'text' => $this->lang->text_menu_inventory,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
@@ -139,7 +139,7 @@ class ReceivingOrderController extends BackendController
         ];
 
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_supplier,
+            'text' => $this->lang->text_menu_inventory,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];

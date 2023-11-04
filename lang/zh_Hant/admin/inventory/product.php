@@ -11,7 +11,7 @@ return [
 'tab_bom' => 'BOM',
 
 // Text
-'text_inventory' => '庫存管理',
+'text_menu_inventory' => '庫存管理',
 'text_product_details' => '商品資料',
 
 // Column

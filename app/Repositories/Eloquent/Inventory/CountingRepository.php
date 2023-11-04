@@ -108,10 +108,14 @@ class CountingRepository
                         $unit_code = $local_units[$unit_name]['code'];
                     }
 
+                    if(empty($product['id'])){
+                        continue;
+                    }
+
                     // CountingProduct
                     $upsert_data1[$key] = [
                         'counting_id' => $counting->id,
-                        'product_id' => $product['product_id'],
+                        'product_id' => $product['id'],
                         //'product_name' => $product['name'],
                         //'product_specification' => $product['specification'],
                         'unit_code' => $unit_code,
@@ -122,7 +126,7 @@ class CountingRepository
 
                     // Product
                     $upsert_data2[$key] = [
-                        'id' => $product['product_id'],
+                        'id' => $product['id'],
                         'quantity' => $product['quantity'],
                     ];
                 }
@@ -182,6 +186,7 @@ class CountingRepository
                 $counting->location_id = $sheet[0][1]; //門市代號
                 $counting->comment = $sheet[0][4]; //備註
 
+
                 //日期
                 $form_date = $sheet[2][1];
                 //$form_date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($sheet[2][1])->format('Y-m-d');
@@ -203,12 +208,11 @@ class CountingRepository
                     //以當前語言的單位名稱做為索引
                     $local_units = $this->UnitRepository->getLocaleKeyedActiveUnits();
 
-
                     //$sheet[8] = excel檔第 7 列的品號
-
                     CountingProduct::where('counting_id', $counting->id)->delete();
 
                     foreach ($sheet as $rownum => $row) {
+
                         if($rownum < 7){  // 這裡的 7 = excel 的第 6 列
                             continue;
                         }
@@ -297,7 +301,6 @@ class CountingRepository
 
         return $result;
     }
-
 
     public function exportCountingProductList($post_data = [], $debug = 0)
     {

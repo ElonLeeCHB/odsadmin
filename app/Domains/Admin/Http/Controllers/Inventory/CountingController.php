@@ -43,7 +43,7 @@ class CountingController extends BackendController
         
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.inventory.categories.index'),
+            'href' => route('lang.admin.inventory.countings.index'),
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
@@ -76,6 +76,7 @@ class CountingController extends BackendController
 
 
         // Prepare query_data for records
+
         $filter_data = UrlHelper::getUrlQueriesForFilter();
 
         $extra_columns = $filter_data['extra_columns'] ?? [];
@@ -85,6 +86,7 @@ class CountingController extends BackendController
         $filter_data['with'] = DataHelper::addToArray($with, 'unit');
         
         // Rows
+
         $countings = $this->CountingService->getCountings($filter_data);
 
         foreach ($countings ?? [] as $row) {
@@ -92,9 +94,11 @@ class CountingController extends BackendController
             $row->unit_name = $row->unit->name ?? '';
         }
 
+
         $data['countings'] = $countings->withPath(route('lang.admin.inventory.countings.list'))->appends($url_queries);
 
         //$data['pagination'] = $countings->links('admin.pagination.default');
+
 
         // For list table's header: sorting
         if($filter_data['order'] == 'ASC'){
@@ -103,10 +107,12 @@ class CountingController extends BackendController
             $order = 'ASC';
         }
         
+
         // for blade
         $data['sort'] = strtolower($filter_data['sort']);
         $data['order'] = strtolower($order);
 
+        
         $url_queries = UrlHelper::resetUrlQueries(unset_arr:['sort', 'order']);
 
         $url = '';
@@ -121,6 +127,7 @@ class CountingController extends BackendController
         $route = route('lang.admin.inventory.countings.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
+
         $data['sort_form_date'] = $route . "?sort=form_date&order=$order" .$url;
         $data['sort_status_code'] = $route . "?sort=status_code&order=$order" .$url;
         
@@ -142,14 +149,14 @@ class CountingController extends BackendController
         ];
 
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_warehouse,
+            'text' => $this->lang->text_menu_inventory,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
 
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.inventory.units.index'),
+            'href' => route('lang.admin.inventory.countings.index'),
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
@@ -187,13 +194,16 @@ class CountingController extends BackendController
 
         $data['save_url'] = route('lang.admin.inventory.countings.save');
         $data['back_url'] = route('lang.admin.inventory.countings.index', $queries);
-        $data['import_url'] = route('lang.admin.inventory.countings.import',['counting_id' => $counting_id]);     
+
+        $data['import_url'] = route('lang.admin.inventory.countings.import',['counting_id' => $counting_id]);
+        $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete'); 
 
         // Get Record
         $counting = $this->CountingService->findIdOrFailOrNew($counting_id);
 
         $data['counting'] = $counting;
         
+
         $counting->load([
             'counting_products.product.translation',
             'counting_products.product.stock_unit.translation',
@@ -202,11 +212,14 @@ class CountingController extends BackendController
 
         $data['counting_products'] = (new CountingResource($counting))->getCountingProductsObject();
 
+        $data['product_row'] = count($data['counting_products'])+1;
+
         if(!empty($data['counting']) && $counting_id == $counting->id){
             $data['counting_id'] = $counting_id;
         }else{
             $data['counting_id'] = null;
         }
+
 
         $data['counting_product_list'] = $this->getCountingProductList($data['counting_products']);
 
@@ -243,13 +256,17 @@ class CountingController extends BackendController
         }
 
         if(!$json) {
+
             $result = $this->CountingService->saveCounting($data);
+
 
             if(empty($result['error'])){
                 $counting_id = $result['id'];
 
+
                 $json = [
                     'success' => $this->lang->text_success,
+
                     'counting_id' => $counting_id,
                     'code' => $result['code'],
                     'redirectUrl' => route('lang.admin.inventory.countings.form', $counting_id),
@@ -380,6 +397,7 @@ class CountingController extends BackendController
             //重新設定 $filename
             $filename = $newfile->getPathname();
 
+
             $result = $this->CountingService->readExcel($filename, $counting_id);
 
             $data['counting_products'] = $result['counting_products'];
@@ -387,6 +405,7 @@ class CountingController extends BackendController
             return view('admin.inventory.counting_form_products', $data);
              
         }
+
 
         return response()->json(['message' => 'Error !!!'], 422);
     }

@@ -1,4 +1,4 @@
-<form id="form-counting" method="post" data-oc-toggle="ajax" data-oc-load="http://sysdev.chinabing.test/backend/zh-Hant/common/terms/list" data-oc-target="#counting">
+<form id="form-counting" method="post" data-oc-toggle="ajax" data-oc-load="{{ $list_url }}" data-oc-target="#counting">
 	<div class="table-responsive">
 		<table class="table table-bordered table-hover">
 			<thead>
@@ -16,6 +16,7 @@
 				<tr>
           <td class="text-center"><input type="checkbox" name="selected[]" value="{{ $row->id }}" class="form-check-input"/></td>
           <td class="text-start">{{ $row->id }}</td>
+
           <td class="text-start">{{ $row->form_date_ymd }}</td>
           <td class="text-start">{{ $row->status_name }}</td>
           <td class="text-start">{{ $row->updated_at_minute }}</td>
@@ -23,8 +24,10 @@
 				</tr>
         @endforeach
 			</tbody>
+
 		</table>
 	</div>
   {!! $countings->links('admin.pagination.default') !!}
 
 </form>
+

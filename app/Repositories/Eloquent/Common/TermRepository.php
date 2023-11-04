@@ -67,7 +67,6 @@ class TermRepository extends Repository
             $rows[$code] = (object) $row;
         }
 
-
         return $rows;
     }
 
