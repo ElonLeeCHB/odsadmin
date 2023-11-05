@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Admin\Services\Inventory\CountingService;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
+use App\Repositories\Eloquent\Common\TermRepository;
 use App\Http\Resources\Inventory\CountingProductCollection;
 use App\Http\Resources\Inventory\CountingProductResource;
 use App\Http\Resources\Inventory\CountingResource;
@@ -17,7 +18,7 @@ use App\Helpers\Classes\UrlHelper;
 
 class CountingController extends BackendController
 {
-    public function __construct(private Request $request, private CountingService $CountingService, private ProductRepository $ProductRepository)
+    public function __construct(private Request $request, private CountingService $CountingService, private ProductRepository $ProductRepository, private TermRepository $TermRepository)
     {
         parent::__construct();
         
@@ -49,9 +50,8 @@ class CountingController extends BackendController
         $data['breadcumbs'] = (object)$breadcumbs;
 
 
-        // 狀態
-        $data['statuses'] = $this->CountingService->getKeyedStatuses();
-
+        // 通用單據狀態
+        $data['statuses'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('common_form_status',to_array:false);
 
         $data['list'] = $this->getList();
 
@@ -224,8 +224,8 @@ class CountingController extends BackendController
         $data['counting_product_list'] = $this->getCountingProductList($data['counting_products']);
 
         
-        // 狀態
-        $data['statuses'] = $this->CountingService->getKeyedStatuses();
+        // 通用單據狀態
+        $data['statuses'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('common_form_status',to_array:false);
         
 
         return view('admin.inventory.counting_form', $data);

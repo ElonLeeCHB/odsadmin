@@ -193,18 +193,6 @@
               </div>
 
               <div class="row mb-3">
-                <label class="col-sm-2 col-form-label">{{ $lang->column_enable }}</label>
-                <div class="col-sm-10">
-                  <div class="input-group">
-                    <div id="input-is_active" class="form-check form-switch form-switch-lg">
-                      <input type="hidden" name="is_active" value="0"/>
-                      <input type="checkbox" name="is_active" value="1" class="form-check-input" @if($product->is_active) checked @endif/>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">{{ $lang->column_is_inventory_managed }}</label>
                 <div class="col-sm-10">
                   <div class="input-group">
@@ -214,6 +202,21 @@
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <div class="row mb-3">
+                <label for="input-temperature_type_code" class="col-sm-2 col-form-label">{{ $lang->column_temperature_type }}</label>
+                <div class="col-sm-10">
+                  <select id="input-temperature_type_code" name="temperature_type_code" class="form-control">
+                    <option value="">--</option>
+                    @foreach($temperature_types as $code => $temperature_type)
+                    <option value="{{ $temperature_type->code }}" @if($temperature_type->code==$product->temperature_type_code) selected @endif>{{ $temperature_type->name }}</option>
+                    @endforeach
+                  </select>
+                  <div id="error-temperature_type_code" class="invalid-feedback"></div>
+                  <div class="form-text">盤點表列印會按此順序</div>
+                </div>
+
               </div>
 
               <div class="row mb-3">
@@ -251,6 +254,33 @@
                   <div id="error-quantity" class="invalid-feedback"></div>
                 </div>
               </div>
+
+              <div class="row mb-3">
+                <label for="input-comment" class="col-sm-2 col-form-label">{{ $lang->column_comment }}</label>
+                <div class="col-sm-10">
+                  <input type="text" id="input-comment" name="comment" value="{{ $product->comment }}" class="form-control"/>
+                  <div id="error-comment" class="invalid-feedback"></div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ $lang->column_enable }}</label>
+                <div class="col-sm-10">
+                  <div class="input-group">
+                    <div id="input-is_active" class="form-check form-switch form-switch-lg">
+                      <input type="hidden" name="is_active" value="0"/>
+                      <input type="checkbox" name="is_active" value="1" class="form-check-input" @if($product->is_active) checked @endif/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+
+
+
+
+
             </div>
 
             <div id="tab-units" class="tab-pane">

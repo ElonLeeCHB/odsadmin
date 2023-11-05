@@ -8,6 +8,7 @@ use App\Repositories\Eloquent\Common\TaxonomyRepository;
 use App\Models\Common\Term;
 use App\Models\Common\TermTranslation;
 use App\Models\Common\TermRelation;
+use Illuminate\Support\Facades\Storage;
 
 class TermRepository extends Repository
 {
@@ -37,34 +38,84 @@ class TermRepository extends Repository
         return $terms;
     }
 
-    //要寫成快取
-    public function getKeyedTermsByTaxonomyCode($taxonomy_code, $data = null, $debug = 0)
+/**
+ * @param  int     $taxonomy_code terms.taxonomy_code = taxonomies.code
+ * @param  boolean $to_array 
+ * @param  array   $data 
+ *
+ * @return array
+ *
+ * @author  Ron Lee
+ * @created 2023-11-05
+ * @updated 2023-11-05
+ */
+    public function getKeyedTermsByTaxonomyCode($taxonomy_code, $to_array = true, $data = null): array
     {
-        $filter_data = $data;
+        $cache_name = 'cache/terms/code_indexed/' . $taxonomy_code . '.json';
 
-        //強制必須
-        $filter_data['equal_taxonomy_code'] = $taxonomy_code;
-
-        if(isset($data['pagination'])){
-            $filter_data['pagination'] = $data['pagination'];
+        if (Storage::exists($cache_name)) {
+            $rows = Storage::get($cache_name);
         }else{
+            $filter_data = $data;
+
+            //強制必須
+            $filter_data['equal_taxonomy_code'] = $taxonomy_code;
+
             $filter_data['pagination'] = false;
-        }
 
-        if(isset($data['limit'])){
-            $filter_data['limit'] = $data['limit'];
-        }else{
             $filter_data['limit'] = 0;
+
+            $terms = $this->getRows($filter_data)->toArray();
+
+            $rows = [];
+
+            foreach ($terms as $key => $row) {
+                unset($row['translation']);
+                unset($row['taxonomy']);
+                $code = $row['code'];
+                
+                $rows[$code] = $row;
+            }
+
+            if(!empty($rows)){
+                Storage::put($cache_name, json_encode($rows));
+                sleep(1);
+
+                $rows = Storage::get($cache_name);
+            }
         }
 
-        $terms = $this->getRows($filter_data)->toArray();
+        $objects = json_decode($rows);
 
-        foreach ($terms as $key => $row) {
-            unset($row['translation']);
-            unset($row['taxonomy']);
-            $code = $row['code'];
-            
-            $rows[$code] = (object) $row;
+        // 預設三個欄位
+        if(empty($data['columns'])){
+            $data['columns'] = ['id','code','name'];
+        }else{
+            $data['columns'] = '*';
+        }
+
+        // 指定欄位
+        if($data['columns'] != '*'){
+            foreach ($objects as $code => $object) {
+                foreach ($object as $column => $value) {
+                    if(!in_array($column, $data['columns'])){
+                        unset($objects->$code->$column);
+                    }
+                }
+            }
+
+        }
+
+        $rows = [];
+
+        if($to_array == true){
+            foreach ($objects as $code => $object) {
+                $rows[$code] = (array) $object;
+            }
+        }else{
+            foreach ($objects as $code => $object) {
+                $rows[$code] = (object) $object;
+            }
         }
 
         return $rows;

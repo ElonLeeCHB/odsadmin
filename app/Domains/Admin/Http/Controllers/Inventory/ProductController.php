@@ -251,23 +251,18 @@ class ProductController extends BackendController
 			$data['product_categories'] = [];
 		}
 
-        // product_accounting_category
-        $filter_data = [
-            'equal_taxonomy_code' => 'product_accounting_category',
-            'pagination' => false,
-            'limit' => 30,
-            'sort' => 'code',
-            'order' => 'ASC'
-        ];
-        $accounting_categories = $this->TermRepository->getRows($filter_data);
-        $data['accounting_categories'] = $this->TermRepository->refineRows($accounting_categories, ['optimize' => true,'sanitize' => true]);
+        // 會計分類 product_accounting_category
+        $data['accounting_categories'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('product_accounting_category',to_array:false);
+        
+        // 來源類型
+        $data['source_type_codes'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('product_source_type',to_array:false);
 
+        // 存放溫度類型 temperature_type_code
+        $data['temperature_types'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('product_storage_temperature_type',to_array:false);
 
         $data['bom_products'] = [];
 
         $data['product_options'] = [];
-        
-        $data['source_type_codes'] = $this->ProductService->getProductSourceCodes();
 
         // supplier
         $data['supplier_autocomplete_url'] = route('lang.admin.counterparty.suppliers.autocomplete');

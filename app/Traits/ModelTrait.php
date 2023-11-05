@@ -63,7 +63,11 @@ trait ModelTrait
             $meta_model_name = get_class($this) . 'Meta';
         }
 
-        return new $meta_model_name();
+        if (class_exists('App\Models\Inventory\UnitMeta')) {
+            return new $meta_model_name();
+        }
+
+        return false;
     }
 
     public function getTranslationModel()

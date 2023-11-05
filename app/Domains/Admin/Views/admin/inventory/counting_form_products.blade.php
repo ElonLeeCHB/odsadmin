@@ -61,3 +61,43 @@
   </tfoot>
 </table>
 
+<script type="text/javascript">
+function addCountingProduct(){
+  let html = '';
+  html += '<tr id="product-row'+product_row +'" data-rownum="'+product_row +'">';
+  html += '  <td class="text-left">';
+  html += '    <button type="button" onclick="$(\'#product-row'+product_row +'\').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>';
+  html += '  </td>';
+  html += '  <td class="text-right">'+product_row +'</td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-id-'+product_row +'" name="products['+product_row +'][id]" value="" data-rownum="'+product_row +'" class="form-control" readonly>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-name-'+product_row +'" name="products['+product_row +'][name]" value="" data-rownum="'+product_row +'" class="form-control schProductName" data-oc-target="autocomplete-product_name-'+product_row +'" autocomplete="off">';
+  html += '    <ul id="autocomplete-product_name-'+product_row +'" class="dropdown-menu"></ul>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-specification-'+product_row +'" name="products['+product_row +'][specification]" value="" class="form-control" readonly>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-stock_unit_name-'+product_row +'" name="products['+product_row +'][stock_unit_name]" value="" class="form-control" readonly>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-unit_name-'+product_row +'" name="products['+product_row +'][unit_name]" value="" class="form-control" readonly>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-price-'+product_row +'" name="products['+product_row +'][price]" value="" class="form-control productPriceInputs clcProduct" data-rownum="'+product_row +'">';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-quantity-'+product_row +'" name="products['+product_row +'][quantity]" value="" class="form-control productPriceInputs clcProduct" data-rownum="'+product_row +'">';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-amount-'+product_row +'" name="products['+product_row +'][amount]" value="" class="form-control productAmountInputs" data-rownum="'+product_row +'" readonly>';
+  html += '  </td>';
+  html += '</tr>';
+
+  $('#products tbody').append(html);
+
+  product_row++;
+}
+</script>

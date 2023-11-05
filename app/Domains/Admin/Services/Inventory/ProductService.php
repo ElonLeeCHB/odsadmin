@@ -37,7 +37,7 @@ class ProductService extends Service
             // }
             
             $result = $this->saveRow($product_id, $post_data);
-
+           // echo '<pre>', print_r($post_data, 1), "</pre>"; exit;
             if(!empty($result['error'])){
                 throw new \Exception($result['error']);
             }

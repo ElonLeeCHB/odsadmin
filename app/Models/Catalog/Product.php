@@ -27,6 +27,7 @@ class Product extends Model
         'supplier_own_product_code',
         'supplier_own_product_name',
         'supplier_own_product_specification',
+        'temperature_type_code',        
     ];
 
 

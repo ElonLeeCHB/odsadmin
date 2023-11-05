@@ -367,30 +367,7 @@ class ProductRepository extends Repository
 
         return $result;
     }
-
-
-    public function getProductSourceCodes()
-    {
-        $filter_data = [
-            'equal_taxonomy_code' => 'product_source_type',
-            'pagination' => false,
-            'limit' => 0,
-            'with' => 'taxonomy.translation',
-        ];
-        $collection = $this->TermRepository->getRows($filter_data)->toArray();
-
-        $result = [];
-
-        foreach ($collection as $key => $row) {
-            unset($row['translation']);
-            unset($row['taxonomy']);
-            $code = $row['code'];
-            $result[$code] = (object) $row;
-        }
-
-        return $result;
-    }
-
+    
 
     public function getKeyedSourceCodes()
     {

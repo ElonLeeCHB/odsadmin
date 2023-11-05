@@ -939,7 +939,6 @@ trait EloquentTrait
             $result = $this->saveRowBasicData($modelInstance, $post_data);
 
             if(!empty($result['error'])){
-                DB::rollBack();
                 throw new \Exception($result['error']);
             }
 
@@ -951,20 +950,25 @@ trait EloquentTrait
                 $result = $this->saveRowTranslationData($modelInstance, $post_data['translations']);
 
                 if(!empty($result['error'])){
-                    DB::rollBack();
                     throw new \Exception($result['error']);
                 }
             }
 
             // save meta data
-            //$this->saveRowMetaData($modelInstance, $post_data);
+            $result = $this->saveRowMetaData($modelInstance, $post_data);
+
+            if(!empty($result['error'])){
+                throw new \Exception($result['error']);
+            }
 
             DB::commit();
 
             return ['id' => $modelInstance->id];
             
         } catch (\Exception $ex) {
+            DB::rollBack();
             $result['error'] = 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage();
+            echo '<pre>', print_r($ex->getMessage(), 1), "</pre>"; exit;
             return $result;
         }
 
@@ -1005,8 +1009,7 @@ trait EloquentTrait
 
         } catch (\Exception $ex) {
             DB::rollback();
-            $result['error'] = 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage();
-            return $result;
+            return ['error' => 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage()];
         }
     }
 
@@ -1038,53 +1041,62 @@ trait EloquentTrait
                 $arrs[] = $arr;
             }
 
+            DB::beginTransaction();
             $translation_model->upsert($arrs,['id', $master_key, 'locale']);
+            DB::commit();
 
         } catch (\Exception $ex) {
             DB::rollback();
-            $result['error'] = 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage();
-            return $result;
+            return ['error' => 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage()];
         }
     }
 
     // 這是比較舊的寫法
     public function saveTranslationData($master_model, $translation_data)
     {
-        if(empty($master_model->translation_attributes)){
-            return false;
-        }else{
-            $translation_attributes = $master_model->translation_attributes;
-        }
-
-        // translationModel
-        $translationModelName = get_class($master_model) . 'Translation';
-        if(class_exists($translationModelName)){
-            $translationModel = new $translationModelName;
-        }else{
-            return false;
-        }
-
-        // foreigh_key
-        $foreigh_key = $translationModel->foreign_key;
-        $foreigh_key_value = $master_model->id;
-
-        foreach($translation_data as $locale => $value){
-            $arr = [];
-            if(!empty($value['id'])){
-                $arr['id'] = $value['id'];
+        try{
+            if(empty($master_model->translation_attributes)){
+                return false;
+            }else{
+                $translation_attributes = $master_model->translation_attributes;
             }
-            $arr['locale'] = $locale;
-            $arr[$foreigh_key] = $foreigh_key_value;
-            foreach ($translation_attributes as $column) {
-                if(!empty($value[$column])){
-                    $arr[$column] = $value[$column];
+    
+            // translationModel
+            $translationModelName = get_class($master_model) . 'Translation';
+            if(class_exists($translationModelName)){
+                $translationModel = new $translationModelName;
+            }else{
+                return false;
+            }
+    
+            // foreigh_key
+            $foreigh_key = $translationModel->foreign_key;
+            $foreigh_key_value = $master_model->id;
+    
+            foreach($translation_data as $locale => $value){
+                $arr = [];
+                if(!empty($value['id'])){
+                    $arr['id'] = $value['id'];
                 }
+                $arr['locale'] = $locale;
+                $arr[$foreigh_key] = $foreigh_key_value;
+                foreach ($translation_attributes as $column) {
+                    if(!empty($value[$column])){
+                        $arr[$column] = $value[$column];
+                    }
+                }
+    
+                $arrs[] = $arr;
             }
+    
+            DB::beginTransaction();
+            $translationModel->upsert($arrs,['id', $foreigh_key, 'locale']);
+            DB::commit();
 
-            $arrs[] = $arr;
-        }
-
-        $translationModel->upsert($arrs,['id', $foreigh_key, 'locale']);
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage()];
+        } 
     }
 
     // must be public
@@ -1093,10 +1105,11 @@ trait EloquentTrait
         $this->initialize();
 
         try {
-            DB::beginTransaction();
-
             $meta_model = $masterModelInstance->getMetaModel();
-            $meta_table = $meta_model->getTable();
+
+            if(empty($meta_model)){
+                return ;
+            }
 
             // Keys
             $master_key = $meta_model->master_key ?? $masterModelInstance->getForeignKey();
@@ -1120,14 +1133,15 @@ trait EloquentTrait
                 $upsert_data[] = $arr;
             }
 
+            DB::beginTransaction();
+
             $meta_model->upsert($upsert_data,['id']);
             
             DB::commit();
 
         } catch (\Exception $ex) {
             DB::rollback();
-            $result['error'] = 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage();
-            return $result;
+            return ['error' => 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage()];
         }
     }
 

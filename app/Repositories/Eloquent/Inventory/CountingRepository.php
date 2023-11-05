@@ -27,11 +27,6 @@ class CountingRepository
     public function __construct(private UnitRepository $UnitRepository, private ProductRepository $ProductRepository, private TermRepository $TermRepository)
     {}
 
-    public function getKeyedStatuses()
-    {
-        return $this->TermRepository->getKeyedTermsByTaxonomyCode('common_form_status');
-    }
-
     
     public function getCountings($data, $debug = 0)
     {
