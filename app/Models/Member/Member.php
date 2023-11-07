@@ -13,7 +13,7 @@ class Member extends User
     
     public $table = 'users';
     
-    public $meta_keys = [
+    public $meta_attributes = [
         'is_admin',
         'first_name',
         'last_name',

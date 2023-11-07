@@ -134,7 +134,7 @@
               <div class="row mb-3">
                 <label for="input-supplier_contact_jobtitle" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_jobtitle }}</label>
                 <div class="col-sm-10">
-                  <input type="text" id="input-supplier_contact_jobtitle" name="meta_data_supplier_contact_jobtitle" value="{{ $supplier->supplier_contact_jobtitle }}" class="form-control">
+                  <input type="text" id="input-supplier_contact_jobtitle" name="supplier_contact_jobtitle" value="{{ $supplier->supplier_contact_jobtitle }}" class="form-control">
                   <div id="error-supplier_contact_jobtitle" class="invalid-feedback"></div>
                 </div>
               </div>

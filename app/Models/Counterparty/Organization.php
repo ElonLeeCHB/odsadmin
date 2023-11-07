@@ -6,13 +6,16 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Counterparty\OrganizationMeta;
 use App\Models\Counterparty\PaymentTerm;
+use App\Traits\ModelTrait;
 
 
 class Organization extends Model
 {
+    use ModelTrait;
+    
     protected $guarded = [];
 
-    public $meta_keys = [
+    public $meta_attributes = [
         'www',
         'line_at',
         'supplier_contact_name',

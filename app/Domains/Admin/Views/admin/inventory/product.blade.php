@@ -72,7 +72,7 @@
 
             <div class="mb-3">
               <label class="form-label">{{ $lang->column_is_inventory_managed }}</label>
-              <select id="input-filter_is_inventory_managed" name="filter_is_inventory_managed" class="form-select">
+              <select id="input-equal_is_inventory_managed" name="equal_is_inventory_managed" class="form-select">
                 <option value=""> -- </option>
                 <option value="1" selected>{{ $lang->text_yes }}</option>
                 <option value="0">{{ $lang->text_no }}</option>
@@ -89,6 +89,7 @@
             </div>
 
             <div class="text-end">
+              <button type="reset" id="button-clear-all" class="btn btn-light"><i class="fa fa-refresh" aria-hidden="true"></i> 清空</button>
               <button type="reset" id="button-clear" class="btn btn-light"><i class="fa fa-refresh" aria-hidden="true"></i> {{ $lang->button_reset }}</button>
               <button type="button" id="button-filter" class="btn btn-light"><i class="fa-solid fa-filter"></i> {{ $lang->button_filter }}</button>
             </div>
@@ -165,10 +166,10 @@ $('#button-filter').on('click', function() {
     url += '&filter_is_salable=' + encodeURIComponent(filter_is_salable);
   }
 
-  var filter_is_inventory_managed = $('#input-filter_is_inventory_managed').val();
+  var equal_is_inventory_managed = $('#input-equal_is_inventory_managed').val();
 
-  if (filter_is_inventory_managed) {
-    url += '&filter_is_inventory_managed=' + encodeURIComponent(filter_is_inventory_managed);
+  if (equal_is_inventory_managed) {
+    url += '&equal_is_inventory_managed=' + encodeURIComponent(equal_is_inventory_managed);
   }
   
   var equal_is_active = $('#input-equal_is_active').val();
@@ -204,7 +205,8 @@ $('#btn-inventory_product_list').on('click', function () {
         console.log('success');
         var link = document.createElement('a');
         link.href = window.URL.createObjectURL(data);
-        link.download = '料件.xlsx';
+        let now_string = moment().format('YYYY-MM-DD_hh-mm-ss');
+        link.download = '料件_'+now_string+'.xlsx';
         link.click();
       },
       complete: function () {

@@ -66,6 +66,22 @@
     </div>
   </div>
 </div>
+
+<div id="modal-export-loading" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-file-excel"></i> Export</h5> <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="loadingdiv" id="loading" style="display: block;">
+          <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>     
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
 @endsection
 
 @section('buttom')

@@ -51,6 +51,7 @@
                         <input type="text" name="translations[{{ $language->code }}][name]" value="{{ $product_translations[$language->code]['name'] ?? ''  }}" placeholder="{{ $lang->column_name }}" id="input-name-{{ $language->code }}" class="form-control">
                                                 </div>
                       <div id="error-name-{{ $language->code }}" class="invalid-feedback"></div>
+                      <div class="form-text">建新料件前請先檢查未啟用的料件！避免重複建立！！</div>
                     </div>
                   </div>
 

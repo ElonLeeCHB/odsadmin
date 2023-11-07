@@ -17,6 +17,8 @@ use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
 use App\Domains\Admin\Exports\InventoryCountingListExport;
 use App\Helpers\Classes\DataHelper;
 
+use App\Repositories\StaticClasses\UnitConverter;
+
 class CountingRepository
 {
     use EloquentTrait;
@@ -107,6 +109,8 @@ class CountingRepository
                         continue;
                     }
 
+                    $quantity = str_replace(',','',$product['quantity']);
+
                     // CountingProduct
                     $upsert_data1[$key] = [
                         'counting_id' => $counting->id,
@@ -115,17 +119,21 @@ class CountingRepository
                         //'product_specification' => $product['specification'],
                         'unit_code' => $unit_code,
                         'price' => $product['price'],
-                        'quantity' => $product['quantity'],
+                        'quantity' => $quantity,
                         'amount' => $product['amount'],
                     ];
+
+                    $xxx = UnitConverter::convert(3, 'kg', 'g');
+
+                    echo '<pre>', print_r($xxx, 1), "</pre>"; exit;
 
                     // Product
                     $upsert_data2[$key] = [
                         'id' => $product['id'],
-                        'quantity' => $product['quantity'],
+                        'quantity' => $quantity,
                     ];
                 }
-                
+
                 if(!empty($upsert_data1)){
 
                     CountingProduct::upsert($upsert_data1, ['id']);

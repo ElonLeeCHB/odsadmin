@@ -1,8 +1,7 @@
 @php $product_row = 1; @endphp
-
 <table id="products" class="table table-striped table-bordered table-hover">
   <thead>
-    <tr>
+    <tr style="z-index:1;">
       <td class="text-left"></td>
       <td class="text-left"></td>
       <td class="text-left">料件流水號</td>
@@ -23,7 +22,13 @@
       </td>
       <td class="text-right">{{ $product_row }}</td>
       <td class="text-left">
-        <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $counting_product->product_id ?? '' }}" class="form-control" readonly>
+        <div class="col-sm-12">
+          <div class="input-group" style="display: flex; align-items: center;">
+            <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $counting_product->product_id ?? '' }}" class="form-control" readonly>
+            <a href="{{ $counting_product->product_edit_url }}" target="_blank" title="料件基本資料" class="btn btn-light"><i class="fas fa-external-link-alt"></i></a>
+          </div>
+
+        </div>
       </td>
       <td class="text-left">
         <input type="text" id="input-products-name-{{ $product_row }}" name="products[{{ $product_row }}][name]" value="{{ $counting_product->product_name ?? '' }}" data-rownum="{{ $product_row }}" class="form-control schProductName" data-oc-target="autocomplete-product_name-{{ $product_row }}" autocomplete="off">
@@ -100,4 +105,8 @@ function addCountingProduct(){
 
   product_row++;
 }
-</script>
+</script></button>
+        </td>
+      </tr>
+    </tfoot>
+  </table>

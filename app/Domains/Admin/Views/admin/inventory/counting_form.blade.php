@@ -102,6 +102,20 @@
                   <div id="error-comment" class="invalid-feedback"></div>
                 </div>
               </div>
+<style>
+#counting_products_wrapper {
+  max-height: 450px; /* table 上層 div 容器的最大高度 */
+  overflow-y: auto; /* 垂直捲軸 */
+  position: relative; /* 相對定位 */
+}
+
+#counting_products_wrapper thead {
+  background-color: #f2f2f2; /* 標題背景色 */
+  position: sticky;
+  top: 0; /* 表頭初始位置 */
+  z-index: 99; /* 使表頭在上方 */
+}
+</style>
 
               <div id="counting_products_wrapper" class="table-responsive">
               {!! $counting_product_list !!}

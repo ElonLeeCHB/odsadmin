@@ -457,9 +457,9 @@ trait EloquentTrait
         $translation_attributes = $this->model->translation_attributes ?? [];
         $table_columns = $this->getTableColumns($this->connection);
         
-        $meta_keys = $this->model->meta_keys;
-        if(empty($meta_keys)){
-            $meta_keys = [];
+        $meta_attributes = $this->model->meta_attributes;
+        if(empty($meta_attributes)){
+            $meta_attributes = [];
         }
 
         foreach ($data as $key => $value) {
@@ -485,8 +485,8 @@ trait EloquentTrait
                 continue;
             }
 
-            // meta_keys is not processed here
-            if(in_array($column, $meta_keys)){
+            // meta_attributes is not processed here
+            if(in_array($column, $meta_attributes)){
                 continue;
             }
 
@@ -537,7 +537,7 @@ trait EloquentTrait
                 $column = str_replace('filter_', '', $key);
             }
 
-            if(in_array($column, $meta_keys)){
+            if(in_array($column, $meta_attributes)){
                 $data['whereHas']['meta_rows'] = ['meta_key' => $column, 'meta_value' => $value];
                 unset($data[$key]);
             }
@@ -560,9 +560,9 @@ trait EloquentTrait
         $table_columns = $this->getTableColumns($this->connection);
         $translation_attributes = $this->model->translation_attributes ?? [];
 
-        $meta_keys = $this->model->meta_keys;
-        if(empty($meta_keys)){
-            $meta_keys = [];
+        $meta_attributes = $this->model->meta_attributes;
+        if(empty($meta_attributes)){
+            $meta_attributes = [];
         }
 
         foreach ($data as $key => $value) {
@@ -584,8 +584,8 @@ trait EloquentTrait
                 continue;
             }
 
-            // meta_keys is not processed here
-            if(in_array($column, $meta_keys)){
+            // meta_attributes is not processed here
+            if(in_array($column, $meta_attributes)){
                 continue;
             }
 
@@ -629,7 +629,7 @@ trait EloquentTrait
                 $column = str_replace('equal_', '', $key);
             }
 
-            if(in_array($column, $meta_keys)){
+            if(in_array($column, $meta_attributes)){
                 $query->whereHas('meta_rows', function ($query) use ($column, $value) {
                     $query->where('meta_key', $column);
                     $query->where('meta_value', $value);
@@ -1103,7 +1103,7 @@ trait EloquentTrait
     public function saveRowMetaData($masterModelInstance, $post_data)
     {
         $this->initialize();
-
+        
         try {
             $meta_model = $masterModelInstance->getMetaModel();
 
@@ -1182,7 +1182,7 @@ trait EloquentTrait
     // }
 
     /**
-     * 獲取 meta_data，並根據 meta_keys ，若 meta_key 不存在，設為空值 ''
+     * 獲取 meta_data，並根據 meta_attributes ，若 meta_key 不存在，設為空值 ''
      */
      public function getMetaRows($row)
     {

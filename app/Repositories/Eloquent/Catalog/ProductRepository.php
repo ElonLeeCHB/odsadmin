@@ -485,6 +485,11 @@ class ProductRepository extends Repository
     {
         $post_data = $this->resetQueryData($post_data);
 
+        if(empty($post_data['sort'])){
+            $post_data['sort'] = 'id';
+            $post_data['order'] = 'ASC';
+        }
+
         $post_data['pagination'] = false;
         $post_data['limit'] = 1000;
         $post_data['extra_columns'] = ['supplier_name', 'accounting_category_name','source_type_name'
@@ -503,13 +508,14 @@ class ProductRepository extends Repository
                 'name' => $product->name,
                 'specification' => $product->specification,
 
-                'supplier_product_code' => $product->supplier_product_code,
-                'supplier_product_name' => $product->supplier_product_name,
-                'supplier_product_specification' => $product->supplier_product_specification,
+                'supplier_own_product_code' => $product->supplier_own_product_code,
+                'supplier_own_product_name' => $product->supplier_own_product_name,
+                'supplier_own_product_specification' => $product->supplier_own_product_specification,
                 'supplier_id' => $product->supplier_id,
                 'supplier_name' => $product->supplier_name,
                 'source_type_code' => $product->source_type_code,
                 'source_type_name' => $product->source_type_name,
+                'temperature_type_code' => $product->temperature_type_code,
 
                 'accounting_category_code' => $product->accounting_category_code,
                 'accounting_category_name' => $product->accounting_category_name,
@@ -524,12 +530,11 @@ class ProductRepository extends Repository
                 
             ];
         }
-
         $data['collection'] = collect($rows);
 
-        $data['headings'] = ['ID', '品號', '品名', '規格',
-                             '廠商品號', '廠商品名', '廠商規格', '廠商ID', '廠商名稱', '來源碼', '來源名稱',
-                             '會計分類碼', '會計分類', '庫存單位', '名稱', '盤點單位', '名稱', '用量單位', '名稱', '庫存管理', '啟用'
+        $data['headings'] = ['ID', '品號', '品名', '規格'
+                             , '廠商品號', '廠商品名', '廠商規格', '廠商ID', '廠商名稱', '來源碼', '來源名稱', '存放溫度類型'
+                             , '會計分類碼', '會計分類', '庫存單位', '名稱', '盤點單位', '名稱', '用量單位', '名稱', '庫存管理', '啟用'
                             ];
 
         return Excel::download(new CommonExport($data), 'inventory_products.xlsx');
