@@ -23,8 +23,7 @@ class CountingProductResource extends JsonResource
             'price' => $this->price,
             'amount' => $this->amount,
             'comment' => $this->comment,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'stock_unit_quantity' => $this->stock_unit_quantity,
 
             'product_edit_url' => route('lang.admin.inventory.products.form', $this->product_id),
         ];

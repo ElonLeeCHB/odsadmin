@@ -8,6 +8,7 @@
       <td class="text-left">品名</td>
       <td class="text-left">規格</td>
       <td class="text-left" style="width:100px;">庫存單位</td>
+      <td class="text-left" style="width:100px;">庫存數量</td>
       <td class="text-left" style="width:100px;">盤點單位</td>
       <td class="text-left" style="width:100px;">盤點單價</td>
       <td class="text-left" style="width:100px;">盤點數量</td>
@@ -25,7 +26,7 @@
         <div class="col-sm-12">
           <div class="input-group" style="display: flex; align-items: center;">
             <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $counting_product->product_id ?? '' }}" class="form-control" readonly>
-            <a href="{{ $counting_product->product_edit_url }}" target="_blank" title="料件基本資料" class="btn btn-light"><i class="fas fa-external-link-alt"></i></a>
+            <a href="{{ $counting_product->product_edit_url ?? '' }}" target="_blank" title="料件基本資料" class="btn btn-light"><i class="fas fa-external-link-alt"></i></a>
           </div>
 
         </div>
@@ -41,13 +42,16 @@
         <input type="text" id="input-products-stock_unit_name-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_name]" value="{{ $counting_product->stock_unit_name ?? '' }}" class="form-control" readonly>
       </td>
       <td class="text-left">
+        <input type="text" id="input-products-stock_unit_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_quantity]" value="{{ $counting_product->stock_unit_quantity ?? 0 }}" class="form-control" data-rownum="{{ $product_row }}" readonly>
+      </td>
+      <td class="text-left">
         <input type="text" id="input-products-unit_name-{{ $product_row }}" name="products[{{ $product_row }}][unit_name]" value="{{ $counting_product->unit_name ?? '' }}" class="form-control" readonly>
       </td>
       <td class="text-left">
-        <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $counting_product->price ?? 0 }}" class="form-control productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
+        <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $counting_product->price ?? 0 }}" class="form-control clcProduct" data-rownum="{{ $product_row }}">
       </td>
       <td class="text-left">
-        <input type="text" id="input-products-quantity-{{ $product_row }}" name="products[{{ $product_row }}][quantity]" value="{{ $counting_product->quantity }}" class="form-control productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
+        <input type="text" id="input-products-quantity-{{ $product_row }}" name="products[{{ $product_row }}][quantity]" value="{{ $counting_product->quantity }}" class="form-control clcProduct" data-rownum="{{ $product_row }}">
       </td>
       <td class="text-left">
         <input type="text" id="input-products-amount-{{ $product_row }}" name="products[{{ $product_row }}][amount]" value="{{ $counting_product->amount ?? 0 }}" class="form-control productAmountInputs" data-rownum="{{ $product_row }}" readonly>
@@ -88,13 +92,16 @@ function addCountingProduct(){
   html += '    <input type="text" id="input-products-stock_unit_name-'+product_row +'" name="products['+product_row +'][stock_unit_name]" value="" class="form-control" readonly>';
   html += '  </td>';
   html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-stock_unit_quantity-'+product_row +'" name="products['+product_row +'][stock_unit_quantity]" value="" class="form-control" data-rownum="'+product_row +'" readonly>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
   html += '    <input type="text" id="input-products-unit_name-'+product_row +'" name="products['+product_row +'][unit_name]" value="" class="form-control" readonly>';
   html += '  </td>';
   html += '  <td class="text-left">';
-  html += '    <input type="text" id="input-products-price-'+product_row +'" name="products['+product_row +'][price]" value="" class="form-control productPriceInputs clcProduct" data-rownum="'+product_row +'">';
+  html += '    <input type="text" id="input-products-price-'+product_row +'" name="products['+product_row +'][price]" value="" class="form-control clcProduct" data-rownum="'+product_row +'">';
   html += '  </td>';
   html += '  <td class="text-left">';
-  html += '    <input type="text" id="input-products-quantity-'+product_row +'" name="products['+product_row +'][quantity]" value="" class="form-control productPriceInputs clcProduct" data-rownum="'+product_row +'">';
+  html += '    <input type="text" id="input-products-quantity-'+product_row +'" name="products['+product_row +'][quantity]" value="" class="form-control clcProduct" data-rownum="'+product_row +'">';
   html += '  </td>';
   html += '  <td class="text-left">';
   html += '    <input type="text" id="input-products-amount-'+product_row +'" name="products['+product_row +'][amount]" value="" class="form-control productAmountInputs" data-rownum="'+product_row +'" readonly>';
@@ -105,7 +112,7 @@ function addCountingProduct(){
 
   product_row++;
 }
-</script></button>
+</script>
         </td>
       </tr>
     </tfoot>

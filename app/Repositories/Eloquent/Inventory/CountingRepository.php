@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
 use App\Models\Inventory\Counting;
 use App\Models\Inventory\CountingProduct;
+use App\Models\Catalog\ProductUnit;
 use App\Models\Catalog\Product;
 use App\Repositories\Eloquent\Common\UnitRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
@@ -17,7 +18,16 @@ use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
 use App\Domains\Admin\Exports\InventoryCountingListExport;
 use App\Helpers\Classes\DataHelper;
 
-use App\Repositories\StaticClasses\UnitConverter;
+// use Pimlie\PhpUnitConversion\Unit;
+// use Pimlie\PhpUnitConversion\Unit\Mass;
+// use Pimlie\PhpUnitConversion\Unit\Mass\Gram;
+//use UnitConverter\UnitConverter;
+//use App\Libraries\Xlinfoods\UnitConverter\UnitConverter;
+//use JordanBrauer\UnitConverter\Unit\Length\TwCatty;
+//use App\Libraries\jordanbrauer\UnitConverter\Unit\Mass\TwCatty;
+use App\Libraries\UnitConverter;
+//use App\Repositories\Eloquent\UserCopy\UserRepository;
+
 
 class CountingRepository
 {
@@ -42,18 +52,11 @@ class CountingRepository
 
             $row->status_name = !empty($row->status->name) ? $row->status->code . ':' .$row->status->name : '';
 
-
             // 額外欄位 掛載到資料集
             if(!empty($data['extra_columns'])){
 
-
-
             }
-
         }
-
-
-
 
         return $rows ?? [];
     }
@@ -98,18 +101,45 @@ class CountingRepository
                 
                 CountingProduct::where('counting_id', $counting->id)->delete();
 
+                $unitRepository = new UnitRepository;
+
                 foreach ($data['products'] as $key => $product) {
 
-                    $unit_name = $product['unit_name'];
-                    if(!empty($unit_name) && !empty($local_units[$unit_name])){
-                        $unit_code = $local_units[$unit_name]['code'];
-                    }
+                    $counting_quantity = str_replace(',','',$product['quantity']);
 
-                    if(empty($product['id'])){
+                    if(empty($product['id']) || empty($counting_quantity)){
                         continue;
                     }
 
-                    $quantity = str_replace(',','',$product['quantity']);
+                    $counting_unit_name = $product['unit_name'];
+                    if(!empty($counting_unit_name) && !empty($local_units[$counting_unit_name])){
+                        $counting_unit_code = $local_units[$counting_unit_name]['code'];
+                    }
+
+                    $stock_unit_name = $product['stock_unit_name'];
+                    if(!empty($stock_unit_name) && !empty($local_units[$stock_unit_name])){
+                        $stock_unit_code = $local_units[$stock_unit_name]['code'];
+                    }
+
+                    // 除錯用途
+                    if($product['id'] == 1100){
+                        //echo '<pre>', print_r($product, 1), "</pre>"; exit;
+                    }
+
+                    if($stock_unit_code == $counting_unit_code){
+                        $stock_unit_quantity = $counting_quantity;
+                    }else{
+                        //$product_unit = ProductUnit::where('product_id', $product['id'])->where('source_unit_code', $counting_unit_code)->first();
+                        //$stock_quantity = $unitRepository->setMeasure('mass')->setQty($counting_quantity)->from($counting_unit_code)->to($stock_unit_code);
+
+                        $input_data = [
+                            'product_id' => $product['id'],
+                            'from_quantity' => $counting_quantity,
+                            'from_unit_code' => $counting_unit_code,
+                            'to_unit_code' => $stock_unit_code,
+                        ];
+                        $stock_unit_quantity = $unitRepository->calculateQty($input_data);
+                    }
 
                     // CountingProduct
                     $upsert_data1[$key] = [
@@ -117,27 +147,27 @@ class CountingRepository
                         'product_id' => $product['id'],
                         //'product_name' => $product['name'],
                         //'product_specification' => $product['specification'],
-                        'unit_code' => $unit_code,
+                        'unit_code' => $counting_unit_code,
                         'price' => $product['price'],
-                        'quantity' => $quantity,
+                        'quantity' => $counting_quantity,
                         'amount' => $product['amount'],
+                        'stock_unit_code' => $stock_unit_code,
+                        'stock_unit_quantity' => $stock_unit_quantity,
                     ];
-
-                    $xxx = UnitConverter::convert(3, 'kg', 'g');
-
-                    echo '<pre>', print_r($xxx, 1), "</pre>"; exit;
 
                     // Product
                     $upsert_data2[$key] = [
                         'id' => $product['id'],
-                        'quantity' => $quantity,
+                        'quantity' => $stock_unit_quantity,
+                        //'from_quantity' => $counting_quantity,
                     ];
                 }
 
                 if(!empty($upsert_data1)){
-
                     CountingProduct::upsert($upsert_data1, ['id']);
+                }
 
+                if(!empty($upsert_data2)){
                     Product::upsert($upsert_data2, ['id']);
                 }
             }

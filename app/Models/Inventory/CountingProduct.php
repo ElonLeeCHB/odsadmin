@@ -40,6 +40,13 @@ class CountingProduct extends Model
         );
     }
 
+    protected function stockUnitQuantity(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => number_format($value, 3),
+        );
+    }
+
 
     // Custom Collection
     public function CountingProductCollection(array $models = [])

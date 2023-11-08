@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repositories\Eloquent\Inventory;
+namespace App\Repositories\Eloquent\Counterparty;
 
 use App\Repositories\Eloquent\Repository;
 use Illuminate\Pagination\LengthAwarePaginator;
