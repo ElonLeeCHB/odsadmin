@@ -186,10 +186,11 @@
               </div>
 
               <div class="row mb-3">
-                <label for="input-stock_unit_price" class="col-sm-2 col-form-label">{{ $lang->column_stock_unit_price }}</label>
+                <label for="input-stock_price" class="col-sm-2 col-form-label">{{ $lang->column_stock_price }}</label>
                 <div class="col-sm-10">
-                  <input type="text" id="input-stock_unit_price" name="stock_unit_price" value="{{ $product->stock_unit_price }}" class="form-control"/>
-                  <div id="error-stock_unit_price" class="invalid-feedback"></div>
+                  <input type="text" id="input-stock_price" name="stock_price" value="{{ $product->stock_price }}" class="form-control"/>
+                  <div id="error-stock_price" class="invalid-feedback"></div>
+                  <div class="form-text">採購價(進貨價)</div>
                 </div>
               </div>
 
@@ -237,14 +238,6 @@
                 <div class="col-sm-10">
                   <input type="text" name="price" value="{{ $product->price }}" placeholder="{{ $lang->column_price }}" id="input-price" class="form-control"/>
                   <div id="error-price" class="invalid-feedback"></div>
-                </div>
-              </div>
-
-              <div class="row mb-3">
-                <label for="input-purchasing_price" class="col-sm-2 col-form-label">{{ $lang->column_purchasing_price }}</label>
-                <div class="col-sm-10">
-                  <input type="text" name="purchasing_price" value="{{ $product->purchasing_price ?? 0}}" id="input-purchasing_price" class="form-control"/>
-                  <div id="error-purchasing_price" class="invalid-feedback"></div>
                 </div>
               </div>
 

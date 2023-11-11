@@ -110,7 +110,7 @@
                           </select>
                         </div>
                         <div class="col-sm-3">
-                          <input type="text" id="input-tax_rate" name="tax_rate" value="{{ $receiving_order->tax_rate }}" placeholder="{{ $lang->column_tax_rate }}" class="form-control" readonly/>
+                          <input type="text" id="input-formatted_tax_rate" name="formatted_tax_rate" value="{{ $receiving_order->formatted_tax_rate }}" placeholder="{{ $lang->column_tax_rate }}" class="form-control" readonly/>
                         </div>
                         <div class="col-sm-1" style="font-size: 1.3rem;">%</div>
 
@@ -210,8 +210,8 @@
                       <td class="text-left" style="width:100px;">進貨<BR>單價</td>
                       <td class="text-left" style="width:100px;">進貨<BR>數量</td>
                       <td class="text-left" style="width:100px;">進貨<BR>金額</td>
-                      <td class="text-left" style="width:80px;">進貨<BR>單位</td>
-                      <td class="text-left" style="width:100px;">庫存<BR>數量</td>
+                      <td class="text-left" style="width:80px;"><label data-bs-toggle="tooltip" title="若要選擇不同單位，請先重新選擇料件" style="font-weight: bolder;" >進貨<BR>單位 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
+                      <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="轉入庫存數量" style="font-weight: bolder;" >庫存<BR>數量 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
                       <td class="text-left" style="width:100px;">庫存<BR>單價</td>
                       <td class="text-left" style="width:80px;">庫存<BR>單位</td>
                     </tr>
@@ -223,9 +223,20 @@
                         <button type="button" onclick="$('#product-row{{ $product_row }}').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>
                       </td>
                       <td class="text-left">
-                        <input type="text" id="input-products-name-{{ $product_row }}" name="products[{{ $product_row }}][name]" value="{{ $receiving_product->product_name ?? '' }}" data-rownum="{{ $product_row }}" class="form-control schProductName" data-oc-target="autocomplete-product_name-{{ $product_row }}" autocomplete="off">
-                        <ul id="autocomplete-product_name-{{ $product_row }}" class="dropdown-menu"></ul>
-                        <input type="hidden" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $receiving_product->product_id ?? '' }}" class="form-control" readonly>
+<div class="container input-group col-sm-12">
+  <div class="col-sm-3">
+    <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $receiving_product->product_id ?? '' }}" class="form-control" readonly>
+  </div>
+  <div class="col-sm-8">
+    <input type="text" id="input-products-name-{{ $product_row }}" name="products[{{ $product_row }}][name]" value="{{ $receiving_product->product_name ?? '' }}" data-rownum="{{ $product_row }}" class="form-control schProductName" data-oc-target="autocomplete-product_name-{{ $product_row }}" autocomplete="off">
+    <ul id="autocomplete-product_name-{{ $product_row }}" class="dropdown-menu"></ul>
+  </div>
+  <div class="col-sm-1">
+    <div class="input-group-append">
+      <a href="{{ $receiving_product->product_edit_url ?? '' }}" class="btn btn-outline-secondary" target="_blank"><i class="fas fa-external-link-alt"></i></a>
+    </div>
+  </div>
+</div>
                       </td>
                       <td class="text-left">
                         <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $receiving_product->product_specification ?? '' }}" class="form-control" readonly>
@@ -240,13 +251,15 @@
                         <input type="text" id="input-products-amount-{{ $product_row }}" name="products[{{ $product_row }}][amount]" value="{{ $receiving_product->amount ?? 0 }}" class="form-control productAmountInputs clcProduct" data-rownum="{{ $product_row }}" readonly>
                       </td>
                       <td class="text-left">
-                        <select id="input-products-receiving_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][receiving_unit_code]" class="form-control">
+                        <select id="input-products-receiving_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][receiving_unit_code]" class="form-control" >
                           <option value=""> -- </option>
-                          <option value="{{ $receiving_product->receiving_unit_code ?? '' }}_{{ $receiving_product->receiving_unit_name ?? '' }}" selected data-multiplier="{{ $receiving_product->multiplier }}">{{ $receiving_product->receiving_unit_name ?? '' }}</option>
+                          @foreach($receiving_product->product_units as $product_unit)
+                          <option value="{{ $product_unit->source_unit_code ?? '' }}_{{ $product_unit->source_unit_name ?? '' }}" @if($product_unit->source_unit_code == $receiving_product->receiving_unit_code) selected @endif data-factor="{{ $product_unit->factor }}">{{ $product_unit->source_unit_name ?? '' }}</option>
+                          @endforeach
                         </select>
                       </td>
                       <td class="text-left">
-                        <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->receiving_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">
+                        <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">
                       </td>
                       <td class="text-left">
                         <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? 0 }}" class="form-control" readonly>
@@ -318,7 +331,7 @@ $('#input-supplier_name').on('click', function(e){
 
 // 查料件名稱
 $(document).on('click', '.schProductName', function() {
-  $(this).autocomplete({
+  $('.schProductName').autocomplete({
     'source': function (request, response) {
       let supplier_id = $('#input-supplier_id').val();
       let supplier_url = '';
@@ -341,6 +354,8 @@ $(document).on('click', '.schProductName', function() {
       $('#input-products-specification-'+rownum).val(item.specification);
       $('#input-products-stock_unit_code-'+rownum).val(item.stock_unit_code);
       $('#input-products-stock_unit_name-'+rownum).val(item.stock_unit_name);
+      $('#input-products-product_edit_url-'+rownum).attr('href', item.product_edit_url);
+      $('#input-products-product_edit_url-'+rownum).attr('target', '_blank');
 
       var selectElement = $('#input-products-receiving_unit_code-'+rownum);
       selectElement.empty();
@@ -350,7 +365,7 @@ $(document).on('click', '.schProductName', function() {
 
         option.val(product_unit.source_unit_code);
         option.text(product_unit.source_unit_name);
-        option.attr('data-multiplier', product_unit.destination_quantity);
+        option.attr('data-factor', product_unit.destination_quantity);
         //console.log('unit.source_unit_code='+unit.source_unit_code+', unit.source_unit_name='+unit.source_unit_name+', unit.destination_quantity='+unit.destination_quantity)
 
         selectElement.append(option);
@@ -369,17 +384,17 @@ $('#input-tax_type_code').on("change", function() {
 function chgTaxRate(){
   let tax_type_code = $('#input-tax_type_code').val(); 
   if(tax_type_code == 1){
-    $('#input-tax_rate').val(5);
-    tax_rate = 5;
+    $('#input-formatted_tax_rate').val(5);
+    formatted_tax_rate = 5;
   }else if(tax_type_code == 2){
-    $('#input-tax_rate').val(5);
-    tax_rate = 5;
+    $('#input-formatted_tax_rate').val(5);
+    formatted_tax_rate = 5;
   }else if(tax_type_code == 3){
-    $('#input-tax_rate').val(0);
-    tax_rate = 0;
+    $('#input-formatted_tax_rate').val(0);
+    formatted_tax_rate = 0;
   }else if(tax_type_code == 4){
-    $('#input-tax_rate').val(0);
-    tax_rate = 0;
+    $('#input-formatted_tax_rate').val(0);
+    formatted_tax_rate = 0;
   }
 }
 
@@ -423,28 +438,25 @@ $(document).ready(function () {
   });
 });
 
-
-
 function calcProduct(rownum){
   let price = $('#input-products-price-'+rownum).val() ?? 0;
   let receiving_quantity = $('#input-products-receiving_quantity-'+rownum).val() ?? 0;
   let amount = $('#input-products-amount-'+rownum).val() ?? 0;
   let destination_quantity = 0;
-  let multiplier = $('#input-products-receiving_unit_code-'+rownum + ' option:selected').data('multiplier');
+  let factor = $('#input-products-receiving_unit_code-'+rownum + ' option:selected').data('factor');
 
   amount = price*receiving_quantity
   $('#input-products-amount-'+rownum).val(amount);
-
   
-  if ($.isNumeric(receiving_quantity) && $.isNumeric(multiplier)) {
-    destination_quantity = receiving_quantity * multiplier
+  if ($.isNumeric(receiving_quantity) && $.isNumeric(factor)) {
+    destination_quantity = (receiving_quantity * factor).toFixed(3);
   }
 
   let stock_price = 0;
   if ($.isNumeric(receiving_quantity) && destination_quantity > 0) {
     stock_price = amount / destination_quantity;
   }
-  console.log('amount='+amount+', receiving_quantity='+receiving_quantity+', multiplier='+multiplier+', destination_quantity='+destination_quantity+', multiplier='+multiplier);
+  console.log('amount='+amount+', receiving_quantity='+receiving_quantity+', factor='+factor+', destination_quantity='+destination_quantity);
 
   // 庫存數量
   $('#input-products-stock_quantity-'+rownum).val(destination_quantity);
@@ -465,7 +477,7 @@ function calcAllProducts(){
   });
 
   var tax_type_code = $('#input-tax_type_code').val();
-  var tax_rate_pcnt = $('#input-tax_rate').val()/100;
+  var tax_rate_pcnt = $('#input-formatted_tax_rate').val()/100;
   var tax = $('#input-tax').val();
 
   // 應稅內含
@@ -512,9 +524,28 @@ function addReceivingProduct(){
   html += '    <button type="button" onclick="$(\'#product-row\').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>';
   html += '  </td>';
   html += '  <td class="text-left">';
-  html += '    <input type="text" id="input-products-name-'+product_row+'" name="products['+product_row+'][name]" value="" data-rownum="'+product_row+'" class="form-control schProductName" data-oc-target="autocomplete-product_name-'+product_row+'" autocomplete="off">';
-  html += '    <ul id="autocomplete-product_name-'+product_row+'" class="dropdown-menu"></ul>';
-  html += '    <input type="hidden" id="input-products-id-'+product_row+'" name="products['+product_row+'][id]" value="" class="form-control" readonly>';
+
+  html += '    <div class="container input-group col-sm-12">';
+  html += '      <div class="col-sm-3">';
+  html += '        <input type="text" id="input-products-id-'+product_row+'" name="products['+product_row+'][id]" value="" class="form-control" readonly>';
+  html += '      </div>';
+  html += '      <div class="col-sm-8">';
+  html += '        <input type="text" id="input-products-name-'+product_row+'" name="products['+product_row+'][name]" value="" data-rownum="'+product_row+'" class="form-control schProductName" data-oc-target="autocomplete-product_name-'+product_row+'" autocomplete="off">';
+  html += '        <ul id="autocomplete-product_name-'+product_row+'" class="dropdown-menu"></ul>';
+  html += '      </div>';
+  html += '      <div class="col-sm-1">';
+  html += '        <div class="input-group-append">';
+  html += '          <a href="javascript:void(0);" id="input-products-product_edit_url-'+product_row+'" class="btn btn-outline-secondary"><i class="fas fa-external-link-alt"></i></a>';
+  html += '        </div>';
+  html += '      </div>';
+  html += '    </div>';
+
+
+
+
+  // html += '    <input type="text" id="input-products-name-'+product_row+'" name="products['+product_row+'][name]" value="" data-rownum="'+product_row+'" class="form-control schProductName" data-oc-target="autocomplete-product_name-'+product_row+'" autocomplete="off">';
+  // html += '    <ul id="autocomplete-product_name-'+product_row+'" class="dropdown-menu"></ul>';
+  // html += '    <input type="hidden" id="input-products-id-'+product_row+'" name="products['+product_row+'][id]" value="" class="form-control" readonly>';
   html += '  </td>';
   html += '  <td class="text-left">';
   html += '    <input type="text" id="input-products-specification-'+product_row+'" name="products['+product_row+'][specification]" value="" class="form-control" readonly>';

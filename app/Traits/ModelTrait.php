@@ -168,4 +168,18 @@ trait ModelTrait
     }   
     
     
+    public function setNumberAttribute($value, $to_fixed = 0, $keep_zero = false)
+    {
+        return Attribute::make(
+            get: function ($value) use ($keep_zero){
+                return $keep_zero == false ? rtrim(rtrim($value, '0'), '.') : $value;
+            },
+            set: function ($value) use ($to_fixed){
+                $value = empty($value) ? 0 : $value; // if null or not exist, set to 0
+                $value = str_replace(',', '', $value); // only work for string, not for number
+                $value = empty($to_fixed) ? $value : number_format((float) $value, $to_fixed);
+                return $value;
+            }
+        ); 
+    }
 }

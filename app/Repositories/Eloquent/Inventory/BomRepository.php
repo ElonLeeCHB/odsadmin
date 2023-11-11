@@ -22,7 +22,6 @@ class BomRepository extends Repository
         
         if(!empty($data['extra_columns'])){
             if(in_array('product_name', $data['extra_columns'])){
-                echo '<pre>', print_r(11, 1), "</pre>"; 
                 $boms->load('product');
             }
         }
@@ -78,6 +77,15 @@ class BomRepository extends Repository
             }
 
             DB::commit();
+
+            $bom->refresh();
+
+            $bom->load('bom_products');
+
+            
+
+            echo '<pre>', print_r($bom->toArray(), 1), "</pre>"; exit;
+
             
             return ['id' => $bom->id];
 
@@ -141,8 +149,10 @@ class BomRepository extends Repository
     {
         if(!empty($bom->bom_products)){
             foreach ($bom->bom_products as $bom_product) {
+                $bom_product->usage_unit_name = $bom_product->sub_product->usage_unit->name ?? '';
                 $bom_product->sub_product_name = $bom_product->sub_product->translation->name ?? '';
                 $bom_product->sub_product_specification = $bom_product->sub_product->translation->specification ?? '';
+                $bom_product->sub_product_supplier_name = $bom_product->sub_product->supplier->name ?? '';
             }
         }
 

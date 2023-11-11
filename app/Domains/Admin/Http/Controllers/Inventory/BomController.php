@@ -174,6 +174,10 @@ class BomController extends BackendController
         //$sub_products = $bom->sub_products;
         $data['bom_products'] = $this->BomService->getBomSubProducts($bom);
 
+        foreach ($data['bom_products']  as $key => $counting_product) {
+            $data['bom_products'][$key]->product_edit_url = route('lang.admin.inventory.products.form', $counting_product->sub_product_id);
+        }
+
         return view('admin.inventory.bom_form', $data);
     }
 

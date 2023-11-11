@@ -2,7 +2,7 @@
 
 return [
 // Heading
-'heading_title' => '盤點結餘作業',
+'heading_title' => '盤點作業',
 
 // Tab
 'tab_general' => '基本資料',

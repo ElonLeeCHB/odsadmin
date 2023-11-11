@@ -5,7 +5,7 @@ namespace App\Repositories\Eloquent\Catalog;
 use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
 use App\Repositories\Eloquent\Common\TermRepository;
-use App\Repositories\Eloquent\Common\UnitRepository;
+use App\Repositories\Eloquent\Inventory\UnitRepository;
 use App\Repositories\Eloquent\Catalog\ProductUnitRepository;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductOption;
@@ -32,7 +32,6 @@ class ProductRepository extends Repository
     public function getProducts($data = [], $debug = 0)
     {
         $filter_data = $this->resetQueryData($data);
-        
         $products = $this->getRows($filter_data, $debug);
         
         if(count($products) == 0){
@@ -49,10 +48,9 @@ class ProductRepository extends Repository
             
             if (!empty($matches) || in_array('available_units', $data['extra_columns'])) {
                 $filter_data = [
-                    'equal_is_active' => 1
+                    'equal_is_active' => 1,
                 ];
-                $units = $this->UnitRepository->getKeyedActiveUnits($filter_data);
-                
+                $units = $this->UnitRepository->getCodeKeyedActiveUnits($filter_data);
                 $products->load('stock_unit.translation');
             }
 
@@ -92,8 +90,6 @@ class ProductRepository extends Repository
                     $row->stock_unit_name = $units[$row->stock_unit_code]->name ?? '';
                     $row->counting_unit_name = $units[$row->counting_unit_code]->name ?? '';
                     $row->usage_unit_name = $units[$row->usage_unit_code]->name ?? '';
-
-                    
                 }
 
                 // supplier_columns
@@ -463,7 +459,6 @@ class ProductRepository extends Repository
         // }
 
         if(in_array('available_units', $columns) && !empty($row->avaible_unit_codes)){
-           // echo '<pre>', print_r(999, 1), "</pre>"; exit;
             $available_units = 11;
         }
 

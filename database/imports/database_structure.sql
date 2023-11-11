@@ -888,7 +888,7 @@ CREATE TABLE `receiving_orders` (
   `tax_id_num` varchar(8) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `amount` decimal(13,4) DEFAULT 0.0000 COMMENT '採購金額',
   `before_tax` decimal(13,4) DEFAULT 0.0000,
-  `tax_rate` decimal(4,3) DEFAULT NULL,
+  `formatted_tax_rate` decimal(4,3) DEFAULT NULL,
   `tax` decimal(10,4) DEFAULT 0.0000 COMMENT '稅額',
   `after_tax` decimal(13,4) DEFAULT 0.0000,
   `total` decimal(13,4) DEFAULT 0.0000 COMMENT '總金額',

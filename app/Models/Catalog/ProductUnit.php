@@ -5,7 +5,7 @@ namespace App\Models\Catalog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Traits\ModelTrait;
-use App\Models\Common\Unit;
+use App\Models\Inventory\Unit;
 
 class ProductUnit extends Model
 {
@@ -42,7 +42,6 @@ class ProductUnit extends Model
             get: fn () => $this->destination_unit->name ?? '',
         );
     }
-
 }
 
 

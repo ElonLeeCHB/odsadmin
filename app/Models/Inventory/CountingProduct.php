@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Traits\ModelTrait;
 use App\Models\Catalog\Product;
-use App\Models\Common\Unit;
-use App\Collections\CountingProductCollection;
+use App\Models\Inventory\Unit;
+//use App\Collections\CountingProductCollection;
 
 class CountingProduct extends Model
 {
@@ -36,23 +36,39 @@ class CountingProduct extends Model
     protected function quantity(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => number_format(round($value)),
+            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            set: fn ($value) => str_replace(',','',$value),
         );
     }
 
-    protected function stockUnitQuantity(): Attribute
+    protected function stockQuantity(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => number_format($value, 3),
+            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            set: fn ($value) => str_replace(',','',$value),
         );
     }
 
-
-    // Custom Collection
-    public function CountingProductCollection(array $models = [])
+    protected function price(): Attribute
     {
-        return new CountingProductCollection($models);
+        return Attribute::make(
+            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            set: fn ($value) => str_replace(',','',$value),
+        );
     }
+
+    protected function amount(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            set: fn ($value) => str_replace(',','',$value),
+        );
+    }
+    // Custom Collection
+    // public function CountingProductCollection(array $models = [])
+    // {
+    //     return new CountingProductCollection($models);
+    // }
 
     
 }

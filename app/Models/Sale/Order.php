@@ -223,24 +223,24 @@ class Order extends Model
     protected function paymentTotal(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => number_format($value),
-            set: fn ($value) => str_replace(',', '', $value),
+            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
         );
     }
 
     protected function paymentPaid(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => number_format($value),
-            set: fn ($value) => str_replace(',', '', $value),
+            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
         );
     }
 
     protected function paymentUnpaid(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => number_format($value),
-            set: fn ($value) => str_replace(',', '', $value),
+            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
         );
     }
 }

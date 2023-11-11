@@ -9,7 +9,7 @@ use App\Models\Common\Term;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductUnit;
 use App\Models\Catalog\ProductMeta;
-use App\Models\Common\Unit;
+use App\Models\Inventory\Unit;
 use App\Models\Inventory\Bom;
 use App\Models\Inventory\BomProduct;
 use App\Models\Counterparty\Organization;
@@ -158,7 +158,8 @@ class Product extends Model
     protected function price(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => number_format($value),
+            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
         );
     }
 
@@ -176,5 +177,12 @@ class Product extends Model
         );
     }
 
-    
+    protected function quantity(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
+
+        );
+    }
 }

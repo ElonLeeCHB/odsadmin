@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use Illuminate\Http\Request;
 use App\Services\Localization\UnitService;
-use App\Repositories\Eloquent\Common\UnitRepository;
+use App\Repositories\Eloquent\Inventory\UnitRepository;
 
 class UnitController extends BackendController
 {
@@ -63,7 +63,7 @@ class UnitController extends BackendController
             }
         }
 
-        $rows = $this->UnitRepository->getKeyedActiveUnits($filter_data);
+        $rows = $this->UnitRepository->getCodeKeyedActiveUnits($filter_data);
         
         if(empty($rows)){
             return false;

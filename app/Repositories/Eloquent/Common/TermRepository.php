@@ -49,14 +49,13 @@ class TermRepository extends Repository
  * @created 2023-11-05
  * @updated 2023-11-05
  */
-    public function getKeyedTermsByTaxonomyCode($taxonomy_code, $to_array = true, $data = null): array
+    public function getKeyedTermsByTaxonomyCode($taxonomy_code, $toArray = true, $params = null): array
     {
         $cache_name = 'cache/terms/code_indexed/' . $taxonomy_code . '.json';
-
         if (Storage::exists($cache_name)) {
-            $rows = Storage::get($cache_name);
+            $json_string = Storage::get($cache_name);
         }else{
-            $filter_data = $data;
+            $filter_data = $params;
 
             //強制必須
             $filter_data['equal_taxonomy_code'] = $taxonomy_code;
@@ -81,24 +80,24 @@ class TermRepository extends Repository
                 Storage::put($cache_name, json_encode($rows));
                 sleep(1);
 
-                $rows = Storage::get($cache_name);
+                $json_string = Storage::get($cache_name);
             }
         }
 
-        $objects = json_decode($rows);
+        $objects = json_decode($json_string);
 
         // 預設三個欄位
-        if(empty($data['columns'])){
-            $data['columns'] = ['id','code','name'];
+        if(empty($params['columns'])){
+            $params['columns'] = ['id','code','name'];
         }else{
-            $data['columns'] = '*';
+            $params['columns'] = '*';
         }
 
         // 指定欄位
-        if($data['columns'] != '*'){
+        if($params['columns'] != '*'){
             foreach ($objects as $code => $object) {
                 foreach ($object as $column => $value) {
-                    if(!in_array($column, $data['columns'])){
+                    if(!in_array($column, $params['columns'])){
                         unset($objects->$code->$column);
                     }
                 }
@@ -108,7 +107,7 @@ class TermRepository extends Repository
 
         $rows = [];
 
-        if($to_array == true){
+        if($toArray == true){
             foreach ($objects as $code => $object) {
                 $rows[$code] = (array) $object;
             }

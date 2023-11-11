@@ -59,7 +59,7 @@ return [
 'column_supplier_own_product_code' => '廠商品號',
 'column_supplier_own_product_name' => '廠商品名',
 'column_supplier_own_product_specification' => '廠商規格',
-'column_stock_unit_price' => '庫存單位成本',
+'column_stock_price' => '庫存單位成本',
 'column_comment' => '備註',
 'column_temperature_type' => '存放溫度類型',
 

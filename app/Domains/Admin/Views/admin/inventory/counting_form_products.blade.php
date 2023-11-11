@@ -9,7 +9,7 @@
       <td class="text-left">規格</td>
       <td class="text-left" style="width:100px;">庫存單位</td>
       <td class="text-left" style="width:100px;">庫存數量</td>
-      <td class="text-left" style="width:100px;">盤點單位</td>
+      <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="若要選擇不同盤點單位，請先重新選擇料件" style="font-weight: bolder;" >盤點單位 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
       <td class="text-left" style="width:100px;">盤點單價</td>
       <td class="text-left" style="width:100px;">盤點數量</td>
       <td class="text-left" style="width:100px;">盤點金額</td>
@@ -28,7 +28,6 @@
             <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $counting_product->product_id ?? '' }}" class="form-control" readonly>
             <a href="{{ $counting_product->product_edit_url ?? '' }}" target="_blank" title="料件基本資料" class="btn btn-light"><i class="fas fa-external-link-alt"></i></a>
           </div>
-
         </div>
       </td>
       <td class="text-left">
@@ -40,13 +39,19 @@
       </td>
       <td class="text-left">
         <input type="text" id="input-products-stock_unit_name-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_name]" value="{{ $counting_product->stock_unit_name ?? '' }}" class="form-control" readonly>
+        <input type="hidden" id="input-products-stock_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_code]" value="{{ $counting_product->stock_unit_code ?? '' }}" >
       </td>
       <td class="text-left">
-        <input type="text" id="input-products-stock_unit_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_quantity]" value="{{ $counting_product->stock_unit_quantity ?? 0 }}" class="form-control" data-rownum="{{ $product_row }}" readonly>
+        <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $counting_product->stock_quantity ?? 0 }}" class="form-control" data-rownum="{{ $product_row }}" >
       </td>
       <td class="text-left">
-        <input type="text" id="input-products-unit_name-{{ $product_row }}" name="products[{{ $product_row }}][unit_name]" value="{{ $counting_product->unit_name ?? '' }}" class="form-control" readonly>
-      </td>
+
+        <select id="input-products-unit_name-{{ $product_row }}" name="products[{{ $product_row }}][unit_name]" class="form-control">
+          <option value=""> -- </option>
+          <option value="{{ $counting_product->unit_code ?? '' }}_{{ $counting_product->unit_name ?? '' }}" selected data-factor="{{ $counting_product->factor }}">{{ $counting_product->unit_name ?? '' }}</option>
+        </select>
+
+     </td>
       <td class="text-left">
         <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $counting_product->price ?? 0 }}" class="form-control clcProduct" data-rownum="{{ $product_row }}">
       </td>
@@ -90,12 +95,17 @@ function addCountingProduct(){
   html += '  </td>';
   html += '  <td class="text-left">';
   html += '    <input type="text" id="input-products-stock_unit_name-'+product_row +'" name="products['+product_row +'][stock_unit_name]" value="" class="form-control" readonly>';
+  html += '    <input type="hidden" id="input-products-stock_unit_code-'+product_row +'" name="products['+product_row +'][stock_unit_code]" value="" >';
   html += '  </td>';
   html += '  <td class="text-left">';
-  html += '    <input type="text" id="input-products-stock_unit_quantity-'+product_row +'" name="products['+product_row +'][stock_unit_quantity]" value="" class="form-control" data-rownum="'+product_row +'" readonly>';
+  html += '    <input type="text" id="input-products-stock_quantity-'+product_row +'" name="products['+product_row +'][stock_quantity]" value="" class="form-control" data-rownum="'+product_row +'" readonly>';
   html += '  </td>';
   html += '  <td class="text-left">';
-  html += '    <input type="text" id="input-products-unit_name-'+product_row +'" name="products['+product_row +'][unit_name]" value="" class="form-control" readonly>';
+  html += '    <select id="input-products-unit_name-'+product_row+'" name="products['+product_row+'][unit_name]" class="form-control">';
+  html += '      <option value=""> -- </option>';
+  html += '    </select>';
+  html += '    <input type="hidden" id="input-products-unit_code-'+product_row +'" name="products['+product_row +'][unit_code]" value="" class="form-control" readonly>';
+  html += '    <input type="hidden" id="input-products-factor-'+product_row +'" name="products['+product_row +'][factor]" value="" >';
   html += '  </td>';
   html += '  <td class="text-left">';
   html += '    <input type="text" id="input-products-price-'+product_row +'" name="products['+product_row +'][price]" value="" class="form-control clcProduct" data-rownum="'+product_row +'">';

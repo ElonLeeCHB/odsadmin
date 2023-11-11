@@ -39,7 +39,6 @@ class Counting extends Model
     }
 
 
-    //應該用快取
     public function status()
     {
         return $this->belongsTo(Term::class, 'status_code', 'code')->where('taxonomy_code', 'common_form_status');

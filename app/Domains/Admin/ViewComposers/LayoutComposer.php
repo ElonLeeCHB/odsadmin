@@ -213,6 +213,17 @@ class LayoutComposer
             ];
         }
 
+        // 上暉料件需求
+        // if(1) {
+        //     $inventory[] = [
+        //         'name'	   => '上暉料件需求',
+        //         'icon'	   => '',
+        //         'href'     => route('lang.admin.inventory.shMaterialRequirements.index'),
+        //         'children' => []
+        //     ];
+        // }
+
+
         // add to Menus
         if(!empty($sale)) {
             $menus[] = [
@@ -360,12 +371,22 @@ class LayoutComposer
             ];
         }
 
-        // 盤點結餘作業 Inventory Counting Task
+        // 盤點作業
         if(1) {
             $inventory[] = [
                 'name'	   => $this->lang->text_counting_task,
                 'icon'	   => '',
                 'href'     => route('lang.admin.inventory.countings.index'),
+                'children' => []
+            ];
+        }
+
+        // 訂單料件表
+        if(1) {
+            $inventory[] = [
+                'name'	   => '訂單料件表',
+                'icon'	   => '',
+                'href'     => route('lang.admin.inventory.materialRequirements.index'),
                 'children' => []
             ];
         }

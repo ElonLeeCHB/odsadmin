@@ -9,9 +9,12 @@ use App\Models\Catalog\Product;
 use App\Models\Inventory\ReceivingOrderProduct;
 use App\Models\Common\Term;
 use App\Models\Setting\Location;
+use App\Traits\ModelTrait;
 
 class ReceivingOrder extends Model
 {
+    use ModelTrait;
+
     protected $table = 'receiving_orders';
     protected $guarded = [];
     protected $appends = ['purchasing_date_ymd','receiving_date_ymd'];
@@ -70,13 +73,6 @@ class ReceivingOrder extends Model
         );
     }
 
-    public function amount(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => round($value),
-        );
-    }
-
     public function tax(): Attribute
     {
         return Attribute::make(
@@ -84,13 +80,25 @@ class ReceivingOrder extends Model
         );
     }
 
-    public function taxRate(): Attribute
+    protected function formattedTaxRate(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => $value*100,
-            set: fn ($value) => $value/100,
+            get: fn ($value) => $this->tax_rate * 100,
+            set: function ($value) {
+                $this->attributes['tax_rate'] = $value / 100;
+            }
         );
     }
+
+    public function setFormattedTaxRateAttribute($value)
+    {
+        $this->attributes['tax_rate'] = $value / 100;
+    }
+
+    // public function amount(): Attribute
+    // {
+    //     return $this->setNumberAttribute($this->attributes['amount'],4);
+    // }
 
     public function total(): Attribute
     {

@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Admin\Services\Inventory\ReceivingOrderService;
-use App\Repositories\Eloquent\Common\UnitRepository;
+use App\Repositories\Eloquent\Inventory\UnitRepository;
+use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Setting\Location;
 use App\Models\Localization\Language;
 
@@ -16,6 +17,7 @@ class ReceivingOrderController extends BackendController
         private Request $request
         , private ReceivingOrderService $ReceivingOrderService
         , private UnitRepository $UnitRepository
+        , private TermRepository $TermRepository
     )
     {
         parent::__construct();
@@ -163,7 +165,7 @@ class ReceivingOrderController extends BackendController
 
         // Get Record
         $receiving_order = $this->ReceivingOrderService->findIdOrFailOrNew($receiving_order_id);
-
+        echo '<pre>', print_r($receiving_order->toArray(), 1), "</pre>"; exit;
         if(empty($receiving_order->receiving_date)){
             $receiving_order->receiving_date = date('Y-m-d');
         }
@@ -191,29 +193,88 @@ class ReceivingOrderController extends BackendController
 
         // statuses
         $data['statuses'] = $this->ReceivingOrderService->getCachedActiveReceivingOrderStatuses();
-        
+
+        $standard_units = $this->UnitRepository->getCodeKeyedStandardActiveUnits();
+        $standard_units_array_keys = array_keys($standard_units);
+
         // receiving_products
         if(!empty($receiving_order)){
             $receiving_order->load('receiving_products.product_units');
 
+
             foreach ($receiving_order->receiving_products as $receiving_product) {
-                foreach ($receiving_product->product_units as $product_unit) {
-                    // multiplier 原應設為 $product_unit 的屬性。暫時設到 $receiving_product
-                    $receiving_product->multiplier = $product_unit->destination_quantity / $product_unit->source_quantity ;
+
+                foreach ($receiving_product->product_units as $key => $product_unit) {
+                    $arr = $product_unit->toArray();
+                    unset($arr['source_unit']);
+                    unset($arr['destination_unit']);
+
+                    $receiving_product->product_units[$key] = (object) $arr;
+                }
+
+                // 都是標準單位，product_units 不會有，查 units 表
+                if(   in_array($receiving_product->receiving_unit_code, $standard_units_array_keys) 
+                   && in_array($receiving_product->stock_unit_code, $standard_units_array_keys)){
+
+                    $params = [
+                        'from_quantity' => 1,
+                        'from_unit_code' => $receiving_product->receiving_unit_code,
+                        'to_unit_code' => $receiving_product->stock_unit_code,
+                    ];
+                    $factor = $this->UnitRepository->calculateQty($params);
+
+                    //$stock_unit_code = $standard_units[$receiving_product->receiving_unit_code]
+                    $receiving_product->product_units[] = (object) [
+                        'product_id' => $receiving_product->product_id,
+                        'source_unit_code' => $receiving_product->receiving_unit_code,
+                        'source_unit_name' => $standard_units[$receiving_product->receiving_unit_code]->name,
+                        'source_quantity' => 1,
+                        'destination_unit_code' => $receiving_product->product->stock_unit_code,
+                        'destination_unit_name' => $standard_units[$receiving_product->stock_unit_code]->name,
+                        'destination_quantity' => $factor,
+                        'factor' => $factor,
+                    ];
+
+                    $receiving_product->setRelation('product', null);
+
+                }
+
+                // 來源單位不是標準單位，則來源單位應有轉換，但新增一筆來源跟目的都相同的庫存單位供選擇
+                if(   !in_array($receiving_product->receiving_unit_code, $standard_units_array_keys) 
+                   && in_array($receiving_product->stock_unit_code, $standard_units_array_keys)){
+
+                    //$stock_unit_code = $standard_units[$receiving_product->receiving_unit_code]
+                    $receiving_product->product_units[] = (object) [
+                        'product_id' => $receiving_product->product_id,
+                        'source_unit_code' => $receiving_product->stock_unit_code,
+                        'source_unit_name' => $receiving_product->stock_unit_name,
+                        'source_quantity' => 1,
+                        'destination_unit_code' => $receiving_product->stock_unit_code,
+                        'destination_unit_name' => $receiving_product->stock_unit_name,
+                        'destination_quantity' => 1,
+                        'factor' => 1,
+                    ];
+
+                    $receiving_product->setRelation('product', null);
                 }
             }
         }
 
         $data['receiving_products'] = $receiving_order->receiving_products;
 
+        foreach ($data['receiving_products']  as $key => $receiving_product) {
+            $data['receiving_products'][$key]->product_edit_url = route('lang.admin.inventory.products.form', $receiving_product->product_id);
+        }
+
         // units
         $filter_data = [
             'filter_keyword' => $this->request->filter_keyword,
             'pagination' => false,
         ];
-        $data['units'] = $this->UnitRepository->getKeyedActiveUnits($filter_data);
+        $data['units'] = $this->UnitRepository->getCodeKeyedActiveUnits($filter_data);
 
-        $data['tax_types'] = $this->ReceivingOrderService->getActiveTaxTypesIndexByCode();
+        // 稅別
+        $data['tax_types'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('tax_type',toArray:false);
 
         return view('admin.inventory.receiving_order_form', $data);
     }
@@ -236,7 +297,7 @@ class ReceivingOrderController extends BackendController
         // end
 
         if(!$json) {
-            $result = $this->ReceivingOrderService->updateOrCreate($post_data);
+            $result = $this->ReceivingOrderService->saveReceivingOrder($post_data);
 
             if(empty($result['error'])){
                 $json = [

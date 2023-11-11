@@ -134,7 +134,6 @@ trait EloquentTrait
             if(!empty($data['with'])){
                 $query = $this->setWith($query, $data['with']);
             }
-
             $row = $query->findOrFail($id);
         }
         //new
@@ -1277,7 +1276,7 @@ trait EloquentTrait
     {
         $dateString = trim($dateString);
 
-        // 只允許數字或-或:
+        // 只允許數字或-或/或:
         if(!preg_match('/^[0-9\-\/:]+$/', $dateString, $matches)){
             return false;
         }

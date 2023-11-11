@@ -77,7 +77,7 @@ class ProductOption extends Model
             $collections = $this->product_option_values()->get()->sortBy('sort_order');
 
             foreach($collections as $key => $collection){
-                $collection = $collection->translation->name;
+                $collection = $collection->translation->name ?? '';
             }
 
             return $collections;

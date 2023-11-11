@@ -97,6 +97,7 @@ Route::group(
                 'as' => 'sale.',
             ], function ()
             {
+                Route::get('tests', 'Sale\TestController@index')->name('tests.index');
                 Route::get('orders', 'Sale\OrderController@index')->name('orders.index');
                 Route::get('orders/form/{order_id?}', 'Sale\OrderController@form')->name('orders.form');
                 Route::get('orders/list', 'Sale\OrderController@list')->name('orders.list');
@@ -251,6 +252,12 @@ Route::group(
                 Route::post('countings/import/{id?}', 'Inventory\CountingController@readExcel')->name('countings.import');
                 Route::post('countings/export_counting_product_list', 'Inventory\CountingController@exportCountingProductList')->name('countings.export_counting_product_list');
                 Route::get('countings/export_counting_product_list', 'Inventory\CountingController@exportCountingProductList')->name('countings.export_counting_product_list');
+
+                Route::get('materialRequirements', 'Inventory\MaterialRequirementController@index')->name('materialRequirements.index');
+                Route::get('materialRequirements/list', 'Inventory\MaterialRequirementController@list')->name('materialRequirements.list');
+                Route::get('materialRequirements/form/{id?}', 'Inventory\MaterialRequirementController@form')->name('materialRequirements.form');
+                Route::post('materialRequirements/delete', 'Inventory\MaterialRequirementController@delete')->name('materialRequirements.delete');
+                Route::post('materialRequirements/anylize', 'Inventory\MaterialRequirementController@anylize')->name('materialRequirements.anylize');
 
             });
 

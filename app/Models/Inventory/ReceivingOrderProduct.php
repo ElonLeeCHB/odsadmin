@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Models\Catalog\Product;
 use App\Models\Inventory\ReceivingOrder;
 use App\Models\Catalog\ProductUnit;
-use App\Traits\Model\Translatable;
+use App\Traits\ModelTrait;
 
 class ReceivingOrderProduct extends Model
 {
-    use Translatable;
+    use ModelTrait;
 
     protected $guarded = [];
 
@@ -36,32 +36,30 @@ class ReceivingOrderProduct extends Model
 
     //Attribute
 
-    protected function price(): Attribute
+
+    public function price(): Attribute
     {
-        return Attribute::make(
-            get: fn ($value) => number_format(round($value)),
-        );
+        return $this->setNumberAttribute($this->attributes['price'],4);
     }
 
-    protected function amount(): Attribute
+    public function amount(): Attribute
     {
-        return Attribute::make(
-            get: fn ($value) => number_format(round($value)),
-        );
+        return $this->setNumberAttribute($this->attributes['amount'],4);
     }
 
-    protected function receivingQuantity(): Attribute
+    public function receivingQuantity(): Attribute
     {
-        return Attribute::make(
-            get: fn ($value) => number_format(round($value)),
-        );
+        return $this->setNumberAttribute($this->attributes['receiving_quantity'],4);
     }
 
-    protected function stockPrice(): Attribute
+    public function stockPrice(): Attribute
     {
-        return Attribute::make(
-            get: fn ($value) => number_format(round($value)),
-        );
+        return $this->setNumberAttribute($this->attributes['stock_price'],4);
+    }
+
+    public function stockQuantity(): Attribute
+    {
+        return $this->setNumberAttribute($this->attributes['stock_quantity'],4);
     }
 
     

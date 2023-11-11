@@ -9,6 +9,12 @@ class CountingProductResource extends JsonResource
 {
     public function toArray(Request $request = null): array
     {
+        if(is_numeric($this->stock_quantity) && is_numeric($this->quantity)){
+            $factor = $this->stock_quantity / $this->quantity;
+        }else{
+            $factor = 1;
+        }
+        
         return [
             'id' => $this->id,
             'counting_id' => $this->counting_id,
@@ -23,9 +29,8 @@ class CountingProductResource extends JsonResource
             'price' => $this->price,
             'amount' => $this->amount,
             'comment' => $this->comment,
-            'stock_unit_quantity' => $this->stock_unit_quantity,
-
-            'product_edit_url' => route('lang.admin.inventory.products.form', $this->product_id),
+            'stock_quantity' => $this->stock_quantity,
+            'factor' => $factor,
         ];
     }
 

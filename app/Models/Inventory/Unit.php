@@ -16,6 +16,10 @@ class Unit extends Model
     public $translation_attributes = ['name'];
 
     
+    public function scopeActive($query)
+    {
+        $query->where('is_active', 1);
+    }
 
     // Attribute
 

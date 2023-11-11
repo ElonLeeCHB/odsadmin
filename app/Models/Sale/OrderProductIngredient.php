@@ -41,27 +41,15 @@ class OrderProductIngredient extends Model
 
     protected function requiredDateYmd(): Attribute
     {
-        if(!empty($this->required_date)){
-            $newValue = Carbon::parse($this->required_date)->format('Y-m-d');
-        }
-
         return Attribute::make(
-            get: fn ($value) => $newValue ?? '',
+            get: fn ($value) => !empty($this->required_date) ? Carbon::parse($this->required_date)->format('Y-m-d') : '',
         );
     }
 
     protected function requiredDateHi(): Attribute
     {
-        if(!empty($this->required_time)){
-            $newValue = Carbon::parse($this->required_time)->format('H:i');
-        }
-
-        // if(empty($newValue) || $newValue == '00:00'){
-        //     $newValue = '33';
-        // }
-        
         return Attribute::make(
-            get: fn ($value) => $newValue,
+            get: fn ($value) => !empty($this->required_time) ? Carbon::parse($this->required_time)->format('H:i') : '',
         );
     }
 
@@ -79,27 +67,4 @@ class OrderProductIngredient extends Model
             get: fn ($value) => $newValue,
         );
     }
-
-
-
-    // protected function productName(): Attribute
-    // {
-    //     return Attribute::make(
-    //         get: fn () => $this->product_translation->name ?? '',
-    //     );
-    // }
-
-    // protected function ingredientProductName(): Attribute
-    // {
-    //     return Attribute::make(
-    //         get: fn () => $this->ingredient_product_translation->name ?? '',
-    //     );
-    // }
-
-
-
-
-
-
-
 }

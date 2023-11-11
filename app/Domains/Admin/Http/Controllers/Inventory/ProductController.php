@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Admin\Services\Inventory\ProductService;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
-use App\Repositories\Eloquent\Common\UnitRepository;
+use App\Repositories\Eloquent\Inventory\UnitRepository;
 //use App\Repositories\Eloquent\Inventory\ProductUnitRepository;
 use App\Domains\Admin\Services\Catalog\CategoryService;
 use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
@@ -252,13 +252,13 @@ class ProductController extends BackendController
 		}
 
         // 會計分類 product_accounting_category
-        $data['accounting_categories'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('product_accounting_category',to_array:false);
+        $data['accounting_categories'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('product_accounting_category',toArray:false);
         
         // 來源類型
-        $data['source_type_codes'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('product_source_type',to_array:false);
+        $data['source_type_codes'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('product_source_type',toArray:false);
 
         // 存放溫度類型 temperature_type_code
-        $data['temperature_types'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('product_storage_temperature_type',to_array:false);
+        $data['temperature_types'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('product_storage_temperature_type',toArray:false);
 
         $data['bom_products'] = [];
 
@@ -291,7 +291,7 @@ class ProductController extends BackendController
                 }
 
                 if(empty($codes[$destination_unit_code])){
-                    $codes[$destination_unit_code] = $product_unit->destination_unit->name;
+                    $codes[$destination_unit_code] = $product_unit->destination_unit->name ?? '';
                 }
 
             }
@@ -334,7 +334,7 @@ class ProductController extends BackendController
             'pagination' => false,
             'limit' => 0,
         ];
-        $data['units'] = $this->UnitRepository->getKeyedActiveUnits($filter_data);
+        $data['units'] = $this->UnitRepository->getCodeKeyedActiveUnits($filter_data);
 
         return view('admin.inventory.product_form', $data);
     }
@@ -442,7 +442,9 @@ class ProductController extends BackendController
                 'product_id' => $product->id,
                 'name' => $product->name,
                 'specification' => $product->specification,
+                'product_edit_url' => route('lang.admin.inventory.products.form', $product->id),
             );
+
 
             if(!empty($extra_columns)){
                 foreach($extra_columns as $extra_column){
@@ -474,6 +476,7 @@ class ProductController extends BackendController
                         'source_quantity' => 1,
                         'destination_unit_code' => $product->stock_unit_code,
                         'destination_quantity' => 1,
+                        'factor' => 1,
 
                     ];
 

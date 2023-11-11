@@ -26,4 +26,4 @@
     </table>
   </div>
 </form>
-  {!! $units->links('admin.pagination.default', ['units' => $units]) !!}
+  {!! $units->links('admin.pagination.default') !!}

@@ -7,9 +7,12 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Carbon;
 use App\Models\Catalog\Product;
 use App\Models\Inventory\BomProduct;
+use App\Traits\ModelTrait;
 
 class Bom extends Model
 {
+    use ModelTrait;
+    
     protected $guarded = [];
     protected $appends = ['effective_date_ymd','expiry_date_ymd'];
 

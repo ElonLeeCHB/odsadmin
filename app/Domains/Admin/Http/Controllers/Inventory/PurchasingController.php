@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Services\Inventory\PurchasingOrderService;
-use App\Repositories\Eloquent\Common\UnitRepository;
+use App\Repositories\Eloquent\Inventory\UnitRepository;
 use App\Models\Setting\Location;
 use App\Models\Localization\Language;
 
@@ -200,7 +200,7 @@ class PurchasingController extends BackendController
             'filter_keyword' => $this->request->filter_keyword,
             'pagination' => false,
         ];
-        $data['units'] = $this->UnitRepository->getKeyedActiveUnits($filter_data);
+        $data['units'] = $this->UnitRepository->getCodeKeyedActiveUnits($filter_data);
 
         return view('admin.inventory.purchasing_order_form', $data);
     }

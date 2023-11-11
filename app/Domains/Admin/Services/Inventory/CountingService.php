@@ -10,8 +10,8 @@ class CountingService extends Service
 {
     protected $modelName = "\App\Models\Inventory\Counting";
 
-	public function __construct(private CountingRepository $CountingRepository)
-	{
+    public function __construct(private CountingRepository $CountingRepository)
+    {
         $this->repository = $CountingRepository;
     }
 

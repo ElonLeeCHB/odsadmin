@@ -8,7 +8,7 @@ use App\Models\Inventory\Counting;
 use App\Models\Inventory\CountingProduct;
 use App\Models\Catalog\ProductUnit;
 use App\Models\Catalog\Product;
-use App\Repositories\Eloquent\Common\UnitRepository;
+use App\Repositories\Eloquent\Inventory\UnitRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Traits\EloquentTrait;
@@ -97,7 +97,7 @@ class CountingRepository
             $counting->save();
 
             if(!empty($data['products'])){
-                $local_units = $this->UnitRepository->getLocaleKeyedActiveUnits();
+                $local_units = $this->UnitRepository->getLocaleKeyedActiveUnits(toArray:true);
                 
                 CountingProduct::where('counting_id', $counting->id)->delete();
 
@@ -112,33 +112,20 @@ class CountingRepository
                     }
 
                     $counting_unit_name = $product['unit_name'];
-                    if(!empty($counting_unit_name) && !empty($local_units[$counting_unit_name])){
+                    $counting_unit_code = $product['unit_code'] ?? '';
+                    if(empty($counting_unit_code) && (!empty($counting_unit_name) && !empty($local_units[$counting_unit_name]))){
                         $counting_unit_code = $local_units[$counting_unit_name]['code'];
                     }
 
                     $stock_unit_name = $product['stock_unit_name'];
-                    if(!empty($stock_unit_name) && !empty($local_units[$stock_unit_name])){
+                    $stock_unit_code = $product['stock_unit_code'] ?? '';
+                    if(empty($stock_unit_code) && (!empty($stock_unit_name) && !empty($local_units[$stock_unit_name]))){
                         $stock_unit_code = $local_units[$stock_unit_name]['code'];
                     }
 
                     // 除錯用途
                     if($product['id'] == 1100){
                         //echo '<pre>', print_r($product, 1), "</pre>"; exit;
-                    }
-
-                    if($stock_unit_code == $counting_unit_code){
-                        $stock_unit_quantity = $counting_quantity;
-                    }else{
-                        //$product_unit = ProductUnit::where('product_id', $product['id'])->where('source_unit_code', $counting_unit_code)->first();
-                        //$stock_quantity = $unitRepository->setMeasure('mass')->setQty($counting_quantity)->from($counting_unit_code)->to($stock_unit_code);
-
-                        $input_data = [
-                            'product_id' => $product['id'],
-                            'from_quantity' => $counting_quantity,
-                            'from_unit_code' => $counting_unit_code,
-                            'to_unit_code' => $stock_unit_code,
-                        ];
-                        $stock_unit_quantity = $unitRepository->calculateQty($input_data);
                     }
 
                     // CountingProduct
@@ -152,13 +139,13 @@ class CountingRepository
                         'quantity' => $counting_quantity,
                         'amount' => $product['amount'],
                         'stock_unit_code' => $stock_unit_code,
-                        'stock_unit_quantity' => $stock_unit_quantity,
+                        'stock_quantity' => $product['stock_quantity'],
                     ];
 
                     // Product
                     $upsert_data2[$key] = [
                         'id' => $product['id'],
-                        'quantity' => $stock_unit_quantity,
+                        'quantity' => $product['stock_quantity'],
                         //'from_quantity' => $counting_quantity,
                     ];
                 }

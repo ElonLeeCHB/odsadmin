@@ -51,7 +51,7 @@ class CountingController extends BackendController
 
 
         // 通用單據狀態
-        $data['statuses'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('common_form_status',to_array:false);
+        $data['statuses'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('common_form_status',toArray:false);
 
         $data['list'] = $this->getList();
 
@@ -210,7 +210,11 @@ class CountingController extends BackendController
             'counting_products.unit.translation',
         ]);
 
-        $data['counting_products'] = (new CountingResource($counting))->getCountingProductsObject();
+        $data['counting_products']  = (new CountingResource($counting))->getCountingProductsObject();
+
+        foreach ($data['counting_products']  as $key => $counting_product) {
+            $data['counting_products'][$key]->product_edit_url = route('lang.admin.inventory.products.form', $counting_product->product_id);
+        }
 
         $data['product_row'] = count($data['counting_products'])+1;
 
@@ -225,7 +229,7 @@ class CountingController extends BackendController
 
         
         // 通用單據狀態
-        $data['statuses'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('common_form_status',to_array:false);
+        $data['statuses'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('common_form_status',toArray:false);
         
 
         return view('admin.inventory.counting_form', $data);

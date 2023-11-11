@@ -141,8 +141,10 @@ var query_url = current_url.split('?')[1];
 var product_row = {{ $product_row }};
 
 // 查料件名稱
+// 多包一層，讓動態新增的料件能用，否則無法觸發。
+// 但是如此一來，原本的料件常常要多點幾下，不好觸發…。
 $(document).on('click', '.schProductName', function() {
-  $(this).autocomplete({
+  $('.schProductName').autocomplete({
     'source': function (request, response) {
       let supplier_id = $('#input-supplier_id').val();
       let supplier_url = '';
@@ -159,7 +161,9 @@ $(document).on('click', '.schProductName', function() {
         });
     },
     'select': function (item) {
-      var rownum = $(this).data("rownum");
+      let rownum = $(this).data("rownum");
+      let factor = 0;
+
       $('#input-products-id-'+rownum).val(item.product_id);
       $('#input-products-name-'+rownum).val(item.name);
       $('#input-products-specification-'+rownum).val(item.specification);
@@ -167,18 +171,18 @@ $(document).on('click', '.schProductName', function() {
       $('#input-products-stock_unit_name-'+rownum).val(item.stock_unit_name);
       $('#input-products-unit_name-'+rownum).val(item.counting_unit_name);
 
-      var selectElement = $('#input-products-receiving_unit_code-'+rownum);
-      selectElement.empty();
+      // 將料件單位轉換表的來源單位都做成可選。
+      var selectUnit = $('#input-products-unit_name-'+rownum);
+      selectUnit.empty();
 
       $.each(item.product_units, function(index, product_unit) {
         var option = $('<option></option>');
 
         option.val(product_unit.source_unit_code);
         option.text(product_unit.source_unit_name);
-        option.attr('data-multiplier', product_unit.destination_quantity);
-        //console.log('unit.source_unit_code='+unit.source_unit_code+', unit.source_unit_name='+unit.source_unit_name+', unit.destination_quantity='+unit.destination_quantity)
+        option.attr('data-factor', product_unit.factor);
 
-        selectElement.append(option);
+        selectUnit.append(option);
       });
     }
   });
@@ -202,9 +206,14 @@ function calcProduct(rownum){
   let price = $('#input-products-price-'+rownum).val() ?? 0;
   let quantity = $('#input-products-quantity-'+rownum).val() ?? 0;
   let amount = price * quantity;
+  let stock_quantity = 0;
+  //let factor = $('#input-products-factor-'+rownum).val() ?? 0;
+  let factor = $('#input-products-unit_name-'+rownum + ' option:selected').data('factor');
   
-  quantity = $('#input-products-amount-'+rownum).val(amount);
-  //console.log('price='+price+', quantity='+quantity+', amount='+amount);
+  //quantity = $('#input-products-amount-'+rownum).val(amount);
+  stock_quantity = (quantity * factor).toFixed(3);
+  $('#input-products-stock_quantity-'+rownum).val(stock_quantity);
+  //console.log('factor='+factor+', quantity='+quantity+', price='+price+', amount='+amount);
   sumTotal();
 }
 

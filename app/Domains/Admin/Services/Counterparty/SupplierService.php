@@ -42,10 +42,4 @@ class SupplierService extends GlobalSupplierService
         }
     }
 
-
-    public function getActiveTaxTypesIndexByCode()
-    {
-        return parent::getActiveTaxTypesIndexByCode();;
-    }
-
 }
