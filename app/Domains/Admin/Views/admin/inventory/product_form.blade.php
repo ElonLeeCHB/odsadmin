@@ -195,6 +195,15 @@
               </div>
 
               <div class="row mb-3">
+                <label for="input-usage_price" class="col-sm-2 col-form-label">{{ $lang->column_usage_price }}</label>
+                <div class="col-sm-10">
+                  <input type="text" id="input-usage_price" name="usage_price" value="{{ $product->usage_price }}" class="form-control" readonly/>
+                  <div id="error-usage_price" class="invalid-feedback"></div>
+                  <div class="form-text">根據庫存單位成本自動換算</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">{{ $lang->column_is_inventory_managed }}</label>
                 <div class="col-sm-10">
                   <div class="input-group">

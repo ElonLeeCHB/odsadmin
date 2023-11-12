@@ -41,7 +41,7 @@ class DataHelper
 
     /**
      * storage/app/cache/
-     * 之後要強制塞到這個路徑底下。暫時不檢查。
+     * 之後要強制塞到上面這個路徑底下。暫時不檢查。
      */
     public static function getJsonFromStorage($json_path, $toArray = false)
     {
@@ -60,6 +60,19 @@ class DataHelper
 
             return $rows;
         }
+    }
+
+    
+    public static function setJsonFromStorage($json_path, $data)
+    {
+        if (Storage::exists($json_path)) {
+            Storage::delete($json_path);
+        }
+
+        Storage::put($json_path, json_encode($data));
+        sleep(1);
+
+        return true;
     }
 
 }

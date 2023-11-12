@@ -17,7 +17,7 @@ class ReceivingOrder extends Model
 
     protected $table = 'receiving_orders';
     protected $guarded = [];
-    protected $appends = ['purchasing_date_ymd','receiving_date_ymd'];
+    protected $appends = ['purchasing_date_ymd','receiving_date_ymd','formatted_tax_rate'];
     protected $with = ['status'];
     protected $casts = [
         'created_at' => 'datetime:Y-m-d H:i:s',
@@ -90,22 +90,11 @@ class ReceivingOrder extends Model
         );
     }
 
-    public function setFormattedTaxRateAttribute($value)
-    {
-        $this->attributes['tax_rate'] = $value / 100;
-    }
-
-    // public function amount(): Attribute
-    // {
-    //     return $this->setNumberAttribute($this->attributes['amount'],4);
-    // }
-
     public function total(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => round($value),
         );
     }
-
 
 }

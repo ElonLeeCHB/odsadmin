@@ -70,12 +70,12 @@
                 </div>
 
                 <div class="row mb-3">
-                  <label for="input-cost" class="col-sm-2 col-form-label">成本</label>
+                  <label for="input-total" class="col-sm-2 col-form-label">成本</label>
                   <div class="col-sm-10">
                     <div class="input-group">
-                      <input type="text" id="input-cost" name="cost" value="{{ $bom->cost }}" class="form-control">
+                      <input type="text" id="input-total" name="total" value="{{ $bom->total }}" class="form-control">
                     </div>
-                    <div id="error-cost" class="invalid-feedback"></div>
+                    <div id="error-total" class="invalid-feedback"></div>
                   </div>
                 </div>
 
@@ -105,53 +105,59 @@
                         <td class="text-left">廠商</td>
                         <td class="text-right required">用量</td>
                         <td class="text-right">用量單位</td>
+                        <td class="text-right">單位成本</td>
                         <td class="text-right">成本</td>
                         <td></td>
                       </tr>
                     </thead>
                     <tbody>
-                      @php $bom_product_row = 1; @endphp
+                      @php $product_row = 1; @endphp
                       @foreach($bom_products as $bom_product)
-                      <tr id="bom-row{{ $bom_product_row }}" data-rownum="{{ $bom_product_row }}">
+                      <tr id="bom-row{{ $product_row }}" data-rownum="{{ $product_row }}">
                         <td class="text-left">
 
-                            <div class="input-group">
-                              <div class="col-sm-2">
-                                <input type="text" id="input-bomproducts-sub_product_id-{{ $bom_product_row }}" name="bom_products[{{ $bom_product_row }}][sub_product_id]" value="{{ $bom_product->sub_product_id ?? 0 }}" class="form-control" readonly=""/>
-                                <div id="error-bom_products[{{ $bom_product_row }}][sub_product_id]" class="invalid-feedback"></div>
-                              </div>
-                              <div class="col-sm-10" style="display: flex; align-items: center;">
-                                <input type="text" id="input-bomproducts-sub_product_name-{{ $bom_product_row }}" name="bom_products[{{ $bom_product_row }}][sub_product_name]"  value="{{ $bom_product->sub_product_name }}" class="form-control schProductName" data-oc-target="autocomplete-bom_product_name-{{ $bom_product_row }}" autocomplete="off"/>
-                                <a href="{{ $bom_product->product_edit_url }}" target="_blank" title="料件基本資料" class="btn btn-light"><i class="fas fa-external-link-alt"></i></a>
-                              </div>
-                              <ul id="autocomplete-bom_product_name-{{ $bom_product_row }}" class="dropdown-menu"></ul>
-
+                          <div class="container input-group col-sm-12">
+                            <div class="col-sm-3">
+                              <input type="text" id="input-products-sub_product_id-{{ $product_row }}" name="products[{{ $product_row }}][sub_product_id]" value="{{ $bom_product->sub_product_id ?? '' }}" class="form-control" readonly>
                             </div>
+                            <div class="col-sm-8">
+                              <input type="text" id="input-products-sub_product_name-{{ $product_row }}" name="products[{{ $product_row }}][sub_product_name]" value="{{ $bom_product->sub_product_name ?? '' }}" data-rownum="{{ $product_row }}" class="form-control schProductName" data-oc-target="autocomplete-sub_product_name-{{ $product_row }}" autocomplete="off">
+                              <ul id="autocomplete-sub_product_name-{{ $product_row }}" class="dropdown-menu"></ul>
+                            </div>
+                            <div class="col-sm-1">
+                              <div class="input-group-append">
+                                <a href="{{ $bom_product->product_edit_url ?? '' }}" class="btn btn-outline-secondary" target="_blank"><i class="fas fa-external-link-alt"></i></a>
+                              </div>
+                            </div>
+                          </div>
 
-
-                          <input type="hidden" id="input-bomproducts-id-{{ $bom_product_row }}" name="bom_products[{{ $bom_product_row }}][id]" value="{{ $bom_product->id ?? '' }}"  readonly>
-                          <input type="hidden" id="input-bomproducts-bom_product_id-{{ $bom_product_row }}" name="bom_products[{{ $bom_product_row }}][bom_product_id]" value="{{ $bom_product->product_id ?? '' }}"  readonly>
+                          {{-- bom表的主索引 id --}}
+                          <input type="hidden" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $bom_product->id ?? '' }}"  readonly>
+                          
+                          {{-- bom表的主件 product_id --}}
+                          <input type="hidden" id="input-products-product_id-{{ $product_row }}" name="products[{{ $product_row }}][product_id]" value="{{ $bom_product->product_id ?? '' }}"  readonly>
                         </td>
-                        <td class="text-right"><input type="text" id="input-bomproducts-sub_product_specification-{{ $bom_product_row }}" name="bom_products[{{ $bom_product_row }}][sub_product_specification]" value="{{ $bom_product->sub_product_specification }}" class="form-control" disabled/></td>
-                        <td class="text-right"><input type="text" id="input-bomproducts-sub_product_supplier_name-{{ $bom_product_row }}" name="bom_products[{{ $bom_product_row }}][sub_product_supplier_name]" value="{{ $bom_product->sub_product_supplier_name ?? '' }}" class="form-control" disabled/></td>
-                        <td class="text-right"><input type="text" id="input-bomproducts-quantity-{{ $bom_product_row }}" name="bom_products[{{ $bom_product_row }}][quantity]" value="{{ $bom_product->quantity }}" class="form-control" onkeyup="calcBOMvalue('bom', '0');" /></td>
-                        <td class="text-right xxx">
-                          <input type="text" id="input-bomproducts-usage_unit_name-{{ $bom_product_row }}" name="bom_products[{{ $bom_product_row }}][usage_unit_name]" value="{{ $bom_product->usage_unit_name }}" class="form-control" readonly="readonly" />
-                          <input type="hidden" id="input-bomproducts-usage_unit_code-{{ $bom_product_row }}" name="bom_products[{{ $bom_product_row }}][usage_unit_code]" value="{{ $bom_product->usage_unit_code }}" class="form-control" readonly="readonly" />
+                        <td class="text-right"><input type="text" id="input-products-sub_product_specification-{{ $product_row }}" name="products[{{ $product_row }}][sub_product_specification]" value="{{ $bom_product->sub_product_specification }}" class="form-control" disabled/></td>
+                        <td class="text-right"><input type="text" id="input-products-sub_product_supplier_short_name-{{ $product_row }}" name="products[{{ $product_row }}][sub_product_supplier_short_name]" value="{{ $bom_product->sub_product_supplier_short_name ?? '' }}" class="form-control" disabled/></td>
+                        <td class="text-right"><input type="text" id="input-products-quantity-{{ $product_row }}" name="products[{{ $product_row }}][quantity]" value="{{ $bom_product->quantity }}" class="form-control" onkeyup="calcSubProduct('{{ $product_row }}');" /></td>
+                        <td class="text-right">
+                          <input type="text" id="input-products-usage_unit_name-{{ $product_row }}" name="products[{{ $product_row }}][usage_unit_name]" value="{{ $bom_product->usage_unit_name }}" class="form-control" readonly="readonly" />
+                          <input type="hidden" id="input-products-usage_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][usage_unit_code]" value="{{ $bom_product->usage_unit_code }}" class="form-control" readonly="readonly" />
                         </td>
-                        <td class="text-right"><input type="text" id="input-bomproducts-cost-{{ $bom_product_row }}" name="bom_products[{{ $bom_product_row }}][cost]" value="{{ $bom_product->cost }}" placeholder="Making Charge" class="form-control" onkeyup="priceReadOnly();" /></td>
+                        <td class="text-right"><input type="text" id="input-products-usage_price-{{ $product_row }}" name="products[{{ $product_row }}][usage_price]" value="{{ $bom_product->usage_price }}" class="form-control" readonly /></td>
+                        <td class="text-right"><input type="text" id="input-products-amount-{{ $product_row }}" name="products[{{ $product_row }}][amount]" value="{{ $bom_product->amount }}" class="form-control" readonly /></td>
                         <td class="text-left">
-                          <button type="button" onclick="$('#bom-row{{ $bom_product_row }}').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>
+                          <button type="button" onclick="$('#bom-row{{ $product_row }}').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>
                         </td>
                       </tr>
-                      @php $bom_product_row++; @endphp
+                      @php $product_row++; @endphp
                       @endforeach
 
                     </tbody>
 
                     <tfoot>
                       <tr>
-                        <td colspan="6"></td>
+                        <td colspan="7"></td>
                         <td class="text-left">
                           <button type="button" onclick="addBOM(); calcBOMvalues();" data-toggle="tooltip" title="" class="btn btn-primary" data-original-title=""><i class="fa fa-plus-circle"></i></button>
                         </td>
@@ -190,12 +196,12 @@ $(document).ready(function() {
     }
   });
 
-  // 查元件料件名稱
+  // 查料件名稱
   $(document).on('click', '.schProductName', function() {
     $(this).autocomplete({
       'source': function (request, response) {
         $.ajax({
-            url: "{{ $product_autocomplete_url }}?equal_is_active=1&filter_name=" + encodeURIComponent(request)+'&extra_columns=stock_unit_code,stock_unit_name,usage_unit_code,usage_unit_name&with=product_units',
+            url: "{{ $product_autocomplete_url }}?equal_is_active=1&filter_name=" + encodeURIComponent(request)+'&extra_columns=usage_unit_name,supplier_name&with=product_units',
             dataType: 'json',
             success: function (json) {
               response(json);
@@ -204,59 +210,76 @@ $(document).ready(function() {
       },
       'select': function (item) {
         var rownum = $(this).closest('[data-rownum]').data("rownum");
-        console.log(rownum);
-        $('#input-bomproducts-sub_product_id-'+rownum).val(item.product_id);
-        $('#input-bomproducts-sub_product_name-'+rownum).val(item.name);
-        $('#input-bomproducts-sub_product_specification-'+rownum).val(item.specification);
-        $('#input-bomproducts-quantity-'+rownum).val(item.quantity);
-        $('#input-bomproducts-usage_unit_code-'+rownum).val(item.usage_unit_code);
-        $('#input-bomproducts-usage_unit_name-'+rownum).val(item.usage_unit_name);
+        //console.log(JSON.stringify(item));
+        $('#input-products-sub_product_id-'+rownum).val(item.product_id);
+        $('#input-products-sub_product_name-'+rownum).val(item.name);
+        $('#input-products-sub_product_specification-'+rownum).val(item.specification);
+        $('#input-products-quantity-'+rownum).val(item.quantity);
+        $('#input-products-usage_unit_code-'+rownum).val(item.usage_unit_code);
+        $('#input-products-usage_unit_name-'+rownum).val(item.usage_unit_name);
+        $('#input-products-sub_product_edit_url-'+rownum).attr('href', item.product_edit_url);
+        $('#input-products-sub_product_supplier_short_name-'+rownum).val(item.supplier_short_name);
+        
       }
     });
   });
 
 });
 
-var bom_product_row = {{ $bom_product_row }};
+var product_row = {{ $product_row }};
 
 function addBOM() {
-	html  = '<tr id="bom-row'+bom_product_row+'" data-rownum="'+bom_product_row+'">';
+	html  = '<tr id="bom-row'+product_row+'" data-rownum="'+product_row+'">';
   html += '  <td>';
-  // html += '    <input type="text" id="input-bomproducts-sub_product_name-'+bom_product_row+'" name="bom_products[1][sub_product_name]" value="" class="form-control schProductName" data-oc-target="autocomplete-bom_product_name-'+bom_product_row+'" autocomplete="off">';
-  // html += '    <ul id="autocomplete-bom_product_name-'+bom_product_row+'" class="dropdown-menu"></ul>'
-  html += '     <div class="input-group">';
-  html += '       <div class="col-sm-2">';
-  html += '         <input type="text" id="input-bomproducts-sub_product_id-'+bom_product_row+'" name="bom_products['+bom_product_row+'][sub_product_id]" value="" class="form-control" readonly=""/>';
-  html += '         <div id="error-product_id" class="invalid-feedback"></div>';
-  html += '       </div>';
-  html += '       <div class="col-sm-10">';
-  html += '         <input type="text" id="input-bomproducts-sub_product_name-'+bom_product_row+'" name="bom_products['+bom_product_row+'][sub_product_name]"  value="" class="form-control schProductName" data-oc-target="autocomplete-bom_product_name-'+bom_product_row+'" autocomplete="off"/>';
-  html += '         <ul id="autocomplete-bom_product_name-'+bom_product_row+'" class="dropdown-menu"></ul>';
-  html += '       </div>';
-  html += '      </div>';
 
-  html += '      <input type="hidden" id="input-bomproducts-bom_product_id-'+bom_product_row+'" name="bom_products['+bom_product_row+'][bom_product_id]" value="" readonly>';
-  
+  html += '    <div class="container input-group col-sm-12">';
+  html += '      <div class="col-sm-3">';
+  html += '        <input type="text" id="input-products-sub_product_id-'+product_row+'" name="products['+product_row+'][sub_product_id]" value="" class="form-control" readonly>';
+  html += '      </div>';
+  html += '      <div class="col-sm-8">';
+  html += '        <input type="text" id="input-products-sub_product_name-'+product_row+'" name="products['+product_row+'][sub_product_name]" value="" data-rownum="'+product_row+'" class="form-control schProductName" data-oc-target="autocomplete-product_name-'+product_row+'" autocomplete="off">';
+  html += '        <ul id="autocomplete-product_name-'+product_row+'" class="dropdown-menu"></ul>';
+  html += '      </div>';
+  html += '      <div class="col-sm-1">';
+  html += '        <div class="input-group-append">';
+  html += '          <a href="javascript:void(0);" id="input-products-sub_product_edit_url-'+product_row+'" class="btn btn-outline-secondary"><i class="fas fa-external-link-alt"></i></a>';
+  html += '        </div>';
+  html += '      </div>';
+  html += '    </div>';
   html += '  </td>';
-  html += '  <td><input type="text" id="input-bomproducts-sub_product_specification-'+bom_product_row+'" name="bom_products['+bom_product_row+'][sub_product_specification]" value="" class="form-control schProductName" autocomplete="off"></td>';
-  html += '  <td><input type="text" id="input-bomproducts-sub_product_supplier_name-'+bom_product_row+'" name="bom_products['+bom_product_row+'][sub_product_supplier_name]" value="" class="form-control" autocomplete="off"></td>';
-  html += '  <td><input type="text" id="input-bomproducts-quantity-'+bom_product_row+'" name="bom_products['+bom_product_row+'][quantity]" value="" class="form-control schProductName" autocomplete="off"></td>';
-  html += '  <td><input type="text" id="input-bomproducts-usage_unit_name-'+bom_product_row+'" name="bom_products['+bom_product_row+'][usage_unit_name]" value="" class="form-control schProductName" autocomplete="off"></td>';
-  html += '    <input type="hidden" id="input-bomproducts-usage_unit_code-'+bom_product_row+'" name="bom_products['+bom_product_row+'][usage_unit_code]" value="" class="form-control schProductName" autocomplete="off">';
+  html += '  <td><input type="text" id="input-products-sub_product_specification-'+product_row+'" name="products['+product_row+'][sub_product_specification]" value="" class="form-control schProductName" autocomplete="off"></td>';
+  html += '  <td><input type="text" id="input-products-sub_product_supplier_short_name-'+product_row+'" name="products['+product_row+'][sub_product_supplier_short_name]" value="" class="form-control" autocomplete="off"></td>';
+  html += '  <td><input type="text" id="input-products-quantity-'+product_row+'" name="products['+product_row+'][quantity]" value="" class="form-control schProductName" autocomplete="off"></td>';
+  html += '  <td><input type="text" id="input-products-usage_unit_name-'+product_row+'" name="products['+product_row+'][usage_unit_name]" value="" class="form-control schProductName" autocomplete="off"></td>';
+  html += '    <input type="hidden" id="input-products-usage_unit_code-'+product_row+'" name="products['+product_row+'][usage_unit_code]" value="" class="form-control schProductName" autocomplete="off">';
   html += '  </td>'
-  html += '  <td><input type="text" id="input-bomproducts-cost-'+bom_product_row+'" name="bom_products['+bom_product_row+'][cost]" value="" class="form-control schProductName" autocomplete="off"></td>';
-  html += '  <td class="text-left"><button type="button" onclick="$(\'#bom-row'+bom_product_row+'\').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button></td>';
+  html += '  <td><input type="text" id="input-products-amount-'+product_row+'" name="products['+product_row+'][amount]" value="" class="form-control schProductName" autocomplete="off"></td>';
+  html += '  <td class="text-left"><button type="button" onclick="$(\'#bom-row'+product_row+'\').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button></td>';
   html += '</tr>';
   
 	$('#bom tbody').append(html);
 
-	bom_product_row++;
+	product_row++;
 }
 
+$('#asdf').keyup(function(){
 
-function calcBOMvalue(name, row) {
+});
+function calcSubProduct(row) {
+  //products[{{ $product_row }}][sub_product_name]
+  var price = $('#input-products-usage_price-' + row).val();
+  var quantity = $('#input-products-quantity-' + row).val();
+  var amount = (price * quantity).toFixed(3);
+  $('#input-products-amount-' + row).val(amount);
+  calcBom();
 }
-function calcBOMvalues(){
+function calcBom(){
+  var total = 0;
+  $("[name^='products'][name$='[amount]']").each(function() {
+    var value = parseFloat($(this).val()) || 0;
+    total += value;
+  });
+  $('#input-total').val(total);
 }
 
 /*

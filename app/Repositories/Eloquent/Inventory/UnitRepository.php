@@ -268,10 +268,6 @@ class UnitRepository extends Repository
                     echo '<pre>', print_r($msg, 1), "</pre>"; exit;
                     return ['error' => 'product_id='.$product_id.', from_quantity='.$from_quantity.', destination_quantity='.$product_unit->destination_quantity];
                 }
-
-                // $arr['from_quantity'] = $from_quantity;
-                // $arr['to_quantity'] = $to_quantity;
-                // echo '<pre>product_unit= ', print_r($arr, 1), "</pre>"; 
             }
         }
 

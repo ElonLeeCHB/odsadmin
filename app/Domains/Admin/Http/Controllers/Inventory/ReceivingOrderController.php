@@ -165,7 +165,7 @@ class ReceivingOrderController extends BackendController
 
         // Get Record
         $receiving_order = $this->ReceivingOrderService->findIdOrFailOrNew($receiving_order_id);
-        echo '<pre>', print_r($receiving_order->toArray(), 1), "</pre>"; exit;
+
         if(empty($receiving_order->receiving_date)){
             $receiving_order->receiving_date = date('Y-m-d');
         }

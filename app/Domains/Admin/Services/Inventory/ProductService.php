@@ -9,13 +9,14 @@ use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Repositories\Eloquent\Catalog\ProductUnitRepository;
+use App\Repositories\Eloquent\Inventory\UnitRepository;
 use Carbon\Carbon;
 
 class ProductService extends Service
 {
     public $modelName = "\App\Models\Catalog\Product";
 
-    public function __construct(ProductRepository $ProductRepository, private ProductUnitRepository $ProductUnitRepository)
+    public function __construct(ProductRepository $ProductRepository, private ProductUnitRepository $ProductUnitRepository, private UnitRepository $UnitRepository)
     {
         $this->repository = $ProductRepository;
     }
@@ -28,6 +29,7 @@ class ProductService extends Service
 
             $product_id = $post_data['product_id'] ?? $post_data['id'] ?? null;
 
+            // 暫時不用。正式上線後要啟用
             // 若庫存單位已存在則不改
             // if(!empty($product->stock_unit_code)){
             //     unset($product->stock_unit_code);
@@ -35,9 +37,28 @@ class ProductService extends Service
             // if(!empty($post_data['stock_unit_code'])){
             //     unset($post_data['stock_unit_code']);
             // }
+
+            if(isset($post_data['stock_unit_code']) && isset($post_data['stock_unit_code']) && $post_data['stock_unit_code'] == $post_data['usage_unit_code']){
+                $usage_factor = 1;
+            }else{
+                $params = [
+                    'product_id' => $post_data['product_id'],
+                    'from_unit_code' => $post_data['usage_unit_code'],
+                    'to_unit_code' => $post_data['stock_unit_code'],
+                    'from_quantity' => 1,
+                ];
+                $usage_factor = $this->UnitRepository->calculateQty($params);
+
+                if(!empty($usage_factor['error'])){
+                    throw new \Exception($usage_factor['error']);
+    
+                }
+            }
+
+            $post_data['usage_price'] = $post_data['stock_price'] * $usage_factor;
             
             $result = $this->saveRow($product_id, $post_data);
-           // echo '<pre>', print_r($post_data, 1), "</pre>"; exit;
+
             if(!empty($result['error'])){
                 throw new \Exception($result['error']);
             }

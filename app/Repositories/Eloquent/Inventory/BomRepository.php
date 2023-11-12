@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use App\Repositories\Eloquent\Repository;
 use App\Models\Inventory\Bom;
 use App\Models\Inventory\BomProduct;
+use App\Helpers\Classes\DataHelper;
 
 class BomRepository extends Repository
 {
@@ -67,7 +68,7 @@ class BomRepository extends Repository
             
             $bom = parent::findIdOrFailOrNew($bom_id);
 
-            if(!empty($post_data['bom_products'])){
+            if(!empty($post_data['products'])){
                 $post_data['bom_id'] = $bom->id;
                 $result2 = $this->saveBomProducts($post_data);
 
@@ -78,14 +79,10 @@ class BomRepository extends Repository
 
             DB::commit();
 
+
             $bom->refresh();
-
             $bom->load('bom_products');
-
-            
-
-            echo '<pre>', print_r($bom->toArray(), 1), "</pre>"; exit;
-
+            DataHelper::setJsonFromStorage('cache/inventory/BomId_' . $bom->id . '.json', $bom->toArray());
             
             return ['id' => $bom->id];
 
@@ -106,16 +103,16 @@ class BomRepository extends Repository
             $bom_id = $post_data['bom_id'];
             $product_id = $post_data['product_id']; // 主件
     
-            foreach ($post_data['bom_products'] as $bom_product) {
+            foreach ($post_data['products'] as $product) {
                 $upsert_data[] = [
-                    'id' => $bom_product['id'] ?? null,
+                    'id' => $product['id'] ?? null,
                     'bom_id' => $bom_id,
                     'product_id' => $product_id,
-                    'sub_product_id' => $bom_product['sub_product_id'],
-                    'quantity' => $bom_product['quantity'],
-                    'usage_unit_code' => $bom_product['usage_unit_code'],
-                    'waste_rate' => $bom_product['waste_rate'] ?? 0,
-                    'cost' => $bom_product['cost'] ?? 0,
+                    'sub_product_id' => $product['sub_product_id'],
+                    'quantity' => $product['quantity'],
+                    'usage_unit_code' => $product['usage_unit_code'],
+                    'waste_rate' => $product['waste_rate'] ?? 0,
+                    'amount' => $product['amount'] ?? 0,
                 ];
             }
     
@@ -150,9 +147,11 @@ class BomRepository extends Repository
         if(!empty($bom->bom_products)){
             foreach ($bom->bom_products as $bom_product) {
                 $bom_product->usage_unit_name = $bom_product->sub_product->usage_unit->name ?? '';
+                $bom_product->usage_price = $bom_product->sub_product->usage_price ?? 0;
                 $bom_product->sub_product_name = $bom_product->sub_product->translation->name ?? '';
                 $bom_product->sub_product_specification = $bom_product->sub_product->translation->specification ?? '';
                 $bom_product->sub_product_supplier_name = $bom_product->sub_product->supplier->name ?? '';
+                $bom_product->sub_product_supplier_short_name = $bom_product->sub_product->supplier->short_name ?? '';
             }
         }
 

@@ -223,20 +223,20 @@
                         <button type="button" onclick="$('#product-row{{ $product_row }}').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>
                       </td>
                       <td class="text-left">
-<div class="container input-group col-sm-12">
-  <div class="col-sm-3">
-    <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $receiving_product->product_id ?? '' }}" class="form-control" readonly>
-  </div>
-  <div class="col-sm-8">
-    <input type="text" id="input-products-name-{{ $product_row }}" name="products[{{ $product_row }}][name]" value="{{ $receiving_product->product_name ?? '' }}" data-rownum="{{ $product_row }}" class="form-control schProductName" data-oc-target="autocomplete-product_name-{{ $product_row }}" autocomplete="off">
-    <ul id="autocomplete-product_name-{{ $product_row }}" class="dropdown-menu"></ul>
-  </div>
-  <div class="col-sm-1">
-    <div class="input-group-append">
-      <a href="{{ $receiving_product->product_edit_url ?? '' }}" class="btn btn-outline-secondary" target="_blank"><i class="fas fa-external-link-alt"></i></a>
-    </div>
-  </div>
-</div>
+                        <div class="container input-group col-sm-12">
+                          <div class="col-sm-3">
+                            <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $receiving_product->product_id ?? '' }}" class="form-control" readonly>
+                          </div>
+                          <div class="col-sm-8">
+                            <input type="text" id="input-products-name-{{ $product_row }}" name="products[{{ $product_row }}][name]" value="{{ $receiving_product->product_name ?? '' }}" data-rownum="{{ $product_row }}" class="form-control schProductName" data-oc-target="autocomplete-product_name-{{ $product_row }}" autocomplete="off">
+                            <ul id="autocomplete-product_name-{{ $product_row }}" class="dropdown-menu"></ul>
+                          </div>
+                          <div class="col-sm-1">
+                            <div class="input-group-append">
+                              <a href="{{ $receiving_product->product_edit_url ?? '' }}" class="btn btn-outline-secondary" target="_blank"><i class="fas fa-external-link-alt"></i></a>
+                            </div>
+                          </div>
+                        </div>
                       </td>
                       <td class="text-left">
                         <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $receiving_product->product_specification ?? '' }}" class="form-control" readonly>
@@ -539,10 +539,7 @@ function addReceivingProduct(){
   html += '        </div>';
   html += '      </div>';
   html += '    </div>';
-
-
-
-
+  
   // html += '    <input type="text" id="input-products-name-'+product_row+'" name="products['+product_row+'][name]" value="" data-rownum="'+product_row+'" class="form-control schProductName" data-oc-target="autocomplete-product_name-'+product_row+'" autocomplete="off">';
   // html += '    <ul id="autocomplete-product_name-'+product_row+'" class="dropdown-menu"></ul>';
   // html += '    <input type="hidden" id="input-products-id-'+product_row+'" name="products['+product_row+'][id]" value="" class="form-control" readonly>';
