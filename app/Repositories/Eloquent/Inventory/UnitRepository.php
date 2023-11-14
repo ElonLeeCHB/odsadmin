@@ -236,8 +236,12 @@ class UnitRepository extends Repository
             $this->setStandardUnitCodes();
         }
 
+        if($from_unit_code == $to_unit_code){
+            $to_quantity = 1;
+        }
+
         // all standard units
-        if(in_array($from_unit_code, $this->standard_unit_codes) && in_array($to_unit_code, $this->standard_unit_codes)){
+        else if(in_array($from_unit_code, $this->standard_unit_codes) && in_array($to_unit_code, $this->standard_unit_codes)){
             $fromUnit = Unit::where('code', $from_unit_code)->first();
             $toUnit = Unit::where('code', $to_unit_code)->first();
 
@@ -253,7 +257,7 @@ class UnitRepository extends Repository
             $product_unit = ProductUnit::where('product_id', $product_id)->where('source_unit_code', $params['from_unit_code'])->where('destination_unit_code', $to_unit_code)->first();
 
             if(empty($product_unit)){
-                return ['error' => 'Cannot find product unit!'];
+                return ['error' => 'Cannot find product unit: ' . $product_unit];
 
             }else{
                 $arr = $product_unit->toArray();
@@ -324,12 +328,21 @@ class UnitRepository extends Repository
         return self::$converter;
     }
 
+    // mass, length
     public function setMeasure($measure)
     {
         self::$converter->measure = $measure;
 
         return $this;
     }
+
+    public function setProduct($product_id)
+    {
+        self::$converter->product_id = $product_id;
+
+        return $this;
+    }
+
     public function setQty($qty)
     {
         self::$converter->qty = $qty;
@@ -344,8 +357,19 @@ class UnitRepository extends Repository
         return $this;
     }
 
-
     public function to(string $toUnitCode)
+    {
+        self::$converter->toUnitCode = $toUnitCode;
+
+        return $this;
+    }
+
+    public function getConvertNumber()
+    {
+
+    }
+
+    public function toOld(string $toUnitCode)
     {
         $measure = self::$converter->measure;
         $fromUnitCode = self::$converter->fromUnitCode;

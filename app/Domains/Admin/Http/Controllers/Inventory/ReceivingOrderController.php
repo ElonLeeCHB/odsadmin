@@ -55,6 +55,9 @@ class ReceivingOrderController extends BackendController
         // statuses
         $data['receiving_order_statuses'] = $this->ReceivingOrderService->getCachedActiveReceivingOrderStatuses();
 
+        // 單別
+        $data['form_types'] = $this->TermRepository->getCodeKeyedTermsByTaxonomyCode('receiving_order_form_type',toArray:false);
+
         $data['list'] = $this->getList();
 
         $data['list_url']   =  route('lang.admin.inventory.receiving.list');
@@ -170,7 +173,8 @@ class ReceivingOrderController extends BackendController
             $receiving_order->receiving_date = date('Y-m-d');
         }
 
-        $data['receiving_order'] = $this->ReceivingOrderService->refineRow($receiving_order, ['optimize' => true,'sanitize' => true]);
+        //$data['receiving_order'] = $this->ReceivingOrderService->refineRow($receiving_order, ['optimize' => true,'sanitize' => true]);
+        $data['receiving_order'] = $receiving_order;
 
         if(!empty($receiving_order) && $receiving_order_id == $receiving_order->id){
             $data['receiving_order_id'] = $receiving_order_id;
@@ -201,18 +205,20 @@ class ReceivingOrderController extends BackendController
         if(!empty($receiving_order)){
             $receiving_order->load('receiving_products.product_units');
 
-
+            //echo '<pre>', print_r($receiving_order->receiving_products->toArray(), 1), "</pre>"; exit;
             foreach ($receiving_order->receiving_products as $receiving_product) {
 
                 foreach ($receiving_product->product_units as $key => $product_unit) {
                     $arr = $product_unit->toArray();
+                    $arr['factor'] = $product_unit['destination_quantity'] / $product_unit['source_quantity'];
+
                     unset($arr['source_unit']);
                     unset($arr['destination_unit']);
 
                     $receiving_product->product_units[$key] = (object) $arr;
                 }
 
-                // 都是標準單位，product_units 不會有，查 units 表
+                // 都是標準單位，product_units 不會有，要查 units 表
                 if(   in_array($receiving_product->receiving_unit_code, $standard_units_array_keys) 
                    && in_array($receiving_product->stock_unit_code, $standard_units_array_keys)){
 
@@ -274,7 +280,7 @@ class ReceivingOrderController extends BackendController
         $data['units'] = $this->UnitRepository->getCodeKeyedActiveUnits($filter_data);
 
         // 稅別
-        $data['tax_types'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('tax_type',toArray:false);
+        $data['tax_types'] = $this->TermRepository->getCodeKeyedTermsByTaxonomyCode('tax_type',toArray:false);
 
         return view('admin.inventory.receiving_order_form', $data);
     }

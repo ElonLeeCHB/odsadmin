@@ -28,11 +28,11 @@
         <div class="card-body">
 
           <div class="mb-3">
-            <label class="form-label">{{ $lang->column_status }}</label>
-            <select id="input-status_id" name="filter_status_id" class="form-select">
+            <label class="form-label">{{ $lang->column_form_type }}</label>
+            <select id="input-equal_form_type_code" name="equal_form_type_code" class="form-select">
               <option value="">--</option>
-              @foreach($receiving_order_statuses as $status)
-              <option value="{{ $status->code }}" >{{ $status->name }}</option>
+              @foreach($form_types as $form_type)
+              <option value="{{ $form_type->code }}" >{{ $form_type->name }}</option>
               @endforeach
             </select>
           </div>
@@ -58,6 +58,16 @@
               <option value="">--</option>
               @foreach($tax_types as $tax_type)
               <option value="{{ $tax_type->code }}" >{{ $tax_type->name }}</option>
+              @endforeach
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">{{ $lang->column_status }}</label>
+            <select id="input-filter_status_code" name="filter_status_code" class="form-select">
+              <option value="">--</option>
+              @foreach($receiving_order_statuses as $status)
+              <option value="{{ $status->code }}" >{{ $status->name }}</option>
               @endforeach
             </select>
           </div>
@@ -122,15 +132,15 @@ $('#button-filter').on('click', function() {
   if (filter_code) {
     url += '&filter_code=' + encodeURIComponent(filter_code);
   }
+
+  var equal_form_type_code = $('#input-equal_form_type_code').val();
+  if (equal_form_type_code) {
+    url += '&equal_form_type_code=' + encodeURIComponent(equal_form_type_code);
+  }
   
   var filter_keyname = $('#input-filter_keyname').val();
   if (filter_keyname) {
     url += '&filter_keyname=' + encodeURIComponent(filter_keyname);
-  }
-
-  var filter_status_code = $('#input-filter_status_code').val();
-  if (filter_status_code) {
-    url += '&filter_status_code=' + encodeURIComponent(filter_status_code);
   }
 
   var filter_supplier_name = $('#input-filter_supplier_name').val();
@@ -138,6 +148,11 @@ $('#button-filter').on('click', function() {
     url += '&filter_supplier_name=' + encodeURIComponent(filter_supplier_name);
   }
 
+  var filter_product_name = $('#input-filter_product_name').val();
+  if (filter_product_name) {
+    url += '&filter_product_name=' + encodeURIComponent(filter_product_name);
+  }
+  
   var filter_receiving_date = $('#input-filter_receiving_date').val();
   if (filter_receiving_date) {
     url += '&filter_receiving_date=' + encodeURIComponent(filter_receiving_date);
@@ -146,6 +161,11 @@ $('#button-filter').on('click', function() {
   var filter_receiving_date = $('#input-filter_receiving_date').val();
   if (filter_receiving_date) {
     url += '&filter_receiving_date=' + encodeURIComponent(filter_receiving_date);
+  }
+
+  var filter_status_code = $('#input-filter_status_code').val();
+  if (filter_status_code) {
+    url += '&filter_status_code=' + encodeURIComponent(filter_status_code);
   }
   
   url = "{{ $list_url }}?" + url;

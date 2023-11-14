@@ -38,24 +38,30 @@ class ProductService extends Service
             //     unset($post_data['stock_unit_code']);
             // }
 
-            if(isset($post_data['stock_unit_code']) && isset($post_data['stock_unit_code']) && $post_data['stock_unit_code'] == $post_data['usage_unit_code']){
-                $usage_factor = 1;
-            }else{
-                $params = [
-                    'product_id' => $post_data['product_id'],
-                    'from_unit_code' => $post_data['usage_unit_code'],
-                    'to_unit_code' => $post_data['stock_unit_code'],
-                    'from_quantity' => 1,
-                ];
-                $usage_factor = $this->UnitRepository->calculateQty($params);
-
-                if(!empty($usage_factor['error'])){
-                    throw new \Exception($usage_factor['error']);
+            if(!empty($post_data['stock_unit_code']) && !empty($post_data['usage_unit_code'])){
+                if($post_data['stock_unit_code'] == $post_data['usage_unit_code']){
+                    $usage_factor = 1;
+                }else{
+                    $params = [
+                        'product_id' => $post_data['product_id'],
+                        'from_unit_code' => $post_data['usage_unit_code'],
+                        'to_unit_code' => $post_data['stock_unit_code'],
+                        'from_quantity' => 1,
+                    ];
+                    $usage_factor = $this->UnitRepository->calculateQty($params);
     
+                    if(!empty($usage_factor['error'])){
+                        throw new \Exception($usage_factor['error']);
+        
+                    }
                 }
             }
 
-            $post_data['usage_price'] = $post_data['stock_price'] * $usage_factor;
+            if(!empty($post_data['stock_price']) && !empty($usage_factor)){
+                $post_data['usage_price'] = $post_data['stock_price'] * $usage_factor;
+            }else{
+                $post_data['usage_price'] = 0;
+            }
             
             $result = $this->saveRow($product_id, $post_data);
 

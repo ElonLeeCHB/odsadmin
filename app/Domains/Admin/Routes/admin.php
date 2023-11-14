@@ -258,6 +258,7 @@ Route::group(
                 Route::get('materialRequirements/form/{id?}', 'Inventory\MaterialRequirementController@form')->name('materialRequirements.form');
                 Route::post('materialRequirements/delete', 'Inventory\MaterialRequirementController@delete')->name('materialRequirements.delete');
                 Route::post('materialRequirements/anylize', 'Inventory\MaterialRequirementController@anylize')->name('materialRequirements.anylize');
+                Route::post('materialRequirements/export_list', 'Inventory\MaterialRequirementController@exportList')->name('materialRequirements.export_list');
 
             });
 

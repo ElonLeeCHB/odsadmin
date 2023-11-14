@@ -10,11 +10,11 @@ class DataHelper
     /**
      * $data: array or string
      */
-    public static function addToArray($array, $data)
+    public static function addToArray($array = null, $data)
     {
         $result = [];
 
-        // / $array is empty
+        // $array is empty
         if(empty($array)){
             if(is_string($data)){
                 $result[] = $data;

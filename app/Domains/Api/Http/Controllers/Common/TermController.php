@@ -20,9 +20,12 @@ class TermController extends ApiController
 
         $filter_data = $this->getQueries($query_data);
 
-        $phrases = $this->TermService->getTerms($filter_data);
-        
-        //$phrases = $this->TermService->unsetRelations($phrases, ['translation', 'taxonomy']);
+        $phrases = $this->TermService->getTerms($filter_data)->toArray();
+
+        foreach ($phrases['data'] as $key => $phrase) {
+            unset($phrases['data'][$key]['translation']);
+            unset($phrases['data'][$key]['taxonomy']);
+        }
         
         return response(json_encode($phrases))->header('Content-Type','application/json');
     }

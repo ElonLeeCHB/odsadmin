@@ -7,6 +7,7 @@
         <tr>
           <td class="text-center" style="width: 1px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></td>
           <td class="text-start"><a href="{{ $sort_code }}" @if($sort=='code') class="{{ $order }}" @endif>{{ $lang->column_code }}</a></td>
+          <td class="text-start">{{ $lang->column_form_type }}</td>
           <td class="text-start">{{ $lang->column_supplier_name }}</td>
           <td class="text-start"><a href="{{ $sort_receiving_date }}" @if($sort=='receiving_date') class="{{ $order }}" @endif>{{ $lang->column_receiving_date }}</a></td>
           <td class="text-start">{{ $lang->column_total }}</td>
@@ -19,8 +20,9 @@
         <tr>
           <td class="text-center"><input type="checkbox" name="selected[]" value="{{ $row->id }}" class="form-check-input"/></td>
           <td class="text-start">{{ $row->code }}</td>
+          <td class="text-start">{{ $row->form_type_name ?? '' }}</td>
           <td class="text-start">{{ $row->supplier_name }}</td>
-          <td class="text-start">{{ $row->receiving_date }}</td>
+          <td class="text-start">{{ $row->receiving_date_ymd }}</td>
           <td class="text-start">{{ $row->total }}</td>
           <td class="text-start">{{ $row->status_name }}</td>
           <td class="text-end"><a href="{{ $row->edit_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_edit }}" class="btn btn-primary"><i class="fas fa-pencil-alt"></i></a></td>

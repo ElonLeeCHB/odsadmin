@@ -14,16 +14,16 @@ return [
 // Column
 'column_required_date' => '需求日',
 'column_supplier' => '廠商',
+'column_supplier_short_name' => '廠商簡稱',
 'column_order_code' => '訂單編號',
 'column_product_id' => '料件流水號',
 'column_product_name' => '品名',
 'column_product_specification' => '規格',
-'column_product_quantity' => '數量',
-'column_supplier_product_code' => '廠商品號',
-
-
-
-
+'column_product_stock_quantity' => '庫存數量',
+'column_product_stock_quantity_needed' => '需求庫存數量',
+'column_product_stock_unit_name' => '庫存單位',
+'column_product_usage_unit_name' => '用量單位',
+'column_product_supplier_own_product_code' => '廠商品號',
 'column_purchasing_date' => '採購日期',
 'column_receiving_date' => '進貨日期',
 'column_supplier_name' => '廠商名稱',

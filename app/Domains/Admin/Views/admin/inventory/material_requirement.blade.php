@@ -12,11 +12,9 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
+        <button type="button" id="btn-export_list" data-bs-toggle="tooltip" data-loading-text="Loading..." title="下載" class="btn btn-info" aria-label="下載"><i class="fas fa-file-export"></i></button>
         <button type="button" data-bs-toggle="tooltip" title="{{ $lang->button_filter }}" onclick="$('#filter-unit').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fa-solid fa-filter"></i></button>
-        <button type="button" id="btn-analize" data-bs-toggle="tooltip" data-loading-text="Loading..." title="分析料件需求" class="btn btn-info" aria-label="分析料件需求"><i class="fas fa-database"></i></button>
-
-        <a href="{{ $add_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i></a>
-        <button type="submit" form="form-requirement" formaction="{{ $delete_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_delete }}" onclick="return confirm('{{ $lang->text_confirm }}');" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
+        <button type="button" id="btn-analize" data-bs-toggle="tooltip" data-loading-text="Loading..." title="(開發中)分析料件需求" class="btn btn-info" aria-label="分析料件需求"><i class="fas fa-database"></i></button>
       </div>
       <h1>{{ $lang->heading_title }}</h1>
       @include('admin.common.breadcumb')
@@ -41,7 +39,7 @@
               </div>
 
               <div class="mb-3">
-                <label class="form-label">{{ $lang->column_supplier_product_code }}</label>
+                <label class="form-label">{{ $lang->column_product_supplier_own_product_code }}</label>
                 <input type="text" id="input-filter_supplier_product_code" name="filter_supplier_product_code" value="{{ $filter_supplier_product_code ?? '' }}"  class="form-control" />
               </div>
 
@@ -68,6 +66,22 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title"><i class="fas fa-file-excel"></i> 分析料件需求</h5> <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="loadingdiv" id="loading" style="display: block;">
+          <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>     
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-export-loading" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-file-excel"></i> Export</h5> <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div class="loadingdiv" id="loading" style="display: block;">
@@ -115,26 +129,64 @@ $('#button-filter').on('click', function() {
 });
 
 //分析料件需求
-$('#btn-analize').on('click', function () {
-  $('#modal-loading').modal('show');
+// $('#btn-analize').on('click', function () {
+//   $('#modal-loading').modal('show');
+//   var dataString = $('#filter-form').serialize();
+
+//   var filter_required_date = $('#input-filter_required_date').val();
+
+//   //console.log('filter_required_date='+filter_required_date+', url='+url)
+
+//   $.ajax({
+//     type: "POST",
+//     url:  "{{ $anylize_url }}",
+//     data: $('#filter-form').serialize(),
+//     success:function(response){
+
+//       if(response.error){
+//         console.log('1')
+//       }
+//     }
+//   });
+// });
+
+//匯出
+$('#btn-export_list').on('click', function () {
+  $('#modal-export-loading').modal('show');
   var dataString = $('#filter-form').serialize();
 
-  var filter_required_date = $('#input-filter_required_date').val();
-
-  //console.log('filter_required_date='+filter_required_date+', url='+url)
-
   $.ajax({
-    type: "POST",
-    url:  "{{ $anylize_url }}",
-    data: $('#filter-form').serialize(),
-    success:function(response){
-
-      if(response.error){
-        console.log('1')
+      type: "POST",
+      url: "{{ $export_list }}",
+      data: dataString,
+      cache: false,
+      xhrFields:{
+          responseType: 'blob'
+      },
+      beforeSend: function () {
+        console.log('beforeSend');
+       // $('#btn-export_list').attr("disabled", true);
+      },
+      success: function(data)
+      {
+        console.log('success');
+        let link = document.createElement('a');
+        link.href = window.URL.createObjectURL(data);
+        let now_string = moment().format('YYYY-MM-DD_hh-mm-ss');
+        link.download = '料件需求表_'+now_string+'.xlsx';
+        link.click();
+      },
+      complete: function () {
+        console.log('complete');
+        $('#modal-export-loading').modal('hide');
+        $('#btn-export_list').attr("disabled", false);
+      },
+      fail: function(data) {
+        console.log('fail');
+        alert('Not downloaded');
       }
-    }
   });
 });
-
+</script>
 </script>
 @endsection

@@ -23,6 +23,10 @@ class Service
         throw new \BadMethodCallException("Method [$method] does not exist.");
     }
 
+    /**
+     * optimizeRow, sanitizeRow 這兩個函數的概念不夠完善。
+     * 
+     */
     public function optimizeRow($row)
     {
         if(!empty($this->repository)){

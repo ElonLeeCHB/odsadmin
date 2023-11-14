@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use App\Repositories\Eloquent\Repository;
 use App\Models\Inventory\Bom;
 use App\Models\Inventory\BomProduct;
+use App\Models\Catalog\Product;
 use App\Helpers\Classes\DataHelper;
 
 class BomRepository extends Repository
@@ -65,6 +66,7 @@ class BomRepository extends Repository
                 throw new \Exception($result['error']);
             }
 
+            $bom_id = $result['id'];
             
             $bom = parent::findIdOrFailOrNew($bom_id);
 
@@ -77,14 +79,21 @@ class BomRepository extends Repository
                 }
             }
 
-            DB::commit();
+            // 將BOM單頭成本回寫料件資料表的 庫存單位成本
+            if(isset($post_data['total']) && $post_data['total'] != ''){
+                $product = Product::find($bom->product_id);
+                $product->stock_price = $bom->total;
+                $product->save();
+            }
 
+
+            DB::commit();
 
             $bom->refresh();
             $bom->load('bom_products');
             DataHelper::setJsonFromStorage('cache/inventory/BomId_' . $bom->id . '.json', $bom->toArray());
             
-            return ['id' => $bom->id];
+            return ['data' => ['id' => $bom->id]];
 
         } catch (\Exception $ex) {
             DB::rollback();

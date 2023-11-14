@@ -384,7 +384,7 @@ class LayoutComposer
         // 訂單料件表
         if(1) {
             $inventory[] = [
-                'name'	   => '訂單料件表',
+                'name'	   => '料件需求表',
                 'icon'	   => '',
                 'href'     => route('lang.admin.inventory.materialRequirements.index'),
                 'children' => []

@@ -14,6 +14,7 @@ return [
 
 // Column
 'column_code' => '進貨單編號',
+'column_form_type' => '單別',
 'column_supplier' => '廠商',
 'column_supplier_name' => '廠商名稱',
 'column_tax_id_num' => '統一編號',

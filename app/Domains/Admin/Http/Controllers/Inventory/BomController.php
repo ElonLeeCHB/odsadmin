@@ -161,6 +161,8 @@ class BomController extends BackendController
             $bom->is_active = 1;
         }
 
+        $bom->product_edit_url = route('lang.admin.inventory.products.form', $bom->product_id);
+
         $data['bom']  = $bom;
 
         if(!empty($data['bom']) && $bom_id == $bom->id){
@@ -200,13 +202,13 @@ class BomController extends BackendController
         // 檢查通過
         if(!$json) {
             $result = $this->BomService->saveBom($post_data);
-            
+
             //$result = $this->BomService->saveBomProducts($post_data);
             if(empty($result['error'])){
                 $json = [
-                    'bom_id' => $result['id'],
+                    'bom_id' => $result['data']['id'],
                     'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.inventory.boms.form', $result['id']),
+                    'redirectUrl' => route('lang.admin.inventory.boms.form', $result['data']['id']),
                 ];
             }else if(auth()->user()->username == 'admin'){
                 $json['error'] = $result['error'];
@@ -214,7 +216,7 @@ class BomController extends BackendController
                 $json['error'] = $this->lang->text_fail;
             }
         }
-        
+
         return response(json_encode($json))->header('Content-Type','application/json');
     }
 

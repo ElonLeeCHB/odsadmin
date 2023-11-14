@@ -13,7 +13,7 @@ use App\Repositories\Eloquent\Setting\SettingRepository;
 use App\Models\Sale\OrderProductIngredient;
 use App\Models\Sale\OrderProductIngredientDaily;
 use App\Models\Setting\Setting;
-use App\Domains\Admin\Services\Sale\MaterialRequisitionService;
+use App\Domains\Admin\Services\Sale\OrderProductIngredientService;
 
 class MaterialRequisitionController extends BackendController
 {
@@ -22,9 +22,9 @@ class MaterialRequisitionController extends BackendController
 
     public function __construct(
         private Request $request,
+        private OrderProductIngredientService $OrderProductIngredientService,
         private OrderRepository $OrderRepository,
         private SettingRepository $SettingRepository,
-        private MaterialRequisitionService $MaterialRequisitionService,
         )
     {
         parent::__construct();
@@ -56,9 +56,9 @@ class MaterialRequisitionController extends BackendController
 
         $data['breadcumbs'] = (object)$breadcumbs;
 
-        $data['add'] = route('lang.admin.sale.mrequisition.form');
-
         $data['list'] = $this->getList();
+        
+        $data['export_counting_product_list'] = route('lang.admin.inventory.countings.export_counting_product_list');
 
 
         return view('admin.sale.mrequisition', $data);
@@ -158,8 +158,14 @@ class MaterialRequisitionController extends BackendController
         }
 
         $this->setIngredientTableFromOrderTable($required_date);
-
         $this->setCacheFromIngredientTable($required_date);
+
+        //根據BOM表計算真實料件需求
+        $result = $this->OrderProductIngredientService->calcMaterialRequirementsForDate($required_date);
+
+        if(!empty($result['error'])){
+            return $result;
+        }
 
         $required_date_2ymd = parseDateStringTo6d($required_date);
 
@@ -266,7 +272,10 @@ class MaterialRequisitionController extends BackendController
                 }
             }
 
+
             //處理3吋潤餅用6吋計算
+
+            $upsert_data = [];
 
             foreach ($arr as $required_date => $rows1) {
                 foreach ($rows1 as $order_id => $rows2) {
@@ -293,27 +302,29 @@ class MaterialRequisitionController extends BackendController
                 }
             }
 
-            //delete
-            $db_ingredients = OrderProductIngredient::where('required_date', $required_date)->get();
+            if(empty($upsert_data)){
+                return ['error' => 'OrderProductIngredient upsert_data is empty! 001'];
+            }
 
-            $delete_ids = [];
-
-            foreach ($db_ingredients as $db_ingredient) {
-                //相關主鍵在資料庫有，在訂單沒有。表示不需要，應刪除
-                if(!isset($arr[$db_ingredient->required_date][$db_ingredient->order_id][$db_ingredient->ingredient_product_id])){
-                    $delete_ids[] = $db_ingredient->id;
+            else{
+                //delete
+                $db_ingredients = OrderProductIngredient::where('required_date', $required_date)->get();
+    
+                $delete_ids = [];
+    
+                foreach ($db_ingredients as $db_ingredient) {
+                    //相關主鍵在資料庫有，在訂單沒有。表示不需要，應刪除
+                    if(!isset($arr[$db_ingredient->required_date][$db_ingredient->order_id][$db_ingredient->ingredient_product_id])){
+                        $delete_ids[] = $db_ingredient->id;
+                    }
                 }
-            }
-
-            if(!empty($delete_ids)){
-                OrderProductIngredient::whereIn('id', $delete_ids)->delete();
-            }
-
-            //upsert
-            if(!empty($upsert_data)){
+    
+                if(!empty($delete_ids)){
+                    OrderProductIngredient::whereIn('id', $delete_ids)->delete();
+                }
+    
                 $result = OrderProductIngredient::upsert($upsert_data, ['required_date','order_id','ingredient_product_id']);
             }
-
 
             // 寫入每日表 order_product_ingredients_daily
             
@@ -347,12 +358,10 @@ class MaterialRequisitionController extends BackendController
             }
             
             DB::commit();
-
             return ['status' => 'success'];
 
         } catch (\Exception $ex) {
             DB::rollback();
-            echo '<pre>exception: ', print_r($ex->getMessage(), 1), "</pre>"; exit;
             return response(json_encode($ex->getMessage()))->header('Content-Type','application/json');
         }
     }
@@ -653,8 +662,11 @@ class MaterialRequisitionController extends BackendController
     {
         $post_data = $this->request->post(); //未來套用驗證
 
-        //return $this->MaterialRequisitionService->export($post_data);
+        //return $this->OrderProductIngredientService->export($post_data);
         return 123;
 
     }
+
+
+
 }

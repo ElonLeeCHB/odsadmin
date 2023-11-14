@@ -207,13 +207,13 @@
                       <td class="text-left"></td>
                       <td class="text-left">品名</td>
                       <td class="text-left">規格</td>
+                      <td class="text-left" style="width:80px;"><label data-bs-toggle="tooltip" title="若要選擇不同單位，請先重新選擇料件" style="font-weight: bolder;" >進貨<BR>單位 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
                       <td class="text-left" style="width:100px;">進貨<BR>單價</td>
                       <td class="text-left" style="width:100px;">進貨<BR>數量</td>
                       <td class="text-left" style="width:100px;">進貨<BR>金額</td>
-                      <td class="text-left" style="width:80px;"><label data-bs-toggle="tooltip" title="若要選擇不同單位，請先重新選擇料件" style="font-weight: bolder;" >進貨<BR>單位 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
-                      <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="轉入庫存數量" style="font-weight: bolder;" >庫存<BR>數量 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
-                      <td class="text-left" style="width:100px;">庫存<BR>單價</td>
                       <td class="text-left" style="width:80px;">庫存<BR>單位</td>
+                      <td class="text-left" style="width:100px;">庫存<BR>單價</td>
+                      <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="轉入庫存數量" style="font-weight: bolder;" >庫存<BR>數量 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
                     </tr>
                   </thead>
                   <tbody>
@@ -242,6 +242,14 @@
                         <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $receiving_product->product_specification ?? '' }}" class="form-control" readonly>
                       </td>
                       <td class="text-left">
+                        <select id="input-products-receiving_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][receiving_unit_code]" class="form-control" >
+                          <option value=""> -- </option>
+                          @foreach($receiving_product->product_units as $product_unit)
+                          <option value="{{ $product_unit->source_unit_code ?? '' }}_{{ $product_unit->source_unit_name ?? '' }}" @if($product_unit->source_unit_code == $receiving_product->receiving_unit_code) selected @endif data-factor="{{ $product_unit->factor }}">{{ $product_unit->source_unit_name ?? '' }}</option>
+                          @endforeach
+                        </select>
+                      </td>
+                      <td class="text-left">
                         <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $receiving_product->price ?? 0 }}" class="form-control productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
                       </td>
                       <td class="text-left">
@@ -251,22 +259,14 @@
                         <input type="text" id="input-products-amount-{{ $product_row }}" name="products[{{ $product_row }}][amount]" value="{{ $receiving_product->amount ?? 0 }}" class="form-control productAmountInputs clcProduct" data-rownum="{{ $product_row }}" readonly>
                       </td>
                       <td class="text-left">
-                        <select id="input-products-receiving_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][receiving_unit_code]" class="form-control" >
-                          <option value=""> -- </option>
-                          @foreach($receiving_product->product_units as $product_unit)
-                          <option value="{{ $product_unit->source_unit_code ?? '' }}_{{ $product_unit->source_unit_name ?? '' }}" @if($product_unit->source_unit_code == $receiving_product->receiving_unit_code) selected @endif data-factor="{{ $product_unit->factor }}">{{ $product_unit->source_unit_name ?? '' }}</option>
-                          @endforeach
-                        </select>
-                      </td>
-                      <td class="text-left">
-                        <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">
+                        <input type="text" id="input-products-stock_unit_name-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_name]" value="{{ $receiving_product->stock_unit_name ?? '' }}" class="form-control" readonly>
+                        <input type="hidden" id="input-products-stock_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_code]" value="{{ $receiving_product->stock_unit_code ?? '' }}">
                       </td>
                       <td class="text-left">
                         <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? 0 }}" class="form-control" readonly>
                       </td>
                       <td class="text-left">
-                        <input type="text" id="input-products-stock_unit_name-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_name]" value="{{ $receiving_product->stock_unit_name ?? '' }}" class="form-control" readonly>
-                        <input type="hidden" id="input-products-stock_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_code]" value="{{ $receiving_product->stock_unit_code ?? '' }}">
+                        <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">
                       </td>
                     </tr>
                     @php $product_row++; @endphp
@@ -548,6 +548,11 @@ function addReceivingProduct(){
   html += '    <input type="text" id="input-products-specification-'+product_row+'" name="products['+product_row+'][specification]" value="" class="form-control" readonly>';
   html += '  </td>';
   html += '  <td class="text-left">';
+  html += '    <select id="input-products-receiving_unit_code-'+product_row+'" name="products['+product_row+'][receiving_unit_code]" class="form-control">';
+  html += '      <option value=""> -- </option>';
+  html += '    </select>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
   html += '    <input type="text" id="input-products-price-'+product_row+'" name="products['+product_row+'][price]" value="" class="form-control productPriceInputs clcProduct" data-rownum="'+product_row+'">';
   html += '  </td>';
   html += '  <td class="text-left">';
@@ -557,20 +562,15 @@ function addReceivingProduct(){
   html += '    <input type="text" id="input-products-amount-'+product_row+'" name="products['+product_row+'][amount]" value="" class="form-control productAmountInputs clcProduct" data-rownum="'+product_row+'" readonly>';
   html += '  </td>';
   html += '  <td class="text-left">';
-  html += '    <select id="input-products-receiving_unit_code-'+product_row+'" name="products['+product_row+'][receiving_unit_code]" class="form-control">';
-  html += '      <option value=""> -- </option>';
-  html += '    </select>';
-  html += '  </td>';
-  html += '  <td class="text-left">';
-  html += '    <input type="text" id="input-products-stock_quantity-'+product_row+'" name="products['+product_row+'][stock_quantity]" value="" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="'+product_row+'">';
+  html += '    <input type="text" id="input-products-stock_unit_name-'+product_row+'" name="products['+product_row+'][stock_unit_name]" value="" class="form-control" readonly>';
+  html += '    <input type="hidden" id="input-products-stock_unit_code-'+product_row+'" name="products['+product_row+'][stock_unit_code]" value="">';
   html += '  </td>';
   html += '  <td class="text-left">';
   html += '    <input type="text" id="input-products-stock_price-'+product_row+'" name="products['+product_row+'][stock_price]" value="" class="form-control" readonly>';
   html += '  </td>';
-  html += ' <td class="text-left">';
-  html += '   <input type="text" id="input-products-stock_unit_name-'+product_row+'" name="products['+product_row+'][stock_unit_name]" value="" class="form-control" readonly>';
-  html += '   <input type="hidden" id="input-products-stock_unit_code-'+product_row+'" name="products['+product_row+'][stock_unit_code]" value="">';
-  html += ' </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-stock_quantity-'+product_row+'" name="products['+product_row+'][stock_quantity]" value="" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="'+product_row+'">';
+  html += '  </td>';
   html += '</tr>';
 
 

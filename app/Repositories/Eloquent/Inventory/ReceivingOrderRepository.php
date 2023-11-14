@@ -9,22 +9,32 @@ use App\Models\Common\TermTranslation;
 use App\Models\Catalog\Product;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
 use App\Repositories\Eloquent\Inventory\ReceivingOrderProductRepository;
+use App\Repositories\Eloquent\Catalog\ProductRepository;
 
 class ReceivingOrderRepository extends Repository
 {
     public $modelName = "\App\Models\Inventory\ReceivingOrder";
 
-    public function __construct(private UnitRepository $UnitRepository, private ReceivingOrderProductRepository $ReceivingOrderProductRepository)
+    public function __construct(private UnitRepository $UnitRepository
+        , private ReceivingOrderProductRepository $ReceivingOrderProductRepository
+        , private ProductRepository $ProductRepository
+    )
     {}
 
     public function getReceivingOrders($data=[], $debug=0)
     {
         $data = $this->resetQueryData($data);
 
+        if(!empty($data['filter_product_name'])){
+            $data['whereHas'] = ['receiving_products' => ['product_name' => $data['filter_product_name']]];
+            unset($data['filter_product_name']);
+        }
+
         $rows = $this->getRows($data, $debug);
         
         foreach ($rows as $row) {
             $row->status_name = $row->status->name ?? '';
+            $row->form_type_name = $row->form_type->name ?? '';
         }
 
         return $this->unsetRelations($rows, ['status']);
@@ -56,6 +66,24 @@ class ReceivingOrderRepository extends Repository
             $receiving_order->comment = $data['comment'] ?? null;
             $receiving_order->save();
 
+            // db_products
+            $product_ids = [];
+            $db_coded_products = [];
+
+            if(!empty($data['products'])){
+                $product_ids = array_column($data['products'], 'id');
+            
+                $params = [
+                    'select' => ['id','stock_unit_code','usage_unit_code'],
+                    'whereIn' => ['id' => $product_ids],
+                    'pagination' => false,
+                    'limit' => 0,
+                    'keyBy' => 'id',
+                    'with' => ['stock_unit','usage_unit'],
+                ];
+                $db_coded_products = $this->ProductRepository->getProducts($params)->toArray();
+            }
+
             // receiving_products
             if(!empty($data['products'])){
 
@@ -65,7 +93,7 @@ class ReceivingOrderRepository extends Repository
                 $this->ReceivingOrderProductRepository->deleteByReceivingOrderById($receiving_order->id);
 
                 $sort_order = 1;
-                $new_sort_order = 100; //前端只允許2位數，到99。這裡從100開始。
+                $new_sort_order = 200;
 
                 //若無商品代號，則 unset()
                 foreach ($data['products'] as $key => $fm_receiving_product) {
@@ -115,7 +143,22 @@ class ReceivingOrderRepository extends Repository
                     if(!empty($fm_receiving_product['receiving_quantity'])){
                         $receiving_quantity = str_replace(',', '', $fm_receiving_product['receiving_quantity']);
                     }
-                    
+
+                    //換算用量單位
+                    $params = [
+                        'product_id' => $product_id,
+                        'from_unit_code' => $db_coded_products[$product_id]['stock_unit_code'],
+                        'to_unit_code' => $db_coded_products[$product_id]['usage_unit_code'],
+                        'from_quantity' => 1,
+                    ];
+                    $usage_factor = $this->UnitRepository->calculateQty($params);
+
+                    if(!empty($usage_factor['error'])){
+                        throw new \Exception($usage_factor['error']);
+                    }
+
+                    $db_coded_products[$product_id]['usage_price'] = $stock_price / $usage_factor;
+
                     $row = [
                         'id' => $fm_receiving_product['receiving_product_id'] ?? null,
                         'receiving_order_id' => $receiving_order->id,
@@ -142,7 +185,6 @@ class ReceivingOrderRepository extends Repository
                     $sort_order++;
                     
                 }
-
                 //Upsert
                 if(!empty($update_receiving_products)){
                     $this->ReceivingOrderProductRepository->upsert($update_receiving_products,['id']);
@@ -156,10 +198,10 @@ class ReceivingOrderRepository extends Repository
                     $product_id = $row['product_id'];
                     $products[$product_id]['id'] = $row['product_id'];
                     $products[$product_id]['stock_price'] = $row['stock_price'] ?? 0;
+                    $products[$product_id]['usage_price'] = $db_coded_products[$product_id]['usage_price'] ?? 0;
                 }
     
                 if(!empty($products)){
-                    Product::where('id', $product_id)->delete();
                     Product::upsert($products, ['product_id']);
                 }
             }

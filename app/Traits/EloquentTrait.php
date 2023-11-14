@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use PDO;
+use App\Helpers\Classes\DataHelper;
 
 /**
  * initialize()
@@ -242,7 +243,8 @@ trait EloquentTrait
         $this->setWith($query, $with);
 
 
-        // whereRelations
+        // Has Relations
+        $this->setHas($query, $data['has'] ?? []);
         // if(!empty($data['whereRelations'])){
         //     foreach ($data['whereRelations'] as $relation_name => $relation) {
         //         $query->whereRelation($relation_name, function($tmpQuery) use ($relation) {
@@ -873,6 +875,17 @@ trait EloquentTrait
                     // }]);
                 }
             }
+        }
+
+        return $query;
+    }
+
+    private function setHas($query, $input)
+    {
+        $hasArray = DataHelper::addToArray([], $input);
+
+        foreach ($hasArray as $value) {
+            $query->has($value);
         }
 
         return $query;

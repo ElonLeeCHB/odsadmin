@@ -35,6 +35,12 @@ class ReceivingOrder extends Model
 
     // Relation
 
+
+    public function form_type()
+    {
+        return $this->belongsTo(Term::class, 'form_type_code', 'code')->where('taxonomy_code', 'receiving_order_form_type');
+    }
+
     public function location()
     {
         return $this->belongsTo(Location::class, 'location_id', 'id');

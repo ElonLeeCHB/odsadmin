@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Carbon;
 use App\Traits\ModelTrait;
+use App\Models\Inventory\Bom;
 
 class OrderProductIngredientDaily extends Model
 {
@@ -16,6 +17,16 @@ class OrderProductIngredientDaily extends Model
     protected $guarded = [];
 
 
+    public function bom()
+    {
+        return $this->hasOne(Bom::class, 'product_id', 'ingredient_product_id')->where('is_active',1);
+    }
+
+    // public function bom_products()
+    // {
+    //     return $this->hasMany(BomProducts::class, 'product_id', 'product_id')->where('is_active',1);
+    // }
+    
     protected function requiredDateYmd(): Attribute
     {
         if(!empty($this->required_date)){

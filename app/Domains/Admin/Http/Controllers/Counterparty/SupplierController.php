@@ -384,7 +384,7 @@ class SupplierController extends BackendController
         $suppliers = $this->rowsWithMetaData($suppliers);
 
         // 稅別
-        $data['tax_types'] = $this->TermRepository->getKeyedTermsByTaxonomyCode('tax_type',toArray:false);
+        $data['tax_types'] = $this->TermRepository->getCodeKeyedTermsByTaxonomyCode('tax_type',toArray:false);
 
         foreach ($suppliers as $row) {
             $json[] = array(

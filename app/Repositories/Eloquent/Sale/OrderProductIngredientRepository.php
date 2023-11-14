@@ -9,5 +9,7 @@ class OrderProductIngredientRepository
     use EloquentTrait;
 
     public $modelName = "\App\Models\Sale\OrderProductIngredient";
+
+    
 }
 
