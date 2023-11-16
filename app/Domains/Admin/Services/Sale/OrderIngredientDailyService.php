@@ -4,7 +4,7 @@ namespace App\Domains\Admin\Services\Sale;
 
 use App\Services\Service;
 use App\Repositories\Eloquent\Sale\OrderProductIngredientRepository;
-use App\Repositories\Eloquent\Sale\OrderProductIngredientDailyRepository;
+use App\Repositories\Eloquent\Sale\OrderIngredientDailyRepository;
 use App\Repositories\Eloquent\Sale\MaterialRequisitionRepository;
 use App\Repositories\Eloquent\Inventory\MaterialRequirementsDailyRepository;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
@@ -16,16 +16,17 @@ use App\Helpers\Classes\UnitConverter;
  * MaterialRequirements 是料件需求表
  * 
  */
-class OrderProductIngredientService extends Service
+class OrderIngredientDailyService extends Service
 {
-    public $modelName = "\App\Models\Sale\OrderProductIngredient";
+    public $modelName = "\App\Models\Sale\OrderIngredientDaily";
 
-    public function __construct(OrderProductIngredientRepository $repository
-    , protected OrderProductIngredientDailyRepository $OrderProductIngredientDailyRepository
+    public function __construct(OrderIngredientDailyRepository $repository
     , protected MaterialRequirementsDailyRepository $MaterialRequirementsDailyRepository
     , protected UnitRepository $UnitRepository
     )
-    {}
+    {
+        $this->repository = $repository;
+    }
 
     public function export($data)
     {

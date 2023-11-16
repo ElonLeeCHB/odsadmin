@@ -1,7 +1,5 @@
 <?php
-/**
- * 即將廢棄
- */
+
 return [
 // Heading
 'heading_title' => '備料表',
@@ -18,6 +16,8 @@ return [
 
 
 // Column
+'column_product_id' => '料件代號',
+'column_product_name' => '料件名稱',
 'column_required_date' => '需求日期',
 'column_required_month' => '需求月',
 'column_required_year' => '需求年',

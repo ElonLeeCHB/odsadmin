@@ -6,27 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Carbon;
 use App\Traits\ModelTrait;
-use App\Models\Inventory\Bom;
+use App\Models\Catalog\Product;
 
-class OrderProductIngredientDaily extends Model
+class OrderIngredientDaily extends Model
 {
     use ModelTrait;
 
-    public $table = 'order_product_ingredients_daily';
+    public $table = 'order_ingredients_dailies';
     protected $appends = ['required_date_ymd', 'required_weekday'];
     protected $guarded = [];
 
 
-    public function bom()
+    public function product()
     {
-        return $this->hasOne(Bom::class, 'product_id', 'ingredient_product_id')->where('is_active',1);
+        return $this->belongsTo(Product::class);
     }
-
-    // public function bom_products()
-    // {
-    //     return $this->hasMany(BomProducts::class, 'product_id', 'product_id')->where('is_active',1);
-    // }
     
+
     protected function requiredDateYmd(): Attribute
     {
         if(!empty($this->required_date)){

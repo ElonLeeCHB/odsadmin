@@ -126,6 +126,15 @@ Route::group(
                 Route::post('phrases/delete', 'Sale\PhraseController@delete')->name('phrases.delete');
                 Route::get('phrases/autocomplete', 'Sale\PhraseController@autocomplete')->name('phrases.autocomplete');
 
+
+
+                Route::get('orderingredientsdailies', 'Sale\OrderIngredientDailyController@index')->name('orderingredientsdailies.index');
+                Route::get('orderingredientsdailies/list', 'Sale\OrderIngredientDailyController@list')->name('orderingredientsdailies.list');
+                Route::get('orderingredientsdailies/form/{required_date?}', 'Sale\OrderIngredientDailyController@form')->name('orderingredientsdailies.form');
+                
+
+
+
                 Route::get('mrequisition', 'Sale\MaterialRequisitionController@index')->name('mrequisition.index');
                 Route::get('mrequisition/list', 'Sale\MaterialRequisitionController@list')->name('mrequisition.list');
                 Route::get('mrequisition/form/{required_date?}', 'Sale\MaterialRequisitionController@form')->name('mrequisition.form');

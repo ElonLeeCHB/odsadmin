@@ -44,7 +44,7 @@ class MaterialRequisitionController extends BackendController
         ];
 
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_sale,
+            'text' => $this->lang->text_menu_sale,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
@@ -95,7 +95,7 @@ class MaterialRequisitionController extends BackendController
         ];
 
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_sale,
+            'text' => $this->lang->text_menu_sale,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
@@ -497,7 +497,7 @@ class MaterialRequisitionController extends BackendController
         ];
 
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_sale,
+            'text' => $this->lang->text_menu_sale,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];

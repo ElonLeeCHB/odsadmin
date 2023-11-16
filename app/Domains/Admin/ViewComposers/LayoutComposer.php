@@ -196,6 +196,16 @@ class LayoutComposer
         //備料單
         if(1) {
             $sale[] = [
+                'name'	   => $this->lang->text_menu_orderingredientsdailies,
+                'icon'	   => '',
+                'href'     => route('lang.admin.sale.orderingredientsdailies.index'),
+                'children' => []
+            ];
+        }
+
+        //舊備料單
+        if(1) {
+            $sale[] = [
                 'name'	   => $this->lang->text_material_requisition,
                 'icon'	   => '',
                 'href'     => route('lang.admin.sale.mrequisition.form'),
@@ -229,7 +239,7 @@ class LayoutComposer
             $menus[] = [
                 'id'       => 'menu-sale',
                 'icon'	   => 'fas fa-user',
-                'name'	   => $this->lang->text_sale,
+                'name'	   => $this->lang->text_menu_sale,
                 'href'     => '',
                 'children' => $sale
             ];

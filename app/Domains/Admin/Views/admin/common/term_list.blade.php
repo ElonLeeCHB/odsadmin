@@ -29,5 +29,5 @@
             </tbody>
 		</table>
 	</div>
-  {!! $terms->links('admin.pagination.default', ['terms'=>$terms]) !!}
+  {!! $terms->links('admin.pagination.default') !!}
 </form>
