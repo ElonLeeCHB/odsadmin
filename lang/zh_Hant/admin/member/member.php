@@ -63,6 +63,7 @@ return [
 'column_recipient_name' => '收件人姓名',
 'column_company' => '公司名稱',
 'column_is_admin' => '是否管理者',
+'column_how_to_find_us' => '如何發現我們',
 
 // Entry
 'entry_customer_group' => '客戶群組',

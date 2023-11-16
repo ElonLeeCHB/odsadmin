@@ -37,6 +37,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'is_admin',
     ];
 
     /**
@@ -78,12 +79,8 @@ class User extends Authenticatable
     public function isAdmin():Attribute
     {
         $userMeta = $this->meta_rows()->where('meta_key', 'is_admin')->where('meta_value', '1')->first();
-
-        $is_admin = 0;
-
-        if($userMeta){
-            $is_admin = $userMeta->meta_value;
-        }
+        
+        $is_admin = ($userMeta) ? 1 : 0;
 
         return Attribute::make(
             get: fn ($value) => $is_admin,

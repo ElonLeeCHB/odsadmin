@@ -9,6 +9,8 @@ use App\Domains\Api\Services\Member\MemberService;
 use App\Domains\Api\Services\Localization\CountryService;
 use App\Domains\Api\Services\Localization\DivisionService;
 use App\Domains\Api\Services\Catalog\OptionService;
+use App\Http\Resources\Member\MemberCollection;
+use App\Http\Resources\Member\MemberResource;
 
 
 class MemberController extends ApiController
@@ -33,11 +35,9 @@ class MemberController extends ApiController
 
         $members = $this->MemberService->getMembers($filter_data);
 
-        $members = $this->MemberService->optimizeRows($members);
+        $newmembers = (new MemberCollection($members))->toArray();
 
-        $members = $this->MemberService->unsetRelations($members, ['status']);
-
-        return response(json_encode($members))->header('Content-Type','application/json');
+        return response(json_encode($newmembers))->header('Content-Type','application/json');
     }
 
 
@@ -99,14 +99,13 @@ class MemberController extends ApiController
         }
 
         if(!$json) {
-            $result = $this->MemberService->updateOrCreate($data);
+            $result = $this->MemberService->saveMember($data);
 
             if(empty($result['error'])){
-                $json['member_id'] = $result['data']['member_id'];
+                $json['member_id'] = $result['id'];
                 $json['success'] = $this->lang->text_success;
             }else{
-                $user_id = Auth::user()->id ?? null;
-                if(1){
+                if(config('app.debug')){
                     $json['error'] = $result['error'];
                 }else{
                     $json['error'] = $this->lang->text_fail;

@@ -142,6 +142,7 @@ class OrderController extends ApiController
                 $json = [
                     'success' => $this->lang->text_success,
                     'order_id' => $order->id,
+                    'code' => $order->code,
                     'customer_id' => $order->customer_id,
                     'personal_name' => $order->personal_name,
                     'customer' => $order->customer_id . '_' . $order->personal_name,

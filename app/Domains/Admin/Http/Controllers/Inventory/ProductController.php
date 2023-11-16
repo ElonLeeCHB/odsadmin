@@ -49,7 +49,7 @@ class ProductController extends BackendController
         ];
         
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_inventory,
+            'text' => $this->lang->text_menu_inventory,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
@@ -437,7 +437,7 @@ class ProductController extends BackendController
         foreach ($products as $product) {
 
             $new_row = array(
-                'label' => $product->name . '-' . $product->specification . '-' . $product->id,
+                'label' => $product->id . ' ' . $product->name . ' ' . $product->specification,
                 'value' => $product->id,
                 'product_id' => $product->id,
                 'name' => $product->name,

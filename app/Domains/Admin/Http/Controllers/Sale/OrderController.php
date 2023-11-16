@@ -402,6 +402,7 @@ class OrderController extends BackendController
         $data['tax_id_nums_list_url'] = route('api.localization.tax_id_num.list');
         $data['cities_list_url'] = route('api.localization.division.city.list');
         $data['roads_list_url'] = route('api.localization.road.list');
+        $data['member_info_url'] = route('lang.admin.member.members.info');
         
 
 
@@ -538,21 +539,23 @@ class OrderController extends BackendController
         $data['product'] = $product;
 
         if(!empty($order_product->main_category_code)){
-            $data['main_category_code'] = $order_product->main_category_code;
+            $main_category_code = $order_product->main_category_code;
         }else if(!empty($product->main_category->code)){
-            $data['main_category_code'] = $product->main_category->code;
+            $main_category_code = $product->main_category->code;
         }else{
-            $data['main_category_code'] = '';
+            $main_category_code = '';
         }
+        $data['main_category_code'] = $main_category_code;
 
         $data['main_category_name'] = $product->main_category->translation->name ?? '';
 
+
         //is_main_meal_title
-        $data['is_main_meal_title'] = 0;
-        $arr = ['bento', 'lunchbox', 'cstLunchbox', 'cstBento'];
-        if(!empty($data['main_category_code']) && in_array($data['main_category_code'], $arr)){
-            $data['is_main_meal_title'] = 1;
-        }
+        // 2023-11-15-不用了。這段先放著以免萬一 
+        // $data['is_main_meal_title'] = 0;
+        // if(in_array($main_category_code, ['bento', 'lunchbox', 'cstLunchbox', 'cstBento'])){
+        //     $data['is_main_meal_title'] = 1;
+        // }
 
         //order_product
         if(!empty($order_product)){

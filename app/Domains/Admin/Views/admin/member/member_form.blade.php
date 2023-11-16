@@ -15,7 +15,7 @@
           {{-- <a href="javascript:void(0)" data-bs-toggle="tooltip" title="Orders" class="btn btn-warning"><i class="fas fa-receipt"></i></a> --}}
         {{-- <button type="submit" form="form-member" data-bs-toggle="tooltip" title="Save" class="btn btn-primary"><i class="fas fa-save"></i></button> --}}
         <button type="submit" form="form-member" data-bs-toggle="tooltip" title="{{ $lang->save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
-        <a href="{{ $back }}" data-bs-toggle="tooltip" title="Back" class="btn btn-light"><i class="fas fa-reply"></i></a>
+        <a href="{{ $back_url }}" data-bs-toggle="tooltip" title="Back" class="btn btn-light"><i class="fas fa-reply"></i></a>
       </div>
       <h1>{{ $lang->heading_title }}</h1>
       @include('admin.common.breadcumb')
@@ -28,7 +28,7 @@
               <li class="nav-item"><a href="#tab-general" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_general }}</a></li>
               <!--<li class="nav-item"><a href="#tab-address" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_address }}</a></li>-->
           </ul>
-          <form id="form-member" action="{{ $save }}" method="post" data-oc-toggle="ajax">
+          <form id="form-member" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
             @csrf
             @method('POST')
             <div class="tab-content">
@@ -65,6 +65,7 @@
                         </div>
                       </div>
                     </div>
+
                     <div class="row mb-3">
                       <label for="input-mobile" class="col-sm-2 col-form-label">{{ $lang->entry_mobile }}</label>
                       <div class="col-sm-10">
@@ -72,6 +73,7 @@
                         <div id="error-mobile" class="invalid-feedback"></div>
                       </div>
                     </div>
+
                     <div class="row mb-3">
                       <label for="input-email" class="col-sm-2 col-form-label">{{ $lang->entry_email }}</label>
                       <div class="col-sm-10">
@@ -79,11 +81,37 @@
                         <div id="error-email" class="invalid-feedback"></div>
                       </div>
                     </div>
+
                     <div class="row mb-3">
                       <label for="input-comment" class="col-sm-2 col-form-label">內部備註</label>
                       <div class="col-sm-10">
                         <input type="text" name="comment" value="{{ $member->comment }}" id="input-comment" class="form-control"/>
                         <div id="error-comment" class="invalid-feedback"></div>
+                      </div>
+                    </div>
+
+                    <div class="row mb-3">
+                      <label for="input-status_code" class="col-sm-2 col-form-label">{{ $lang->column_how_to_find_us }}</label>
+                      <div class="col-sm-10">
+
+                        @php
+                          $lastKey = array_key_last($find_us)
+                        @endphp
+
+                        @foreach($find_us as $key => $row)
+                          <div class="col-md-12">
+                            <div class="input-group">
+                              <div>
+                                <label class="col-form-label"> <input type="radio" name="gender" value="{{ $row->code }}"> {{ $row->name }} &nbsp;&nbsp;</label> 
+                              </div>
+                              @if($key === $lastKey) 
+                              <div class="col-md-4">
+                                <input type="text" name="find_us_comment" value="{{ $row->find_us_comment ?? '' }}" placeholder="其它原因" class="form-control">
+                              </div>
+                              @endif
+                            </div>
+                          </div>
+                        @endforeach
                       </div>
                     </div>
                     

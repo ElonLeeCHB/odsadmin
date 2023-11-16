@@ -310,6 +310,7 @@ Route::group(
                 Route::get('members/form/{member_id?}', 'Member\MemberController@form')->name('members.form');
                 Route::get('members/list', 'Member\MemberController@list')->name('members.list');
                 Route::get('members/autocomplete', 'Member\MemberController@autocomplete')->name('members.autocomplete');
+                Route::get('members/info/{member_id?}', 'Member\MemberController@info')->name('members.info');
                 Route::post('members/save/{member_id?}', 'Member\MemberController@save')->name('members.save');
                 Route::post('members/delete', 'Member\MemberController@delete')->name('members.delete');
             });

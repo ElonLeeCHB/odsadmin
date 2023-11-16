@@ -8,7 +8,6 @@ use App\Models\Counterparty\OrganizationMeta;
 use App\Models\Counterparty\PaymentTerm;
 use App\Traits\ModelTrait;
 
-
 class Organization extends Model
 {
     use ModelTrait;

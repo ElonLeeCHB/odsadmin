@@ -82,16 +82,16 @@
               </div>
 
               <div class="row mb-3">
-                    <label for="input-status_code" class="col-sm-2 col-form-label">{{ $lang->column_status }}</label>
-                    <div class="col-sm-10">
-                      <select id="input-status_code" name="status_code" class="form-select">
-                        <option value="">--</option>
-                          @foreach($statuses as $status)
-                          <option value="{{ $status->code }}" @if($status->code == $counting->status_code) selected @endif>{{ $status->name }}</option>
-                          @endforeach
-                      </select>
-                    </div>
-                  </div>
+                <label for="input-status_code" class="col-sm-2 col-form-label">{{ $lang->column_status }}</label>
+                <div class="col-sm-10">
+                  <select id="input-status_code" name="status_code" class="form-select">
+                    <option value="">--</option>
+                      @foreach($statuses as $status)
+                      <option value="{{ $status->code }}" @if($status->code == $counting->status_code) selected @endif>{{ $status->name }}</option>
+                      @endforeach
+                  </select>
+                </div>
+              </div>
 
               <div class="row mb-3">
                 <label for="input-comment" class="col-sm-2 col-form-label">備註</label>
@@ -186,6 +186,8 @@ $(document).on('click', '.schProductName', function() {
       });
     }
   });
+
+  $('.schProductName').first().click();
 });
 
 

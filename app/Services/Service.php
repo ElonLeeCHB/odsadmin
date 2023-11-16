@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Traits\EloquentTrait;
+use App\Repositories\Eloquent\Common\StaticTermRepository;
 
 class Service
 {
@@ -21,28 +22,10 @@ class Service
         }
 
         throw new \BadMethodCallException("Method [$method] does not exist.");
-    }
+    }    
 
-    /**
-     * optimizeRow, sanitizeRow 這兩個函數的概念不夠完善。
-     * 
-     */
-    public function optimizeRow($row)
+    public function getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray = true, $params = null): array
     {
-        if(!empty($this->repository)){
-            return $this->repository->optimizeRow($row);
-        }
-
-        return $row;
-    }
-
-
-    public function sanitizeRow($row)
-    {
-        if(!empty($this->repository)){
-            return $this->repository->sanitizeRow($row);
-        }
-
-        return $row;
+        return StaticTermRepository::getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray, $params);
     }
 }

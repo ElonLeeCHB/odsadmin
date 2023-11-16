@@ -68,6 +68,7 @@ class SupplierService extends Service
             $supplier->shipping_address1 = $data['shipping_address1'];
 
             $supplier->save();
+            
             $result = $this->saveRowMetaData($supplier, $data);
 
             if(!empty($result['error'])){

@@ -485,7 +485,6 @@
 <script type="text/javascript">
 
 
-
 //關閉全部的 autocomplete
 $('input').attr('autocomplete', 'off');
 
@@ -657,30 +656,48 @@ function isChineseInputCompleted(){
   return true
 }
 
+function setMemberAutocomplete(json){
+  for (var i = 0; i < json.length; i++) {
+    json[i].label = json[i].name + ' ' + json[i].mobile;
+    json[i].value = json[i].id;
+  }
+
+  var fields = Object.keys(json.length > 0 ? json[0] : {});
+
+  json.unshift({});
+
+  for (var i = 0; i < fields.length; i++) {
+    json[0][fields[i]] = '';
+  }
+
+  json[0]['label'] = ' -- ';
+  json[0]['value'] = ' -- ';
+  json[0]['customer_id'] = ' -- ';
+
+  return json;
+}
+
 //查姓名
-$(document).ready(function() {
-  $('#input-personal_name').on('input', function(){
-    $('#input-personal_name').autocomplete({
-      'minLength': 1,
-      'source': function (request, response) {
-        var regex = /[a-zA-Z0-9\u3105-\u3129]+/;//注音符號
-        if (regex.test(request)) {
-          return;
-        }else{
-          $.ajax({
-            url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_personal_name=" + encodeURIComponent(request),
-            dataType: 'json',
-            success: function (json) {
-              response(json);
-            }
-          });
+$('#input-personal_name').autocomplete({
+  'minLength': 1,
+  'source': function (request, response) {
+    var regex = /[a-zA-Z0-9\u3105-\u3129]+/;//注音符號
+    if (regex.test(request)) {
+      return;
+    }else{
+      $.ajax({
+        url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_name=" + encodeURIComponent(request),
+        dataType: 'json',
+        success: function (json) {
+          json = setMemberAutocomplete(json)
+          response(json);
         }
-      },
-      'select': function (item) {
-        setCustomerInfo(item)
-      }
-    });
-  });
+      });
+    }
+  },
+  'select': function (item) {
+    setCustomerInfo(item)
+  }
 });
 
 
@@ -691,9 +708,10 @@ $('#input-mobile').autocomplete({
     request = request.replace(/-/g, "");
     if(request.length > 6){
       $.ajax({
-        url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_mobile=" + encodeURIComponent(request) + '&with=orders',
+        url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_mobile=" + encodeURIComponent(request),
         dataType: 'json',
         success: function(json) {
+          json = setMemberAutocomplete(json)
           response(json);
         }
       });
@@ -715,6 +733,7 @@ $('#input-telephone').autocomplete({
       url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_telephone=" + encodeURIComponent(request),
       dataType: 'json',
       success: function(json) {
+        json = setMemberAutocomplete(json)
         response(json);
       }
     });
@@ -726,9 +745,9 @@ $('#input-telephone').autocomplete({
 
 //查客戶之後重設單頭
 function setCustomerInfo(item){
-  $('#input-personal_name').val(item.personal_name);
-  $('#input-customer_id').val(item.customer_id);
-  $('#input-customer').val(item.customer_id+'_'+item.personal_name);
+  $('#input-personal_name').val(item.name);
+  $('#input-customer_id').val(item.id);
+  $('#input-customer').val(item.id+'_'+item.name);
   $('#input-salutation_id').val(item.salutation_id);
   $('#input-telephone').val(item.telephone);
   $('#input-mobile').val(item.mobile);
@@ -749,7 +768,8 @@ function setCustomerInfo(item){
   $("#input-shipping_address1").val(item.shipping_address1);
 
   if(item.has_order){
-    $("#a-order_list").attr('href', 'sale/orders?filter_customer_id='+item.customer_id);
+    $("#a-order_list").attr('href', 'sale/orders?filter_customer_id='+item.id);
+    $("#a-order_list").attr("target", "_blank");
     $("#a-order_list").show();
   }else{
     $("#a-order_list").attr('href', '');

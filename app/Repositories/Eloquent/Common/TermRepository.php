@@ -3,12 +3,12 @@
 namespace App\Repositories\Eloquent\Common;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use App\Repositories\Eloquent\Repository;
 use App\Repositories\Eloquent\Common\TaxonomyRepository;
 use App\Models\Common\Term;
 use App\Models\Common\TermTranslation;
 use App\Models\Common\TermRelation;
-use Illuminate\Support\Facades\Storage;
 
 class TermRepository extends Repository
 {
@@ -38,17 +38,17 @@ class TermRepository extends Repository
         return $terms;
     }
 
-/**
- * @param  int     $taxonomy_code terms.taxonomy_code = taxonomies.code
- * @param  boolean $to_array 
- * @param  array   $data 
- *
- * @return array
- *
- * @author  Ron Lee
- * @created 2023-11-05
- * @updated 2023-11-05
- */
+    /**
+     * @param  int     $taxonomy_code terms.taxonomy_code = taxonomies.code
+     * @param  boolean $to_array 
+     * @param  array   $data 
+     *
+     * @return array
+     *
+     * @author  Ron Lee
+     * @created 2023-11-05
+     * @updated 2023-11-05
+     */
     public function getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray = true, $params = null): array
     {
         $cache_name = 'cache/terms/code_keyed/' . $taxonomy_code . '.json';
@@ -225,6 +225,14 @@ class TermRepository extends Repository
 
             DB::commit();
 
+            // 刪除自定義快取
+            $taxonomy_code = $term->taxonomy_code;
+
+            $path = 'cache/terms/code_keyed/' . $taxonomy_code . '.json';
+            if (Storage::exists($path)) {
+                Storage::delete($path);
+            }
+
             $result['term_id'] = $term->id;
             return $result;
             
@@ -238,27 +246,12 @@ class TermRepository extends Repository
     }
     
 
-    // 尋找關聯，並將關聯值賦予記錄
-    public function optimizeRow($row)
+
+    public static function createRepository(): self
     {
-        return $row;
-    }
+        $taxonomyRepository = app(TaxonomyRepository::class);
 
-
-    // 刪除關聯
-    public function sanitizeRow($row)
-    {
-        $arrOrder = $row->toArray();
-
-        if(!empty($arrOrder['translation'])){
-            unset($arrOrder['translation']);
-        }
-
-        if(!empty($arrOrder['taxonomy'])){
-            unset($arrOrder['taxonomy']);
-        }
-
-        return (object) $arrOrder;
+        return new static($taxonomyRepository);
     }
 }
 

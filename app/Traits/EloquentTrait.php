@@ -242,6 +242,9 @@ trait EloquentTrait
         $with = $data['with'] ?? [];
         $this->setWith($query, $with);
 
+        $withCount = $data['withCount'] ?? '';
+        $this->setWithCount($query, $withCount);
+        //$query->withCount([$withCount]);
 
         // Has Relations
         $this->setHas($query, $data['has'] ?? []);
@@ -441,7 +444,8 @@ trait EloquentTrait
                 $query->select(DB::raw($data['select']));
             }
         }else{
-            $query->select("{$this->table}.*");
+            //$query->select("{$this->table}.*");
+            //dd($query->toSql());
         }
 
         // see the sql statement
@@ -880,6 +884,15 @@ trait EloquentTrait
         return $query;
     }
 
+    private function setWithCount($query, $input)
+    {
+        if(!empty($input)){
+            $query->withCount($input);
+        }        
+        
+        return $query;
+    }
+
     private function setHas($query, $input)
     {
         $hasArray = DataHelper::addToArray([], $input);
@@ -1059,7 +1072,7 @@ trait EloquentTrait
 
         } catch (\Exception $ex) {
             DB::rollback();
-            return ['error' => 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage()];
+            throw $ex;
         }
     }
 
@@ -1107,7 +1120,7 @@ trait EloquentTrait
 
         } catch (\Exception $ex) {
             DB::rollback();
-            return ['error' => 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage()];
+            throw $ex;
         } 
     }
 
@@ -1115,7 +1128,7 @@ trait EloquentTrait
     public function saveRowMetaData($masterModelInstance, $post_data)
     {
         $this->initialize();
-        
+
         try {
             $meta_model = $masterModelInstance->getMetaModel();
 
@@ -1125,14 +1138,16 @@ trait EloquentTrait
 
             // Keys
             $master_key = $meta_model->master_key ?? $masterModelInstance->getForeignKey();
+
             $master_key_value = $masterModelInstance->id;
 
             //先取出舊資料
             $all_meta = $masterModelInstance->metas()->get()->keyBy('meta_key')->toArray();
+
             //全刪
             $masterModelInstance->metas()->where($master_key, $master_key_value)->delete();
-            
             $upsert_data = [];
+
             foreach($post_data as $column => $value){
                 if(!in_array($column, $this->model->meta_attributes) || empty($value)){
                     continue;
@@ -1151,9 +1166,11 @@ trait EloquentTrait
             
             DB::commit();
 
+            return true;
+
         } catch (\Exception $ex) {
             DB::rollback();
-            return ['error' => 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage()];
+            throw $ex;
         }
     }
 

@@ -13,6 +13,10 @@ use App\Domains\Admin\Services\Localization\CountryService;
 use App\Domains\Admin\Services\Localization\DivisionService;
 use App\Domains\Admin\Services\Localization\AddressService;
 use App\Domains\Admin\Services\Catalog\OptionService;
+use App\Domains\Admin\Term;
+use App\Repositories\Eloquent\Counterparty\OrganizationRepository;
+use App\Http\Resources\Member\MemberCollection;
+use App\Http\Resources\Member\MemberResource;
 
 class MemberController extends BackendController
 {
@@ -24,6 +28,7 @@ class MemberController extends BackendController
         , private DivisionService $DivisionService
         , private AddressService $AddressService
         , private OptionService $OptionService
+        , private OrganizationRepository $OrganizationRepository
         )
     {
         parent::__construct();
@@ -190,12 +195,14 @@ class MemberController extends BackendController
             $queries['limit'] = $this->request->query('limit');
         }
 
-        $data['save'] = route('lang.admin.member.members.save');
-        $data['back'] = route('lang.admin.member.members.index', $queries);
+        $data['save_url'] = route('lang.admin.member.members.save');
+        $data['back_url'] = route('lang.admin.member.members.index', $queries);
 
         // Get Record
         $member = $this->MemberService->findIdOrFailOrNew($member_id);
-        
+
+        $member = $this->MemberService->getMetaRows($member);
+
         $data['member']  = $member;
 
         if(!empty($data['member']) && $member_id == $member->id){
@@ -203,6 +210,8 @@ class MemberController extends BackendController
         }else{
             $data['member_id'] = null;
         }
+
+        $data['find_us'] = $this->MemberService->getCodeKeyedTermsByTaxonomyCode('member_how_to_find_us', false);
 
         // Salutation
         $filter_data = [
@@ -283,13 +292,13 @@ class MemberController extends BackendController
         }
 
         if(!$json) {
-            $result = $this->MemberService->updateOrCreate($data);
+            $result = $this->MemberService->saveMember($data);
 
             if(empty($result['error'])){
                 $json = [
-                    'member_id' => $result['member_id'],
+                    'member_id' => $result['id'],
                     'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.member.members.form', $result['member_id']),
+                    'redirectUrl' => route('lang.admin.member.members.form', $result['id']),
                 ];
 
             }else{
@@ -348,13 +357,33 @@ class MemberController extends BackendController
     }
 
 
+    public function info($member_id)
+    {
+        $member = $this->MemberService->findIdOrFailOrNew($member_id);
+
+        $member = $this->MemberService->getMetaRows($member);
+        
+        return response(json_encode($member))->header('Content-Type','application/json');
+    }
+
     public function autocomplete()
     {
         $query_data = $this->request->query();
 
-        $json = $this->MemberService->getJsonMembers($query_data);
+        $query_data['pagination'] = false;
+        $query_data['limit'] = 10;
+        $query_data['withCount'] = 'orders';
+        
+        $members = $this->MemberService->getMembers($query_data);
 
-        return response(json_encode($json))->header('Content-Type','application/json');
+        // 判斷是否有訂單
+        foreach ($members as $key => $member) {
+            $member->has_order = $member->orders()->limit(1)->exists();
+        }
+
+        $newmembers = (new MemberCollection($members))->toArray();
+        
+        return response(json_encode($newmembers))->header('Content-Type','application/json');
     }
 
 
