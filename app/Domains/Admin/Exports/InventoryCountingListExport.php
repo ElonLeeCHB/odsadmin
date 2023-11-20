@@ -13,7 +13,7 @@ use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
-
+use App\Helpers\Classes\DataHelper;
 
 class InventoryCountingListExport implements FromCollection, WithHeadings, WithEvents, WithMapping, WithCustomStartCell
 {
@@ -52,7 +52,14 @@ class InventoryCountingListExport implements FromCollection, WithHeadings, WithE
         $this->filter_data['limit'] = 1000;
         $this->filter_data['extra_columns'] = ['supplier_name', 'accounting_category_name','source_type_name'
                                         , 'stock_unit_name', 'counting_unit_name', 'usage_unit_name'
+                                        , 'temperature_type_name'
                                       ];
+
+        $this->filter_data['with'] = DataHelper::addToArray($filter_data['with'] ?? [], 'meta_rows');
+
+        $products = $this->ProductRepository->getProducts($this->filter_data);
+
+        $products->sortBy('temperature_type_code');
 
         return $this->ProductRepository->getProducts($this->filter_data);
     }

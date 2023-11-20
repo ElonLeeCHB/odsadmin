@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
+use App\Repositories\Eloquent\Common\StaticTermRepository;
 use App\Repositories\Eloquent\Catalog\ProductUnitRepository;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductOption;
@@ -16,6 +17,7 @@ use App\Models\Inventory\BOM;
 use App\Models\Inventory\BomProduct;
 use Carbon\Carbon;
 
+use App\Helpers\Classes\DataHelper;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
 
@@ -32,7 +34,26 @@ class ProductRepository extends Repository
     public function getProducts($data = [], $debug = 0)
     {
         $filter_data = $this->resetQueryData($data);
+
+        // if(!empty($filter_data['all_data']) && $filter_data['all_data']){
+        //     $filter_data['with'] = DataHelper::addToArray($filter_data['with'] ?? [], ['translation', 'meta_rows']);
+        // }
+
+        // $cache_name = 'cache/products/id_keyed/' . $id . '.json';
+        // DataHelper::setJsonToStorage($cache_name);
+
         $products = $this->getRows($filter_data, $debug);
+
+        // echo '<pre>', print_r($products->toArray(), 1), "</pre>"; exit;
+
+
+        // // meta_rows
+        // foreach ($products as $row) {
+        //     if ($row->relationLoaded('meta_rows')) {
+        //         $this->getMetaRows($row);
+        //     }
+        // }
+
         
         if(count($products) == 0){
             return $products;
@@ -41,6 +62,8 @@ class ProductRepository extends Repository
         // 額外欄位 預先處理是否需要 load() 或是抓取其它資料集
         // 沒有用 with, 有時候好像 with 會失敗
         if(!empty($data['extra_columns'])){
+
+            $products->load('meta_rows');
 
             // units table
             $product_unit_names = ['stock_unit_name', 'counting_unit_name', 'usage_unit_name']; // 如果有用到這些單位
@@ -55,26 +78,26 @@ class ProductRepository extends Repository
             }
 
             // supplier_columns
-            $supplier_columns = ['supplier_name', 'supplier_short_name'];
-            $matches = array_intersect($supplier_columns, $data['extra_columns']);
+            $matches = array_intersect(['supplier_name', 'supplier_short_name'], $data['extra_columns']);
 
             if (!empty($matches)) {
                 $products->load('supplier');
             }
 
             // terms table
-            $term_columns = ['accounting_category_name'];
-            $matches = array_intersect($term_columns, $data['extra_columns']);
-            
-            if (!empty($matches)) {
+            // - accounting category            
+            if(in_array('accounting_category_name', $data['extra_columns'])){
                 $products->load('accounting_category.translation');
             }
 
-            $term_columns = ['source_type_name'];
-            $matches = array_intersect($term_columns, $data['extra_columns']);
-            
-            if (!empty($matches)) {
+            // - source type
+            if(in_array('source_type_name', $data['extra_columns'])){
                 $products->load('source_type.translation');
+            }
+
+            // - storage type            
+            if(in_array('temperature_type_name', $data['extra_columns'])){
+                $temperature_types = StaticTermRepository::getCodeKeyedTermsByTaxonomyCode('product_storage_temperature_type');
             }
             
         }
@@ -93,7 +116,7 @@ class ProductRepository extends Repository
                 }
 
                 // supplier_columns
-                $matches = array_intersect($supplier_columns, $data['extra_columns']);
+                $matches = array_intersect(['supplier_name', 'supplier_short_name'], $data['extra_columns']);
                 if (!empty($matches)) {
                     $row->supplier_name = $row->supplier->name ?? '';
                     $row->supplier_short_name = $row->supplier->short_name ?? '';
@@ -105,6 +128,11 @@ class ProductRepository extends Repository
 
                 if(in_array('accounting_category_name', $data['extra_columns'])){
                     $row->accounting_category_name = !empty($row->accounting_category->name) ? $row->accounting_category->code . ':' .$row->accounting_category->name : '';
+                }
+
+                // temperature_type_name
+                if(in_array('temperature_type_name', $data['extra_columns'])){
+                    $row->temperature_type_name = $temperature_types[$row->temperature_type_code]['name'] ?? '';
                 }
             }
         }
@@ -121,6 +149,69 @@ class ProductRepository extends Repository
         $row->supplier_name = $row->supplier->name ?? '';
 
         return $row;
+    }
+
+    public function setJsonCache($id)
+    {
+        $product = Product::with('translations', 'translation', 'product_options', 'meta_rows')->find($id);
+
+
+        $product_array = $product->toArray();
+
+        if(!empty($product_array['translations'])) {
+            foreach ($product_array['translations'] as $key => $translation) {
+                $locale = $translation['locale'];
+                $product_array['translations'][$locale] = $translation;
+                unset($product_array['translations'][$key]);
+            }
+        }
+
+        if(!empty($product_array['translation'])) {
+            foreach ($product_array['translation'] as $key => $value) {
+                $product_array[$key] = $value;
+            }
+        }
+
+        if(!empty($product_array['meta_rows'])) {
+            foreach ($product_array['meta_rows'] as $key => $meta_row) {
+                $meta_key = $meta_row['meta_key'];
+                $product_array[$meta_key] = $meta_row['meta_value'];
+
+                $product_array['meta_rows'][$meta_key] = $meta_row;
+                unset($product_array['meta_rows'][$key]);
+            }
+        }
+
+        // temperature_type_code
+        if(!empty($product_array['temperature_type_code'])){
+            $temperature_type_code = $product_array['temperature_type_code'];
+            $temperature_types = StaticTermRepository::getCodeKeyedTermsByTaxonomyCode('product_storage_temperature_type',false);
+            $product_array['temperature_type_name'] = $temperature_types[$temperature_type_code]->name;
+        }
+
+        // accounting_category_code
+        if(!empty($product_array['accounting_category_code'])){
+            $accounting_category_code = $product_array['accounting_category_code'];
+            $accounting_categories = StaticTermRepository::getCodeKeyedTermsByTaxonomyCode('product_accounting_category',false);
+            $product_array['accounting_category_name'] = $accounting_categories[$accounting_category_code]->name;
+        }
+
+        // accounting_category_code
+        if(!empty($product_array['source_type_code'])){
+            $source_type_code = $product_array['source_type_code'];
+            $source_types = StaticTermRepository::getCodeKeyedTermsByTaxonomyCode('product_source_type',false);
+            $product_array['source_type_name'] = $source_types[$source_type_code]->name;
+        }
+
+        $cache_name = 'cache/products/id_keyed/' . $id . '.json';
+
+        return DataHelper::setJsonToStorage($cache_name, $product_array);
+    }
+
+    public function getJsonCache($id)
+    {
+        $cache_name = 'cache/products/id_keyed/' . $id . '.json';
+        return DataHelper::getJsonFromStoragNew($cache_name, true);
     }
 
     // 商品管理的商品基本資料 save();
@@ -231,6 +322,8 @@ class ProductRepository extends Repository
             }
 
             DB::commit();
+            
+            $this->setJsonCache($product->id);
             
             $result['product_id'] = $product->id;
 

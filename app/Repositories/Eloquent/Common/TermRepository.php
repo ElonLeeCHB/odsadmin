@@ -52,6 +52,9 @@ class TermRepository extends Repository
     public function getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray = true, $params = null): array
     {
         $cache_name = 'cache/terms/code_keyed/' . $taxonomy_code . '.json';
+
+        $json_string = '';
+
         if (Storage::exists($cache_name)) {
             $json_string = Storage::get($cache_name);
         }else{

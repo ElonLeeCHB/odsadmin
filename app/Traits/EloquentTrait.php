@@ -1213,7 +1213,7 @@ trait EloquentTrait
     /**
      * 獲取 meta_data，並根據 meta_attributes ，若 meta_key 不存在，設為空值 ''
      */
-     public function getMetaRows($row)
+    public function getMetaRows($row)
     {
         $meta_rows = $row->meta_rows;
 

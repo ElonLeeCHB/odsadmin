@@ -91,7 +91,7 @@ class BomRepository extends Repository
 
             $bom->refresh();
             $bom->load('bom_products');
-            DataHelper::setJsonFromStorage('cache/inventory/BomId_' . $bom->id . '.json', $bom->toArray());
+            DataHelper::setJsonToStorage('cache/inventory/BomId_' . $bom->id . '.json', $bom->toArray());
             
             return ['data' => ['id' => $bom->id]];
 

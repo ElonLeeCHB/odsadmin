@@ -163,41 +163,40 @@
 
               </div>
 
-              <table class="table table-bordered">
-                <tbody id="order-totals">
-                  <tr>
-                    <td class="text-end col-sm-2"><strong>{{ $lang->column_before_tax }}</strong></td>
-                    <td class="text-end">
-                      <input type="text" id="input-before_tax" name="before_tax" value="{{ $receiving_order->before_tax }}" class="form-control">
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-end col-sm-2"><strong>{{ $lang->column_tax }}</strong></td>
-                    <td class="text-end">
-                      <input type="text" id="input-tax" name="tax" value="{{ $receiving_order->tax }}" class="form-control">
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-end col-sm-2"><strong>{{ $lang->column_total }}</strong></td>
-                    <td class="text-end">
-                      <input type="text" id="input-total" name="total" value="{{ $receiving_order->total }}" class="form-control">
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-
 
               <div id="tab-products" class="tab-pane">
+
+                <table class="table table-bordered">
+                  <tbody id="order-totals">
+                    <tr>
+                      <td class="text-end col-sm-2"><strong>{{ $lang->column_before_tax }}</strong></td>
+                      <td class="text-end">
+                        <input type="text" id="input-before_tax" name="before_tax" value="{{ $receiving_order->before_tax }}" class="form-control" oninput="calsTotals()">
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-end col-sm-2"><strong>{{ $lang->column_tax }}</strong></td>
+                      <td class="text-end">
+                        <input type="text" id="input-tax" name="tax" value="{{ $receiving_order->tax }}" class="form-control" oninput="calsTotals()">
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-end col-sm-2"><strong>{{ $lang->column_total }}</strong></td>
+                      <td class="text-end">
+                        <input type="text" id="input-total" name="total" value="{{ $receiving_order->total }}" class="form-control" oninput="calsTotals()">
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+
                 <style>
-                    #tab-products .row1 {
+                    #products .row1 {
                       border: 1px solid #ccc;
                       padding: 2px;
                       margin-bottom: 2px;
                     }
                 </style>
-
-
-
 
               @php $product_row = 1; @endphp
               <div class="table-responsive">
@@ -213,7 +212,7 @@
                       <td class="text-left" style="width:100px;">進貨<BR>金額</td>
                       <td class="text-left" style="width:80px;">庫存<BR>單位</td>
                       <td class="text-left" style="width:100px;">庫存<BR>單價</td>
-                      <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="轉入庫存數量" style="font-weight: bolder;" >庫存<BR>數量 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
+                      <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="轉入庫存數量" style="font-weight: bolder;" >入庫<BR>數量 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
                     </tr>
                   </thead>
                   <tbody>
@@ -298,38 +297,46 @@
 @section('buttom')
 <script type="text/javascript">
 
-// 查廠商名稱
-$('#input-supplier_name').on('click', function(e){
-  e.preventDefault();
-
-  $('#input-supplier_name').autocomplete({
-    'minLength': 1,
-    'source': function (request, response) {
-      var regex = /[a-zA-Z0-9\u3105-\u3129]+/; // 注音符號
-      if (regex.test(request)) {
-        return;
-      }else{
-        $.ajax({
-          url: "{{ $supplier_autocomplete_url }}?filter_keyword=" + encodeURIComponent(request),
-          dataType: 'json',
-          success: function (json) {
-            response(json);
-          }
-        });
-      }
-    },
-    'select': function (item) {
-      $('#input-supplier_id').val(item.supplier_id);
-      $('#input-supplier_name').val(item.supplier_name);
-      $('#input-tax_id_num').val(item.tax_id_num);
-      $('#input-tax_type_code').val(item.tax_type_code);
-      chgTaxRate()
-      
-    }
+$(document).ready(function () {
+  // 進貨單價、進貨數量、進貨金額 觸發計算
+  $('#products').on('focusout', '.clcProduct', function(){
+    let rownum = $(this).closest('[data-rownum]').data('rownum');
+    calcProduct(rownum)
   });
+
+  // 觸發查詢料件的 click 事件
+  $('.schProductName').trigger('click');
+});
+
+
+// 查廠商名稱
+$('#input-supplier_name').autocomplete({
+  'minLength': 1,
+  'source': function (request, response) {
+    var regex = /[a-zA-Z0-9\u3105-\u3129]+/; // 注音符號
+    if (regex.test(request)) {
+      return;
+    }else{
+      $.ajax({
+        url: "{{ $supplier_autocomplete_url }}?filter_keyword=" + encodeURIComponent(request),
+        dataType: 'json',
+        success: function (json) {
+          response(json);
+        }
+      });
+    }
+  },
+  'select': function (item) {
+    $('#input-supplier_id').val(item.supplier_id);
+    $('#input-supplier_name').val(item.supplier_name);
+    $('#input-tax_id_num').val(item.tax_id_num);
+    $('#input-tax_type_code').val(item.tax_type_code);
+    chgTaxRate()
+  }
 });
 
 // 查料件名稱
+
 $(document).on('click', '.schProductName', function() {
   $('.schProductName').autocomplete({
     'source': function (request, response) {
@@ -374,7 +381,6 @@ $(document).on('click', '.schProductName', function() {
   });
 });
 
-
 // 課稅別
 $('#input-tax_type_code').on("change", function() {
   //$('#input-tax_type_code').val(tax_type_code); //不允許手動變更，回復原值
@@ -396,6 +402,8 @@ function chgTaxRate(){
     $('#input-formatted_tax_rate').val(0);
     formatted_tax_rate = 0;
   }
+
+  calcAllProducts()
 }
 
 // 查統一編號
@@ -423,21 +431,7 @@ $('#input-tax_id_num').on('click', function(){
   });
 });
 
-// 採購金額變動函數
-const $productPriceInputs = $('.productPriceInputs'); //單價
-const $productReceivingQuantityInputs = $('.productReceivingQuantityInputs'); //數量
-const $productAmountInputs = $('.productAmountInputs'); // 金額
-const $before_tax = $('#input-before_tax');
-const maxProductRow = 20;
-
-$(document).ready(function () {
-  // 進貨單價、進貨數量、進貨金額 觸發計算
-  $('#products').on('focusout', '.clcProduct', function(){
-    let rownum = $(this).closest('[data-rownum]').data('rownum');
-    calcProduct(rownum)
-  });
-});
-
+// 計算單一料件
 function calcProduct(rownum){
   let price = $('#input-products-price-'+rownum).val() ?? 0;
   let receiving_quantity = $('#input-products-receiving_quantity-'+rownum).val() ?? 0;
@@ -467,12 +461,12 @@ function calcProduct(rownum){
   calcAllProducts()
 }
   
-
+// 逐一計算全部料件的加總
 function calcAllProducts(){
   let sum_amount = 0; // 單身金額加總
   let total = 0; // 單頭稅後總金額
 
-  $productAmountInputs.each(function() {
+  $('.productAmountInputs').each(function() {
     sum_amount += parseFloat($(this).val()) || 0;
   });
 
@@ -502,18 +496,22 @@ function calcAllProducts(){
   console.log('sum_amount='+sum_amount+', before_tax='+before_tax+', tax='+tax+', total='+total)
 
   $('#input-before_tax').val(before_tax);
-  $('#input-total').val(sum_amount);
   $('#input-tax').val(tax);
+  $('#input-total').val(total);
+
+  $('#hidden_before_tax').val(before_tax);
+  $('#hidden_tax').val(tax);
+  $('#hidden_total').val(total);
 }
 
-$('#input-tax').on('focusout', function(){
-  let num = $(this).val();
-  $('#hidden_tax').val(num);
-});
-$('#input-total').on('focusout', function(){
-  let num = $(this).val();
-  $('#hidden_total').val(num);
-});
+// 單頭金額變動時，只計算單頭
+function calsTotals(){
+  let before_tax = $('#input-before_tax').val();
+  let tax = $('#input-tax').val();
+  total = tax.toNum() + before_tax.toNum();
+  $('#input-total').val(total);
+}
+
 
 var product_row = {{ $product_row }};
 

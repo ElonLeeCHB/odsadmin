@@ -11,6 +11,7 @@ use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Repositories\Eloquent\Catalog\ProductUnitRepository;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
 use Carbon\Carbon;
+use App\Helpers\Classes\DataHelper;
 
 class ProductService extends Service
 {
@@ -97,7 +98,10 @@ class ProductService extends Service
             }
 
             DB::commit();
-    
+
+            // save to json cache
+            $this->repository->setJsonCache($product->id);
+
             return ['id' => $product->id];
 
         } catch (\Exception $ex) {

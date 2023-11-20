@@ -10,6 +10,7 @@ use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Admin\Services\Counterparty\SupplierService;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Domains\Admin\Services\Localization\DivisionService;
+use App\Helpers\Classes\DataHelper;
 
 class SupplierController extends BackendController
 {
@@ -259,13 +260,13 @@ class SupplierController extends BackendController
         }
 
         if(!$json) {
-            $result = $this->SupplierService->updateOrCreate($postData);
+            $result = $this->SupplierService->saveSupplier($postData);
 
-            if(empty($result['error']) && !empty($result['supplier_id'])){
+            if(empty($result['error']) && !empty($result['id'])){
                 $json = [
-                    'supplier_id' => $result['supplier_id'],
+                    'supplier_id' => $result['id'],
                     'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.counterparty.suppliers.form', $result['supplier_id']),
+                    'redirectUrl' => route('lang.admin.counterparty.suppliers.form', $result['id']),
                 ];
             }else{
                 if(config('app.debug')){
@@ -356,32 +357,41 @@ class SupplierController extends BackendController
     public function autocomplete()
     {
         $json = [];
+
         $query_data = $this->request->query();
 
         $filter_data = $query_data;
         $filter_data['with'] = ['payment_term', 'meta_rows'];
 
-        $hasFilterOrEqual = 9;
+        $hasFilterOrEqual = false;
 
         foreach ($filter_data as $key => $value) {
-            if ((strpos($key, 'filter_') === 0 || strpos($key, 'equal_') === 0) && !empty($value)) {
+            if ((str_starts_with($key, 'filter_') == true || str_starts_with($key, 'equal_') == true) && !empty($value)) {
                 $hasFilterOrEqual = true;
                 break;
             }
         }
+
         
         // 不存在任何查詢
         if($hasFilterOrEqual !== true){
-            $filter_data['equal_is_often_used_supplier'] = 1; 
+            $cache_name = 'cache/counterparty/suppliers/often_used.json';
+            $suppliers = DataHelper::getJsonFromStoragNew($cache_name);
         }
+        else{
+            $suppliers = $this->SupplierService->getSuppliers($filter_data);
 
-        $suppliers = $this->SupplierService->getSuppliers($filter_data);
-
-        if(empty($suppliers)){
-            return false;
+            if(empty($suppliers)){
+                return false;
+            }
+            
+            $suppliers = $this->rowsWithMetaData($suppliers);
         }
         
-        $suppliers = $this->rowsWithMetaData($suppliers);
+        // // 不存在任何查詢
+        // if($hasFilterOrEqual !== true){
+        //     $filter_data['equal_is_often_used_supplier'] = 1;
+        // }
 
         // 稅別
         $data['tax_types'] = $this->TermRepository->getCodeKeyedTermsByTaxonomyCode('tax_type',toArray:false);

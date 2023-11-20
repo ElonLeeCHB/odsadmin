@@ -60,10 +60,22 @@ class DataHelper
 
             return $rows;
         }
+
+        return '';
+    }
+    public static function getJsonFromStoragNew($json_path, $toArray = false)
+    {
+        if (Storage::exists($json_path)) {
+            $result = json_decode(Storage::get($json_path));
+
+            return $result;
+        }
+
+        return '';
     }
 
     
-    public static function setJsonFromStorage($json_path, $data)
+    public static function setJsonToStorage($json_path, $data)
     {
         if (Storage::exists($json_path)) {
             Storage::delete($json_path);

@@ -12,7 +12,7 @@ class StaticTermRepository
     public $modelName = "\App\Models\Common\Term";
    
 
-    public static function getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray = true, $params = null): array
+    public static function getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray = true, $params = null)
     {
         $termInstance = TermRepository::createRepository();
 
