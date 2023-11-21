@@ -55,7 +55,7 @@ class InventoryCountingListExport implements FromCollection, WithHeadings, WithE
                                         , 'temperature_type_name'
                                       ];
 
-        $this->filter_data['with'] = DataHelper::addToArray($filter_data['with'] ?? [], 'meta_rows');
+        $this->filter_data['with'] = DataHelper::addToArray($filter_data['with'] ?? [], 'metas');
 
         $products = $this->ProductRepository->getProducts($this->filter_data);
 

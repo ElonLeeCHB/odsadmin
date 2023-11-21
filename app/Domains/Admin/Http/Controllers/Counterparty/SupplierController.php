@@ -346,8 +346,8 @@ class SupplierController extends BackendController
     public function rowsWithMetaData($rows)
     {
         foreach ($rows as $key => $row) {
-            $meta_rows = $row->meta_rows;
-            foreach ($meta_rows as $meta_row) {
+            $metas = $row->metas;
+            foreach ($metas as $meta_row) {
                 $row->{$meta_row->meta_key} = $meta_row->meta_value;
             }
         }
@@ -361,7 +361,7 @@ class SupplierController extends BackendController
         $query_data = $this->request->query();
 
         $filter_data = $query_data;
-        $filter_data['with'] = ['payment_term', 'meta_rows'];
+        $filter_data['with'] = ['payment_term', 'metas'];
 
         $hasFilterOrEqual = false;
 

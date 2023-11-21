@@ -543,7 +543,7 @@ trait EloquentTrait
             }
 
             if(in_array($column, $meta_attributes)){
-                $data['whereHas']['meta_rows'] = ['meta_key' => $column, 'meta_value' => $value];
+                $data['whereHas']['metas'] = ['meta_key' => $column, 'meta_value' => $value];
                 unset($data[$key]);
             }
         }
@@ -635,7 +635,7 @@ trait EloquentTrait
             }
 
             if(in_array($column, $meta_attributes)){
-                $query->whereHas('meta_rows', function ($query) use ($column, $value) {
+                $query->whereHas('metas', function ($query) use ($column, $value) {
                     $query->where('meta_key', $column);
                     $query->where('meta_value', $value);
                 });
@@ -1215,9 +1215,9 @@ trait EloquentTrait
      */
     public function getMetaRows($row)
     {
-        $meta_rows = $row->meta_rows;
+        $metas = $row->metas;
 
-        foreach ($meta_rows as $meta_data) {
+        foreach ($metas as $meta_data) {
             $row->{$meta_data->meta_key} = $meta_data->meta_value;
         }
 
@@ -1228,7 +1228,7 @@ trait EloquentTrait
     {
         $row = $this->getMetaRows($row);
 
-        unset($row->meta_rows);
+        unset($row->metas);
 
         return $row;
     }

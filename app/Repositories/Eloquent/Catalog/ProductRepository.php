@@ -36,7 +36,7 @@ class ProductRepository extends Repository
         $filter_data = $this->resetQueryData($data);
 
         // if(!empty($filter_data['all_data']) && $filter_data['all_data']){
-        //     $filter_data['with'] = DataHelper::addToArray($filter_data['with'] ?? [], ['translation', 'meta_rows']);
+        //     $filter_data['with'] = DataHelper::addToArray($filter_data['with'] ?? [], ['translation', 'metas']);
         // }
 
         // $cache_name = 'cache/products/id_keyed/' . $id . '.json';
@@ -47,9 +47,9 @@ class ProductRepository extends Repository
         // echo '<pre>', print_r($products->toArray(), 1), "</pre>"; exit;
 
 
-        // // meta_rows
+        // // metas
         // foreach ($products as $row) {
-        //     if ($row->relationLoaded('meta_rows')) {
+        //     if ($row->relationLoaded('metas')) {
         //         $this->getMetaRows($row);
         //     }
         // }
@@ -63,7 +63,7 @@ class ProductRepository extends Repository
         // 沒有用 with, 有時候好像 with 會失敗
         if(!empty($data['extra_columns'])){
 
-            $products->load('meta_rows');
+            $products->load('metas');
 
             // units table
             $product_unit_names = ['stock_unit_name', 'counting_unit_name', 'usage_unit_name']; // 如果有用到這些單位
@@ -153,7 +153,7 @@ class ProductRepository extends Repository
 
     public function setJsonCache($id)
     {
-        $product = Product::with('translations', 'translation', 'product_options', 'meta_rows')->find($id);
+        $product = Product::with('translations', 'translation', 'product_options', 'metas')->find($id);
 
 
         $product_array = $product->toArray();
@@ -172,13 +172,13 @@ class ProductRepository extends Repository
             }
         }
 
-        if(!empty($product_array['meta_rows'])) {
-            foreach ($product_array['meta_rows'] as $key => $meta_row) {
+        if(!empty($product_array['metas'])) {
+            foreach ($product_array['metas'] as $key => $meta_row) {
                 $meta_key = $meta_row['meta_key'];
                 $product_array[$meta_key] = $meta_row['meta_value'];
 
-                $product_array['meta_rows'][$meta_key] = $meta_row;
-                unset($product_array['meta_rows'][$key]);
+                $product_array['metas'][$meta_key] = $meta_row;
+                unset($product_array['metas'][$key]);
             }
         }
 

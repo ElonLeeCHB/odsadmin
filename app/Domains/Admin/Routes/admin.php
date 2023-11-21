@@ -136,6 +136,7 @@ Route::group(
                 Route::get('requisitions/setting', 'Sale\RequisitionController@settingForm')->name('requisitions.setting');
                 Route::post('requisitions/setting/save', 'Sale\RequisitionController@settingSave')->name('requisitions.settingSave');
                 Route::post('requisitions/export', 'Sale\RequisitionController@export')->name('requisitions.export');
+                Route::post('requisitions/exportDailoyList', 'Sale\RequisitionController@exportDailoyList')->name('requisitions.exportDailoyList');
 
                 Route::get('requisitions/setting', 'Sale\RequisitionController@settingForm')->name('requisitions.setting');
                 Route::post('requisitions/setting/save', 'Sale\RequisitionController@settingSave')->name('requisitions.settingSave');

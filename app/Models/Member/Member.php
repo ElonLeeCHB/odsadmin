@@ -31,7 +31,7 @@ class Member extends User
         return $this->foreignKey;
     }
 
-    public function meta_rows()
+    public function metas()
     {
         return $this->hasMany(MemberMeta::class);
     }

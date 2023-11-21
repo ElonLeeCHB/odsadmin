@@ -34,7 +34,7 @@ class Organization extends Model
         return $this->belongsTo(PaymentTerm::class);
     }
 
-    public function meta_rows()
+    public function metas()
     {
         return $this->hasMany(OrganizationMeta::class, 'organization_id', 'id');
     }

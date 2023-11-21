@@ -62,7 +62,7 @@ class RequisitionController extends BackendController
 
         $data['list_url'] = route('lang.admin.sale.requisitions.list');
         
-        $data['export_counting_product_list'] = route('lang.admin.inventory.countings.export_counting_product_list');
+        $data['export_daily_list_url'] = route('lang.admin.sale.requisitions.exportDailoyList');
 
 
         return view('admin.sale.requisition', $data);
@@ -84,6 +84,11 @@ class RequisitionController extends BackendController
     
         // Rows
         $query_data['with'] = DataHelper::addToArray($query_data['with'] ?? [], 'product');
+
+        if(!isset($query_data['equal_days_before'])){
+            $query_data['equal_days_before'] = 0;
+        }
+
         $ingredients = $this->RequisitionService->getDailyIngredients($query_data);
 
         foreach ($ingredients as $row) {
@@ -708,13 +713,10 @@ class RequisitionController extends BackendController
     }
 
 
-    public function export()
+    public function exportDailoyList()
     {
-        $post_data = $this->request->post(); //未來套用驗證
-
-        //return $this->RequisitionService->export($post_data);
-        return 123;
-
+        $params = request()->all();
+        return $this->RequisitionService->exportDailoyList($params);
     }
 
 

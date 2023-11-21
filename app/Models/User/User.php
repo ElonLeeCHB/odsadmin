@@ -59,7 +59,7 @@ class User extends Authenticatable
         'short_name',
     ];
 
-    public function meta_rows()
+    public function metas()
     {
         return $this->hasMany(UserMeta::class, 'user_id', 'id');
     }
@@ -67,7 +67,7 @@ class User extends Authenticatable
     public function __get($key)
     {
         // 檢查屬性是否存在於 UserMeta 中
-        $userMeta = $this->meta_rows()->where('meta_key', $key)->first();
+        $userMeta = $this->metas()->where('meta_key', $key)->first();
 
         if ($userMeta) {
             return $userMeta->meta_value;
@@ -78,7 +78,7 @@ class User extends Authenticatable
 
     public function isAdmin():Attribute
     {
-        $userMeta = $this->meta_rows()->where('meta_key', 'is_admin')->where('meta_value', '1')->first();
+        $userMeta = $this->metas()->where('meta_key', 'is_admin')->where('meta_value', '1')->first();
         
         $is_admin = ($userMeta) ? 1 : 0;
 

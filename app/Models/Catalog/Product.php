@@ -118,7 +118,7 @@ class Product extends Model
         return $this->belongsTo(self::class, 'supplier_product_id', 'id');
     }
 
-    public function meta_rows()
+    public function metas()
     {
         return $this->hasMany(ProductMeta::class);
     }

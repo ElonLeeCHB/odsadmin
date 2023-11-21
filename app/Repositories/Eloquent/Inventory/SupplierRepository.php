@@ -79,8 +79,8 @@ class SupplierRepository extends Repository
 
                 $params = [
                     //'select' => ['id', 'name', 'short_name', 'tax_rate', 'formatted_tax_rate'],
-                    'with' => 'meta_rows',
-                    'whereHas' => ['meta_rows' => ['meta_key' => 'is_often_used_supplier', 'meta_value' => 1]],
+                    'with' => 'metas',
+                    'whereHas' => ['metas' => ['meta_key' => 'is_often_used_supplier', 'meta_value' => 1]],
                     'pagination' => false,
                     'limit' => 0
                 ];

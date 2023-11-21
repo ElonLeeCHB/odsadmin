@@ -20,7 +20,8 @@ class RequisitionService extends Service
 {
     public $modelName = "\App\Models\Sale\OrderIngredientDaily";
 
-    public function __construct(protected OrderIngredientRepository $OrderIngredientRepository
+    public function __construct(
+      protected OrderIngredientRepository $OrderIngredientRepository
     , protected OrderIngredientDailyRepository $OrderIngredientDailyRepository
     , protected MaterialRequirementsDailyRepository $MaterialRequirementsDailyRepository
     , protected UnitRepository $UnitRepository
