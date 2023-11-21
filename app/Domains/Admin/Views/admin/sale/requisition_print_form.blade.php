@@ -50,8 +50,8 @@
         <td colspan="3">全日統計</td>
         @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
         <td style="width:31px;">
-          @if(!empty($mrequisitions['all_day']))
-          @foreach($mrequisitions['all_day'] as $material_product_id => $record)
+          @if(!empty($requisitions['all_day']))
+          @foreach($requisitions['all_day'] as $material_product_id => $record)
             @if($saleable_product_material_id == $material_product_id)
               {{ $record['quantity'] }}
             @endif
@@ -64,8 +64,8 @@
         <td colspan="3">上午統計</td>
         @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
         <td>
-          @if(!empty($mrequisitions['am']))
-          @foreach($mrequisitions['am'] as $material_product_id => $record)
+          @if(!empty($requisitions['am']))
+          @foreach($requisitions['am'] as $material_product_id => $record)
             @if($saleable_product_material_id == $material_product_id)
               {{ $record['quantity'] }}
             @endif
@@ -78,8 +78,8 @@
         <td colspan="3">下午統計</td>
         @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
         <td>
-          @if(!empty($mrequisitions['pm']))
-          @foreach($mrequisitions['pm'] as $material_product_id => $record)
+          @if(!empty($requisitions['pm']))
+          @foreach($requisitions['pm'] as $material_product_id => $record)
             @if($saleable_product_material_id == $material_product_id)
               {{ $record['quantity'] }}
             @endif
@@ -103,9 +103,9 @@
         @endforeach
       </tr>
 
-      @if(!empty($mrequisitions['details']))
+      @if(!empty($requisitions['details']))
       <?php $flag = 0; ?>
-      @foreach($mrequisitions['details'] as $details_key => $detail_record)
+      @foreach($requisitions['details'] as $details_key => $detail_record)
 
         <?php $dateNum = str_replace(':','',$detail_record['required_date_hi']); ?>
 

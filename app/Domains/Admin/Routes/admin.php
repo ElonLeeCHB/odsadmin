@@ -135,9 +135,9 @@ Route::group(
                 Route::get('requisitions/printForm/{required_date?}', 'Sale\RequisitionController@printForm')->name('requisitions.printForm');
                 Route::get('requisitions/setting', 'Sale\RequisitionController@settingForm')->name('requisitions.setting');
                 Route::post('requisitions/setting/save', 'Sale\RequisitionController@settingSave')->name('requisitions.settingSave');
-                Route::post('requisitions/export', 'Sale\RequisitionController@export')->name('requisitions.export');
-                Route::post('requisitions/exportDailoyList', 'Sale\RequisitionController@exportDailoyList')->name('requisitions.exportDailoyList');
-
+                Route::post('requisitions/exportDailyList', 'Sale\RequisitionController@exportDailyList')->name('requisitions.exportDailyList');
+                Route::post('requisitions/exportMatrixList', 'Sale\RequisitionController@exportMatrixList')->name('requisitions.exportMatrixList');
+                
                 Route::get('requisitions/setting', 'Sale\RequisitionController@settingForm')->name('requisitions.setting');
                 Route::post('requisitions/setting/save', 'Sale\RequisitionController@settingSave')->name('requisitions.settingSave');
                 
@@ -257,12 +257,12 @@ Route::group(
                 Route::post('countings/export_counting_product_list', 'Inventory\CountingController@exportCountingProductList')->name('countings.export_counting_product_list');
                 Route::get('countings/export_counting_product_list', 'Inventory\CountingController@exportCountingProductList')->name('countings.export_counting_product_list');
 
-                Route::get('materialRequirements', 'Inventory\MaterialRequirementController@index')->name('materialRequirements.index');
-                Route::get('materialRequirements/list', 'Inventory\MaterialRequirementController@list')->name('materialRequirements.list');
-                Route::get('materialRequirements/form/{id?}', 'Inventory\MaterialRequirementController@form')->name('materialRequirements.form');
-                Route::post('materialRequirements/delete', 'Inventory\MaterialRequirementController@delete')->name('materialRequirements.delete');
-                Route::post('materialRequirements/anylize', 'Inventory\MaterialRequirementController@anylize')->name('materialRequirements.anylize');
-                Route::post('materialRequirements/export_list', 'Inventory\MaterialRequirementController@exportList')->name('materialRequirements.export_list');
+                Route::get('materialRequirements', 'Inventory\RequirementController@index')->name('materialRequirements.index');
+                Route::get('materialRequirements/list', 'Inventory\RequirementController@list')->name('materialRequirements.list');
+                Route::get('materialRequirements/form/{id?}', 'Inventory\RequirementController@form')->name('materialRequirements.form');
+                Route::post('materialRequirements/delete', 'Inventory\RequirementController@delete')->name('materialRequirements.delete');
+                Route::post('materialRequirements/anylize', 'Inventory\RequirementController@anylize')->name('materialRequirements.anylize');
+                Route::post('materialRequirements/export_list', 'Inventory\RequirementController@exportList')->name('materialRequirements.export_list');
 
             });
 

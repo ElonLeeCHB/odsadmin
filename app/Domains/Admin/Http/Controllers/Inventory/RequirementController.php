@@ -5,17 +5,17 @@ namespace App\Domains\Admin\Http\Controllers\Inventory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
-use App\Domains\Admin\Services\Inventory\MaterialRequirementService;
+use App\Domains\Admin\Services\Inventory\RequirementService;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
 use App\Helpers\Classes\DateHelper;
 
-class MaterialRequirementController extends BackendController
+class RequirementController extends BackendController
 {
-    public function __construct(private Request $request, private MaterialRequirementService $MaterialRequirementService)
+    public function __construct(private Request $request, private RequirementService $RequirementService)
     {
         parent::__construct();
         
-        $this->getLang(['admin/common/common','admin/inventory/material_requirement']);
+        $this->getLang(['admin/common/common','admin/inventory/requirement']);
     }
 
 
@@ -67,7 +67,7 @@ class MaterialRequirementController extends BackendController
         $query_data = $this->getQueries($this->request->query());
 
         // Rows
-        $requirements = $this->MaterialRequirementService->getRequirementsDaily($query_data);
+        $requirements = $this->RequirementService->getRequirementsDaily($query_data);
 
         foreach ($requirements as $row) {
             $row->edit_url = route('lang.admin.inventory.materialRequirements.form', array_merge([$row->id], $query_data));
@@ -135,7 +135,7 @@ class MaterialRequirementController extends BackendController
             'date2' => $date2,
         ];
 
-        $result = $this->MaterialRequirementService->anylize($filter_data);
+        $result = $this->RequirementService->anylize($filter_data);
 
 
 
@@ -152,7 +152,7 @@ class MaterialRequirementController extends BackendController
     public function exportList()
     {
         $post_data = request()->post();
-        return $this->MaterialRequirementService->exportList($post_data); 
+        return $this->RequirementService->exportList($post_data); 
     }
     
 

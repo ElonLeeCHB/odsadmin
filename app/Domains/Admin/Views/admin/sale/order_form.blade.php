@@ -65,7 +65,7 @@
                           <select id="input-shipping_method" name="shipping_method" class="form-select">
                             <option value="">--</option>
                             <option value="shipping_pickup" @if($shipping_method == 'shipping_pickup' ) selected="selected" @endif>自取</option>
-                            <option value="shipping_delivery" @if($shipping_method == 'shipping_delivery' )selected="selected" @endif>派送</option>
+                            <option value="shipping_delivery" @if($shipping_method == 'shipping_delivery' )selected="selected" @endif>外送</option>
                           </select>
                         </td>
                         <td class="col-md-1 text-end colname-font">訂單編號</td>

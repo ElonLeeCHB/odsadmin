@@ -218,45 +218,6 @@ $(function(){
     var url = "{{ route('lang.admin.sale.requisitions.printForm') }}/" + required_date;
     window.open(url);
   });
-
-  //匯出按鈕
-  $('#href-export').on('click', function () {
-    var dataString = $('form').serialize();
-    var ext = $('#input-excel-format').val();
-
-
-    $.ajax({
-        type: "POST",
-        url: "{{ $export_url }}",
-        data: dataString,
-        cache: false,
-        xhrFields:{
-            responseType: 'blob'
-        },
-        beforeSend: function () {
-          console.log('beforeSend');
-          $('#loading').css("display", "");
-          //$('#button-export-save').attr("disabled", true);
-        },
-        success: function(data)
-        {
-          console.log('success');
-          var link = document.createElement('a');
-          link.href = window.URL.createObjectURL(data);
-          link.download = 'members.' + ext;
-          link.click();
-        },
-        complete: function () {
-          console.log('complete');
-          $('#loading').css("display", "none");
-          //$('#button-export-save').attr("disabled", false);
-        },
-        fail: function(data) {
-          console.log('fail');
-          alert('Not downloaded');
-        }
-    });
-  });
 })
 
 </script>

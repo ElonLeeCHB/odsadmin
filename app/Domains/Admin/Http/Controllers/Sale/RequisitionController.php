@@ -11,7 +11,7 @@ use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Setting\SettingRepository;
 use App\Models\Sale\OrderIngredient;
-use App\Models\Sale\OrderIngredientDaily;
+use App\Models\Sale\OrderIngredientHour;
 use App\Models\Setting\Setting;
 use App\Domains\Admin\Services\Sale\RequisitionService;
 use App\Helpers\Classes\DataHelper;
@@ -61,9 +61,11 @@ class RequisitionController extends BackendController
         $data['list'] = $this->getList();
 
         $data['list_url'] = route('lang.admin.sale.requisitions.list');
+        $data['add_url'] = route('lang.admin.sale.requisitions.form');
         
-        $data['export_daily_list_url'] = route('lang.admin.sale.requisitions.exportDailoyList');
-
+        $data['export_daily_list_url'] = route('lang.admin.sale.requisitions.exportDailyList');
+        $data['export_matrix_list_url'] = route('lang.admin.sale.requisitions.exportMatrixList');
+        
 
         return view('admin.sale.requisition', $data);
     }
@@ -89,7 +91,7 @@ class RequisitionController extends BackendController
             $query_data['equal_days_before'] = 0;
         }
 
-        $ingredients = $this->RequisitionService->getDailyIngredients($query_data);
+        $ingredients = $this->RequisitionService->getIngredients($query_data);
 
         foreach ($ingredients as $row) {
             $row->edit_url = route('lang.admin.sale.requisitions.form', array_merge([$row->required_date], $query_data));
@@ -203,14 +205,12 @@ class RequisitionController extends BackendController
         $data['sales_saleable_product_ingredients'] = '';
         $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
 
-        $data['export_url'] = route('lang.admin.sale.requisitions.export');
-
         return view('admin.sale.requisition_form', $data);
     }
 
 
     /**
-     * 更新：抓取訂單資料，然後寫入資料表 order_ingredients
+     * 更新：抓取訂單資料，然後寫入資料表 order_ingredient_hours
      */
     public function calcRequisitionsByDate($required_date)
     {
@@ -229,7 +229,7 @@ class RequisitionController extends BackendController
         $this->setCacheFromIngredientTable($required_date);
 
         //根據BOM表計算真實料件需求
-        $result = $this->RequisitionService->calcMaterialRequirementsForDate($required_date);
+        $result = $this->RequisitionService->calcRequirementsForDate($required_date);
 
         if(!empty($result['error'])){
             return $result;
@@ -376,7 +376,7 @@ class RequisitionController extends BackendController
 
             else{
                 //delete
-                $db_ingredients = OrderIngredient::where('required_date', $required_date)->get();
+                $db_ingredients = OrderIngredientHour::where('required_date', $required_date)->get();
     
                 $delete_ids = [];
     
@@ -388,18 +388,18 @@ class RequisitionController extends BackendController
                 }
     
                 if(!empty($delete_ids)){
-                    OrderIngredient::whereIn('id', $delete_ids)->delete();
+                    OrderIngredientHour::whereIn('id', $delete_ids)->delete();
                 }
-                $result = OrderIngredient::upsert($upsert_data, ['required_date','order_id','ingredient_product_id']);
+                $result = OrderIngredientHour::upsert($upsert_data, ['required_date','order_id','ingredient_product_id']);
             }
 
-            // 寫入每日表 order_ingredients_daily
+            // 寫入每日表 order_ingredients
             
             if(!empty($upsert_data)){
                 $daily_upsert_data = [];
 
 
-                $old_rows = OrderIngredientDaily::where('required_date', $required_date)->get()->keyBy('ingredient_product_id');
+                $old_rows = OrderIngredient::where('required_date', $required_date)->get()->keyBy('ingredient_product_id');
 
                 foreach ($upsert_data as $set) {
                     if(empty($set['ingredient_product_id'])){
@@ -418,8 +418,8 @@ class RequisitionController extends BackendController
                 }
 
                 if(!empty($daily_upsert_data)){
-                    OrderIngredientDaily::where('required_date', $required_date)->delete();
-                    OrderIngredientDaily::upsert($daily_upsert_data, ['required_date','ingredient_product_id']);
+                    OrderIngredient::where('required_date', $required_date)->delete();
+                    OrderIngredient::upsert($daily_upsert_data, ['required_date','ingredient_product_id']);
                 }
             }
             
@@ -435,14 +435,14 @@ class RequisitionController extends BackendController
     }
 
     /**
-     * 抓取 order_ingredients 然後產生快取
+     * 抓取 order_ingredient_hours 然後產生快取
      */
     private function setCacheFromIngredientTable($required_date)
     {
         $required_date = parseDate($required_date);
         $required_date_2ymd = parseDateStringTo6d($required_date);
 
-        $ingredient_rows = OrderIngredient::select('required_time', 'required_date', 'order_id', 'ingredient_product_id', 'ingredient_product_name', DB::raw('SUM(quantity) as quantity'))
+        $ingredient_rows = OrderIngredientHour::select('required_time', 'required_date', 'order_id', 'ingredient_product_id', 'ingredient_product_name', DB::raw('SUM(quantity) as quantity'))
             ->groupBy('required_time', 'required_date', 'order_id', 'ingredient_product_id', 'ingredient_product_name')
             ->where('required_date', $required_date)->get();
 
@@ -457,7 +457,6 @@ class RequisitionController extends BackendController
             'select' => ['id', 'code'],
             'limit' => 0,
             'pagination' => false,
-            //'toStdObj' => true, 要另外處理
             'keyBy' => 'id',
         ];
 
@@ -713,12 +712,16 @@ class RequisitionController extends BackendController
     }
 
 
-    public function exportDailoyList()
+    public function exportDailyList()
     {
         $params = request()->all();
-        return $this->RequisitionService->exportDailoyList($params);
+        return $this->RequisitionService->exportDailyList($params);
     }
 
-
+    public function exportMatrixList()
+    {
+        $params = request()->all();
+        return $this->RequisitionService->exportMatrixList($params);
+    }
 
 }

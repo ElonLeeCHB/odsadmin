@@ -32,6 +32,14 @@
                   <label data-bs-toggle="tooltip" title="例如：2023-02-20 或不加橫線 20230220 或範圍 20230301-20230331 或大於某日 >20230101 或小於某日 <20230101" style="font-weight: bolder;" >{{ $lang->column_required_date }} <i class="fa fa-question-circle" aria-hidden="true"></i></label>
                   <input type="text" id="input-filter_required_date" name="filter_required_date" value="" placeholder="例如 2023-02-20" class="form-control"/>
               </div>
+              
+              <div class="mb-3">
+                <label class="form-label">昨天以前</label>
+                <select name="equal_days_before" id="input-equal_days_before" class="form-select">
+                  <option value="1" >包含</option>
+                  <option value="0" selected>不包含</option>
+                </select>
+              </div>
 
               <div class="mb-3">
                 <label class="form-label">{{ $lang->column_product_name }}</label>

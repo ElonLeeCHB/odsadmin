@@ -4,9 +4,9 @@ namespace App\Domains\Admin\Services\Sale;
 
 use App\Helpers\Classes\DataHelper;
 use App\Services\Service;
+use App\Repositories\Eloquent\Sale\OrderIngredientHourRepository;
 use App\Repositories\Eloquent\Sale\OrderIngredientRepository;
-use App\Repositories\Eloquent\Sale\OrderIngredientDailyRepository;
-use App\Repositories\Eloquent\Inventory\MaterialRequirementsDailyRepository;
+use App\Repositories\Eloquent\Inventory\RequirementRepository;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
 use App\Helpers\Classes\DateHelper;
 use App\Helpers\Classes\UnitConverter;
@@ -18,23 +18,23 @@ use App\Helpers\Classes\UnitConverter;
  */
 class RequisitionService extends Service
 {
-    public $modelName = "\App\Models\Sale\OrderIngredientDaily";
+    public $modelName = "\App\Models\Sale\OrderIngredient";
 
     public function __construct(
-      protected OrderIngredientRepository $OrderIngredientRepository
-    , protected OrderIngredientDailyRepository $OrderIngredientDailyRepository
-    , protected MaterialRequirementsDailyRepository $MaterialRequirementsDailyRepository
+      protected OrderIngredientHourRepository $OrderIngredientHourRepository
+    , protected OrderIngredientRepository $OrderIngredientRepository
+    , protected RequirementRepository $RequirementRepository
     , protected UnitRepository $UnitRepository
     )
     {
-        $this->repository = $OrderIngredientDailyRepository;
+        $this->repository = $OrderIngredientRepository;
     }
 
-    public function getDailyIngredients($params, $debug = 0)
+    public function getIngredients($params, $debug = 0)
     {
         $params['with'] = DataHelper::addToArray($params['with'] ?? [], 'product.supplier');
 
-        $ingredients = $this->OrderIngredientDailyRepository->getDailyIngredients($params, $debug);
+        $ingredients = $this->OrderIngredientRepository->getIngredients($params, $debug);
 
         foreach ($ingredients as $row) {
             $row->product_name = $row->product->name;
@@ -45,17 +45,11 @@ class RequisitionService extends Service
         return $ingredients;
     }
 
-    public function export($data)
-    {
-        $this->getQuery($data);
-    }
-
-
 
     /**
      * 根據 Bom 計算料件需求
      */
-    public function calcMaterialRequirementsForDate($required_date)
+    public function calcRequirementsForDate($required_date)
     {
         $json = [];
 
@@ -73,7 +67,7 @@ class RequisitionService extends Service
             'has' => 'bom',
             'with' => ['bom.bom_products.sub_product.translation', 'bom.bom_products.sub_product.supplier'],
         ];
-        $requisitions = $this->getDailyIngredients($params);
+        $requisitions = $this->getIngredients($params);
 
         $requirements = [];
 
@@ -119,7 +113,7 @@ class RequisitionService extends Service
             }
             
             if(!empty($requirements)){
-                return $this->MaterialRequirementsDailyRepository->saveDailyRequirements($requirements);
+                return $this->RequirementsDailyRepository->saveDailyRequirements($requirements);
             }
         }
 

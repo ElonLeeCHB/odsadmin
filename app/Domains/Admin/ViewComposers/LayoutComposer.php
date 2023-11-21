@@ -218,7 +218,7 @@ class LayoutComposer
         //     $inventory[] = [
         //         'name'	   => '上暉料件需求',
         //         'icon'	   => '',
-        //         'href'     => route('lang.admin.inventory.shMaterialRequirements.index'),
+        //         'href'     => route('lang.admin.inventory.shRequirements.index'),
         //         'children' => []
         //     ];
         // }

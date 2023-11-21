@@ -12,7 +12,7 @@ use Maatwebsite\Excel\Concerns\WithCustomChunkSize;
 use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
-use App\Repositories\Eloquent\Sale\OrderIngredientDailyRepository;
+use App\Repositories\Eloquent\Sale\OrderIngredientRepository;
 use App\Helpers\Classes\DataHelper;
 
 class SaleOrderRequisitionDailyListExport implements FromCollection, WithHeadings, WithEvents, WithMapping, WithCustomStartCell
@@ -25,7 +25,7 @@ class SaleOrderRequisitionDailyListExport implements FromCollection, WithHeading
     private $current_row = 6;
 
 
-    public function __construct(private $params, private $OrderIngredientDailyRepository )
+    public function __construct(private $params, private $OrderIngredientRepository )
     {}
 
 
@@ -50,7 +50,7 @@ class SaleOrderRequisitionDailyListExport implements FromCollection, WithHeading
         $this->params['extra_columns'] = ['product_name', 'product_specification', 'supplier_name', 'supplier_short_name', ];
         $this->params['with'] = DataHelper::addToArray($params['with'] ?? [], 'product.supplier');
 
-        return $this->OrderIngredientDailyRepository->getDailyIngredients($this->params);
+        return $this->OrderIngredientRepository->getIngredients($this->params);
     }
 
 

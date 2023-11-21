@@ -5,15 +5,15 @@ namespace App\Repositories\Eloquent\Inventory;
 use App\Repositories\Eloquent\Repository;
 use App\Models\Sale\OrderProductIngredient;
 use App\Models\Sale\OrderProductIngredientDaily;
-use App\Models\Inventory\MaterialRequirementsDaily;
+use App\Models\Inventory\Requirement;
 use App\Models\Common\Term;
 use App\Models\Common\TermTranslation;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
 
-class MaterialRequirementRepository extends Repository
+class RequirementRepository extends Repository
 {
-    public $modelName = "\App\Models\Inventory\MaterialRequirementsDaily";
+    public $modelName = "\App\Models\Inventory\Requirement";
 
 
     public function getRequirementsDaily($data=[], $debug=0)
@@ -36,10 +36,58 @@ class MaterialRequirementRepository extends Repository
             }
             unset($data['filter_required_date']);
         }
+        
+        // 昨天以前
+        if(isset($params['equal_days_before']) && $params['equal_days_before'] == 0){
+            $yesterday = date("Y-m-d", strtotime("-1 day"));
+            $params['whereRawSqls'][] = "`required_date` > '$yesterday'";
+            unset($params['equal_days_before']);
+        }
 
         return $data;
     }
 
+    public function saveDailyRequirements($data)
+    {
+        try{
+            DB::beginTransaction();
+
+            // reset() 可以取得第一筆
+            $first = reset($data);
+            $required_date = $first['required_date'];
+            
+            foreach ($data as $row) {
+                $arr = [
+                    'required_date' => $row['required_date'],
+                    'product_id' => $row['product_id'],
+                    'product_name' => $row['product_name'],
+                    'stock_unit_code' => $row['stock_unit_code'],
+                    'stock_quantity' => $row['stock_quantity'],
+                    'supplier_id' => $row['supplier_id'],
+                    'supplier_short_name' => $row['supplier_short_name'],
+                    'supplier_own_product_code' => $row['supplier_own_product_code'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+
+                $upsert_data[] = $arr;
+            }
+
+            if(!empty($upsert_data)){
+                Requirement::where('required_date', $first['required_date'])->delete();
+                $result = Requirement::upsert($upsert_data, ['required_date', 'product_id']);
+            }
+            
+            DB::commit();
+
+            return $result;
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            $msg = ['error' => $ex->getMessage()];
+            return $msg;
+        } 
+    }
 
     public function anylize()
     {

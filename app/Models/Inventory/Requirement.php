@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Models\Inventory\Unit;
 use App\Traits\ModelTrait;
 
-class MaterialRequirementsDaily extends Model
+class Requirement extends Model
 {
     use ModelTrait;
     
