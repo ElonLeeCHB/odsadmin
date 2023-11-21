@@ -2,36 +2,54 @@
 
 namespace App\Domains\Admin\Services\Sale;
 
+use App\Helpers\Classes\DataHelper;
 use App\Services\Service;
-use App\Repositories\Eloquent\Sale\OrderProductIngredientRepository;
+use App\Repositories\Eloquent\Sale\OrderIngredientRepository;
 use App\Repositories\Eloquent\Sale\OrderIngredientDailyRepository;
-use App\Repositories\Eloquent\Sale\MaterialRequisitionRepository;
 use App\Repositories\Eloquent\Inventory\MaterialRequirementsDailyRepository;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
 use App\Helpers\Classes\DateHelper;
 use App\Helpers\Classes\UnitConverter;
 
 /**
- * MaterialRequisition 是備料表
- * MaterialRequirements 是料件需求表
+ * Requisition 當備料表
+ * Requirements 當需求表
  * 
  */
-class OrderIngredientDailyService extends Service
+class RequisitionService extends Service
 {
     public $modelName = "\App\Models\Sale\OrderIngredientDaily";
 
-    public function __construct(OrderIngredientDailyRepository $repository
+    public function __construct(protected OrderIngredientRepository $OrderIngredientRepository
+    , protected OrderIngredientDailyRepository $OrderIngredientDailyRepository
     , protected MaterialRequirementsDailyRepository $MaterialRequirementsDailyRepository
     , protected UnitRepository $UnitRepository
     )
     {
-        $this->repository = $repository;
+        $this->repository = $OrderIngredientDailyRepository;
+    }
+
+    public function getDailyIngredients($params, $debug = 0)
+    {
+        $params['with'] = DataHelper::addToArray($params['with'] ?? [], 'product.supplier');
+
+        $ingredients = $this->OrderIngredientDailyRepository->getDailyIngredients($params, $debug);
+
+        foreach ($ingredients as $row) {
+            $row->product_name = $row->product->name;
+            $row->supplier_name = $row->product->supplier->name ?? '';
+            $row->supplier_short_name = $row->product->supplier->short_name ?? '';
+        }
+
+        return $ingredients;
     }
 
     public function export($data)
     {
         $this->getQuery($data);
     }
+
+
 
     /**
      * 根據 Bom 計算料件需求
@@ -42,8 +60,8 @@ class OrderIngredientDailyService extends Service
 
         $required_date = DateHelper::parseDate($required_date);
 
-        if(!empty($required_date['error'])){
-            $json['error']['required_date'] = $required_date['error'];
+        if($required_date == false){
+            $json['error']['required_date'] = '日期錯誤';
         }
         
         // 獲取備料表
@@ -54,7 +72,7 @@ class OrderIngredientDailyService extends Service
             'has' => 'bom',
             'with' => ['bom.bom_products.sub_product.translation', 'bom.bom_products.sub_product.supplier'],
         ];
-        $requisitions = $this->OrderProductIngredientDailyRepository->getDailyRequisitions($params);
+        $requisitions = $this->getDailyIngredients($params);
 
         $requirements = [];
 

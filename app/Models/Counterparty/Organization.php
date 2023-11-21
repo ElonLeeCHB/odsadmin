@@ -36,7 +36,7 @@ class Organization extends Model
 
     public function meta_rows()
     {
-        return $this->hasMany(OrganizationMeta::class);
+        return $this->hasMany(OrganizationMeta::class, 'organization_id', 'id');
     }
 
     public function parent()

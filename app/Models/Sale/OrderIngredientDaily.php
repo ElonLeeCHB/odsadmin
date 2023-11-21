@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Carbon;
 use App\Traits\ModelTrait;
 use App\Models\Catalog\Product;
+use App\Models\Counterparty\Supplier;
+use App\Models\Inventory\Bom;
 
 class OrderIngredientDaily extends Model
 {
@@ -22,6 +24,10 @@ class OrderIngredientDaily extends Model
         return $this->belongsTo(Product::class);
     }
     
+    public function bom()
+    {
+        return $this->belongsTo(Bom::class, 'product_id', 'product_id');
+    }
 
     protected function requiredDateYmd(): Attribute
     {

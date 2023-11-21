@@ -27,7 +27,7 @@ class DateHelper
         $validDateString = date('Y-m-d', strtotime($dateString));
 
         if($validDateString != $dateString){
-            return ['error' => 'parse error!'];
+            return false;
         }
 
         return $dateString;
@@ -108,39 +108,56 @@ class DateHelper
 
     }
 
+    function isValidDate($dateString, $format = 'Y-m-d') {
+        $dateTime = \DateTime::createFromFormat($format, $dateString);
+        return $dateTime && $dateTime->format($format) === $dateString;
+    }
+
     /**
      * 2023-11-13
+     * Y-m-d
      */
-    function parseDiffDays($start, $end){
+    public static function parseDiffDays($startString, $endString)
+    {
+        $date1 = new \DateTime($startString);
+        $date2 = new \DateTime($endString);
 
-        //start
-        $start_date = self::parseDate($start);
+        $interval = $date1->diff($date2);
 
-        if(!empty($start_date['error'])){
-            $start_timestamp = date('Y-m-d', $start); //timestamp
+        $daysDifference = $interval->days;
 
-            if($start_timestamp == false){
-                return false;
-            }
+        if ($date1 < $date2) {
+            $daysDifference *= -1;
         }
 
-        //end
-        $end_date = self::parseDate($end);
+        return $daysDifference;
+    }
 
-        if(!empty($end_date['error'])){
-            $end_timestamp = date('Y-m-d', $end); //timestamp
 
-            if($end_timestamp == false){
-                return false;
-            }
+    public static function parseDateStringTo6d($dateString)
+    {
+        $dateYmd = parseDate($dateString); // yyyy-mm-dd
+
+        if($dateYmd){
+            preg_match_all('/\d+/', $dateString, $matches);
+            $dateString = implode('', $matches[0]);
+            $date2ymd = substr($dateString, -6);
         }
-
-        $date1 = strtotime($start_timestamp);
-        $date2 = strtotime($end_timestamp);
         
-        $days_diff = floor(($date2 - $date1) / (60 * 60 * 24));
+        if(!empty($date2ymd)){
+            return $date2ymd;
+        }else{
+            return false;
+        }
+    }
+
+    public static function xxparseDiffDays($start, $end){
+
+        $start_timestamp = strtotime($start);
+        $end_timestamp = strtotime($end);
+
+        $days_diff = ceil(($start_timestamp - $end_timestamp) / (60 * 60 * 24));
 
         return $days_diff;
     }
-
 }

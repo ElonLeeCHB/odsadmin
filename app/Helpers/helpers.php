@@ -204,34 +204,10 @@ if(!function_exists('getSqlWithBindings')){
 if(!function_exists('parseDiffDays')){
     function parseDiffDays($start, $end){
 
-        $end = time();
+        $start_timestamp = strtotime($start);
+        $end_timestamp = strtotime($end);
 
-        //start
-        $start_date = parseDate($start);
-
-        if($start_date == false){
-            $start_date = date('Y-m-d', $start); //timestamp
-
-            if($start_date == false){
-                return false;
-            }
-        }
-
-        //end
-        $end_date = parseDate($end);
-
-        if($end_date == false){
-            $end_date = date('Y-m-d', $end); //timestamp
-
-            if($end_date == false){
-                return false;
-            }
-        }
-
-        $date1 = strtotime($start_date);
-        $date2 = strtotime($end_date);
-        
-        $days_diff = floor(($date2 - $date1) / (60 * 60 * 24));
+        $days_diff = ceil(($start_timestamp - $end_timestamp) / (60 * 60 * 24));
 
         return $days_diff;
     }

@@ -183,51 +183,56 @@
 <script type="text/javascript">
 
 $(document).ready(function() {
-  // 查單頭料件
-  $('#input-product_name').autocomplete({
-    'source': function (request, response) {
-      $.ajax({
-        url: "{{ $product_autocomplete_url }}?filter_name=" + encodeURIComponent(request),
-        dataType: 'json',
-        success: function (json) {
-          response(json);
-        }
-      });
-    },
-    'select': function (item) {
-      $('#input-product_id').val(item.product_id);
-      $('#input-product_name').val(item.name);
-      $('#input-product_edit_url').attr('href', item.product_edit_url);
-    }
-  });
 
-  // 查單身料件
-  $(document).on('click', '.schProductName', function() {
-    $(this).autocomplete({
-      'source': function (request, response) {
-        $.ajax({
-            url: "{{ $product_autocomplete_url }}?equal_is_active=1&filter_name=" + encodeURIComponent(request)+'&extra_columns=usage_unit_name,usage_unit_name,supplier_short_name&with=product_units',
-            dataType: 'json',
-            success: function (json) {
-              response(json);
-            }
-          });
-      },
-      'select': function (item) {
-        var rownum = $(this).closest('[data-rownum]').data("rownum");
-        $('#input-products-sub_product_id-'+rownum).val(item.product_id);
-        $('#input-products-sub_product_name-'+rownum).val(item.name);
-        $('#input-products-sub_product_specification-'+rownum).val(item.specification);
-        $('#input-products-quantity-'+rownum).val(item.quantity);
-        $('#input-products-usage_unit_code-'+rownum).val(item.usage_unit_code);
-        $('#input-products-usage_unit_name-'+rownum).val(item.usage_unit_name);
-        $('#input-products-usage_price-'+rownum).val(item.usage_price);
-        $('#input-products-sub_product_edit_url-'+rownum).attr('href', item.product_edit_url);
-        $('#input-products-sub_product_supplier_short_name-'+rownum).val(item.supplier_short_name);
+  // 觸發查詢料件的 click 事件
+  $('.schProductName').trigger('click');
+
+});
+
+
+// 查單頭料件
+$('#input-product_name').autocomplete({
+  'source': function (request, response) {
+    $.ajax({
+      url: "{{ $product_autocomplete_url }}?filter_name=" + encodeURIComponent(request),
+      dataType: 'json',
+      success: function (json) {
+        response(json);
       }
     });
-  });
+  },
+  'select': function (item) {
+    $('#input-product_id').val(item.product_id);
+    $('#input-product_name').val(item.name);
+    $('#input-product_edit_url').attr('href', item.product_edit_url);
+  }
+});
 
+// 查單身料件
+$(document).on('click', '.schProductName', function() {
+  $(this).autocomplete({
+    'source': function (request, response) {
+      $.ajax({
+          url: "{{ $product_autocomplete_url }}?equal_is_active=1&filter_name=" + encodeURIComponent(request)+'&extra_columns=usage_unit_name,usage_unit_name,supplier_short_name&with=product_units',
+          dataType: 'json',
+          success: function (json) {
+            response(json);
+          }
+        });
+    },
+    'select': function (item) {
+      var rownum = $(this).closest('[data-rownum]').data("rownum");
+      $('#input-products-sub_product_id-'+rownum).val(item.product_id);
+      $('#input-products-sub_product_name-'+rownum).val(item.name);
+      $('#input-products-sub_product_specification-'+rownum).val(item.specification);
+      $('#input-products-quantity-'+rownum).val(item.quantity);
+      $('#input-products-usage_unit_code-'+rownum).val(item.usage_unit_code);
+      $('#input-products-usage_unit_name-'+rownum).val(item.usage_unit_name);
+      $('#input-products-usage_price-'+rownum).val(item.usage_price);
+      $('#input-products-sub_product_edit_url-'+rownum).attr('href', item.product_edit_url);
+      $('#input-products-sub_product_supplier_short_name-'+rownum).val(item.supplier_short_name);
+    }
+  });
 });
 
 var product_row = {{ $product_row }};
@@ -275,8 +280,8 @@ function calcSubProduct(row) {
   $('#input-products-amount-' + row).val(amount);
   calcBom();
 }
+
 function calcBom(){
-  
   var total = 0;
   $("[name^='products'][name$='[amount]']").each(function() {
     var value = parseFloat($(this).val()) || 0;

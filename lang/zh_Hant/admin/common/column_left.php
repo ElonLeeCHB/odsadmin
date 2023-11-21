@@ -14,8 +14,9 @@ return [
 'text_menu_sale' => '銷售管理',
 'text_order' => '訂單',
 'text_sales_phrase' => '常用片語',
-'text_menu_orderingredientsdailies' => '備料表',
-'text_material_requisition' => '備料表',
+'text_menu_sale_requisition' => '備料表',
+'text_menu_orderingredientsdailies' => '備料表待廢', //待廢
+'text_material_requisition' => '備料表待廢', // 待廢
 'text_material_requisition_setting' => '備料設定',
 'text_sales_order_schedule' => '訂單排程',
 

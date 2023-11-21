@@ -127,24 +127,18 @@ Route::group(
                 Route::get('phrases/autocomplete', 'Sale\PhraseController@autocomplete')->name('phrases.autocomplete');
 
 
+                Route::get('requisitions', 'Sale\RequisitionController@index')->name('requisitions.index');
+                Route::get('requisitions/list', 'Sale\RequisitionController@list')->name('requisitions.list');
+                Route::get('requisitions/form/{required_date?}', 'Sale\RequisitionController@form')->name('requisitions.form');
+                Route::post('requisitions/save', 'Sale\RequisitionController@save')->name('requisitions.save');
+                Route::get('requisitions/calcRequisitionsByDate/{required_date?}', 'Sale\RequisitionController@calcRequisitionsByDate')->name('requisitions.calcRequisitionsByDate');
+                Route::get('requisitions/printForm/{required_date?}', 'Sale\RequisitionController@printForm')->name('requisitions.printForm');
+                Route::get('requisitions/setting', 'Sale\RequisitionController@settingForm')->name('requisitions.setting');
+                Route::post('requisitions/setting/save', 'Sale\RequisitionController@settingSave')->name('requisitions.settingSave');
+                Route::post('requisitions/export', 'Sale\RequisitionController@export')->name('requisitions.export');
 
-                Route::get('orderingredientsdailies', 'Sale\OrderIngredientDailyController@index')->name('orderingredientsdailies.index');
-                Route::get('orderingredientsdailies/list', 'Sale\OrderIngredientDailyController@list')->name('orderingredientsdailies.list');
-                Route::get('orderingredientsdailies/form/{required_date?}', 'Sale\OrderIngredientDailyController@form')->name('orderingredientsdailies.form');
-                
-
-
-
-                Route::get('mrequisition', 'Sale\MaterialRequisitionController@index')->name('mrequisition.index');
-                Route::get('mrequisition/list', 'Sale\MaterialRequisitionController@list')->name('mrequisition.list');
-                Route::get('mrequisition/form/{required_date?}', 'Sale\MaterialRequisitionController@form')->name('mrequisition.form');
-                Route::post('mrequisition/save', 'Sale\MaterialRequisitionController@save')->name('mrequisition.save');
-                //Route::get('mrequisition/getMrequisitions', 'Sale\MaterialRequisitionController@getMrequisitions')->name('mrequisition.getMrequisitions');
-                Route::get('mrequisition/calcMrequisitionsByDate/{required_date?}', 'Sale\MaterialRequisitionController@calcMrequisitionsByDate')->name('mrequisition.calcMrequisitionsByDate');
-                Route::get('mrequisition/printForm/{required_date?}', 'Sale\MaterialRequisitionController@printForm')->name('mrequisition.printForm');
-                Route::get('mrequisition/setting', 'Sale\MaterialRequisitionController@settingForm')->name('mrequisition.setting');
-                Route::post('mrequisition/setting/save', 'Sale\MaterialRequisitionController@settingSave')->name('mrequisition.settingSave');
-                Route::post('mrequisition/export', 'Sale\MaterialRequisitionController@export')->name('mrequisition.export');
+                Route::get('requisitions/setting', 'Sale\RequisitionController@settingForm')->name('requisitions.setting');
+                Route::post('requisitions/setting/save', 'Sale\RequisitionController@settingSave')->name('requisitions.settingSave');
                 
             });
 
