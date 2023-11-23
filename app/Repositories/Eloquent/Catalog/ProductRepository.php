@@ -97,7 +97,7 @@ class ProductRepository extends Repository
 
             // - storage type            
             if(in_array('temperature_type_name', $data['extra_columns'])){
-                $temperature_types = StaticTermRepository::getCodeKeyedTermsByTaxonomyCode('product_storage_temperature_type');
+                $temperature_types = TermRepository::getCodeKeyedTermsByTaxonomyCode('product_storage_temperature_type',toArray:false);
             }
             
         }
@@ -185,21 +185,21 @@ class ProductRepository extends Repository
         // temperature_type_code
         if(!empty($product_array['temperature_type_code'])){
             $temperature_type_code = $product_array['temperature_type_code'];
-            $temperature_types = StaticTermRepository::getCodeKeyedTermsByTaxonomyCode('product_storage_temperature_type',false);
+            $temperature_types = TermRepository::getCodeKeyedTermsByTaxonomyCode('product_storage_temperature_type',false);
             $product_array['temperature_type_name'] = $temperature_types[$temperature_type_code]->name;
         }
 
         // accounting_category_code
         if(!empty($product_array['accounting_category_code'])){
             $accounting_category_code = $product_array['accounting_category_code'];
-            $accounting_categories = StaticTermRepository::getCodeKeyedTermsByTaxonomyCode('product_accounting_category',false);
+            $accounting_categories = TermRepository::getCodeKeyedTermsByTaxonomyCode('product_accounting_category',false);
             $product_array['accounting_category_name'] = $accounting_categories[$accounting_category_code]->name;
         }
 
         // accounting_category_code
         if(!empty($product_array['source_type_code'])){
             $source_type_code = $product_array['source_type_code'];
-            $source_types = StaticTermRepository::getCodeKeyedTermsByTaxonomyCode('product_source_type',false);
+            $source_types = TermRepository::getCodeKeyedTermsByTaxonomyCode('product_source_type',false);
             $product_array['source_type_name'] = $source_types[$source_type_code]->name;
         }
 

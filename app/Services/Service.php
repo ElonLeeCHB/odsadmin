@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Traits\EloquentTrait;
-use App\Repositories\Eloquent\Common\StaticTermRepository;
+use App\Repositories\Eloquent\Common\TermRepository;
 
 class Service
 {
@@ -26,6 +26,6 @@ class Service
 
     public function getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray = true, $params = null): array
     {
-        return StaticTermRepository::getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray, $params);
+        return TermRepository::getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray, $params);
     }
 }

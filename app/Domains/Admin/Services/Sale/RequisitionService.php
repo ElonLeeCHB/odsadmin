@@ -113,7 +113,7 @@ class RequisitionService extends Service
             }
             
             if(!empty($requirements)){
-                return $this->RequirementsDailyRepository->saveDailyRequirements($requirements);
+                return $this->RequirementRepository->saveDailyRequirements($requirements);
             }
         }
 

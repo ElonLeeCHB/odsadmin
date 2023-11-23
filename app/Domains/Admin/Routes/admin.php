@@ -246,6 +246,7 @@ Route::group(
                 Route::post('receiving/save/{id?}', 'Inventory\ReceivingOrderController@save')->name('receiving.save');
                 Route::post('receiving/delete', 'Inventory\ReceivingOrderController@delete')->name('receiving.delete');
                 Route::get('receiving/autocomplete', 'Inventory\ReceivingOrderController@autocomplete')->name('receiving.autocomplete');
+                Route::post('receiving/export01', 'Inventory\ReceivingOrderController@export01')->name('receiving.export01');
 
                 Route::get('countings', 'Inventory\CountingController@index')->name('countings.index');
                 Route::get('countings/form/{id?}', 'Inventory\CountingController@form')->name('countings.form');

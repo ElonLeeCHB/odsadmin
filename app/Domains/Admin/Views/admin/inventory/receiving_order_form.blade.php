@@ -336,7 +336,6 @@ $('#input-supplier_name').autocomplete({
 });
 
 // 查料件名稱
-
 $(document).on('click', '.schProductName', function() {
   $('.schProductName').autocomplete({
     'source': function (request, response) {
@@ -379,7 +378,11 @@ $(document).on('click', '.schProductName', function() {
       });
     }
   });
+  
+
+  
 });
+$('.schProductName').first().click();
 
 // 課稅別
 $('#input-tax_type_code').on("change", function() {
@@ -573,6 +576,8 @@ function addReceivingProduct(){
 
 
 	$('#products tbody').append(html);
+
+  $('.schProductName').first().click();
 
 	product_row++;
 }

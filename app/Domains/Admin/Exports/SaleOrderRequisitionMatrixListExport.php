@@ -23,7 +23,6 @@ class SaleOrderRequisitionMatrixListExport implements FromArray, WithHeadings, W
     private $query;
     private $collection;
     private $headings;
-    private $current_row = 6;
     private $product_names;
 
 

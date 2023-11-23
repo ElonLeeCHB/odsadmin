@@ -240,7 +240,7 @@ class UnitRepository extends Repository
             $to_quantity = 1;
         }
 
-        // all standard units
+        // both standard units
         else if(in_array($from_unit_code, $this->standard_unit_codes) && in_array($to_unit_code, $this->standard_unit_codes)){
             $fromUnit = Unit::where('code', $from_unit_code)->first();
             $toUnit = Unit::where('code', $to_unit_code)->first();
@@ -269,7 +269,6 @@ class UnitRepository extends Repository
                 }else{
                     // Error
                     $msg = 'product_id='.$product_id.', from_quantity='.$from_quantity.', destination_quantity='.$product_unit->destination_quantity;
-                    echo '<pre>', print_r($msg, 1), "</pre>"; exit;
                     return ['error' => 'product_id='.$product_id.', from_quantity='.$from_quantity.', destination_quantity='.$product_unit->destination_quantity];
                 }
             }

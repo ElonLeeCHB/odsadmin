@@ -56,13 +56,14 @@ class ReceivingOrderController extends BackendController
         $data['receiving_order_statuses'] = $this->ReceivingOrderService->getCachedActiveReceivingOrderStatuses();
 
         // 單別
-        $data['form_types'] = $this->TermRepository->getCodeKeyedTermsByTaxonomyCode('receiving_order_form_type',toArray:false);
+        $data['form_types'] = $this->ReceivingOrderService->getCodeKeyedTermsByTaxonomyCode('receiving_order_form_type',toArray:false);
 
         $data['list'] = $this->getList();
 
         $data['list_url']   =  route('lang.admin.inventory.receiving.list');
         $data['add_url']    = route('lang.admin.inventory.receiving.form');
         $data['delete_url'] = route('lang.admin.inventory.receiving.delete');
+        $data['export01_url'] = route('lang.admin.inventory.receiving.export01');
 
         return view('admin.inventory.receiving_order', $data);
     }
@@ -232,11 +233,11 @@ class ReceivingOrderController extends BackendController
                     //$stock_unit_code = $standard_units[$receiving_product->receiving_unit_code]
                     $receiving_product->product_units[] = (object) [
                         'product_id' => $receiving_product->product_id,
-                        'source_unit_code' => $receiving_product->receiving_unit_code,
-                        'source_unit_name' => $standard_units[$receiving_product->receiving_unit_code]->name,
+                        'source_unit_code' => $receiving_product->receiving_unit_code ?? '',
+                        'source_unit_name' => $standard_units[$receiving_product->receiving_unit_code]->name ?? '',
                         'source_quantity' => 1,
-                        'destination_unit_code' => $receiving_product->product->stock_unit_code,
-                        'destination_unit_name' => $standard_units[$receiving_product->stock_unit_code]->name,
+                        'destination_unit_code' => $receiving_product->product->stock_unit_code ?? '',
+                        'destination_unit_name' => $standard_units[$receiving_product->stock_unit_code]->name ?? '',
                         'destination_quantity' => $factor,
                         'factor' => $factor,
                     ];
@@ -280,7 +281,7 @@ class ReceivingOrderController extends BackendController
         $data['units'] = $this->UnitRepository->getCodeKeyedActiveUnits($filter_data);
 
         // 稅別
-        $data['tax_types'] = $this->TermRepository->getCodeKeyedTermsByTaxonomyCode('tax_type',toArray:false);
+        $data['tax_types'] = $this->ReceivingOrderService->getCodeKeyedTermsByTaxonomyCode('tax_type',toArray:false);
 
         return view('admin.inventory.receiving_order_form', $data);
     }
@@ -325,4 +326,9 @@ class ReceivingOrderController extends BackendController
     }
 
 
+    public function export01()
+    {
+        $params = request()->all();
+        return $this->ReceivingOrderService->export01($params);
+    }
 }

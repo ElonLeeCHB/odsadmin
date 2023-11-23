@@ -57,7 +57,7 @@ class ProductService extends Service
                     }
                 }
             }
-
+            
             if(!empty($post_data['stock_price']) && !empty($usage_factor)){
                 $post_data['usage_price'] = $post_data['stock_price'] * $usage_factor;
             }else{

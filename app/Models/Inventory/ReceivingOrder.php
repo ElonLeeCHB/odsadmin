@@ -5,11 +5,13 @@ namespace App\Models\Inventory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Carbon;
-use App\Models\Catalog\Product;
 use App\Models\Inventory\ReceivingOrderProduct;
+use App\Models\Catalog\Product;
+use App\Models\Counterparty\Organization;
 use App\Models\Common\Term;
 use App\Models\Setting\Location;
 use App\Traits\ModelTrait;
+use App\Repositories\Eloquent\Common\TermRepository;
 
 class ReceivingOrder extends Model
 {
@@ -18,7 +20,6 @@ class ReceivingOrder extends Model
     protected $table = 'receiving_orders';
     protected $guarded = [];
     protected $appends = ['purchasing_date_ymd','receiving_date_ymd','formatted_tax_rate'];
-    protected $with = ['status'];
     protected $casts = [
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',
@@ -36,10 +37,20 @@ class ReceivingOrder extends Model
     // Relation
 
 
-    public function form_type()
-    {
-        return $this->belongsTo(Term::class, 'form_type_code', 'code')->where('taxonomy_code', 'receiving_order_form_type');
-    }
+    // public function form_type()
+    // {
+    //     return $this->belongsTo(Term::class, 'form_type_code', 'code')->where('taxonomy_code', 'receiving_order_form_type');
+    // }
+
+    // public function tax_type()
+    // {
+    //     return $this->belongsTo(Term::class, 'tax_type_code', 'code')->where('taxonomy_code', 'tax_type');
+    // }
+
+    // public function status()
+    // {
+    //     return $this->belongsTo(Term::class, 'status_code', 'code')->where('taxonomy_code', 'receiving_order_status');
+    // }
 
     public function location()
     {
@@ -51,14 +62,35 @@ class ReceivingOrder extends Model
         return $this->hasMany(ReceivingOrderProduct::class, 'receiving_order_id', 'id');
     }
 
-    public function status()
+    public function supplier()
     {
-        return $this->belongsTo(Term::class, 'status_code', 'code')->where('taxonomy_code', 'receiving_order_status');
+        return $this->belongsTo(Organization::class, 'supplier_id', 'id');
     }
 
     
     // Attribute
     
+    public function formTypeName(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->form_type_code, 'receiving_order_form_type') ?? '',
+        );
+    }
+
+    public function taxTypeName(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->tax_type_code, 'tax_type') ?? '',
+        );
+    }
+
+    public function statusName(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->status_code, 'common_form_status') ?? '',
+        );
+    }
+
     public function purchasingDateYmd(): Attribute
     {
         if(!empty($this->purchasing_date)){
@@ -90,9 +122,9 @@ class ReceivingOrder extends Model
     {
         return Attribute::make(
             get: fn ($value) => $this->tax_rate * 100,
-            set: function ($value) {
-                $this->attributes['tax_rate'] = $value / 100;
-            }
+            // set: function ($value) {
+            //     $this->attributes['tax_rate'] = $value / 100;
+            // }
         );
     }
 

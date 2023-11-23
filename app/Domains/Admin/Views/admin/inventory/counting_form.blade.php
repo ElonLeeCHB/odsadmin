@@ -141,8 +141,6 @@ var query_url = current_url.split('?')[1];
 var product_row = {{ $product_row }};
 
 // 查料件名稱
-// 多包一層，讓動態新增的料件能用，否則無法觸發。
-// 但是如此一來，原本的料件常常要多點幾下，不好觸發…。
 $(document).on('click', '.schProductName', function() {
   $('.schProductName').autocomplete({
     'source': function (request, response) {

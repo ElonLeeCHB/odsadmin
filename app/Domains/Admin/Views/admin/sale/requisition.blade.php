@@ -12,10 +12,9 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
-      <button type="button" id="btn-export_daily_list" data-bs-toggle="tooltip" data-loading-text="Loading..." title="下載備料表" class="btn btn-info" aria-label="下載備料表"><i class="fas fa-file-export"></i></button>
-      <button type="button" id="btn-export_matrix_list" data-bs-toggle="tooltip" data-loading-text="Loading..." title="下載備料表(距陣式)" class="btn btn-info" aria-label="下載備料表(距陣式)"><i class="fas fa-file-export"></i></button>
+        <button type="button" id="btn-export_daily_list" data-bs-toggle="tooltip" data-loading-text="Loading..." title="下載備料表" class="btn btn-info" aria-label="下載備料表"><i class="fas fa-file-export"></i></button>
+        <button type="button" id="btn-export_matrix_list" data-bs-toggle="tooltip" data-loading-text="Loading..." title="下載備料表(距陣式)" class="btn btn-info" aria-label="下載備料表(距陣式)"><i class="fas fa-file-export"></i></button>
         <a href="{{ $add_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i></a>
-
         <button type="button" data-bs-toggle="tooltip" title="{{ $lang->button_filter }}" onclick="$('#filter-form').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fa-solid fa-filter"></i></button>
 
       </div>
@@ -176,7 +175,7 @@ $('#btn-export_daily_list').on('click', function () {
   });
 });
 
-//下載備料表
+//下載備料表(距陣式)
 $('#btn-export_matrix_list').on('click', function () {
   $('#modal-export-loading').modal('show');
   var dataString = $('#filter-form_content').serialize();

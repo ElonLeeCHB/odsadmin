@@ -51,7 +51,7 @@ class CountingController extends BackendController
 
 
         // 通用單據狀態
-        $data['statuses'] = $this->TermRepository->getCodeKeyedTermsByTaxonomyCode('common_form_status',toArray:false);
+        $data['statuses'] = $this->CountingService->getCodeKeyedTermsByTaxonomyCode('common_form_status',toArray:false);
 
         $data['list'] = $this->getList();
 
@@ -229,7 +229,7 @@ class CountingController extends BackendController
 
         
         // 通用單據狀態
-        $data['statuses'] = $this->TermRepository->getCodeKeyedTermsByTaxonomyCode('common_form_status',toArray:false);
+        $data['statuses'] = $this->CountingService->getCodeKeyedTermsByTaxonomyCode('common_form_status',toArray:false);
         
 
         return view('admin.inventory.counting_form', $data);

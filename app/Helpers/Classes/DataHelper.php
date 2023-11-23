@@ -43,6 +43,8 @@ class DataHelper
      * storage/app/cache/
      * 之後要強制塞到上面這個路徑底下。暫時不檢查。
      */
+
+     //這個應廢棄。不是所有的內容都有 rows 的結構
     public static function getJsonFromStorage($json_path, $toArray = false)
     {
         if (Storage::exists($json_path)) {

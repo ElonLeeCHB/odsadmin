@@ -218,7 +218,8 @@ class SupplierController extends BackendController
         ];
         $tax_types = $this->TermRepository->getTerms($filter_data);
 
-        $data['tax_types'] = $this->TermRepository->rowsToStdObj($tax_types, ['unset' => ['translation', 'taxonomy']]);
+        //$data['tax_types'] = $this->TermRepository->rowsToStdObj($tax_types, ['unset' => ['translation', 'taxonomy']]);
+        $data['tax_types'] = $this->SupplierService->getCodeKeyedTermsByTaxonomyCode('tax_type',toArray:false);
 
         $data['states'] = $this->DivisionService->getStates();
 
@@ -394,7 +395,7 @@ class SupplierController extends BackendController
         // }
 
         // 稅別
-        $data['tax_types'] = $this->TermRepository->getCodeKeyedTermsByTaxonomyCode('tax_type',toArray:false);
+        $data['tax_types'] = $this->SupplierService->getCodeKeyedTermsByTaxonomyCode('tax_type',toArray:false);
 
         foreach ($suppliers as $row) {
             $json[] = array(

@@ -14,6 +14,7 @@
       <h1>{{ $lang->heading_title }}</h1>
       @include('admin.common.breadcumb')
       <div class="float-end">
+        <button type="button" id="btn-export01" data-bs-toggle="tooltip" data-loading-text="Loading..." title="下載進貨報表" class="btn btn-info" aria-label="下載進貨報表"><i class="fas fa-file-export"></i></button>
         <button type="button" data-bs-toggle="tooltip" title="篩選" onclick="$('#filter-order').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fas fa-filter" style="font-size:18px"></i></button>
         <a href="{{ $add_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fas fa-plus"></i></a>
       </div>
@@ -93,31 +94,6 @@
 
 @section('buttom')
 <script type="text/javascript">
-//選縣市查區
-$('#input-shipping_state_id').on('change', function(){
-  var state_id = $(this).val();
-  if(state_id){
-    $.ajax({
-      type:'get',
-      url: "{{ route('lang.admin.localization.divisions.getJsonCities') }}?filter_parent_id=" + state_id,
-      data:'filter_parent_id='+state_id,
-      success:function(json){
-        html = '<option value=""> -- </option>';
-        
-        $.each(json, function(i, item) {
-          html += '<option value="'+item.city_id+'">'+item.name+'</option>';
-        });
-
-        $('#input-shipping_city_id').html(html);
-        
-        $('#input-shipping_road').val('');
-
-      }
-    }); 
-  }else{
-    $('#input-shipping_city_id').html('<option value="">--</option>');
-  }  
-});
 
 $('#receiving_order').on('click', 'thead a, .pagination a', function(e) {
   e.preventDefault();
@@ -173,6 +149,43 @@ $('#button-filter').on('click', function() {
   $('#receiving_order').load(url);
 });
 
+//下載進貨報表
+$('#btn-export01').on('click', function () {
+  $('#modal-export-loading').modal('show');
+  var dataString = $('#filter-form_content').serialize();
+
+  $.ajax({
+      type: "POST",
+      url: "{{ $export01_url }}",
+      data: dataString,
+      cache: false,
+      xhrFields:{
+          responseType: 'blob'
+      },
+      beforeSend: function () {
+        console.log('beforeSend');
+       // $('#btn-export01').attr("disabled", true);
+      },
+      success: function(data)
+      {
+        console.log('success');
+        let link = document.createElement('a');
+        link.href = window.URL.createObjectURL(data);
+        let now_string = moment().format('YYYY-MM-DD_hh-mm-ss');
+        link.download = '進貨報表_'+now_string+'.xlsx';
+        link.click();
+      },
+      complete: function () {
+        console.log('complete');
+        $('#modal-export-loading').modal('hide');
+        $('#btn-export01').attr("disabled", false);
+      },
+      fail: function(data) {
+        console.log('fail');
+        alert('Not downloaded');
+      }
+  });
+});
 
 </script>
 @endsection

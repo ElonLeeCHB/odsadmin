@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Eloquent\Inventory;
 
+use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
 use App\Models\Sale\OrderProductIngredient;
 use App\Models\Sale\OrderProductIngredientDaily;

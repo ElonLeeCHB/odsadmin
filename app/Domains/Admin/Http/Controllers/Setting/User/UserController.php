@@ -162,7 +162,7 @@ class UserController extends BackendController
 
         // Get Record
         $user = $this->UserService->findIdOrFailOrNew($user_id);
-        $user = $this->UserService->getMetaDataset($user);
+        $user = $this->UserService->getMetaRows($user);
 
         $data['user']  = $user;
 

@@ -5,11 +5,13 @@ namespace App\Repositories\Eloquent\Inventory;
 use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
 use App\Models\Common\Term;
-use App\Models\Common\TermTranslation;
 use App\Models\Catalog\Product;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
 use App\Repositories\Eloquent\Inventory\ReceivingOrderProductRepository;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
+
+use Maatwebsite\Excel\Facades\Excel;
+use App\Domains\Admin\Exports\InventoryReceivingReport;
 
 class ReceivingOrderRepository extends Repository
 {
@@ -31,11 +33,6 @@ class ReceivingOrderRepository extends Repository
         }
 
         $rows = $this->getRows($data, $debug);
-        
-        foreach ($rows as $row) {
-            $row->status_name = $row->status->name ?? '';
-            $row->form_type_name = $row->form_type->name ?? '';
-        }
 
         return $this->unsetRelations($rows, ['status']);
     }
@@ -316,5 +313,13 @@ class ReceivingOrderRepository extends Repository
         cache()->put($cachedStatusesName, $statuses, $seconds = 60*60*24*90);
 
         return $statuses;
+    }
+
+
+    public function export01($post_data = [], $debug = 0)
+    {
+        $filename = '進貨報表_'.date('Y-m-d_H-i-s').'.xlsx';
+
+        return Excel::download(new InventoryReceivingReport($post_data, $this, new ReceivingOrderProductRepository), $filename);
     }
 }

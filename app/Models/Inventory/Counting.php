@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 use App\Traits\ModelTrait;
 use App\Models\Inventory\CountingProduct;
 use App\Models\Common\Term;
+use App\Repositories\Eloquent\Common\TermRepository;
 
 class Counting extends Model
 {
@@ -39,12 +40,21 @@ class Counting extends Model
     }
 
 
-    public function status()
-    {
-        return $this->belongsTo(Term::class, 'status_code', 'code')->where('taxonomy_code', 'common_form_status');
-    }
+    // public function status()
+    // {
+    //     $code = $this->status_code;
+        
+    //     return $this->belongsTo(Term::class, 'status_code', 'code')->where('taxonomy_code', 'common_form_status')->withDefault(function () use ($code) {
+    //         return Term::getByCodeAndTaxonomyCode($code, 'common_form_status');
+    //     });
+    // }
 
-    
+    public function statusName(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->status_code, 'common_form_status') ?? '',
+        );
+    }
 
     // Attribute
 

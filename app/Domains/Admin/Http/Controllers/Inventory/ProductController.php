@@ -252,13 +252,13 @@ class ProductController extends BackendController
 		}
 
         // 會計分類 product_accounting_category
-        $data['accounting_categories'] = $this->TermRepository->getCodeKeyedTermsByTaxonomyCode('product_accounting_category',toArray:false);
+        $data['accounting_categories'] = $this->ProductService->getCodeKeyedTermsByTaxonomyCode('product_accounting_category',toArray:false);
         
         // 來源類型
-        $data['source_type_codes'] = $this->TermRepository->getCodeKeyedTermsByTaxonomyCode('product_source_type',toArray:false);
+        $data['source_type_codes'] = $this->ProductService->getCodeKeyedTermsByTaxonomyCode('product_source_type',toArray:false);
 
         // 存放溫度類型 temperature_type_code
-        $data['temperature_types'] = $this->TermRepository->getCodeKeyedTermsByTaxonomyCode('product_storage_temperature_type',toArray:false);
+        $data['temperature_types'] = $this->ProductService->getCodeKeyedTermsByTaxonomyCode('product_storage_temperature_type',toArray:false);
 
         $data['bom_products'] = [];
 

@@ -54,7 +54,9 @@ class UserService extends Service
 
             //$user->is_admin = $data['is_admin'] ?? 0;
             
-            $user->save();
+            if($user->isDirty()){
+                $user->save();
+            }
 
             $this->saveRowMetaData($user, $data);
 
