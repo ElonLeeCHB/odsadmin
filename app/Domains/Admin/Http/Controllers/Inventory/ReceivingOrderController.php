@@ -135,9 +135,6 @@ class ReceivingOrderController extends BackendController
         $data['languages'] = Language::active()->get();
 
 
-        $this->lang->text_form = empty($product_id) ? $this->lang->trans('text_add') : $this->lang->trans('text_edit');
-
-
         // Breadcomb
         $breadcumbs[] = (object)[
             'text' => $this->lang->text_home,

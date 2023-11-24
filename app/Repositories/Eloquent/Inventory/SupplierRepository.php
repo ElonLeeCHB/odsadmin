@@ -13,7 +13,6 @@ class SupplierRepository extends Repository
 {
     protected $modelName = "\App\Models\Counterparty\Organization";
 
-
     public function getSuppliers($data = [], $debug = 0)
     {
         if(!empty($data['filter_keyword'])){

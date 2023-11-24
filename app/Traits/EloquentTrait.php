@@ -35,6 +35,10 @@ use App\Helpers\Classes\DataHelper;
 trait EloquentTrait
 {
     private $initialized = false;
+    public $connection;
+    public $table_columns;
+    public $translation_attributes;
+    public $model;
 
     public function initialize($data = null)
     {

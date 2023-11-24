@@ -8,92 +8,125 @@
 namespace App\Libraries;
 
 use App\Models\Localization\Translation;
-use Lang;
+use Illuminate\Support\Facades\Lang;
+
 
 class TranslationLibrary
 {
     public $fallback_locale;
+    public $fallback_translations;
     public $locale;
-    public $group;
+    public $paths;
     public $driver;
-    public $data;
 
-    // getTransByGroups
-    public function getTranslations($groups)
+    // getTransBypaths
+    public function getTranslations($paths)
     {        
-        $this->groups = $groups;
+        $this->paths = $paths;
         $this->driver = config('app.translatoin_driver');
 
         $fallback_locale = config('app.fallback_locale');
-        $locale = \App::getLocale();
+        $locale = app()->getLocale();
 
         if($this->driver == 'file') {
             $translations = $this->getFileTranslations($locale);
             if($this->fallback_locale !== $this->locale){
-                $fallback_translations = $this->getFileTranslations($fallback_locale);
+                $fallback_translations = (array) $this->getFileTranslations($fallback_locale);
                 $translations = array_replace_recursive($fallback_translations, $translations);
             }
         }
-        else if($this->driver == 'database') {
-            $translations = $this->getDatabaseTranslations($locale);
-            if($this->fallback_locale !== $this->locale){
-                $fallback_translations = $this->getDatabaseTranslations($fallback_locale);
+        // else if($this->driver == 'database') {
+        //     $translations = $this->getDatabaseTranslations($locale);
+        //     if($this->fallback_locale !== $this->locale){
+        //         $fallback_translations = $this->getDatabaseTranslations($fallback_locale);
                 
-                $translations = array_replace_recursive($fallback_translations, $translations);
-            }
-        }
+        //         $translations = array_replace_recursive($fallback_translations, $translations);
+        //     }
+        // }
 
         return $translations;
     }
 
-    public function getDatabaseTranslations($locale)
-    {
-        $this->data = new TranslationData();
+    // public function getDatabaseTranslations($locale)
+    // {
+    //     $this->data = new TranslationData();
 
-        foreach ($this->groups as $group) {
-            $query = Translation::query();
+    //     foreach ($this->paths as $group) {
+    //         $query = Translation::query();
 
-            $rows = $query->select('key','value')
-                ->where('locale',$locale)
-                ->where('group',$group)
-                ->get()->pluck('value','key')->toArray();
+    //         $rows = $query->select('key','value')
+    //             ->where('locale',$locale)
+    //             ->where('group',$group)
+    //             ->get()->pluck('value','key')->toArray();
 
-            foreach ($rows as $key => $value) {
-                $this->data->$key = $value;
-            }
-        }
-        return $this->data;
-    }
+    //         foreach ($rows as $key => $value) {
+    //             $this->data->$key = $value;
+    //         }
+    //     }
+    //     return $this->data;
+    // }
+
+    // public function getFileTranslations($locale)
+    // {
+    //     $this->data = new TranslationData();
+
+    //     foreach ($this->paths as $group) {
+    //         $arr = Lang::get($group);
+    //         if(is_array($arr)){
+    //             foreach (Lang::get($group) as $key => $value) {
+    //                 $this->data->$key = $value;
+    //             }
+    //         }
+    //     }
+        
+    //     return $this->data;
+    // }
 
     public function getFileTranslations($locale)
     {
-        $this->data = new TranslationData();
-
-        foreach ($this->groups as $group) {
+        $data = [];
+        
+        // read translation files
+        foreach ($this->paths as $group) {
             $arr = Lang::get($group);
             if(is_array($arr)){
                 foreach (Lang::get($group) as $key => $value) {
-                    $this->data->$key = $value;
+                    $data[$key] = $value;
                 }
             }
         }
+
+        $data = new TranslationData($data);
         
-        return $this->data;
+        return $data;
     }
 }
 
 class TranslationData
 {
+    public $data = [];
+
+    public function __construct($data)
+    {
+        $this->data = $data;
+    }
+
     public function __get($key)
     {
-        if(isset($this->$key)){
-            return $this->$key;
+        if(isset($this->data[$key])){
+            return $this->data[$key];
         }
+
         return $key;     
     }
 
     public function trans($key)
     {
         return $this->__get($key);
+    }
+
+    public function set($setVariable, $setValue)
+    {
+        $this->data[$setVariable] = $setValue;
     }
 }

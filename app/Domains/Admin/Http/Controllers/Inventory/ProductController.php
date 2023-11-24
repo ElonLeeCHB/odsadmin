@@ -101,11 +101,10 @@ class ProductController extends BackendController
         // Prepare query_data for records
         $filter_data = UrlHelper::getUrlQueriesForFilter();
 
-        $extra_columns = $filter_data['extra_columns'] ?? [];
-        $filter_data['extra_columns'] = DataHelper::addToArray($extra_columns, 'accounting_category_name');
+        $filter_data['extra_columns'] = DataHelper::addToArray('accounting_category_name', $filter_data['extra_columns'] ?? []);
         
         $with = $filter_data['with'] ?? [];
-        $filter_data['with'] = DataHelper::addToArray($with, 'source_type');
+        $filter_data['with'] = DataHelper::addToArray('source_type', $with);
         
         // Rows
         $products = $this->ProductService->getProducts($filter_data);

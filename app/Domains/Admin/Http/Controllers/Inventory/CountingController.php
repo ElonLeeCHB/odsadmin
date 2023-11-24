@@ -80,10 +80,9 @@ class CountingController extends BackendController
         $filter_data = UrlHelper::getUrlQueriesForFilter();
 
         $extra_columns = $filter_data['extra_columns'] ?? [];
-        $filter_data['extra_columns'] = DataHelper::addToArray($extra_columns, 'accounting_category_name');
+        $filter_data['extra_columns'] = DataHelper::addToArray('accounting_category_name', $extra_columns);
         
-        $with = $filter_data['with'] ?? [];
-        $filter_data['with'] = DataHelper::addToArray($with, 'unit');
+        $filter_data['with'] = DataHelper::addToArray('unit', $filter_data['with'] ?? []);
         
         // Rows
 

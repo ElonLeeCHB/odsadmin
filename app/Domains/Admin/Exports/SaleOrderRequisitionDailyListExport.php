@@ -48,7 +48,7 @@ class SaleOrderRequisitionDailyListExport implements FromCollection, WithHeading
         $this->params['sort'] = 'required_date';
         $this->params['order'] = 'DESC';
         $this->params['extra_columns'] = ['product_name', 'product_specification', 'supplier_name', 'supplier_short_name', ];
-        $this->params['with'] = DataHelper::addToArray($params['with'] ?? [], 'product.supplier');
+        $this->params['with'] = DataHelper::addToArray('product.supplier', $params['with'] ?? []);
 
         return $this->OrderIngredientRepository->getIngredients($this->params);
     }

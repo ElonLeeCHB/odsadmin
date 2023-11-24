@@ -85,7 +85,7 @@ class RequisitionController extends BackendController
         $query_data = $this->getQueries($this->request->query());
     
         // Rows
-        $query_data['with'] = DataHelper::addToArray($query_data['with'] ?? [], 'product');
+        $query_data['with'] = DataHelper::addToArray('product', $query_data['with'] ?? []);
 
         if(!isset($query_data['equal_days_before'])){
             $query_data['equal_days_before'] = 0;

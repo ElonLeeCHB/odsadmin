@@ -10,7 +10,7 @@ class DataHelper
     /**
      * $data: array or string
      */
-    public static function addToArray($array = null, $data)
+    public static function addToArray($data, $array = null)
     {
         $result = [];
 

@@ -50,7 +50,7 @@ class SaleOrderRequisitionMatrixListExport implements FromArray, WithHeadings, W
         $this->params['sort'] = 'required_date';
         $this->params['order'] = 'DESC';
         $this->params['extra_columns'] = ['product_name', 'product_specification', 'supplier_name', 'supplier_short_name', ];
-        $this->params['with'] = DataHelper::addToArray($params['with'] ?? [], 'product.supplier');
+        $this->params['with'] = DataHelper::addToArray('product.supplier', $params['with'] ?? []);
 
         $rows = $this->OrderIngredientRepository->getIngredients($this->params);
 

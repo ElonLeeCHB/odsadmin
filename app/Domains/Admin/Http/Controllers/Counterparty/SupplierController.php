@@ -11,6 +11,7 @@ use App\Domains\Admin\Services\Counterparty\SupplierService;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Domains\Admin\Services\Localization\DivisionService;
 use App\Helpers\Classes\DataHelper;
+use App\Http\Resources\Inventory\SupplierCollection;
 
 class SupplierController extends BackendController
 {
@@ -82,10 +83,8 @@ class SupplierController extends BackendController
             $row->payment_term_name = $row->payment_term->name ?? '';
         }
         
-        $suppliers = $suppliers->withPath(route('lang.admin.counterparty.suppliers.list'))->appends($query_data);
-
-        $data['suppliers'] = $suppliers;
-        //$suppliers = $this->unsetRelations($suppliers, ['payment_term']);
+        //$suppliers = $suppliers->withPath(route('lang.admin.counterparty.suppliers.list'))->appends($query_data);
+        $data['suppliers'] = (new SupplierCollection($suppliers))->toArray();
         
         //$data['suppliers'] = $suppliers;
 

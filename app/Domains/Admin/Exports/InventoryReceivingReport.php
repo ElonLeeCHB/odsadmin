@@ -66,7 +66,7 @@ class InventoryReceivingReport implements FromArray, WithHeadings, WithEvents, W
         $this->params['sort'] = 'receiving_date'; //必須按日期排序，並且會影響加總計算方式
         $this->params['order'] = 'ASC';
         $this->params['extra_columns'] = ['form_type_name', 'tax_type_name', ];
-        $this->params['with'] = DataHelper::addToArray($params['with'] ?? [], ['receiving_products', 'supplier']);
+        $this->params['with'] = DataHelper::addToArray(['receiving_products', 'supplier'], $params['with'] ?? []);
 
         $receivings = $this->ReceivingOrderRepository->getReceivingOrders($this->params);
 
