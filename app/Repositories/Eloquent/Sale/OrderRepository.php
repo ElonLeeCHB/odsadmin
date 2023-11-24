@@ -48,45 +48,6 @@ class OrderRepository extends Repository
         return $orders;
     }
 
-
-    public function optimizeRow($row)
-    {
-        if(!empty($row->status)){
-            $row->status_name = $row->status->name;
-        }
-
-        return $row;
-    }
-
-    public function sanitizeRow($row)
-    {
-        $arrOrder = $row->toArray();
-
-        if(!empty($arrOrder['status'])){
-            unset($arrOrder['status']);
-        }
-
-        if(!empty($arrOrder['totals'])){
-            $arr = [];
-            foreach ($arrOrder['totals'] as $key => $total) {
-                $arr[$key] = (object) $total->toArray();
-                $arrOrder['totals'] = $arr;
-            }
-        }
-
-        return (object) $arrOrder;
-    }
-
-
-    public function sanitizeRows($rows)
-    {
-        foreach ($rows as $key => $row) {
-            $rows[$key] = $this->sanitizeRow($row);
-        }
-
-        return $rows;
-    }
-
     public function resetQueryData($data)
     {
         //送達日 $delivery_date
@@ -126,6 +87,12 @@ class OrderRepository extends Repository
 
         if(!empty($data['filter_shipping_city_id'])){
             $data['equal_shipping_city_id'] = $data['filter_shipping_city_id'];
+        }
+
+        // 狀態
+        if(!empty($data['filter_status_code']) && $data['filter_status_code'] == 'withoutV'){
+            $data['whereNotIn'] = ['status_code' => ['V']];
+            unset($data['filter_status_code']);
         }
 
         return $data;
@@ -312,7 +279,7 @@ class OrderRepository extends Repository
                     'location_name' => $order->location_name,
                     'order_date' => Carbon::parse($order->order_date)->format('Y/m/d'),
                     'delivery_date' => Carbon::parse($order->delivery_date)->format('Y/m/d'),
-                    'status_name' => $order->status->translation->name ?? '',
+                    'status_name' => $order->status_name ?? '',
                     'payment_total' => $order->payment_total,
                     'shipping_state' => $order->shipping_state->name ?? '',
                     'shipping_city' => $order->shipping_city->name ?? '',

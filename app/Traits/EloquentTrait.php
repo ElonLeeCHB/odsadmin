@@ -36,9 +36,11 @@ trait EloquentTrait
 {
     private $initialized = false;
     public $connection;
+    public $table;
     public $table_columns;
     public $translation_attributes;
     public $model;
+    public $zh_hant_hans_transform;
 
     public function initialize($data = null)
     {
@@ -277,8 +279,19 @@ trait EloquentTrait
             }
         }
 
+        // whereNotIn
+        if(!empty($data['whereNotIn'])){
+            foreach ($data['whereNotIn'] as $key => $arr) {
+                $column = $this->table . '.' . $key;
+                $query->whereNotIn($column, $arr);
+            }
+        }
 
+        
         // is_active can only be: 1, 0, -1, *
+        // if(!is_array($this->table_columns)){
+        //     echo '<pre>', print_r($this->table_columns, 1), "</pre>"; exit;
+        // }
         if(in_array('is_active', $this->table_columns)){
             
             // - 相容以前的舊寫法
@@ -910,19 +923,31 @@ trait EloquentTrait
 
     public function getTableColumns($connection = null)
     {
+        // already exist
+        if(!empty($this->table_columns) && is_array($this->table_columns)){
+            return $this->table_columns;
+        }
+
+        // get from cache
         if(empty($this->table)){
             $this->table = $this->model->getTable();
         }
+
+        $cache_name = 'cache/table_columns/' . $this->table . '.json';
+
+        $this->table_columns = DataHelper::getJsonFromStoragNew($cache_name);
 
         if(!empty($this->table_columns)){
             return $this->table_columns;
         }
 
+        // get from database
         if(empty($connection) ){
             $this->table_columns = DB::getSchemaBuilder()->getColumnListing($this->table);
         }else{
             $this->table_columns = DB::connection($connection)->getSchemaBuilder()->getColumnListing($this->table);
         }
+        $this->table_columns = DataHelper::setJsonToStorage($cache_name, $this->table_columns);
 
         return $this->table_columns;
     }
@@ -1459,4 +1484,34 @@ trait EloquentTrait
 
 
 
+
+    public function saveStatusCode($data)
+    {
+        DB::beginTransaction();
+
+        try {
+            $params = [
+                'equal_id' => $data['id'],
+                'select' => ['id', 'status_code'],
+            ];
+            $row = $this->getRow($params);
+
+            $row->status_code = $data['status_code'];
+            $row->save();
+
+            DB::commit();
+
+            $result['data'] = [
+                'id' => $row->id,
+                'code' => $row->code,
+                'status_code' => $row->status_code,
+                'status_name' => $row->status_name
+            ];
+            return $result;
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
 }

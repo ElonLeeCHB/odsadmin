@@ -38,6 +38,7 @@ return array (
 'text_status_confirmed' => '已確認',
 'text_status_unconfirmed' => '未確認',
 'text_status_voided' => '作廢',
+'text_status_without_voided' => '不含作廢',
 
 // Button
 'button_add' => '新增',

@@ -240,13 +240,14 @@ Route::group(
                 // Route::post('purchasing/delete', 'Inventory\PurchasingController@delete')->name('purchasing.delete');
                 // Route::get('purchasing/autocomplete', 'Inventory\PurchasingController@autocomplete')->name('purchasing.autocomplete');
 
-                Route::get('receiving', 'Inventory\ReceivingOrderController@index')->name('receiving.index');
-                Route::get('receiving/list', 'Inventory\ReceivingOrderController@list')->name('receiving.list');
-                Route::get('receiving/form/{id?}', 'Inventory\ReceivingOrderController@form')->name('receiving.form');
-                Route::post('receiving/save/{id?}', 'Inventory\ReceivingOrderController@save')->name('receiving.save');
-                Route::post('receiving/delete', 'Inventory\ReceivingOrderController@delete')->name('receiving.delete');
-                Route::get('receiving/autocomplete', 'Inventory\ReceivingOrderController@autocomplete')->name('receiving.autocomplete');
-                Route::post('receiving/export01', 'Inventory\ReceivingOrderController@export01')->name('receiving.export01');
+                Route::get('receivings', 'Inventory\ReceivingOrderController@index')->name('receivings.index');
+                Route::get('receivings/list', 'Inventory\ReceivingOrderController@list')->name('receivings.list');
+                Route::get('receivings/form/{id?}', 'Inventory\ReceivingOrderController@form')->name('receivings.form');
+                Route::post('receivings/save/{id?}', 'Inventory\ReceivingOrderController@save')->name('receivings.save');
+                Route::post('receivings/delete', 'Inventory\ReceivingOrderController@delete')->name('receivings.delete');
+                Route::get('receivings/autocomplete', 'Inventory\ReceivingOrderController@autocomplete')->name('receivings.autocomplete');
+                Route::post('receivings/export01', 'Inventory\ReceivingOrderController@export01')->name('receivings.export01');
+                Route::post('receivings/saveStatusCode', 'Inventory\ReceivingOrderController@saveStatusCode')->name('receivings.saveStatusCode');
 
                 Route::get('countings', 'Inventory\CountingController@index')->name('countings.index');
                 Route::get('countings/form/{id?}', 'Inventory\CountingController@form')->name('countings.form');
@@ -257,6 +258,7 @@ Route::group(
                 Route::post('countings/import/{id?}', 'Inventory\CountingController@readExcel')->name('countings.import');
                 Route::post('countings/export_counting_product_list', 'Inventory\CountingController@exportCountingProductList')->name('countings.export_counting_product_list');
                 Route::get('countings/export_counting_product_list', 'Inventory\CountingController@exportCountingProductList')->name('countings.export_counting_product_list');
+                Route::post('countings/saveStatusCode', 'Inventory\CountingController@saveStatusCode')->name('countings.saveStatusCode');
 
                 Route::get('materialRequirements', 'Inventory\RequirementController@index')->name('materialRequirements.index');
                 Route::get('materialRequirements/list', 'Inventory\RequirementController@list')->name('materialRequirements.list');

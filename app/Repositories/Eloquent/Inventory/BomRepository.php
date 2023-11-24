@@ -17,8 +17,9 @@ class BomRepository extends Repository
 
     public function getBoms($data = [], $debug = 0)
     {
-        $boms = parent::getRows($data, $debug);
+        $data = $this->resetQueryData($data);
 
+        $boms = parent::getRows($data, $debug);
 
         // 額外欄位
         
@@ -166,5 +167,17 @@ class BomRepository extends Repository
 
         return $bom->bom_products;
     }
+
+    public function resetQueryData($data)
+    {
+        // 狀態
+        if(!empty($data['filter_status_code']) && $data['filter_status_code'] == 'withoutV'){
+            $data['whereNotIn'] = ['status_code' => ['V']];
+            unset($data['filter_status_code']);
+        }
+
+        return $data;
+    }
+
 
 }

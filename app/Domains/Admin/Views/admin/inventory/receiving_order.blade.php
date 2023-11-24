@@ -70,6 +70,7 @@
               @foreach($receiving_order_statuses as $status)
               <option value="{{ $status->code }}" >{{ $status->name }}</option>
               @endforeach
+              <option value="withoutV" selected>{{ $lang->text_status_without_voided }}</option>
             </select>
           </div>
 
@@ -164,7 +165,7 @@ $('#btn-export01').on('click', function () {
       },
       beforeSend: function () {
         console.log('beforeSend');
-       // $('#btn-export01').attr("disabled", true);
+       $('#btn-export01').attr("disabled", true);
       },
       success: function(data)
       {

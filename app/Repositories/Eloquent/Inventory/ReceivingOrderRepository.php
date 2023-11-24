@@ -238,6 +238,12 @@ class ReceivingOrderRepository extends Repository
             unset($data['filter_receiving_date']);
         }
 
+        // 狀態
+        if(!empty($data['filter_status_code']) && $data['filter_status_code'] == 'withoutV'){
+            $data['whereNotIn'] = ['status_code' => ['V']];
+            unset($data['filter_status_code']);
+        }
+        
         return $data;
     }
 

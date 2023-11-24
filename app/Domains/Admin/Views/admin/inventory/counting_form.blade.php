@@ -13,6 +13,7 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
+        <button type="button" id="btn-status" data-bs-toggle="tooltip" data-loading-text="Loading..." title="變更狀態" class="btn btn-info" aria-label="變更狀態"><i class="fas fa-check-circle"></i></button>
         <button type="submit" form="form-counting" data-bs-toggle="tooltip" title="{{ $lang->button_save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
         <a href="{{ $back_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
       </div>
@@ -131,6 +132,79 @@
 
 <input type="hidden" id="input-trigger-upload" data-oc-toggle="readExcel" data-oc-url="{{ $import_url }}" >
 
+
+{{-- 變更狀態 --}}
+<div id="modal-status" class="modal fade" style="">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-file-excel"></i> 變更狀態</h5> <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-status" method="post" data-oc-toggle="ajax">
+          @csrf
+          @method('POST')
+          <input type="hidden" name="update_status[id]" value="{{ $counting->id }}">
+          <div class="row mb-3">
+            <label for="input-update_status_code" class="col-sm-2 col-form-label">狀態</label>
+            <div class="col-sm-10">
+              <select id="input-update_status_code" name="update_status[status_code]"  class="form-control">
+                <option value="" selected> -- </option>
+                @foreach($statuses as $status)
+                <option value="{{ $status->code }}">{{ $status->name }}</option>
+                @endforeach
+              </select>
+              <div id="error-update_status_code" class="invalid-feedback"></div>
+            </div>
+          </div>
+
+          <div class="row mb-3 justify-content-end">
+            <div class="col-sm-10">
+              <button type="button" id="btn-status_save" data-bs-toggle="tooltip" data-loading-text="Loading..." title="確定" class="btn btn-info" aria-label="確定">確定</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="loadingdiv" id="loading" style="display: none;">
+          <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>     
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+//顯示變更狀態彈窗
+$('#btn-status').on('click', function () {
+  $('#modal-status').modal('show');
+});
+//在變更狀態彈窗裡按下確定
+$('#btn-status_save').on('click', function () {
+  $.ajax({
+    url: "{{ $status_save_url }}",
+    method: 'POST',
+    data: $('#form-status').serialize(),
+    dataType: 'json',
+    success: function(data) {
+      if(data.success){
+        $('#alert').prepend('<div class="alert alert-success alert-dismissible"><i class="fa-solid fa-circle-check"></i> ' + data['success'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
+        let status_code = data.data.status_code;
+        let status_name = data.data.status_name;
+        $('#input-update_status_code').val(status_code);
+        $('#input-status_code').val(status_code);
+        console.log(status_code)
+      }else{
+        $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + data['error'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
+      }
+    },
+    complete: function () {
+      console.log('complete');
+      $('#modal-status').modal('hide');
+    },
+  });
+});
+</script>
 @endsection
 
 @section('buttom')

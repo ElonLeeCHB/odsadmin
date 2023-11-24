@@ -366,7 +366,7 @@ class LayoutComposer
             $inventory[] = [
                 'name'	   => $this->lang->text_receiving_orders,
                 'icon'	   => '',
-                'href'     => route('lang.admin.inventory.receiving.index'),
+                'href'     => route('lang.admin.inventory.receivings.index'),
                 'children' => []
             ];
         }

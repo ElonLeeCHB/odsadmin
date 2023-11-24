@@ -122,6 +122,18 @@
                   </div>
                 </div>
 
+                {{-- sort_order --}}
+                <div class="row mb-3">
+                  <label class="col-sm-2 col-form-label">{{ $lang->column_sort_order }}</label>
+                  <div class="col-sm-10">
+                    <div class="input-group">
+                      <textarea id="input-sort_order" name="sort_order" class="form-control">{{ $term->sort_order }}</textarea>
+                    </div>
+                    <div class="form-text"></div>
+                    <div id="error-sort_order" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
                 {{-- is_active --}}
                 <div class="row mb-3">
                   <label class="col-sm-2 col-form-label">{{ $lang->column_enable }}</label>

@@ -52,6 +52,7 @@ class Counting extends Model
     public function statusName(): Attribute
     {
         return Attribute::make(
+            //get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->status_code, 'common_form_status') ?? ' - ',
             get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->status_code, 'common_form_status') ?? '',
         );
     }

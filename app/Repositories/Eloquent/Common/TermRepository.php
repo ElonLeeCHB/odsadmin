@@ -200,11 +200,9 @@ class TermRepository extends Repository
 
             //強制必須
             $filter_data['equal_taxonomy_code'] = $taxonomy_code;
-
             $filter_data['pagination'] = false;
-
             $filter_data['limit'] = 0;
-
+            $filter_data['is_active'] = 1;
             
             $termInstance = self::createRepository();
             $terms = $termInstance->getRows($filter_data)->toArray();
@@ -231,7 +229,7 @@ class TermRepository extends Repository
 
         // 預設三個欄位
         if(empty($params['columns'])){
-            $params['columns'] = ['id','code','name'];
+            $params['columns'] = ['id','code','name','is_active'];
         }else{
             $params['columns'] = '*';
         }

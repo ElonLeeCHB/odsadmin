@@ -91,6 +91,7 @@ class CountingController extends BackendController
         foreach ($countings ?? [] as $row) {
             $row->edit_url = route('lang.admin.inventory.countings.form', array_merge([$row->id], $url_queries));
             $row->unit_name = $row->unit->name ?? '';
+            //echo '<pre>', print_r($row->status_name, 1), "</pre>"; exit;
         }
 
 
@@ -193,6 +194,7 @@ class CountingController extends BackendController
 
         $data['save_url'] = route('lang.admin.inventory.countings.save');
         $data['back_url'] = route('lang.admin.inventory.countings.index', $queries);
+        $data['status_save_url'] = route('lang.admin.inventory.countings.saveStatusCode');
 
         $data['import_url'] = route('lang.admin.inventory.countings.import',['counting_id' => $counting_id]);
         $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete'); 
@@ -244,7 +246,7 @@ class CountingController extends BackendController
 
     public function save()
     {
-        $data = $this->request->all();
+        $post_data = $this->request->post();
 
         $json = [];
 
@@ -253,14 +255,25 @@ class CountingController extends BackendController
         }
 
         // 檢查欄位
-        // do something        
+
+        // 狀態碼
+        $params = [
+            'equal_id' => $post_data['counting_id'],
+            'select' => ['id', 'status_code'],
+        ];
+        $row = $this->CountingService->getRow($params);
+        if($row->status_code != 'P'){
+            $json['error']['status_code'] = '單據未確認才可修改。現在是 ' . $row->status_name;
+            $json['error']['warning'] = '單據未確認才可修改。現在是 ' . $row->status_name;
+        }
+
         if(isset($json['error']) && !isset($json['error']['warning'])) {
             $json['error']['warning'] = $this->lang->error_warning;
         }
 
         if(!$json) {
 
-            $result = $this->CountingService->saveCounting($data);
+            $result = $this->CountingService->saveCounting($post_data);
 
 
             if(empty($result['error'])){
@@ -420,4 +433,20 @@ class CountingController extends BackendController
         return $this->CountingService->exportCountingProductList($post_data); 
     }
 
+
+    public function saveStatusCode()
+    {
+        $post_data = request()->all();
+        $new_data = $post_data['update_status'];
+        $result = $this->CountingService->saveStatusCode($new_data);
+
+        if(!empty($result['data']['id'])){
+            $msg = [
+                'success' => '狀態已變更為：' . $result['data']['status_name'],
+                'data' => $result['data'],
+            ];
+        }
+        
+        return $msg;
+    }
 }

@@ -53,10 +53,10 @@
                         </td>
                         <td class="col-md-1 text-end colname-font">狀態</td>
                         <td class="col-md-2">
-                          <select id="input-status_id" name="status_id" class="form-select">
+                          <select id="input-status_code" name="status_code" class="form-select">
                             <option value="">--</option>
                               @foreach($order_statuses as $status)
-                              <option value="{{ $status->id }}" @if($status->id == $status_id) selected @endif>{{ $status->name }}</option>
+                              <option value="{{ $status->code }}" @if($status->code == $order->status_code) selected @endif>{{ $status->name }}</option>
                               @endforeach
                           </select>
                         </td>

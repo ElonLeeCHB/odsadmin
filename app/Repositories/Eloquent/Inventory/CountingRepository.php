@@ -43,14 +43,10 @@ class CountingRepository
     public function getCountings($data, $debug = 0)
     {
         $filter_data = $this->resetQueryData($data);
-        
-        $filter_data['with'] = DataHelper::addToArray($data['with'], 'status');
 
         $rows = $this->getRows($filter_data, $debug);
-
+        
         foreach ($rows as $row) {
-
-            $row->status_name = !empty($row->status->name) ? $row->status->code . ':' .$row->status->name : '';
 
             // 額外欄位 掛載到資料集
             if(!empty($data['extra_columns'])){
@@ -178,6 +174,13 @@ class CountingRepository
             }
             unset($data['filter_form_date']);
         }
+
+        // 狀態
+        if(!empty($data['filter_status_code']) && $data['filter_status_code'] == 'withoutV'){
+            $data['whereNotIn'] = ['status_code' => ['V']];
+            unset($data['filter_status_code']);
+        }
+        
 
         //刪除空值
         foreach ($data as $key => $value) {

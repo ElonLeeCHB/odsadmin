@@ -44,7 +44,7 @@ class ReceivingOrderController extends BackendController
         
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.inventory.receiving.index'),
+            'href' => route('lang.admin.inventory.receivings.index'),
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
@@ -60,10 +60,10 @@ class ReceivingOrderController extends BackendController
 
         $data['list'] = $this->getList();
 
-        $data['list_url']   =  route('lang.admin.inventory.receiving.list');
-        $data['add_url']    = route('lang.admin.inventory.receiving.form');
-        $data['delete_url'] = route('lang.admin.inventory.receiving.delete');
-        $data['export01_url'] = route('lang.admin.inventory.receiving.export01');
+        $data['list_url']   =  route('lang.admin.inventory.receivings.list');
+        $data['add_url']    = route('lang.admin.inventory.receivings.form');
+        $data['delete_url'] = route('lang.admin.inventory.receivings.delete');
+        $data['export01_url'] = route('lang.admin.inventory.receivings.export01');
 
         return view('admin.inventory.receiving_order', $data);
     }
@@ -88,11 +88,11 @@ class ReceivingOrderController extends BackendController
 
         if(!empty($receiving_orders)){
             foreach ($receiving_orders as $row) {
-                $row->edit_url = route('lang.admin.inventory.receiving.form', array_merge([$row->id], $query_data));
+                $row->edit_url = route('lang.admin.inventory.receivings.form', array_merge([$row->id], $query_data));
             }
         }
 
-        $data['receiving_orders'] = $receiving_orders->withPath(route('lang.admin.inventory.receiving.list'))->appends($query_data);
+        $data['receiving_orders'] = $receiving_orders->withPath(route('lang.admin.inventory.receivings.list'))->appends($query_data);
         
         // Prepare links for list table's header
         if($query_data['order'] == 'ASC'){
@@ -114,14 +114,14 @@ class ReceivingOrderController extends BackendController
         
         
         // link of table header for sorting        
-        $route = route('lang.admin.inventory.receiving.list');
+        $route = route('lang.admin.inventory.receivings.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_code'] = $route . "?sort=code&order=$order" .$url;
         $data['sort_receiving_date'] = $route . "?sort=receiving_date&order=$order" .$url;
         $data['sort_receiving_date'] = $route . "?sort=receiving_date&order=$order" .$url;
 
-        $data['list_url'] = route('lang.admin.inventory.receiving.list');
+        $data['list_url'] = route('lang.admin.inventory.receivings.list');
 
         return view('admin.inventory.receiving_order_list', $data);
     }
@@ -149,7 +149,7 @@ class ReceivingOrderController extends BackendController
 
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.inventory.receiving.index'),
+            'href' => route('lang.admin.inventory.receivings.index'),
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
@@ -158,11 +158,11 @@ class ReceivingOrderController extends BackendController
         // Prepare link for save, back
         $query_data = $this->getQueries($this->request->query());
 
-        $data['save_url'] = route('lang.admin.inventory.receiving.save');
-        $data['back_url'] = route('lang.admin.inventory.receiving.index', $query_data);
+        $data['save_url'] = route('lang.admin.inventory.receivings.save');
+        $data['back_url'] = route('lang.admin.inventory.receivings.index', $query_data);
         $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
+        $data['status_save_url'] = route('lang.admin.inventory.receivings.saveStatusCode');
         
-
 
         // Get Record
         $receiving_order = $this->ReceivingOrderService->findIdOrFailOrNew($receiving_order_id);
@@ -291,15 +291,34 @@ class ReceivingOrderController extends BackendController
         $json = [];
 
         // * 檢查欄位
+
+        $params = [
+            'equal_id' => $post_data['receiving_order_id'],
+            'select' => ['id', 'status_code'],
+        ];
+        $receiving = $this->ReceivingOrderService->getRow($params);
+        if($receiving->status_code != 'P'){
+            $json['error']['status_code'] = '單據未確認才可修改。現在是 ' . $receiving->status_name;
+            $json['error']['warning'] = '單據未確認才可修改。現在是 ' . $receiving->status_name;
+        }
+
         if(empty($post_data['supplier_id'])){
-            //$json['error']['supplier_id'] = '廠商流水號不可為空';
+            $json['error']['supplier_id'] = '請選擇廠商';
+        }
+
+        if(empty($post_data['form_type_code'])){
+            $json['error']['form_type_code'] = '請選擇單別';
+        }
+        
+        if(empty($post_data['tax_type_code'])){
+            $json['error']['tax_type_code'] = '請選擇課稅別';
         }
 
         if(isset($json['error']) && !isset($json['error']['warning'])) {
             $json['error']['warning'] = $this->lang->error_warning;
         }
         // end
-
+        
         if(!$json) {
             $result = $this->ReceivingOrderService->saveReceivingOrder($post_data);
 
@@ -308,7 +327,7 @@ class ReceivingOrderController extends BackendController
                     'receiving_order_id' => $result['data']['receiving_order_id'],
                     'code' => $result['data']['code'],
                     'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.inventory.receiving.form', $result['data']['receiving_order_id']),
+                    'redirectUrl' => route('lang.admin.inventory.receivings.form', $result['data']['receiving_order_id']),
                 ];
             }else{
                 if(config('app.debug')){
@@ -327,5 +346,22 @@ class ReceivingOrderController extends BackendController
     {
         $params = request()->all();
         return $this->ReceivingOrderService->export01($params);
+    }
+
+
+    public function saveStatusCode()
+    {
+        $post_data = request()->all();
+        $new_data = $post_data['update_status'];
+        $result = $this->ReceivingOrderService->saveStatusCode($new_data);
+
+        if(!empty($result['data']['id'])){
+            $msg = [
+                'success' => '狀態已變更為：' . $result['data']['status_name'],
+                'data' => $result['data'],
+            ];
+        }
+        
+        return $msg;
     }
 }

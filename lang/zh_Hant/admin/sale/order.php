@@ -8,7 +8,7 @@ return [
 // Tab
 'tab_general' => '基本資料',
 'tab_data' => '明細資料',
-
+ 
 
 // Text
 'text_sale' => '銷售管理',
@@ -28,6 +28,7 @@ return [
 'text_address_no' => '號',
 'text_address_floor' => '樓',
 'text_address_room' => '室',
+'text_menu_sale' => '銷售管理',
 
 
 //Column

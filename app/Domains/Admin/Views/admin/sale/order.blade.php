@@ -42,11 +42,12 @@
           --}}-->
           <div class="mb-3">
             <label class="form-label">{{ $lang->column_status }}</label>
-            <select id="input-status_id" name="filter_status_id" class="form-select">
+            <select id="input-filter_status_code" name="filter_status_code" class="form-select">
             <option value="">--</option>
-              @foreach($order_statuses as $status)
-              <option value="{{ $status->id }}" >{{ $status->name }}</option>
+              @foreach($order_statuses as $code => $status)
+              <option value="{{ $status->code }}" >{{ $status->name }}</option>
               @endforeach
+              <option value="withoutV" selected>{{ $lang->text_status_without_voided }}</option>
             </select>
           </div>
           <div class="mb-3">
@@ -175,6 +176,11 @@ $('#button-filter').on('click', function() {
   var filter_status_id = $('#input-status_id').val();
   if (filter_status_id) {
     url += '&filter_status_id=' + encodeURIComponent(filter_status_id);
+  }
+
+  var filter_status_code = $('#input-filter_status_code').val();
+  if (filter_status_code) {
+    url += '&filter_status_code=' + encodeURIComponent(filter_status_code);
   }
 
   var filter_phone = $('#input-phone').val();
