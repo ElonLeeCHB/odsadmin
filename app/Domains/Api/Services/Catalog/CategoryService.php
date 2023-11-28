@@ -21,7 +21,13 @@ class CategoryService extends GlobalCategoryService
         DB::beginTransaction();
 
         try {
-            $category = $this->findIdOrFailOrNew($data['category_id']);
+            $result = $this->findIdOrFailOrNew($data['category_id']);
+
+            if(!empty($result['data'])){
+                $category = $result['data'];
+            }else{
+                return response(json_encode($result))->header('Content-Type','application/json');
+            }
 
             $category->code = $data['code'] ?? '';
             $category->slug = $data['slug'] ?? '';

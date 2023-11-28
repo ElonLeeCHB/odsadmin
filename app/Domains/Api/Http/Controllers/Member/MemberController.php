@@ -45,7 +45,13 @@ class MemberController extends ApiController
     {
         $data = $this->request->all();
 
-        $record = $this->MemberService->findIdOrFailOrNew($member_id);
+        $result = $this->MemberService->findIdOrFailOrNew($member_id);
+
+        if(!empty($result['data'])){
+            $record = $result['data'];
+        }else{
+            return response(json_encode($result))->header('Content-Type','application/json');
+        }
 
         return response(json_encode($record))->header('Content-Type','application/json');
     }

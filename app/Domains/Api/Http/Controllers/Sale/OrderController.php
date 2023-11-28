@@ -60,7 +60,14 @@ class OrderController extends ApiController
     // 包含訂單的單頭、單身
     public function details($order_id)
     {
-        $order = $this->OrderService->findIdOrFailOrNew($order_id);
+        $result = $this->OrderService->findIdOrFailOrNew($order_id);
+
+        if(!empty($result['data'])){
+            $order = $result['data'];
+        }else{
+            return response(json_encode($result))->header('Content-Type','application/json');
+        }
+
         $order->load('order_products.order_product_options');
 
         $order->status_name = $order->status->name ?? '';

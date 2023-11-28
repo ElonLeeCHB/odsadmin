@@ -160,7 +160,14 @@ class PurchasingController extends BackendController
 
 
         // Get Record
-        $purchasing_order = $this->PurchasingOrderService->findIdOrFailOrNew($purchasing_order_id);
+        $result = $this->PurchasingOrderService->findIdOrFailOrNew($purchasing_order_id);
+
+        if(empty($result['error']) && !empty($result['data'])){
+            $purchasing_order = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $data['purchasing_order'] = $purchasing_order;
         

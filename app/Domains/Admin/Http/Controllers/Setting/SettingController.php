@@ -241,7 +241,14 @@ class SettingController extends Controller
         $data['back_url'] = route('lang.admin.setting.settings.index', $queries);        
     
         // Get Record
-        $setting = $this->SettingService->findIdOrFailOrNew($setting_id);
+        $result = $this->SettingService->findIdOrFailOrNew($setting_id);
+
+        if(empty($result['error']) && !empty($result['data'])){
+            $setting = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         // 如果用 $setting->setting_value, 由於 model 的特性，會導致非預期的結果。所以這裡另外設定一個 data 變數
         if($setting->is_json == 1){

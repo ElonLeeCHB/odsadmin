@@ -24,7 +24,13 @@ class PermissionService extends Service
         DB::beginTransaction();
 
         try {
-            $user = $this->findIdOrFailOrNew(id:$data['user_id']);
+            $result = $this->findIdOrFailOrNew(id:$data['user_id']);
+
+            if(empty($result['error']) && !empty($result['data'])){
+                $user = $result['data'];
+            }else{
+                return response(json_encode($result))->header('Content-Type','application/json');
+            }
 
             $user->username = $data['username'] ?? null;
             $user->name = $data['name'] ?? '';

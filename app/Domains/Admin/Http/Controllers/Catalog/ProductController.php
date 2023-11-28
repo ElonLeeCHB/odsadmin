@@ -197,7 +197,7 @@ class ProductController extends BackendController
         $data['back'] = route('lang.admin.catalog.products.index', $queries);
 
         // Get Record
-        $product = $this->ProductService->findIdOrFailOrNew($product_id);
+        $product = $this->ProductService->findIdOrNew($product_id);
 
         $data['product']  = $product;
 

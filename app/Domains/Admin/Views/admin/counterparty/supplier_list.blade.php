@@ -5,7 +5,6 @@
         <tr>
           <td class="text-center" style="width: 1px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></td>
           <td class="text-start"><a href="{{ $sort_id }}" @if($sort=='id') class="{{ $order }}" @endif>{{ $lang->column_id }}</a></td>
-          <td class="text-start"><a href="{{ $sort_tax_type_code }}" @if($sort=='tax_type_code') class="{{ $order }}" @endif>{{ $lang->column_tax_type_code }}</a></td>
           <td class="text-start"><a href="{{ $sort_name }}" @if($sort=='name') class="{{ $order }}" @endif>{{ $lang->column_name }}</a></td>
           <td class="text-start"><a href="{{ $sort_short_name }}" @if($sort=='short_name') class="{{ $order }}" @endif>{{ $lang->column_short_name }}</a></td>
           <td class="text-start">{{ $lang->column_is_active }}</td>
@@ -15,9 +14,8 @@
       <tbody>
         @foreach($suppliers as $supplier)
         <tr>
-          <td class="text-center"><input type="checkbox" name="selected[]" value="{{ $supplier->id }}" class="form-check-input"/></td>
+          <td class="text-center"><input type="checkbox" name="selected[]" value="{{ $supplier->id ?? '' }}" class="form-check-input"/></td>
           <td class="text-start">{{ $supplier->id }}</td>
-          <td class="text-start">{{ $supplier->tax_type_name }}</td>
           <td class="text-start">{{ $supplier->name }}</td>
           <td class="text-start">{{ $supplier->short_name }}</td>
           <td class="text-start">@if($supplier->is_active)

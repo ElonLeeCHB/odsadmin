@@ -154,7 +154,15 @@ class BomController extends BackendController
         $filter_data = [
             'with' => 'bom_products.sub_product.translation',
         ];
-        $bom = $this->BomService->findIdOrFailOrNew($bom_id, $filter_data);
+        $result = $this->BomService->findIdOrFailOrNew($bom_id, $filter_data);
+
+        if(empty($result['error']) && !empty($result['data'])){
+            $bom = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
+
         $bom = $this->BomService->getExtraColumns($bom, ['product_name']);
         // Default column value
         if(empty($bom_id)){

@@ -15,8 +15,6 @@ class Organization extends Model
     protected $guarded = [];
 
     public $meta_attributes = [
-        'www',
-        'line_at',
         'supplier_contact_name',
         'supplier_contact_email',
         'supplier_contact_jobtitle',
@@ -27,6 +25,9 @@ class Organization extends Model
         'supplier_bank_account',
         'tax_type_code',
         'is_often_used_supplier',
+        'www',
+        'line_id',
+        'line_uid',
     ];
 
     public function payment_term()

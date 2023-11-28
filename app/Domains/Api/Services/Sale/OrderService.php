@@ -101,7 +101,13 @@ class OrderService extends GlobalOrderService
                     }
                 }
 
-                $order = $this->OrderRepository->findIdOrFailOrNew($order_id);
+                $result = $this->OrderRepository->findIdOrFailOrNew($order_id);
+
+                if(!empty($result['data'])){
+                    $order = $result['data'];
+                }else{
+                    return response(json_encode($result))->header('Content-Type','application/json');
+                }
 
                 $order->location_id = $data['location_id'];
                 $order->personal_name = $data['personal_name'];

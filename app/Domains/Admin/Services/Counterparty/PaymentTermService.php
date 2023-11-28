@@ -25,7 +25,13 @@ class PaymentTermService extends GlobalPaymentTermService
         try {
 
             // 儲存主記錄
-            $payment_term = $this->PaymentTermRepository->findIdOrFailOrNew($data['payment_term_id']);
+            $result = $this->PaymentTermRepository->findIdOrFailOrNew($data['payment_term_id']);
+
+            if(empty($result['error']) && !empty($result['data'])){
+                $payment_term = $result['data'];
+            }else{
+                return response(json_encode($result))->header('Content-Type','application/json');
+            }
 
             $payment_term->type = $data['type'] ?? 1;
             $payment_term->name = $data['name'];

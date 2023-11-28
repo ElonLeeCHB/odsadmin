@@ -124,7 +124,14 @@ class TermRepository extends Repository
 
         try {
             // 儲存主記錄
-            $term = $this->findIdOrFailOrNew($data['term_id']);
+            $result = $this->findIdOrFailOrNew($data['term_id']);
+
+            if(!empty($result['data'])){
+                $term = $result['data'];
+            }else if($result['error']){
+                throw new \Exception($result['error']);
+            }
+            unset($result);
 
             $term->parent_id = $data['parent_id'] ?? 0;
             $term->code = $data['code'] ?? '';

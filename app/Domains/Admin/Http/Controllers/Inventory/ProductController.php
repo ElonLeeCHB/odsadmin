@@ -193,7 +193,14 @@ class ProductController extends BackendController
         $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
 
         // Get record
-        $product = $this->ProductService->findIdOrFailOrNew($product_id);
+        $result = $this->ProductService->findIdOrFailOrNew($product_id);
+
+        if(empty($result['error']) && !empty($result['data'])){
+            $product = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $extra_columns = $queries['extra_columns'] ?? [];
         $extra_columns[] = ['supplier_name'];

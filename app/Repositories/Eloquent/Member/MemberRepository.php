@@ -24,7 +24,14 @@ class MemberRepository extends UserRepository
         try {
             $member_id = $input['member_id'] ?? null;
 
-            $member = $this->findIdOrFailOrNew($member_id);
+            $result = $this->findIdOrFailOrNew($member_id);
+
+            if(!empty($result['data'])){
+                $member = $result['data'];
+            }else if($result['error']){
+                throw new \Exception($result['error']);
+            }
+            unset($result);
             
             $member->name = $input['name'];
             $member->salutation_id = $input['salutation_id'] ?? null;

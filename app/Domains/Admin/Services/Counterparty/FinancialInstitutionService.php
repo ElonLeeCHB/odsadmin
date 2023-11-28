@@ -18,7 +18,14 @@ class FinancialInstitutionService extends Service
         DB::beginTransaction();
 
         try {
-            $row = $this->findIdOrFailOrNew($data['institution_id']);
+            $result = $this->findIdOrFailOrNew($data['institution_id']);
+
+            //if(empty($result['error']) && !empty($result['data'])){
+            if(!empty($result['data'])){
+                $row = $result['data'];
+            }else{
+                return response(json_encode($result))->header('Content-Type','application/json');
+            }
 
             $row->code = $data['code'];
             $row->name = $data['name'];

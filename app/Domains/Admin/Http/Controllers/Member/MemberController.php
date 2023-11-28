@@ -131,7 +131,7 @@ class MemberController extends BackendController
         $data['sort_username'] = $route . "?sort=username&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_payment_company'] = $route . "?sort=payment_company&order=$order" .$url;
-        $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
+        $data['sort_created_at'] = $route . "?sort=created_at&order=$order" .$url;
 
         $data['list_url']   =  route('lang.admin.member.members.list');
 
@@ -199,7 +199,14 @@ class MemberController extends BackendController
         $data['back_url'] = route('lang.admin.member.members.index', $queries);
 
         // Get Record
-        $member = $this->MemberService->findIdOrFailOrNew($member_id);
+        $result = $this->MemberService->findIdOrFailOrNew($member_id);
+
+        if(!empty($result['data'])){
+            $member = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $member = $this->MemberService->getMetaRows($member);
 
@@ -359,7 +366,14 @@ class MemberController extends BackendController
 
     public function info($member_id)
     {
-        $member = $this->MemberService->findIdOrFailOrNew($member_id);
+        $result = $this->MemberService->findIdOrFailOrNew($member_id);
+
+        if(!empty($result['data'])){
+            $member = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $member = $this->MemberService->getMetaRows($member);
         

@@ -43,7 +43,14 @@ class SupplierRepository extends Repository
         DB::beginTransaction();
 
         try {
-            $supplier = $this->findIdOrFailOrNew($data['supplier_id']);
+            $result = $this->findIdOrFailOrNew($data['supplier_id']);
+
+            if(!empty($result['data'])){
+                $supplier = $result['data'];
+            }else if($result['error']){
+                throw new \Exception($result['error']);
+            }
+            unset($result);
 
             $supplier->parent_id = $data['parent_id'] ?? 0;
             $supplier->code = $data['code'];
@@ -64,7 +71,7 @@ class SupplierRepository extends Repository
 
             $supplier->save();
             
-            $this->saveRowMetaData($supplier, $data);
+            $result = $this->saveRowMetaData($supplier, $data);
 
             if(!empty($result['error'])){
                 throw new \Exception($result['error']);

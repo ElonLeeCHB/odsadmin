@@ -150,7 +150,14 @@ class FinancialInstitutionController extends BackendController
         $data['autocomplete_url'] = route('lang.admin.common.financial_institutions.autocomplete');
 
         // Get Record
-        $institution = $this->FinancialInstitutionService->findIdOrFailOrNew($institution_id);
+        $result = $this->FinancialInstitutionService->findIdOrFailOrNew($institution_id);
+
+        if(!empty($result['data'])){
+            $institution = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $data['institution']  = $institution;
 

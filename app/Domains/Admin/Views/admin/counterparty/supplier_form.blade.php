@@ -108,22 +108,6 @@
               </div>
 
               <div class="row mb-3">
-                <label for="input-www" class="col-sm-2 col-form-label">{{ $lang->column_www }}</label>
-                <div class="col-sm-10">
-                  <input type="text" id="input-www" name="www" value="{{ $supplier->www }}" class="form-control">
-                  <div id="error-www" class="invalid-feedback"></div>
-                </div>
-              </div>
-
-              <div class="row mb-3">
-                <label for="input-line_at" class="col-sm-2 col-form-label">{{ $lang->column_line_at }}</label>
-                <div class="col-sm-10">
-                  <input type="text" id="input-line_at" name="line_at" value="{{ $supplier->line_at }}" class="form-control">
-                  <div id="error-line_at" class="invalid-feedback"></div>
-                </div>
-              </div>
-
-              <div class="row mb-3">
                 <label for="input-supplier_contact_name" class="col-sm-2 col-form-label">{{ $lang->column_supplier_contact_name }}</label>
                 <div class="col-sm-10">
                   <input type="text" id="input-supplier_contact_name" name="supplier_contact_name" value="{{ $supplier->supplier_contact_name }}" class="form-control">
@@ -210,6 +194,22 @@
                   </div>
                 </div>
               </div>  
+
+              <div class="row mb-3">
+                <label for="input-www" class="col-sm-2 col-form-label">{{ $lang->column_www }}</label>
+                <div class="col-sm-10">
+                  <input type="text" id="input-www" name="www" value="{{ $supplier->www }}" class="form-control">
+                  <div id="error-www" class="invalid-feedback"></div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label for="input-line_id" class="col-sm-2 col-form-label">{{ $lang->column_line_id }}</label>
+                <div class="col-sm-10">
+                  <input type="text" id="input-line_id" name="line_id" value="{{ $supplier->line_id }}" class="form-control">
+                  <div id="error-line_id" class="invalid-feedback"></div>
+                </div>
+              </div>
 
               <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">{{ $lang->column_enable }}</label>

@@ -37,6 +37,8 @@ return [
 
 'column_tax_type_code' => '課稅別',
 'column_bank' => '銀行',
+'column_line_id' => 'Line ID',
+'column_line_uid' => 'Line UID',
 
 
 // Entry

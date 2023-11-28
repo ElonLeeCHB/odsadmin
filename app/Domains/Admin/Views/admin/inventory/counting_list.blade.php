@@ -19,7 +19,7 @@
 
           <td class="text-start">{{ $row->form_date_ymd }}</td>
           <td class="text-start">{{ $row->status_name }}</td>
-          <td class="text-start">{{ $row->updated_at_minute }}</td>
+          <td class="text-start">{{ $row->updated_at_ymdhi }}</td>
 					<td class="text-end"><a href="{{ $row->edit_url }}" data-bs-toggle="tooltip" title="Edit" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></a></td>
 				</tr>
         @endforeach

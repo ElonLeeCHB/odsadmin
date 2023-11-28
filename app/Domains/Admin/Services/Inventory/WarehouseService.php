@@ -18,7 +18,13 @@ class WarehouseService extends Service
         DB::beginTransaction();
 
         try {
-            $warehouse = $this->findIdOrFailOrNew($data['warehouse_id']);
+            $result = $this->findIdOrFailOrNew($data['warehouse_id']);
+
+            if(empty($result['error']) && !empty($result['data'])){
+                $warehouse = $result['data'];
+            }else{
+                return response(json_encode($result))->header('Content-Type','application/json');
+            }
             
 			$warehouse->code = $data['code'] ?? '';
 			$warehouse->name = $data['name'];

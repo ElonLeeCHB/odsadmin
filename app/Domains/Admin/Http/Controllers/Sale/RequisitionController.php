@@ -87,8 +87,8 @@ class RequisitionController extends BackendController
         // Rows
         $query_data['with'] = DataHelper::addToArray('product', $query_data['with'] ?? []);
 
-        if(!isset($query_data['equal_days_before'])){
-            $query_data['equal_days_before'] = 0;
+        if(!isset($query_data['equal_within7days'])){
+            $query_data['equal_within7days'] = 1;
         }
 
         $ingredients = $this->RequisitionService->getIngredients($query_data);

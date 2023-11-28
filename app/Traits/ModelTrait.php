@@ -113,57 +113,31 @@ trait ModelTrait
 
     // Attribute
 
-
-
-    public function dateCreated(): Attribute
+    public function createdYmd(): Attribute
     {
-        $date_created = '';
-
-        if(isset($this->created_at)){
-            $date_created = Carbon::parse($this->created_at)->format('Y-m-d');
-        }
-
         return Attribute::make(
-            get: fn ($value) => $date_created,
-        );
-    }
-
-    public function dateModified(): Attribute
-    {
-        $date_modified = '';
-
-        if(isset($this->date_modified)){
-            $date_modified = Carbon::parse($this->updated_at)->format('Y-m-d');
-        }
-
-        return Attribute::make(
-            get: fn ($value) => $date_modified,
-        );
-    }
-
-    public function createdAtYmd(): Attribute
-    {
-        $new_value = '';
-
-        if(isset($this->created_at)){
-            $new_value = Carbon::parse($this->created_at)->format('Y-m-d H:i');
-        }
-
-        return Attribute::make(
-            get: fn ($value) => $new_value,
+            get: fn ($value) => Carbon::parse($this->created_at)->format('Y-m-d') ?? '',
         );
     }   
 
-    public function updatedAtMinute(): Attribute
+    public function updatedYmd(): Attribute
     {
-        $new_value = '';
-
-        if(isset($this->updated_at)){
-            $new_value = Carbon::parse($this->updated_at)->format('Y-m-d H:i');
-        }
-
         return Attribute::make(
-            get: fn ($value) => $new_value,
+            get: fn ($value) => Carbon::parse($this->updated_at)->format('Y-m-d') ?? '',
+        );
+    }   
+
+    public function createdYmdhi(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => Carbon::parse($this->created_at)->format('Y-m-d H:i') ?? '',
+        );
+    }   
+
+    public function updatedAtYmdhi(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $new_value = Carbon::parse($this->updated_at)->format('Y-m-d H:i') ?? '',
         );
     }   
     
@@ -182,4 +156,30 @@ trait ModelTrait
             }
         ); 
     }
+
+
+
+    // Custom Functions
+
+    public function toCleanObject()
+    {
+        $attributes = $this->attributesToArray();
+
+        $arr = [];
+
+        foreach ($attributes as $key => $value) {
+            if(!is_array($value)){
+                $arr[$key] = $value;
+            }
+        }
+        
+        foreach ($this->meta_attributes as $meta_attribute) {
+            if(!isset($arr[$meta_attribute])){
+                $arr[$meta_attribute] = '';
+            }
+        }
+
+        return (object) $arr;
+    }
+
 }

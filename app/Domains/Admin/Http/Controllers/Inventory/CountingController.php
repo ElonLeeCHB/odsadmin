@@ -200,7 +200,14 @@ class CountingController extends BackendController
         $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete'); 
 
         // Get Record
-        $counting = $this->CountingService->findIdOrFailOrNew($counting_id);
+        $result = $this->CountingService->findIdOrFailOrNew($counting_id);
+
+        if(empty($result['error']) && !empty($result['data'])){
+            $counting = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $data['counting'] = $counting;
         

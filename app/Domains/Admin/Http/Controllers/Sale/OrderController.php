@@ -256,7 +256,14 @@ class OrderController extends BackendController
         }
 
         // Get Record
-        $order = $this->OrderService->findIdOrFailOrNew($order_id);
+        $result = $this->OrderService->findIdOrFailOrNew($order_id);
+
+        if(!empty($result['data'])){
+            $order = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $order->load('order_products.product_options.active_product_option_values.translation');
         $order->load('order_products.order_product_options');

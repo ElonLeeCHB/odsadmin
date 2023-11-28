@@ -153,7 +153,14 @@ class CategoryController extends BackendController
         $data['autocomplete_url'] = route('lang.admin.catalog.categories.autocomplete');
 
         // Get Record
-        $category = $this->CategoryService->findIdOrFailOrNew($category_id, ['equal_taxonomy_code' => 'product_category']);
+        $result = $this->CategoryService->findIdOrFailOrNew($category_id, ['equal_taxonomy_code' => 'product_category']);
+
+        if(!empty($result['data'])){
+            $category = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $data['category']  = $category;
         

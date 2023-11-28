@@ -152,7 +152,7 @@ class TaxonomyController extends BackendController
         $data['back_url'] = route('lang.admin.common.taxonomies.index', $queries);
 
         // Get Record
-        $taxonomy = $this->TaxonomyService->findIdOrFailOrNew($taxonomy_id);
+        $taxonomy = $this->TaxonomyService->findIdOrNew($taxonomy_id);
 
         $data['taxonomy']  = $taxonomy;
 

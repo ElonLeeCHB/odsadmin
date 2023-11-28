@@ -70,7 +70,13 @@ class ProductService extends Service
                 throw new \Exception($result['error']);
             }
 
-            $product = $this->findIdOrFailOrNew($product_id);
+            $result = $this->findIdOrFailOrNew($product_id);
+
+            if(empty($result['error']) && !empty($result['data'])){
+                $product = $result['data'];
+            }else{
+                return response(json_encode($result))->header('Content-Type','application/json');
+            }
 
             // 商品單位表 product_units
             if(!empty($post_data['product_units'])){

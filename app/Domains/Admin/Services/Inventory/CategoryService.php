@@ -27,7 +27,13 @@ class CategoryService extends Service
             }
 
             // 儲存主記錄
-            $term = $this->findIdOrFailOrNew($data['category_id']);
+            $result = $this->findIdOrFailOrNew($data['category_id']);
+
+            if(empty($result['error']) && !empty($result['data'])){
+                $term = $result['data'];
+            }else{
+                return response(json_encode($result))->header('Content-Type','application/json');
+            }
 
             $term->parent_id = $data['parent_id'] ?? 0;
             $term->code = $data['code'] ?? '';

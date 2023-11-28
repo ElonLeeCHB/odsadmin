@@ -36,18 +36,11 @@
               </div>
               
               <div class="mb-3">
-                <label class="form-label">昨天以前</label>
-                <select name="equal_days_before" id="input-equal_days_before" class="form-select">
-                  <option value="1" >包含</option>
-                  <option value="0" selected>不包含</option>
-                </select>
-              </div>
-              
-              <div class="mb-3">
-                <label class="form-label">未來</label>
-                <select name="equal_days_before" id="input-equal_days_before" class="form-select">
-                  <option value="1" >包含</option>
-                  <option value="0" selected>不包含</option>
+                <label class="form-label">未來七天</label>
+                <select name="equal_within7days" id="input-equal_within7days" class="form-select">
+                  <option value="*" > -- </option>
+                  <option value="1" selected>是</option>
+                  <option value="0" >否</option>
                 </select>
               </div>
 
@@ -113,6 +106,11 @@ $('#button-filter').on('click', function() {
     url += '&filter_required_date=' + encodeURIComponent(filter_required_date);
   }
 
+  var equal_within7days = $('#input-equal_within7days').val();
+  if (equal_within7days) {
+    url += '&equal_within7days=' + encodeURIComponent(equal_within7days);
+  }
+  
   var equal_product_id = $('#input-equal_product_id').val();
   if (equal_product_id) {
     url += '&equal_product_id=' + encodeURIComponent(equal_product_id);

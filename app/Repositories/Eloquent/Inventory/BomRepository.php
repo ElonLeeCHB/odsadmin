@@ -69,7 +69,14 @@ class BomRepository extends Repository
 
             $bom_id = $result['id'];
             
-            $bom = parent::findIdOrFailOrNew($bom_id);
+            $result = parent::findIdOrFailOrNew($bom_id);
+
+            if(!empty($result['data'])){
+                $bom = $result['data'];
+            }else if($result['error']){
+                throw new \Exception($result['error']);
+            }
+            unset($result);
 
             if(!empty($post_data['products'])){
                 $post_data['bom_id'] = $bom->id;

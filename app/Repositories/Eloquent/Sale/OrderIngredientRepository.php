@@ -18,6 +18,7 @@ class OrderIngredientRepository
     public function getIngredients($params, $debug = 0)
     {
         $params = $this->resetQueryData($params);
+
         $rows = $this->getRows($params, $debug);
 
         if(!empty($params['extra_columns'])){
@@ -50,13 +51,13 @@ class OrderIngredientRepository
             unset($params['filter_product_name']);
         }
 
-        // 昨天以前
-        if(isset($params['equal_days_before']) && $params['equal_days_before'] == 0){
-            $yesterday = date("Y-m-d", strtotime("-1 day"));
-            $params['whereRawSqls'][] = "`required_date` > '$yesterday'";
-            unset($params['equal_days_before']);
+        // 未來七天
+        if(isset($params['equal_within7days']) && $params['equal_within7days'] == 1){
+            $yesterday = date("Y-m-d", strtotime("+8 day"));
+            $today = date('Y-m-d');
+            $params['whereRawSqls'][] = "`required_date` BETWEEN $today AND $yesterday";
+            unset($params['equal_within7days']);
         }
-
 
         // 依料件名稱排序
         if(!empty($params['sort']) && $params['sort'] == 'product_name'){
@@ -71,9 +72,7 @@ class OrderIngredientRepository
             unset($params['sort']);
             unset($params['order']);
         }
-
-
-
+        
         return $params;
     }
 

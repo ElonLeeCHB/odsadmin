@@ -24,7 +24,14 @@ class TaxonomyRepository extends Repository
         DB::beginTransaction();
 
         try {
-            $taxonomy = $this->findIdOrFailOrNew($post_data['taxonomy_id']);
+            $result = $this->findIdOrFailOrNew($post_data['taxonomy_id']);
+
+            if(!empty($result['data'])){
+                $taxonomy = $result['data'];
+            }else if($result['error']){
+                throw new \Exception($result['error']);
+            }
+            unset($result);
 
             $taxonomy->code = $post_data['code'] ?? '';
             $taxonomy->is_active = $post_data['is_active'] ?? '';

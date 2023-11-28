@@ -28,7 +28,13 @@ class LocationService extends Service
         DB::beginTransaction();
 
         try {
-            $location = $this->findIdOrFailOrNew($data['location_id']);
+            $result = $this->findIdOrFailOrNew($data['location_id']);
+
+            if(empty($result['error']) && !empty($result['data'])){
+                $location = $result['data'];
+            }else{
+                return response(json_encode($result))->header('Content-Type','application/json');
+            }
 
             $location->name = $data['name'];
             $location->short_name = $data['short_name'] ?? '';

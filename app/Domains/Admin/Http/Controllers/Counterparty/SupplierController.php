@@ -11,6 +11,7 @@ use App\Domains\Admin\Services\Counterparty\SupplierService;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Domains\Admin\Services\Localization\DivisionService;
 use App\Helpers\Classes\DataHelper;
+use App\Http\Resources\Inventory\SupplierResource;
 use App\Http\Resources\Inventory\SupplierCollection;
 
 class SupplierController extends BackendController
@@ -77,16 +78,14 @@ class SupplierController extends BackendController
 
         // Records
         $suppliers = $this->SupplierService->getSuppliers($query_data);
+        
 
         foreach ($suppliers as $row) {
             $row->edit_url = route('lang.admin.counterparty.suppliers.form', array_merge([$row->id], $query_data));
             $row->payment_term_name = $row->payment_term->name ?? '';
         }
-        
-        //$suppliers = $suppliers->withPath(route('lang.admin.counterparty.suppliers.list'))->appends($query_data);
-        $data['suppliers'] = (new SupplierCollection($suppliers))->toArray();
-        
-        //$data['suppliers'] = $suppliers;
+
+        $data['suppliers'] = $suppliers->withPath(route('lang.admin.counterparty.suppliers.list'))->appends($query_data);
 
         // Prepare links for list table's header
         if($query_data['order'] == 'ASC'){
@@ -184,7 +183,14 @@ class SupplierController extends BackendController
 
 
         // Get Record
-        $supplier = $this->SupplierService->findIdOrFailOrNew($supplier_id);
+        $result = $this->SupplierService->findIdOrFailOrNew($supplier_id);
+
+        if(empty($result['error']) && !empty($result['data'])){
+            $supplier = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $supplier = $this->SupplierService->getMetaRows($supplier);
 
@@ -198,7 +204,8 @@ class SupplierController extends BackendController
             $supplier->is_active = 1;
         }
 
-        $data['supplier']  = &$supplier;
+        //$data['supplier']  = $supplier;
+        $data['supplier']  = $supplier->toCleanObject();
 
         if(!empty($data['supplier']) && $supplier_id == $supplier->id){
             $data['supplier_id'] = $supplier_id;

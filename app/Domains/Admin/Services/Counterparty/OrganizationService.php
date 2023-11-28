@@ -53,7 +53,13 @@ class OrganizationService extends Service
                 $data[$key] = trim($value);
             }
 
-            $organization = $this->findIdOrFailOrNew($data['organization_id']);
+            $result = $this->findIdOrFailOrNew($data['organization_id']);
+
+            if(empty($result['error']) && !empty($result['data'])){
+                $organization = $result['data'];
+            }else{
+                return response(json_encode($result))->header('Content-Type','application/json');
+            }
 
             $organization->parent_id = $data['parent_id'] ?? 0;
             $organization->code = $data['code'];

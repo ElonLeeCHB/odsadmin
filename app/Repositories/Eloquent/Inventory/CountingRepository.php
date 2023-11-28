@@ -79,7 +79,14 @@ class CountingRepository
 
         try {
 
-            $counting = $this->findIdOrFailOrNew($data['counting_id']);
+            $result = $this->findIdOrFailOrNew($data['counting_id']);
+
+            if(!empty($result['data'])){
+                $counting = $result['data'];
+            }else if($result['error']){
+                throw new \Exception($result['error']);
+            }
+            unset($result);
 
             $counting->location_id = $data['location_id'] ?? 0;
             //$counting->code = (Observer)
@@ -200,7 +207,14 @@ class CountingRepository
 
         try {
             if ($filename) {
-                $counting = $this->findIdOrFailOrNew($counting_id);
+                $result = $this->findIdOrFailOrNew($counting_id);
+
+                if(!empty($result['data'])){
+                    $counting = $result['data'];
+                }else if($result['error']){
+                    throw new \Exception($result['error']);
+                }
+                unset($result);
 
                 $data = Excel::toArray(new \App\Domains\Admin\Imports\Common, $filename);
 

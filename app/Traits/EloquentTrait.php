@@ -132,23 +132,46 @@ trait EloquentTrait
         return $row;
     }
 
-    public function findIdOrFailOrNew($id, $data = null, $debug = 0)
+    public function findIdOrNew($id, $params = null, $debug = 0)
     {
         //find
         if(!empty(trim($id))){
-            $query = $this->newModel();
-
-            if(!empty($data['with'])){
-                $query = $this->setWith($query, $data['with']);
-            }
-            $row = $query->findOrFail($id);
+            $params['equal_id'] = $id;
+            $row = $this->getRow($params);
         }
+
         //new
-        else{
+        if(empty($row) || empty($id)){
             $row = $this->newModel();
         }
 
         return $row;
+    }
+
+    public function findIdOrFailOrNew($id, $params = null, $debug = 0)
+    {
+        try{
+            //find
+            if(!empty(trim($id))){
+                $params['equal_id'] = $id;
+                $row = $this->getRow($params);
+
+                if(empty($row)){
+                    throw new \Exception('Record not found!');
+                }
+            }
+            //new
+            else{
+                $row = $this->newModel();
+            }
+
+            return ['data' => $row];
+            
+        } catch (\Exception $ex) {
+            return ['error' => $ex->getMessage()];
+        }
+
+        return ['error' => 'findIdOrFailOrNew: Please check for more details'];
     }
 
 
@@ -337,7 +360,7 @@ trait EloquentTrait
         // whereRawSqls
         if(!empty($data['whereRawSqls']) && is_array($data['whereRawSqls'])){
             foreach($data['whereRawSqls'] as $rawsql){
-                $query->whereRaw($rawsql);
+                $query->whereRaw('(' . $rawsql . ')');
             }
         }
 
@@ -947,9 +970,9 @@ trait EloquentTrait
         }else{
             $this->table_columns = DB::connection($connection)->getSchemaBuilder()->getColumnListing($this->table);
         }
-        $this->table_columns = DataHelper::setJsonToStorage($cache_name, $this->table_columns);
+        DataHelper::setJsonToStorage($cache_name, $this->table_columns);
 
-        return $this->table_columns;
+        return DataHelper::getJsonFromStoragNew($cache_name);
     }
 
     // For debug

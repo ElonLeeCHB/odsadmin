@@ -278,7 +278,11 @@
                             <label for="input-payment_method-credit">信用卡</label>&nbsp;
 
                             <input type="radio" id="input-payment_method-debt" name="payment_method" value="debt" @if($order->payment_method=='debt') checked @endif>
-                            <label for="input-payment_method-debt">賒帳</label>
+                            <label for="input-payment_method-debt">記帳</label>&nbsp;
+
+                            <input type="radio" id="input-payment_method-uber" name="payment_method" value="debt" @if($order->payment_method=='debt') checked @endif>
+                            <label for="input-payment_method-uber">Uber</label>&nbsp;
+
                           </td>
                           <td class="col-md-1 text-end colname-font">預計付款日</td>
                           <td class="col-md-2">
@@ -294,9 +298,9 @@
                         <tr>
                           <td class="col-md-1 text-end colname-font">付款狀況</td>
                           <td colspan="3">
-                            總金額：<input type="text" id="input-payment_total" value="{{ $order->payment_total }}" style="width:80px" readonly>&nbsp;&nbsp; &nbsp;&nbsp;
-                            已付金額： <input type="text" id="input-payment_paid" name="payment_paid" value="{{ $order->payment_paid }}" style="width:80px">&nbsp;&nbsp;
-                            未付餘額： <input type="text" id="input-payment_unpaid" name="payment_unpaid" value="{{ $order->payment_unpaid }}" style="width:80px" readonly >&nbsp;&nbsp;
+                            總金額：<input type="text" id="input-payment_total" value="{{ $order->payment_total }}" style="width:70px" readonly>&nbsp;&nbsp; &nbsp;&nbsp;
+                            已付金額： <input type="text" id="input-payment_paid" name="payment_paid" value="{{ $order->payment_paid }}" style="width:70px">&nbsp;&nbsp;
+                            未付餘額： <input type="text" id="input-payment_unpaid" name="payment_unpaid" value="{{ $order->payment_unpaid }}" style="width:70px" readonly >&nbsp;&nbsp;
                           </td>
                         </tr>
                       </tbody>

@@ -220,7 +220,14 @@ class ProductRepository extends Repository
         DB::beginTransaction();
 
         try {
-            $product = $this->findIdOrFailOrNew($data['product_id']);
+            $result = $this->findIdOrFailOrNew($data['product_id']);
+
+            if(!empty($result['data'])){
+                $product = $result['data'];
+            }else if($result['error']){
+                throw new \Exception($result['error']);
+            }
+            unset($result);
 
             $product->model = $data['model'] ?? null;
             $product->main_category_id = $data['main_category_id'] ?? null;

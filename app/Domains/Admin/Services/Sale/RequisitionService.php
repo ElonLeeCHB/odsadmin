@@ -33,7 +33,7 @@ class RequisitionService extends Service
     public function getIngredients($params, $debug = 0)
     {
         $params['with'] = DataHelper::addToArray('product.supplier', $params['with'] ?? []);
-
+        
         $ingredients = $this->OrderIngredientRepository->getIngredients($params, $debug);
 
         foreach ($ingredients as $row) {

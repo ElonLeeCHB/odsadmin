@@ -44,7 +44,14 @@ class ReceivingOrderRepository extends Repository
         try {
             $receiving_order_id = $data['receiving_order_id'] ?? null;
 
-            $receiving_order = $this->findIdOrFailOrNew($receiving_order_id);
+            $result = $this->findIdOrFailOrNew($receiving_order_id);
+
+            if(!empty($result['data'])){
+                $receiving_order = $result['data'];
+            }else if($result['error']){
+                throw new \Exception($result['error']);
+            }
+            unset($result);
 
             $receiving_order->form_type_code = $data['form_type_code'] ?? null;
             $receiving_order->location_id = $data['location_id'] ?? 0;

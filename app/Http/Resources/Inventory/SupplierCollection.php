@@ -13,7 +13,7 @@ class SupplierCollection extends ResourceCollection
     public function toArray($params = null)
     {
         $rows = $this->collection->map(function ($row) use ($params){
-                    return SupplierResource::make($row)->toArray($params);
+                    return (object) SupplierResource::make($row)->toArray($params);
                 });
 
         $result = [];
@@ -36,6 +36,13 @@ class SupplierCollection extends ResourceCollection
         }
 
         return $result;
+    }
+
+    public function toCleanObjects($params = null)
+    {
+        return $this->collection->map(function ($row) use ($params){
+            return $row->toCleanObject();
+        });
     }
 }
 
