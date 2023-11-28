@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use PDO;
 use App\Helpers\Classes\DataHelper;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * initialize()
@@ -154,10 +155,10 @@ trait EloquentTrait
             //find
             if(!empty(trim($id))){
                 $params['equal_id'] = $id;
-                $row = $this->getRow($params);
+                $row = $this->getRow($params, $debug);
 
                 if(empty($row)){
-                    throw new \Exception('Record not found!');
+                    throw new \Exception ('Record not found!');
                 }
             }
             //new
@@ -165,13 +166,11 @@ trait EloquentTrait
                 $row = $this->newModel();
             }
 
-            return ['data' => $row];
+            return ['data' => $row]; // To make differenct with 'error', 'data' is needed.
             
-        } catch (\Exception $ex) {
-            return ['error' => $ex->getMessage()];
+        } catch (\Exception $e) {
+            return ['error' => 'findIdOrFailOrNew: Please check for more details'];
         }
-
-        return ['error' => 'findIdOrFailOrNew: Please check for more details'];
     }
 
 
@@ -502,9 +501,9 @@ trait EloquentTrait
         $translation_attributes = $this->model->translation_attributes ?? [];
         $table_columns = $this->getTableColumns($this->connection);
         
-        $meta_attributes = $this->model->meta_attributes;
-        if(empty($meta_attributes)){
-            $meta_attributes = [];
+        $meta_keys = $this->model->meta_keys;
+        if(empty($meta_keys)){
+            $meta_keys = [];
         }
 
         foreach ($data as $key => $value) {
@@ -530,8 +529,8 @@ trait EloquentTrait
                 continue;
             }
 
-            // meta_attributes is not processed here
-            if(in_array($column, $meta_attributes)){
+            // meta_keys is not processed here
+            if(in_array($column, $meta_keys)){
                 continue;
             }
 
@@ -582,7 +581,7 @@ trait EloquentTrait
                 $column = str_replace('filter_', '', $key);
             }
 
-            if(in_array($column, $meta_attributes)){
+            if(in_array($column, $meta_keys)){
                 $data['whereHas']['metas'] = ['meta_key' => $column, 'meta_value' => $value];
                 unset($data[$key]);
             }
@@ -605,9 +604,9 @@ trait EloquentTrait
         $table_columns = $this->getTableColumns($this->connection);
         $translation_attributes = $this->model->translation_attributes ?? [];
 
-        $meta_attributes = $this->model->meta_attributes;
-        if(empty($meta_attributes)){
-            $meta_attributes = [];
+        $meta_keys = $this->model->meta_keys;
+        if(empty($meta_keys)){
+            $meta_keys = [];
         }
 
         foreach ($data as $key => $value) {
@@ -629,8 +628,8 @@ trait EloquentTrait
                 continue;
             }
 
-            // meta_attributes is not processed here
-            if(in_array($column, $meta_attributes)){
+            // meta_keys is not processed here
+            if(in_array($column, $meta_keys)){
                 continue;
             }
 
@@ -674,7 +673,7 @@ trait EloquentTrait
                 $column = str_replace('equal_', '', $key);
             }
 
-            if(in_array($column, $meta_attributes)){
+            if(in_array($column, $meta_keys)){
                 $query->whereHas('metas', function ($query) use ($column, $value) {
                     $query->where('meta_key', $column);
                     $query->where('meta_value', $value);
@@ -1010,7 +1009,7 @@ trait EloquentTrait
         
         try{
 
-            $modelInstance = $this->findIdOrFailOrNew($id);
+            $modelInstance = $this->findIdOrFailOrNew($id)['data'] ?? '';
 
             // save basic data
             $result = $this->saveRowBasicData($modelInstance, $post_data);
@@ -1040,13 +1039,11 @@ trait EloquentTrait
 
             DB::commit();
 
-            return ['id' => $modelInstance->id];
+            return ['id' => $id];
             
         } catch (\Exception $ex) {
             DB::rollBack();
-            $result['error'] = 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage();
-            echo '<pre>', print_r($ex->getMessage(), 1), "</pre>"; exit;
-            return $result;
+            return ['error' => $ex->getMessage()];
         }
 
     }
@@ -1058,7 +1055,7 @@ trait EloquentTrait
 
         try{
             DB::beginTransaction();
-
+            
             // If $model->fillable exists, save() then return
             if(!empty($modelInstance->getFillable())){
                 $modelInstance->fill($post_data);
@@ -1201,7 +1198,7 @@ trait EloquentTrait
             $upsert_data = [];
 
             foreach($post_data as $column => $value){
-                if(!in_array($column, $this->model->meta_attributes) || empty($value)){
+                if(!in_array($column, $this->model->meta_keys) || empty($value)){
                     continue;
                 }
 
@@ -1212,11 +1209,11 @@ trait EloquentTrait
                 $upsert_data[] = $arr;
             }
 
-            DB::beginTransaction();
-
-            $meta_model->upsert($upsert_data,['id']);
-            
-            DB::commit();
+            if(!empty($upsert_data)){
+                DB::beginTransaction();
+                $result = $meta_model->upsert($upsert_data,['id']);
+                DB::commit();
+            }
 
             return true;
 
@@ -1263,7 +1260,7 @@ trait EloquentTrait
     // }
 
     /**
-     * 獲取 meta_data，並根據 meta_attributes ，若 meta_key 不存在，設為空值 ''
+     * 獲取 meta_data，並根據 meta_keys ，若 meta_key 不存在，設為空值 ''
      */
     public function getMetaRows($row)
     {

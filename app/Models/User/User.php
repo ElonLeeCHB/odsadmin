@@ -52,7 +52,7 @@ class User extends Authenticatable
     // is_admin 必須 appends，會用在後台的 IsAdmin middleware 做判斷。
     protected $appends = ['is_admin'];
 
-    public $meta_attributes = [
+    public $meta_keys = [
         'is_admin',
         'first_name',
         'last_name',

@@ -1,4 +1,4 @@
-<form id="form-institution" method="post" data-oc-toggle="ajax" data-oc-load="{{ $list_url }}" data-oc-target="#institution">
+<form id="form-bank" method="post" data-oc-toggle="ajax" data-oc-load="{{ $list_url }}" data-oc-target="#banks">
   <div class="table-responsive">
     <table class="table table-bordered table-hover">
       <thead>

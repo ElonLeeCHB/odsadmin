@@ -9,6 +9,7 @@ class OrganizationMeta extends Model
 {
     protected $guarded = [];
     public $timestamps = false;
+    public $master_key = 'organization_id';
 
     public function organization()
     {

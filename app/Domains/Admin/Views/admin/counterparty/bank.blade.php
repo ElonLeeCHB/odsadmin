@@ -14,7 +14,7 @@
       <div class="float-end">
         <button type="button" data-bs-toggle="tooltip" title="{{ $lang->button_filter }}" onclick="$('#filter-term').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fa-solid fa-filter"></i></button>
         <a href="{{ $add_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i></a>
-        <button type="submit" form="form-institution" formaction="{{ $delete_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_delete }}" onclick="return confirm('{{ $lang->text_confirm }}');" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
+        <button type="submit" form="form-bank" formaction="{{ $delete_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_delete }}" onclick="return confirm('{{ $lang->text_confirm }}');" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
       </div>
       <h1>{{ $lang->heading_title }}</h1>
       @include('admin.common.breadcumb')
@@ -60,7 +60,7 @@
       <div class="col-lg-9 col-md-12">
         <div class="card">
           <div class="card-header"><i class="fa-solid fa-list"></i> {{ $lang->text_list }}</div>
-          <div id="institution" class="card-body">{!! $list !!}</div>
+          <div id="banks" class="card-body">{!! $list !!}</div>
         </div>
       </div>
     </div>
@@ -70,10 +70,10 @@
 
 @section('buttom')
 <script type="text/javascript"><!--
-$('#institution').on('click', 'thead a, .pagination a', function(e) {
+$('#banks').on('click', 'thead a, .pagination a', function(e) {
 	e.preventDefault();
 
-	$('#institution').load(this.href);
+	$('#banks').load(this.href);
 });
 
 $('#button-filter').on('click', function() {
@@ -99,7 +99,7 @@ $('#button-filter').on('click', function() {
 
 	url = "{{ $list_url }}?" + url;
 
-	$('#institution').load(url);
+	$('#banks').load(url);
 });
 //--></script>
 @endsection

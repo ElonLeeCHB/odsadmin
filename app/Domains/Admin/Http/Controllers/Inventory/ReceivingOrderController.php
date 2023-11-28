@@ -158,7 +158,7 @@ class ReceivingOrderController extends BackendController
         // Prepare link for save, back
         $query_data = $this->getQueries($this->request->query());
 
-        $data['save_url'] = route('lang.admin.inventory.receivings.save');
+        $data['save_url'] = route('lang.admin.inventory.receivings.save', $receiving_order_id);
         $data['back_url'] = route('lang.admin.inventory.receivings.index', $query_data);
         $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
         $data['status_save_url'] = route('lang.admin.inventory.receivings.saveStatusCode');

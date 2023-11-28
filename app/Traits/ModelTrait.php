@@ -2,11 +2,43 @@
 
 namespace App\Traits;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Carbon;
+use App\Helpers\Classes\DataHelper;
 
 trait ModelTrait
 {
+    // Attribute
+
+    public function createdYmd(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => Carbon::parse($this->created_at)->format('Y-m-d') ?? '',
+        );
+    }   
+
+    public function updatedYmd(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => Carbon::parse($this->updated_at)->format('Y-m-d') ?? '',
+        );
+    }   
+
+    public function createdYmdhi(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => Carbon::parse($this->created_at)->format('Y-m-d H:i') ?? '',
+        );
+    }   
+
+    public function updatedAtYmdhi(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => Carbon::parse($this->updated_at)->format('Y-m-d H:i') ?? '',
+        );
+    }   
+
 
     // Relations
 
@@ -57,14 +89,14 @@ trait ModelTrait
 
     public function getMetaModel()
     {
-        if(!empty($this->model->meta_model_name)){
-            $meta_model_name = $this->model->meta_model_name;
+        if(!empty($this->meta_model)){
+            $meta_model = $this->meta_model;
         }else{
-            $meta_model_name = get_class($this) . 'Meta';
+            $meta_model = get_class($this) . 'Meta';
         }
 
-        if (class_exists($meta_model_name)) {
-            return new $meta_model_name();
+        if (class_exists($meta_model)) {
+            return new $meta_model();
         }
 
         return false;
@@ -109,37 +141,6 @@ trait ModelTrait
         return $schemaBuilder->hasTable($tableName);
     }
 
-
-
-    // Attribute
-
-    public function createdYmd(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => Carbon::parse($this->created_at)->format('Y-m-d') ?? '',
-        );
-    }   
-
-    public function updatedYmd(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => Carbon::parse($this->updated_at)->format('Y-m-d') ?? '',
-        );
-    }   
-
-    public function createdYmdhi(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => Carbon::parse($this->created_at)->format('Y-m-d H:i') ?? '',
-        );
-    }   
-
-    public function updatedAtYmdhi(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => $new_value = Carbon::parse($this->updated_at)->format('Y-m-d H:i') ?? '',
-        );
-    }   
     
     
     public function setNumberAttribute($value, $to_fixed = 0, $keep_zero = false)
@@ -161,25 +162,56 @@ trait ModelTrait
 
     // Custom Functions
 
+    public function getTableColumns($connection = null)
+    {
+        $table = $this->getTable();
+
+        $cache_name = 'cache/table_columns/' . $table . '.json';
+
+        $table_columns = DataHelper::getJsonFromStoragNew($cache_name);
+
+        if(!empty($table_columns)){
+            return $table_columns;
+        }
+
+        // use connection
+        if(empty($this->connection) ){
+            $table_columns = DB::getSchemaBuilder()->getColumnListing($table);
+        }else{
+            $table_columns = DB::connection($this->connection)->getSchemaBuilder()->getColumnListing($table);
+        }
+        DataHelper::setJsonToStorage($cache_name, $table_columns);
+
+        return DataHelper::getJsonFromStoragNew($cache_name);
+    }
+
+    /**
+     * $this->toArray();            // Original attributes, relationships. Contain accessor if defined in $append.
+     * $this->getAttributes();      // Original attributes, no relationships. No accessor !
+     * $this->attributesToArray();  // Current attributes, no relationships. Contain accessor if defined in $append.
+     */
     public function toCleanObject()
     {
         $attributes = $this->attributesToArray();
+        $attribute_keys = array_keys($attributes);
+        $table_columns = $this->getTableColumns();
+
+        $all_keys = array_unique(array_merge($table_columns, $attribute_keys, $this->meta_keys ?? []));
 
         $arr = [];
 
+        foreach ($all_keys as $key) {
+            $arr[$key] = '';
+        }
+        
         foreach ($attributes as $key => $value) {
             if(!is_array($value)){
                 $arr[$key] = $value;
             }
         }
-        
-        foreach ($this->meta_attributes as $meta_attribute) {
-            if(!isset($arr[$meta_attribute])){
-                $arr[$meta_attribute] = '';
-            }
-        }
 
         return (object) $arr;
+
     }
 
 }

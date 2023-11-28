@@ -5,18 +5,18 @@ namespace App\Domains\Admin\Http\Controllers\Counterparty;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
-use App\Domains\Admin\Services\Counterparty\FinancialInstitutionService;
+use App\Domains\Admin\Services\Counterparty\BankService;
 
-class FinancialInstitutionController extends BackendController
+class BankController extends BackendController
 {
     public function __construct(
         private Request $request
-        , private FinancialInstitutionService $FinancialInstitutionService
+        , private BankService $BankService
     )
     {
         parent::__construct();
         
-        $this->getLang(['admin/common/common','admin/common/financial_institution']);
+        $this->getLang(['admin/common/common','admin/counterparty/bank']);
     }
 
     /**
@@ -42,18 +42,18 @@ class FinancialInstitutionController extends BackendController
         
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.common.financial_institutions.index'),
+            'href' => route('lang.admin.counterparty.banks.index'),
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
 
         $data['list'] = $this->getList();
 
-        $data['list_url'] = route('lang.admin.common.financial_institutions.list');
-        $data['add_url'] = route('lang.admin.common.financial_institutions.form');
-        $data['delete_url'] = route('lang.admin.common.financial_institutions.delete');
+        $data['list_url'] = route('lang.admin.counterparty.banks.list');
+        $data['add_url'] = route('lang.admin.counterparty.banks.form');
+        $data['delete_url'] = route('lang.admin.counterparty.banks.delete');
 
-        return view('admin.counterparty.financial_institution', $data);
+        return view('admin.counterparty.bank', $data);
     }
 
     public function list()
@@ -74,12 +74,12 @@ class FinancialInstitutionController extends BackendController
         $query_data = $this->getQueries($this->request->query());
 
         // Rows
-        $institutions = $this->FinancialInstitutionService->getRows($query_data);
+        $institutions = $this->BankService->getRows($query_data);
 
         foreach ($institutions as $row) {
-            $row->edit_url = route('lang.admin.common.financial_institutions.form', array_merge([$row->id], $query_data));
+            $row->edit_url = route('lang.admin.counterparty.banks.form', array_merge([$row->id], $query_data));
         }
-        $data['institutions'] = $institutions->withPath(route('lang.admin.common.financial_institutions.list'))->appends($query_data);
+        $data['institutions'] = $institutions->withPath(route('lang.admin.counterparty.banks.list'))->appends($query_data);
 
         // Prepare links for list table's header
         if($query_data['order'] == 'ASC'){
@@ -102,7 +102,7 @@ class FinancialInstitutionController extends BackendController
         }
         
         //link of table header for sorting
-        $route = route('lang.admin.common.financial_institutions.list');
+        $route = route('lang.admin.counterparty.banks.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_code'] = $route . "?sort=code&order=$order" .$url;
@@ -111,9 +111,9 @@ class FinancialInstitutionController extends BackendController
         $data['sort_is_active'] = $route . "?sort=is_active&order=$order" .$url;
         $data['sort_taxonomy_name'] = $route . "?sort=taxonomy_name&order=$order" .$url;
         
-        $data['list_url'] = route('lang.admin.common.financial_institutions.list');
+        $data['list_url'] = route('lang.admin.counterparty.banks.list');
         
-        return view('admin.counterparty.financial_institution_list', $data);
+        return view('admin.counterparty.bank_list', $data);
     }
 
 
@@ -145,12 +145,12 @@ class FinancialInstitutionController extends BackendController
         // Prepare link for save, back
         $queries = $this->getQueries($this->request->query());
 
-        $data['save_url'] = route('lang.admin.common.financial_institutions.save');
-        $data['back_url'] = route('lang.admin.common.financial_institutions.index', $queries);   
-        $data['autocomplete_url'] = route('lang.admin.common.financial_institutions.autocomplete');
+        $data['save_url'] = route('lang.admin.counterparty.banks.save');
+        $data['back_url'] = route('lang.admin.counterparty.banks.index', $queries);   
+        $data['autocomplete_url'] = route('lang.admin.counterparty.banks.autocomplete');
 
         // Get Record
-        $result = $this->FinancialInstitutionService->findIdOrFailOrNew($institution_id);
+        $result = $this->BankService->findIdOrFailOrNew($institution_id);
 
         if(!empty($result['data'])){
             $institution = $result['data'];
@@ -167,7 +167,7 @@ class FinancialInstitutionController extends BackendController
             $data['institution_id'] = null;
         }
 
-        return view('admin.counterparty.financial_institution_form', $data);
+        return view('admin.counterparty.bank_form', $data);
     }
 
 
@@ -184,14 +184,14 @@ class FinancialInstitutionController extends BackendController
         }
 
         if(!$json) {
-            $result = $this->FinancialInstitutionService->updateOrCreate($data);
+            $result = $this->BankService->updateOrCreate($data);
 
             if(empty($result['error'])){
                 if(isset($result['row_id'])){
                     $json = [
                         'institution_id' => $result['row_id'],
                         'success' => $this->lang->text_success,
-                        'redirectUrl' => route('lang.admin.common.financial_institutions.form', $result['row_id']),
+                        'redirectUrl' => route('lang.admin.counterparty.banks.form', $result['row_id']),
                     ];
                 }else{
                     $json['error'] = $this->lang->text_fail;
@@ -233,7 +233,7 @@ class FinancialInstitutionController extends BackendController
 		if (!$json) {
 
 			foreach ($selected as $category_id) {
-				$result = $this->FinancialInstitutionService->deleteFinancialInstitution($category_id);
+				$result = $this->BankService->deleteFinancialInstitution($category_id);
 
                 if(!empty($result['error'])){
                     if(config('app.debug')){
@@ -259,13 +259,13 @@ class FinancialInstitutionController extends BackendController
         $queries = $this->getQueries($this->request->query());
 
         // Rows
-        $rows = $this->FinancialInstitutionService->getRows($queries);
+        $rows = $this->BankService->getRows($queries);
 
         $json = [];
 
         foreach ($rows as $row) {
             $json[] = array(
-                'institution_id' => $row->id,
+                'id' => $row->id,
                 'code' => $row->code,
                 'name' => $row->name,
                 'short_name' => $row->short_name,

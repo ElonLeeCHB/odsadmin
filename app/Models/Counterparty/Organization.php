@@ -14,17 +14,7 @@ class Organization extends Model
     
     protected $guarded = [];
 
-    public $meta_attributes = [
-        'supplier_contact_name',
-        'supplier_contact_email',
-        'supplier_contact_jobtitle',
-        'supplier_contact_telephone',
-        'supplier_contact_mobile',
-        'supplier_bank_name',
-        'supplier_bank_code',
-        'supplier_bank_account',
-        'tax_type_code',
-        'is_often_used_supplier',
+    public $meta_keys = [
         'www',
         'line_id',
         'line_uid',

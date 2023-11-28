@@ -17,7 +17,7 @@ class Member extends User
     protected $guarded = [];
     protected $foreignKey = 'user_id';
     
-    public $meta_attributes = [
+    public $meta_keys = [
         'is_admin',
         'first_name',
         'last_name',

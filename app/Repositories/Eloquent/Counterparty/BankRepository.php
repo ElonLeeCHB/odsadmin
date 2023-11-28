@@ -4,11 +4,11 @@ namespace App\Repositories\Eloquent\Counterparty;
 
 use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
-use App\Models\Counterparty\FinancialInstitution;
+use App\Models\Counterparty\Bank;
 
-class FinancialInstitutionRepository extends Repository
+class BankRepository extends Repository
 {
-    public $modelName = "\App\Models\Counterparty\FinancialInstitution";
+    public $modelName = "\App\Models\SysData\Bank";
 
     public function delete($id)
     {
@@ -16,7 +16,7 @@ class FinancialInstitutionRepository extends Repository
 
             DB::beginTransaction();
 
-            FinancialInstitution::where('id', $id)->delete();
+            Bank::where('id', $id)->delete();
 
             DB::commit();
 

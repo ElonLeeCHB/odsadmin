@@ -22,7 +22,7 @@ class Product extends Model
     protected $appends = ['name','specification','description',];
     public $translation_attributes = ['name','full_name','short_name','specification','meta_title','meta_description','meta_keyword',];
     
-    public $meta_attributes = [
+    public $meta_keys = [
         'supplier_own_product_code',
         'supplier_own_product_name',
         'supplier_own_product_specification',

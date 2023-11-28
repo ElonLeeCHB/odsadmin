@@ -185,14 +185,6 @@ Route::group(
                 Route::post('payment_terms/delete', 'Counterparty\PaymentTermController@delete')->name('payment_terms.delete');
                 Route::get('payment_terms/autocomplete', 'Counterparty\PaymentTermController@autocomplete')->name('payment_terms.autocomplete');
 
-                //金融機構
-                Route::get('financial_institutions', 'Counterparty\FinancialInstitutionController@index')->name('financial_institutions.index');
-                Route::get('financial_institutions/list', 'Counterparty\FinancialInstitutionController@list')->name('financial_institutions.list');
-                Route::get('financial_institutions/form/{id?}', 'Counterparty\FinancialInstitutionController@form')->name('financial_institutions.form');
-                Route::post('financial_institutions/save/{id?}', 'Counterparty\FinancialInstitutionController@save')->name('financial_institutions.save');
-                Route::post('financial_institutions/delete', 'Counterparty\FinancialInstitutionController@delete')->name('financial_institutions.delete');
-                Route::get('financial_institutions/autocomplete', 'Counterparty\FinancialInstitutionController@autocomplete')->name('financial_institutions.autocomplete');
-
             });
 
             Route::group([
@@ -306,6 +298,14 @@ Route::group(
                 Route::post('suppliers/save/{id?}', 'Counterparty\SupplierController@save')->name('suppliers.save');
                 Route::post('suppliers/delete', 'Counterparty\SupplierController@delete')->name('suppliers.delete');
                 Route::get('suppliers/autocomplete', 'Counterparty\SupplierController@autocomplete')->name('suppliers.autocomplete');
+
+                //金融機構
+                Route::get('banks', 'Counterparty\BankController@index')->name('banks.index');
+                Route::get('banks/list', 'Counterparty\BankController@list')->name('banks.list');
+                Route::get('banks/form/{id?}', 'Counterparty\BankController@form')->name('banks.form');
+                Route::post('banks/save/{id?}', 'Counterparty\BankController@save')->name('banks.save');
+                Route::post('banks/delete', 'Counterparty\BankController@delete')->name('banks.delete');
+                Route::get('banks/autocomplete', 'Counterparty\BankController@autocomplete')->name('banks.autocomplete');
             });
 
             Route::group([

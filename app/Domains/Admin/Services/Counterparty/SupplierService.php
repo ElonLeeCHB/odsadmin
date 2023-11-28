@@ -5,12 +5,12 @@ namespace App\Domains\Admin\Services\Counterparty;
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
 use App\Repositories\Eloquent\Counterparty\OrganizationRepository;
-use App\Repositories\Eloquent\Inventory\SupplierRepository;
+use App\Repositories\Eloquent\Counterparty\SupplierRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
 
 class SupplierService extends Service
 {
-    protected $modelName = "\App\Models\Counterparty\Organization";
+    protected $modelName = "\App\Models\Counterparty\Supplier";
 
     public function __construct(protected SupplierRepository $SupplierRepository,protected TermRepository $TermRepository)
     {

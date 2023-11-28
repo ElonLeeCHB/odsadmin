@@ -273,7 +273,7 @@ class LayoutComposer
             $common[] = [
                 'name'	   => $this->lang->text_financial_institution,
                 'icon'	   => '',
-                'href'     => route('lang.admin.common.financial_institutions.index'),
+                'href'     => route('lang.admin.counterparty.banks.index'),
                 'children' => []
             ];
         }

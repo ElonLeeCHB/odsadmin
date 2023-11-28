@@ -8,22 +8,37 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Counterparty\Organization;
 use App\Models\Counterparty\OrganizationMeta;
 use App\Models\Counterparty\PaymentTerm;
-use App\Traits\ModelTrait;
 use App\Repositories\Eloquent\Common\TermRepository;
 
-class Supplier extends Model
+class Supplier extends Organization
 {
+    public $meta_keys = [
+        'supplier_contact_name',
+        'supplier_contact_email',
+        'supplier_contact_jobtitle',
+        'supplier_contact_telephone',
+        'supplier_contact_mobile',
+        'supplier_bank_name',
+        'supplier_bank_code',
+        'supplier_bank_account',
+        'tax_type_code',
+        'is_often_used_supplier',
+        'www',
+        'line_id',
+        'line_uid',
+        
+    ];
+    public $master_key = 'organization_id';
+    public $meta_model = 'App\Models\Counterparty\OrganizationMeta';
     protected $table = 'organizations';
+    protected $appends = ['tax_type_name'];
 
     protected static function booted()
     {
         parent::booted();
 
-        // 定義全域範圍，僅返回 is_supplier=1 的組織
         static::addGlobalScope('is_supplier', function (Builder $builder) {
-            $builder->whereHas('metas', function ($query) {
-                $query->where('meta_key', 'is_supplier')->where('meta_value', 1);
-            });
+            $builder->where('is_supplier', 1);
         });
     }
 
@@ -39,11 +54,8 @@ class Supplier extends Model
 
     public function taxTypeName(): Attribute
     {
-        $new_value = $this->metas()->where('meta_key', 'tax_type_code')->first();
-       // echo '<pre>', print_r($new_value, 1), "</pre>"; exit;
         return Attribute::make(
-            //get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->form_type_code, 'tax_type') ?? '',
-            get: fn ($value) => 123,
+            get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->tax_type_code, 'tax_type') ?? '',
         );
     }
 

@@ -150,12 +150,21 @@
               <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">{{ $lang->column_bank }}</label>
                 <div class="col-sm-10">
-                  <div class="input-group">
-                    <div class="col-sm-1"><input type="text" id="input-supplier_bank_code" name="supplier_bank_code" value="{{ $supplier->supplier_bank_code }}" placeholder="銀行代碼" class="form-control" readonly=""/><div class="form-text">銀行代碼</div></div>
-                    <div class="col-sm-3"><input type="text" id="input-supplier_bank_name" name="supplier_bank_name" value="{{ $supplier->supplier_bank_name }}" placeholder="{{ $lang->column_supplier_bank_name }}" class="form-control" data-oc-target="autocomplete-supplier_bank_name"/><div class="form-text">銀行名稱(可查詢，至少輸入一個字)</div></div>
-                    <div class="col-sm-2"><input type="text" id="input-supplier_bank_account" name="supplier_bank_account" value="{{ $supplier->supplier_bank_account }}" placeholder="{{ $lang->column_supplier_bank_account }}" class="form-control" ><div class="form-text">銀行帳號</div></div>
+                  <div class="input-group col-sm-10">
+                    <div class="col-sm-1">
+                      <input type="text" id="input-supplier_bank_code" name="supplier_bank_code" value="{{ $supplier->supplier_bank_code }}" placeholder="銀行代碼" class="form-control" readonly=""/>
+                      <div class="form-text">銀行代碼</div>
+                    </div>
+                    <div class="col-sm-3">
+                      <input type="text" id="input-supplier_bank_name" name="supplier_bank_name" value="{{ $supplier->supplier_bank_name }}" placeholder="{{ $lang->column_supplier_bank_name }}" class="form-control" data-oc-target="autocomplete-supplier_bank_name"/>
+                      <ul id="autocomplete-supplier_bank_name" class="dropdown-menu"></ul>
+                      <div class="form-text">銀行名稱(可查詢，至少輸入一個字)</div>
+                    </div>
+                    <div class="col-sm-2">
+                      <input type="text" id="input-supplier_bank_account" name="supplier_bank_account" value="{{ $supplier->supplier_bank_account }}" placeholder="{{ $lang->column_supplier_bank_account }}" class="form-control" >
+                      <div class="form-text">銀行帳號</div>
+                    </div>
                     <div id="error-supplier_bank_code" class="invalid-feedback"></div>
-                    <ul id="autocomplete-supplier_bank_name" class="dropdown-menu"></ul>
                   </div>
                 </div>
               </div>
@@ -270,21 +279,22 @@ $('#input-shipping_state_id').on('change', function(){
   }  
 });
 
+// 查銀行
 $('#input-supplier_bank_name').autocomplete({
   'source': function (request, response) {
     $.ajax({
-      url: "{{ route('lang.admin.counterparty.suppliers.autocomplete') }}?filter_name=" + encodeURIComponent(request),
+      url: "{{ $banks_url }}?filter_name=" + encodeURIComponent(request),
       dataType: 'json',
       success: function (json) {
         json.unshift({
-          manufacturer_id: 0,
+          id: 0,
           name: ' --- None --- '
         });
 
         response($.map(json, function (item) {
           return {
             label: item['name'],
-            value: item['supplier_id']
+            value: item['code'],
           }
         }));
       }

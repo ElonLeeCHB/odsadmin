@@ -179,7 +179,8 @@ class SupplierController extends BackendController
         }
 
         $data['save_url'] = route('lang.admin.counterparty.suppliers.save');
-        $data['back_url'] = route('lang.admin.counterparty.suppliers.index', $queries);        
+        $data['back_url'] = route('lang.admin.counterparty.suppliers.index', $queries);      
+        $data['banks_url'] = route('lang.admin.counterparty.banks.autocomplete');
 
 
         // Get Record
@@ -203,8 +204,8 @@ class SupplierController extends BackendController
         if(empty($supplier->id)){
             $supplier->is_active = 1;
         }
-
         //$data['supplier']  = $supplier;
+        //echo '<pre>', print_r( $supplier->toArray() , 1), "</pre>"; exit;
         $data['supplier']  = $supplier->toCleanObject();
 
         if(!empty($data['supplier']) && $supplier_id == $supplier->id){
@@ -215,16 +216,6 @@ class SupplierController extends BackendController
         
         $data['payment_term_autocomplete_url'] = route('lang.admin.common.payment_terms.autocomplete');
 
-        $filter_data = [
-            'equal_taxonomy_code' => 'tax_type',
-            'pagination' => false,
-            'limit' => 0,
-            'sort' => 'code',
-            'order' => 'ASC',
-        ];
-        $tax_types = $this->TermRepository->getTerms($filter_data);
-
-        //$data['tax_types'] = $this->TermRepository->rowsToStdObj($tax_types, ['unset' => ['translation', 'taxonomy']]);
         $data['tax_types'] = $this->SupplierService->getCodeKeyedTermsByTaxonomyCode('tax_type',toArray:false);
 
         $data['states'] = $this->DivisionService->getStates();

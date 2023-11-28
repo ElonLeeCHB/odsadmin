@@ -4,13 +4,13 @@ namespace App\Domains\Admin\Services\Counterparty;
 
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
-use App\Repositories\Eloquent\Counterparty\FinancialInstitutionRepository;
+use App\Repositories\Eloquent\Counterparty\BankRepository;
 
-class FinancialInstitutionService extends Service
+class BankService extends Service
 {
-    protected $modelName = "\App\Models\SysData\FinancialInstitution";
+    protected $modelName = "\App\Models\SysData\Bank";
 
-	public function __construct(private FinancialInstitutionRepository $FinancialInstitutionRepository)
+	public function __construct(private BankRepository $BankRepository)
 	{}
 
     public function updateOrCreate($data)
@@ -49,7 +49,7 @@ class FinancialInstitutionService extends Service
     {
         try {
 
-            $this->FinancialInstitutionRepository->delete($id);
+            $this->BankRepository->delete($id);
 
             return ['success' => true];
 
