@@ -196,9 +196,9 @@ class LayoutComposer
         //備料單
         if(1) {
             $sale[] = [
-                'name'	   => $this->lang->text_material_requisition,
+                'name'	   => $this->lang->text_menu_sale_requisition,
                 'icon'	   => '',
-                'href'     => route('lang.admin.sale.mrequisition.form'),
+                'href'     => route('lang.admin.sale.requisitions.index'),
                 'children' => []
             ];
         }
@@ -208,17 +208,28 @@ class LayoutComposer
             $sale[] = [
                 'name'	   => $this->lang->text_material_requisition_setting,
                 'icon'	   => '',
-                'href'     => route('lang.admin.sale.mrequisition.setting'),
+                'href'     => route('lang.admin.sale.requisitions.setting'),
                 'children' => []
             ];
         }
+
+        // 上暉料件需求
+        // if(1) {
+        //     $inventory[] = [
+        //         'name'	   => '上暉料件需求',
+        //         'icon'	   => '',
+        //         'href'     => route('lang.admin.inventory.shRequirements.index'),
+        //         'children' => []
+        //     ];
+        // }
+
 
         // add to Menus
         if(!empty($sale)) {
             $menus[] = [
                 'id'       => 'menu-sale',
                 'icon'	   => 'fas fa-user',
-                'name'	   => $this->lang->text_sale,
+                'name'	   => $this->lang->text_menu_sale,
                 'href'     => '',
                 'children' => $sale
             ];
@@ -262,7 +273,7 @@ class LayoutComposer
             $common[] = [
                 'name'	   => $this->lang->text_financial_institution,
                 'icon'	   => '',
-                'href'     => route('lang.admin.common.financial_institutions.index'),
+                'href'     => route('lang.admin.counterparty.banks.index'),
                 'children' => []
             ];
         }
@@ -301,6 +312,15 @@ class LayoutComposer
             ];
         }
 
+        if(1) {
+            $inventory[] = [
+                'name'	   => $this->lang->text_unit,
+                'icon'	   => '',
+                'href'     => route('lang.admin.inventory.units.index'),
+                'children' => []
+            ];
+        }
+
         // 料件分類建立作業
         if(1) {
             $inventory[] = [
@@ -321,6 +341,16 @@ class LayoutComposer
             ];
         }
 
+        // BOM表
+        if(1) {
+            $inventory[] = [
+                'name'	   => $this->lang->text_inventory_bom,
+                'icon'	   => '',
+                'href'     => route('lang.admin.inventory.boms.index'),
+                'children' => []
+            ];
+        }
+
         // 採購作業
         // if(1) {
         //     $inventory[] = [
@@ -336,7 +366,27 @@ class LayoutComposer
             $inventory[] = [
                 'name'	   => $this->lang->text_receiving_orders,
                 'icon'	   => '',
-                'href'     => route('lang.admin.inventory.receiving.index'),
+                'href'     => route('lang.admin.inventory.receivings.index'),
+                'children' => []
+            ];
+        }
+
+        // 盤點作業
+        if(1) {
+            $inventory[] = [
+                'name'	   => $this->lang->text_counting_task,
+                'icon'	   => '',
+                'href'     => route('lang.admin.inventory.countings.index'),
+                'children' => []
+            ];
+        }
+
+        // 訂單料件表
+        if(1) {
+            $inventory[] = [
+                'name'	   => '料件需求表',
+                'icon'	   => '',
+                'href'     => route('lang.admin.inventory.materialRequirements.index'),
                 'children' => []
             ];
         }
@@ -346,7 +396,7 @@ class LayoutComposer
             $menus[] = [
                 'id'       => 'menu-inventory',
                 'icon'	   => 'fas fa-user',
-                'name'	   => $this->lang->text_inventory,
+                'name'	   => $this->lang->text_menu_inventory,
                 'href'     => '',
                 'children' => $inventory
             ];

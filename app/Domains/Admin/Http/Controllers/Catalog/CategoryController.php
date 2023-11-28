@@ -68,7 +68,6 @@ class CategoryController extends BackendController
 
         // Extra
         $query_data['equal_taxonomy_code'] = 'product_category';
-        $query_data['equal_is_active'] = 1;
 
         // Rows
         $categories = $this->CategoryService->getCategories($query_data);
@@ -93,15 +92,15 @@ class CategoryController extends BackendController
         $data['order'] = strtolower($order);
 
         $query_data = $this->unsetUrlQueryData($query_data);
-
+        
+        
+        // link of table header for sorting
         $url = '';
 
         foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
-        
-        
-        // link of table header for sorting        
+
         $route = route('lang.admin.catalog.categories.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
@@ -154,7 +153,14 @@ class CategoryController extends BackendController
         $data['autocomplete_url'] = route('lang.admin.catalog.categories.autocomplete');
 
         // Get Record
-        $category = $this->CategoryService->findIdOrFailOrNew($category_id, ['equal_taxonomy_code' => 'product_category']);
+        $result = $this->CategoryService->findIdOrFailOrNew($category_id, ['equal_taxonomy_code' => 'product_category']);
+
+        if(!empty($result['data'])){
+            $category = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $data['category']  = $category;
         

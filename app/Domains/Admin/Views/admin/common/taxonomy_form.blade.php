@@ -41,12 +41,12 @@
                 <div class="tab-content">
                   @foreach($languages as $language)
                   <div id="language-{{ $language->code }}" class="tab-pane @if ($loop->first)active @endif">
-                    <input type="hidden" name="taxonomy_translations[{{ $language->code }}][id]" value="{{ $taxonomy_translations[$language->code]['id'] ?? '' }}" >
+                    <input type="hidden" name="translations[{{ $language->code }}][id]" value="{{ $taxonomy_translations[$language->code]['id'] ?? '' }}" >
                     <div class="row mb-3 required">
                       <label for="input-name-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_name }}</label>
                       <div class="col-sm-10">
                         <div class="input-group">
-                          <input type="text" name="taxonomy_translations[{{ $language->code }}][name]" value="{{ $taxonomy_translations[$language->code]['name'] ?? ''  }}" placeholder="{{ $lang->column_name }}" id="input-name-{{ $language->code }}" class="form-control">
+                          <input type="text" name="translations[{{ $language->code }}][name]" value="{{ $taxonomy_translations[$language->code]['name'] ?? ''  }}" placeholder="{{ $lang->column_name }}" id="input-name-{{ $language->code }}" class="form-control">
                                                   </div>
                         <div id="error-name-{{ $language->code }}" class="invalid-feedback"></div>
                       </div>

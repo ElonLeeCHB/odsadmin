@@ -60,7 +60,14 @@ class OrderController extends ApiController
     // 包含訂單的單頭、單身
     public function details($order_id)
     {
-        $order = $this->OrderService->findIdOrFailOrNew($order_id);
+        $result = $this->OrderService->findIdOrFailOrNew($order_id);
+
+        if(!empty($result['data'])){
+            $order = $result['data'];
+        }else{
+            return response(json_encode($result))->header('Content-Type','application/json');
+        }
+
         $order->load('order_products.order_product_options');
 
         $order->status_name = $order->status->name ?? '';
@@ -68,7 +75,7 @@ class OrderController extends ApiController
         $order = $this->OrderService->sanitizeRow($order);
 
         // Order Total
-        $order->totals = $this->OrderService->getOrderTotals($order_id)->toArray();
+        $order->totals = $this->OrderService->getOrderTotals($order_id);
 
         return response(json_encode($order))->header('Content-Type','application/json');
     }
@@ -142,6 +149,7 @@ class OrderController extends ApiController
                 $json = [
                     'success' => $this->lang->text_success,
                     'order_id' => $order->id,
+                    'code' => $order->code,
                     'customer_id' => $order->customer_id,
                     'personal_name' => $order->personal_name,
                     'customer' => $order->customer_id . '_' . $order->personal_name,

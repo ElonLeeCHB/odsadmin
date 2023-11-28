@@ -1,0 +1,126 @@
+<?php
+
+namespace App\Helpers\Classes;
+
+use Illuminate\Support\Facades\DB;
+
+/**
+ * 2023-11-14
+ * Ron Lee
+ */
+class UnitConverter
+{
+    protected $qty;
+    protected $fromUnit;
+    protected $toUnit;
+
+    protected $standard_unit_codes;
+
+    // unit conversion
+    protected $uc_table_name = 'units';
+    protected $uc_column_source_unit_code = 'code';
+    protected $uc_column_source_quantity = 'factor';
+    protected $uc_column_destination_unit_code = 'base_unit_code';
+    
+    // product unit conversion
+    protected $product_id = '';
+    protected $puc_table_name = 'product_units';
+    protected $puc_column_product_id = 'product_id';
+    protected $puc_column_source_unit_code = 'source_unit_code';
+    protected $puc_column_source_quantity = 'source_quantity';
+    protected $puc_column_destination_unit_code = 'destination_unit_code'; // This is stock_unit_code, generally wont' allow change.
+    protected $puc_column_destination_quantity = 'destination_quantity';
+
+    // 私有構造函數，防止直接實例化
+    private function __construct() {}
+
+    public static function build()
+    {
+        return new self();
+    }
+    
+    public function qty($qty)
+    {
+        $this->qty = $qty;
+        return $this;
+    }
+
+    public function from($unit)
+    {
+        $this->fromUnit = $unit;
+        return $this;
+    }
+
+    public function to($unit)
+    {
+        $this->toUnit = $unit;
+        return $this;
+    }
+
+    public function product($product_id)
+    {
+        $this->product_id = $product_id;
+        return $this;
+    }
+
+    public function get()
+    {
+        $standard_unit_codes = $this->getStandardUnitCodes();
+
+        $qty = 0;
+
+        if($this->fromUnit == $this->toUnit){
+            return $this->qty;
+        }
+
+        // all standard units
+        else if(in_array($this->fromUnit, $standard_unit_codes) && in_array($this->toUnit, $standard_unit_codes)){
+            $from = DB::table($this->uc_table_name)
+                        ->where($this->uc_column_source_unit_code, $this->fromUnit)
+                        ->where('is_standard', 1)
+                        ->first();
+    
+            $to = DB::table($this->uc_table_name)
+                        ->where($this->uc_column_source_unit_code, $this->toUnit)
+                        ->where('is_standard', 1)
+                        ->first();
+                        
+            $qty = $this->qty * $from->factor / $to->factor;
+        }
+
+
+        else if(!empty($this->product_id)){
+            $fromProductUnit = DB::table($this->puc_table_name)
+                            ->where($this->puc_column_product_id, $this->product_id)
+                            ->where($this->puc_column_source_unit_code, $this->fromUnit)
+                            ->first();
+
+            $toProductUnit = DB::table($this->puc_table_name)
+                            ->where($this->puc_column_product_id, $this->product_id)
+                            ->where($this->puc_column_source_unit_code, $this->toUnit)
+                            ->first();
+
+            if($fromProductUnit != null && $toProductUnit != null){
+                $fromFactor = $fromProductUnit->{$this->puc_column_destination_quantity} / $fromProductUnit->{$this->puc_column_source_quantity};
+                $toFactor = $toProductUnit->{$this->puc_column_destination_quantity} / $toProductUnit->{$this->puc_column_source_quantity};
+    
+                $stock_quantity = $this->qty * $fromFactor;
+                $qty = $stock_quantity / $toFactor;
+            }
+        }
+
+        return $qty;
+    }
+
+    private function getStandardUnitCodes()
+    {
+        if(empty($this->standard_unit_codes)){
+            $this->standard_unit_codes = DB::table($this->uc_table_name)
+                        ->where('is_standard', 1)
+                        ->pluck('code')
+                        ->toArray();
+        }
+
+        return $this->standard_unit_codes;
+    }
+}

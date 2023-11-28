@@ -101,7 +101,6 @@ class PhraseController extends BackendController
         unset($queries['sort']);
         unset($queries['order']);
         unset($queries['with']);
-        unset($queries['whereIn']);
 
         $url = '';
 
@@ -159,7 +158,14 @@ class PhraseController extends BackendController
         $data['autocomplete_url'] = route('lang.admin.sale.phrases.autocomplete');
 
         // Get Record
-        $term = $this->TermService->findIdOrFailOrNew($term_id);
+        $result = $this->TermService->findIdOrFailOrNew($term_id);
+
+        if(empty($result['error']) && !empty($result['data'])){
+            $term = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         if(!empty($term)){
             $data['term_id'] = $term_id;

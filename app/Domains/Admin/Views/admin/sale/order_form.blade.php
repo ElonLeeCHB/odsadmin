@@ -19,7 +19,7 @@
     <div class="container-fluid">
       <div class="float-end">
         <a data-href="{{ $printReceiveForm }}" id="href-printReceiveForm"  target="_blank" data-bs-toggle="tooltip" title="列印訂單簽收單" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
-        <button type="submit" id="btn-save-order_form" form="form-order" data-bs-toggle="tooltip" title="Save" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
+        <button type="submit" id="btn-save-order_form" form="form-order" data-bs-toggle="tooltip" title="{{ $lang->button_save }}" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
         <a href="{{ $back_url }}" id="href-save" data-bs-toggle="tooltip" title="{{ $lang->button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
       </div>
       @include('admin.common.breadcumb')
@@ -53,10 +53,10 @@
                         </td>
                         <td class="col-md-1 text-end colname-font">狀態</td>
                         <td class="col-md-2">
-                          <select id="input-status_id" name="status_id" class="form-select">
+                          <select id="input-status_code" name="status_code" class="form-select">
                             <option value="">--</option>
                               @foreach($order_statuses as $status)
-                              <option value="{{ $status->id }}" @if($status->id == $status_id) selected @endif>{{ $status->name }}</option>
+                              <option value="{{ $status->code }}" @if($status->code == $order->status_code) selected @endif>{{ $status->name }}</option>
                               @endforeach
                           </select>
                         </td>
@@ -65,7 +65,7 @@
                           <select id="input-shipping_method" name="shipping_method" class="form-select">
                             <option value="">--</option>
                             <option value="shipping_pickup" @if($shipping_method == 'shipping_pickup' ) selected="selected" @endif>自取</option>
-                            <option value="shipping_delivery" @if($shipping_method == 'shipping_delivery' )selected="selected" @endif>派送</option>
+                            <option value="shipping_delivery" @if($shipping_method == 'shipping_delivery' )selected="selected" @endif>外送</option>
                           </select>
                         </td>
                         <td class="col-md-1 text-end colname-font">訂單編號</td>
@@ -140,15 +140,10 @@
                           <ul id="autocomplete-telephone" class="dropdown-menu"></ul>
                           
                        </td>
-                        <td class="col-md-1 text-end colname-font">訂單標籤</td>
+                        <td class="col-md-1 text-end colname-font">公司分類</td>
                         <td class="col-md-2">
-                          <select id="input-order_tag" name="order_tag[]" class="select2-multiple form-control" multiple="multiple"></select><BR>
-                          <div class="selOrderTag">
-                            <button type="button">會</button>
-                            <button type="button">教</button>
-                            <button type="button">幫</button>
-                            <button type="button">清</button>
-                          </div>
+                          <select id="input-order_tag" name="order_tag[]" class="select2-multiple form-control" multiple="multiple"></select>
+                          (暫時勿用)
                         </td>
                       </tr>
 
@@ -283,7 +278,11 @@
                             <label for="input-payment_method-credit">信用卡</label>&nbsp;
 
                             <input type="radio" id="input-payment_method-debt" name="payment_method" value="debt" @if($order->payment_method=='debt') checked @endif>
-                            <label for="input-payment_method-debt">賒帳</label>
+                            <label for="input-payment_method-debt">記帳</label>&nbsp;
+
+                            <input type="radio" id="input-payment_method-uber" name="payment_method" value="debt" @if($order->payment_method=='debt') checked @endif>
+                            <label for="input-payment_method-uber">Uber</label>&nbsp;
+
                           </td>
                           <td class="col-md-1 text-end colname-font">預計付款日</td>
                           <td class="col-md-2">
@@ -299,9 +298,9 @@
                         <tr>
                           <td class="col-md-1 text-end colname-font">付款狀況</td>
                           <td colspan="3">
-                            總金額：<input type="text" id="input-payment_total" value="{{ $order->payment_total }}" style="width:80px" readonly>&nbsp;&nbsp; &nbsp;&nbsp;
-                            已付金額： <input type="text" id="input-payment_paid" name="payment_paid" value="{{ $order->payment_paid }}" style="width:80px">&nbsp;&nbsp;
-                            未付餘額： <input type="text" id="input-payment_unpaid" name="payment_unpaid" value="{{ $order->payment_unpaid }}" style="width:80px" readonly >&nbsp;&nbsp;
+                            總金額：<input type="text" id="input-payment_total" value="{{ $order->payment_total }}" style="width:70px" readonly>&nbsp;&nbsp; &nbsp;&nbsp;
+                            已付金額： <input type="text" id="input-payment_paid" name="payment_paid" value="{{ $order->payment_paid }}" style="width:70px">&nbsp;&nbsp;
+                            未付餘額： <input type="text" id="input-payment_unpaid" name="payment_unpaid" value="{{ $order->payment_unpaid }}" style="width:70px" readonly >&nbsp;&nbsp;
                           </td>
                         </tr>
                       </tbody>
@@ -490,7 +489,6 @@
 <script type="text/javascript">
 
 
-
 //關閉全部的 autocomplete
 $('input').attr('autocomplete', 'off');
 
@@ -616,15 +614,6 @@ $(document).on("click",'.phrase', function(){
 // 訂單標籤
 var orderTagBtnTxt = '   ';
 var qStr = '';
-$('.selOrderTag button').on('click', function(){
-  var addStr = $('#input-order_tag').val();
-  var buttonText = $(this).text();
-  if(buttonText=='清'){
-    orderTagBtnTxt = '  ';
-    return;
-  }
-  orderTagBtnTxt = buttonText
-});
 
 //已存的訂單標籤
 @foreach($order_tag ?? [] as $tag)
@@ -634,48 +623,28 @@ $('.selOrderTag button').on('click', function(){
 $('.select2-multiple').select2({
   multiple: true,
   ajax: {
-    url: "{{ route('lang.admin.sale.orders.autocompleteAllOrderTags') }}",
+    url: "{{ route('lang.admin.sale.orders.autocompleteOrderTags') }}",
       dataType: 'json',
       delay: 250,
       data: function(params) {
-        orderTagBtnTxt = orderTagBtnTxt.replace(/\s+/g, "");
-        if(orderTagBtnTxt.length>0){
-          qStr = orderTagBtnTxt;
-        }else{
-          qStr = params.term;
-        }
-
         return {
-            q: qStr, // 使用者輸入的搜尋關鍵字
-            page: params.page // 目前頁數
+            filter_name: params.term,
         };
       },
       processResults: function(data, params) {
-          // 將 API 回傳的資料轉換成 Select2 可用的格式
           return {
-            results: data.items, // 替換為實際的資料欄位名稱
-            pagination: {
-                more: data.more // 替換為實際的分頁資訊
-            }
+            results: data.data,
           };
       },
       cache: true
   },
   // 設定顯示在下拉選單中的資料格式
   templateResult: function(item) {
-    if (item.loading) {
-        //return '載入中...';
-    }
-    return item.text;
+    return item.name;
   },
   // 設定選取項目後要顯示在選取框中的格式
   templateSelection: function(item) {
-    //if (item.id === '') {
-    if (item.text === '') {
-        //return '請選擇';
-        return '';
-    }
-    return item.text;
+    return item.name ?? '';
   }
 });
 
@@ -691,30 +660,48 @@ function isChineseInputCompleted(){
   return true
 }
 
+function setMemberAutocomplete(json){
+  for (var i = 0; i < json.length; i++) {
+    json[i].label = json[i].name + ' ' + json[i].mobile;
+    json[i].value = json[i].id;
+  }
+
+  var fields = Object.keys(json.length > 0 ? json[0] : {});
+
+  json.unshift({});
+
+  for (var i = 0; i < fields.length; i++) {
+    json[0][fields[i]] = '';
+  }
+
+  json[0]['label'] = ' -- ';
+  json[0]['value'] = ' -- ';
+  json[0]['customer_id'] = ' -- ';
+
+  return json;
+}
+
 //查姓名
-$(document).ready(function() {
-  $('#input-personal_name').on('input', function(){
-    $('#input-personal_name').autocomplete({
-      'minLength': 1,
-      'source': function (request, response) {
-        var regex = /[a-zA-Z0-9\u3105-\u3129]+/;//注音符號
-        if (regex.test(request)) {
-          return;
-        }else{
-          $.ajax({
-            url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_personal_name=" + encodeURIComponent(request),
-            dataType: 'json',
-            success: function (json) {
-              response(json);
-            }
-          });
+$('#input-personal_name').autocomplete({
+  'minLength': 1,
+  'source': function (request, response) {
+    var regex = /[a-zA-Z0-9\u3105-\u3129]+/;//注音符號
+    if (regex.test(request)) {
+      return;
+    }else{
+      $.ajax({
+        url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_name=" + encodeURIComponent(request),
+        dataType: 'json',
+        success: function (json) {
+          json = setMemberAutocomplete(json)
+          response(json);
         }
-      },
-      'select': function (item) {
-        setCustomerInfo(item)
-      }
-    });
-  });
+      });
+    }
+  },
+  'select': function (item) {
+    setCustomerInfo(item)
+  }
 });
 
 
@@ -725,9 +712,10 @@ $('#input-mobile').autocomplete({
     request = request.replace(/-/g, "");
     if(request.length > 6){
       $.ajax({
-        url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_mobile=" + encodeURIComponent(request) + '&with=orders',
+        url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_mobile=" + encodeURIComponent(request),
         dataType: 'json',
         success: function(json) {
+          json = setMemberAutocomplete(json)
           response(json);
         }
       });
@@ -749,6 +737,7 @@ $('#input-telephone').autocomplete({
       url: "{{ route('lang.admin.member.members.autocomplete') }}?filter_telephone=" + encodeURIComponent(request),
       dataType: 'json',
       success: function(json) {
+        json = setMemberAutocomplete(json)
         response(json);
       }
     });
@@ -760,9 +749,9 @@ $('#input-telephone').autocomplete({
 
 //查客戶之後重設單頭
 function setCustomerInfo(item){
-  $('#input-personal_name').val(item.personal_name);
-  $('#input-customer_id').val(item.customer_id);
-  $('#input-customer').val(item.customer_id+'_'+item.personal_name);
+  $('#input-personal_name').val(item.name);
+  $('#input-customer_id').val(item.id);
+  $('#input-customer').val(item.id+'_'+item.name);
   $('#input-salutation_id').val(item.salutation_id);
   $('#input-telephone').val(item.telephone);
   $('#input-mobile').val(item.mobile);
@@ -783,7 +772,8 @@ function setCustomerInfo(item){
   $("#input-shipping_address1").val(item.shipping_address1);
 
   if(item.has_order){
-    $("#a-order_list").attr('href', 'sale/orders?filter_customer_id='+item.customer_id);
+    $("#a-order_list").attr('href', 'sale/orders?filter_customer_id='+item.id);
+    $("#a-order_list").attr("target", "_blank");
     $("#a-order_list").show();
   }else{
     $("#a-order_list").attr('href', '');

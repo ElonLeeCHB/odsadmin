@@ -7,12 +7,14 @@ use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Admin\Services\Inventory\ProductService;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
-use App\Repositories\Eloquent\Common\UnitRepository;
+use App\Repositories\Eloquent\Inventory\UnitRepository;
 //use App\Repositories\Eloquent\Inventory\ProductUnitRepository;
 use App\Domains\Admin\Services\Catalog\CategoryService;
 use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
 //use App\Models\Common\Term;
+use App\Helpers\Classes\DataHelper;
+use App\Helpers\Classes\UrlHelper;
 
 class ProductController extends BackendController
 {
@@ -47,7 +49,7 @@ class ProductController extends BackendController
         ];
         
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_inventory,
+            'text' => $this->lang->text_menu_inventory,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
@@ -61,16 +63,22 @@ class ProductController extends BackendController
 
 
         // categories
-        $data['categories'] = $this->CategoryService->getCategories();
+        //$data['categories'] = $this->CategoryService->getCategories();
 
-        
+        // 來源碼
+        $data['source_codes'] = $this->ProductService->getKeyedSourceCodes();
+
+        // 會計分類
+        $data['accounting_categories'] = $this->ProductService->getKeyedAccountingCategory();
+
         $data['list'] = $this->getList();
 
         $data['list_url']   = route('lang.admin.inventory.products.list');
         $data['add_url']    = route('lang.admin.inventory.products.form');
         $data['delete_url'] = route('lang.admin.inventory.products.delete');
+        $data['export_inventory_product_list'] = route('lang.admin.inventory.products.export_inventory_product_list');
 
-        return view('admin.catalog.product', $data);
+        return view('admin.inventory.product', $data);
     }
 
     public function list()
@@ -87,52 +95,64 @@ class ProductController extends BackendController
     {
         $data['lang'] = $this->lang;
 
+        $url_queries = $this->request->query();
+
 
         // Prepare query_data for records
-        $query_data = $this->getQueries($this->request->query());
+        $filter_data = UrlHelper::getUrlQueriesForFilter();
 
+        $filter_data['extra_columns'] = DataHelper::addToArray('accounting_category_name', $filter_data['extra_columns'] ?? []);
+        
+        $with = $filter_data['with'] ?? [];
+        $filter_data['with'] = DataHelper::addToArray('source_type', $with);
+        
         // Rows
-        $products = $this->ProductService->getProducts($query_data);
-        //echo '<pre>', print_r($products, 1), "</pre>"; exit;
+        $products = $this->ProductService->getProducts($filter_data);
+
         if(!empty($products)){
             foreach ($products as $row) {
-                $row->edit_url = route('lang.admin.inventory.products.form', array_merge([$row->id], $query_data));
+                $row->edit_url = route('lang.admin.inventory.products.form', array_merge([$row->id], $url_queries));
+                $row->supplier_short_name = $row->supplier->short_name ?? '';
             }
         }
 
-        $data['products'] = $products->withPath(route('lang.admin.inventory.products.list'))->appends($query_data);
+        $products = $products->withPath(route('lang.admin.inventory.products.list'))->appends($url_queries);
+        
+        $data['products'] = $products;
+        $data['pagination'] = $products->links('admin.pagination.default');
 
-
-        // Prepare links for list table's header
-        if($query_data['order'] == 'ASC'){
+        // For list table's header: sorting
+        if($filter_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($query_data['sort']);
+        $data['sort'] = strtolower($filter_data['sort']);
         $data['order'] = strtolower($order);
 
-        $query_data = $this->unsetUrlQueryData($query_data);
+        $url_queries = UrlHelper::resetUrlQueries(unset_arr:['sort', 'order']);
 
         $url = '';
 
-        foreach($query_data as $key => $value){
+        foreach($url_queries as $key => $value){
             $url .= "&$key=$value";
         }
 
 
-        // link of table header for sorting        
+        // For list table's header: link
         $route = route('lang.admin.inventory.products.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
+        $data['sort_specification'] = $route . "?sort=specification&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_model'] = $route . "?sort=model&order=$order" .$url;
-        $data['sort_price'] = $route . "?sort=price&order=$order" .$url;
+        $data['sort_accounting_category_code'] = $route . "?sort=accounting_category_code&order=$order" .$url;
+        $data['sort_supplier_short_name'] = $route . "?sort=supplier_name&order=$order" .$url;
         $data['sort_quantity'] = $route . "?sort=quantity&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
-
-        return view('admin.catalog.product_list', $data);
+        
+        return view('admin.inventory.product_list', $data);
     }
 
 
@@ -164,52 +184,37 @@ class ProductController extends BackendController
 
         $data['breadcumbs'] = (object)$breadcumbs;
 
+
         // Prepare link for save, back
-        $queries = [];
+        $queries = $this->getQueries($this->request->query());
 
-        foreach($this->request->all() as $key => $value){
-            if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
-            }
+        $data['save_url'] = route('lang.admin.inventory.products.save');
+        $data['back_url'] = route('lang.admin.inventory.products.index', $queries);
+        $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
+
+        // Get record
+        $result = $this->ProductService->findIdOrFailOrNew($product_id);
+
+        if(empty($result['error']) && !empty($result['data'])){
+            $product = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
+
+        $extra_columns = $queries['extra_columns'] ?? [];
+        $extra_columns[] = ['supplier_name'];
+        $extra_columns[] = ['supplier_product_name'];
+        $extra_columns[] = ['avaible_unit_codes'];
+        $product = $this->ProductService->setRowExtraColumns($product, $extra_columns);
+        $product = $this->ProductService->setMetaRows($product);
+
+
+        // Default column value
+        if(empty($product->id)){
+            $product->is_active = 1;
         }
 
-        if(!empty($this->request->query('page'))){
-            $queries['page'] = $this->request->query('page');
-        }else{
-            $queries['page'] = 1;
-        }
-
-        if(!empty($this->request->query('sort'))){
-            $queries['sort'] = $this->request->query('sort');
-        }else{
-            $queries['sort'] = 'id';
-        }
-
-        if(!empty($this->request->query('order'))){
-            $queries['order'] = $this->request->query('order');
-        }else{
-            $queries['order'] = 'DESC';
-        }
-
-        if(!empty($this->request->query('limit'))){
-            $queries['limit'] = $this->request->query('limit');
-        }
-
-        $data['save'] = route('lang.admin.inventory.products.save');
-        $data['back'] = route('lang.admin.inventory.products.index', $queries);
-
-        // Get Record
-        $product = $this->ProductService->findIdOrFailOrNew($product_id);
-        $product->supplier_name = $product->supplier->name ?? '';
-        $product->supplier_product_name = $product->supplier_product->name ?? '';
-
-        // $product->load('supplier');
-        // $clone_product = $product->toArray();
-        // $clone_product['supplier_name'] = $clone_product['supplier']['name'];
-        // unset($clone_product['supplier']);
-        // unset($clone_product['translation']);
-        // $clone_product = (object) $clone_product;
-        // $data['product']  = $clone_product;
         $data['product']  = $product;
 
         if(!empty($data['product']) && $product_id == $product->id){
@@ -234,7 +239,7 @@ class ProductController extends BackendController
             $ids = $product->categories->pluck('id')->toArray();
             if(!empty($ids)){
                 $cat_filters = [
-                    'whereIn' => ['id', $$ids],
+                    'whereIn' => ['id' => $ids],
                     'pagination' => false
                 ];
                 $product_categories = $this->CategoryService->getRows($cat_filters);
@@ -252,23 +257,18 @@ class ProductController extends BackendController
 			$data['product_categories'] = [];
 		}
 
-        // product_accounting_category
-        $filter_data = [
-            'equal_taxonomy_code' => 'product_accounting_category',
-            'pagination' => false,
-            'limit' => 30,
-            'sort' => 'code',
-            'order' => 'ASC'
-        ];
-        $accounting_categories = $this->TermRepository->getRows($filter_data);
-        $data['accounting_categories'] = $this->TermRepository->refineRows($accounting_categories, ['optimize' => true,'sanitize' => true]);
+        // 會計分類 product_accounting_category
+        $data['accounting_categories'] = $this->ProductService->getCodeKeyedTermsByTaxonomyCode('product_accounting_category',toArray:false);
+        
+        // 來源類型
+        $data['source_type_codes'] = $this->ProductService->getCodeKeyedTermsByTaxonomyCode('product_source_type',toArray:false);
 
+        // 存放溫度類型 temperature_type_code
+        $data['temperature_types'] = $this->ProductService->getCodeKeyedTermsByTaxonomyCode('product_storage_temperature_type',toArray:false);
 
         $data['bom_products'] = [];
 
         $data['product_options'] = [];
-        
-        $data['source_codes'] = $this->ProductService->getProductSourceCodes();
 
         // supplier
         $data['supplier_autocomplete_url'] = route('lang.admin.counterparty.suppliers.autocomplete');
@@ -283,21 +283,21 @@ class ProductController extends BackendController
         $codes = [];
         
         // 還沒設定任何單位轉換，選單只能出現庫存單位
-        if($product_units->isEmpty() && !empty($product->stock_unit_code)){
-            $codes[$product->stock_unit_code] = $product->stock_unit->name;
+        if(count($product_units) == 0 && !empty($product->stock_unit_code)){
+            $codes[$product->stock_unit_code] = $product->stock_unit->name ?? '';
         }
         // 已有單位轉換，抓出所有不重複的單位
-        else{
+        else if(count($product_units) > 0){
             foreach ($product_units as $product_unit) {
                 $source_unit_code = $product_unit->source_unit_code;
                 $destination_unit_code = $product_unit->destination_unit_code;
 
                 if(empty($codes[$source_unit_code])){
-                    $codes[$source_unit_code] = $product_unit->source_unit->name;
+                    $codes[$source_unit_code] = $product_unit->source_unit->name ?? '';
                 }
 
                 if(empty($codes[$destination_unit_code])){
-                    $codes[$destination_unit_code] = $product_unit->destination_unit->name;
+                    $codes[$destination_unit_code] = $product_unit->destination_unit->name ?? '';
                 }
 
             }
@@ -315,6 +315,7 @@ class ProductController extends BackendController
             if(!empty($product_units[$i])){
                 $product_unit = $product_units[$i];
                 $new_product_units[$i] = (object) [
+                    'id' => $product_unit->id,
                     'source_unit_code' => $product_unit->source_unit_code,
                     'source_quantity' => $product_unit->source_quantity,
                     'destination_unit_code' => $product_unit->destination_unit_code,
@@ -339,7 +340,7 @@ class ProductController extends BackendController
             'pagination' => false,
             'limit' => 0,
         ];
-        $data['units'] = $this->UnitRepository->getActiveUnits($filter_data);
+        $data['units'] = $this->UnitRepository->getCodeKeyedActiveUnits($filter_data);
 
         return view('admin.inventory.product_form', $data);
     }
@@ -374,13 +375,13 @@ class ProductController extends BackendController
         }
 
         if(!$json) {
-            $result = $this->ProductService->updateOrCreate($data);
+            $result = $this->ProductService->saveProduct($data);
 
             if(empty($result['error'])){
                 $json = [
                     'success' => $this->lang->text_success,
-                    'product_id' => $result['product_id'],
-                    'redirectUrl' => route('lang.admin.inventory.products.form', $result['product_id']),
+                    'product_id' => $result['id'],
+                    'redirectUrl' => route('lang.admin.inventory.products.form', $result['id']),
                 ];
 
             }else{
@@ -398,53 +399,117 @@ class ProductController extends BackendController
 
     public function autocomplete()
     {
+        $url_queries = $this->request->query();
+        
         $json = [];
 
-        if(isset($this->request->filter_name)){
-            $filter_name = $this->request->filter_name;
-        }else{
-            $filter_name = '';
+        // * 檢查錯誤
+
+        foreach ($url_queries as $key => $value) {
+            //檢查查詢字串
+            if(str_starts_with($key, 'filter_') || str_starts_with($key, 'equal_')){
+                //檢查輸入字串是否包含注音符號
+                if (preg_match('/[\x{3105}-\x{3129}\x{02C7}]+/u', $value)) {
+                    $json['error'] = '包含注音符號不允許查詢';
+                } 
+            }
         }
 
-        if(isset($this->request->filter_model)){
-            $filter_model = $this->request->filter_model;
-        }else{
-            $filter_model = '';
+        if(!empty($json)){
+            return response(json_encode($json))->header('Content-Type','application/json');
         }
 
-        $filter_data = array(
-            'filter_model' => $filter_model,
-            'filter_name' => $filter_name,
-            'filter_is_salable' => $this->request->filter_is_salable,
-            'limit'   => 10,
-            'pagination'   => false,
-            'with' => ['product_units.source_unit.translation'],
-        );
 
-        $rows = $this->ProductService->getProducts($filter_data);
 
-        foreach ($rows as $row) {
-            $product_units = $row->product_units->toArray();
+        // Prepare query_data for records
+        $filter_data = UrlHelper::getUrlQueriesForFilter();
 
-            foreach ($product_units as $key => $product_unit) {
-                $product_unit['source_unit_name'] = $product_unit['source_unit']['name'];
-                unset($product_unit['source_unit']);
-                $product_units[$key] = $product_unit;
+        // with
+        $with = [];
+        if(!empty($filter_data['with'])){
+            $with = $filter_data['with']; // will be used later
+        }
+
+        // exra_columns
+        $extra_columns = [];
+        if(!empty($filter_data['extra_columns'])){
+            $extra_columns = $filter_data['extra_columns']; ; // will be used later
+        }
+
+       // $extra_columns[] = 'source_unit_name';
+
+        $products = $this->ProductService->getProducts($filter_data);
+
+        foreach ($products as $product) {
+
+            $new_row = array(
+                'label' => $product->id . ' ' . $product->name . ' ' . $product->specification,
+                'value' => $product->id,
+                'product_id' => $product->id,
+                'name' => $product->name,
+                'specification' => $product->specification,
+                'stock_unit_code' => $product->stock_unit_code,
+                'usage_unit_code' => $product->usage_unit_code,
+                'usage_price' => $product->usage_price,
+                'product_edit_url' => route('lang.admin.inventory.products.form', $product->id),
+            );
+
+
+            if(!empty($extra_columns)){
+                foreach($extra_columns as $extra_column){
+                    $new_row[$extra_column] = $product->$extra_column;
+                }
             }
 
-            $json[] = array(
-                'label' => $row->name . '-' . $row->id,
-                'value' => $row->id,
-                'product_id' => $row->id,
-                'name' => $row->name,
-                'model' => $row->model,
-                'stock_unit_code' => $row->stock_unit_code,
-                'stock_unit_name' => $row->stock_unit_name,
-                'product_units' => $product_units,
-            );
+            // product_units
+            if(in_array('product_units', $with)){
+                $product_units = [];
+
+                if(!empty($product->product_units)){
+                    $product_units = $product->product_units->keyBy('source_unit_code')->toArray();
+
+                    data_forget($product_units, '*.source_unit');
+                    data_forget($product_units, '*.destination_unit');
+                    
+                    foreach ($product_units as $product_unit_key => $product_unit) {
+                        $product_units[$product_unit_key] = $product_unit;
+                    }
+
+                    $new_row['product_units'] = $product_units;
+                }
+
+                if(empty($new_row['product_units'][$product->stock_unit_code])){
+                    $new_row['product_units'][$product->stock_unit_code] = [
+                        'source_unit_name' => $product->stock_unit_name,
+                        'source_unit_code' => $product->stock_unit_code,
+                        'source_quantity' => 1,
+                        'destination_unit_code' => $product->stock_unit_code,
+                        'destination_quantity' => 1,
+                        'factor' => 1,
+
+                    ];
+
+                }
+            }
+
+            $json[] = $new_row;
         }
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }
 
+
+    public function delete()
+    {
+        $json['error'] = '目前不提供刪除！';
+
+        return response(json_encode($json))->header('Content-Type','application/json');
+    }
+
+
+    public function exportInventoryProductList()
+    {
+        $post_data = request()->post();
+        return $this->ProductService->exportInventoryProductList($post_data); 
+    }
 }

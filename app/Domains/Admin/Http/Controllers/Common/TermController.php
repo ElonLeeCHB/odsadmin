@@ -142,7 +142,14 @@ class TermController extends BackendController
         $data['autocomplete_url'] = route('lang.admin.common.terms.autocomplete');     
 
         // Get Record
-        $term = $this->TermService->findIdOrFailOrNew($term_id);
+        $result = $this->TermService->findIdOrFailOrNew($term_id);
+
+        if(!empty($result['data'])){
+            $term = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         if(!empty($term) && !empty($term->taxonomy->name)){
             $term->taxonomy_name = $term->taxonomy->name;
@@ -195,7 +202,7 @@ class TermController extends BackendController
         }
 
         if(!$json) {
-            $result = $this->TermService->updateOrCreate($data);
+            $result = $this->TermService->saveTerm($data);
 
             if(empty($result['error']) && !empty($result['term_id'])){
                 $json = [

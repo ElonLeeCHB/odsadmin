@@ -35,6 +35,10 @@ return array (
 'text_fail' => '更新失敗！',
 'text_required' => '必填',
 
+'text_status_confirmed' => '已確認',
+'text_status_unconfirmed' => '未確認',
+'text_status_voided' => '作廢',
+'text_status_without_voided' => '不含作廢',
 
 // Button
 'button_add' => '新增',
@@ -89,6 +93,7 @@ return array (
 'column_required' => '必填',
 'column_status' => '狀態',
 'column_status_code' => '狀態碼',
+'column_last_modified_time' => '最後修改時間',
 
 
 // Entry

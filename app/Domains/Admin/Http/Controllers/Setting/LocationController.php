@@ -90,7 +90,6 @@ class LocationController extends BackendController
         unset($query_data['sort']);
         unset($query_data['order']);
         unset($query_data['with']);
-        unset($query_data['whereIn']);
 
         $url = '';
 
@@ -170,7 +169,14 @@ class LocationController extends BackendController
         $data['back_url'] = route('lang.admin.setting.locations.index', $queries);        
 
         // Get Record
-        $location = $this->LocationService->findIdOrFailOrNew($location_id);
+        $result = $this->LocationService->findIdOrFailOrNew($location_id);
+
+        if(empty($result['error']) && !empty($result['data'])){
+            $location = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $data['location']  = $location;
 

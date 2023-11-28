@@ -13,6 +13,6 @@ class Repository
     public $zh_hant_hans_transform;
     
     public function __construct(){
-        $this->initialize();
+        $this->initialize(); // in EloquentTrait
     }
 }

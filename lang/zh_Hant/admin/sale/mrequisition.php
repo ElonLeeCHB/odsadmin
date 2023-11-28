@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * 即將廢棄
+ */
 return [
 // Heading
 'heading_title' => '備料表',

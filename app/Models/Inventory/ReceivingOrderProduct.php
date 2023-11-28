@@ -6,13 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Models\Catalog\Product;
 use App\Models\Inventory\ReceivingOrder;
-use App\Traits\Model\Translatable;
+use App\Models\Catalog\ProductUnit;
+use App\Traits\ModelTrait;
 
 class ReceivingOrderProduct extends Model
 {
-    protected $guarded = [];
+    use ModelTrait;
 
-    use Translatable;
+    protected $guarded = [];
 
 
     // Relation
@@ -27,8 +28,40 @@ class ReceivingOrderProduct extends Model
         return $this->belongsTo(Product::class, 'product_id', 'id');
     }
 
+    public function product_units()
+    {
+        return $this->hasMany(ProductUnit::class,'product_id', 'product_id');
+    }
+
 
     //Attribute
 
+
+    public function price(): Attribute
+    {
+        return $this->setNumberAttribute($this->attributes['price'],4);
+    }
+
+    public function amount(): Attribute
+    {
+        return $this->setNumberAttribute($this->attributes['amount'],4);
+    }
+
+    public function receivingQuantity(): Attribute
+    {
+        return $this->setNumberAttribute($this->attributes['receiving_quantity'],4);
+    }
+
+    public function stockPrice(): Attribute
+    {
+        return $this->setNumberAttribute($this->attributes['stock_price'],4);
+    }
+
+    public function stockQuantity(): Attribute
+    {
+        return $this->setNumberAttribute($this->attributes['stock_quantity'],4);
+    }
+
     
+
 }

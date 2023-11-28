@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Services\Inventory\PurchasingOrderService;
-use App\Repositories\Eloquent\Common\UnitRepository;
+use App\Repositories\Eloquent\Inventory\UnitRepository;
 use App\Models\Setting\Location;
 use App\Models\Localization\Language;
 
@@ -160,7 +160,14 @@ class PurchasingController extends BackendController
 
 
         // Get Record
-        $purchasing_order = $this->PurchasingOrderService->findIdOrFailOrNew($purchasing_order_id);
+        $result = $this->PurchasingOrderService->findIdOrFailOrNew($purchasing_order_id);
+
+        if(empty($result['error']) && !empty($result['data'])){
+            $purchasing_order = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $data['purchasing_order'] = $purchasing_order;
         
@@ -200,7 +207,7 @@ class PurchasingController extends BackendController
             'filter_keyword' => $this->request->filter_keyword,
             'pagination' => false,
         ];
-        $data['units'] = $this->UnitRepository->getActiveUnits($filter_data);
+        $data['units'] = $this->UnitRepository->getCodeKeyedActiveUnits($filter_data);
 
         return view('admin.inventory.purchasing_order_form', $data);
     }

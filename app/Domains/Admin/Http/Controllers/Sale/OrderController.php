@@ -37,17 +37,6 @@ class OrderController extends BackendController
         parent::__construct();
 
         $this->getLang(['admin/common/common','admin/sale/order']);
-
-        // $this->request = $request;
-        // $this->OrderService = $OrderService;
-        // $this->MemberService = $MemberService;
-        // $this->ProductService = $ProductService;
-        // $this->OptionService = $OptionService;
-        // $this->CountryService = $CountryService;
-        // $this->DivisionService = $DivisionService;
-
-
-        // $this->lang = (new TranslationLibrary())->getTranslations(['admin/common/common','admin/sale/order',]);
     }
 
     /**
@@ -66,7 +55,7 @@ class OrderController extends BackendController
         ];
 
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_sale,
+            'text' => $this->lang->text_menu_sale,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
@@ -78,7 +67,8 @@ class OrderController extends BackendController
 
         $data['breadcumbs'] = (object)$breadcumbs;
 
-        $data['order_statuses'] = $this->OrderService->getCachedActiveOrderStatuses();
+        //$data['order_statuses'] = $this->OrderService->getCachedActiveOrderStatuses();
+        $data['order_statuses'] = $this->OrderService->getCodeKeyedTermsByTaxonomyCode('order_status', toArray:false);
 
         $data['states'] = $this->DivisionService->getStates();
 
@@ -222,7 +212,7 @@ class OrderController extends BackendController
         ];
 
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_sale,
+            'text' => $this->lang->text_menu_sale,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
@@ -266,8 +256,14 @@ class OrderController extends BackendController
         }
 
         // Get Record
-        $order = $this->OrderService->findIdOrFailOrNew($order_id);
-        
+        $result = $this->OrderService->findIdOrFailOrNew($order_id);
+
+        if(!empty($result['data'])){
+            $order = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $order->load('order_products.product_options.active_product_option_values.translation');
         $order->load('order_products.order_product_options');
@@ -290,7 +286,8 @@ class OrderController extends BackendController
 
         $this->order = $order;
 
-        $data['order']  = $this->OrderService->refineRow($order, ['optimize' => true, 'sanitize' => true]);
+        //$data['order']  = $this->OrderService->refineRow($order, ['optimize' => true, 'sanitize' => true]);
+        $data['order'] = $order;
 
         if(empty($this->request->location_id)){
             $data['location_id'] = 2;
@@ -346,9 +343,10 @@ class OrderController extends BackendController
         //$data['shipping_method'] = $order->shipping_method ?? 'shipping_pickup';
         $data['shipping_method'] = $order->shipping_method ?? '';
 
-        $data['order_statuses'] = $this->OrderService->getCachedActiveOrderStatuses();
+        //$data['order_statuses'] = $this->OrderService->getCachedActiveOrderStatuses();
+        $data['order_statuses'] = $this->OrderService->getCodeKeyedTermsByTaxonomyCode('order_status', toArray:false);
 
-        $data['status_id'] = $order->status_id ?? '101';
+        //$data['status_id'] = $order->status_id ?? '101';
 
         //Member
         if(!empty($order)){
@@ -384,7 +382,7 @@ class OrderController extends BackendController
             'equal_is_salable' => 1,
             'pagination' => false,
             'limit' => 0,
-            'with' => ['main_category','translation'],
+            'with' => ['main_category'],
         ];
         $data['salable_products'] = $this->ProductService->getProducts($filter_data);
 
@@ -393,18 +391,10 @@ class OrderController extends BackendController
 
         // Order Total
         if(!empty($order->id)){
-            $filter_data = [
-                'filter_order_id' => $order->id,
-                'regexp' => false,
-                'limit' => 0,
-                'pagination' => false,
-                'sort' => 'id',
-                'order' => 'ASC',
-            ];
-            $order_totals = $this->OrderService->getOrderTotals($filter_data);
+            $order_totals = $this->OrderService->getOrderTotals($order_id);
         }
 
-        if(isset($order_totals) && !$order_totals->isEmpty()){
+        if(isset($order_totals) && !empty($order_totals)){
             foreach ($order_totals as $key => $order_total) {
                 $data['order_totals'][$order_total->code] = $order_total;
             }
@@ -421,6 +411,7 @@ class OrderController extends BackendController
         $data['tax_id_nums_list_url'] = route('api.localization.tax_id_num.list');
         $data['cities_list_url'] = route('api.localization.division.city.list');
         $data['roads_list_url'] = route('api.localization.road.list');
+        $data['member_info_url'] = route('lang.admin.member.members.info');
         
 
 
@@ -436,7 +427,7 @@ class OrderController extends BackendController
         $order = $this->order;
 
         // 所有可銷售商品
-        $data['salable_products'] = $this->ProductService->getSalableProducts();
+        $data['salable_products'] = $this->ProductService->getAllSalableProducts();
 
         $products_html = [];
 
@@ -462,7 +453,7 @@ class OrderController extends BackendController
         $data['lang'] = $this->lang;
 
         // 所有可銷售商品
-        $data['salable_products'] = $this->ProductService->getSalableProducts();
+        $data['salable_products'] = $this->ProductService->getAllSalableProducts();
 
         $order_product = [];
         if(!empty($param['order_product'])){
@@ -542,7 +533,7 @@ class OrderController extends BackendController
             $filter_data = [
                 'filter_id' => $this->request->filter_product_id,
                 'regexp' => false,
-                'with' =>['product_options' => ['is_active'=>1]],
+                'with' =>['product_options'],
             ];
             $product = $this->ProductService->getProduct($filter_data);
 
@@ -557,22 +548,23 @@ class OrderController extends BackendController
         $data['product'] = $product;
 
         if(!empty($order_product->main_category_code)){
-            $data['main_category_code'] = $order_product->main_category_code;
+            $main_category_code = $order_product->main_category_code;
         }else if(!empty($product->main_category->code)){
-            $data['main_category_code'] = $product->main_category->code;
+            $main_category_code = $product->main_category->code;
         }else{
-            $data['main_category_code'] = '';
+            $main_category_code = '';
         }
+        $data['main_category_code'] = $main_category_code;
 
         $data['main_category_name'] = $product->main_category->translation->name ?? '';
 
-        //is_main_meal_title
-        $data['is_main_meal_title'] = 0;
-        $arr = ['bento', 'lunchbox', 'cstLunchbox', 'cstBento'];
-        if(!empty($data['main_category_code']) && in_array($data['main_category_code'], $arr)){
-            $data['is_main_meal_title'] = 1;
-        }
 
+        //is_main_meal_title
+        // 2023-11-15-不用了。這段先放著以免萬一 
+        // $data['is_main_meal_title'] = 0;
+        // if(in_array($main_category_code, ['bento', 'lunchbox', 'cstLunchbox', 'cstBento'])){
+        //     $data['is_main_meal_title'] = 1;
+        // }
 
         //order_product
         if(!empty($order_product)){
@@ -827,32 +819,15 @@ class OrderController extends BackendController
         return response(json_encode($json))->header('Content-Type','application/json');
     }
 
-    public function autocompleteAllOrderTags()
+    public function autocompleteOrderTags()
     {
-        $qStr = $this->request->query('q');
+        $data = request()->all();
 
-        //第一個元素使用輸入值
-        $json[] = ['id' => $qStr, 'text' => $qStr,];
-
-        //預設內容
-        $items = [];
-        if(mb_substr($qStr,0,1) == '會'){
-            $items = ['股東會','會議','教會','廟會'];
-        }
-
-        if(mb_substr($qStr,0,1) == '教'){
-            $items = ['宗教','教會'];
-        }
-
-        if(mb_substr($qStr,0,1) == '幫'){
-            $items = ['幫別的公司訂(做公關)'];
-        }
-
-        $tags = $this->OrderService->getOrderTags(['qStr' => $qStr, 'sanitize' => true]);
+        $tags = $this->OrderService->getOrderTags($data);
 
         if(!empty($tags)){
             foreach($tags as $tag){
-                $json[] = ['id' => $tag->id,'text' => $tag->name];
+                $json['data'][] = ['id' => $tag->term_id, 'name' => $tag->name];
             }
         }
 
@@ -1014,9 +989,9 @@ class OrderController extends BackendController
             'sort' => 'id',
             'order' => 'ASC',
         ];
-        $order_totals = $this->OrderService->getOrderTotal($filter_data);
+        $order_totals = $this->OrderService->getOrderTotals($filter_data);
 
-        if(!$order_totals->isEmpty()){
+        if(!empty($order_totals)){
             foreach ($order_totals as $key => $order_total) {
                 $data['order_totals'][$order_total->code] = $order_total;
             }

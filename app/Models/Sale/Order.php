@@ -13,16 +13,16 @@ use App\Models\SysData\Division;
 use App\Models\Member\Organization;
 use App\Models\Catalog\OptionValue;
 use DateTimeInterface;
-//use Staudenmeir\EloquentHasManyDeep\HasRelationships;
+use App\Repositories\Eloquent\Common\TermRepository;
 
 class Order extends Model
 {
-    //use HasRelationships;
+    // 官網指示這樣寫
     use \Staudenmeir\EloquentHasManyDeep\HasRelationships;
 
     protected $guarded = [];
 
-    protected $appends = ['delivery_date_ymd', 'delivery_date_hi', 'delivery_weekday'];
+    protected $appends = ['delivery_date_ymd', 'delivery_date_hi', 'delivery_weekday','status_name'];
 
     protected $casts = [
         'is_closed' => 'boolean',
@@ -110,12 +110,19 @@ class Order extends Model
         return $this->belongsTo(Organization::class, 'store_id', 'id');
     }
 
+    //待廢。原本使用 options, option_values 資料表。以後改為使用 terms
     public function status()
     {
         return $this->belongsTo(OptionValue::class, 'status_id', 'id');
     }
 
-
+    public function statusName(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->status_code, 'order_status') ?? '',
+        );
+    }
+    
     // Attribute
 
 
@@ -224,24 +231,24 @@ class Order extends Model
     protected function paymentTotal(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => number_format($value),
-            set: fn ($value) => str_replace(',', '', $value),
+            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
         );
     }
 
     protected function paymentPaid(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => number_format($value),
-            set: fn ($value) => str_replace(',', '', $value),
+            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
         );
     }
 
     protected function paymentUnpaid(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => number_format($value),
-            set: fn ($value) => str_replace(',', '', $value),
+            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
         );
     }
 }

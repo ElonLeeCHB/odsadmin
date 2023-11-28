@@ -28,6 +28,12 @@
             <div class="card-body">
 
               <div class="mb-3">
+                <label class="form-label">{{ $lang->column_code }}</label>
+                <input type="text" id="input-filter_code" name="filter_code" value="" placeholder="{{ $lang->column_code }}" list="list-code" class="form-control"/>
+                <datalist id="list-code"></datalist>
+              </div>
+
+              <div class="mb-3">
                 <label class="form-label">{{ $lang->column_name }}</label>
                 <input type="text" name="filter_name" value="" placeholder="{{ $lang->column_name }}" id="input-name" list="list-name" class="form-control"/>
                 <datalist id="list-name"></datalist>
@@ -71,15 +77,18 @@ $('#taxonomy').on('click', 'thead a, .pagination a', function(e) {
 
 $('#button-filter').on('click', function() {
 	url = '';
+  
+	var filter_code = $('#input-filter_code').val();
+	if (filter_code) {
+		url += '&filter_code=' + encodeURIComponent(filter_code);
+	}
 
 	var filter_name = $('#input-name').val();
-
 	if (filter_name) {
 		url += '&filter_name=' + encodeURIComponent(filter_name);
 	}
 
   var equal_is_active = $('#input-equal_is_active').val();
-
   if (equal_is_active) {
     url += '&equal_is_active=' + encodeURIComponent(equal_is_active);
   }

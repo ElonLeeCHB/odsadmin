@@ -50,7 +50,7 @@ class RoadController extends BackendController
         //find roads
         $filter_data = [
             'regexp' => true,
-            'limit' => $query_data['limit'],
+            'limit' => $query_data['limit'] ?? 10,
             'pagination' => false,
             'relations' => ['city'],
         ];

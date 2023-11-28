@@ -101,7 +101,13 @@ class OrderService extends GlobalOrderService
                     }
                 }
 
-                $order = $this->OrderRepository->findIdOrFailOrNew($order_id);
+                $result = $this->OrderRepository->findIdOrFailOrNew($order_id);
+
+                if(!empty($result['data'])){
+                    $order = $result['data'];
+                }else{
+                    return response(json_encode($result))->header('Content-Type','application/json');
+                }
 
                 $order->location_id = $data['location_id'];
                 $order->personal_name = $data['personal_name'];
@@ -137,7 +143,8 @@ class OrderService extends GlobalOrderService
                 $order->delivery_date = $delivery_date;
                 $order->delivery_time_range = $data['delivery_time_range'] ?? '';
                 $order->delivery_time_comment = $data['delivery_time_comment'] ?? '';
-                $order->status_id = $data['status_id'] ?? 0;
+                //$order->status_id = $data['status_id'] ?? 0;
+                $order->status_code = $data['status_code'] ?? 0;
                 $order->comment = $data['comment'] ?? '';
                 $order->extra_comment = $data['extra_comment'] ?? '';
 

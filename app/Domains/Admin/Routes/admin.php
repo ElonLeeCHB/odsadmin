@@ -97,11 +97,12 @@ Route::group(
                 'as' => 'sale.',
             ], function ()
             {
+                Route::get('tests', 'Sale\TestController@index')->name('tests.index');
                 Route::get('orders', 'Sale\OrderController@index')->name('orders.index');
                 Route::get('orders/form/{order_id?}', 'Sale\OrderController@form')->name('orders.form');
                 Route::get('orders/list', 'Sale\OrderController@list')->name('orders.list');
                 Route::get('orders/autocomplete', 'Sale\OrderController@autocomplete')->name('orders.autocomplete');
-                Route::get('orders/autocompleteAllOrderTags', 'Sale\OrderController@autocompleteAllOrderTags')->name('orders.autocompleteAllOrderTags');
+                Route::get('orders/autocompleteOrderTags', 'Sale\OrderController@autocompleteOrderTags')->name('orders.autocompleteOrderTags');
                 Route::post('orders/save', 'Sale\OrderController@save')->name('orders.save');
                 //Route::post('orders/copy', 'Sale\OrderController@copy')->name('orders.copy');
                 Route::get('orders/printOrderProducts/{order_id}', 'Sale\OrderController@printOrderProducts')->name('orders.printOrderProducts');
@@ -125,16 +126,20 @@ Route::group(
                 Route::post('phrases/delete', 'Sale\PhraseController@delete')->name('phrases.delete');
                 Route::get('phrases/autocomplete', 'Sale\PhraseController@autocomplete')->name('phrases.autocomplete');
 
-                Route::get('mrequisition', 'Sale\MaterialRequisitionController@index')->name('mrequisition.index');
-                Route::get('mrequisition/list', 'Sale\MaterialRequisitionController@list')->name('mrequisition.list');
-                Route::get('mrequisition/form/{required_date?}', 'Sale\MaterialRequisitionController@form')->name('mrequisition.form');
-                Route::post('mrequisition/save', 'Sale\MaterialRequisitionController@save')->name('mrequisition.save');
-                //Route::get('mrequisition/getMrequisitions', 'Sale\MaterialRequisitionController@getMrequisitions')->name('mrequisition.getMrequisitions');
-                Route::get('mrequisition/calcMrequisitionsByDate/{required_date?}', 'Sale\MaterialRequisitionController@calcMrequisitionsByDate')->name('mrequisition.calcMrequisitionsByDate');
-                Route::get('mrequisition/printForm/{required_date?}', 'Sale\MaterialRequisitionController@printForm')->name('mrequisition.printForm');
-                Route::get('mrequisition/setting', 'Sale\MaterialRequisitionController@settingForm')->name('mrequisition.setting');
-                Route::post('mrequisition/setting/save', 'Sale\MaterialRequisitionController@settingSave')->name('mrequisition.settingSave');
-                Route::post('mrequisition/export', 'Sale\MaterialRequisitionController@export')->name('mrequisition.export');
+
+                Route::get('requisitions', 'Sale\RequisitionController@index')->name('requisitions.index');
+                Route::get('requisitions/list', 'Sale\RequisitionController@list')->name('requisitions.list');
+                Route::get('requisitions/form/{required_date?}', 'Sale\RequisitionController@form')->name('requisitions.form');
+                Route::post('requisitions/save', 'Sale\RequisitionController@save')->name('requisitions.save');
+                Route::get('requisitions/calcRequisitionsByDate/{required_date?}', 'Sale\RequisitionController@calcRequisitionsByDate')->name('requisitions.calcRequisitionsByDate');
+                Route::get('requisitions/printForm/{required_date?}', 'Sale\RequisitionController@printForm')->name('requisitions.printForm');
+                Route::get('requisitions/setting', 'Sale\RequisitionController@settingForm')->name('requisitions.setting');
+                Route::post('requisitions/setting/save', 'Sale\RequisitionController@settingSave')->name('requisitions.settingSave');
+                Route::post('requisitions/exportDailyList', 'Sale\RequisitionController@exportDailyList')->name('requisitions.exportDailyList');
+                Route::post('requisitions/exportMatrixList', 'Sale\RequisitionController@exportMatrixList')->name('requisitions.exportMatrixList');
+                
+                Route::get('requisitions/setting', 'Sale\RequisitionController@settingForm')->name('requisitions.setting');
+                Route::post('requisitions/setting/save', 'Sale\RequisitionController@settingSave')->name('requisitions.settingSave');
                 
             });
 
@@ -180,14 +185,6 @@ Route::group(
                 Route::post('payment_terms/delete', 'Counterparty\PaymentTermController@delete')->name('payment_terms.delete');
                 Route::get('payment_terms/autocomplete', 'Counterparty\PaymentTermController@autocomplete')->name('payment_terms.autocomplete');
 
-                //金融機構
-                Route::get('financial_institutions', 'Counterparty\FinancialInstitutionController@index')->name('financial_institutions.index');
-                Route::get('financial_institutions/list', 'Counterparty\FinancialInstitutionController@list')->name('financial_institutions.list');
-                Route::get('financial_institutions/form/{id?}', 'Counterparty\FinancialInstitutionController@form')->name('financial_institutions.form');
-                Route::post('financial_institutions/save/{id?}', 'Counterparty\FinancialInstitutionController@save')->name('financial_institutions.save');
-                Route::post('financial_institutions/delete', 'Counterparty\FinancialInstitutionController@delete')->name('financial_institutions.delete');
-                Route::get('financial_institutions/autocomplete', 'Counterparty\FinancialInstitutionController@autocomplete')->name('financial_institutions.autocomplete');
-
             });
 
             Route::group([
@@ -200,6 +197,12 @@ Route::group(
                 Route::get('warehouses/form/{id?}', 'Inventory\WarehouseController@form')->name('warehouses.form');
                 Route::post('warehouses/save/{id?}', 'Inventory\WarehouseController@save')->name('warehouses.save');
                 Route::post('warehouses/delete', 'Inventory\WarehouseController@delete')->name('warehouses.delete');
+                
+                Route::get('units', 'Inventory\UnitController@index')->name('units.index');
+                Route::get('units/list', 'Inventory\UnitController@list')->name('units.list');
+                Route::get('units/form/{id?}', 'Inventory\UnitController@form')->name('units.form');
+                Route::post('units/save/{id?}', 'Inventory\UnitController@save')->name('units.save');
+                Route::post('units/delete', 'Inventory\UnitController@delete')->name('units.delete');
 
                 Route::get('categories', 'Inventory\CategoryController@index')->name('categories.index');
                 Route::get('categories/list', 'Inventory\CategoryController@list')->name('categories.list');
@@ -214,6 +217,13 @@ Route::group(
                 Route::post('products/save/{id?}', 'Inventory\ProductController@save')->name('products.save');
                 Route::post('products/delete', 'Inventory\ProductController@delete')->name('products.delete');
                 Route::get('products/autocomplete', 'Inventory\ProductController@autocomplete')->name('products.autocomplete');
+                Route::post('products/export_inventory_product_list', 'Inventory\ProductController@exportInventoryProductList')->name('products.export_inventory_product_list');
+                
+                Route::get('boms', 'Inventory\BomController@index')->name('boms.index');
+                Route::get('boms/list', 'Inventory\BomController@list')->name('boms.list');
+                Route::get('boms/form/{id?}', 'Inventory\BomController@form')->name('boms.form');
+                Route::post('boms/save/{id?}', 'Inventory\BomController@save')->name('boms.save');
+                Route::post('boms/delete', 'Inventory\BomController@delete')->name('boms.delete');
 
                 // Route::get('purchasing', 'Inventory\PurchasingController@index')->name('purchasing.index');
                 // Route::get('purchasing/list', 'Inventory\PurchasingController@list')->name('purchasing.list');
@@ -222,12 +232,33 @@ Route::group(
                 // Route::post('purchasing/delete', 'Inventory\PurchasingController@delete')->name('purchasing.delete');
                 // Route::get('purchasing/autocomplete', 'Inventory\PurchasingController@autocomplete')->name('purchasing.autocomplete');
 
-                Route::get('receiving', 'Inventory\ReceivingOrderController@index')->name('receiving.index');
-                Route::get('receiving/list', 'Inventory\ReceivingOrderController@list')->name('receiving.list');
-                Route::get('receiving/form/{id?}', 'Inventory\ReceivingOrderController@form')->name('receiving.form');
-                Route::post('receiving/save/{id?}', 'Inventory\ReceivingOrderController@save')->name('receiving.save');
-                Route::post('receiving/delete', 'Inventory\ReceivingOrderController@delete')->name('receiving.delete');
-                Route::get('receiving/autocomplete', 'Inventory\ReceivingOrderController@autocomplete')->name('receiving.autocomplete');
+                Route::get('receivings', 'Inventory\ReceivingOrderController@index')->name('receivings.index');
+                Route::get('receivings/list', 'Inventory\ReceivingOrderController@list')->name('receivings.list');
+                Route::get('receivings/form/{id?}', 'Inventory\ReceivingOrderController@form')->name('receivings.form');
+                Route::post('receivings/save/{id?}', 'Inventory\ReceivingOrderController@save')->name('receivings.save');
+                Route::post('receivings/delete', 'Inventory\ReceivingOrderController@delete')->name('receivings.delete');
+                Route::get('receivings/autocomplete', 'Inventory\ReceivingOrderController@autocomplete')->name('receivings.autocomplete');
+                Route::post('receivings/export01', 'Inventory\ReceivingOrderController@export01')->name('receivings.export01');
+                Route::post('receivings/saveStatusCode', 'Inventory\ReceivingOrderController@saveStatusCode')->name('receivings.saveStatusCode');
+
+                Route::get('countings', 'Inventory\CountingController@index')->name('countings.index');
+                Route::get('countings/form/{id?}', 'Inventory\CountingController@form')->name('countings.form');
+                Route::get('countings/list', 'Inventory\CountingController@list')->name('countings.list');
+                Route::post('countings/save/{id?}', 'Inventory\CountingController@save')->name('countings.save');
+                Route::post('countings/delete', 'Inventory\CountingController@delete')->name('countings.delete');
+                //Route::post('countings/import/{id?}', 'Inventory\CountingController@import')->name('countings.import');
+                Route::post('countings/import/{id?}', 'Inventory\CountingController@readExcel')->name('countings.import');
+                Route::post('countings/export_counting_product_list', 'Inventory\CountingController@exportCountingProductList')->name('countings.export_counting_product_list');
+                Route::get('countings/export_counting_product_list', 'Inventory\CountingController@exportCountingProductList')->name('countings.export_counting_product_list');
+                Route::post('countings/saveStatusCode', 'Inventory\CountingController@saveStatusCode')->name('countings.saveStatusCode');
+
+                Route::get('materialRequirements', 'Inventory\RequirementController@index')->name('materialRequirements.index');
+                Route::get('materialRequirements/list', 'Inventory\RequirementController@list')->name('materialRequirements.list');
+                Route::get('materialRequirements/form/{id?}', 'Inventory\RequirementController@form')->name('materialRequirements.form');
+                Route::post('materialRequirements/delete', 'Inventory\RequirementController@delete')->name('materialRequirements.delete');
+                Route::post('materialRequirements/anylize', 'Inventory\RequirementController@anylize')->name('materialRequirements.anylize');
+                Route::post('materialRequirements/export_list', 'Inventory\RequirementController@exportList')->name('materialRequirements.export_list');
+
             });
 
 
@@ -267,6 +298,14 @@ Route::group(
                 Route::post('suppliers/save/{id?}', 'Counterparty\SupplierController@save')->name('suppliers.save');
                 Route::post('suppliers/delete', 'Counterparty\SupplierController@delete')->name('suppliers.delete');
                 Route::get('suppliers/autocomplete', 'Counterparty\SupplierController@autocomplete')->name('suppliers.autocomplete');
+
+                //金融機構
+                Route::get('banks', 'Counterparty\BankController@index')->name('banks.index');
+                Route::get('banks/list', 'Counterparty\BankController@list')->name('banks.list');
+                Route::get('banks/form/{id?}', 'Counterparty\BankController@form')->name('banks.form');
+                Route::post('banks/save/{id?}', 'Counterparty\BankController@save')->name('banks.save');
+                Route::post('banks/delete', 'Counterparty\BankController@delete')->name('banks.delete');
+                Route::get('banks/autocomplete', 'Counterparty\BankController@autocomplete')->name('banks.autocomplete');
             });
 
             Route::group([
@@ -278,6 +317,7 @@ Route::group(
                 Route::get('members/form/{member_id?}', 'Member\MemberController@form')->name('members.form');
                 Route::get('members/list', 'Member\MemberController@list')->name('members.list');
                 Route::get('members/autocomplete', 'Member\MemberController@autocomplete')->name('members.autocomplete');
+                Route::get('members/info/{member_id?}', 'Member\MemberController@info')->name('members.info');
                 Route::post('members/save/{member_id?}', 'Member\MemberController@save')->name('members.save');
                 Route::post('members/delete', 'Member\MemberController@delete')->name('members.delete');
             });

@@ -204,7 +204,14 @@ class WarehouseController extends BackendController
         $data['back_url'] = route('lang.admin.inventory.warehouses.index', $queries);        
 
         // Get Record
-        $warehouse = $this->WarehouseService->findIdOrFailOrNew($warehouse_id);
+        $result = $this->WarehouseService->findIdOrFailOrNew($warehouse_id);
+
+        if(!empty($result['data'])){
+            $warehouse = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $data['warehouse']  = $warehouse;
 

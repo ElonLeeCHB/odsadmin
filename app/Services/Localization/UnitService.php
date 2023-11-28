@@ -17,7 +17,7 @@ class UnitService extends Service
 
     public function getActiveUnits($data = [], $debug = 0)
     {
-        return $this->UnitRepository->getActiveUnits($data, $debug);
+        return $this->UnitRepository->getCodeKeyedActiveUnits($data, $debug);
     }
 
 

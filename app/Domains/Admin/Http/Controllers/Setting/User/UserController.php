@@ -107,7 +107,6 @@ class UserController extends BackendController
         unset($query_data['sort']);
         unset($query_data['order']);
         unset($query_data['with']);
-        unset($query_data['whereIn']);
 
         $url = '';
 
@@ -121,7 +120,7 @@ class UserController extends BackendController
         $data['sort_username'] = $route . "?sort=username&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_email'] = $route . "?sort=email&order=$order" .$url;
-        $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
+        $data['sort_created_at'] = $route . "?sort=created_at&order=$order" .$url;
 
         
         $data['list_url'] = route('lang.admin.setting.user.users.list');
@@ -162,8 +161,16 @@ class UserController extends BackendController
         $data['back_url'] = route('lang.admin.setting.user.users.index', $queries);
 
         // Get Record
-        $user = $this->UserService->findIdOrFailOrNew($user_id);
-        $user = $this->UserService->getMetaDataset($user);
+        $result = $this->UserService->findIdOrFailOrNew($user_id);
+
+        if(empty($result['error']) && !empty($result['data'])){
+            $user = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
+
+        $user = $this->UserService->getMetaRows($user);
 
         $data['user']  = $user;
 

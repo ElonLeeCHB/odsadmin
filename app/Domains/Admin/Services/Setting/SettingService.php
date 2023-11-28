@@ -53,7 +53,13 @@ class SettingService extends Service
         DB::beginTransaction();
 
         try {
-            $setting = $this->SettingRepository->findIdOrFailOrNew($data['setting_id']);
+            $result = $this->SettingRepository->findIdOrFailOrNew($data['setting_id']);
+
+            if(empty($result['error']) && !empty($result['data'])){
+                $setting = $result['data'];
+            }else{
+                return response(json_encode($result))->header('Content-Type','application/json');
+            }
 			
 			$setting->location_id = $data['location_id'] ?? 0;
 			$setting->group = $data['group'];

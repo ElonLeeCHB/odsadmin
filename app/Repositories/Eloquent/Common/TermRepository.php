@@ -3,6 +3,7 @@
 namespace App\Repositories\Eloquent\Common;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use App\Repositories\Eloquent\Repository;
 use App\Repositories\Eloquent\Common\TaxonomyRepository;
 use App\Models\Common\Term;
@@ -117,13 +118,20 @@ class TermRepository extends Repository
     }
 
 
-    public function updateOrCreateTerm($data)
+    public function saveTerm($data)
     {
         DB::beginTransaction();
 
         try {
             // 儲存主記錄
-            $term = $this->findIdOrFailOrNew($data['term_id']);
+            $result = $this->findIdOrFailOrNew($data['term_id']);
+
+            if(!empty($result['data'])){
+                $term = $result['data'];
+            }else if($result['error']){
+                throw new \Exception($result['error']);
+            }
+            unset($result);
 
             $term->parent_id = $data['parent_id'] ?? 0;
             $term->code = $data['code'] ?? '';
@@ -137,10 +145,18 @@ class TermRepository extends Repository
 
             // 儲存多語資料
             if(!empty($data['translations'])){
-                $this->saveTranslationData($term, $data['translations']);
+                $this->saveRowTranslationData($term, $data['translations']);
             }
 
             DB::commit();
+
+            // 刪除自定義快取
+            $taxonomy_code = $term->taxonomy_code;
+
+            $path = 'cache/terms/code_keyed/' . $taxonomy_code . '.json';
+            if (Storage::exists($path)) {
+                Storage::delete($path);
+            }
 
             $result['term_id'] = $term->id;
             return $result;
@@ -153,29 +169,110 @@ class TermRepository extends Repository
         
         return false;
     }
+
+
     
 
-    // 尋找關聯，並將關聯值賦予記錄
-    public function optimizeRow($row)
+
+    // Static
+
+
+    public static function createRepository(): self
     {
-        return $row;
+        $taxonomyRepository = app(TaxonomyRepository::class);
+        return new static($taxonomyRepository);
     }
 
-
-    // 刪除關聯
-    public function sanitizeRow($row)
+    /**
+     * @param  int     $taxonomy_code terms.taxonomy_code = taxonomies.code
+     * @param  boolean $to_array 
+     * @param  array   $data 
+     *
+     * @return array
+     *
+     * @author  Ron Lee
+     * @created 2023-11-05
+     * @updated 2023-11-05
+     */
+    public static function getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray = true, $params = null): array
     {
-        $arrOrder = $row->toArray();
+        $cache_name = 'cache/terms/code_keyed/' . $taxonomy_code . '.json';
 
-        if(!empty($arrOrder['translation'])){
-            unset($arrOrder['translation']);
+        $json_string = '';
+
+        if (Storage::exists($cache_name)) {
+            $json_string = Storage::get($cache_name);
+        }else{
+            $filter_data = $params;
+
+            //強制必須
+            $filter_data['equal_taxonomy_code'] = $taxonomy_code;
+            $filter_data['pagination'] = false;
+            $filter_data['limit'] = 0;
+            $filter_data['is_active'] = 1;
+            
+            $termInstance = self::createRepository();
+            $terms = $termInstance->getRows($filter_data)->toArray();
+
+            $rows = [];
+
+            foreach ($terms as $key => $row) {
+                unset($row['translation']);
+                unset($row['taxonomy']);
+                $code = $row['code'];
+                
+                $rows[$code] = $row;
+            }
+
+            if(!empty($rows)){
+                Storage::put($cache_name, json_encode($rows));
+                sleep(1);
+
+                $json_string = Storage::get($cache_name);
+            }
         }
 
-        if(!empty($arrOrder['taxonomy'])){
-            unset($arrOrder['taxonomy']);
+        $objects = json_decode($json_string);
+
+        // 預設三個欄位
+        if(empty($params['columns'])){
+            $params['columns'] = ['id','code','name','is_active'];
+        }else{
+            $params['columns'] = '*';
         }
 
-        return (object) $arrOrder;
+        // 指定欄位
+        if($params['columns'] != '*'){
+            foreach ($objects as $code => $object) {
+                foreach ($object as $column => $value) {
+                    if(!in_array($column, $params['columns'])){
+                        unset($objects->$code->$column);
+                    }
+                }
+            }
+
+        }
+
+        $rows = [];
+
+        if($toArray == true){
+            foreach ($objects as $code => $object) {
+                $rows[$code] = (array) $object;
+            }
+        }else{
+            foreach ($objects as $code => $object) {
+                $rows[$code] = (object) $object;
+            }
+        }
+
+        return $rows;
+    }
+
+    public static function getNameByCodeAndTaxonomyCode($code, $taxonomy_code)
+    {
+        $terms = self::getCodeKeyedTermsByTaxonomyCode($taxonomy_code, toArray:false);
+        
+        return !empty($terms[$code]) ? $terms[$code]->name : '';
     }
 }
 

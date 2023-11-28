@@ -18,12 +18,21 @@ $(document).ready(function() {
 });
 
 //非數字轉成數字或0
+// String.prototype.toNum = function(){
+//   var  num = this.replace(/,/g, '');
+//   if(!$.isNumeric(num)){
+//     num = 0;
+//   }
+//   return num;
+// }
 String.prototype.toNum = function(){
-  var  num = this.replace(/,/g, '');
-  if(!$.isNumeric(num)){
-    num = 0;
+  let parsedValue = parseFloat(this.replace(/,/g, ''));
+
+  if (parsedValue % 1 === 0) {
+    parsedValue = parseInt(parsedValue);
   }
-  return num;
+
+  return parsedValue;
 }
 
 //0轉成空字串
@@ -34,6 +43,7 @@ String.prototype.zeroToEmpty = function(){
   }
   return num;
 }
+
 
 
 function isDateValid(dateString) {

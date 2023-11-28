@@ -20,17 +20,23 @@ return [
 'column_contact_title' => '職稱',
 'column_fax' => '傳真',
 'column_www' => '網站',
-'column_line_at' => 'line@',
 'column_supplier_bank_name' => '銀行名稱',
 'column_supplier_bank_code' => '銀行代號',
 'column_supplier_bank_account' => '銀行帳號',
 'column_payment_term' => '付款條件',
+'column_tax_type' => '課稅別',
 
 'column_supplier_contact_name' => '聯絡人',
 'column_supplier_contact_email' => '聯絡email',
 'column_supplier_contact_jobtitle' => '聯絡人職稱',
 'column_supplier_contact_telephone' => '聯絡人市話',
 'column_supplier_contact_mobile' => '聯絡人手機',
+'column_is_often_used_supplier' => '是否常用廠商',
+'column_shipping_address' => '地址',
+'column_address' => '地址',
 
+
+'error_name' => '名稱必須2-100個字，並且不可重複',
+'error_short_name' => '簡稱必須2-50個字，並且不可重複',
 ];
 

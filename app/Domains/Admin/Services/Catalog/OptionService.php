@@ -29,7 +29,13 @@ class OptionService extends GlobalOptionService
             extract($data);
 
             // Option
-            $option = $this->findIdOrFailOrNew($data['option_id']);
+            $result = $this->findIdOrFailOrNew($data['option_id']);
+
+            if(empty($result['error']) && !empty($result['data'])){
+                $option = $result['data'];
+            }else{
+                return response(json_encode($result))->header('Content-Type','application/json');
+            }
 
             $option->code = $code ?? null;
             $option->type = $type;

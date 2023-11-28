@@ -159,7 +159,14 @@ class CategoryController extends BackendController
         $data['taxonomy_autocomplete_url'] = route('lang.admin.common.taxonomies.autocomplete');
 
         // Get Record
-        $category = $this->CategoryService->findIdOrFailOrNew($category_id);
+        $result = $this->CategoryService->findIdOrFailOrNew($category_id);
+
+        if(empty($result['error']) && !empty($result['data'])){
+            $category = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         if($category->taxonomy && $category->taxonomy->name){
             $category->taxonomy_name = $category->taxonomy->name;

@@ -4,12 +4,16 @@ namespace App\Models\Catalog;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Models\Common\Unit;
+use App\Traits\ModelTrait;
+use App\Models\Inventory\Unit;
 
 class ProductUnit extends Model
 {
+    use ModelTrait;
+
     public $timestamps = false;
     protected $guarded = [];
+    protected $appends = ['source_unit_name', 'destination_unit_name'];
 
 
     public function source_unit()
@@ -21,4 +25,23 @@ class ProductUnit extends Model
     {
         return $this->belongsTo(Unit::class, 'destination_unit_code', 'code');
     }
+
+
+    // Attribute
+
+    protected function sourceUnitName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->source_unit->name ?? '',
+        );
+    }
+
+    protected function destinationUnitName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->destination_unit->name ?? '',
+        );
+    }
 }
+
+

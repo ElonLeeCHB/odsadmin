@@ -45,9 +45,9 @@
                   <div id="language-{{ $language->code }}" class="tab-pane @if ($loop->first)active @endif">
                     <input type="hidden" name="translations[{{ $language->code }}][id]" value="{{ $translations[$language->code]['id'] ?? '' }}" >
 
-                    <div class="row mb-3">
+                    <div class="row mb-3 required">
                       <label for="input-name-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_name }}</label>
-                      <div class="col-sm-10">
+                      <div class="col-sm-10" >
                         <div class="input-group">
                           <input type="text" id="input-name-{{ $language->code }}" name="translations[{{ $language->code }}][name]" value="{{ $translations[$language->code]['name'] ?? '' }}" class="form-control">
                         </div>
@@ -119,6 +119,18 @@
                     </div>
                     <div class="form-text"></div>
                     <div id="error-comment" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                {{-- sort_order --}}
+                <div class="row mb-3">
+                  <label class="col-sm-2 col-form-label">{{ $lang->column_sort_order }}</label>
+                  <div class="col-sm-10">
+                    <div class="input-group">
+                      <textarea id="input-sort_order" name="sort_order" class="form-control">{{ $term->sort_order }}</textarea>
+                    </div>
+                    <div class="form-text"></div>
+                    <div id="error-sort_order" class="invalid-feedback"></div>
                   </div>
                 </div>
 

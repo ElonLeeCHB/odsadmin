@@ -7,7 +7,7 @@
           <td class="text-start"><a href="{{ $sort_id }}" @if($sort=='id') class="{{ $order }}" @endif>{{ $lang->column_id }}</a></td>
           <td class="text-start"><a href="{{ $sort_code }}" @if($sort=='code') class="{{ $order }}" @endif>{{ $lang->column_code }}</a></td>
           <td class="text-start"><a href="{{ $sort_name }}" @if($sort=='name') class="{{ $order }}" @endif>{{ $lang->column_name }}</a></td>
-          <td class="text-start"><a href="{{ $sort_taxonomy_name }}" @if($sort=='taxonomy_name') class="{{ $order }}" @endif>{{ $lang->column_taxonomy_name }}</a></td>
+          <td class="text-start">{{ $lang->column_taxonomy_name }}</td>
           <td class="text-start">{{ $lang->column_is_active }}</td>
           <td class="text-end">{{ $lang->column_action }}</td>
         </tr>

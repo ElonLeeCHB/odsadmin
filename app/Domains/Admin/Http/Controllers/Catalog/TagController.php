@@ -90,7 +90,6 @@ class TagController extends BackendController
         unset($queries['sort']);
         unset($queries['order']);
         unset($queries['with']);
-        unset($queries['whereIn']);
 
         $url = '';
 
@@ -151,7 +150,14 @@ class TagController extends BackendController
         $data['autocomplete_url'] = route('lang.admin.catalog.tags.autocomplete');
 
         // Get Record
-        $tag = $this->TagService->findIdOrFailOrNew($tag_id,['equal_taxonomy_code' => 'product_tag']);
+        $result = $this->TagService->findIdOrFailOrNew($tag_id,['equal_taxonomy_code' => 'product_tag']);
+
+        if(!empty($result['data'])){
+            $tag = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $data['tag']  = $tag;
         

@@ -12,6 +12,7 @@ class Option extends Model
 {
     use Translatable;
 
+    public $translation_attributes = ['name'];
     protected $guarded = [];
     protected $translationForeignKey = 'option_id';
     protected $appends = ['name'];

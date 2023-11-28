@@ -4,27 +4,31 @@ namespace App\Models\Catalog;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\Model\Translatable;
+use App\Traits\ModelTrait;
 use App\Models\Common\Term;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductUnit;
 use App\Models\Catalog\ProductMeta;
-use App\Models\Common\Unit;
-use App\Models\Catalog\ProductBom;
+use App\Models\Inventory\Unit;
+use App\Models\Inventory\Bom;
+use App\Models\Inventory\BomProduct;
 use App\Models\Counterparty\Organization;
 
 class Product extends Model
 {
-    use Translatable;
+    use ModelTrait;
 
     protected $guarded = [];
-    protected $appends = ['name','specification','description'];
-    public $translated_attributes = ['name','full_name','short_name','description','specification','meta_title','meta_description','meta_keyword',];
+    protected $appends = ['name','specification','description',];
+    public $translation_attributes = ['name','full_name','short_name','specification','meta_title','meta_description','meta_keyword',];
+    
     public $meta_keys = [
         'supplier_own_product_code',
         'supplier_own_product_name',
-        'supplier_own_product_specification'
+        'supplier_own_product_specification',
+        'temperature_type_code',        
     ];
+
 
     public function main_category()
     {
@@ -38,24 +42,43 @@ class Product extends Model
     }
 
 
-    public function boms()
+    public function bom()
     {
-        return $this->hasMany(ProductBom::class, 'product_id', 'id');
+        return $this->hasMany(Bom::class, 'product_id', 'id');
     }
 
+    public function boms()
+    {
+        return $this->hasMany(Bom::class, 'product_id', 'id');
+    }
 
     public function bom_products()
     {
-        return $this->belongsToMany(Product::class, 'product_boms', 'product_id', 'sub_product_id')
-            ->withPivot(['quantity']);
+        return $this->hasManyThrough(BomProduct::class, Bom::class, 'product_id', 'bom_id', 'id', 'id');
     }
+
+    public function source_type()
+    {
+        return $this->belongsTo(Term::class,'source_type_code', 'code')->where('taxonomy_code', 'product_source_type');
+    }
+
+    public function accounting_category()
+    {
+        return $this->belongsTo(Term::class, 'accounting_category_code', 'code')->where('taxonomy_code', 'product_accounting_category');
+    }
+    
+    // public function bom_products()
+    // {
+    //     return $this->belongsToMany(Product::class, 'product_boms', 'product_id', 'sub_product_id')
+    //         ->withPivot(['quantity']);
+    // }
 
 
     public function product_options()
     {
         return $this->hasMany(ProductOption::class,'product_id', 'id')->orderBy('sort_order');
     }
-
+    
 
     public function cachedProductOptions()
     {
@@ -74,6 +97,10 @@ class Product extends Model
         return $this->belongsTo(Unit::class, 'stock_unit_code', 'code');
     }
 
+    public function usage_unit()
+    {
+        return $this->belongsTo(Unit::class, 'usage_unit_code', 'code');
+    }
 
     public function product_units()
     {
@@ -91,7 +118,7 @@ class Product extends Model
         return $this->belongsTo(self::class, 'supplier_product_id', 'id');
     }
 
-    public function meta_dataset()
+    public function metas()
     {
         return $this->hasMany(ProductMeta::class);
     }
@@ -130,7 +157,8 @@ class Product extends Model
     protected function price(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => number_format($value),
+            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
         );
     }
 
@@ -145,6 +173,22 @@ class Product extends Model
     {
         return Attribute::make(
             get: fn () => $this->stock_unit->name ?? '',
+        );
+    }
+
+    protected function usageUnitName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->usage_unit->name ?? '',
+        );
+    }
+
+    protected function quantity(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
+
         );
     }
 }

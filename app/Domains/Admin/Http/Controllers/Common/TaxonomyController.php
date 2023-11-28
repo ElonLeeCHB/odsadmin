@@ -81,7 +81,6 @@ class TaxonomyController extends BackendController
         if(!empty($taxonomies)){
             foreach ($taxonomies as $row) {
                 $row->edit_url = route('lang.admin.common.taxonomies.form', array_merge([$row->id], $queries));
-                $row->is_active = $row->is_active ? $this->lang->text_enabled : $this->lang->text_disabled;
                 unset($row->translation);
             }
         }
@@ -153,7 +152,7 @@ class TaxonomyController extends BackendController
         $data['back_url'] = route('lang.admin.common.taxonomies.index', $queries);
 
         // Get Record
-        $taxonomy = $this->TaxonomyService->findIdOrFailOrNew($taxonomy_id);
+        $taxonomy = $this->TaxonomyService->findIdOrNew($taxonomy_id);
 
         $data['taxonomy']  = $taxonomy;
 
@@ -180,7 +179,7 @@ class TaxonomyController extends BackendController
 
     public function save()
     {
-        $data = $this->request->all();
+        $post_data = $this->request->all();
 
         $json = [];
 
@@ -189,7 +188,7 @@ class TaxonomyController extends BackendController
         }
 
         if(!$json) {
-            $result = $this->TaxonomyService->updateOrCreate($data);
+            $result = $this->TaxonomyService->saveTaxonomy($post_data);
 
             // Success
             if(empty($result['error'])){

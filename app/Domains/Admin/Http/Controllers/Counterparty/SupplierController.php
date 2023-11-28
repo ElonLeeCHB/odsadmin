@@ -8,10 +8,15 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Validator;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Admin\Services\Counterparty\SupplierService;
+use App\Repositories\Eloquent\Common\TermRepository;
+use App\Domains\Admin\Services\Localization\DivisionService;
+use App\Helpers\Classes\DataHelper;
+use App\Http\Resources\Inventory\SupplierResource;
+use App\Http\Resources\Inventory\SupplierCollection;
 
 class SupplierController extends BackendController
 {
-    public function __construct(protected Request $request, protected SupplierService $SupplierService)
+    public function __construct(protected Request $request, protected SupplierService $SupplierService, protected TermRepository $TermRepository, protected DivisionService $DivisionService)
     {
         parent::__construct();
         
@@ -61,25 +66,26 @@ class SupplierController extends BackendController
     {
         $data['lang'] = $this->lang;
 
+        $query_data = $this->request->query();
+
 
         // Prepare query_data for records
-        $query_data = $this->getQueries($this->request->query());
+        $query_data = $this->getQueries($query_data);
 
         // Extra default
         $query_data['equal_is_supplier'] = 1;
-
+        $query_data['pagination'] = true;
 
         // Records
         $suppliers = $this->SupplierService->getSuppliers($query_data);
         
+
         foreach ($suppliers as $row) {
             $row->edit_url = route('lang.admin.counterparty.suppliers.form', array_merge([$row->id], $query_data));
             $row->payment_term_name = $row->payment_term->name ?? '';
         }
-        $suppliers = $this->unsetRelations($suppliers, ['payment_term']);
-        
-        $data['suppliers'] = &$suppliers;
 
+        $data['suppliers'] = $suppliers->withPath(route('lang.admin.counterparty.suppliers.list'))->appends($query_data);
 
         // Prepare links for list table's header
         if($query_data['order'] == 'ASC'){
@@ -94,7 +100,6 @@ class SupplierController extends BackendController
         unset($query_data['sort']);
         unset($query_data['order']);
         unset($query_data['with']);
-        unset($query_data['whereIn']);
 
         $url = '';
 
@@ -110,6 +115,7 @@ class SupplierController extends BackendController
         $data['sort_code'] = $route . "?sort=code&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_short_name'] = $route . "?sort=short_name&order=$order" .$url;
+        $data['sort_tax_type_code'] = $route . "?sort=tax_type_code&order=$order" .$url;
         
         $data['list_url'] = route('lang.admin.counterparty.suppliers.list');
         
@@ -173,20 +179,34 @@ class SupplierController extends BackendController
         }
 
         $data['save_url'] = route('lang.admin.counterparty.suppliers.save');
-        $data['back_url'] = route('lang.admin.counterparty.suppliers.index', $queries);        
+        $data['back_url'] = route('lang.admin.counterparty.suppliers.index', $queries);      
+        $data['banks_url'] = route('lang.admin.counterparty.banks.autocomplete');
 
 
         // Get Record
-        $supplier = $this->SupplierService->findIdOrFailOrNew($supplier_id);
+        $result = $this->SupplierService->findIdOrFailOrNew($supplier_id);
 
-        $supplier = $this->SupplierService->getMetaDataset($supplier);
+        if(empty($result['error']) && !empty($result['data'])){
+            $supplier = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
+
+        $supplier = $this->SupplierService->getMetaRows($supplier);
 
         $supplier->parent_name = $supplier->parent->name ?? '';
 
         $supplier->payment_term_name = $supplier->payment_term->name ?? '';
         $supplier = $this->SupplierService->unsetRelation($supplier, ['payment_term']);
 
-        $data['supplier']  = &$supplier;
+        // Default column value
+        if(empty($supplier->id)){
+            $supplier->is_active = 1;
+        }
+        //$data['supplier']  = $supplier;
+        //echo '<pre>', print_r( $supplier->toArray() , 1), "</pre>"; exit;
+        $data['supplier']  = $supplier->toCleanObject();
 
         if(!empty($data['supplier']) && $supplier_id == $supplier->id){
             $data['supplier_id'] = $supplier_id;
@@ -196,6 +216,16 @@ class SupplierController extends BackendController
         
         $data['payment_term_autocomplete_url'] = route('lang.admin.common.payment_terms.autocomplete');
 
+        $data['tax_types'] = $this->SupplierService->getCodeKeyedTermsByTaxonomyCode('tax_type',toArray:false);
+
+        $data['states'] = $this->DivisionService->getStates();
+
+        if(!empty($supplier->shipping_state_id)){
+            $data['shipping_cities'] = $this->DivisionService->getCities(['filter_parent_id' => $supplier->shipping_state_id]);
+        }else{
+            $data['shipping_cities'] = [];
+        }
+
         return view('admin.counterparty.supplier_form', $data);
     }
 
@@ -204,7 +234,11 @@ class SupplierController extends BackendController
         $postData = $this->request->post();
 
         $json = [];
-        
+
+        if(empty($this->request->tax_type_code)){
+            $json['error']['tax_type_code'] = '請選擇課稅別';
+        }
+
         $postData['is_supplier'] = 1;
         $postData['organization_id'] = $postData['supplier_id'];
 
@@ -224,13 +258,13 @@ class SupplierController extends BackendController
         }
 
         if(!$json) {
-            $result = $this->SupplierService->updateOrCreate($postData);
+            $result = $this->SupplierService->saveSupplier($postData);
 
-            if(empty($result['error']) && !empty($result['supplier_id'])){
+            if(empty($result['error']) && !empty($result['id'])){
                 $json = [
-                    'supplier_id' => $result['supplier_id'],
+                    'supplier_id' => $result['id'],
                     'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.counterparty.suppliers.form', $result['supplier_id']),
+                    'redirectUrl' => route('lang.admin.counterparty.suppliers.form', $result['id']),
                 ];
             }else{
                 if(config('app.debug')){
@@ -293,8 +327,8 @@ class SupplierController extends BackendController
         return Validator::make($data, [
                 'supplier_id' =>'nullable|integer',
                 'code' =>'nullable|unique:organizations,code,'.$data['supplier_id'],
-                'name' =>'min:2|max:50',
-                'short_name' =>'min:2|max:10',
+                'name' =>'min:2|max:100|unique:organizations,name,'.$data['supplier_id'],
+                'short_name' =>'min:2|max:50|unique:organizations,short_name,'.$data['supplier_id'],
                 'mobile' =>'nullable|min:9|max:20',
                 'telephone' =>'nullable|min:7|max:20',
             ],[
@@ -307,33 +341,60 @@ class SupplierController extends BackendController
         ]);
     }
 
+    public function rowsWithMetaData($rows)
+    {
+        foreach ($rows as $key => $row) {
+            $metas = $row->metas;
+            foreach ($metas as $meta_row) {
+                $row->{$meta_row->meta_key} = $meta_row->meta_value;
+            }
+        }
+        return $rows;
+    }
+
     public function autocomplete()
     {
         $json = [];
 
         $query_data = $this->request->query();
 
-        // $filter_data = array(
-        //     'filter_keyword'   => $this->request->filter_keyword,
-        //     'filter_contact'   => $this->request->filter_contact,
-        //     'filter_contact_phone'   => $this->request->filter_contact_phone,
-        // );
+        $filter_data = $query_data;
+        $filter_data['with'] = ['payment_term', 'metas'];
 
-        // if (!empty($this->request->sort)) {
-        //     if($this->request->sort =='name'){
-        //         $filter_data['sort'] = '.name';
-        //     } else if($this->request->sort =='short_name'){
-        //         $filter_data['sort'] = '.short_name';
-        //     }
-        // }
+        $hasFilterOrEqual = false;
 
-        $rows = $this->SupplierService->getSuppliers($query_data);
-
-        if(empty($rows)){
-            return false;
+        foreach ($filter_data as $key => $value) {
+            if ((str_starts_with($key, 'filter_') == true || str_starts_with($key, 'equal_') == true) && !empty($value)) {
+                $hasFilterOrEqual = true;
+                break;
+            }
         }
 
-        foreach ($rows as $row) {
+        
+        // 不存在任何查詢
+        if($hasFilterOrEqual !== true){
+            $cache_name = 'cache/counterparty/suppliers/often_used.json';
+            $suppliers = DataHelper::getJsonFromStoragNew($cache_name);
+        }
+        else{
+            $suppliers = $this->SupplierService->getSuppliers($filter_data);
+
+            if(empty($suppliers)){
+                return false;
+            }
+            
+            $suppliers = $this->rowsWithMetaData($suppliers);
+        }
+        
+        // // 不存在任何查詢
+        // if($hasFilterOrEqual !== true){
+        //     $filter_data['equal_is_often_used_supplier'] = 1;
+        // }
+
+        // 稅別
+        $data['tax_types'] = $this->SupplierService->getCodeKeyedTermsByTaxonomyCode('tax_type',toArray:false);
+
+        foreach ($suppliers as $row) {
             $json[] = array(
                 'label' => $row->name . ', ' . $row->tax_id_num,
                 'value' => $row->id,
@@ -341,6 +402,7 @@ class SupplierController extends BackendController
                 'supplier_name' => $row->name,
                 'short_name' => $row->short_name,
                 'tax_id_num' => $row->tax_id_num,
+                'tax_type_code' => $row->tax_type_code,
             );
         }
 
@@ -351,6 +413,7 @@ class SupplierController extends BackendController
             'supplier_name' => '',
             'short_name' => '',
             'tax_id_num' => '',
+            'tax_type_code' => '',
         ]);
 
         return response(json_encode($json))->header('Content-Type','application/json');

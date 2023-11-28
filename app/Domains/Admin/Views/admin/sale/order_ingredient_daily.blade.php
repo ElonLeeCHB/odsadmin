@@ -1,0 +1,101 @@
+@extends('admin.app')
+
+@section('pageJsCss')
+@endsection
+
+@section('columnLeft')
+	@include('admin.common.column_left')
+@endsection
+
+@section('content')
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="float-end">
+        <button type="button" data-bs-toggle="tooltip" title="{{ $lang->button_filter }}" onclick="$('#filter-term').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fa-solid fa-filter"></i></button>
+      </div>
+      <h1>{{ $lang->heading_title }}</h1>
+      @include('admin.common.breadcumb')
+    </div>
+  </div>
+  <div class="container-fluid">
+    <div class="row">
+      <div id="filter-term" class="col-lg-3 col-md-12 order-lg-last d-none d-lg-block mb-3">
+        <form>
+          <div class="card">
+            <div class="card-header"><i class="fa-solid fa-filter"></i> {{ $lang->text_filter }}</div>
+            <div class="card-body">
+
+              <div class="mb-3">
+                  <label data-bs-toggle="tooltip" title="例如：2023-02-20 或不加橫線 20230220 或範圍 20230301-20230331 或大於某日 >20230101 或小於某日 <20230101" style="font-weight: bolder;" >{{ $lang->column_required_date }} <i class="fa fa-question-circle" aria-hidden="true"></i></label>
+                  <input type="text" id="input-filter_required_date" name="filter_required_date" value="" placeholder="例如 2023-02-20" class="form-control"/>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">{{ $lang->column_product_id }}</label>
+                <input type="text" id="input-equal_product_id" name="equal_product_id" value="{{ $equal_product_id ?? '' }}"  class="form-control" autocomplete="off"/>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">{{ $lang->column_product_name }}</label>
+                <input type="text" id="input-filter_product_name" name="filter_product_name" value="{{ $filter_product_name ?? '' }}"  class="form-control" autocomplete="off"/>
+              </div>
+
+              <div class="text-end">
+                <button type="reset" id="button-clear" class="btn btn-light"><i class="fa fa-refresh" aria-hidden="true"></i> {{ $lang->button_reset }}</button>
+                <button type="button" id="button-filter" class="btn btn-light"><i class="fa-solid fa-filter"></i> {{ $lang->button_filter }}</button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="col-lg-9 col-md-12">
+        <div class="card">
+          <div class="card-header"><i class="fa-solid fa-list"></i> {{ $lang->text_list }}</div>
+          <div id="ingredient" class="card-body">{!! $list !!}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+@endsection
+
+@section('buttom')
+<script type="text/javascript"><!--
+$('#ingredient').on('click', 'thead a, .pagination a', function(e) {
+	e.preventDefault();
+
+	$('#ingredient').load(this.href);
+});
+
+$('#button-filter').on('click', function() {
+	url = '?';
+
+  var filter_required_date = $('#input-filter_required_date').val();
+
+  if (filter_required_date) {
+    url += '&filter_required_date=' + encodeURIComponent(filter_required_date);
+  }
+
+  var equal_product_id = $('#input-equal_product_id').val();
+
+  if (equal_product_id) {
+    url += '&equal_product_id=' + encodeURIComponent(equal_product_id);
+  }
+
+	var filter_product_name = $('#input-filter_product_name').val();
+
+	if (filter_product_name) {
+		url += '&filter_product_name=' + encodeURIComponent(filter_product_name);
+	}
+  
+	list_url = "{{ $list_url }}" + url;
+
+	$('#ingredient').load(list_url);
+
+  add_url = $("#button-add").attr("href") + url
+  $("#button-add").attr("href", add_url);
+
+});
+//--></script>
+@endsection

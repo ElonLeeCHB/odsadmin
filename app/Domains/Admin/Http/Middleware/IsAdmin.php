@@ -23,8 +23,9 @@ class IsAdmin
         if(!empty($acting_user) && $acting_user->is_admin){
             return $next($request);
         }else{
+            auth()->logout();
             $route = route('lang.admin.login') . "?prev_url=" . url()->current();
-            return redirect($route)->with('error',"There is something wrong!!");
+            return redirect($route)->with('error_warning',"您沒有後台權限");
         }
     }
 }

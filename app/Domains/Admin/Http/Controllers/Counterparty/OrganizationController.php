@@ -202,7 +202,14 @@ class OrganizationController extends Controller
         $data['back'] = route('lang.admin.member.organizations.index', $queries);
 
         // Get Record
-        $organization = $this->OrganizationService->findIdOrNew($organization_id);
+        $result = $this->OrganizationService->findIdOrFailOrNew($organization_id);
+
+        if(!empty($result['data'])){
+            $organization = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
         
         $data['organization']  = $organization;
 

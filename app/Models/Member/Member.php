@@ -2,23 +2,39 @@
 
 namespace App\Models\Member;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Models\User\User;
 use App\Models\Sale\Order;
 use App\Models\Localization\City;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\Member\MemberMeta;
+use App\Traits\ModelTrait;
 
 class Member extends User
 {
-    protected $guarded = [];
+    use ModelTrait;
     
-    public $table = 'users';
+    public $table = 'users';    
+    protected $guarded = [];
+    protected $foreignKey = 'user_id';
     
     public $meta_keys = [
         'is_admin',
         'first_name',
         'last_name',
         'short_name',
+        'find_us',
+        'find_us_comment',
     ];
+    
+    public function getForeignKey()
+    {
+        return $this->foreignKey;
+    }
+
+    public function metas()
+    {
+        return $this->hasMany(MemberMeta::class);
+    }
 
     public function shipping_city()
     {
@@ -28,6 +44,11 @@ class Member extends User
     public function orders()
     {
         return $this->hasMany(Order::class, 'customer_id', 'id');
+    }
+    
+    public function hasOrders()
+    {
+        return $this->orders()->exists();
     }
 
     public function latestOrder()

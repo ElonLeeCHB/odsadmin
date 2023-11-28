@@ -214,7 +214,14 @@ class OptionController extends BackendController
         $data['languages'] = $languages;
 
         // Get Record
-        $option = $this->OptionService->findIdOrFailOrNew($option_id);
+        $result = $this->OptionService->findIdOrFailOrNew($option_id);
+
+        if(!empty($result['data'])){
+            $option = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $data['option']  = $option;
 

@@ -35,7 +35,13 @@ class UserService extends Service
         DB::beginTransaction();
 
         try {
-            $user = $this->findIdOrFailOrNew(id:$data['user_id']);
+            $result = $this->findIdOrFailOrNew(id:$data['user_id']);
+
+            if(empty($result['error']) && !empty($result['data'])){
+                $user = $result['data'];
+            }else{
+                return response(json_encode($result))->header('Content-Type','application/json');
+            }
 
             $user->username = $data['username'];
             $user->name = $data['name'] ?? '';
@@ -54,9 +60,11 @@ class UserService extends Service
 
             //$user->is_admin = $data['is_admin'] ?? 0;
             
-            $user->save();
+            if($user->isDirty()){
+                $user->save();
+            }
 
-            $this->saveMetaDataset($user, $data);
+            $this->saveRowMetaData($user, $data);
 
             //is_admin
             // $upsertData[] = [

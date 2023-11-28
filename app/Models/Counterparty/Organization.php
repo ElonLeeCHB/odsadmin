@@ -6,23 +6,18 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Counterparty\OrganizationMeta;
 use App\Models\Counterparty\PaymentTerm;
-
+use App\Traits\ModelTrait;
 
 class Organization extends Model
 {
+    use ModelTrait;
+    
     protected $guarded = [];
 
     public $meta_keys = [
         'www',
-        'line_at',
-        'supplier_contact_name',
-        'supplier_contact_email',
-        'supplier_contact_jobtitle',
-        'supplier_contact_telephone',
-        'supplier_contact_mobile',
-        'supplier_bank_name',
-        'supplier_bank_code',
-        'supplier_bank_account',
+        'line_id',
+        'line_uid',
     ];
 
     public function payment_term()
@@ -30,9 +25,9 @@ class Organization extends Model
         return $this->belongsTo(PaymentTerm::class);
     }
 
-    public function meta_dataset()
+    public function metas()
     {
-        return $this->hasMany(OrganizationMeta::class);
+        return $this->hasMany(OrganizationMeta::class, 'organization_id', 'id');
     }
 
     public function parent()

@@ -4,7 +4,6 @@ namespace App\Domains\Admin\Services\Sale;
 
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
-use App\Services\Sale\OrderService as GlobalOrderService;
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderTotalRepository;
@@ -21,7 +20,7 @@ use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
 use Carbon\Carbon;
 use Mpdf\Mpdf;
 
-class OrderService extends GlobalOrderService
+class OrderService extends Service
 {
     protected $modelName = "\App\Models\Sale\Order";
     
@@ -30,7 +29,9 @@ class OrderService extends GlobalOrderService
         , protected OrderTotalRepository $OrderTotalRepository
         , protected MemberRepository $MemberRepository
     )
-    {}
+    {
+        $this->repository = $OrderRepository;
+    }
 
 
     public function updateOrCreate($data)
@@ -118,7 +119,13 @@ class OrderService extends GlobalOrderService
                     }
                 }
 
-                $order = $this->OrderRepository->findIdOrFailOrNew($order_id);
+                $result = $this->OrderRepository->findIdOrFailOrNew($order_id);
+
+                if(empty($result['error']) && !empty($result['data'])){
+                    $order = $result['data'];
+                }else{
+                    return response(json_encode($result))->header('Content-Type','application/json');
+                }
 
                 $order->location_id = $data['location_id'];
                 $order->personal_name = $data['personal_name'];
@@ -154,7 +161,8 @@ class OrderService extends GlobalOrderService
                 $order->delivery_date = $delivery_date;
                 $order->delivery_time_range = $data['delivery_time_range'] ?? '';
                 $order->delivery_time_comment = $data['delivery_time_comment'] ?? '';
-                $order->status_id = $data['status_id'] ?? 0;
+                //$order->status_id = $data['status_id'] ?? 0;
+                $order->status_code = $data['status_code'] ?? 0;
                 $order->comment = $data['comment'] ?? '';
                 $order->extra_comment = $data['extra_comment'] ?? '';
 
@@ -162,47 +170,58 @@ class OrderService extends GlobalOrderService
                 // 訂單單頭結束
             }
 
-            // 標籤
-            if(!empty($data['order_tag'])){
+            // 公司分類的寫入功能 待處理
+            //if(!empty($data['order_tag'])){
+            if(0){
                 if(!is_array($data['order_tag'])){
                     $tags = explode(',', $data['order_tag']);
                 }else{
                     $tags = $data['order_tag'];
                 }
 
-                foreach ($tags as $key => $tag) {
-                    $tag = trim($tag);
-                    if(empty($tag)){
-                        continue;
-                    }
+                // 若無此標籤則新增
+                // foreach ($tags as $key => $tag) {
+                //     $tag = trim($tag);
+                //     if(empty($tag)){
+                //         continue;
+                //     }
 
-                    $term_translation = TermTranslation::where('name', $tag)->where('locale', app()->getLocale())->select(['id','term_id'])->first();
+                //     $term_translation = TermTranslation::where('name', $tag)->where('locale', app()->getLocale())->select(['id','term_id'])->first();
 
-                    // 若無此標籤則新增
-                    if($term_translation == null){
-                        $term = new Term;
-                        $term->taxonomy_code = 'order_tag';
-                        $term->object_model = 'App\Models\Sale\Order';
-                        $term->is_active = 1;
-                        $term->save();
+                //     if($term_translation == null){
+                //         $term = new Term;
+                //         $term->taxonomy_code = 'order_tag';
+                //         $term->object_model = 'App\Models\Sale\Order';
+                //         $term->is_active = 1;
+                //         $term->save();
 
-                        $term_translation = new TermTranslation;
-                        $term_translation->term_id = $term->id;
-                        $term_translation->locale = app()->getLocale();
-                        $term_translation->name = $tag;
-                        $term_translation->save();
-                    }
+                //         $term_translation = new TermTranslation;
+                //         $term_translation->term_id = $term->id;
+                //         $term_translation->locale = app()->getLocale();
+                //         $term_translation->name = $tag;
+                //         $term_translation->save();
+                //     }
 
-                    $insert_term_ids[] = $term_translation->term_id;
+                //     $insert_term_ids[] = $term_translation->term_id;
 
-                    // 新增到 term_relations
-                    $insertRows[] = [
-                        'object_id' => $order_id,
-                        'term_id' => $term_translation->term_id,
-                    ];
-                }
+                //     // 新增到 term_relations
+                //     $insertRows[] = [
+                //         'object_id' => $order_id,
+                //         'term_id' => $term_translation->term_id,
+                //     ];
+                // }
 
                 // 新增前先找出已有的 term_id
+
+
+                //$taxonomy_order = $this->
+
+
+                // 用新式的 whereHas 找 terms taxonomy_code=sys_tables，獲得 orders 表的 term_id，然後令 table_id=這個term_id
+
+
+
+
                 $original_term_ids = Term::where('taxonomy_code', 'order_tag')->whereHas('term_relations', function ($query) use ($order_id) {
                     $query->where('object_id', $order_id);
                 })->pluck('id')->toArray();

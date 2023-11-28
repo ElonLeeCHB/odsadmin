@@ -9,10 +9,12 @@ return [
 
 
 // Text
+'text_menu_inventory' => '庫存管理',
 
 
 // Column
 'column_code' => '進貨單編號',
+'column_form_type' => '單別',
 'column_supplier' => '廠商',
 'column_supplier_name' => '廠商名稱',
 'column_tax_id_num' => '統一編號',
@@ -22,9 +24,14 @@ return [
 'column_product_name' => '料件名稱',
 'column_location_name' => '門市',
 'column_status' => '狀態',
+'column_amount' => '採購金額',
 'column_before_tax' => '稅前金額',
 'column_tax' => '稅額',
 'column_after_tax' => '稅後金額',
+'column_total' => '總金額',
+'column_tax_type' => '課稅別',
+'column_comment' => '備註',
+'column_tax_rate' => '稅率',
 
 
 

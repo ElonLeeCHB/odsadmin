@@ -42,10 +42,10 @@ if(!function_exists('zhChsToCht')){
 
 
 /**
- * $dateString = '2023-05-01', '20230501', '23-05-01', '230501'
+ * $dateString can be '2023-05-01', '20230501', '23-05-01', '230501'
  * Return yyyy-mm-dd
  * From 1971-0101 to 2070-12-31
- * if 710101, means 1971-01-01, if 700101 means 2070-01-01
+ * If dateString use 6 digits, like 710101, means 1971-01-01, if 700101 means 2070-01-01
  */
 if(!function_exists('parseDate')){
     function parseDate(String $dateString)
@@ -204,34 +204,10 @@ if(!function_exists('getSqlWithBindings')){
 if(!function_exists('parseDiffDays')){
     function parseDiffDays($start, $end){
 
-        $end = time();
+        $start_timestamp = strtotime($start);
+        $end_timestamp = strtotime($end);
 
-        //start
-        $start_date = parseDate($start);
-
-        if($start_date == false){
-            $start_date = date('Y-m-d', $start); //timestamp
-
-            if($start_date == false){
-                return false;
-            }
-        }
-
-        //end
-        $end_date = parseDate($end);
-
-        if($end_date == false){
-            $end_date = date('Y-m-d', $end); //timestamp
-
-            if($end_date == false){
-                return false;
-            }
-        }
-
-        $date1 = strtotime($start_date);
-        $date2 = strtotime($end_date);
-        
-        $days_diff = floor(($date2 - $date1) / (60 * 60 * 24));
+        $days_diff = ceil(($start_timestamp - $end_timestamp) / (60 * 60 * 24));
 
         return $days_diff;
     }

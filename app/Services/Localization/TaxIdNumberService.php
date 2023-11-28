@@ -9,12 +9,22 @@ class TaxIdNumberService extends Service
     protected $modelName = "\App\Models\SysData\TwTaxIdNum";
     protected $connection = 'sysdata';
 
-    public function getInvoiceInfo($data=[],$debug=0)
+    //public function getInvoiceInfo($data=[],$debug=0)
+    public function getTaxIdNumRow($data = [], $debug = 0)
     {
+        $tax_id_num = '';
+
         if(!empty($data['filter_tax_id_num'])){
             $tax_id_num = $data['filter_tax_id_num'];
+        }else if(!empty($data['equal_tax_id_num'])){
+            $tax_id_num = $data['equal_tax_id_num'];
+        }
 
-            $cacheName = 'tax_id_num_' . substr($tax_id_num,-3);
+        if(!empty($tax_id_num)){
+
+            $last3 = substr($tax_id_num,-3); //統編末3碼
+
+            $cacheName = 'tax_id_num_' . $last3;
 
             $records = cache()->get($cacheName);
 
@@ -24,7 +34,7 @@ class TaxIdNumberService extends Service
             } else {
                 // 若沒有，則從資料庫或其他資料來源取得資料
                 $filter_data = [
-                    'filter_tax_id_num' => '*' . substr($tax_id_num,-3),
+                    'filter_tax_id_num' => '*' . $last3,
                     'pagination' => false,
                     'limit' => 0,
                     'connection' => 'sysdata',

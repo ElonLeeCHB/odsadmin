@@ -29,7 +29,7 @@
 
     <style>
 .nav-select {
-  margin-top: 10px; /* 根据需要调整垂直位置 */
+  margin-top: 10px;
   margin-left: auto;
   margin-right: auto;
   display: block;

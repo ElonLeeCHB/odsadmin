@@ -11,9 +11,14 @@
           <div class="card-body">
               <form id="form-login" action="{{ route('lang.admin.login') }}" method="post">
                 @csrf
-                @if($errors->has('email') || $errors->has('password'))                   
+                @if($errors->has('password'))                   
                 <div class="alert alert-danger alert-dismissible"><i class="fas fa-exclamation-circle"></i> {{ $errors->first('password') }}</div>
                 @endif
+
+                @if(session()->has('error_warning'))
+                <div class="alert alert-danger alert-dismissible"><i class="fas fa-exclamation-circle"></i> {{ session('error_warning') }}</div>
+                @endif
+
                 <div class="row mb-3">
                   <label for="input-email" class="form-label">{{ $lang->entry_email }}</label>
                   <div class="input-group">
@@ -44,6 +49,8 @@
 @section('buttom')
 <script type="text/javascript"> 
 $(document).ready(function(){
+
+  // 重新取得 csrf token
   $('form').submit(function(e) {
     e.preventDefault(); 
     e.returnValue = false; 
@@ -57,9 +64,12 @@ $(document).ready(function(){
         $('input[name="_token"]').val(response); 
         this.off('submit'); 
         this.submit(); 
+        console.log('success: ')
+        console.log(JSON.stringify(response))
       }, 
       error: function (thrownError) { 
-        console.log(thrownError); 
+        console.log('thrownError: ')
+        console.log(JSON.stringify(thrownError))
       } 
     });
   }); 

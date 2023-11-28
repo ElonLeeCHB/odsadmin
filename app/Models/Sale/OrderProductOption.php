@@ -46,14 +46,14 @@ ProductOptionValue
     public function product_option_value()
     {
         return $this->hasOne(ProductOptionValue::class, 'id', 'product_option_value_id');
-    }    
-    
+    }
 
-    protected function quantity(): Attribute
+
+    public function quantity(): Attribute
     {
         return Attribute::make(
-            get: fn ($value, $attributes) => number_format($attributes['quantity']),
-            set: fn ($value, $attributes) => str_replace(',','',$attributes['quantity']),
+            get: fn ($value, $attributes) => rtrim(rtrim($value, '0'), '.'),
+            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
         );
     }
 }

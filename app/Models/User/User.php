@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use App\Traits\Model\ModelTrait;
+use App\Models\Sale\Order;
+use App\Traits\ModelTrait;
 
 class User extends Authenticatable
 {
@@ -36,6 +37,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'is_admin',
     ];
 
     /**
@@ -57,7 +59,7 @@ class User extends Authenticatable
         'short_name',
     ];
 
-    public function meta_dataset()
+    public function metas()
     {
         return $this->hasMany(UserMeta::class, 'user_id', 'id');
     }
@@ -65,7 +67,7 @@ class User extends Authenticatable
     public function __get($key)
     {
         // 檢查屬性是否存在於 UserMeta 中
-        $userMeta = $this->meta_dataset()->where('meta_key', $key)->first();
+        $userMeta = $this->metas()->where('meta_key', $key)->first();
 
         if ($userMeta) {
             return $userMeta->meta_value;
@@ -76,18 +78,20 @@ class User extends Authenticatable
 
     public function isAdmin():Attribute
     {
-        $userMeta = $this->meta_dataset()->where('meta_key', 'is_admin')->where('meta_value', '1')->first();
-
-        $is_admin = 0;
-
-        if($userMeta){
-            $is_admin = $userMeta->meta_value;
-        }
+        $userMeta = $this->metas()->where('meta_key', 'is_admin')->where('meta_value', '1')->first();
+        
+        $is_admin = ($userMeta) ? 1 : 0;
 
         return Attribute::make(
             get: fn ($value) => $is_admin,
         );
     }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'customer_id', 'id');
+    }
+
 
     protected function personalName(): Attribute
     {

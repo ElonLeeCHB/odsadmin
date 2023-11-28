@@ -4,104 +4,84 @@ namespace App\Domains\Admin\Services\Inventory;
 
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
-use App\Services\Inventory\GlobalProductService;
 use App\Models\Common\TermRelation;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Repositories\Eloquent\Catalog\ProductUnitRepository;
+use App\Repositories\Eloquent\Inventory\UnitRepository;
 use Carbon\Carbon;
+use App\Helpers\Classes\DataHelper;
 
 class ProductService extends Service
 {
     public $modelName = "\App\Models\Catalog\Product";
 
-    public function __construct(private ProductRepository $ProductRepository,private ProductUnitRepository $ProductUnitRepository)
-    {}
-
-
-    public function getProducts($data = [], $debug = 0)
+    public function __construct(ProductRepository $ProductRepository, private ProductUnitRepository $ProductUnitRepository, private UnitRepository $UnitRepository)
     {
-        return $this->ProductRepository->getProducts($data, $debug);
+        $this->repository = $ProductRepository;
     }
 
 
-    public function getProduct($data = [], $debug = 0)
+    public function saveProduct($post_data, $debug = 0)
     {
-        return $this->ProductRepository->getProduct($data, $debug);
-    }
-
-
-    public function updateOrCreate($data)
-    {
-        DB::beginTransaction();
-
+        DB:: beginTransaction();
         try {
 
-            // product
-            $product = $this->findIdOrFailOrNew($data['product_id']);
+            $product_id = $post_data['product_id'] ?? $post_data['id'] ?? null;
 
-            $product->model = $data['model'] ?? null;
-            $product->main_category_id = $data['main_category_id'] ?? null;
-            $product->price = $data['price'] ?? 0;
-            $product->quantity = $data['quantity'] ?? 0;
-            $product->comment = $data['comment'] ?? '';
-            $product->is_active = $data['is_active'] ?? 0;
-            $product->is_salable = $data['is_salable'] ?? 0;
-            $product->is_stock_management = $data['is_stock_management'] ?? 0;
-            
-            $product->sort_order = $data['sort_order'] ?? 250;
-            $product->source_code = $data['source_code'] ?? '';
-            $product->accounting_category_code = $data['accounting_category_code'] ?? '';
-            
-            $product->supplier_id = $data['supplier_id'] ?? 0;
-            //$product->supplier_product_id = $data['supplier_product_id'] ?? 0;
-            $product->supplier_own_product_code = $data['supplier_own_product_code'] ?? '';
-            $product->supplier_own_product_name = $data['supplier_own_product_name'] ?? '';
-            $product->supplier_own_product_specification = $data['supplier_own_product_specification'] ?? '';
+            // 暫時不用。正式上線後要啟用
+            // 若庫存單位已存在則不改
+            // if(!empty($product->stock_unit_code)){
+            //     unset($product->stock_unit_code);
+            // }
+            // if(!empty($post_data['stock_unit_code'])){
+            //     unset($post_data['stock_unit_code']);
+            // }
 
-            $product->purchasing_unit_code = $data['purchasing_unit_code'] ?? null;
-
-            if(empty($product->stock_unit_code)){
-                $product->stock_unit_code = $data['stock_unit_code'] ?? null;
-            }
-            
-            $product->manufacturing_unit_code = $data['manufacturing_unit_code'] ?? null;
-            
-            $product->save();
-
-            $product_id = $product->id;
-
-            // translations
-            if(!empty($data['translations'])){
-                $this->saveTranslationData($product, $data['translations']);
-            }
-
-            // Product Categories - many to many
-            if(!empty($data['product_categories'])){
-                // Delete all
-                TermRelation::where('object_id',$product->id)
-                            ->join('terms', function($join){
-                                $join->on('term_id', '=', 'terms.id');
-                                $join->where('terms.taxonomy','=','product_category');
-                            })
-                            ->delete();
-
-                // Add new
-                foreach ($data['product_categories'] as $category_id) {
-                    $insert_data[] = [
-                        'object_id' => $product->id,
-                        'term_id' => $category_id,
+            if(!empty($post_data['stock_unit_code']) && !empty($post_data['usage_unit_code'])){
+                if($post_data['stock_unit_code'] == $post_data['usage_unit_code']){
+                    $usage_factor = 1;
+                }else{
+                    $params = [
+                        'product_id' => $post_data['product_id'],
+                        'from_unit_code' => $post_data['usage_unit_code'],
+                        'to_unit_code' => $post_data['stock_unit_code'],
+                        'from_quantity' => 1,
                     ];
+                    $usage_factor = $this->UnitRepository->calculateQty($params);
+    
+                    if(!empty($usage_factor['error'])){
+                        throw new \Exception($usage_factor['error']);
+        
+                    }
                 }
-                TermRelation::insert($insert_data);
+            }
+            
+            if(!empty($post_data['stock_price']) && !empty($usage_factor)){
+                $post_data['usage_price'] = $post_data['stock_price'] * $usage_factor;
+            }else{
+                $post_data['usage_price'] = 0;
+            }
+            
+            $result = $this->saveRow($product_id, $post_data);
+
+            if(!empty($result['error'])){
+                throw new \Exception($result['error']);
             }
 
-            // product_units
-            if(!empty($data['product_units'])){
+            $result = $this->findIdOrFailOrNew($product_id);
+
+            if(empty($result['error']) && !empty($result['data'])){
+                $product = $result['data'];
+            }else{
+                return response(json_encode($result))->header('Content-Type','application/json');
+            }
+
+            // 商品單位表 product_units
+            if(!empty($post_data['product_units'])){
                 $upsert_data = [];
-                foreach ($data['product_units'] as $product_unit) {
-                    //$product_unit['destination_unit_code'] = $product->stock_unit_code ?? null;
+                foreach ($post_data['product_units'] as $product_unit) {
 
                     if(empty($product_unit['source_quantity']) || empty($product_unit['source_unit_code']) || empty($product_unit['destination_quantity']) || empty($product_unit['destination_unit_code'])){
                        continue;
@@ -117,102 +97,24 @@ class ProductService extends Service
                     ];
                 }
                 
+                $this->ProductUnitRepository->newModel()->where('product_id', $product->id)->delete();
                 if(!empty($upsert_data)){
-                    $this->ProductUnitRepository->newModel()->where('product_id', $product->id)->delete();
                     $this->ProductUnitRepository->newModel()->upsert($upsert_data, ['id']);
                 }
             }
 
-            // product_metas
-            $this->saveMetaDataset($product, $data);
-
             DB::commit();
 
-            $this->resetCachedSalableProducts();
+            // save to json cache
+            $this->repository->setJsonCache($product->id);
 
-            $this->resetCachedProducts($product->id);
-            
-            $result['product_id'] = $product->id;
+            return ['id' => $product->id];
 
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            $result['error'] = 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage();
             return $result;
-
-        } catch (\Exception $ex) {
-            DB::rollback();
-            return ['error' => $ex->getMessage()];
         }
-    }
-
-    public function resetCachedProducts($product_id)
-    {
-        // ProductOptions - used in product model
-        $cacheName = app()->getLocale() . '_ProductId_' . $product_id . '_ProductOptions';
-        cache()->forget($cacheName);
-
-        // Product
-        $cacheName = app()->getLocale() . '_ProductId_' . $product_id;
-        cache()->forget($cacheName);
-    }
-
-    public function resetCachedSalableProducts($filter_data = [])
-    {
-
-        $cacheName = app()->getLocale() . '_salable_products';
-
-        cache()->forget($cacheName);
-
-        if(empty($filter_data)){
-            $filter_data = [
-                'filter_is_active' => 1,
-                'filter_is_salable' => 1,
-                'regexp' => false,
-                'limit' => 0,
-                'pagination' => false,
-                'sort' => 'sort_order',
-                'order' => 'ASC',
-                'with' => ['main_category','translation'],
-            ];
-        }
-
-        $result = cache()->remember($cacheName, 60*60*24*14, function() use($filter_data){
-            $collections = $this->getRows($filter_data);
-            return $collections;
-        });
-
-        return $result;
-    }
-
-
-    public function getSalableProducts($filter_data = [])
-    {
-        $cacheName = app()->getLocale() . '_salable_products';
-
-        $result = cache()->get($cacheName);
-
-        if(empty($result)){
-            $result = $this->resetCachedSalableProducts($filter_data);
-        }
-
-        return $result;
-    }
-
-
-    public function deleteProduct($product_id)
-    {
-        try {
-
-            $this->ProductRepository->delete($product_id);
-
-            return ['success' => true];
-
-        } catch (\Exception $ex) {
-            DB::rollback();
-            return ['error' => $ex->getMessage()];
-        }
-    }
-
-
-    public function getProductSourceCodes()
-    {
-        return $this->ProductRepository->getProductSourceCodes();
     }
 }
+

@@ -2,21 +2,6 @@
 
 <table class="table table-product-content" id="product-row-{{ $product_row }}-content-table">
 
-  @if($is_main_meal_title)
-  <tr>
-    <td class="text-start">全素薯</td>
-    <td class="text-start">蛋素薯</td>
-    <td class="text-start">薯泥</td>
-    <td class="text-start">炸蝦</td>
-    <td class="text-start">炒雞</td>
-    <td class="text-start">酥魚</td>
-    <td class="text-start">培根</td>
-    <td class="text-start">滷肉</td>
-    <td class="text-start">呱呱卷</td>
-    <td class="text-start">虛擬潤餅</td>
-  </tr>
-  @endif
-
   {{-- 主餐 --}}
   @if(!empty($product_options['main_meal']))
     @php
@@ -28,6 +13,18 @@
     <input type="hidden" name="order_products[{{ $product_row }}][order_product_options][{{ $poid }}][name]" value="{{ $product_options[$option_code]['option_name'] }}" >
     <input type="hidden" name="order_products[{{ $product_row }}][order_product_options][{{ $poid }}][type]" value="{{ $product_options[$option_code]['option_type'] }}">
 
+    <tr>
+      <td class="text-start">全素薯</td>
+      <td class="text-start">蛋素薯</td>
+      <td class="text-start">薯泥</td>
+      <td class="text-start">炸蝦</td>
+      <td class="text-start">炒雞</td>
+      <td class="text-start">酥魚</td>
+      <td class="text-start">培根</td>
+      <td class="text-start">滷肉</td>
+      <td class="text-start">呱呱卷</td>
+      <td class="text-start">虛擬潤餅</td>
+    </tr>
     <tr class="tr_main_meal">
       {{-- 標準主餐 --}}
       @foreach($product_options['main_meal']['product_option_values'] as $product_option_value)

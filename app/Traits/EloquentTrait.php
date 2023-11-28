@@ -5,8 +5,13 @@ namespace App\Traits;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
+use PDO;
+use App\Helpers\Classes\DataHelper;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 /**
  * initialize()
  * newModel()
@@ -18,12 +23,9 @@ use Illuminate\Pagination\LengthAwarePaginator;
  * setWhereQuery
  * setWith()
  * getTableColumns()
- * getQueryContent()
+ * getDebugQueryContent()
  * getTranslationModel()
- * saveTranslationData()
- * setMetaDataset()
- * saveMetaDataset()
- * toStdObj()
+ * saveRow(), saveRowBasicData(), saveTranslationData(), saveRowMetaData()
  * 
  * regexp
  * pagination
@@ -33,8 +35,20 @@ use Illuminate\Pagination\LengthAwarePaginator;
  */
 trait EloquentTrait
 {
+    private $initialized = false;
+    public $connection;
+    public $table;
+    public $table_columns;
+    public $translation_attributes;
+    public $model;
+    public $zh_hant_hans_transform;
+
     public function initialize($data = null)
     {
+        if($this->initialized){
+            return true;
+        }
+
         $this->model = new $this->modelName;
         $this->table = $this->model->getTable();
 
@@ -44,11 +58,10 @@ trait EloquentTrait
             $this->connection = DB::connection()->getName();
         }
 
-        
         $this->table_columns = $this->getTableColumns($this->connection);
-
+        $this->translation_attributes = $this->model->translation_attributes ?? [];
         $this->zh_hant_hans_transform = false;
-
+        $this->initialized = true;
     }
 
     public function newModel()
@@ -120,20 +133,44 @@ trait EloquentTrait
         return $row;
     }
 
-    public function findIdOrFailOrNew($id, $data = null, $debug = 0)
+    public function findIdOrNew($id, $params = null, $debug = 0)
     {
         //find
         if(!empty(trim($id))){
-            $query = $this->newModel()->where('id', $id);
-
-            $row = $query->firstOrFail();
+            $params['equal_id'] = $id;
+            $row = $this->getRow($params);
         }
+
         //new
-        else{
+        if(empty($row) || empty($id)){
             $row = $this->newModel();
         }
 
         return $row;
+    }
+
+    public function findIdOrFailOrNew($id, $params = null, $debug = 0)
+    {
+        try{
+            //find
+            if(!empty(trim($id))){
+                $params['equal_id'] = $id;
+                $row = $this->getRow($params, $debug);
+
+                if(empty($row)){
+                    throw new \Exception ('Record not found!');
+                }
+            }
+            //new
+            else{
+                $row = $this->newModel();
+            }
+
+            return ['data' => $row]; // To make differenct with 'error', 'data' is needed.
+            
+        } catch (\Exception $e) {
+            return ['error' => 'findIdOrFailOrNew: Please check for more details'];
+        }
     }
 
 
@@ -152,11 +189,11 @@ trait EloquentTrait
      * $data['limit']
      * $data['no_default_translation']  true,false
      */
-    public function getRows($data=[], $debug=0)
+    public function getRows($data = [], $debug = 0)
     {
         $this->initialize($data);
 
-        $query = $this->getQuery($data, $debug);
+        $query = $this->setQuery($data, $debug);
 
         // get result
         $result = [];
@@ -201,7 +238,7 @@ trait EloquentTrait
                     $result = $query->limit($limit)->pluck($data['pluck']);
                 }
             }
-            else if($pagination == false && $limit == 0){
+            else if($limit == 0){
                 if(empty($data['pluck'])){
                     $result = $query->get(); // Get all
                 }else{
@@ -214,33 +251,11 @@ trait EloquentTrait
             }
         }
 
-
-        //toStdObj
-        if(!empty($data['toStdObj'])){
-            $result = $result->toArray();
-            $rows = [];
-
-            if(empty($data['first'])){
-                foreach ($result as $id => $row) {
-                    $new_row = [];
-                    foreach ($row as $column => $value) {
-                        if(in_array($column, $data['select'])){
-                            $new_row[$column] = $value;
-                        }
-                    }
-                    
-                    $rows[$id] = (object) $new_row;
-                }
-            }
-
-            $result =  &$rows;
-        }
-
         return $result;
     }
 
 
-    public function getQuery($data=[], $debug=0)
+    public function setQuery($data=[], $debug=0)
     {
         if(empty($this->table_columns)){
             $this->table_columns = $this->getTableColumns();
@@ -249,12 +264,18 @@ trait EloquentTrait
         $query = $this->newModel()->query();
 
         // With relations
-        if(!empty($data['with'])){
-            $this->setWith($query, $data['with']);
-        }
+        // if(!empty($data['with'])){
+        //     $this->setWith($query, $data['with']);
+        // }
+        $with = $data['with'] ?? [];
+        $this->setWith($query, $with);
 
+        $withCount = $data['withCount'] ?? '';
+        $this->setWithCount($query, $withCount);
+        //$query->withCount([$withCount]);
 
-        // whereRelations
+        // Has Relations
+        $this->setHas($query, $data['has'] ?? []);
         // if(!empty($data['whereRelations'])){
         //     foreach ($data['whereRelations'] as $relation_name => $relation) {
         //         $query->whereRelation($relation_name, function($tmpQuery) use ($relation) {
@@ -267,7 +288,7 @@ trait EloquentTrait
 
 
         // With translation relation
-        if(!empty($this->model->translated_attributes)){
+        if(!empty($this->model->translation_attributes)){
             $query->with('translation');
         }
         
@@ -280,8 +301,19 @@ trait EloquentTrait
             }
         }
 
+        // whereNotIn
+        if(!empty($data['whereNotIn'])){
+            foreach ($data['whereNotIn'] as $key => $arr) {
+                $column = $this->table . '.' . $key;
+                $query->whereNotIn($column, $arr);
+            }
+        }
 
+        
         // is_active can only be: 1, 0, -1, *
+        // if(!is_array($this->table_columns)){
+        //     echo '<pre>', print_r($this->table_columns, 1), "</pre>"; exit;
+        // }
         if(in_array('is_active', $this->table_columns)){
             
             // - 相容以前的舊寫法
@@ -324,32 +356,67 @@ trait EloquentTrait
             $query->distinct();
         }
 
-        // whereHas
-        if(!empty($data['whereHas'])){
-            foreach ($data['whereHas'] as $relation_name => $relation) {
-                $query->whereHas($relation_name, function($query) use ($relation) {
-                    foreach ($relation as $key => $value) {
-                        $this->setWhereQuery($query, $key, $value, 'where');
-                    }
-                });
-            }
-        }
-
         // whereRawSqls
         if(!empty($data['whereRawSqls']) && is_array($data['whereRawSqls'])){
             foreach($data['whereRawSqls'] as $rawsql){
-                $query->whereRaw($rawsql);
+                $query->whereRaw('(' . $rawsql . ')');
             }
         }
-        
-        // Sort
-        if(empty($data['sort']) || $data['sort'] == 'id'){
-            $sort = $this->model->getTable() . '.id';
-        }else{
-            $sort = $data['sort'];
-        }
 
-        // Order
+        // Sort & Order
+        // 舊寫法
+        // if(!empty($data['orderByRaw'])){
+        //     $query->orderByRaw($data['orderByRaw']);
+        // }else{
+        //     if(empty($data['sort']) || $data['sort'] == 'id'){
+        //         $sort = $this->model->getTable() . '.id';
+        //     }else{
+        //         $sort = $data['sort'];
+        //     }
+    
+        //     // Order
+        //     if (isset($data['order']) && ($data['order'] == 'ASC')) {
+        //         $order = 'ASC';
+        //     }
+        //     else{
+        //         $order = 'DESC';
+        //     }
+    
+        //     $query->orderBy($sort, $order);
+        // }
+
+        
+        
+        /*
+        //  - Sort
+        if(!empty($data['sort']) && !empty($this->model->translation_attributes) && in_array($data['sort'], $this->model->translation_attributes)){
+            $translation_table = $this->getTranslationTable();
+            $master_key = $this->getTranslationMasterKey();
+            $sort = $data['sort'];
+
+            $query->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
+                $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
+                     ->where("{$translation_table}.locale", '=', $this->locale)
+                     ->where("{$translation_table}.meta_key", '=', $sort);
+            });
+
+            $query->orderBy("{$translation_table}.meta_value", $order);
+
+            $query->select("{$this->table}.*");
+        }else{
+            if(empty($data['sort']) || $data['sort'] == 'id'){
+                $sort = $this->model->getTable() . '.id';
+            }
+            else{
+                $sort = $data['sort'];
+            }
+            $query->orderBy($sort, $order);
+        }
+        */
+
+
+        // Sort & Order
+        //  - Order (default DESC)
         if (isset($data['order']) && ($data['order'] == 'ASC')) {
             $order = 'ASC';
         }
@@ -357,12 +424,55 @@ trait EloquentTrait
             $order = 'DESC';
         }
 
-        $query->orderBy($sort, $order);
-
-        
-
+        //  - Sort
+        //  -- 指定排序字串
         if(!empty($data['orderByRaw'])){
             $query->orderByRaw($data['orderByRaw']);
+        }
+        // -- 指定排序欄位
+        else if(!empty($data['sort'])){
+            // 非多語欄位
+            if(!in_array($data['sort'], $this->translation_attributes)){
+                $query->orderBy($data['sort'], $order);
+            }
+            // 多語欄位
+            else{
+                $translation_table = $this->model->getTranslationTable();
+                $master_key = $this->model->getTranslationMasterKey();
+                $sort = $data['sort'];
+    
+                if (str_ends_with($this->model->translation_model_name, 'Meta')) {
+    
+                    $query->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
+                        $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
+                             ->where("{$translation_table}.locale", '=', $this->locale)
+                             ->where("{$translation_table}.meta_key", '=', $sort);
+                    });
+                    $query->orderBy("{$translation_table}.meta_value", $order);
+    
+                }else{ // 一般用 Translation 做結尾，例如 ProductTranslation
+                    $query->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
+                        $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
+                             ->where("{$translation_table}.locale", '=', app()->getLocale());
+                    });
+                    $query->orderBy("{$translation_table}.{$sort}", $order);
+                }
+            }
+
+        }
+        // 未指定排序欄位，但資料表欄位有 sort_order
+        else if(empty($data['sort']) && in_array('sort_order', $this->table_columns)){
+            $query->orderBy('sort_order', 'ASC');
+        }
+        //  -- 其它情況
+        else{
+            if(empty($data['sort']) || $data['sort'] == 'id'){
+                $sort = $this->model->getTable() . '.id';
+            }
+            else{
+                $sort = $data['sort'];
+            }
+            $query->orderBy($sort, $order);
         }
 
         // Select
@@ -372,11 +482,14 @@ trait EloquentTrait
             }else if($data['select'] !== '*'){
                 $query->select(DB::raw($data['select']));
             }
+        }else{
+            //$query->select("{$this->table}.*");
+            //dd($query->toSql());
         }
 
         // see the sql statement
         if(!empty($debug)){
-            $this->getQueryContent($query);
+            $this->getDebugQueryContent($query);
         }
 
         return $query;
@@ -385,7 +498,7 @@ trait EloquentTrait
 
     private function setFiltersQuery($query, $data, $debug=0)
     {
-        $translated_attributes = $this->model->translated_attributes ?? [];
+        $translation_attributes = $this->model->translation_attributes ?? [];
         $table_columns = $this->getTableColumns($this->connection);
         
         $meta_keys = $this->model->meta_keys;
@@ -412,7 +525,7 @@ trait EloquentTrait
             }
 
             // Translated column is not processed here
-            if(in_array($column, $translated_attributes)){
+            if(in_array($column, $translation_attributes)){
                 continue;
             }
 
@@ -454,7 +567,7 @@ trait EloquentTrait
                 $column = str_replace('filter_', '', $key);
             }
 
-            if(in_array($column, $translated_attributes)){
+            if(in_array($column, $translation_attributes) && !empty($data[$key])){
                 $data['whereHas']['translation'][$key] = $data[$key];
                 unset($data[$key]);
             }
@@ -469,7 +582,7 @@ trait EloquentTrait
             }
 
             if(in_array($column, $meta_keys)){
-                $data['whereHas']['meta_dataset'] = ['meta_key' => $column, 'meta_value' => $value];
+                $data['whereHas']['metas'] = ['meta_key' => $column, 'meta_value' => $value];
                 unset($data[$key]);
             }
         }
@@ -481,7 +594,7 @@ trait EloquentTrait
 
         // Display sql statement
         if(!empty($debug)){
-            $this->getQueryContent($query);
+            $this->getDebugQueryContent($query);
         }
     }
 
@@ -489,7 +602,7 @@ trait EloquentTrait
     private function setEqualsQuery($query, $data)
     {
         $table_columns = $this->getTableColumns($this->connection);
-        $translated_attributes = $this->model->translated_attributes ?? [];
+        $translation_attributes = $this->model->translation_attributes ?? [];
 
         $meta_keys = $this->model->meta_keys;
         if(empty($meta_keys)){
@@ -511,7 +624,7 @@ trait EloquentTrait
             }
 
             // Translated column is not processed here
-            if(in_array($column, $translated_attributes)){
+            if(in_array($column, $translation_attributes)){
                 continue;
             }
 
@@ -543,7 +656,7 @@ trait EloquentTrait
                 $column = str_replace('equal_', '', $key);
             }
 
-            if(in_array($column, $translated_attributes)){
+            if(in_array($column, $translation_attributes)){
                 $query->whereHas('translation', function ($query) use ($column, $value) {
                     $query->where('meta_key', $column);
                     $query->where('meta_value', $value);
@@ -561,7 +674,7 @@ trait EloquentTrait
             }
 
             if(in_array($column, $meta_keys)){
-                $query->whereHas('meta_dataset', function ($query) use ($column, $value) {
+                $query->whereHas('metas', function ($query) use ($column, $value) {
                     $query->where('meta_key', $column);
                     $query->where('meta_value', $value);
                 });
@@ -752,17 +865,40 @@ trait EloquentTrait
         }
     }
 
-    private function setWith($query, $funcData)
+    private function setWith($query, $input)
     {
-        // $data['with'] = 'translation'
-        if(!is_array($funcData)){
-            $query->with($funcData);
+        // check translation
+        $has_translation = false;
+        $appends = $this->model->getAppends() ?? [];
+        $translation_attributes = $this->model->translation_attributes ?? [];
+
+        foreach ($appends as $append) {
+            if(in_array($append, $translation_attributes)){
+                $has_translation = true;
+                break;
+            }
+        }
+
+        if(is_string($input)){
+            $width_arr[] = $input;
         }else{
-            foreach ($funcData as $key => $filters) {
+            $width_arr = $input;
+        }
+
+        // if($has_translation){
+        //     $width_arr[] = 'translation';
+        // }
+        //
+        $width_arr = array_unique($width_arr);
+
+        if(!is_array($width_arr)){
+            $query->with($width_arr);
+        }else{
+            foreach ($width_arr as $key => $with) {
 
                 // Example: $data['with'] = ['products','members'];
-                if(!is_array($filters)){
-                    $query->with($funcData);
+                if(!is_array($with)){
+                    $query->with($with);
                 }
 
                 /* Example:
@@ -772,39 +908,74 @@ trait EloquentTrait
                 ];
                 */
                 else{
-                    // 注意：with 裡面使用Closure函數，只是過濾 with 表，然後附加過來。不會過濾主表
-                    $query->with([$key => function($query) use ($key, $filters) {
-                        foreach ($filters as $column => $value) {
-                            //$query = $this->setWhereQuery($query, $column, $value, 'where');
-                            $query->where("$key.$column", '=', $value);
-                        }
-                    }]);
+                    echo '<pre>', print_r('這裡是 setWith, 將要廢棄', 1), "</pre>"; exit;
+                    // // 注意：with 裡面使用Closure函數，只是過濾 with 表，然後附加過來。不會過濾主表
+                    // $query->with([$key => function($query) use ($key, $filters) {
+                    //     foreach ($filters as $column => $value) {
+                    //         //$query = $this->setWhereQuery($query, $column, $value, 'where');
+                    //         $query->where("$key.$column", '=', $value);
+                    //     }
+                    // }]);
                 }
             }
         }
+
+        return $query;
+    }
+
+    private function setWithCount($query, $input)
+    {
+        if(!empty($input)){
+            $query->withCount($input);
+        }        
+        
+        return $query;
+    }
+
+    private function setHas($query, $input)
+    {
+        $hasArray = DataHelper::addToArray([], $input);
+
+        foreach ($hasArray as $value) {
+            $query->has($value);
+        }
+
+        return $query;
     }
 
     public function getTableColumns($connection = null)
     {
+        // already exist
+        if(!empty($this->table_columns) && is_array($this->table_columns)){
+            return $this->table_columns;
+        }
+
+        // get from cache
         if(empty($this->table)){
             $this->table = $this->model->getTable();
         }
+
+        $cache_name = 'cache/table_columns/' . $this->table . '.json';
+
+        $this->table_columns = DataHelper::getJsonFromStoragNew($cache_name);
 
         if(!empty($this->table_columns)){
             return $this->table_columns;
         }
 
+        // get from database
         if(empty($connection) ){
             $this->table_columns = DB::getSchemaBuilder()->getColumnListing($this->table);
         }else{
             $this->table_columns = DB::connection($connection)->getSchemaBuilder()->getColumnListing($this->table);
         }
+        DataHelper::setJsonToStorage($cache_name, $this->table_columns);
 
-        return $this->table_columns;
+        return DataHelper::getJsonFromStoragNew($cache_name);
     }
 
     // For debug
-    public static function getQueryContent(Builder $builder)
+    public static function getDebugQueryContent(Builder $builder)
     {
         $addSlashes = str_replace('?', "'?'", $builder->toSql());
 
@@ -825,133 +996,293 @@ trait EloquentTrait
         echo "<pre>".print_r($arr , 1)."</pre>"; exit;
     }
 
-
     /**
-     * Translation
+     * Save
      */
 
-     public function getTranslationModel($translationModelName = null)
+    // must be public
+    public function saveRow($id, $post_data)
     {
-        if(empty($translationModelName)){
-            $translationModelName = get_class($this->model) . 'Translation';
-        }
+        $this->initialize();
 
-        if(empty($translationModelName) && !empty($this->model->translationModelName)){ // Customized
-            $translationModelName = $this->model->translationModelName;
-        }
+        DB::beginTransaction();
+        
+        try{
 
-        return new $translationModelName();
-    }
+            $modelInstance = $this->findIdOrFailOrNew($id)['data'] ?? '';
 
-    public function saveTranslationData($masterModel, $data, $translated_attributes=null)
-    {
-        if(empty($translated_attributes)){
-            $translated_attributes = $this->model->translated_attributes;
-        }
+            // save basic data
+            $result = $this->saveRowBasicData($modelInstance, $post_data);
 
-        if(empty($translated_attributes)){
-            return false;
-        }
-
-        $translationModel = $this->getTranslationModel();
-
-        // foreign key
-        $foreign_key = $translationModel->foreign_key ?? $masterModel->getForeignKey();
-
-        $foreign_key_value = $masterModel->id;
-
-        foreach($data as $locale => $value){
-            $arr = [];
-            if(!empty($value['id'])){
-                $arr['id'] = $value['id'];
+            if(!empty($result['error'])){
+                throw new \Exception($result['error']);
             }
-            $arr['locale'] = $locale;
-            $arr[$foreign_key] = $foreign_key_value;
-            foreach ($translated_attributes as $column) {
-                if(!empty($value[$column])){
-                    $arr[$column] = $value[$column];
+
+            //$modelInstance->refresh();
+            $result = null;
+
+            // save translation data
+            if(!empty($post_data['translations'])){
+                $result = $this->saveRowTranslationData($modelInstance, $post_data['translations']);
+
+                if(!empty($result['error'])){
+                    throw new \Exception($result['error']);
                 }
             }
 
-            $arrs[] = $arr;
+            // save meta data
+            $result = $this->saveRowMetaData($modelInstance, $post_data);
+
+            if(!empty($result['error'])){
+                throw new \Exception($result['error']);
+            }
+
+            DB::commit();
+
+            return ['id' => $id];
+            
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            return ['error' => $ex->getMessage()];
         }
 
-        $translationModel->upsert($arrs,['id', $foreign_key, 'locale']);
     }
+
+    // must be public
+    public function saveRowBasicData($modelInstance, $post_data)
+    {
+        $this->initialize();
+
+        try{
+            DB::beginTransaction();
+            
+            // If $model->fillable exists, save() then return
+            if(!empty($modelInstance->getFillable())){
+                $modelInstance->fill($post_data);
+                $modelInstance->save();
+                return $modelInstance->id;
+            }
+            
+            // Save matched columns
+            $table_columns = $this->table_columns;
+            $form_columns = array_keys($post_data);
+
+            foreach ($form_columns as $key => $column) {
+                if(!in_array($column, $table_columns)){
+                    continue;
+                }
+
+                $modelInstance->$column = $post_data[$column];
+            }
+
+            $modelInstance->save();
+
+            DB::commit();
+
+            return $modelInstance->id;
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage()];
+        }
+    }
+
+    // must be public
+    public function saveRowTranslationData($masterModelInstance, $translation_data)
+    {
+        $this->initialize();
+
+        try{
+            $translation_model = $this->model->getTranslationModel();
+
+            // master
+            $master_key = $translation_model->master_key ?? $masterModelInstance->getForeignKey();
+            $master_key_value = $masterModelInstance->id;
+
+            foreach($translation_data as $locale => $value){
+                $arr = [];
+                if(!empty($value['id'])){
+                    $arr['id'] = $value['id'];
+                }
+                $arr['locale'] = $locale;
+                $arr[$master_key] = $master_key_value;
+                foreach ($this->model->translation_attributes as $column) {
+                    if(!empty($value[$column])){
+                        $arr[$column] = $value[$column];
+                    }
+                }
+
+                $arrs[] = $arr;
+            }
+
+            DB::beginTransaction();
+            $translation_model->upsert($arrs,['id', $master_key, 'locale']);
+            DB::commit();
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            throw $ex;
+        }
+    }
+
+    // 這是比較舊的寫法
+    public function saveTranslationData($master_model, $translation_data)
+    {
+        try{
+            if(empty($master_model->translation_attributes)){
+                return false;
+            }else{
+                $translation_attributes = $master_model->translation_attributes;
+            }
+    
+            // translationModel
+            $translationModelName = get_class($master_model) . 'Translation';
+            if(class_exists($translationModelName)){
+                $translationModel = new $translationModelName;
+            }else{
+                return false;
+            }
+    
+            // foreigh_key
+            $foreigh_key = $translationModel->foreign_key;
+            $foreigh_key_value = $master_model->id;
+    
+            foreach($translation_data as $locale => $value){
+                $arr = [];
+                if(!empty($value['id'])){
+                    $arr['id'] = $value['id'];
+                }
+                $arr['locale'] = $locale;
+                $arr[$foreigh_key] = $foreigh_key_value;
+                foreach ($translation_attributes as $column) {
+                    if(!empty($value[$column])){
+                        $arr[$column] = $value[$column];
+                    }
+                }
+    
+                $arrs[] = $arr;
+            }
+    
+            DB::beginTransaction();
+            $translationModel->upsert($arrs,['id', $foreigh_key, 'locale']);
+            DB::commit();
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            throw $ex;
+        } 
+    }
+
+    // must be public
+    public function saveRowMetaData($masterModelInstance, $post_data)
+    {
+        $this->initialize();
+
+        try {
+            $meta_model = $masterModelInstance->getMetaModel();
+
+            if(empty($meta_model)){
+                return ;
+            }
+
+            // Keys
+            $master_key = $meta_model->master_key ?? $masterModelInstance->getForeignKey();
+
+            $master_key_value = $masterModelInstance->id;
+
+            //先取出舊資料
+            $all_meta = $masterModelInstance->metas()->get()->keyBy('meta_key')->toArray();
+
+            //全刪
+            $masterModelInstance->metas()->where($master_key, $master_key_value)->delete();
+            $upsert_data = [];
+
+            foreach($post_data as $column => $value){
+                if(!in_array($column, $this->model->meta_keys) || empty($value)){
+                    continue;
+                }
+
+                $arr['id'] = $all_meta[$column]['id'] ?? null; // 將原本的 id 值塞回去。
+                $arr[$master_key] = $master_key_value;
+                $arr['meta_key'] = $column;
+                $arr['meta_value'] = $value;
+                $upsert_data[] = $arr;
+            }
+
+            if(!empty($upsert_data)){
+                DB::beginTransaction();
+                $result = $meta_model->upsert($upsert_data,['id']);
+                DB::commit();
+            }
+
+            return true;
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            throw $ex;
+        }
+    }
+
+    // public function saveTranslationData($masterModel, $data, $translation_attributes=null)
+    // {
+    //     if(empty($translation_attributes)){
+    //         $translation_attributes = $this->model->translation_attributes;
+    //     }
+
+    //     if(empty($translation_attributes)){
+    //         return false;
+    //     }
+
+    //     $translationModel = $this->model->getTranslationModel();
+
+    //     // foreign key
+    //     $foreign_key = $translationModel->foreign_key ?? $masterModel->getForeignKey();
+
+    //     $foreign_key_value = $masterModel->id;
+
+    //     foreach($data as $locale => $value){
+    //         $arr = [];
+    //         if(!empty($value['id'])){
+    //             $arr['id'] = $value['id'];
+    //         }
+    //         $arr['locale'] = $locale;
+    //         $arr[$foreign_key] = $foreign_key_value;
+    //         foreach ($translation_attributes as $column) {
+    //             if(!empty($value[$column])){
+    //                 $arr[$column] = $value[$column];
+    //             }
+    //         }
+
+    //         $arrs[] = $arr;
+    //     }
+
+    //     $translationModel->upsert($arrs,['id', $foreign_key, 'locale']);
+    // }
 
     /**
      * 獲取 meta_data，並根據 meta_keys ，若 meta_key 不存在，設為空值 ''
      */
-     public function getMetaDataset($row)
+    public function getMetaRows($row)
     {
-        $meta_dataset = $row->meta_dataset;
+        $metas = $row->metas;
 
-        foreach ($meta_dataset as $meta_data) {
+        foreach ($metas as $meta_data) {
             $row->{$meta_data->meta_key} = $meta_data->meta_value;
         }
 
         return $row;
     }
-
-    /**
-     * saveMetaDataset
-     */
-    public function saveMetaDataset($masterModel, $data)
+    
+    public function setMetaRows($row)
     {
-        //$organization_id = $masterModel->id;
-        $master_id = $masterModel->id;
-        $master_key = $masterModel->getForeignKey();
+        $row = $this->getMetaRows($row);
 
-        $existed_meta_data = $masterModel->meta_dataset()->select('id','meta_key')->get();
+        unset($row->metas);
 
-        $existed_meta_keys = [];
-        $new_meta_keys = [];
-
-        foreach ($existed_meta_data as $row) {
-            $existed_meta_keys[] = $row->meta_key;
-            $existed_meta_key_ids[$row->meta_key] = $row->id;
-        }
-
-        $meta_keys = $masterModel->meta_keys;
-
-        foreach ($meta_keys as $meta_key) {
-            $key = 'meta_data_' . $meta_key;
-
-            if(!empty($data[$key])){
-                $value = $data[$key];
-            }else if(!empty($data[$meta_key])){
-                $value = $data[$meta_key];
-            }else{
-                continue;
-            }
-            
-            $new_meta_data[] = [$master_key => $master_id, 'meta_key' => $meta_key, 'meta_value' => $value];
-
-            $new_meta_keys[] = $meta_key;
-            
-            
-        }
-
-        // delete
-        $delete_meta_keys = array_diff($existed_meta_keys, $new_meta_keys);
-
-        $delete_ids = [];
-
-        foreach ($delete_meta_keys as $serialNumber => $metaKey) {
-            if (isset($existed_meta_key_ids[$metaKey])) {
-                $delete_ids[$serialNumber] = $existed_meta_key_ids[$metaKey];
-            }
-        }
-
-        // upsert
-        $masterModel->meta_dataset()->whereIn('id',$delete_ids)->delete();
-
-        if(!empty($new_meta_data)){
-            $masterModel->meta_dataset()->upsert($new_meta_data, [$master_key,'meta_key']);
-        }
+        return $row;
     }
 
-
+/*
     public function rowsToStdObj($rows)
     {
         foreach ($rows as $key => $row) {
@@ -960,6 +1291,32 @@ trait EloquentTrait
 
         return $rows;
     }
+    */
+
+    public function rowsToStdObj($rows, $data = [])
+    {
+        if(!is_array($rows) && method_exists($rows, 'toArray')) {
+            $rows = $rows->toArray();
+        }
+
+        foreach ($rows as $key => $row) {
+
+            if(!is_array($row) && method_exists($row, 'toArray')) {
+                $row = $row->toArray();
+            }
+            
+            if(!empty($data['unset'])){
+                foreach ($data['unset'] as $key2) {
+                    unset($row[$key2]);
+                }
+            }
+
+            $rows[$key] = (object) $row;
+        }
+
+        return $rows;
+    }
+
 
     public function rowToStdObj($row)
     {
@@ -998,7 +1355,7 @@ trait EloquentTrait
     {
         $dateString = trim($dateString);
 
-        // 只允許數字或-或:
+        // 只允許數字或-或/或:
         if(!preg_match('/^[0-9\-\/:]+$/', $dateString, $matches)){
             return false;
         }
@@ -1145,4 +1502,36 @@ trait EloquentTrait
         return $new_code;
     }
 
+
+
+
+    public function saveStatusCode($data)
+    {
+        DB::beginTransaction();
+
+        try {
+            $params = [
+                'equal_id' => $data['id'],
+                'select' => ['id', 'status_code'],
+            ];
+            $row = $this->getRow($params);
+
+            $row->status_code = $data['status_code'];
+            $row->save();
+
+            DB::commit();
+
+            $result['data'] = [
+                'id' => $row->id,
+                'code' => $row->code,
+                'status_code' => $row->status_code,
+                'status_name' => $row->status_name
+            ];
+            return $result;
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
 }

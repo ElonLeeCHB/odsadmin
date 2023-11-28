@@ -14,7 +14,8 @@ class OrderTotal extends Model
     protected function value(): Attribute
     {
         return Attribute::make(
-            get: fn ($value, $attributes) => number_format($value),
+            get: fn ($value, $attributes) => rtrim(rtrim($value, '0'), '.'),
+            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
         );
     }
 

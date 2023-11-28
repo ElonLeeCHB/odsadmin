@@ -98,7 +98,6 @@ class PaymentTermController extends BackendController
         unset($query_data['sort']);
         unset($query_data['order']);
         unset($query_data['with']);
-        unset($query_data['whereIn']);
 
         $url = '';
 
@@ -181,7 +180,14 @@ class PaymentTermController extends BackendController
         $data['back_url'] = route('lang.admin.common.payment_terms.index', $queries);        
 
         // Get Record
-        $payment_term = $this->PaymentTermService->findIdOrFailOrNew($payment_term_id);
+        $result = $this->PaymentTermService->findIdOrFailOrNew($payment_term_id);
+
+        if(empty($result['error']) && !empty($result['data'])){
+            $payment_term = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $data['payment_term']  = $payment_term;
 

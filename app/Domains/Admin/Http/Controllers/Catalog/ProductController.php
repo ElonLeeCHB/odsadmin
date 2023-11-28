@@ -12,6 +12,7 @@ use App\Domains\Admin\Services\Catalog\OptionService;
 use App\Domains\Admin\Services\Catalog\CategoryService;
 use App\Services\Sale\OrderProductOptionService;
 use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProductController extends BackendController
 {
@@ -69,7 +70,6 @@ class ProductController extends BackendController
         $data['list_url']   = route('lang.admin.catalog.products.list');
         $data['add_url']    = route('lang.admin.catalog.products.form');
         $data['delete_url'] = route('lang.admin.catalog.products.delete');
-
         return view('admin.catalog.product', $data);
     }
 
@@ -87,12 +87,7 @@ class ProductController extends BackendController
         // Prepare query_data for records
         $query_data = $this->getQueries($this->request->query());
 
-        // Extra
-        if(!isset($query_data['equal_is_active'])){
-            $query_data['equal_is_active'] = '1';
-        }
-
-        // Rows
+        // Rows, LengthAwarePaginator
         $products = $this->ProductService->getSalableProducts($query_data);
 
         if(!empty($products)){
@@ -128,6 +123,7 @@ class ProductController extends BackendController
         // link of table header for sorting        
         $route = route('lang.admin.catalog.products.list');
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
+        $data['sort_main_category_id'] = $route . "?sort=main_category_id&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_model'] = $route . "?sort=model&order=$order" .$url;
         $data['sort_price'] = $route . "?sort=price&order=$order" .$url;
@@ -201,7 +197,7 @@ class ProductController extends BackendController
         $data['back'] = route('lang.admin.catalog.products.index', $queries);
 
         // Get Record
-        $product = $this->ProductService->findIdOrFailOrNew($product_id);
+        $product = $this->ProductService->findIdOrNew($product_id);
 
         $data['product']  = $product;
 
@@ -383,7 +379,7 @@ class ProductController extends BackendController
                     $order_product_options = $this->OrderProductOptionService->getRow($filter_data);
 
                     if(!empty($order_product_options)){
-                        $json['error']['warning'] = $this->lang->error_product_option_value . ' order_id: ' . $order_product_options->order_id;
+                        $json['error']['warning'] = $this->lang->error_product_option_value . 'product_option_value_id:'.$product_option_value_id.', order_id: ' . $order_product_options->order_id;
                     }
                 }
             }
@@ -482,8 +478,10 @@ class ProductController extends BackendController
 
         foreach ($rows as $row) {
             $json[] = array(
-                'label' => $row->name . '-' . $row->id,
-                'value' => $row->id,
+                'label' => $row->name . '-' . $row->id, //待廢棄
+                'value' => $row->id, //待廢棄
+                '_label' => $row->name . '-' . $row->id,
+                '_value' => $row->id,
                 'product_id' => $row->id,
                 'name' => $row->name,
                 'specification' => $row->specification,

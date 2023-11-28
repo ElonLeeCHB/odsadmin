@@ -9,8 +9,10 @@ class DivisionService extends Service
 {
     protected $modelName = "\App\Models\SysData\Division";
 
-	public function __construct(protected DivisionRepository $repository)
-	{}
+	public function __construct(DivisionRepository $repository)
+	{
+		$this->repository = $repository;
+	}
 
 	public function getStates($filter_data=[], $debug = 0)
     {

@@ -5,7 +5,7 @@ namespace App\Models\Setting;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Models\Setting\Location;
-use App\Traits\Model\ModelTrait;
+use App\Traits\ModelTrait;
 
 class Setting extends Model
 {
