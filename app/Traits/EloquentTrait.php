@@ -76,43 +76,6 @@ trait EloquentTrait
     }
 
 
-    public function refineRows($rows, $data)
-    {
-        $new_rows = [];
-        
-        foreach ($rows as $key => $row) {
-            $new_rows[$key] = $this->refineRow($row, $data);
-        }
-
-        return $new_rows;
-    }
-
-    // optimizeRow and sanitizeRow should be defined in FooRepository
-    public function refineRow($row, $data)
-    {
-        if (method_exists($this, 'optimizeRow') && !empty($data['optimize'])) {
-            $row = $this->optimizeRow($row);
-        }
-
-        if (method_exists($this, 'sanitizeRow') && !empty($data['sanitize'])) {
-            $row = $this->sanitizeRow($row);
-        }
-
-        return $row;
-    }
-
-
-    public function sanitizeRows($rows)
-    {
-        $new_rows = [];
-        foreach ($rows as $key => $row) {
-            $new_rows[$key] = $this->sanitizeRow($row);
-        }
-        
-        return $new_rows;
-    }
-
-
     /**
      * LengthAwarePaginator
      */

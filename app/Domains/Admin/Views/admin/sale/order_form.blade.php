@@ -791,7 +791,7 @@ $('#input-payment_tin').autocomplete({
   source: function(request, response) {
     if(request.length > 7){
       $.ajax({
-        url: "{{ $tax_id_nums_list_url }}?filter_tax_id_num=" + encodeURIComponent(request),
+        url: "{{ $tax_id_num_url }}?filter_tax_id_num=" + encodeURIComponent(request),
         dataType: 'json',
         success: function(json) {
           response(json);
@@ -814,8 +814,10 @@ $('#input-payment_tin').autocomplete({
       if(confirm('是否覆蓋地址？')){
         $('#input-shipping_road').val(event.address_parts.full_road_section);
         $('#input-shipping_address1').val(event.address_parts.after_road_section);
-        $('#input-original_address').val(event.original_address);
+        $('#input-original_address').val(event.address_parts.address);
         $("#input-shipping_state_id").val(event.address_parts.divsionL1_id);
+
+        $("#input-shipping_road").val(event.address_parts.road_section);
 
         shipping_city_id = event.address_parts.divsionL2_id;
         shipping_road = event.address_parts.full_road_section;

@@ -192,18 +192,21 @@ trait ModelTrait
      */
     public function toCleanObject()
     {
+        // get all keys
+        $table_columns = $this->getTableColumns();
         $attributes = $this->attributesToArray();
         $attribute_keys = array_keys($attributes);
-        $table_columns = $this->getTableColumns();
 
         $all_keys = array_unique(array_merge($table_columns, $attribute_keys, $this->meta_keys ?? []));
 
         $arr = [];
 
+        // default value
         foreach ($all_keys as $key) {
             $arr[$key] = '';
         }
         
+        // if not array
         foreach ($attributes as $key => $value) {
             if(!is_array($value)){
                 $arr[$key] = $value;

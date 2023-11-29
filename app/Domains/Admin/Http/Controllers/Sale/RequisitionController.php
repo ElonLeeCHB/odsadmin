@@ -260,12 +260,13 @@ class RequisitionController extends BackendController
 
             //需要備料的訂單狀態代號
             $temp_row = $this->SettingRepository->getRow(['equal_setting_key' => 'sales_orders_to_be_prepared_status']);
+            
             $sales_orders_to_be_prepared_status = $temp_row->setting_value; // 必須是陣列
 
             $filter_data = [
                 'with' => ['order_products','order_product_options.product_option_value.option_value',],
                 'whereRawSqls' => [$requiredDateRawSql],
-                'whereIn' => ['status_id' => $sales_orders_to_be_prepared_status],
+                'whereIn' => ['status_code' => $sales_orders_to_be_prepared_status],
                 'with' => 'order_products.order_product_options.product_option_value.option_value.product',
                 'pagination' => false,
                 'limit' => 0,

@@ -23,24 +23,24 @@ class TaxIdNumController extends ApiController
         parent::__construct();
     }
 
-    public function detail($tin)
+    public function detail($tax_id_num)
     {
         $data = $this->request->all();
 
         $json = [];
 
-        if(strlen($tin) < 8){
+        if(strlen($tax_id_num) < 8){
             $json['error'] = '長度不足';
             return response(json_encode($json))->header('Content-Type','application/json');
         }
 
         $filter_data = [
-            'equal_tax_id_num' => $tin,
+            'equal_tax_id_num' => $tax_id_num,
             'regexp' => false,
         ];
 
-        $record = $this->TaxIdNumberService->getTaxIdNumRow($filter_data,1);
-
+        $record = $this->TaxIdNumberService->getTaxIdNum($filter_data,1);
+        
         if(!empty($record)){
             $arr = TwAddress::parseGovProvidedAddress($record->address);
 
@@ -80,13 +80,11 @@ class TaxIdNumController extends ApiController
     {
         $json = [];
 
-        $filter_tax_id_num = $this->request->filter_tax_id_num ?? '';
-
-        if(!empty($filter_tax_id_num)){
-            if(strlen($filter_tax_id_num) < 7 ){
+        if(!empty($this->request->filter_tax_id_num)){
+            if(strlen($this->request->filter_tax_id_num) < 8 ){
                 return response(json_encode('長度不足'))->header('Content-Type','application/json');
             }
-            $filter_data['filter_tax_id_num'] = $filter_tax_id_num;
+            $filter_data['filter_tax_id_num'] = $this->request->filter_tax_id_num;
         }
 
         if(!empty($this->request->filter_name)){
@@ -97,7 +95,7 @@ class TaxIdNumController extends ApiController
         $filter_data['limit'] = 10;
         $filter_data['connection'] = 'sysdata';
 
-        $rows = $this->TaxIdNumberService->getRows($filter_data);
+        $rows = $this->TaxIdNumberService->getTaxIdNums($filter_data);
         
         if(!empty($rows)){
             foreach ($rows as $key => $row) {

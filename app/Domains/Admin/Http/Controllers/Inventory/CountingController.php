@@ -91,11 +91,10 @@ class CountingController extends BackendController
         foreach ($countings ?? [] as $row) {
             $row->edit_url = route('lang.admin.inventory.countings.form', array_merge([$row->id], $url_queries));
             $row->unit_name = $row->unit->name ?? '';
-            //echo '<pre>', print_r($row->status_name, 1), "</pre>"; exit;
         }
 
-
         $data['countings'] = $countings->withPath(route('lang.admin.inventory.countings.list'))->appends($url_queries);
+
 
         //$data['pagination'] = $countings->links('admin.pagination.default');
 
@@ -269,7 +268,8 @@ class CountingController extends BackendController
             'select' => ['id', 'status_code'],
         ];
         $row = $this->CountingService->getRow($params);
-        if($row->status_code != 'P'){
+
+        if(!empty($row->status_code ) && $row->status_code != 'P'){
             $json['error']['status_code'] = '單據未確認才可修改。現在是 ' . $row->status_name;
             $json['error']['warning'] = '單據未確認才可修改。現在是 ' . $row->status_name;
         }
@@ -281,7 +281,6 @@ class CountingController extends BackendController
         if(!$json) {
 
             $result = $this->CountingService->saveCounting($post_data);
-
 
             if(empty($result['error'])){
                 $counting_id = $result['id'];
@@ -305,8 +304,6 @@ class CountingController extends BackendController
         }
 
         return response(json_encode($json))->header('Content-Type','application/json');
-
-
     }
 
     public function delete()
@@ -353,53 +350,7 @@ class CountingController extends BackendController
         return response(json_encode($json))->header('Content-Type','application/json');
     }
 
-
-    // ok，但暫時不用
-    // public function import($counting_id = null)
-    // {
-    //     $data = request()->all();
-
-    //     $counting_id = !empty($data['counting_id']) ? $data['counting_id'] : null;
-
-    //     $query_data = [];
-
-    //     if (request()->hasFile('file')) {
-    //         $file = request()->file('file');
-    //         $filename = date('Y-m-d_H-i-s') . '.' . $file->getClientOriginalExtension();
-
-
-    //         $file->move(storage_path('app/imports/receiving_orders'), $filename);
-
-    //         $fullpath = storage_path('app/imports/receiving_orders') . '/' . $filename;
-    //         $newfile = new UploadedFile($fullpath, $filename, $file->getClientMimeType());
-            
-    //         //重新設定 $filename
-    //         $filename = $newfile->getPathname();
-
-    //         $result = $this->CountingService->import($filename, $counting_id);
-            
-
-    //         if(!empty($result['id'])){
-    //             $counting_id = $result['id'];
-
-    //             $json = [
-    //                 'success' => '檔案上傳成功',
-    //                 'counting_id' => $result['id'],
-    //                 'code' => $result['code'],
-    //                 'redirectUrl' => route('lang.admin.inventory.countings.form', array_merge(['id' => $counting_id], $query_data)),
-    //             ];
-    //             return response()->json($json);
-
-    //         }else if(!empty($result['error'])){
-    //             return response()->json(['error' => "檔案上傳成功但解析失敗。<BR>\r\n錯誤：" . $result['error']]);
-    //         }
-    
-    //     }
-    
-    //     return response()->json(['message' => '请选择一个有效的文件xxx'], 422);
-    // }
-
-    public function readExcel($counting_id = null)
+    public function imports($counting_id = null)
     {
         $data = request()->all();
 
@@ -443,17 +394,25 @@ class CountingController extends BackendController
 
     public function saveStatusCode()
     {
-        $post_data = request()->all();
-        $new_data = $post_data['update_status'];
-        $result = $this->CountingService->saveStatusCode($new_data);
+        $json = [];
 
-        if(!empty($result['data']['id'])){
-            $msg = [
-                'success' => '狀態已變更為：' . $result['data']['status_name'],
-                'data' => $result['data'],
-            ];
+        if(auth()->user()->username != 'admin'){
+            $json['error'] = $this->lang->error_permission;
         }
-        
-        return $msg;
+
+        if(!$json){
+            $post_data = request()->all();
+            $new_data = $post_data['update_status'];
+            $result = $this->CountingService->saveStatusCode($new_data);
+    
+            if(!empty($result['data']['id'])){
+                $json = [
+                    'success' => '狀態已變更為：' . $result['data']['status_name'],
+                    'data' => $result['data'],
+                ];
+            }
+        }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
     }
 }

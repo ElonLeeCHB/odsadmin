@@ -35,18 +35,4 @@ class CategoryService extends Service
         
         return $this->CategoryRepository->updateOrCreateCategory($data);
     }
-
-
-    public function optimizeRow($row)
-    {
-        return $this->CategoryRepository->optimizeRow($row);
-    }
-
-
-    public function sanitizeRow($row)
-    {
-        return $this->CategoryRepository->sanitizeRow($row);
-    }
-
-
 }

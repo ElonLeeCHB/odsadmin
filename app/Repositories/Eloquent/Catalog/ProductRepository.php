@@ -533,19 +533,6 @@ class ProductRepository extends Repository
     }
 
 
-    // 刪除關聯
-    public function sanitizeRow($row)
-    {
-        $arrOrder = $row->toArray();
-
-        if(!empty($arrOrder['translation'])){
-            unset($arrOrder['translation']);
-        }
-
-        return (object) $arrOrder;
-    }
-
-
     // 額外欄位 - 單筆記錄
     public function setRowExtraColumns($row, $columns)
     {

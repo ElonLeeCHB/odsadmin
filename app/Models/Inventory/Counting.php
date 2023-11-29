@@ -16,6 +16,7 @@ class Counting extends Model
     
     public $table = 'inventory_countings';
     protected $guarded = [];
+    protected $appends = ['status_name'];
 
 
     protected static function booted()
@@ -48,6 +49,13 @@ class Counting extends Model
     //         return Term::getByCodeAndTaxonomyCode($code, 'common_form_status');
     //     });
     // }
+
+    public function total(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
+        );
+    }
 
     public function statusName(): Attribute
     {

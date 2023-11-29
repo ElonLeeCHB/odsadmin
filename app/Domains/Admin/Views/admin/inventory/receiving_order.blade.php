@@ -67,7 +67,7 @@
             <label class="form-label">{{ $lang->column_status }}</label>
             <select id="input-filter_status_code" name="filter_status_code" class="form-select">
               <option value="">--</option>
-              @foreach($receiving_order_statuses as $status)
+              @foreach($statuses as $status)
               <option value="{{ $status->code }}" >{{ $status->name }}</option>
               @endforeach
               <option value="withoutV" selected>{{ $lang->text_status_without_voided }}</option>

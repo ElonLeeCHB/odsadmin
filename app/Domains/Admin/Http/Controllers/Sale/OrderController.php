@@ -286,8 +286,7 @@ class OrderController extends BackendController
 
         $this->order = $order;
 
-        //$data['order']  = $this->OrderService->refineRow($order, ['optimize' => true, 'sanitize' => true]);
-        $data['order'] = $order;
+        $data['order'] = $order->toCleanObject();
 
         if(empty($this->request->location_id)){
             $data['location_id'] = 2;
@@ -408,7 +407,7 @@ class OrderController extends BackendController
         }
 
         $data['members_list_url'] = route('api.member.member.list');
-        $data['tax_id_nums_list_url'] = route('api.localization.tax_id_num.list');
+        $data['tax_id_num_url'] = route('api.localization.tax_id_num.list');
         $data['cities_list_url'] = route('api.localization.division.city.list');
         $data['roads_list_url'] = route('api.localization.road.list');
         $data['member_info_url'] = route('lang.admin.member.members.info');

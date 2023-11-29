@@ -111,7 +111,7 @@ return array (
 
 
 // Error
-'error_permission' => '警告: 您沒有權限！',
-'error_warning' => '警告: 資料未正確輸入！',
+'error_permission' => '您沒有權限！',
+'error_warning' => '資料未正確輸入！',
 
 );

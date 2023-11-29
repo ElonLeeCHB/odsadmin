@@ -171,7 +171,7 @@ class BomController extends BackendController
 
         $bom->product_edit_url = route('lang.admin.inventory.products.form', $bom->product_id);
 
-        $data['bom']  = $bom;
+        $data['bom']  = $bom->toCleanObject();
 
         if(!empty($data['bom']) && $bom_id == $bom->id){
             $data['bom_id'] = $bom_id;

@@ -49,7 +49,7 @@ class OrderController extends ApiController
 
         $orders = $this->OrderService->getOrders($filter_data);
 
-        $orders = $this->OrderService->optimizeRows($orders);
+        //$orders = $this->OrderService->optimizeRows($orders);
 
         $this->OrderService->unsetRelations($orders, ['status']);
 
@@ -71,8 +71,8 @@ class OrderController extends ApiController
         $order->load('order_products.order_product_options');
 
         $order->status_name = $order->status->name ?? '';
-
-        $order = $this->OrderService->sanitizeRow($order);
+        
+        $order = $order->toCleanObject();
 
         // Order Total
         $order->totals = $this->OrderService->getOrderTotals($order_id);
@@ -180,9 +180,9 @@ class OrderController extends ApiController
 
     public function getActiveOrderStatuses()
     {
-        $allStatuses = $this->OrderService->getCachedActiveOrderStatuses();
+        $statuses = TermRepository::getCodeKeyedTermsByTaxonomyCode('order_status');
 
-        return response(json_encode($allStatuses))->header('Content-Type','application/json');
+        return response(json_encode($statuses))->header('Content-Type','application/json');
     }
 
 

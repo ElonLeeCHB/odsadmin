@@ -25,7 +25,7 @@ use App\Helpers\Classes\DataHelper;
 //use App\Libraries\Xlinfoods\UnitConverter\UnitConverter;
 //use JordanBrauer\UnitConverter\Unit\Length\TwCatty;
 //use App\Libraries\jordanbrauer\UnitConverter\Unit\Mass\TwCatty;
-use App\Libraries\UnitConverter;
+use App\Helpers\Classes\UnitConverter;
 //use App\Repositories\Eloquent\UserCopy\UserRepository;
 
 
@@ -78,7 +78,6 @@ class CountingRepository
         DB::beginTransaction();
 
         try {
-
             $result = $this->findIdOrFailOrNew($data['counting_id']);
 
             if(!empty($result['data'])){
@@ -91,6 +90,7 @@ class CountingRepository
             $counting->location_id = $data['location_id'] ?? 0;
             //$counting->code = (Observer)
             $counting->form_date = $data['form_date'];
+            $counting->stocktaker = $data['stocktaker'];
             $counting->status_code = !empty($data['status_code']) ? $data['status_code'] : 'P';
             $counting->comment = $data['comment'];
             $counting->total = $data['total'];
@@ -98,6 +98,8 @@ class CountingRepository
             $counting->modified_user_id = auth()->user()->id;
 
             $counting->save();
+            
+            DB::commit();
 
             if(!empty($data['products'])){
                 $local_units = $this->UnitRepository->getLocaleKeyedActiveUnits(toArray:true);
@@ -308,7 +310,7 @@ class CountingRepository
         if(!empty($sheet[7][0])){ //$sheet[7][0] = excel檔第 6 列的品號
 
             //以當前語言的單位名稱做為索引
-            $local_units = $this->UnitRepository->getLocaleKeyedActiveUnits();
+            $local_units = $this->UnitRepository->getLocaleKeyedActiveUnits(toArray:true);
 
             $result['counting_products'] = [];
 
@@ -317,10 +319,41 @@ class CountingRepository
                     continue;
                 }
 
-                $counting_unit_name = $row[4];
-                if(!empty($counting_unit_name) && !empty($local_units[$counting_unit_name])){
-                    $unit_code = $local_units[$counting_unit_name]['code'];
+                if(empty($row[0])){
+                    continue;
                 }
+
+                $product_id = $row[0];
+                $counting_quantity = $row[6] ?? 0;
+
+                $counting_unit_name = $row[4];
+                $counting_unit_code = '';
+                if(!empty($counting_unit_name) && !empty($local_units[$counting_unit_name])){
+                    $counting_unit_code = $local_units[$counting_unit_name]['code'] ?? '';
+                }
+
+                $stock_unit_name = $row[3];
+                $stock_unit_code = '';
+                if(!empty($stock_unit_name) && !empty($local_units[$stock_unit_name])){
+                    $stock_unit_code = $local_units[$stock_unit_name]['code'] ?? '';
+                }
+
+                //stock_quantity
+                if($counting_unit_code == $stock_unit_code){
+                    $stock_quantity = $row[6];
+                }else{
+
+                    $stock_quantity = UnitConverter::build()->qty($counting_quantity)
+                            ->from($counting_unit_code)
+                            ->to($stock_unit_code)
+                            ->product($product_id)
+                            ->get();
+                }
+
+                if(!is_numeric($stock_quantity)){
+                    $stock_quantity = 0;
+                }
+
 
                 $result['counting_products'][] = (object) [
                     'product_id' => $row[0],
@@ -331,11 +364,16 @@ class CountingRepository
                     'price' => $row[5],
                     'quantity' => $row[6],
                     'amount' => $row[5]*$row[6],
-                    //'comment' => $row[8],
+                    
+                    'unit_code' => $counting_unit_code,
+                    'stock_unit_code' => $stock_unit_code,
+                    'stock_quantity' => $stock_quantity,
+                    'factor' => $stock_quantity / $counting_quantity,
+                    'product_edit_url' => route('lang.admin.inventory.products.form', $row[0]),
                 ];
-            }
+                
+            }            
         }
-
         return $result;
     }
 

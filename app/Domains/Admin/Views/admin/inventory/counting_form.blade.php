@@ -72,6 +72,17 @@
               </div>
 
               <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">盤點人</label>
+                <div class="col-sm-10">
+                  <div class="input-group">
+                    <input type="text" id="input-stocktaker" name="stocktaker" value="{{ $counting->stocktaker ?? '' }}" class="form-control" />
+                  </div>
+                  <div class="form-text"></div>
+                  <div id="error-stocktaker" class="invalid-feedback"></div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">總金額</label>
                 <div class="col-sm-10">
                   <div class="input-group">
@@ -292,14 +303,19 @@ function calcProduct(rownum){
 }
 
 function sumTotal(){
-  let counting_amount = 0;
+  let total = 0;
+  let formattedTotal = 0;
 
   $('.productAmountInputs').each(function() {
     var inputValue = parseFloat($(this).val()) || 0;
-    counting_amount += inputValue;
+    total += inputValue;
   });
 
-  $('#input-total').val(counting_amount);
+  formattedTotal = total.toLocaleString(undefined, {
+      maximumFractionDigits: 0
+    });
+
+  $('#input-total').val(formattedTotal);
 }
 
 
@@ -347,6 +363,7 @@ $(document).on('click', '[data-oc-toggle=\'readExcel\']', function () {
                     },
                     success: function (response) {
                         $('#counting_products_wrapper').html(response);
+                        sumTotal();
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
                         console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);

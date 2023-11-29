@@ -5,7 +5,7 @@ namespace App\Domains\Admin\Http\Controllers\Inventory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
-use App\Services\Inventory\UnitService;
+use App\Domains\Admin\Services\Inventory\UnitService;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
 
 class UnitController extends BackendController
@@ -188,8 +188,8 @@ class UnitController extends BackendController
         }
         $data['translations'] = $translations;
         
-        $data['unit']  = $this->UnitService->sanitizeRow($unit);
-
+        $data['unit']  = $unit->toCleanObject();
+        
         if(!empty($data['unit']) && $unit_id == $unit->id){
             $data['unit_id'] = $unit_id;
         }else{

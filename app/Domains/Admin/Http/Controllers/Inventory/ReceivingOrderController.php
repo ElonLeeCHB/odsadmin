@@ -53,7 +53,7 @@ class ReceivingOrderController extends BackendController
         $data['tax_types'] = [];
 
         // statuses
-        $data['receiving_order_statuses'] = $this->ReceivingOrderService->getCachedActiveReceivingOrderStatuses();
+        $data['statuses'] = $this->ReceivingOrderService->getCodeKeyedTermsByTaxonomyCode('common_form_status',toArray:false);
 
         // 單別
         $data['form_types'] = $this->ReceivingOrderService->getCodeKeyedTermsByTaxonomyCode('receiving_order_form_type',toArray:false);
@@ -182,8 +182,7 @@ class ReceivingOrderController extends BackendController
             $receiving_order->status_code = 'P';
         }
 
-        //$data['receiving_order'] = $this->ReceivingOrderService->refineRow($receiving_order, ['optimize' => true,'sanitize' => true]);
-        $data['receiving_order'] = $receiving_order;
+        $data['receiving_order'] = $receiving_order->toCleanObject();
 
         if(!empty($receiving_order) && $receiving_order_id == $receiving_order->id){
             $data['receiving_order_id'] = $receiving_order_id;
@@ -205,7 +204,7 @@ class ReceivingOrderController extends BackendController
         $data['supplier_autocomplete_url'] = route('lang.admin.counterparty.suppliers.autocomplete');
 
         // statuses
-        $data['statuses'] = $this->ReceivingOrderService->getCachedActiveReceivingOrderStatuses();
+        $data['statuses'] = $this->ReceivingOrderService->getCodeKeyedTermsByTaxonomyCode('common_form_status',toArray:false);
 
         $standard_units = $this->UnitRepository->getCodeKeyedStandardActiveUnits();
         $standard_units_array_keys = array_keys($standard_units);
@@ -370,17 +369,25 @@ class ReceivingOrderController extends BackendController
 
     public function saveStatusCode()
     {
-        $post_data = request()->all();
-        $new_data = $post_data['update_status'];
-        $result = $this->ReceivingOrderService->saveStatusCode($new_data);
+        $json = [];
 
-        if(!empty($result['data']['id'])){
-            $msg = [
-                'success' => '狀態已變更為：' . $result['data']['status_name'],
-                'data' => $result['data'],
-            ];
+        if(auth()->user()->username != 'admin'){
+            $json['error'] = $this->lang->error_permission;
+        }
+
+        if(!$json){
+            $post_data = request()->all();
+            $new_data = $post_data['update_status'];
+            $result = $this->ReceivingOrderService->saveStatusCode($new_data);
+    
+            if(!empty($result['data']['id'])){
+                $json = [
+                    'success' => '狀態已變更為：' . $result['data']['status_name'],
+                    'data' => $result['data'],
+                ];
+            }
         }
         
-        return $msg;
+        return response(json_encode($json))->header('Content-Type','application/json');
     }
 }
