@@ -23,7 +23,7 @@ use Mpdf\Mpdf;
 class OrderService extends Service
 {
     protected $modelName = "\App\Models\Sale\Order";
-    
+
     public function __construct(protected OrderRepository $OrderRepository
         , protected OrderProductRepository $OrderProductRepository
         , protected OrderTotalRepository $OrderTotalRepository
@@ -37,7 +37,7 @@ class OrderService extends Service
     public function updateOrCreate($data)
     {
         DB::beginTransaction();
-        
+
         try {
 
             $order_id = $data['order_id'] ?? null;
@@ -161,7 +161,6 @@ class OrderService extends Service
                 $order->delivery_date = $delivery_date;
                 $order->delivery_time_range = $data['delivery_time_range'] ?? '';
                 $order->delivery_time_comment = $data['delivery_time_comment'] ?? '';
-                //$order->status_id = $data['status_id'] ?? 0;
                 $order->status_code = $data['status_code'] ?? 0;
                 $order->comment = $data['comment'] ?? '';
                 $order->extra_comment = $data['extra_comment'] ?? '';
@@ -339,10 +338,10 @@ class OrderService extends Service
                     unset($update_order_products);
                 }
             }
-            
+
 
             // order_product_options table
-            if(!empty($data['order_products'])){                
+            if(!empty($data['order_products'])){
 
                 //重抓 order_product
                 $tmprows = $this->OrderProductRepository->newModel()->where('order_id', $order->id)->orderBy('sort_order','ASC')->get();

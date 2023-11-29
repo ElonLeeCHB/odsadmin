@@ -41,18 +41,18 @@ class OrderService extends Service
 
 
 
-    
-
-    public function optimizeRow($row)
-    {
-        return $this->OrderRepository->optimizeRow($row);
-    }
 
 
-    public function sanitizeRow($row)
-    {
-        return $this->OrderRepository->sanitizeRow($row);
-    }
+    // public function optimizeRow($row)
+    // {
+    //     return $this->OrderRepository->optimizeRow($row);
+    // }
+
+
+    // public function sanitizeRow($row)
+    // {
+    //     return $this->OrderRepository->sanitizeRow($row);
+    // }
 
 
 

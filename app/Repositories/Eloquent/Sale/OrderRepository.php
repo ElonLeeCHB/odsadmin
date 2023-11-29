@@ -91,8 +91,7 @@ class OrderRepository extends Repository
 
         // 狀態
         if(!empty($data['filter_status_code']) && $data['filter_status_code'] == 'withoutV'){
-            $data['whereNotIn'] = ['status_code' => ['V']];
-            unset($data['filter_status_code']);
+            $data['filter_status_code'] = '<>Void';
         }
 
         return $data;
@@ -200,7 +199,7 @@ class OrderRepository extends Repository
         $rows = $this->TermRepository->getTerms($data);
 
         //$rows = DataHelper::collectionToArray
-        
+
         $tags = [];
 
         foreach ($rows as $key => $row) {
@@ -324,7 +323,7 @@ class OrderRepository extends Repository
         $filter_data['order'] = 'DESC';
 
         $orders = $this->getRows($filter_data);
-        
+
         foreach ($orders as $order) {
             $htmlData['orders'][] = $this->getOrderPrintData($order);
         }
@@ -345,7 +344,7 @@ class OrderRepository extends Repository
                 ]
             ]
         ]);
-        
+
         $mpdf->WriteHTML($html);
         $mpdf->Output('example.pdf', 'D');
 

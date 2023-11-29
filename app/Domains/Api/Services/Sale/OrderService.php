@@ -18,7 +18,7 @@ class OrderService extends GlobalOrderService
     public function updateOrCreate($data)
     {
         DB::beginTransaction();
-        
+
         try {
 
             $order_id = $data['order_id'] ?? null;
@@ -143,7 +143,7 @@ class OrderService extends GlobalOrderService
                 $order->delivery_date = $delivery_date;
                 $order->delivery_time_range = $data['delivery_time_range'] ?? '';
                 $order->delivery_time_comment = $data['delivery_time_comment'] ?? '';
-                //$order->status_id = $data['status_id'] ?? 0;
+                $order->status_id = $data['status_id'] ?? 0;
                 $order->status_code = $data['status_code'] ?? 0;
                 $order->comment = $data['comment'] ?? '';
                 $order->extra_comment = $data['extra_comment'] ?? '';

@@ -62,10 +62,10 @@ class RequisitionController extends BackendController
 
         $data['list_url'] = route('lang.admin.sale.requisitions.list');
         $data['add_url'] = route('lang.admin.sale.requisitions.form');
-        
+
         $data['export_daily_list_url'] = route('lang.admin.sale.requisitions.exportDailyList');
         $data['export_matrix_list_url'] = route('lang.admin.sale.requisitions.exportMatrixList');
-        
+
 
         return view('admin.sale.requisition', $data);
     }
@@ -80,10 +80,10 @@ class RequisitionController extends BackendController
     private function getList()
     {
         $data['lang'] = $this->lang;
-        
+
         // Prepare query_data for records
         $query_data = $this->getQueries($this->request->query());
-    
+
         // Rows
         $query_data['with'] = DataHelper::addToArray('product', $query_data['with'] ?? []);
 
@@ -97,7 +97,7 @@ class RequisitionController extends BackendController
             $row->edit_url = route('lang.admin.sale.requisitions.form', array_merge([$row->required_date], $query_data));
             $row->is_active_name = ($row->is_active==1) ? $this->lang->text_enabled :$this->lang->text_disabled;
         }
-    
+
         $data['ingredients'] = $ingredients->withPath(route('lang.admin.sale.requisitions.list'))->appends($query_data);
 
         // Prepare links for list table's header
@@ -106,31 +106,31 @@ class RequisitionController extends BackendController
         }else{
             $order = 'ASC';
         }
-        
+
         $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
-    
+
         $query_data = $this->unsetUrlQueryData($query_data);
-        
-        
+
+
         // link of table header for sorting
         $url = '';
-    
+
         foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
-    
+
         $route = route('lang.admin.sale.requisitions.list');
-    
+
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_required_date'] = $route . "?sort=required_date&order=$order" .$url;
         $data['sort_product_id'] = $route . "?sort=product_id&order=$order" .$url;
         $data['sort_product_name'] = $route . "?sort=product_name&order=$order" .$url;
         $data['sort_supplier_product_code'] = $route . "?sort=supplier_product_code&order=$order" .$url;
         $data['sort_supplier_short_name'] = $route . "?sort=supplier_short_name&order=$order" .$url;
-        
+
         $data['list_url'] = route('lang.admin.sale.requisitions.list');
-        
+
         return view('admin.sale.requisition_list', $data);
     }
 
@@ -265,7 +265,7 @@ class RequisitionController extends BackendController
             $filter_data = [
                 'with' => ['order_products','order_product_options.product_option_value.option_value',],
                 'whereRawSqls' => [$requiredDateRawSql],
-                'whereIn' => ['status_id' => $sales_orders_to_be_prepared_status],
+                'whereIn' => ['status_code' => $sales_orders_to_be_prepared_status],
                 'with' => 'order_products.order_product_options.product_option_value.option_value.product',
                 'pagination' => false,
                 'limit' => 0,
@@ -377,16 +377,16 @@ class RequisitionController extends BackendController
             else{
                 //delete
                 $db_ingredients = OrderIngredientHour::where('required_date', $required_date)->get();
-    
+
                 $delete_ids = [];
-    
+
                 foreach ($db_ingredients as $db_ingredient) {
                     //相關主鍵在資料庫有，在訂單沒有。表示不需要，應刪除
                     if(!isset($arr[$db_ingredient->required_date][$db_ingredient->order_id][$db_ingredient->ingredient_product_id])){
                         $delete_ids[] = $db_ingredient->id;
                     }
                 }
-    
+
                 if(!empty($delete_ids)){
                     OrderIngredientHour::whereIn('id', $delete_ids)->delete();
                 }
@@ -394,7 +394,7 @@ class RequisitionController extends BackendController
             }
 
             // 寫入每日表 order_ingredients
-            
+
             if(!empty($upsert_data)){
                 $daily_upsert_data = [];
 
@@ -422,7 +422,7 @@ class RequisitionController extends BackendController
                     OrderIngredient::upsert($daily_upsert_data, ['required_date','ingredient_product_id']);
                 }
             }
-            
+
             DB::commit();
 
             return ['status' => 'success'];

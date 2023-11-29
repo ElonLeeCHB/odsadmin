@@ -35,13 +35,13 @@ class ReceivingOrderController extends BackendController
             'text' => $this->lang->text_home,
             'href' => route('lang.admin.dashboard'),
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->text_menu_inventory,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
             'href' => route('lang.admin.inventory.receivings.index'),
@@ -93,14 +93,14 @@ class ReceivingOrderController extends BackendController
         }
 
         $data['receiving_orders'] = $receiving_orders->withPath(route('lang.admin.inventory.receivings.list'))->appends($query_data);
-        
+
         // Prepare links for list table's header
         if($query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
-        
+
         $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
@@ -111,9 +111,9 @@ class ReceivingOrderController extends BackendController
         foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
-        
-        
-        // link of table header for sorting        
+
+
+        // link of table header for sorting
         $route = route('lang.admin.inventory.receivings.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
@@ -162,7 +162,7 @@ class ReceivingOrderController extends BackendController
         $data['back_url'] = route('lang.admin.inventory.receivings.index', $query_data);
         $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
         $data['status_save_url'] = route('lang.admin.inventory.receivings.saveStatusCode');
-        
+
 
         // Get Record
         $result = $this->ReceivingOrderService->findIdOrFailOrNew($receiving_order_id);
@@ -182,7 +182,6 @@ class ReceivingOrderController extends BackendController
             $receiving_order->status_code = 'P';
         }
 
-        //$data['receiving_order'] = $this->ReceivingOrderService->refineRow($receiving_order, ['optimize' => true,'sanitize' => true]);
         $data['receiving_order'] = $receiving_order;
 
         if(!empty($receiving_order) && $receiving_order_id == $receiving_order->id){
@@ -227,7 +226,7 @@ class ReceivingOrderController extends BackendController
                 }
 
                 // 都是標準單位，product_units 不會有，要查 units 表
-                if(   in_array($receiving_product->receiving_unit_code, $standard_units_array_keys) 
+                if(   in_array($receiving_product->receiving_unit_code, $standard_units_array_keys)
                    && in_array($receiving_product->stock_unit_code, $standard_units_array_keys)){
 
                     $params = [
@@ -254,7 +253,7 @@ class ReceivingOrderController extends BackendController
                 }
 
                 // 來源單位不是標準單位，則來源單位應有轉換，但新增一筆來源跟目的都相同的庫存單位供選擇
-                if(   !in_array($receiving_product->receiving_unit_code, $standard_units_array_keys) 
+                if(   !in_array($receiving_product->receiving_unit_code, $standard_units_array_keys)
                    && in_array($receiving_product->stock_unit_code, $standard_units_array_keys)){
 
                     //$stock_unit_code = $standard_units[$receiving_product->receiving_unit_code]
@@ -328,7 +327,7 @@ class ReceivingOrderController extends BackendController
         if(empty($post_data['form_type_code'])){
             $json['error']['form_type_code'] = '請選擇單別';
         }
-        
+
         if(empty($post_data['tax_type_code'])){
             $json['error']['tax_type_code'] = '請選擇課稅別';
         }
@@ -337,7 +336,7 @@ class ReceivingOrderController extends BackendController
             $json['error']['warning'] = $this->lang->error_warning;
         }
         // end
-        
+
         if(!$json) {
             $result = $this->ReceivingOrderService->saveReceivingOrder($post_data);
 
@@ -380,7 +379,7 @@ class ReceivingOrderController extends BackendController
                 'data' => $result['data'],
             ];
         }
-        
+
         return $msg;
     }
 }

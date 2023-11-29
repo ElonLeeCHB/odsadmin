@@ -26,7 +26,7 @@ class TermController extends ApiController
             unset($phrases['data'][$key]['translation']);
             unset($phrases['data'][$key]['taxonomy']);
         }
-        
+
         return response(json_encode($phrases))->header('Content-Type','application/json');
     }
 
@@ -35,7 +35,7 @@ class TermController extends ApiController
     {
         $phrase = $this->TermService->findIdFirst($phrase_id);
 
-        $phrase = $this->TermService->sanitizeRow($phrase);
+        //$phrase = $this->TermService->sanitizeRow($phrase);
 
         return response(json_encode($phrase))->header('Content-Type','application/json');
     }

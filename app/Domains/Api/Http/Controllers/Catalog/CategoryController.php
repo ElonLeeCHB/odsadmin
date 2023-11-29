@@ -13,7 +13,7 @@ class CategoryController extends ApiController
         parent::__construct();
     }
 
-    
+
     public function list()
     {
         $query_data = $this->request->query();
@@ -31,8 +31,8 @@ class CategoryController extends ApiController
     public function details($category_id)
     {
         $category = $this->CategoryService->findIdFirst($category_id);
-        
-        $category = $this->CategoryService->sanitizeRow($category);
+
+        //$category = $this->CategoryService->sanitizeRow($category);
 
         return response(json_encode($category))->header('Content-Type','application/json');
     }

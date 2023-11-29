@@ -26,7 +26,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
  * getDebugQueryContent()
  * getTranslationModel()
  * saveRow(), saveRowBasicData(), saveTranslationData(), saveRowMetaData()
- * 
+ *
  * regexp
  * pagination
  * limit
@@ -76,30 +76,30 @@ trait EloquentTrait
     }
 
 
-    public function refineRows($rows, $data)
-    {
-        $new_rows = [];
-        
-        foreach ($rows as $key => $row) {
-            $new_rows[$key] = $this->refineRow($row, $data);
-        }
+    // public function refineRows($rows, $data)
+    // {
+    //     $new_rows = [];
 
-        return $new_rows;
-    }
+    //     foreach ($rows as $key => $row) {
+    //         $new_rows[$key] = $this->refineRow($row, $data);
+    //     }
+
+    //     return $new_rows;
+    // }
 
     // optimizeRow and sanitizeRow should be defined in FooRepository
-    public function refineRow($row, $data)
-    {
-        if (method_exists($this, 'optimizeRow') && !empty($data['optimize'])) {
-            $row = $this->optimizeRow($row);
-        }
+    // public function refineRow($row, $data)
+    // {
+    //     if (method_exists($this, 'optimizeRow') && !empty($data['optimize'])) {
+    //         $row = $this->optimizeRow($row);
+    //     }
 
-        if (method_exists($this, 'sanitizeRow') && !empty($data['sanitize'])) {
-            $row = $this->sanitizeRow($row);
-        }
+    //     if (method_exists($this, 'sanitizeRow') && !empty($data['sanitize'])) {
+    //         $row = $this->sanitizeRow($row);
+    //     }
 
-        return $row;
-    }
+    //     return $row;
+    // }
 
 
     public function sanitizeRows($rows)
@@ -108,7 +108,7 @@ trait EloquentTrait
         foreach ($rows as $key => $row) {
             $new_rows[$key] = $this->sanitizeRow($row);
         }
-        
+
         return $new_rows;
     }
 
@@ -167,7 +167,7 @@ trait EloquentTrait
             }
 
             return ['data' => $row]; // To make differenct with 'error', 'data' is needed.
-            
+
         } catch (\Exception $e) {
             return ['error' => 'findIdOrFailOrNew: Please check for more details'];
         }
@@ -223,7 +223,7 @@ trait EloquentTrait
             }else{
                 $pagination = true;
             }
-    
+
             if($pagination == true && $limit != 0){  // Get some rows per page
                 if(empty($data['pluck'])){
                     $result = $query->paginate($limit);
@@ -260,7 +260,7 @@ trait EloquentTrait
         if(empty($this->table_columns)){
             $this->table_columns = $this->getTableColumns();
         }
-        
+
         $query = $this->newModel()->query();
 
         // With relations
@@ -291,8 +291,8 @@ trait EloquentTrait
         if(!empty($this->model->translation_attributes)){
             $query->with('translation');
         }
-        
-        
+
+
         // whereIn
         if(!empty($data['whereIn'])){
             foreach ($data['whereIn'] as $key => $arr) {
@@ -309,13 +309,13 @@ trait EloquentTrait
             }
         }
 
-        
+
         // is_active can only be: 1, 0, -1, *
         // if(!is_array($this->table_columns)){
         //     echo '<pre>', print_r($this->table_columns, 1), "</pre>"; exit;
         // }
         if(in_array('is_active', $this->table_columns)){
-            
+
             // - 相容以前的舊寫法
             if(isset($data['filter_is_active'])){
                 $data['equal_is_active'] = $data['filter_is_active'];
@@ -373,7 +373,7 @@ trait EloquentTrait
         //     }else{
         //         $sort = $data['sort'];
         //     }
-    
+
         //     // Order
         //     if (isset($data['order']) && ($data['order'] == 'ASC')) {
         //         $order = 'ASC';
@@ -381,12 +381,12 @@ trait EloquentTrait
         //     else{
         //         $order = 'DESC';
         //     }
-    
+
         //     $query->orderBy($sort, $order);
         // }
 
-        
-        
+
+
         /*
         //  - Sort
         if(!empty($data['sort']) && !empty($this->model->translation_attributes) && in_array($data['sort'], $this->model->translation_attributes)){
@@ -440,16 +440,16 @@ trait EloquentTrait
                 $translation_table = $this->model->getTranslationTable();
                 $master_key = $this->model->getTranslationMasterKey();
                 $sort = $data['sort'];
-    
+
                 if (str_ends_with($this->model->translation_model_name, 'Meta')) {
-    
+
                     $query->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
                         $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
                              ->where("{$translation_table}.locale", '=', $this->locale)
                              ->where("{$translation_table}.meta_key", '=', $sort);
                     });
                     $query->orderBy("{$translation_table}.meta_value", $order);
-    
+
                 }else{ // 一般用 Translation 做結尾，例如 ProductTranslation
                     $query->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
                         $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
@@ -500,7 +500,7 @@ trait EloquentTrait
     {
         $translation_attributes = $this->model->translation_attributes ?? [];
         $table_columns = $this->getTableColumns($this->connection);
-        
+
         $meta_keys = $this->model->meta_keys;
         if(empty($meta_keys)){
             $meta_keys = [];
@@ -612,7 +612,7 @@ trait EloquentTrait
         foreach ($data as $key => $value) {
 
             $column = null;
-            
+
             if(str_starts_with($key, 'equal_')){ // Key must start with equal_
                 $column = str_replace('equal_', '', $key);
             }else{
@@ -927,8 +927,8 @@ trait EloquentTrait
     {
         if(!empty($input)){
             $query->withCount($input);
-        }        
-        
+        }
+
         return $query;
     }
 
@@ -1006,7 +1006,7 @@ trait EloquentTrait
         $this->initialize();
 
         DB::beginTransaction();
-        
+
         try{
 
             $modelInstance = $this->findIdOrFailOrNew($id)['data'] ?? '';
@@ -1040,7 +1040,7 @@ trait EloquentTrait
             DB::commit();
 
             return ['id' => $id];
-            
+
         } catch (\Exception $ex) {
             DB::rollBack();
             return ['error' => $ex->getMessage()];
@@ -1055,14 +1055,14 @@ trait EloquentTrait
 
         try{
             DB::beginTransaction();
-            
+
             // If $model->fillable exists, save() then return
             if(!empty($modelInstance->getFillable())){
                 $modelInstance->fill($post_data);
                 $modelInstance->save();
                 return $modelInstance->id;
             }
-            
+
             // Save matched columns
             $table_columns = $this->table_columns;
             $form_columns = array_keys($post_data);
@@ -1134,7 +1134,7 @@ trait EloquentTrait
             }else{
                 $translation_attributes = $master_model->translation_attributes;
             }
-    
+
             // translationModel
             $translationModelName = get_class($master_model) . 'Translation';
             if(class_exists($translationModelName)){
@@ -1142,11 +1142,11 @@ trait EloquentTrait
             }else{
                 return false;
             }
-    
+
             // foreigh_key
             $foreigh_key = $translationModel->foreign_key;
             $foreigh_key_value = $master_model->id;
-    
+
             foreach($translation_data as $locale => $value){
                 $arr = [];
                 if(!empty($value['id'])){
@@ -1159,10 +1159,10 @@ trait EloquentTrait
                         $arr[$column] = $value[$column];
                     }
                 }
-    
+
                 $arrs[] = $arr;
             }
-    
+
             DB::beginTransaction();
             $translationModel->upsert($arrs,['id', $foreigh_key, 'locale']);
             DB::commit();
@@ -1170,7 +1170,7 @@ trait EloquentTrait
         } catch (\Exception $ex) {
             DB::rollback();
             throw $ex;
-        } 
+        }
     }
 
     // must be public
@@ -1272,7 +1272,7 @@ trait EloquentTrait
 
         return $row;
     }
-    
+
     public function setMetaRows($row)
     {
         $row = $this->getMetaRows($row);
@@ -1304,7 +1304,7 @@ trait EloquentTrait
             if(!is_array($row) && method_exists($row, 'toArray')) {
                 $row = $row->toArray();
             }
-            
+
             if(!empty($data['unset'])){
                 foreach ($data['unset'] as $key2) {
                     unset($row[$key2]);
@@ -1380,7 +1380,7 @@ trait EloquentTrait
                 $date2_year = substr($arr[1], 0, -4);
                 if($date2_year < 2000){
                     $date2_year += 2000;
-                }      
+                }
 
                 $date1 = $date1_year . '-' . substr($arr[0], -4, -2) . '-' . substr($arr[0], -2);
                 $date2 = $date2_year . '-' . substr($arr[1], -4, -2) . '-' . substr($arr[1], -2);
@@ -1404,8 +1404,8 @@ trait EloquentTrait
                 //$symbles = ['>','<','=','>=', '<='];
             }else if(preg_match('/(^\d+.*)/', $dateString, $matches)){
                 $operator = '=';
-            }            
-    
+            }
+
             if(preg_match('/(^\d{2,4}-\d{2}-\d{2}$)/', $dateString, $matches)){ //2023-05-01
                 $arr = explode('-', $dateString);
                 $date1_year = $arr[0] < 2000 ? $arr[0]+2000 : $arr[0];
@@ -1422,7 +1422,7 @@ trait EloquentTrait
                 return false;
             }
 
-            $date1 = date_create($date1String);            
+            $date1 = date_create($date1String);
             $date2 = date_add($date1, date_interval_create_from_date_string("1 days"));
             $date2String = $date2->format('Y-m-d');
 
@@ -1447,13 +1447,13 @@ trait EloquentTrait
             foreach ($relations as $relation) {
                 $row->setRelation($relation, null);
             }
-            
+
         }
         else if(is_array($row)){
             foreach ($relations as $relation) {
                 unset($row[$relation]);
             }
-            
+
         }
 
         return $row;
@@ -1478,11 +1478,11 @@ trait EloquentTrait
             foreach ($relations as $relation) {
                 unset($row[$relation]);
                 $rows[$key] = $row;
-            } 
+            }
         }
 
         return $rows;
-        
+
     }
 
     public function getYmSnCode($modelName)
@@ -1498,7 +1498,7 @@ trait EloquentTrait
         $current_sn = (int)substr($current_max_code,-4);
         $new_sn = empty($current_sn) ? 1 : ($current_sn+1);
         $new_code = $code_prefix . sprintf("%04d",$new_sn) ;
-        
+
         return $new_code;
     }
 
