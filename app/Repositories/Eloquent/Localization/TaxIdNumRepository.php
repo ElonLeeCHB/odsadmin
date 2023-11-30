@@ -12,34 +12,50 @@ class TaxIdNumRepository extends Repository
     public $modelName = "\App\Models\SysData\TwTaxIdNum";
 
 
-    public function getTaxIdNum($data = [], $debug = 0)
+    /**
+     * 如果有傳入完整統一編號，從 refreshTaxIdNumsJson() 裡面查找。這個方法會先從快取裡面找，如果找不到會去查資料庫。
+     * 如果沒有完整統一編號，則使用標準查詢方式。
+     */
+    public function getTaxIdNum($params = [], $debug = 0)
     {
-        $tax_id_num = '';
+        if(!empty($params['equal_tax_id_num'])){
+            $rows = $this->refreshTaxIdNumsJson($params['equal_tax_id_num']);
 
-        if(!empty($data['filter_tax_id_num'])){
-            $tax_id_num = $data['filter_tax_id_num'];
-        }else if(!empty($data['equal_tax_id_num'])){
-            $tax_id_num = $data['equal_tax_id_num'];
+            if(count($rows) > 0){
+                $row = $rows[$params['equal_tax_id_num']];
+
+                if(!empty($rows[$params['equal_tax_id_num']])){
+                    return $row;
+                }
+            }
         }
+        else{
+            $params['keyBy'] = 'tax_id_num';
+            $row = $this->getRow($params);
 
-        return $this->refreshTaxIdNumsJson($tax_id_num);
-        return $tax_id_nums[$equal_tax_id_num] ?? null;
+            if(!empty($row)){
+                return $row;
+            }
+        }
+        
+        return null;
     }
 
 
     public function getTaxIdNums($params = [], $debug = 0)
     {
-        
+        $params['keyBy'] = 'tax_id_num';
         $rows = $this->getRows($params);
 
-        if(isset($params['equal_tax_id_num'])){
-            $equal_tax_id_num = $params['equal_tax_id_num'];
-            $tax_id_nums = $this->refreshTaxIdNumsJson($equal_tax_id_num);
-        }
+        // if(isset($params['equal_tax_id_num'])){
+        //     $equal_tax_id_num = $params['equal_tax_id_num'];
+        //     $tax_id_nums = $this->refreshTaxIdNumsJson($equal_tax_id_num);
+        // }
 
-        return $tax_id_nums ?? null;
+        return $rows;
     }
 
+    // 必須傳入完整統一編號
     public function refreshTaxIdNumsJson($tax_id_num)
     {
         $last3 = substr($tax_id_num,-3); //統編末3碼

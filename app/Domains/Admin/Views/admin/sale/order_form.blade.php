@@ -807,9 +807,7 @@ $('#input-payment_tin').autocomplete({
     $('#input-shipping_company').val(event.label);
 
     if(event.address_parts.after_road_section.length == 0){
-      if(confirm('資料來源沒有地址，所以地址不進行覆蓋。')){
-        return;
-      }
+        $('#input-original_address').val('目前無地址資料');
     }else{
       if(confirm('是否覆蓋地址？')){
         $('#input-shipping_road').val(event.address_parts.full_road_section);

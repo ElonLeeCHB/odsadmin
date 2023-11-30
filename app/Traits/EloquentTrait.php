@@ -52,13 +52,7 @@ trait EloquentTrait
         $this->model = new $this->modelName;
         $this->table = $this->model->getTable();
 
-        if(!empty($data['connection'])){
-            $this->connection = $data['connection'];
-        }else{
-            $this->connection = DB::connection()->getName();
-        }
-
-        $this->table_columns = $this->getTableColumns($this->connection);
+        $this->table_columns = $this->getTableColumns();
         $this->translation_attributes = $this->model->translation_attributes ?? [];
         $this->zh_hant_hans_transform = false;
         $this->initialized = true;
@@ -73,19 +67,6 @@ trait EloquentTrait
         }
 
         return $model;
-    }
-
-
-    /**
-     * LengthAwarePaginator
-     */
-    public function optimizeRows($rows): LengthAwarePaginator | Collection
-    {
-        foreach ($rows as $key => $row) {
-            $rows[$key] = $this->optimizeRow($row);
-        }
-
-        return $rows;
     }
 
 
@@ -925,12 +906,12 @@ trait EloquentTrait
         if(!empty($this->table_columns)){
             return $this->table_columns;
         }
-
+        
         // get from database
-        if(empty($connection) ){
+        if(empty($this->model->connection) ){
             $this->table_columns = DB::getSchemaBuilder()->getColumnListing($this->table);
         }else{
-            $this->table_columns = DB::connection($connection)->getSchemaBuilder()->getColumnListing($this->table);
+            $this->table_columns = DB::connection($this->model->connection)->getSchemaBuilder()->getColumnListing($this->table);
         }
         DataHelper::setJsonToStorage($cache_name, $this->table_columns);
 

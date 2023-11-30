@@ -10,9 +10,12 @@ use App\Models\Sale\Order;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Catalog\Option;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Traits\ModelTrait;
 
 class OrderProduct extends Model
 {
+    use ModelTrait;
+    
     protected $guarded = [];
 
     public function translations()

@@ -17,6 +17,9 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
 use App\Helpers\Classes\DataHelper;
 
+use PhpOffice\PhpSpreadsheet\IOFactory; 
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+
 class OrderRepository extends Repository
 {
     public $modelName = "\App\Models\Sale\Order";
@@ -510,5 +513,29 @@ class OrderRepository extends Repository
 
         return $result;
     }
+
+
+
+
+
+    public function toPdf($data) 
+    { 
+        require base_path() . '/vendor/phpoffice/phpspreadsheet/samples/Header.php'; 
+        $spreadsheet = require base_path() . '/vendor/phpoffice/phpspreadsheet/samples/templates/sampleSpreadsheet.php'; 
+         
+        $helper->log('Hide grid lines'); 
+        $spreadsheet->getActiveSheet()->setShowGridLines(false); 
+         
+        $helper->log('Set orientation to landscape'); 
+        $spreadsheet->getActiveSheet()->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE); 
+         
+        $className = \PhpOffice\PhpSpreadsheet\Writer\Pdf\Tcpdf::class; 
+        $helper->log("Write to PDF format using {$className}"); 
+        IOFactory::registerWriter('Pdf', $className); 
+         
+        // Save 
+        $helper->write($spreadsheet, __FILE__, ['Pdf']); 
+        return; 
+    } 
 }
 

@@ -7,7 +7,6 @@ use App\Repositories\Eloquent\Localization\TaxIdNumRepository;
 
 class TaxIdNumberService extends Service
 {
-    public $connection = 'sysdata';
     protected $modelName = "\App\Models\SysData\TwTaxIdNum";
     
 	public function __construct(TaxIdNumRepository $repository)

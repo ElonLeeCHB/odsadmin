@@ -39,7 +39,7 @@ class TaxIdNumController extends ApiController
             'regexp' => false,
         ];
 
-        $record = $this->TaxIdNumberService->getTaxIdNum($filter_data,1);
+        $record = $this->TaxIdNumberService->getTaxIdNum($filter_data);
         
         if(!empty($record)){
             $arr = TwAddress::parseGovProvidedAddress($record->address);
