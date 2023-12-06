@@ -52,7 +52,7 @@ class ProductController extends ApiController
             $products = $this->ProductService->unsetRelations($products, ['translation']);
         }
 
-        
+
 
         return response(json_encode($products))->header('Content-Type','application/json');
     }
@@ -65,21 +65,14 @@ class ProductController extends ApiController
         ];
         $product = $this->ProductService->getRow($queries);
 
-
-
-        //echo '<pre>', print_r($product->translation, 1), "</pre>"; exit;
         $product->load('product_options');
         $product->load('product_options.product_option_values');
 
         $product_options = $product->product_options->sortBy('sort_order')->keyBy('option_code')->toArray();
-
         $product = $product->toArray();
         unset($product['translation']);
 
         $product['product_options'] = $product_options;
-
-        
-        //$product->product_options = $product->product_options->keyBy('option_code')->toArray();
 
         return response(json_encode($product))->header('Content-Type','application/json');
     }

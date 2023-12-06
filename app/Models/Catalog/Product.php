@@ -19,14 +19,14 @@ class Product extends Model
     use ModelTrait;
 
     protected $guarded = [];
-    protected $appends = ['name','specification','description',];
+    protected $appends = ['name','specification','description','main_category_code'];
     public $translation_attributes = ['name','full_name','short_name','specification','meta_title','meta_description','meta_keyword',];
-    
+
     public $meta_keys = [
         'supplier_own_product_code',
         'supplier_own_product_name',
         'supplier_own_product_specification',
-        'temperature_type_code',        
+        'temperature_type_code',
     ];
 
 
@@ -66,7 +66,7 @@ class Product extends Model
     {
         return $this->belongsTo(Term::class, 'accounting_category_code', 'code')->where('taxonomy_code', 'product_accounting_category');
     }
-    
+
     // public function bom_products()
     // {
     //     return $this->belongsToMany(Product::class, 'product_boms', 'product_id', 'sub_product_id')
@@ -78,7 +78,7 @@ class Product extends Model
     {
         return $this->hasMany(ProductOption::class,'product_id', 'id')->orderBy('sort_order');
     }
-    
+
 
     public function cachedProductOptions()
     {
@@ -126,6 +126,16 @@ class Product extends Model
 
     // Attribute
 
+
+
+
+    protected function mainCategoryCode(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $this->main_category->code ?? '',
+        );
+    }
+
     protected function name(): Attribute
     {
         return Attribute::make(
@@ -153,7 +163,7 @@ class Product extends Model
             get: fn () => $this->translation->specification ?? '',
         );
     }
-    
+
     protected function price(): Attribute
     {
         return Attribute::make(

@@ -85,8 +85,8 @@ class OrderController extends BackendController
 
         $data['export_order_products_url'] = route('lang.admin.sale.orders.product_reports');
         $data['batch_print_url'] = route('lang.admin.sale.orders.batch_print');
-        
-        
+
+
 
         //$data['copy'] = route('lang.admin.sale.orders.copy');
 
@@ -171,7 +171,7 @@ class OrderController extends BackendController
         }else{
             $order = 'ASC';
         }
-        
+
         $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
@@ -367,7 +367,7 @@ class OrderController extends BackendController
                 'salutation_id' => '',
             ];
         }
-        
+
         $data['countries'] = $this->CountryService->getCountries();
 
         $data['states'] = $this->DivisionService->getStates();
@@ -414,7 +414,7 @@ class OrderController extends BackendController
         $data['cities_list_url'] = route('api.localization.division.city.list');
         $data['roads_list_url'] = route('api.localization.road.list');
         $data['member_info_url'] = route('lang.admin.member.members.info');
-        
+
 
 
         return view('admin.sale.order_form', $data);
@@ -562,7 +562,7 @@ class OrderController extends BackendController
 
 
         //is_main_meal_title
-        // 2023-11-15-不用了。這段先放著以免萬一 
+        // 2023-11-15-不用了。這段先放著以免萬一
         // $data['is_main_meal_title'] = 0;
         // if(in_array($main_category_code, ['bento', 'lunchbox', 'cstLunchbox', 'cstBento'])){
         //     $data['is_main_meal_title'] = 1;
@@ -622,7 +622,7 @@ class OrderController extends BackendController
             $product_option_values = $product_option->cachedProductOptionValues();
 
             $arr_product_option_values = [];
-            
+
             foreach ($product_option_values as $product_option_value) {
                 $arr_product_option_values[] = (object) $product_option_value->toArray();
             }
@@ -680,7 +680,7 @@ class OrderController extends BackendController
         if(empty($mobile)){
             $mobile = null;
         }
-        
+
 
         $json = [];
 
@@ -719,7 +719,7 @@ class OrderController extends BackendController
         }
 
 
-        
+
         // Validate
         //驗證表單內容
         // $validator = $this->OrderService->validator($postData);
@@ -740,7 +740,7 @@ class OrderController extends BackendController
                 break;
             }
         }
-        
+
         //表單驗證成功
         if (!$json) {
             $result = $this->OrderService->updateOrCreate($postData); //更新成功
@@ -763,13 +763,13 @@ class OrderController extends BackendController
                 ];
             }else{ //更新失敗
                 if(1){
-                    $json['error']['warning'] = $result['error']; 
+                    $json['error']['warning'] = $result['error'];
                 }else{
                     $json['error']['warning'] = $this->lang->text_fail;
                 }
             }
         }
-        
+
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }
@@ -1049,7 +1049,7 @@ class OrderController extends BackendController
 
 
 
-        
+
 
         //return $this->OrderService->toPdf($data);
 
@@ -1221,15 +1221,8 @@ class OrderController extends BackendController
             $data['statics'] = $statics;
         }
 
-        $filter_data = [
-            'filter_order_id' => $order->id,
-            'regexp' => false,
-            'limit' => 0,
-            'pagination' => false,
-            'sort' => 'id',
-            'order' => 'ASC',
-        ];
-        $order_totals = $this->OrderService->getOrderTotals($filter_data);
+        // no $filter_data
+        $order_totals = $this->OrderService->getOrderTotals($order->id);
 
         if(!empty($order_totals)){
             foreach ($order_totals as $key => $order_total) {
@@ -1248,20 +1241,20 @@ class OrderController extends BackendController
 
         return view('admin.sale.print_receive_form', $data);
     }
-    
+
 
     public function product_reports()
     {
         $data = $this->request->all();
 
-        return $this->OrderService->exportOrderProducts($data); 
+        return $this->OrderService->exportOrderProducts($data);
     }
 
 
     public function batchPrint()
     {
         $data = $this->request->all();
-        return $this->OrderService->exportOrders($data); 
+        return $this->OrderService->exportOrders($data);
     }
 
 }

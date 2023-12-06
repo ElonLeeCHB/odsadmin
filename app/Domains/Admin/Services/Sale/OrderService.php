@@ -23,7 +23,7 @@ use Mpdf\Mpdf;
 class OrderService extends Service
 {
     protected $modelName = "\App\Models\Sale\Order";
-    
+
     public function __construct(protected OrderRepository $OrderRepository
         , protected OrderProductRepository $OrderProductRepository
         , protected OrderTotalRepository $OrderTotalRepository
@@ -37,7 +37,7 @@ class OrderService extends Service
     public function updateOrCreate($data)
     {
         DB::beginTransaction();
-        
+
         try {
 
             $order_id = $data['order_id'] ?? null;
@@ -296,18 +296,19 @@ class OrderService extends Service
                     $sort_order++;
                 }
 
-                $options_total = 0;
-                if(!empty($fm_order_product['options_total'])){
-                    $options_total = str_replace(',', '', $fm_order_product['options_total']);
-                }
-
-                $final_total = 0;
-                if(!empty($fm_order_product['final_total'])){
-                    $final_total = str_replace(',', '', $fm_order_product['final_total']);
-                }
-
                 foreach ($data['order_products'] as $key => $fm_order_product) {
                     $product_id = $fm_order_product['product_id'];
+
+                    $options_total = 0;
+                    if(!empty($fm_order_product['options_total'])){
+                        $options_total = str_replace(',', '', $fm_order_product['options_total']);
+                    }
+
+                    $final_total = 0;
+                    if(!empty($fm_order_product['final_total'])){
+                        $final_total = str_replace(',', '', $fm_order_product['final_total']);
+                    }
+
                     $update_order_product = [
                         'id' => $fm_order_product['order_product_id'] ?? null,
                         'order_id' => $order->id,
@@ -339,10 +340,10 @@ class OrderService extends Service
                     unset($update_order_products);
                 }
             }
-            
+
 
             // order_product_options table
-            if(!empty($data['order_products'])){                
+            if(!empty($data['order_products'])){
 
                 //重抓 order_product
                 $tmprows = $this->OrderProductRepository->newModel()->where('order_id', $order->id)->orderBy('sort_order','ASC')->get();

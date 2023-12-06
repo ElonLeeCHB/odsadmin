@@ -71,8 +71,8 @@ class OrderController extends ApiController
         $order->load('order_products.order_product_options');
 
         $order->status_name = $order->status->name ?? '';
-        
-        $order = $order->toCleanObject();
+
+        //$order = $order->toCleanObject();
 
         // Order Total
         $order->totals = $this->OrderService->getOrderTotals($order_id);
@@ -110,7 +110,7 @@ class OrderController extends ApiController
 
         //檢查姓名+手機不可重複
         if(!empty($customer_id) && !empty($this->request->mobile) && !empty($this->request->personal_name)){
-            
+
             $filter_data = [
                 'equal_name' => $this->request->personal_name,
                 'equal_mobile' => preg_replace('/\D+/', '', $this->request->mobile),
@@ -143,7 +143,7 @@ class OrderController extends ApiController
             if(empty($result['error'])){
 
                 $order = $result['data'];
-                
+
                 $redirectUrl = route('api.sale.order.details', $order->id);
 
                 $json = [
@@ -169,7 +169,7 @@ class OrderController extends ApiController
                     $json['error'] = $this->lang->text_fail;
                     $json['error'] = $result['error'];
                 }
-                
+
             }
         }
 
@@ -195,8 +195,8 @@ class OrderController extends ApiController
         $rows = $this->TermRepository->getTerms($query_data)->toArray();
 
         $rows['data'] = $this->TermRepository->unsetArrayRelations($rows['data'], ['translation', 'taxonomy']);
-        
+
         return response(json_encode($rows))->header('Content-Type','application/json');
     }
-    
+
 }
