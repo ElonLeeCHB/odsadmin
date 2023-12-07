@@ -42,7 +42,7 @@
               <fieldset>
                 <div>
                   <table class="table table-bordered table-hover" id="table-order-header">
-                    <tbody>                      
+                    <tbody>
                       <tr>
                         <td class="col-md-1 text-end colname-font">訂購日期</td>
                         <td class="col-md-2">
@@ -90,7 +90,7 @@
                         <td class="col-md-1 text-end colname-font">地址簡稱</td>
                         <td class="col-md-2"><input type="text" id="input-shipping_road_abbr" name="shipping_road_abbr" value="{{ $order->shipping_road_abbr }}" class="form-control"></td>
                       </tr>
-                      
+
                       <tr>
                         <td class="col-md-1 text-end colname-font">訂購人</td>
                         <td class="col-md-2">
@@ -138,7 +138,7 @@
                             <span id="span-hasOrder" style="color:red"></span>
                           </div>
                           <ul id="autocomplete-telephone" class="dropdown-menu"></ul>
-                          
+
                        </td>
                         <td class="col-md-1 text-end colname-font">公司分類</td>
                         <td class="col-md-2">
@@ -264,7 +264,7 @@
               <fieldset>
                   <div>
                     <table class="table table-bordered table-hover" id="table-order-header">
-                      <tbody>                      
+                      <tbody>
                         <tr>
                           <td class="col-md-1 text-end colname-font">付款方式</td>
                           <td colspan="3">
@@ -534,7 +534,7 @@ var shipping_city_id = {{ $order->shipping_city_id ?? 0 }}
 var payment_total = parseInt({{ $order->payment_total ?? 0 }})
     , payment_paid = parseInt({{ $order->payment_paid ?? 0 }})
     , payment_unpaid = parseInt({{ $order->payment_unpaid ?? 0 }})
-    
+
 $(document).on("change",'#input-nav_location_id', function(){
   var location_id = $(this).val();
   $('#input-location_id').val(location_id);
@@ -802,25 +802,24 @@ $('#input-payment_tin').autocomplete({
     }
   },
   select: function(event,ui) {
-    $('#input-payment_company').val(event.label);
-    $('#input-payment_company').prop('readonly', true);
-    $('#input-shipping_company').val(event.label);
+    if(event.tax_id_num.length != 0){
+      $('#input-payment_company').val(event.label);
 
-    if(event.address_parts.after_road_section.length == 0){
-      if(confirm('資料來源沒有地址，所以地址不進行覆蓋。')){
-        return;
+      if(event.address_parts.after_road_section.length != 0){
+        if(confirm('統編地址是：'+event.address_parts.address+"\r\n是否覆蓋送貨地址？")){
+          $('#input-shipping_road').val(event.address_parts.road_section);
+          $('#input-shipping_address1').val(event.address_parts.after_road_section);
+          $('#input-original_address').val(event.original_address);
+          $("#input-shipping_state_id").val(event.address_parts.divsionL1_id);
+
+          shipping_city_id = event.address_parts.divsionL2_id;
+          shipping_road = event.address_parts.road_section;
+
+          setShippingState(event.address_parts.divsionL1_id)
+        }
       }
-    }else{
-      if(confirm('是否覆蓋地址？')){
-        $('#input-shipping_road').val(event.address_parts.full_road_section);
-        $('#input-shipping_address1').val(event.address_parts.after_road_section);
-        $('#input-original_address').val(event.original_address);
-        $("#input-shipping_state_id").val(event.address_parts.divsionL1_id);
-
-        shipping_city_id = event.address_parts.divsionL2_id;
-        shipping_road = event.address_parts.full_road_section;
-
-        setShippingState(event.address_parts.divsionL1_id)
+      else{
+        $('#input-shipping_road').val('本系統無此地址資料');
       }
     }
   }
@@ -996,7 +995,7 @@ var product_row = {{ $product_row }};
 
 // 新增商品
 function addProduct(){
-  
+
   $.ajax({
     type:'get',
     dataType: 'html',
@@ -1125,7 +1124,7 @@ function calcProductMainMeal(this_product_row){
     }else if(ovid == '1047'){
       burrito_total_egg_veg += parseInt(qty); //蛋素
     }
-    
+
   });
 
   burrito_total_veg = burrito_total_pure_veg + burrito_total_egg_veg; //素食總和
@@ -1159,7 +1158,7 @@ function calcProductDrink(this_product_row){
     if($.isNumeric(qty) && qty > 0){
       drink_total += parseInt(qty); //全部
     }
-    
+
   });
 
   $('#input-product-'+this_product_row+'-drink_total').val(drink_total);

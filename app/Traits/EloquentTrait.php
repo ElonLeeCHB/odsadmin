@@ -52,13 +52,7 @@ trait EloquentTrait
         $this->model = new $this->modelName;
         $this->table = $this->model->getTable();
 
-        if(!empty($data['connection'])){
-            $this->connection = $data['connection'];
-        }else{
-            $this->connection = DB::connection()->getName();
-        }
-
-        $this->table_columns = $this->getTableColumns($this->connection);
+        $this->table_columns = $this->getTableColumns();
         $this->translation_attributes = $this->model->translation_attributes ?? [];
         $this->zh_hant_hans_transform = false;
         $this->initialized = true;
@@ -73,56 +67,6 @@ trait EloquentTrait
         }
 
         return $model;
-    }
-
-
-    // public function refineRows($rows, $data)
-    // {
-    //     $new_rows = [];
-
-    //     foreach ($rows as $key => $row) {
-    //         $new_rows[$key] = $this->refineRow($row, $data);
-    //     }
-
-    //     return $new_rows;
-    // }
-
-    // optimizeRow and sanitizeRow should be defined in FooRepository
-    // public function refineRow($row, $data)
-    // {
-    //     if (method_exists($this, 'optimizeRow') && !empty($data['optimize'])) {
-    //         $row = $this->optimizeRow($row);
-    //     }
-
-    //     if (method_exists($this, 'sanitizeRow') && !empty($data['sanitize'])) {
-    //         $row = $this->sanitizeRow($row);
-    //     }
-
-    //     return $row;
-    // }
-
-
-    public function sanitizeRows($rows)
-    {
-        $new_rows = [];
-        foreach ($rows as $key => $row) {
-            $new_rows[$key] = $this->sanitizeRow($row);
-        }
-
-        return $new_rows;
-    }
-
-
-    /**
-     * LengthAwarePaginator
-     */
-    public function optimizeRows($rows): LengthAwarePaginator | Collection
-    {
-        foreach ($rows as $key => $row) {
-            $rows[$key] = $this->optimizeRow($row);
-        }
-
-        return $rows;
     }
 
 
@@ -166,7 +110,7 @@ trait EloquentTrait
                 $row = $this->newModel();
             }
 
-            return ['data' => $row]; // To make differenct with 'error', 'data' is needed.
+            return ['data' => $row]; // To make difference with 'error', 'data' is needed.
 
         } catch (\Exception $e) {
             return ['error' => 'findIdOrFailOrNew: Please check for more details'];
@@ -964,10 +908,10 @@ trait EloquentTrait
         }
 
         // get from database
-        if(empty($connection) ){
+        if(empty($this->model->connection) ){
             $this->table_columns = DB::getSchemaBuilder()->getColumnListing($this->table);
         }else{
-            $this->table_columns = DB::connection($connection)->getSchemaBuilder()->getColumnListing($this->table);
+            $this->table_columns = DB::connection($this->model->connection)->getSchemaBuilder()->getColumnListing($this->table);
         }
         DataHelper::setJsonToStorage($cache_name, $this->table_columns);
 
@@ -1109,6 +1053,8 @@ trait EloquentTrait
                 foreach ($this->model->translation_attributes as $column) {
                     if(!empty($value[$column])){
                         $arr[$column] = $value[$column];
+                    }else{
+                        $arr[$column] = '';
                     }
                 }
 

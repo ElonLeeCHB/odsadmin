@@ -13,9 +13,10 @@ use App\Repositories\Eloquent\Common\TermRepository;
 class Counting extends Model
 {
     use ModelTrait;
-    
+
     public $table = 'inventory_countings';
     protected $guarded = [];
+    protected $appends = ['status_name'];
 
 
     protected static function booted()
@@ -24,10 +25,10 @@ class Counting extends Model
 
         static::observe(\App\Observers\InventoryCountingObserver::class);
     }
-    
-    
+
+
     // Relation
-    
+
     public function counting_products()
     {
         return $this->hasMany(CountingProduct::class, 'counting_id', 'id');
@@ -40,14 +41,15 @@ class Counting extends Model
     }
 
 
-    // public function status()
-    // {
-    //     $code = $this->status_code;
-        
-    //     return $this->belongsTo(Term::class, 'status_code', 'code')->where('taxonomy_code', 'common_form_status')->withDefault(function () use ($code) {
-    //         return Term::getByCodeAndTaxonomyCode($code, 'common_form_status');
-    //     });
-    // }
+
+    // Attribute
+
+    public function total(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
+        );
+    }
 
     public function statusName(): Attribute
     {
@@ -57,8 +59,6 @@ class Counting extends Model
         );
     }
 
-    // Attribute
-
     public function formDateYmd(): Attribute
     {
         if(empty($this->id) && empty($this->form_date)) {
@@ -66,11 +66,11 @@ class Counting extends Model
         }
         else if(!empty($this->form_date)){
             $newValue = Carbon::parse($this->form_date)->format('Y-m-d');
-        } 
+        }
 
         return Attribute::make(
             get: fn ($value) => $newValue ?? '',
         );
     }
-    
+
 }

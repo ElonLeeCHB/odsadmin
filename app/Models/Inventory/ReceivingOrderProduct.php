@@ -39,22 +39,22 @@ class ReceivingOrderProduct extends Model
 
     public function price(): Attribute
     {
-        return $this->setNumberAttribute($this->attributes['price'],4);
+        return $this->setNumberAttribute($this->attributes['price'],2);
     }
 
     public function amount(): Attribute
     {
-        return $this->setNumberAttribute($this->attributes['amount'],4);
+        return $this->setNumberAttribute($this->attributes['amount'],2);
     }
 
     public function receivingQuantity(): Attribute
     {
-        return $this->setNumberAttribute($this->attributes['receiving_quantity'],4);
+        return $this->setNumberAttribute($this->attributes['receiving_quantity'],4); //必須4位。曾有某菜商先用兩計算，然後給15兩，進貨單上寫 0.9375台斤。
     }
 
     public function stockPrice(): Attribute
     {
-        return $this->setNumberAttribute($this->attributes['stock_price'],4);
+        return $this->setNumberAttribute($this->attributes['stock_price'],2);
     }
 
     public function stockQuantity(): Attribute
@@ -62,6 +62,6 @@ class ReceivingOrderProduct extends Model
         return $this->setNumberAttribute($this->attributes['stock_quantity'],4);
     }
 
-    
+
 
 }

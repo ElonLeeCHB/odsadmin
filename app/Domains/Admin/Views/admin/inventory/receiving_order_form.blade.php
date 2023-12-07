@@ -124,27 +124,6 @@
                   </div>
 
                   <div class="row mb-3">
-                    <label for="hidden_before_tax" class="col-sm-2 col-form-label">{{ $lang->column_before_tax }}</label>
-                    <div class="col-sm-10">
-                      <input type="text" id="hidden_before_tax" value="{{ $receiving_order->before_tax }}" class="form-control" disabled/>
-                    </div>
-                  </div>
-
-                  <div class="row mb-3">
-                    <label for="hidden_tax" class="col-sm-2 col-form-label">{{ $lang->column_tax }}</label>
-                    <div class="col-sm-10">
-                      <input type="text" id="hidden_tax" value="{{ $receiving_order->tax }}" class="form-control" disabled/>
-                    </div>
-                  </div>
-
-                  <div class="row mb-3">
-                    <label for="hidden_total" class="col-sm-2 col-form-label">{{ $lang->column_total }}</label>
-                    <div class="col-sm-10">
-                      <input type="text" id="hidden_total" value="{{ $receiving_order->total }}" class="form-control" disabled/>
-                    </div>
-                  </div>
-
-                  <div class="row mb-3">
                     <label for="input-status_code" class="col-sm-2 col-form-label">{{ $lang->column_status }}</label>
                     <div class="col-sm-10">
                       <select id="input-status_code" name="status_code" class="form-select">
@@ -165,30 +144,29 @@
                   </div>
 
                 </fieldset>
-
               </div>
 
 
-              <div id="tab-products" class="tab-pane">
 
+              <div id="tab-products" class="tab-pane">
                 <table class="table table-bordered">
                   <tbody id="order-totals">
                     <tr>
                       <td class="text-end col-sm-2"><strong>{{ $lang->column_before_tax }}</strong></td>
                       <td class="text-end">
-                        <input type="text" id="input-before_tax" name="before_tax" value="{{ $receiving_order->before_tax }}" class="form-control" oninput="calsTotals()">
+                        <input type="text" id="input-before_tax" name="before_tax" value="{{ $receiving_order->before_tax }}" class="form-control" oninput="calcTotals()">
                       </td>
                     </tr>
                     <tr>
                       <td class="text-end col-sm-2"><strong>{{ $lang->column_tax }}</strong></td>
                       <td class="text-end">
-                        <input type="text" id="input-tax" name="tax" value="{{ $receiving_order->tax }}" class="form-control" oninput="calsTotals()">
+                        <input type="text" id="input-tax" name="tax" value="{{ $receiving_order->tax }}" class="form-control" oninput="calcTotals()">
                       </td>
                     </tr>
                     <tr>
                       <td class="text-end col-sm-2"><strong>{{ $lang->column_total }}</strong></td>
                       <td class="text-end">
-                        <input type="text" id="input-total" name="total" value="{{ $receiving_order->total }}" class="form-control" oninput="calsTotals()">
+                        <input type="text" id="input-total" name="total" value="{{ $receiving_order->total }}" class="form-control">
                       </td>
                     </tr>
                   </tbody>
@@ -212,8 +190,8 @@
                       <td class="text-left">品名</td>
                       <td class="text-left">規格</td>
                       <td class="text-left" style="width:80px;"><label data-bs-toggle="tooltip" title="若要選擇不同單位，請先重新選擇料件" style="font-weight: bolder;" >進貨<BR>單位 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
-                      <td class="text-left" style="width:100px;">進貨<BR>單價</td>
                       <td class="text-left" style="width:100px;">進貨<BR>數量</td>
+                      <td class="text-left" style="width:100px;">進貨<BR>單價</td>
                       <td class="text-left" style="width:100px;">進貨<BR>金額</td>
                       <td class="text-left" style="width:80px;">庫存<BR>單位</td>
                       <td class="text-left" style="width:100px;">庫存<BR>單價</td>
@@ -223,11 +201,11 @@
                   <tbody>
                     @foreach($receiving_products as $receiving_product)
                     <tr id="product-row{{ $product_row }}" data-rownum="{{ $product_row }}">
-                      <td class="text-left">
+                      <td class="text-start">
                         <button type="button" onclick="$('#product-row{{ $product_row }}').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>
                       </td>
-                      <td class="text-left">
-                        <div class="container input-group col-sm-12">
+                      <td class="text-start" style="padding-left: 1px;">
+                        <div class="container input-group col-sm-12" style="padding-left: 1px;">
                           <div class="col-sm-3">
                             <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $receiving_product->product_id ?? '' }}" class="form-control" readonly>
                           </div>
@@ -242,34 +220,31 @@
                           </div>
                         </div>
                       </td>
-                      <td class="text-left">
+                      <td class="text-start">
                         <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $receiving_product->product_specification ?? '' }}" class="form-control" readonly>
                       </td>
-                      <td class="text-left">
+                      <td class="text-start">
                         <select id="input-products-receiving_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][receiving_unit_code]" class="form-control" >
-                          <option value=""> -- </option>
-                          @foreach($receiving_product->product_units as $product_unit)
-                          <option value="{{ $product_unit->source_unit_code ?? '' }}_{{ $product_unit->source_unit_name ?? '' }}" @if($product_unit->source_unit_code == $receiving_product->receiving_unit_code) selected @endif data-factor="{{ $product_unit->factor }}">{{ $product_unit->source_unit_name ?? '' }}</option>
-                          @endforeach
+                          <option value="{{ $receiving_product->receiving_unit_code ?? '' }}_{{ $receiving_product->receiving_unit_name ?? '' }}" data-factor="{{ $receiving_product->factor }}" selected>{{ $receiving_product->receiving_unit_name ?? '' }}</option>
                         </select>
                       </td>
-                      <td class="text-left">
-                        <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $receiving_product->price ?? 0 }}" class="form-control productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
+                      <td class="text-start">
+                        <input type="text" id="input-products-receiving_quantity-{{ $product_row }}" name="products[{{ $product_row }}][receiving_quantity]" value="{{ $receiving_product->receiving_quantity }}" class="form-control text-end productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
                       </td>
-                      <td class="text-left">
-                        <input type="text" id="input-products-receiving_quantity-{{ $product_row }}" name="products[{{ $product_row }}][receiving_quantity]" value="{{ $receiving_product->receiving_quantity }}" class="form-control productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
+                      <td class="text-start">
+                        <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $receiving_product->price ?? 0 }}" class="form-control text-end productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
                       </td>
-                      <td class="text-left">
-                        <input type="text" id="input-products-amount-{{ $product_row }}" name="products[{{ $product_row }}][amount]" value="{{ $receiving_product->amount ?? 0 }}" class="form-control productAmountInputs clcProduct" data-rownum="{{ $product_row }}" readonly>
+                      <td class="text-start">
+                        <input type="text" id="input-products-amount-{{ $product_row }}" name="products[{{ $product_row }}][amount]" value="{{ $receiving_product->amount ?? 0 }}" class="form-control text-end productAmountInputs clcProduct" data-rownum="{{ $product_row }}" readonly>
                       </td>
-                      <td class="text-left">
+                      <td class="text-start">
                         <input type="text" id="input-products-stock_unit_name-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_name]" value="{{ $receiving_product->stock_unit_name ?? '' }}" class="form-control" readonly>
                         <input type="hidden" id="input-products-stock_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_code]" value="{{ $receiving_product->stock_unit_code ?? '' }}">
                       </td>
-                      <td class="text-left">
+                      <td class="text-start">
                         <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? 0 }}" class="form-control" readonly>
                       </td>
-                      <td class="text-left">
+                      <td class="text-start">
                         <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">
                       </td>
                     </tr>
@@ -331,7 +306,7 @@
         </form>
 
         <div class="loadingdiv" id="loading" style="display: none;">
-          <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>     
+          <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>
         </div>
 
 
@@ -457,9 +432,9 @@ $(document).on('click', '.schProductName', function() {
       });
     }
   });
-  
 
-  
+
+
 });
 $('.schProductName').first().click();
 
@@ -470,7 +445,7 @@ $('#input-tax_type_code').on("change", function() {
 });
 // 變更稅率
 function chgTaxRate(){
-  let tax_type_code = $('#input-tax_type_code').val(); 
+  let tax_type_code = $('#input-tax_type_code').val();
   if(tax_type_code == 1){
     $('#input-formatted_tax_rate').val(5);
     formatted_tax_rate = 5;
@@ -521,16 +496,16 @@ function calcProduct(rownum){
   let destination_quantity = 0;
   let factor = $('#input-products-receiving_unit_code-'+rownum + ' option:selected').data('factor');
 
-  amount = price*receiving_quantity
+  amount = (price*receiving_quantity).toFixed(2)
   $('#input-products-amount-'+rownum).val(amount);
-  
+
   if ($.isNumeric(receiving_quantity) && $.isNumeric(factor)) {
-    destination_quantity = (receiving_quantity * factor).toFixed(3);
+    destination_quantity = (receiving_quantity * factor).toFixed(4);
   }
 
   let stock_price = 0;
   if ($.isNumeric(receiving_quantity) && destination_quantity > 0) {
-    stock_price = amount / destination_quantity;
+    stock_price = (amount / destination_quantity).toFixed(2)
   }
   console.log('amount='+amount+', receiving_quantity='+receiving_quantity+', factor='+factor+', destination_quantity='+destination_quantity);
 
@@ -539,10 +514,10 @@ function calcProduct(rownum){
 
   // 庫存單價 = 進貨金額/庫存數量
   $('#input-products-stock_price-'+rownum).val(stock_price);
-  
+
   calcAllProducts()
 }
-  
+
 // 逐一計算全部料件的加總
 function calcAllProducts(){
   let sum_amount = 0; // 單身金額加總
@@ -575,19 +550,19 @@ function calcAllProducts(){
     tax = 0;
     total = sum_amount;
   }
+  before_tax = before_tax.toFixed(0);
+  tax = tax.toFixed(0);
+  total = total.toFixed(0)
+
   console.log('sum_amount='+sum_amount+', before_tax='+before_tax+', tax='+tax+', total='+total)
 
   $('#input-before_tax').val(before_tax);
   $('#input-tax').val(tax);
   $('#input-total').val(total);
-
-  $('#hidden_before_tax').val(before_tax);
-  $('#hidden_tax').val(tax);
-  $('#hidden_total').val(total);
 }
 
 // 單頭金額變動時，只計算單頭
-function calsTotals(){
+function calcTotals(){
   let before_tax = $('#input-before_tax').val();
   let tax = $('#input-tax').val();
   total = tax.toNum() + before_tax.toNum();
@@ -618,7 +593,7 @@ function addReceivingProduct(){
   html += '        </div>';
   html += '      </div>';
   html += '    </div>';
-  
+
   // html += '    <input type="text" id="input-products-name-'+product_row+'" name="products['+product_row+'][name]" value="" data-rownum="'+product_row+'" class="form-control schProductName" data-oc-target="autocomplete-product_name-'+product_row+'" autocomplete="off">';
   // html += '    <ul id="autocomplete-product_name-'+product_row+'" class="dropdown-menu"></ul>';
   // html += '    <input type="hidden" id="input-products-id-'+product_row+'" name="products['+product_row+'][id]" value="" class="form-control" readonly>';

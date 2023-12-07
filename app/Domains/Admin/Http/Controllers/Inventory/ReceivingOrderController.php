@@ -53,7 +53,7 @@ class ReceivingOrderController extends BackendController
         $data['tax_types'] = [];
 
         // statuses
-        $data['receiving_order_statuses'] = $this->ReceivingOrderService->getCachedActiveReceivingOrderStatuses();
+        $data['statuses'] = $this->ReceivingOrderService->getCodeKeyedTermsByTaxonomyCode('common_form_status',toArray:false);
 
         // 單別
         $data['form_types'] = $this->ReceivingOrderService->getCodeKeyedTermsByTaxonomyCode('receiving_order_form_type',toArray:false);
@@ -182,7 +182,7 @@ class ReceivingOrderController extends BackendController
             $receiving_order->status_code = 'P';
         }
 
-        $data['receiving_order'] = $receiving_order;
+        $data['receiving_order'] = $receiving_order->toCleanObject();
 
         if(!empty($receiving_order) && $receiving_order_id == $receiving_order->id){
             $data['receiving_order_id'] = $receiving_order_id;
@@ -204,72 +204,80 @@ class ReceivingOrderController extends BackendController
         $data['supplier_autocomplete_url'] = route('lang.admin.counterparty.suppliers.autocomplete');
 
         // statuses
-        $data['statuses'] = $this->ReceivingOrderService->getCachedActiveReceivingOrderStatuses();
+        $data['statuses'] = $this->ReceivingOrderService->getCodeKeyedTermsByTaxonomyCode('common_form_status',toArray:false);
 
         $standard_units = $this->UnitRepository->getCodeKeyedStandardActiveUnits();
-        $standard_units_array_keys = array_keys($standard_units);
+        //$standard_units_array_keys = array_keys($standard_units);
 
         // receiving_products
         if(!empty($receiving_order)){
             $receiving_order->load('receiving_products.product_units');
-
             foreach ($receiving_order->receiving_products as $receiving_product) {
 
-                foreach ($receiving_product->product_units as $key => $product_unit) {
-                    $arr = $product_unit->toArray();
-                    $arr['factor'] = $product_unit['destination_quantity'] / $product_unit['source_quantity'];
+                $receiving_product->factor = $receiving_product->stock_quantity / $receiving_product->receiving_quantity;
 
-                    unset($arr['source_unit']);
-                    unset($arr['destination_unit']);
+                // foreach ($receiving_product->product_units as $key => $product_unit) {
+                //     $arr = $product_unit->toArray();
+                //     $arr['factor'] = $product_unit['destination_quantity'] / $product_unit['source_quantity'];
 
-                    $receiving_product->product_units[$key] = (object) $arr;
-                }
+                //     unset($arr['source_unit']);
+                //     unset($arr['destination_unit']);
 
-                // 都是標準單位，product_units 不會有，要查 units 表
-                if(   in_array($receiving_product->receiving_unit_code, $standard_units_array_keys)
-                   && in_array($receiving_product->stock_unit_code, $standard_units_array_keys)){
+                //     $receiving_product->product_units[$key] = (object) $arr;
+                // }
 
-                    $params = [
-                        'from_quantity' => 1,
-                        'from_unit_code' => $receiving_product->receiving_unit_code,
-                        'to_unit_code' => $receiving_product->stock_unit_code,
-                    ];
-                    $factor = $this->UnitRepository->calculateQty($params);
+                //
+                // 進貨單位、庫存單位都是標準單位，product_units 不一定會有，要查 units 表
+                // if(   in_array($receiving_product->receiving_unit_code, $standard_units_array_keys)
+                //    && in_array($receiving_product->stock_unit_code, $standard_units_array_keys)){
 
-                    //$stock_unit_code = $standard_units[$receiving_product->receiving_unit_code]
-                    $receiving_product->product_units[] = (object) [
-                        'product_id' => $receiving_product->product_id,
-                        'source_unit_code' => $receiving_product->receiving_unit_code ?? '',
-                        'source_unit_name' => $standard_units[$receiving_product->receiving_unit_code]->name ?? '',
-                        'source_quantity' => 1,
-                        'destination_unit_code' => $receiving_product->product->stock_unit_code ?? '',
-                        'destination_unit_name' => $standard_units[$receiving_product->stock_unit_code]->name ?? '',
-                        'destination_quantity' => $factor,
-                        'factor' => $factor,
-                    ];
+                //     $params = [
+                //         'from_quantity' => 1,
+                //         'from_unit_code' => $receiving_product->receiving_unit_code,
+                //         'to_unit_code' => $receiving_product->stock_unit_code,
+                //     ];
+                //     $factor = $this->UnitRepository->calculateQty($params);
 
-                    $receiving_product->setRelation('product', null);
+                //     //$stock_unit_code = $standard_units[$receiving_product->receiving_unit_code]
+                //     $receiving_product->product_units[] = (object) [
+                //         'product_id' => $receiving_product->product_id,
+                //         'source_unit_code' => $receiving_product->receiving_unit_code ?? '',
+                //         'source_unit_name' => $standard_units[$receiving_product->receiving_unit_code]->name ?? '',
+                //         'source_quantity' => 1,
+                //         'destination_unit_code' => $receiving_product->product->stock_unit_code ?? '',
+                //         'destination_unit_name' => $standard_units[$receiving_product->stock_unit_code]->name ?? '',
+                //         'destination_quantity' => $factor,
+                //         'factor' => $factor,
+                //     ];
 
-                }
+                //     $receiving_product->setRelation('product', null);
 
-                // 來源單位不是標準單位，則來源單位應有轉換，但新增一筆來源跟目的都相同的庫存單位供選擇
-                if(   !in_array($receiving_product->receiving_unit_code, $standard_units_array_keys)
-                   && in_array($receiving_product->stock_unit_code, $standard_units_array_keys)){
+                // }
 
-                    //$stock_unit_code = $standard_units[$receiving_product->receiving_unit_code]
-                    $receiving_product->product_units[] = (object) [
-                        'product_id' => $receiving_product->product_id,
-                        'source_unit_code' => $receiving_product->stock_unit_code,
-                        'source_unit_name' => $receiving_product->stock_unit_name,
-                        'source_quantity' => 1,
-                        'destination_unit_code' => $receiving_product->stock_unit_code,
-                        'destination_unit_name' => $receiving_product->stock_unit_name,
-                        'destination_quantity' => 1,
-                        'factor' => 1,
-                    ];
+                // 來源單位跟目的單位相同，料件的單位轉換不會有。
+                // if($receiving_product->receiving_unit_code == $receiving_product->stock_unit_code){
+                //     $receiving_product->product_units[] = (object) [
+                //         'product_id' => $receiving_product->product_id,
+                //         'source_unit_code' => $receiving_product->stock_unit_code,
+                //         'source_unit_name' => $receiving_product->stock_unit_name,
+                //         'source_quantity' => 1,
+                //         'destination_unit_code' => $receiving_product->stock_unit_code,
+                //         'destination_unit_name' => $receiving_product->stock_unit_name,
+                //         'destination_quantity' => 1,
+                //         'factor' => 1,
+                //     ];
+                // }
 
-                    $receiving_product->setRelation('product', null);
-                }
+                // $receiving_product->product_units[] = (object) [
+                //     'product_id' => $receiving_product->product_id,
+                //     'source_unit_code' => $receiving_product->receiving_unit_code,
+                //     'source_unit_name' => $receiving_product->receiving_unit_name,
+                //     'source_quantity' => $receiving_product->receiving_quantity,
+                //     'destination_unit_code' => $receiving_product->stock_unit_code,
+                //     'destination_unit_name' => $receiving_product->stock_unit_name,
+                //     'destination_quantity' => $receiving_product->stock_quantity,
+                //     'factor' => $receiving_product->stock_quantity / $receiving_product->receiving_quantity,
+                // ];
             }
         }
 
@@ -369,17 +377,25 @@ class ReceivingOrderController extends BackendController
 
     public function saveStatusCode()
     {
-        $post_data = request()->all();
-        $new_data = $post_data['update_status'];
-        $result = $this->ReceivingOrderService->saveStatusCode($new_data);
+        $json = [];
 
-        if(!empty($result['data']['id'])){
-            $msg = [
-                'success' => '狀態已變更為：' . $result['data']['status_name'],
-                'data' => $result['data'],
-            ];
+        if(auth()->user()->username != 'admin'){
+            $json['error'] = $this->lang->error_permission;
         }
 
-        return $msg;
+        if(!$json){
+            $post_data = request()->all();
+            $new_data = $post_data['update_status'];
+            $result = $this->ReceivingOrderService->saveStatusCode($new_data);
+
+            if(!empty($result['data']['id'])){
+                $json = [
+                    'success' => '狀態已變更為：' . $result['data']['status_name'],
+                    'data' => $result['data'],
+                ];
+            }
+        }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
     }
 }

@@ -45,7 +45,7 @@ class OrderProduct extends Model
     protected function quantity(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            //get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
             set: fn ($value) => str_replace(',','',$value),
         );
     }

@@ -68,6 +68,21 @@ class DataHelper
 
         return '';
     }
+
+    public static function getJsonFromStoragForCollection($json_path)
+    {
+        if (Storage::exists($json_path)) {
+            $rows = json_decode(Storage::get($json_path));
+
+            foreach ($rows as $key => $row) {
+                $new_rows[$key] = $row;
+            }
+
+            return $new_rows;
+        }
+
+        return null;
+    }
     public static function getJsonFromStoragNew($json_path, $toArray = false)
     {
         if (Storage::exists($json_path)) {
@@ -76,10 +91,10 @@ class DataHelper
             return $result;
         }
 
-        return '';
+        return null;
     }
 
-    
+
     public static function setJsonToStorage($json_path, $data)
     {
         if (Storage::exists($json_path)) {

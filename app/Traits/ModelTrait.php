@@ -16,28 +16,28 @@ trait ModelTrait
         return Attribute::make(
             get: fn ($value) => Carbon::parse($this->created_at)->format('Y-m-d') ?? '',
         );
-    }   
+    }
 
     public function updatedYmd(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => Carbon::parse($this->updated_at)->format('Y-m-d') ?? '',
         );
-    }   
+    }
 
     public function createdYmdhi(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => Carbon::parse($this->created_at)->format('Y-m-d H:i') ?? '',
         );
-    }   
+    }
 
     public function updatedAtYmdhi(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => Carbon::parse($this->updated_at)->format('Y-m-d H:i') ?? '',
         );
-    }   
+    }
 
 
     // Relations
@@ -54,7 +54,7 @@ trait ModelTrait
         if(!isset($this->translation_model_name) || str_ends_with($this->translation_model_name, 'Translation')){
             $translation_model_name = get_class($this) . 'Translation';
             $translation_model = new $translation_model_name();
-    
+
             return $this->hasOne($translation_model::class)->ofMany([
                 'id' => 'max',
             ], function ($query) {
@@ -62,7 +62,7 @@ trait ModelTrait
             });
         }
 
-        // Using SomeMeta 
+        // Using SomeMeta
         else if (isset($this->translation_model_name) && substr($this->translation_model_name, -4) === 'Meta') {
             return $this->metas()->where('locale', app()->getLocale());
         }
@@ -73,15 +73,15 @@ trait ModelTrait
         if(empty($this->translation_attributes)){
             return false;
         }
-        
+
         // Using SomeTranslation
         if(!isset($this->translation_model_name) || str_ends_with($this->translation_model_name, 'Translation')){
             $translation_model_name = get_class($this) . 'Translation';
             $translation_model = new $translation_model_name();
-    
+
             return $this->hasMany($translation_model::class);
         }
-        // Using SomeMeta 
+        // Using SomeMeta
         else if (isset($this->translation_model_name) && substr($this->translation_model_name, -4) === 'Meta') {
             return $this->metas()->whereNotNull('locale')->where('locale', '<>', '');
         }
@@ -141,13 +141,17 @@ trait ModelTrait
         return $schemaBuilder->hasTable($tableName);
     }
 
-    
-    
-    public function setNumberAttribute($value, $to_fixed = 0, $keep_zero = false)
+
+
+    public function setNumberAttribute($value, $to_fixed = 0, $keep_zero = true)
     {
         return Attribute::make(
-            get: function ($value) use ($keep_zero){
-                return $keep_zero == false ? rtrim(rtrim($value, '0'), '.') : $value;
+            get: function ($value) use ($keep_zero, $to_fixed){
+                $new_value = number_format($value, $to_fixed, '.', '');
+                if($keep_zero == false){ //remove zero after the decimal point
+                    $new_value = preg_replace('/\.0+$/', '', $new_value);
+                }
+                return $new_value;
             },
             set: function ($value) use ($to_fixed){
                 $value = empty($value) ? 0 : $value; // if null or not exist, set to 0
@@ -155,9 +159,8 @@ trait ModelTrait
                 $value = empty($to_fixed) ? $value : number_format((float) $value, $to_fixed);
                 return $value;
             }
-        ); 
+        );
     }
-
 
 
     // Custom Functions
@@ -192,18 +195,21 @@ trait ModelTrait
      */
     public function toCleanObject()
     {
+        // get all keys
+        $table_columns = $this->getTableColumns();
         $attributes = $this->attributesToArray();
         $attribute_keys = array_keys($attributes);
-        $table_columns = $this->getTableColumns();
 
         $all_keys = array_unique(array_merge($table_columns, $attribute_keys, $this->meta_keys ?? []));
 
         $arr = [];
 
+        // default value to empty
         foreach ($all_keys as $key) {
             $arr[$key] = '';
         }
-        
+
+        // if not array
         foreach ($attributes as $key => $value) {
             if(!is_array($value)){
                 $arr[$key] = $value;
