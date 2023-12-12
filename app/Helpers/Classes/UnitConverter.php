@@ -95,17 +95,29 @@ class UnitConverter
                             ->where($this->puc_column_source_unit_code, $this->fromUnit)
                             ->first();
 
-            $toProductUnit = DB::table($this->puc_table_name)
-                            ->where($this->puc_column_product_id, $this->product_id)
-                            ->where($this->puc_column_source_unit_code, $this->toUnit)
-                            ->first();
-
-            if($fromProductUnit != null && $toProductUnit != null){
+            // 庫存單位 $fromProductUnit->destination_unit_code 就是目的單位 $this->toUnit
+            if($fromProductUnit->destination_unit_code == $this->toUnit){
                 $fromFactor = $fromProductUnit->{$this->puc_column_destination_quantity} / $fromProductUnit->{$this->puc_column_source_quantity};
-                $toFactor = $toProductUnit->{$this->puc_column_destination_quantity} / $toProductUnit->{$this->puc_column_source_quantity};
-    
                 $stock_quantity = $this->qty * $fromFactor;
-                $qty = $stock_quantity / $toFactor;
+                $qty = $stock_quantity;
+            }
+            
+            // 庫存單位 $fromProductUnit->destination_unit_code 不等於單位 $this->toUnit
+            // 另外找出目的單位的轉換記錄
+            else{
+
+                $toProductUnit = DB::table($this->puc_table_name)
+                                ->where($this->puc_column_product_id, $this->product_id)
+                                ->where($this->puc_column_source_unit_code, $this->toUnit)
+                                ->first();
+
+                if($fromProductUnit != null && $toProductUnit != null){
+                    $fromFactor = $fromProductUnit->{$this->puc_column_destination_quantity} / $fromProductUnit->{$this->puc_column_source_quantity};
+                    $toFactor = $toProductUnit->{$this->puc_column_destination_quantity} / $toProductUnit->{$this->puc_column_source_quantity};
+        
+                    $stock_quantity = $this->qty * $fromFactor;
+                    $qty = $stock_quantity / $toFactor;
+                }
             }
         }
 

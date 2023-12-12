@@ -8,7 +8,7 @@
       <td class="text-left">品名</td>
       <td class="text-left">規格</td>
       <td class="text-left" style="width:100px;">庫存單位</td>
-      <td class="text-left" style="width:100px;">庫存數量</td>
+      <td class="text-left" style="width:100px;">入庫數量</td>
       <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="若要選擇不同盤點單位，請先重新選擇料件" style="font-weight: bolder;" >盤點單位 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
       <td class="text-left" style="width:100px;">盤點單價</td>
       <td class="text-left" style="width:100px;">盤點數量</td>
@@ -48,9 +48,9 @@
 
         <select id="input-products-unit_name-{{ $product_row }}" name="products[{{ $product_row }}][unit_name]" class="form-control">
           <option value=""> -- </option>
-          <option value="{{ $counting_product->unit_code ?? '' }}_{{ $counting_product->unit_name ?? '' }}" selected data-factor="{{ $counting_product->factor }}">{{ $counting_product->unit_name ?? '' }}</option>
+          <option value="{{ $counting_product->unit_code ?? '' }}_{{ $counting_product->unit_name ?? '' }}" data-factor="{{ $counting_product->factor ?? 1 }}" selected>{{ $counting_product->unit_name ?? '' }}</option>
         </select>
-
+        <input type="hidden" id="input-products-unit_code-{{ $product_row }}" name="products[{{ $product_row }}][unit_code]" value="{{ $counting_product->unit_code ?? '' }}" >
      </td>
       <td class="text-left">
         <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $counting_product->price ?? 0 }}" class="form-control clcProduct" data-rownum="{{ $product_row }}">
@@ -105,7 +105,6 @@ function addCountingProduct(){
   html += '      <option value=""> -- </option>';
   html += '    </select>';
   html += '    <input type="hidden" id="input-products-unit_code-'+product_row +'" name="products['+product_row +'][unit_code]" value="" class="form-control" readonly>';
-  html += '    <input type="hidden" id="input-products-factor-'+product_row +'" name="products['+product_row +'][factor]" value="" >';
   html += '  </td>';
   html += '  <td class="text-left">';
   html += '    <input type="text" id="input-products-price-'+product_row +'" name="products['+product_row +'][price]" value="" class="form-control clcProduct" data-rownum="'+product_row +'">';

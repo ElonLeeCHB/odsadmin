@@ -204,11 +204,11 @@ trait ModelTrait
 
         $arr = [];
 
-        // default value to empty
+        // default value
         foreach ($all_keys as $key) {
             $arr[$key] = '';
         }
-
+        
         // if not array
         foreach ($attributes as $key => $value) {
             if(!is_array($value)){

@@ -102,7 +102,7 @@ Route::group([
 
         // 統一編號
         Route::get('tax_id_num', 'Localization\TaxIdNumController@list')->name('tax_id_num.list');
-        Route::get('tax_id_num/{tax_id_num}', 'Localization\TaxIdNumController@detail')->name('tax_id_num.details');
+        Route::get('tax_id_num/{tax_id_num?}', 'Localization\TaxIdNumController@detail')->name('tax_id_num.details');
     }); 
 
 });

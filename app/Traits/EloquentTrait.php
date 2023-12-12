@@ -906,7 +906,7 @@ trait EloquentTrait
         if(!empty($this->table_columns)){
             return $this->table_columns;
         }
-
+        
         // get from database
         if(empty($this->model->connection) ){
             $this->table_columns = DB::getSchemaBuilder()->getColumnListing($this->table);

@@ -14,9 +14,12 @@ use App\Models\Member\Organization;
 use App\Models\Catalog\OptionValue;
 use DateTimeInterface;
 use App\Repositories\Eloquent\Common\TermRepository;
+use App\Traits\ModelTrait;
 
 class Order extends Model
 {
+    use ModelTrait;
+    
     // 官網指示這樣寫
     use \Staudenmeir\EloquentHasManyDeep\HasRelationships;
 

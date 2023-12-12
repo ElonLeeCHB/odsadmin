@@ -791,7 +791,7 @@ $('#input-payment_tin').autocomplete({
   source: function(request, response) {
     if(request.length > 7){
       $.ajax({
-        url: "{{ $tax_id_nums_list_url }}?filter_tax_id_num=" + encodeURIComponent(request),
+        url: "{{ $tax_id_num_url }}?filter_tax_id_num=" + encodeURIComponent(request),
         dataType: 'json',
         success: function(json) {
           response(json);
@@ -805,21 +805,21 @@ $('#input-payment_tin').autocomplete({
     if(event.tax_id_num.length != 0){
       $('#input-payment_company').val(event.label);
 
-      if(event.address_parts.after_road_section.length != 0){
-        if(confirm('統編地址是：'+event.address_parts.address+"\r\n是否覆蓋送貨地址？")){
-          $('#input-shipping_road').val(event.address_parts.road_section);
-          $('#input-shipping_address1').val(event.address_parts.after_road_section);
-          $('#input-original_address').val(event.original_address);
-          $("#input-shipping_state_id").val(event.address_parts.divsionL1_id);
+    if(event.address_parts.after_road_section.length == 0){
+        $('#input-original_address').val('目前無地址資料');
+    }else{
+      if(confirm('是否覆蓋地址？')){
+        $('#input-shipping_road').val(event.address_parts.full_road_section);
+        $('#input-shipping_address1').val(event.address_parts.after_road_section);
+        $('#input-original_address').val(event.address_parts.address);
+        $("#input-shipping_state_id").val(event.address_parts.divsionL1_id);
 
-          shipping_city_id = event.address_parts.divsionL2_id;
-          shipping_road = event.address_parts.road_section;
+        $("#input-shipping_road").val(event.address_parts.road_section);
 
-          setShippingState(event.address_parts.divsionL1_id)
-        }
-      }
-      else{
-        $('#input-shipping_road').val('本系統無此地址資料');
+        shipping_city_id = event.address_parts.divsionL2_id;
+        shipping_road = event.address_parts.full_road_section;
+
+        setShippingState(event.address_parts.divsionL1_id)
       }
     }
   }

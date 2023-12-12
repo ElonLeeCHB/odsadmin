@@ -40,7 +40,7 @@ class TaxIdNumController extends ApiController
         ];
 
         $record = $this->TaxIdNumberService->getTaxIdNum($filter_data);
-
+        
         if(!empty($record)){
             $arr = TwAddress::parseGovProvidedAddress($record->address);
 
@@ -96,7 +96,7 @@ class TaxIdNumController extends ApiController
         $filter_data['connection'] = 'sysdata';
 
         $rows = $this->TaxIdNumberService->getTaxIdNums($filter_data);
-
+        
         if(!empty($rows)){
             foreach ($rows as $key => $row) {
                 $arr = TwAddress::parseGovProvidedAddress($row->address);

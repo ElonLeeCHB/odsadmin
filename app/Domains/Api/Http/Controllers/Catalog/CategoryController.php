@@ -31,8 +31,8 @@ class CategoryController extends ApiController
     public function details($category_id)
     {
         $category = $this->CategoryService->findIdFirst($category_id);
-
-        //$category = $this->CategoryService->sanitizeRow($category);
+        
+        $category = $category->toCleanObject();
 
         return response(json_encode($category))->header('Content-Type','application/json');
     }

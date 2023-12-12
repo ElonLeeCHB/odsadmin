@@ -253,30 +253,7 @@ class ReceivingOrderRepository extends Repository
         
         return $data;
     }
-
-
-    // 尋找關聯，並將關聯值賦予記錄
-    public function optimizeRow($row)
-    {
-        if(!empty($row->status)){
-            $row->status_name = $row->status->name;
-        }
-
-        return $row;
-    }
-
-
-    // 刪除關聯
-    public function sanitizeRow($row)
-    {
-        $arrOrder = $row->toArray();
-
-        if(!empty($arrOrder['status'])){
-            unset($arrOrder['status']);
-        }
-
-        return (object) $arrOrder;
-    }
+    
 
     public function getReceivingOrderStatuses($data = [])
     {
@@ -298,34 +275,6 @@ class ReceivingOrderRepository extends Repository
         }
 
         return $new_rows;
-    }
-
-
-    public function getCachedActiveReceivingOrderStatuses($reset = false)
-    {
-        $cachedStatusesName = app()->getLocale() . '_receiving_order_statuses';
-
-        // 不重設
-        if($reset == false){
-            $statuses = cache()->get($cachedStatusesName);
-
-            if(!empty($statuses)){
-                return $statuses;
-            }
-        }
-
-
-        // 重設
-        $filter_data = [
-            'equal_is_active' => true,
-        ];
-
-        $statuses = $this->getReceivingOrderStatuses($filter_data);
-        
-        cache()->forget($cachedStatusesName);
-        cache()->put($cachedStatusesName, $statuses, $seconds = 60*60*24*90);
-
-        return $statuses;
     }
 
 

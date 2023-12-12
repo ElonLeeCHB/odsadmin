@@ -90,7 +90,7 @@ class CountingRepository
             $counting->location_id = $data['location_id'] ?? 0;
             //$counting->code = (Observer)
             $counting->form_date = $data['form_date'];
-            $counting->stocktaker = $data['stocktaker'] ?? '';
+            $counting->stocktaker = $data['stocktaker'];
             $counting->status_code = !empty($data['status_code']) ? $data['status_code'] : 'P';
             $counting->comment = $data['comment'];
             $counting->total = $data['total'];
@@ -98,6 +98,8 @@ class CountingRepository
             $counting->modified_user_id = auth()->user()->id;
 
             $counting->save();
+            
+            DB::commit();
 
             DB::commit();
 
@@ -354,16 +356,6 @@ class CountingRepository
                     $stock_quantity = 0;
                 }
 
-                $amount = 99999;
-                if(is_numeric($row[5]) && is_numeric($row[6])){
-                    $amount = $row[5]*$row[6];
-                }
-
-                $factor = 99999;
-                if(is_numeric($row[5]) && is_numeric($row[6])){
-                    $factor = $stock_quantity / $counting_quantity;
-                }
-
 
                 $result['counting_products'][] = (object) [
                     'product_id' => $row[0],
@@ -373,16 +365,16 @@ class CountingRepository
                     'unit_name' => $row[4],
                     'price' => $row[5],
                     'quantity' => $row[6],
-                    'amount' => $amount,
-
+                    'amount' => $row[5]*$row[6],
+                    
                     'unit_code' => $counting_unit_code,
                     'stock_unit_code' => $stock_unit_code,
                     'stock_quantity' => $stock_quantity,
-                    'factor' => $factor,
+                    'factor' => $stock_quantity / $counting_quantity,
                     'product_edit_url' => route('lang.admin.inventory.products.form', $row[0]),
                 ];
-
-            }
+                
+            }            
         }
         return $result;
     }

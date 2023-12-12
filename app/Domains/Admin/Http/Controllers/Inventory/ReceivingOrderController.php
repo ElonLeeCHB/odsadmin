@@ -387,7 +387,7 @@ class ReceivingOrderController extends BackendController
             $post_data = request()->all();
             $new_data = $post_data['update_status'];
             $result = $this->ReceivingOrderService->saveStatusCode($new_data);
-
+    
             if(!empty($result['data']['id'])){
                 $json = [
                     'success' => '狀態已變更為：' . $result['data']['status_name'],
@@ -395,7 +395,7 @@ class ReceivingOrderController extends BackendController
                 ];
             }
         }
-
+        
         return response(json_encode($json))->header('Content-Type','application/json');
     }
 }

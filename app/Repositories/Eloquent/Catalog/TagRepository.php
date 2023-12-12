@@ -100,23 +100,6 @@ class TagRepository extends Repository
     }
 
 
-    // 刪除關聯
-    public function sanitizeRow($row)
-    {
-        $arrOrder = $row->toArray();
-
-        if(!empty($arrOrder['translation'])){
-            unset($arrOrder['translation']);
-        }
-
-        if(!empty($arrOrder['taxonomy'])){
-            unset($arrOrder['taxonomy']);
-        }
-
-        return (object) $arrOrder;
-    }
-
-
     public function resetQueryData($data)
     {
         // Find taxonomy_codes from taxonomies table

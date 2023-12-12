@@ -51,6 +51,13 @@ class Counting extends Model
         );
     }
 
+    public function total(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
+        );
+    }
+
     public function statusName(): Attribute
     {
         return Attribute::make(

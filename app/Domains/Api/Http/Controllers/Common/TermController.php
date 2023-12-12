@@ -35,7 +35,7 @@ class TermController extends ApiController
     {
         $phrase = $this->TermService->findIdFirst($phrase_id);
 
-        //$phrase = $this->TermService->sanitizeRow($phrase);
+        $phrase = $phrase->toCleanObject();
 
         return response(json_encode($phrase))->header('Content-Type','application/json');
     }

@@ -61,7 +61,7 @@ class BomRepository extends Repository
             DB::beginTransaction();
 
             $bom_id = $post_data['bom_id'] ?? null;
-            $result = parent::saveRow($bom_id, $post_data, $debug);
+            $result = parent::saveRow($bom_id, $post_data, 1);
 
             if(!empty($result['error'])){
                 throw new \Exception($result['error']);

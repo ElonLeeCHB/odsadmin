@@ -37,7 +37,7 @@ class TaxIdNumRepository extends Repository
                 return $row;
             }
         }
-
+        
         return null;
     }
 

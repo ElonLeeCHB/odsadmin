@@ -7,6 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class TwTaxIdNum extends Model
 {
     protected $guarded = [];
-    public $connection = 'sysdata';
-
+    public $connection = 'sysdata'; 
+    
 }

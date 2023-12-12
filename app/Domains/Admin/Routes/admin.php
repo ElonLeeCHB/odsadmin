@@ -113,6 +113,7 @@ Route::group(
                 Route::get('orders/getOrderExtraCommentPhrase', 'Sale\OrderController@getOrderExtraCommentPhrase')->name('orders.getOrderExtraCommentPhrase');
                 Route::post('orders/product_reports', 'Sale\OrderController@product_reports')->name('orders.product_reports');
                 Route::post('orders/batch_print', 'Sale\OrderController@batchPrint')->name('orders.batch_print');
+                Route::get('orders/toPDF/{order_id?}', 'Sale\OrderController@toPDF')->name('orders.toPDF');
 
                 Route::get('orders/schedule/list/{delivery_date?}', 'Sale\OrderScheduleController@list')->name('order_schedule.list');
                 Route::post('orders/schedule/save', 'Sale\OrderScheduleController@save')->name('order_schedule.save');
@@ -247,7 +248,7 @@ Route::group(
                 Route::post('countings/save/{id?}', 'Inventory\CountingController@save')->name('countings.save');
                 Route::post('countings/delete', 'Inventory\CountingController@delete')->name('countings.delete');
                 //Route::post('countings/import/{id?}', 'Inventory\CountingController@import')->name('countings.import');
-                Route::post('countings/import/{id?}', 'Inventory\CountingController@readExcel')->name('countings.import');
+                Route::post('countings/import/{id?}', 'Inventory\CountingController@imports')->name('countings.import');
                 Route::post('countings/export_counting_product_list', 'Inventory\CountingController@exportCountingProductList')->name('countings.export_counting_product_list');
                 Route::get('countings/export_counting_product_list', 'Inventory\CountingController@exportCountingProductList')->name('countings.export_counting_product_list');
                 Route::post('countings/saveStatusCode', 'Inventory\CountingController@saveStatusCode')->name('countings.saveStatusCode');

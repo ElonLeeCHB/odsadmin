@@ -22,8 +22,6 @@ class RoadService extends Service
 
     public function getFirstWords($data = [], $debug = 0)
     {
-        $rows = $this->RoadFirstWordRepository->getRows($data, $debug);
-
-        return $rows;
+        return $this->RoadFirstWordRepository->getRows($data, $debug);
     }
 }
