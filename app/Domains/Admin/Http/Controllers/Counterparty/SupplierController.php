@@ -116,6 +116,7 @@ class SupplierController extends BackendController
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_short_name'] = $route . "?sort=short_name&order=$order" .$url;
         $data['sort_tax_type_code'] = $route . "?sort=tax_type_code&order=$order" .$url;
+        $data['sort_telephone'] = $route . "?sort=telephone&order=$order" .$url;
         
         $data['list_url'] = route('lang.admin.counterparty.suppliers.list');
         
@@ -193,7 +194,7 @@ class SupplierController extends BackendController
         }
         unset($result);
 
-        $supplier = $this->SupplierService->getMetaRows($supplier);
+        $supplier = $this->SupplierService->setMetasToRow($supplier);
 
         $supplier->parent_name = $supplier->parent->name ?? '';
 

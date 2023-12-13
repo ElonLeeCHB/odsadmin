@@ -1208,7 +1208,7 @@ trait EloquentTrait
     /**
      * 獲取 meta_data，並根據 meta_keys ，若 meta_key 不存在，設為空值 ''
      */
-    public function getMetaRows($row)
+    public function setMetasToRow($row)
     {
         $metas = $row->metas;
 
@@ -1221,7 +1221,7 @@ trait EloquentTrait
 
     public function setMetaRows($row)
     {
-        $row = $this->getMetaRows($row);
+        $row = $this->setMetasToRow($row);
 
         unset($row->metas);
 

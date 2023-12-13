@@ -208,7 +208,7 @@ class MemberController extends BackendController
         }
         unset($result);
 
-        $member = $this->MemberService->getMetaRows($member);
+        $member = $this->MemberService->setMetasToRow($member);
 
         $data['member']  = $member;
 
@@ -375,7 +375,7 @@ class MemberController extends BackendController
         }
         unset($result);
 
-        $member = $this->MemberService->getMetaRows($member);
+        $member = $this->MemberService->setMetasToRow($member);
         
         return response(json_encode($member))->header('Content-Type','application/json');
     }

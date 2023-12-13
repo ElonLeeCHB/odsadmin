@@ -170,7 +170,7 @@ class UserController extends BackendController
         }
         unset($result);
 
-        $user = $this->UserService->getMetaRows($user);
+        $user = $this->UserService->setMetasToRow($user);
 
         $data['user']  = $user;
 

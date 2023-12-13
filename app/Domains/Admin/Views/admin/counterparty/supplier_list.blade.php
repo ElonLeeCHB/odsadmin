@@ -7,6 +7,7 @@
           <td class="text-start"><a href="{{ $sort_id }}" @if($sort=='id') class="{{ $order }}" @endif>{{ $lang->column_id }}</a></td>
           <td class="text-start"><a href="{{ $sort_name }}" @if($sort=='name') class="{{ $order }}" @endif>{{ $lang->column_name }}</a></td>
           <td class="text-start"><a href="{{ $sort_short_name }}" @if($sort=='short_name') class="{{ $order }}" @endif>{{ $lang->column_short_name }}</a></td>
+          <td class="text-start"><a href="{{ $sort_telephone }}" @if($sort=='telephone') class="{{ $order }}" @endif>{{ $lang->column_telephone }}</a></td>
           <td class="text-start">{{ $lang->column_is_active }}</td>
           <td class="text-end">{{ $lang->column_action }}</td>
         </tr>
@@ -18,6 +19,7 @@
           <td class="text-start">{{ $supplier->id }}</td>
           <td class="text-start">{{ $supplier->name }}</td>
           <td class="text-start">{{ $supplier->short_name }}</td>
+          <td class="text-start">{{ $supplier->telephone }}</td>
           <td class="text-start">@if($supplier->is_active)
                                       {{ $lang->text_yes }}
                                     @else

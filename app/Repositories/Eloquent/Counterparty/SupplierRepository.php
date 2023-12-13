@@ -84,7 +84,7 @@ class SupplierRepository extends Repository
                 $suppliers = $this->getRows($params);
 
                 foreach ($suppliers as $key => $supplier) {
-                    $this->getMetaRows($supplier);
+                    $this->setMetasToRow($supplier);
                 }
 
                 $suppliers_resource_collection = (new SupplierCollection($suppliers))->toArray();

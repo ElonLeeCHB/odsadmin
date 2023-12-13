@@ -207,7 +207,7 @@ class ProductController extends BackendController
         $extra_columns[] = ['supplier_product_name'];
         $extra_columns[] = ['avaible_unit_codes'];
         $product = $this->ProductService->setRowExtraColumns($product, $extra_columns);
-        $product = $this->ProductService->setMetaRows($product);
+        $product = $this->ProductService->setMetasToRow($product);
 
 
         // Default column value

@@ -50,7 +50,7 @@ class ProductRepository extends Repository
         // // metas
         // foreach ($products as $row) {
         //     if ($row->relationLoaded('metas')) {
-        //         $this->getMetaRows($row);
+        //         $this->setMetasToRow($row);
         //     }
         // }
 

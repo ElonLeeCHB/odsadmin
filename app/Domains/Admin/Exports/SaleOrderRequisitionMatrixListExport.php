@@ -61,7 +61,7 @@ class SaleOrderRequisitionMatrixListExport implements FromArray, WithHeadings, W
         foreach ($this->product_names as $product_id => $value) {
             $row_example["$product_id"] = '';
         }
-        
+
         // rows
         $result = [];
         foreach ($rows as $row) {
@@ -69,17 +69,15 @@ class SaleOrderRequisitionMatrixListExport implements FromArray, WithHeadings, W
                 continue;
             }
 
-
-            $new_row[$row->product_id] = [
+           $result[$row->required_date][$row->product_id] = [
                 'required_date' => $row->required_date,
                 'product_id' => $row->product_id,
                 'required_date' => $row->required_date,
                 'product_name' => $row->product_name,
                 'quantity' => $row->quantity,
             ];
-           $result[$row->required_date] = $new_row;
         }
-
+        
         $final = [];
         foreach ($result as $required_date => $products) {
             foreach ($row_example as $key => $value) {
