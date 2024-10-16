@@ -12,7 +12,7 @@ use App\Models\SysData\GovUniformInvoiceNumbers;
  * 要全部匯入資料庫。
  * 打算：按最後兩碼，用cache儲存。
  * 目前第二行的字串是 10-APR-23，而今天是4月11日，剛好昨天更新？
- * 
+ *
  */
 
  /* 解壓縮之後拿到的 csv, 前兩行是欄位，及更新日期
@@ -95,9 +95,9 @@ class UniformInvoiceNumberController extends Controller
 
         $skip = 1600000; //開頭非資料行要略過。至少=1
         $toMax = $skip+100002; //一次十萬筆可跑完。二十萬筆以上會變成白頁。
-        
+
         echo "從第 $skip 開始<BR>\r\n";
-        
+
         // 從第3行開始，迴圈讀取 CSV 檔案的每一行
         $csvFile->seek($skip);
         while (!$csvFile->eof()) {
@@ -105,7 +105,7 @@ class UniformInvoiceNumberController extends Controller
             // 計數器增加 行號從1開始
             $rowCount++;
             $totalRowProcessed++;
-            
+
             //跳過
             if($totalRowProcessed <= $skip ){
                 continue;
@@ -131,9 +131,9 @@ class UniformInvoiceNumberController extends Controller
                 if(is_numeric($year)){
                     $row[5] = $year+1911 . '-' . substr($incorporation_date,3,2) . '-' . substr($incorporation_date,5,2);
                 }
-                
+
             }
-            
+
             $row[] = $updateDate; //最後一個欄位塞入原始檔第2行的日期
 
             // 使用欄位名稱和索引結合，取得每一個欄位的值。key=欄位名稱
@@ -145,7 +145,6 @@ class UniformInvoiceNumberController extends Controller
                 $roundCount++;
                 GovUniformInvoiceNumbers::upsert($insertData, ['tax_id_num']);
                 $insertData = [];
-                //echo '<pre>', print_r("第 $roundCount 回合成功", 1), "</pre>";
             }
         }
 
@@ -153,9 +152,7 @@ class UniformInvoiceNumberController extends Controller
         if (!empty($insertData)) {
            GovUniformInvoiceNumbers::upsert($insertData, ['tax_id_num']);
            $insertData = [];
-           echo '<pre>', print_r('剩餘筆數，成功', 1), "</pre>";
         }
 
-        echo '<pre>', print_r('全部成功', 1), "</pre>"; exit;
     }
 }

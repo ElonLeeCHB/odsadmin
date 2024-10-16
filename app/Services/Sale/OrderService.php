@@ -37,25 +37,4 @@ class OrderService extends Service
     }
 
 
-    // tag
-
-
-
-
-
-    // public function optimizeRow($row)
-    // {
-    //     return $this->OrderRepository->optimizeRow($row);
-    // }
-
-
-    // public function sanitizeRow($row)
-    // {
-    //     return $this->OrderRepository->sanitizeRow($row);
-    // }
-
-
-
-
-
 }

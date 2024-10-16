@@ -23,8 +23,15 @@ class Service
         throw new \BadMethodCallException("Method [$method] does not exist.");
     }    
 
-    public function getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray = true, $params = null): array
+    public function getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray = true, $params = null, $debug = 0): array
     {
-        return TermRepository::getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray, $params);
+        return TermRepository::getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray, $params, $debug);
     }
+
+    public function getTermsByTaxonomyCode($taxonomy_code, $toArray = true, $params = null, $debug = 0): array
+    {
+        return TermRepository::getTermsByTaxonomyCode($taxonomy_code, $toArray, $params, $debug);
+    }
+
+    
 }

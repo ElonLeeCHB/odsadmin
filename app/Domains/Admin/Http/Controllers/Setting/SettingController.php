@@ -3,20 +3,14 @@
 namespace App\Domains\Admin\Http\Controllers\Setting;
 
 use App\Http\Controllers\Controller;
+use App\Domains\Admin\Http\Controllers\BackendController;
 use Illuminate\Http\Request;
-use Lang;
-use App\Helpers\Helper;
 use App\Domains\Admin\Services\Setting\SettingService;
-use App\Domains\Admin\Services\Setting\LocationService;
 use App\Libraries\TranslationLibrary;
 
-class SettingController extends Controller
+class SettingController extends BackendController
 {
-    private $request;
-    private $lang;
-    private $SettingService;
-
-    public function __construct(Request $request, SettingService $SettingService)
+    public function __construct(protected Request $request, protected SettingService $SettingService)
     {
         $this->request = $request;
         $this->SettingService = $SettingService;
@@ -57,7 +51,7 @@ class SettingController extends Controller
 
         $data['list_url'] = route('lang.admin.setting.settings.list'); //本參數在 getList() 也必須存在。
         $data['add_url'] = route('lang.admin.setting.settings.form');
-        $data['delete_url'] = route('lang.admin.setting.settings.delete');
+        $data['delete_url'] = route('lang.admin.setting.settings.destroy');
 
         return view('admin.setting.setting', $data);
     }
@@ -143,7 +137,7 @@ class SettingController extends Controller
         $data['sort_group'] = $route . "?sort=group&order=$order" .$url;
         $data['sort_setting_key'] = $route . "?sort=setting_key&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
-        $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
+        $data['sort_created_at'] = $route . "?sort=created_at&order=$order" .$url;
 
         $data['list_url'] = route('lang.admin.setting.settings.list');
 
@@ -161,7 +155,7 @@ class SettingController extends Controller
         }
 
         if(!$json) {
-            $result = $this->SettingService->updateOrCreate($postData);
+            $result = $this->SettingService->save($postData);
 
             if(empty($result['error']) && !empty($result['setting_id'])){
                 $json = [
@@ -270,11 +264,41 @@ class SettingController extends Controller
     }
     
 
-    public function delete()
+    public function destroy()
     {
+        $this->initController();
+        
+        $post_data = $this->request->post();
 
+        $json = [];
+
+        if (isset($post_data['selected'])) {
+            $selected = $post_data['selected'];
+        } else {
+            $selected = [];
+        }
+
+        // Permission
+        if($this->acting_username !== 'admin'){
+            $json['error'] = $this->lang->error_permission;
+        }
+        
+		if (!$json) {
+            $result = $this->SettingService->destroy($selected);
+
+            if(empty($result['error'])){
+                $json['success'] = $this->lang->text_success;
+            }else{
+                if(config('app.debug') || auth()->user()->username == 'admin'){
+                    $json['error'] = $result['error'];
+                }else{
+                    $json['error'] = $this->lang->text_fail;
+                }
+            }
+		}
+
+        return response(json_encode($json))->header('Content-Type','application/json');
     }
-
 
 
 

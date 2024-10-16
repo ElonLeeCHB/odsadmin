@@ -28,6 +28,13 @@ class Bom extends Model
 
 
     // Attribute
+
+    public function total(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => !empty($value) ? $value : 0,
+        ); 
+    }
     
     public function effectiveDateYmd(): Attribute
     {

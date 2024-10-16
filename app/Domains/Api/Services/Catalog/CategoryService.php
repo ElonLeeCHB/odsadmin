@@ -3,16 +3,16 @@
 namespace App\Domains\Api\Services\Catalog;
 
 use Illuminate\Support\Facades\DB;
-use App\Services\Catalog\CategoryService as GlobalCategoryService;
+use App\Services\Service;
 use App\Repositories\Eloquent\Catalog\CategoryRepository;
 
-class CategoryService extends GlobalCategoryService
+class CategoryService extends Service
 {
     protected $modelName = "\App\Models\Common\Term";
 
 	public function __construct(protected CategoryRepository $CategoryRepository)
 	{
-        parent::__construct($CategoryRepository);
+        $this->repository = $CategoryRepository;
 	}
 
 
@@ -38,7 +38,7 @@ class CategoryService extends GlobalCategoryService
             $category->save();
 
             if(!empty($data['category_translations'])){
-                $this->saveTranslationData($category, $data['category_translations']);
+                $this->saveRowTranslationData($category, $data['category_translations']);
             }
 
             DB::commit();

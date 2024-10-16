@@ -127,32 +127,6 @@
                     <div class="form-text">{{ $lang->help_main_category }}</div>
                   </div>
                 </div>
-                
-                <!--{{--
-                {{-- many to many categories --}}
-                <div class="row mb-3">
-                  <label class="col-sm-2 col-form-label">{{ $lang->column_category }}</label>
-                  <div class="col-sm-10">
-                    <input type="text" name="category" value="" placeholder="{{ $lang->column_category }}" id="input-category" list="list-category" class="form-control"/>
-                    <datalist id="list-category"></datalist>
-                    <div class="input-group">
-                      <div class="form-control p-0" style="height: 150px; overflow: auto;">
-                        <table id="product-category" class="table table-sm m-0">
-                          <tbody>
-                            @foreach($product_categories as $product_category)
-                              <tr id="product-category-{{ $product_category->category_id }}">
-                                <td>{{ $product_category->name }}<input type="hidden" name="product_categories[]" value="{{ $product_category->category_id }}"/></td>
-                                <td class="text-end"><button type="button" class="btn btn-danger btn-sm"><i class="fa-solid fa-minus-circle"></i></button></td>
-                              </tr>
-                            @endforeach
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                    <div class="form-text">{{ $lang->help_category }}</div>
-                  </div>
-                </div>
-                --}}-->
 
                 {{-- model --}}
                 <div class="row mb-3">

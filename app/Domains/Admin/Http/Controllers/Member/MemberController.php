@@ -68,7 +68,7 @@ class MemberController extends BackendController
 
         $data['list_url'] =route('lang.admin.member.members.list');
         $data['add_url'] = route('lang.admin.member.members.form');
-        $data['delete_url'] = route('lang.admin.member.members.delete');
+        $data['delete_url'] = route('lang.admin.member.members.destroy');
 
         return view('admin.member.member', $data);
     }
@@ -210,6 +210,12 @@ class MemberController extends BackendController
 
         $member = $this->MemberService->setMetasToRow($member);
 
+        $data['find_us_comment'] = '';
+        if($member->find_us == 'T' && !empty($member->find_us_comment)){
+            $data['find_us_comment'] = $member->find_us_comment;
+        }
+        
+        //$data['member']  = $member->toCleanObject();
         $data['member']  = $member;
 
         if(!empty($data['member']) && $member_id == $member->id){
@@ -218,32 +224,18 @@ class MemberController extends BackendController
             $data['member_id'] = null;
         }
 
-        $data['find_us'] = $this->MemberService->getCodeKeyedTermsByTaxonomyCode('member_how_to_find_us', false);
+        $data['find_us_array'] = $this->MemberService->getCodeKeyedTermsByTaxonomyCode('member_how_to_find_us', toArray:false);
 
         // Salutation
-        $filter_data = [
-            'filter_code' => 'salutation',
-            'with' => 'option_values.translation'
-        ];
-        $salutation = $this->OptionService->getRow($filter_data);
-        $data['salutation'] = [
-            'option_id' => $salutation->id,
-            'name' => $salutation->name,
-        ];
-
-        foreach ($salutation->option_values as $option_value) {
-            $data['salutation']['option_values'][] = [
-                'option_value_id' => $option_value->id,
-                'name' => $option_value->name,
-            ];
-        }
+        
+        $data['salutations'] = (object) $this->MemberService->getCodeKeyedTermsByTaxonomyCode('salutation',toArray:false);
 
         $data['countries'] = $this->CountryService->getRows(['pagination' => false]);
 
         $data['states'] = $this->DivisionService->getStates();
 
         if(!empty($member->shipping_state_id)){
-            $data['shipping_cities'] = $this->DivisionService->getCities(['filter_parent_id' => $member->shipping_state_id]);
+            $data['shipping_cities'] = $this->DivisionService->getCities(['equal_parent_id' => $member->shipping_state_id]);
         }else{
             $data['shipping_cities'] = [];
         }
@@ -321,7 +313,7 @@ class MemberController extends BackendController
     }
 
 
-    public function delete()
+    public function destroy()
     {
         $this->initController();
         
@@ -339,26 +331,20 @@ class MemberController extends BackendController
         if($this->acting_username !== 'admin'){
             $json['error'] = $this->lang->error_permission;
         }
+        
+		if (!$json) {
+            $result = $this->MemberService->destroy($selected);
 
-        if (!$json) {
-            foreach ($selected as $member_id) {
-                $result = $this->MemberService->deleteMember($member_id);
-
-                if(!empty($result['error'])){
-                    if(config('app.debug')){
-                        $json['warning'] = $result['error'];
-                    }else{
-                        $json['warning'] = $this->lang->text_fail;
-                    }
-
-                    break;
+            if(empty($result['error'])){
+                $json['success'] = $this->lang->text_success;
+            }else{
+                if(config('app.debug') || auth()->user()->username == 'admin'){
+                    $json['error'] = $result['error'];
+                }else{
+                    $json['error'] = $this->lang->text_fail;
                 }
             }
-        }
-
-        if(empty($json['warning'] )){
-            $json['success'] = $this->lang->text_success;
-        }
+		}
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }

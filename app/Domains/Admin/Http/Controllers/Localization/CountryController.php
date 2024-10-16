@@ -27,7 +27,6 @@ class CountryController extends Controller
     {
         $countries = Country::all();
         $country = Country::where('code','TW')->first();
-        echo "<pre>", print_r($country->cities->toArray(), 1), "</pre>"; exit;
     }
 
 }

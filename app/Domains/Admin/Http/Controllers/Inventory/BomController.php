@@ -28,13 +28,13 @@ class BomController extends BackendController
             'text' => $this->lang->text_home,
             'href' => route('lang.admin.dashboard'),
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->text_menu_inventory,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
             'href' => route('lang.admin.inventory.boms.index'),
@@ -47,7 +47,7 @@ class BomController extends BackendController
         $data['list_url']   = route('lang.admin.inventory.boms.list');
         $data['add_url']    = route('lang.admin.inventory.boms.form');
         $data['delete_url'] = route('lang.admin.inventory.boms.delete');
-
+        $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
         return view('admin.inventory.bom', $data);
     }
 
@@ -67,11 +67,10 @@ class BomController extends BackendController
         // Prepare query_data for records
         $filter_data = $query_data;
 
-       // $query_data['select'] = ['id', 'product_id'];
+    //    $query_data['select'] = ['id', 'product_id'];
         $filter_data['select_relation_columns'] = ['product_name'];
 
         $filter_data['extra_columns'][] = 'product_name';
-
         // Rows
         $boms = $this->BomService->getBoms($filter_data);
 
@@ -81,7 +80,7 @@ class BomController extends BackendController
             }
         }
 
-        $boms->withPath(route('lang.admin.inventory.products.list'))->appends($query_data);
+        $boms->withPath(route('lang.admin.inventory.boms.list'))->appends($query_data);
 
         $data['boms'] = $this->unsetRelations($boms, ['product']);
 
@@ -91,7 +90,7 @@ class BomController extends BackendController
         }else{
             $order = 'ASC';
         }
-        
+
         $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
@@ -104,16 +103,14 @@ class BomController extends BackendController
         }
 
 
-        // link of table header for sorting        
+        // link of table header for sorting
         $route = route('lang.admin.inventory.boms.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['product_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_effective_date'] = $route . "?sort=model&order=$order" .$url;
         $data['sort_expiry_date'] = $route . "?sort=supplier_name&order=$order" .$url;
-        
         $data['list_url']   = route('lang.admin.inventory.boms.list');
-        
         return view('admin.inventory.bom_list', $data);
     }
 
@@ -127,13 +124,13 @@ class BomController extends BackendController
             'text' => $this->lang->text_home,
             'href' => route('lang.admin.dashboard'),
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->text_product,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
             'href' => route('lang.admin.inventory.boms.index'),
@@ -164,6 +161,8 @@ class BomController extends BackendController
         unset($result);
 
         $bom = $this->BomService->getExtraColumns($bom, ['product_name']);
+
+
         // Default column value
         if(empty($bom_id)){
             $bom->is_active = 1;
@@ -200,7 +199,7 @@ class BomController extends BackendController
         $json = [];
 
         $bom_id = $post_data['bom_id'] ?? '';
-        
+
 
         if (isset($json['error']) && !isset($json['error']['warning'])) {
             $json['error']['warning'] = $this->lang->error_warning;

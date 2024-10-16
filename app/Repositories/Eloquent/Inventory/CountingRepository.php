@@ -18,16 +18,8 @@ use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
 use App\Domains\Admin\Exports\InventoryCountingListExport;
 use App\Helpers\Classes\DataHelper;
 
-// use Pimlie\PhpUnitConversion\Unit;
-// use Pimlie\PhpUnitConversion\Unit\Mass;
-// use Pimlie\PhpUnitConversion\Unit\Mass\Gram;
-//use UnitConverter\UnitConverter;
-//use App\Libraries\Xlinfoods\UnitConverter\UnitConverter;
-//use JordanBrauer\UnitConverter\Unit\Length\TwCatty;
-//use App\Libraries\jordanbrauer\UnitConverter\Unit\Mass\TwCatty;
 use App\Helpers\Classes\UnitConverter;
 //use App\Repositories\Eloquent\UserCopy\UserRepository;
-
 
 class CountingRepository
 {
@@ -39,13 +31,13 @@ class CountingRepository
     public function __construct(private UnitRepository $UnitRepository, private ProductRepository $ProductRepository, private TermRepository $TermRepository)
     {}
 
-
+    
     public function getCountings($data, $debug = 0)
     {
         $filter_data = $this->resetQueryData($data);
 
         $rows = $this->getRows($filter_data, $debug);
-
+        
         foreach ($rows as $row) {
 
             // 額外欄位 掛載到資料集
@@ -76,7 +68,6 @@ class CountingRepository
     public function saveCounting($data)
     {
         DB::beginTransaction();
-
         try {
             $result = $this->findIdOrFailOrNew($data['counting_id']);
 
@@ -90,7 +81,7 @@ class CountingRepository
             $counting->location_id = $data['location_id'] ?? 0;
             //$counting->code = (Observer)
             $counting->form_date = $data['form_date'];
-            $counting->stocktaker = $data['stocktaker'];
+            $counting->stocktaker = $data['stocktaker'] ?? '';
             $counting->status_code = !empty($data['status_code']) ? $data['status_code'] : 'P';
             $counting->comment = $data['comment'];
             $counting->total = $data['total'];
@@ -101,11 +92,12 @@ class CountingRepository
             
             DB::commit();
 
-            DB::commit();
+            
+            DB::beginTransaction();
 
             if(!empty($data['products'])){
                 $local_units = $this->UnitRepository->getLocaleKeyedActiveUnits(toArray:true);
-
+                
                 CountingProduct::where('counting_id', $counting->id)->delete();
 
                 $unitRepository = new UnitRepository;
@@ -118,21 +110,18 @@ class CountingRepository
                         continue;
                     }
 
-                    $counting_unit_name = $product['unit_name'];
+                    // $counting_unit_name = $product['unit_name'];
+                    // $counting_unit_code = $product['unit_code'] ?? '';
+                    // if(empty($counting_unit_code) && (!empty($counting_unit_name) && !empty($local_units[$counting_unit_name]))){
+                    //     $counting_unit_code = $local_units[$counting_unit_name]['code'];
+                    // }
+
                     $counting_unit_code = $product['unit_code'] ?? '';
-                    if(empty($counting_unit_code) && (!empty($counting_unit_name) && !empty($local_units[$counting_unit_name]))){
-                        $counting_unit_code = $local_units[$counting_unit_name]['code'];
-                    }
 
                     $stock_unit_name = $product['stock_unit_name'];
                     $stock_unit_code = $product['stock_unit_code'] ?? '';
                     if(empty($stock_unit_code) && (!empty($stock_unit_name) && !empty($local_units[$stock_unit_name]))){
                         $stock_unit_code = $local_units[$stock_unit_name]['code'];
-                    }
-
-                    // 除錯用途
-                    if($product['id'] == 1100){
-                        //echo '<pre>', print_r($product, 1), "</pre>"; exit;
                     }
 
                     // CountingProduct
@@ -156,6 +145,7 @@ class CountingRepository
                         //'from_quantity' => $counting_quantity,
                     ];
                 }
+
 
                 if(!empty($upsert_data1)){
                     CountingProduct::upsert($upsert_data1, ['id']);
@@ -191,7 +181,7 @@ class CountingRepository
             $data['whereNotIn'] = ['status_code' => ['V']];
             unset($data['filter_status_code']);
         }
-
+        
 
         //刪除空值
         foreach ($data as $key => $value) {
@@ -231,7 +221,7 @@ class CountingRepository
                 //日期
                 $form_date = $sheet[2][1];
                 //$form_date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($sheet[2][1])->format('Y-m-d');
-                $counting->form_date = $form_date;
+                $counting->form_date = $form_date; 
 
                 if(empty($counting->id)){
                     $counting->created_user_id = auth()->id();
@@ -240,7 +230,7 @@ class CountingRepository
                 $counting->modified_user_id = auth()->id();
 
                 $counting->save();
-
+                
                 $counting_id = $counting->id;
 
                 // counting products
@@ -287,7 +277,7 @@ class CountingRepository
                 }
 
                 DB::commit();
-
+                
                 return ['id' => $counting->id, 'code' => $counting->code];
             }
 
@@ -307,9 +297,10 @@ class CountingRepository
         $result['comment'] = $sheet[0][4]; //備註
         $result['form_date'] = $sheet[2][1];
 
-        // counting products
+        $data_start_row_num = 5; // 這裡的5 = excel檔第 6 列
 
-        if(!empty($sheet[7][0])){ //$sheet[7][0] = excel檔第 6 列的品號
+        // counting products 
+        if(!empty($sheet[$data_start_row_num][0])){ //$sheet[5][0] = excel檔第 6 列的 product id
 
             //以當前語言的單位名稱做為索引
             $local_units = $this->UnitRepository->getLocaleKeyedActiveUnits(toArray:true);
@@ -317,7 +308,7 @@ class CountingRepository
             $result['counting_products'] = [];
 
             foreach ($sheet as $rownum => $row) {
-                if($rownum < 5){  // 這裡的 7 = excel 的第 6 列
+                if($rownum < $data_start_row_num){
                     continue;
                 }
 
@@ -344,7 +335,6 @@ class CountingRepository
                 if($counting_unit_code == $stock_unit_code){
                     $stock_quantity = $row[6];
                 }else{
-
                     $stock_quantity = UnitConverter::build()->qty($counting_quantity)
                             ->from($counting_unit_code)
                             ->to($stock_unit_code)
@@ -356,6 +346,16 @@ class CountingRepository
                     $stock_quantity = 0;
                 }
 
+                $price = 
+
+                $amount = 0;
+                if(is_numeric($row[5]) && is_numeric($row[6])){
+                    $amount = $row[5]*$row[6];
+                }
+                $factor = 0;
+                if(is_numeric($row[5]) && is_numeric($row[6]) && $row[5]!==0 && $row[6]!==0 ){
+                    $factor = $stock_quantity / $counting_quantity;
+                }
 
                 $result['counting_products'][] = (object) [
                     'product_id' => $row[0],
@@ -365,24 +365,24 @@ class CountingRepository
                     'unit_name' => $row[4],
                     'price' => $row[5],
                     'quantity' => $row[6],
-                    'amount' => $row[5]*$row[6],
+                    'amount' => $amount,
                     
                     'unit_code' => $counting_unit_code,
                     'stock_unit_code' => $stock_unit_code,
                     'stock_quantity' => $stock_quantity,
-                    'factor' => $stock_quantity / $counting_quantity,
+                    'factor' => $factor,
                     'product_edit_url' => route('lang.admin.inventory.products.form', $row[0]),
                 ];
                 
             }            
         }
+
         return $result;
     }
 
     public function exportCountingProductList($post_data = [], $debug = 0)
     {
         $filename = '盤點表_'.date('Y-m-d_H-i-s').'.xlsx';
-
         return Excel::download(new InventoryCountingListExport($post_data, $this->ProductRepository), $filename);
     }
 }

@@ -8,6 +8,7 @@ use App\Models\Catalog\Product;
 use App\Models\Inventory\ReceivingOrder;
 use App\Models\Catalog\ProductUnit;
 use App\Traits\ModelTrait;
+use App\Repositories\Eloquent\Common\TermRepository;
 
 class ReceivingOrderProduct extends Model
 {
@@ -62,6 +63,6 @@ class ReceivingOrderProduct extends Model
         return $this->setNumberAttribute($this->attributes['stock_quantity'],4);
     }
 
-
+    
 
 }

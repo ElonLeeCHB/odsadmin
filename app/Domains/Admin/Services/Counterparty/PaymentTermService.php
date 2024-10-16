@@ -4,15 +4,17 @@ namespace App\Domains\Admin\Services\Counterparty;
 
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
-use App\Services\Counterparty\PaymentTermService as GlobalPaymentTermService;
+use App\Services\Service;
 use App\Repositories\Eloquent\Counterparty\PaymentTermRepository;
 
-class PaymentTermService extends GlobalPaymentTermService
+class PaymentTermService extends Service
 {
     protected $modelName = "\App\Models\Counterparty\PaymentTerm";
 
 	public function __construct(protected PaymentTermRepository $PaymentTermRepository)
-	{}
+	{
+        $this->repository = $PaymentTermRepository;
+    }
 
 
     /**

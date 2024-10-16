@@ -37,9 +37,9 @@ class OptionService extends Service
     }
 
 
-    public function getProductCountsByOptionId($option_id)
+    public function getProductCountByOptionId($option_id)
     {
-        return $this->OptionRepository->getProductCountsByOptionId($option_id);
+        return $this->OptionRepository->getProductCountByOptionId($option_id);
     }
 
 }

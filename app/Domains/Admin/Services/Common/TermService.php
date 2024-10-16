@@ -9,9 +9,9 @@ class TermService extends Service
 {
     protected $modelName = "\App\Models\Common\Term";
 
-    public function __construct(TermRepository $repository)
+    public function __construct(TermRepository $TermRepository)
     {
-        $this->repository = $repository;
+        $this->repository = $TermRepository;
     }
     
 
@@ -24,6 +24,12 @@ class TermService extends Service
     public function getTerms($data = [], $debug = 0)
     {
         return $this->repository->getTerms($data, $debug);
+    }
+
+
+    public function saveTerm($data = [], $debug = 0)
+    {
+        return $this->repository->saveTerm($data, $debug);
     }
 
     

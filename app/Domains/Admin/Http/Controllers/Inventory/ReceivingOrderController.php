@@ -7,10 +7,14 @@ use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Admin\Services\Inventory\ReceivingOrderService;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
+use App\Repositories\Eloquent\Inventory\ReceivingOrderProductRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Setting\Location;
 use App\Models\Localization\Language;
-
+use App\Models\Catalog\Product;
+use App\Repositories\Eloquent\Catalog\ProductRepository;
+use Illuminate\Support\Facades\DB;
+use App\Helpers\Classes\UnitConverter;
 class ReceivingOrderController extends BackendController
 {
     public function __construct(
@@ -18,6 +22,8 @@ class ReceivingOrderController extends BackendController
         , private ReceivingOrderService $ReceivingOrderService
         , private UnitRepository $UnitRepository
         , private TermRepository $TermRepository
+        , private ReceivingOrderProductRepository $ReceivingOrderProductRepository
+        , private ProductRepository $ProductRepository
     )
     {
         parent::__construct();
@@ -35,13 +41,13 @@ class ReceivingOrderController extends BackendController
             'text' => $this->lang->text_home,
             'href' => route('lang.admin.dashboard'),
         ];
-
+        
         $breadcumbs[] = (object)[
             'text' => $this->lang->text_menu_inventory,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
-
+        
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
             'href' => route('lang.admin.inventory.receivings.index'),
@@ -64,7 +70,7 @@ class ReceivingOrderController extends BackendController
         $data['add_url']    = route('lang.admin.inventory.receivings.form');
         $data['delete_url'] = route('lang.admin.inventory.receivings.delete');
         $data['export01_url'] = route('lang.admin.inventory.receivings.export01');
-
+        // dd($data);
         return view('admin.inventory.receiving_order', $data);
     }
 
@@ -93,14 +99,14 @@ class ReceivingOrderController extends BackendController
         }
 
         $data['receiving_orders'] = $receiving_orders->withPath(route('lang.admin.inventory.receivings.list'))->appends($query_data);
-
+        
         // Prepare links for list table's header
         if($query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
-
+        
         $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
@@ -111,9 +117,9 @@ class ReceivingOrderController extends BackendController
         foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
-
-
-        // link of table header for sorting
+        
+        
+        // link of table header for sorting        
         $route = route('lang.admin.inventory.receivings.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
@@ -162,7 +168,7 @@ class ReceivingOrderController extends BackendController
         $data['back_url'] = route('lang.admin.inventory.receivings.index', $query_data);
         $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
         $data['status_save_url'] = route('lang.admin.inventory.receivings.saveStatusCode');
-
+        
 
         // Get Record
         $result = $this->ReceivingOrderService->findIdOrFailOrNew($receiving_order_id);
@@ -206,79 +212,9 @@ class ReceivingOrderController extends BackendController
         // statuses
         $data['statuses'] = $this->ReceivingOrderService->getCodeKeyedTermsByTaxonomyCode('common_form_status',toArray:false);
 
-        $standard_units = $this->UnitRepository->getCodeKeyedStandardActiveUnits();
-        //$standard_units_array_keys = array_keys($standard_units);
-
         // receiving_products
         if(!empty($receiving_order)){
             $receiving_order->load('receiving_products.product_units');
-            foreach ($receiving_order->receiving_products as $receiving_product) {
-
-                $receiving_product->factor = $receiving_product->stock_quantity / $receiving_product->receiving_quantity;
-
-                // foreach ($receiving_product->product_units as $key => $product_unit) {
-                //     $arr = $product_unit->toArray();
-                //     $arr['factor'] = $product_unit['destination_quantity'] / $product_unit['source_quantity'];
-
-                //     unset($arr['source_unit']);
-                //     unset($arr['destination_unit']);
-
-                //     $receiving_product->product_units[$key] = (object) $arr;
-                // }
-
-                //
-                // 進貨單位、庫存單位都是標準單位，product_units 不一定會有，要查 units 表
-                // if(   in_array($receiving_product->receiving_unit_code, $standard_units_array_keys)
-                //    && in_array($receiving_product->stock_unit_code, $standard_units_array_keys)){
-
-                //     $params = [
-                //         'from_quantity' => 1,
-                //         'from_unit_code' => $receiving_product->receiving_unit_code,
-                //         'to_unit_code' => $receiving_product->stock_unit_code,
-                //     ];
-                //     $factor = $this->UnitRepository->calculateQty($params);
-
-                //     //$stock_unit_code = $standard_units[$receiving_product->receiving_unit_code]
-                //     $receiving_product->product_units[] = (object) [
-                //         'product_id' => $receiving_product->product_id,
-                //         'source_unit_code' => $receiving_product->receiving_unit_code ?? '',
-                //         'source_unit_name' => $standard_units[$receiving_product->receiving_unit_code]->name ?? '',
-                //         'source_quantity' => 1,
-                //         'destination_unit_code' => $receiving_product->product->stock_unit_code ?? '',
-                //         'destination_unit_name' => $standard_units[$receiving_product->stock_unit_code]->name ?? '',
-                //         'destination_quantity' => $factor,
-                //         'factor' => $factor,
-                //     ];
-
-                //     $receiving_product->setRelation('product', null);
-
-                // }
-
-                // 來源單位跟目的單位相同，料件的單位轉換不會有。
-                // if($receiving_product->receiving_unit_code == $receiving_product->stock_unit_code){
-                //     $receiving_product->product_units[] = (object) [
-                //         'product_id' => $receiving_product->product_id,
-                //         'source_unit_code' => $receiving_product->stock_unit_code,
-                //         'source_unit_name' => $receiving_product->stock_unit_name,
-                //         'source_quantity' => 1,
-                //         'destination_unit_code' => $receiving_product->stock_unit_code,
-                //         'destination_unit_name' => $receiving_product->stock_unit_name,
-                //         'destination_quantity' => 1,
-                //         'factor' => 1,
-                //     ];
-                // }
-
-                // $receiving_product->product_units[] = (object) [
-                //     'product_id' => $receiving_product->product_id,
-                //     'source_unit_code' => $receiving_product->receiving_unit_code,
-                //     'source_unit_name' => $receiving_product->receiving_unit_name,
-                //     'source_quantity' => $receiving_product->receiving_quantity,
-                //     'destination_unit_code' => $receiving_product->stock_unit_code,
-                //     'destination_unit_name' => $receiving_product->stock_unit_name,
-                //     'destination_quantity' => $receiving_product->stock_quantity,
-                //     'factor' => $receiving_product->stock_quantity / $receiving_product->receiving_quantity,
-                // ];
-            }
         }
 
         $data['receiving_products'] = $receiving_order->receiving_products;
@@ -296,7 +232,32 @@ class ReceivingOrderController extends BackendController
 
         // 稅別
         $data['tax_types'] = $this->ReceivingOrderService->getCodeKeyedTermsByTaxonomyCode('tax_type',toArray:false);
-
+        $data['invoice_types'] = [
+            1 => [
+                'id' => 1369,
+                'code' => '1',
+                'is_active' => 1,
+                'name' => '1:發票'
+            ],
+           2 => [
+                'id' => 1370,
+                'code' => '2',
+                'is_active' => 1,
+                'name' => '2:收據'
+            ],
+           3=> [
+                'id' => 1371,
+                'code' => '3',
+                'is_active' => 1,
+                'name' => '3:進貨單'
+            ]
+        ];
+        if(empty(($data['receiving_order']->invoice_type))){
+            $data['receiving_order']->invoice_type = 0;
+        }
+        if(empty(($data['receiving_order']->invoice_num))){
+            $data['receiving_order']->invoice_num = '';
+        }
         return view('admin.inventory.receiving_order_form', $data);
     }
 
@@ -306,7 +267,6 @@ class ReceivingOrderController extends BackendController
         $post_data = $this->request->post();
 
         $json = [];
-
         // * 檢查欄位
 
         $params = [
@@ -335,16 +295,16 @@ class ReceivingOrderController extends BackendController
         if(empty($post_data['form_type_code'])){
             $json['error']['form_type_code'] = '請選擇單別';
         }
-
+        
         if(empty($post_data['tax_type_code'])){
             $json['error']['tax_type_code'] = '請選擇課稅別';
         }
 
         if(isset($json['error']) && !isset($json['error']['warning'])) {
-            $json['error']['warning'] = $this->lang->error_warning;
+            $json['error']['warning'] = '請再檢查紅框欄位資料！';
         }
         // end
-
+        
         if(!$json) {
             $result = $this->ReceivingOrderService->saveReceivingOrder($post_data);
 
@@ -370,7 +330,8 @@ class ReceivingOrderController extends BackendController
 
     public function export01()
     {
-        $params = request()->all();
+        $params = $this->request->query();
+
         return $this->ReceivingOrderService->export01($params);
     }
 
@@ -386,7 +347,7 @@ class ReceivingOrderController extends BackendController
         if(!$json){
             $post_data = request()->all();
             $new_data = $post_data['update_status'];
-            $result = $this->ReceivingOrderService->saveStatusCode($new_data);
+            $result = $this->CountingService->saveStatusCode($new_data);
     
             if(!empty($result['data']['id'])){
                 $json = [
@@ -395,7 +356,14 @@ class ReceivingOrderController extends BackendController
                 ];
             }
         }
-        
+
         return response(json_encode($json))->header('Content-Type','application/json');
+    }
+    public function getBeforeReceivingStockPrice($product_id){
+        $rs = DB::select("
+        SELECT stock_price,receiving_order_id FROM ".env('DB_DATABASE').".`receiving_order_products` WHERE product_id = $product_id
+        ORDER BY `id` DESC LIMIT 2
+        ");
+        return $rs[1];
     }
 }

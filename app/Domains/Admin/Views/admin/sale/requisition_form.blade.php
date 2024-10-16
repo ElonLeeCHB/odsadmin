@@ -12,7 +12,7 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
-        
+
         @if(!empty($calc_url))
         <a data-href="{{ $printForm }}" id="href-printForm"  target="_blank" data-bs-toggle="tooltip" title="列印" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
         @endif
@@ -44,13 +44,13 @@
                         <div class="input-group">
                           <input type="text" id="input-required_date" name="required_date" value="{{ $required_date }}" placeholder="{{ $lang->column_required_date }}" class="form-control date"/>
                           <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
-                          <button type="button" id="btn-redirectToRequiredDate" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="查詢" >查詢</button>
-                          <button type="button" id="getDemandSource" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="重抓需求來源" onclick="calcOrders();">更新</button>
+                          <!-- <button type="button" id="btn-redirectToRequiredDate" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="查詢" >查詢</button> -->
+                          <button type="button" id="getDemandSource" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="重抓需求來源" onclick="calcOrders();">查詢更新</button>
                         </div>
                         <div id="error-required_date" class="invalid-feedback"></div>
                       </div>
                     </div>
-                    
+
 <style>
 #tableContainer {
   max-height: 700px; /* 设置表格容器的最大高度 */
@@ -65,6 +65,7 @@
   z-index: 1; /* 使表头在上方 */
 }
 </style>
+<!-- 超讚 -->
 
                     <div class="table-responsive text-end mx-auto" id="tableContainer">
                       <table class="table table-bordered table-hover mx-auto">
@@ -87,7 +88,9 @@
                           </thead>
                         <tbody id="tbody_body_records">
                           <tr id="option-value-row-0">
-                            <td colspan="4">全日統計</td>
+                            <td colspan="4">
+                            {{"全日潤餅數:"}} {{$total['total']}}  &nbsp;  
+                            全日統計</td>
                             @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
                               @if(!empty($requisitions['all_day']))
@@ -101,7 +104,9 @@
                             @endforeach
                           </tr>
                           <tr id="option-value-row-0">
-                            <td colspan="4">上午統計</td>
+                            <td colspan="4">
+                            {{"上午潤餅數:"}} {{$total['morning_total']}}  &nbsp;
+                            上午統計</td>
                             @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
                               @if(!empty($requisitions['am']))
@@ -115,7 +120,9 @@
                             @endforeach
                           </tr>
                           <tr id="option-value-row-0">
-                            <td colspan="4">下午統計</td>
+                            <td colspan="4">
+                            {{"下午潤餅數:"}} {{$total['afternoon_total']}}  
+                              下午統計</td>
                             @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
                               @if(!empty($requisitions['pm']))
@@ -130,10 +137,24 @@
                           </tr>
                           @if(!empty($requisitions['details']))
                           @foreach($requisitions['details'] as $key => $detail_row)
+
                           <tr id="option-value-row-0">
                             <td class="text-end">{{ $key+1 }}</td>
-                            <td class="text-end">{{ $detail_row['required_date_hi'] ?? '' }}</td>
-                            <td class="text-end"><a href="{{ $detail_row['source_id_url'] }}" data-bs-toggle="tooltip" title="訂單連結" target="_blank">{{ $detail_row['order_code'] ?? '' }}</a></td>
+                            <td class="text-end">{{ $detail_row['delivery_time_range'] ?? '' }}</td>
+                                                       <!-- <td class="text-end"><a href="{{ $detail_row['source_id_url'] }}" data-bs-toggle="tooltip" title="訂單連結" target="_blank">{{ $detail_row['order_code'] ?? '' }}</a></td> -->
+                            <td class="text-end">
+    @if(isset($detail_row['source_id']))
+        <a href="{{env('APP_URL')}}/#/ordered/{{ $detail_row['source_id'] }}"
+           data-bs-toggle="tooltip"
+           title="訂單連結"
+           target="_blank">
+           {{ $detail_row['order_code']}}
+        </a>
+    @else
+        ''
+    @endif
+</td>
+
                             <td class="text-end">{{ $detail_row['shipping_road_abbr'] }}</td>
                             @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
@@ -171,7 +192,7 @@
 @section('buttom')
 <script type="text/javascript">
 
-$("#btn-redirectToRequiredDate").on('click', function(){ 
+$("#btn-redirectToRequiredDate").on('click', function(){
   var required_date = $('#input-required_date').val();
   var parts = required_date.split('-');
   parts[0] = parts[0].substring(2); // 將年份的前兩位去掉
@@ -192,7 +213,7 @@ function calcOrders(){
   var parts = required_date.split('-');
   parts[0] = parts[0].substring(2); // 將年份的前兩位去掉
   var required_date_2ymd = parts.join('');
-    
+
   $.ajax({
     type:'get',
     //dataType: 'json',
@@ -204,11 +225,11 @@ function calcOrders(){
       }else if(response.required_date_2ymd.length > 0){
         window.location.href = "{{ route('lang.admin.sale.requisitions.form') }}/" + required_date_2ymd;
       }
-      
+
     }
   });
 }
-
+// setInterval(calcOrders, 30000); // 30000毫秒 = 30秒
 $(function(){
   //列印按鈕
   $('#href-printForm').on('click',function(e){

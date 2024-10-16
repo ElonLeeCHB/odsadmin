@@ -13,6 +13,7 @@ use App\Models\Common\Term;
 use App\Models\Common\TermTranslation;
 use App\Models\Common\TermRelation;
 use App\Models\Sale\OrderProductOption;
+use App\Models\Sale\OrderTag;
 use App\Models\Catalog\ProductTranslation;
 
 use Maatwebsite\Excel\Facades\Excel;
@@ -36,9 +37,8 @@ class OrderService extends Service
 
     public function updateOrCreate($data)
     {
-        DB::beginTransaction();
-
         try {
+            DB::beginTransaction();    
 
             $order_id = $data['order_id'] ?? null;
 
@@ -68,7 +68,8 @@ class OrderService extends Service
             if(!empty($data['personal_name'])){
                 $update_member_date = [
                     'name' => $data['personal_name'],
-                    'salutation_id' => $data['salutation_id'] ?? 0,
+                    'salutation_code' => $data['salutation_code'] ?? 0,
+                    'salutation_id' => $data['salutation_id'] ?? 0, //將廢棄
                     'mobile' => $mobile,
                     'telephone_prefix' => $data['telephone_prefix'] ?? '',
                     'telephone' => $telephone,
@@ -107,7 +108,7 @@ class OrderService extends Service
                         $delivery_date_hi = '';
                     }
                 }else if(!empty($data['delivery_date_hi'])){
-                    //避免使用者只打數字，例如 1630
+                    //如果只有數字，例如 1630，中間加上冒號
                     $delivery_date_hi = substr($data['delivery_date_hi'],0,2).':'.substr($data['delivery_date_hi'],-2);
                 }
 
@@ -141,9 +142,9 @@ class OrderService extends Service
                 $order->payment_department= $data['payment_department'] ?? '';
                 $order->payment_tin = $data['payment_tin'] ?? '';
                 $order->is_payment_tin = $data['is_payment_tin'] ?? 0;
-                $order->payment_total = $data['payment_total'] ?? 0;
-                $order->payment_paid = $data['payment_paid'] ?? 0;
-                $order->payment_unpaid = $data['payment_unpaid'] ?? 0;
+                $order->payment_total = isset($data['payment_total']) && is_numeric($data['payment_total']) ? $data['payment_total'] : 0;
+                $order->payment_paid = isset($data['payment_paid']) && is_numeric($data['payment_paid']) ? $data['payment_paid'] : 0;
+                $order->payment_unpaid = isset($data['payment_unpaid']) && is_numeric($data['payment_unpaid']) ? $data['payment_unpaid'] : 0;
                 $order->payment_method = $data['payment_method'] ?? '';
                 $order->scheduled_payment_date = $data['scheduled_payment_date'] ?? null;
                 $order->shipping_personal_name = $shipping_personal_name;
@@ -161,94 +162,40 @@ class OrderService extends Service
                 $order->delivery_date = $delivery_date;
                 $order->delivery_time_range = $data['delivery_time_range'] ?? '';
                 $order->delivery_time_comment = $data['delivery_time_comment'] ?? '';
+                //$order->status_id = $data['status_id'] ?? 0;
                 $order->status_code = $data['status_code'] ?? 0;
                 $order->comment = $data['comment'] ?? '';
                 $order->extra_comment = $data['extra_comment'] ?? '';
-
                 $order->save();
                 // 訂單單頭結束
             }
 
-            // 公司分類的寫入功能 待處理
-            //if(!empty($data['order_tag'])){
-            if(0){
-                if(!is_array($data['order_tag'])){
-                    $tags = explode(',', $data['order_tag']);
-                }else{
-                    $tags = $data['order_tag'];
-                }
 
-                // 若無此標籤則新增
-                // foreach ($tags as $key => $tag) {
-                //     $tag = trim($tag);
-                //     if(empty($tag)){
-                //         continue;
-                //     }
+            // 訂單標籤(公司分類)  
+            // 說明：在訂單設計公司分類，於理不合。訂單可以有付款公司、收貨公司。然後在公司的基本資料再去設定公司的分類。
+            // 並且需求是說，要把客戶這次為何下訂單的緣由記下來，像是為了股東會、平安夜、教會。這樣的需求邏輯，其實不是公司分類。所以用標籤的概念做處理。
+            // 但是需求方還是會習慣叫公司分類
+            if(1){ //這個 if 只是為了識別處理區塊，方便收合。所以固定=1
+                OrderTag::where('order_id', $order->id)->delete();
 
-                //     $term_translation = TermTranslation::where('name', $tag)->where('locale', app()->getLocale())->select(['id','term_id'])->first();
+                if(!empty($data['order_tags'])){
+                    if(is_array($data['order_tags'])){
+                        $tags = $data['order_tags'];
+                    }else{
+                        $tags = explode(',', $data['order_tags']);
+                    }
 
-                //     if($term_translation == null){
-                //         $term = new Term;
-                //         $term->taxonomy_code = 'order_tag';
-                //         $term->object_model = 'App\Models\Sale\Order';
-                //         $term->is_active = 1;
-                //         $term->save();
+                    foreach ($tags as $tag_id) {
+                        $upsert_data[] = [
+                            'order_id' => $order->id,
+                            'term_id' => $tag_id,
+                        ];
+                    }
 
-                //         $term_translation = new TermTranslation;
-                //         $term_translation->term_id = $term->id;
-                //         $term_translation->locale = app()->getLocale();
-                //         $term_translation->name = $tag;
-                //         $term_translation->save();
-                //     }
-
-                //     $insert_term_ids[] = $term_translation->term_id;
-
-                //     // 新增到 term_relations
-                //     $insertRows[] = [
-                //         'object_id' => $order_id,
-                //         'term_id' => $term_translation->term_id,
-                //     ];
-                // }
-
-                // 新增前先找出已有的 term_id
-
-
-                //$taxonomy_order = $this->
-
-
-                // 用新式的 whereHas 找 terms taxonomy_code=sys_tables，獲得 orders 表的 term_id，然後令 table_id=這個term_id
-
-
-
-
-                $original_term_ids = Term::where('taxonomy_code', 'order_tag')->whereHas('term_relations', function ($query) use ($order_id) {
-                    $query->where('object_id', $order_id);
-                })->pluck('id')->toArray();
-
-                // TermRelation 新增或更新
-                if(!empty($insertRows)){
-                    $result = TermRelation::upsert($insertRows, ['term_id','object_id']);
-                    $insertRows = [];
-                }
-
-                $diff_term_ids = array_diff($original_term_ids, $insert_term_ids);
-
-                if(!empty($diff_term_ids)){
-                    foreach ($diff_term_ids as $no_use_term_id) {
-                        //刪除不需要的 term_id
-                        TermRelation::where('term_id', $no_use_term_id)->where('object_id', $order_id)->delete();
-
-                        // 查 TermRelation 是否還有此 term_id
-                        $no_use_tr = TermRelation::where('term_id', $no_use_term_id)->count();
-
-                        // 若整張表沒用則刪除
-                        if($no_use_tr == 0){
-                            Term::where('id', $no_use_term_id)->delete();
-                            TermTranslation::where('term_id', $no_use_term_id)->delete();
-                        }
+                    if(!empty($upsert_data)){
+                        OrderTag::upsert($upsert_data, ['id']);
                     }
                 }
-
             }
 
             // Deleta all order_products

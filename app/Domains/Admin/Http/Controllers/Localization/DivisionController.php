@@ -63,7 +63,7 @@ class DivisionController extends Controller
 
     public function getJsonCities()
     {
-        if(empty($this->request->filter_parent_id)){
+        if(empty($this->request->equal_parent_id)){
             return [];
         }
         $cacheName = 'tw_division_level_2';
@@ -99,7 +99,7 @@ class DivisionController extends Controller
             return $result;
         });
 
-        $cities = $divisions[$this->request->filter_parent_id];
+        $cities = $divisions[$this->request->equal_parent_id];
 
         if(!empty($this->request->filter_name)){
             foreach ($cities as $key => $city) {

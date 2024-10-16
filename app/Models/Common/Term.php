@@ -23,11 +23,6 @@ class Term extends Model
     {
         return $this->belongsTo(self::class, 'parent_id', 'id');
     }
-    
-    public function term_relations()
-    {
-        return $this->hasMany(TermRelation::class, 'term_id', 'id');
-    }
 
     public function taxonomy()
     {

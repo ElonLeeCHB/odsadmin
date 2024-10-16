@@ -11,56 +11,7 @@ class WarehouseService extends Service
     protected $modelName = "\App\Models\Inventory\Warehouse";
 
 	public function __construct(private WarehouseRepository $WarehouseRepository)
-	{}
-
-	public function updateOrCreate($data)
 	{
-        DB::beginTransaction();
-
-        try {
-            $result = $this->findIdOrFailOrNew($data['warehouse_id']);
-
-            if(empty($result['error']) && !empty($result['data'])){
-                $warehouse = $result['data'];
-            }else{
-                return response(json_encode($result))->header('Content-Type','application/json');
-            }
-            
-			$warehouse->code = $data['code'] ?? '';
-			$warehouse->name = $data['name'];
-			$warehouse->sort_order = $data['sort_order'] ?? 999;
-			$warehouse->is_active = $data['is_active'] ?? 0;
-			$warehouse->is_inventory = $data['is_inventory'] ?? 1;
-			$warehouse->comment = $data['comment'] ?? '';
-            
-			$warehouse->save();
-
-            DB::commit();
-
-            $result['warehouse_id'] = $warehouse->id;
-    
-            return $result;
-
-
-        } catch (\Exception $ex) {
-            DB::rollback();
-            return ['error' => $ex->getMessage()];
-        }
-	}
-
-
-    public function deleteWarehouse($warehouse_id)
-    {
-        try {
-
-            $this->WarehouseRepository->delete($warehouse_id);
-
-            return ['success' => true];
-
-        } catch (\Exception $ex) {
-            DB::rollback();
-            return ['error' => $ex->getMessage()];
-        }
+        $this->repository = $WarehouseRepository;
     }
-
 }

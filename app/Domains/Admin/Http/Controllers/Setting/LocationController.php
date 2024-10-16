@@ -46,7 +46,7 @@ class LocationController extends BackendController
         $data['list'] = $this->getList();
 
         $data['add_url'] = route('lang.admin.setting.locations.form');
-        $data['delete_url'] = route('lang.admin.setting.locations.delete');
+        $data['delete_url'] = route('lang.admin.setting.locations.destroy');
         $data['list_url'] = route('lang.admin.setting.locations.list'); //本參數在 getList() 也必須存在。
         
         return view('admin.setting.location', $data);
@@ -226,7 +226,7 @@ class LocationController extends BackendController
     }
 
 
-    public function delete()
+    public function destroy()
     {
         $this->initController();
         
@@ -244,26 +244,20 @@ class LocationController extends BackendController
         if($this->acting_username !== 'admin'){
             $json['error'] = $this->lang->error_permission;
         }
+        
+		if (!$json) {
+            $result = $this->LocationService->destroy($selected);
 
-        if (!$json) {
-            foreach ($selected as $category_id) {
-                $result = $this->LocationService->deleteLocation($category_id);
-
-                if(!empty($result['error'])){
-                    if(config('app.debug')){
-                        $json['warning'] = $result['error'];
-                    }else{
-                        $json['warning'] = $this->lang->text_fail;
-                    }
-
-                    break;
+            if(empty($result['error'])){
+                $json['success'] = $this->lang->text_success;
+            }else{
+                if(config('app.debug') || auth()->user()->username == 'admin'){
+                    $json['error'] = $result['error'];
+                }else{
+                    $json['error'] = $this->lang->text_fail;
                 }
             }
-        }
-
-        if(empty($json['warning'] )){
-            $json['success'] = $this->lang->text_success;
-        }
+		}
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }

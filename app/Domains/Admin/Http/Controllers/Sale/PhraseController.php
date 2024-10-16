@@ -49,7 +49,7 @@ class PhraseController extends BackendController
 
         $data['list_url'] =route('lang.admin.sale.phrases.list');
         $data['add_url'] = route('lang.admin.sale.phrases.form');
-        $data['delete_url'] = route('lang.admin.sale.phrases.delete');
+        $data['delete_url'] = route('lang.admin.sale.phrases.destroy');
 
         return view('admin.sale.phrase', $data);
     }
@@ -105,7 +105,9 @@ class PhraseController extends BackendController
         $url = '';
 
         foreach($queries as $key => $value){
-            $url .= "&$key=$value";
+            if(!is_array($value)){
+                $url .= "&$key=$value";
+            }
         }
         
         // link of table header for sorting        
@@ -205,13 +207,16 @@ class PhraseController extends BackendController
         //     }
         // }
 
+        if(empty($data['taxonomy_code'])){
+            $json['error']['taxonomy_code'] = '請設定片語性質';
+        }
+
         if(isset($json['error']) && !isset($json['error']['warning'])) {
             $json['error']['warning'] = $this->lang->error_warning;
         }
 
         if(!$json) {
-            $data['term_id'] = $data['term_id'] ?? '';
-            $result = $this->TermService->updateOrCreate($data);
+            $result = $this->TermService->saveTerm($data);
 
             if(empty($result['error']) && !empty($result['term_id'])){
                 $json = [
@@ -227,36 +232,12 @@ class PhraseController extends BackendController
                 }
             }
         }
-
-
-
-
-
-
-        if(!$json) {
-
-            $data['id'] = $data['term_id'];            
-            $result = $this->TermService->updateOrCreate($data);
-            
-            if(empty($result['error'])){
-                $json['redirectUrl'] = route('lang.admin.sale.phrases.form', $result['data']['record_id']);
-                $json['term_id'] = $result['data']['record_id'];
-                $json['success'] = $this->lang->text_success;
-            }else{
-                $username = auth()->user()->username;
-                if($username == 'admin'){
-                    $json['error'] = $result['error'];
-                }else{
-                    $json['error'] = $this->lang->text_fail;
-                }
-            }
-        }
         
        return response(json_encode($json))->header('Content-Type','application/json');
     }
     
 
-    public function delete()
+    public function destroy()
     {
         $this->initController();
         
@@ -274,26 +255,21 @@ class PhraseController extends BackendController
         if($this->acting_username !== 'admin'){
             $json['error'] = $this->lang->error_permission;
         }
+        
+		if (!$json) {
+            $taxonomies_codes = ['phrase_order_comment', 'phrase_order_extra_comment'];
+            $result = $this->TermService->destroyTermsByIdsAndTaxonomiesCodes($selected, $taxonomies_codes);
 
-        if (!$json) {
-            foreach ($selected as $category_id) {
-                $result = $this->TermService->deleteTerm($category_id);
-
-                if(!empty($result['error'])){
-                    if(config('app.debug')){
-                        $json['warning'] = $result['error'];
-                    }else{
-                        $json['warning'] = $this->lang->text_fail;
-                    }
-
-                    break;
+            if(empty($result['error'])){
+                $json['success'] = $this->lang->text_success;
+            }else{
+                if(config('app.debug') || auth()->user()->username == 'admin'){
+                    $json['error'] = $result['error'];
+                }else{
+                    $json['error'] = $this->lang->text_fail;
                 }
             }
-        }
-
-        if(empty($json['warning'] )){
-            $json['success'] = $this->lang->text_success;
-        }
+		}
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }

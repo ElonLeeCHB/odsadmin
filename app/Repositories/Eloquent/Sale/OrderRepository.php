@@ -8,6 +8,7 @@ use App\Repositories\Eloquent\Catalog\OptionValueRepository;
 use App\Repositories\Eloquent\Sale\OrderTotalRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Sale\Order;
+use App\Models\Sale\OrderTag;
 use App\Models\Common\Term;
 use App\Models\Catalog\Option;
 use App\Models\Catalog\OptionValue;
@@ -91,12 +92,18 @@ class OrderRepository extends Repository
         if(!empty($data['filter_shipping_city_id'])){
             $data['equal_shipping_city_id'] = $data['filter_shipping_city_id'];
         }
-
+        if(!empty($data['source'])){
+            $data['andOrWhere'][] = [
+                'source'=>$data['source']
+            ];
+        }
         // 狀態
         if(!empty($data['filter_status_code']) && $data['filter_status_code'] == 'withoutV'){
             $data['filter_status_code'] = '<>Void';
         }
-
+        if(!empty($data['filter_is_void'])){
+            $data['filter_status_code'] = '<>Void';
+        }
         return $data;
     }
 
@@ -163,7 +170,6 @@ class OrderRepository extends Repository
             'limit' => 0,
             'pagination' => false,
         ];
-
         $totals = $this->OrderTotalRepository->getRows($filter_data, $debug);
 
         return $this->rowsToStdObj($totals);
@@ -194,6 +200,17 @@ class OrderRepository extends Repository
         return $terms;
     }
 
+    public function getOrderTagsByOrderId($order_id, $debug = 0)
+    {
+        $order_tags = OrderTag::where('order_id', $order_id)->get();
+
+        $rows = [];
+        
+        foreach ($order_tags as $order_tag) {
+            $rows[] = $order_tag->toCleanObject();
+        }
+        return $rows;
+    }
 
     public function getOrderTags($data, $debug = 0)
     {
@@ -202,7 +219,7 @@ class OrderRepository extends Repository
         $rows = $this->TermRepository->getTerms($data);
 
         //$rows = DataHelper::collectionToArray
-
+        
         $tags = [];
 
         foreach ($rows as $key => $row) {
@@ -231,34 +248,6 @@ class OrderRepository extends Repository
 
         return $tags;
     }
-
-
-    public function getAllActiveOrderTags()
-    {
-        return Term::where('taxonomy_code', 'order_tag')->where('is_active',1)->with('translation')->get();
-    }
-
-    public function getOrderTagsByOrderId($order_id)
-    {
-        $tags = Term::where('taxonomy_code', 'order_tag')->whereHas('term_relations', function ($query) use ($order_id) {
-            $query->where('object_id', $order_id);
-        })->get();
-
-        if(count($tags)==0){
-            return [];
-        }
-
-        // $result = '';
-        $result = [];
-
-        foreach ($tags as $key => $tag) {
-            //$result .= $tag->translation->name. ',';
-            $result[] = $tag->translation->name;
-        }
-
-        return $result;
-    }
-
 
 
     public function exportOrderProducts($data)
@@ -310,7 +299,6 @@ class OrderRepository extends Repository
 
     public function exportOrders($data, $debug = 0)
     {
-        $htmlData['lang'] = $this->lang;
         $htmlData['base'] = config('app.admin_url');
         $htmlData['underline'] = '_______________';
 
@@ -326,7 +314,7 @@ class OrderRepository extends Repository
         $filter_data['order'] = 'DESC';
 
         $orders = $this->getRows($filter_data);
-
+        
         foreach ($orders as $order) {
             $htmlData['orders'][] = $this->getOrderPrintData($order);
         }
@@ -347,7 +335,7 @@ class OrderRepository extends Repository
                 ]
             ]
         ]);
-
+        
         $mpdf->WriteHTML($html);
         $mpdf->Output('example.pdf', 'D');
 
@@ -430,7 +418,7 @@ class OrderRepository extends Repository
                         foreach ($order_product->order_product_options as $drink) {
                             $drink_code = $drink->product_option->option->code ?? '';
                             $drink_parent_id = $drink->parent_product_option_value_id;
-                            $drink_option_value_id = $drink->product_option_value->option_value_id;
+                            $drink_option_value_id = $drink->product_option_value->option_value_id ?? 'noOptionValueId';
                             if($drink_code != 'drink' || empty($drink_parent_id) || $drink_parent_id != $product_option_value_id){
                                 continue;
                             }
@@ -496,14 +484,14 @@ class OrderRepository extends Repository
         ];
         $order_totals = $this->getOrderTotals($filter_data);
 
-        if(!$order_totals->isEmpty()){
+        if(count($order_totals) > 0){
             foreach ($order_totals as $key => $order_total) {
                 $result['order_totals'][$order_total->code] = $order_total;
             }
         }else{
             $result['order_totals'] = [
                 'sub_total' => (object)['title' => '商品合計', 'value' => 0, 'sort_order' => 1],
-                'discount' => (object)['title' => '優惠折扣', 'value' => 0, 'sort_order' => 2],
+                // 'discount' => (object)['title' => '優惠折扣', 'value' => 0, 'sort_order' => 2],
                 'shipping_fee' => (object)['title' => '運費', 'value' => 0, 'sort_order' => 3],
                 'total' => (object)['title' => '總計', 'value' => 0, 'sort_order' => 4],
             ];

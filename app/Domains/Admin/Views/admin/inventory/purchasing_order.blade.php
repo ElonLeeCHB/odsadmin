@@ -103,8 +103,8 @@ $('#input-shipping_state_id').on('change', function(){
   if(state_id){
     $.ajax({
       type:'get',
-      url: "{{ route('lang.admin.localization.divisions.getJsonCities') }}?filter_parent_id=" + state_id,
-      data:'filter_parent_id='+state_id,
+      url: "{{ route('lang.admin.localization.divisions.getJsonCities') }}?equal_parent_id=" + state_id,
+      data:'equal_parent_id='+state_id,
       success:function(json){
         html = '<option value=""> -- </option>';
         

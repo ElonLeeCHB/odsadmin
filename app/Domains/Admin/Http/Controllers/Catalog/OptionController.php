@@ -37,13 +37,13 @@ class OptionController extends BackendController
             'text' => $this->lang->text_home,
             'href' => route('lang.admin.dashboard'),
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->text_option,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
             'href' => route('lang.admin.catalog.options.index'),
@@ -51,9 +51,9 @@ class OptionController extends BackendController
 
         $data['breadcumbs'] = (object)$breadcumbs;
         $data['list'] = $this->getList();
-        
-        $data['delete'] = route('lang.admin.catalog.options.delete');
-        $data['add'] = route('lang.admin.catalog.options.form');
+
+        $data['delete_url'] = route('lang.admin.catalog.options.destroy');
+        $data['add_url'] = route('lang.admin.catalog.options.form');
 
         return view('admin.catalog.option', $data);
     }
@@ -111,7 +111,7 @@ class OptionController extends BackendController
 
         // Rows
         $options = $this->OptionService->getOptions($queries);
-        
+
         if(!empty($options)){
             foreach ($options as $row) {
                 $row->edit_url = route('lang.admin.catalog.options.form', array_merge([$row->id], $queries));
@@ -125,7 +125,7 @@ class OptionController extends BackendController
         }else{
             $order = 'ASC';
         }
-        
+
         $data['sort'] = strtolower($sort);
         $data['order'] = strtolower($order);
 
@@ -137,8 +137,8 @@ class OptionController extends BackendController
         foreach($queries as $key => $value){
             $url .= "&$key=$value";
         }
-        
-        // link of table header for sorting        
+
+        // link of table header for sorting
         $route = route('lang.admin.catalog.options.list');
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_model'] = $route . "?sort=model&order=$order" .$url;
@@ -153,7 +153,7 @@ class OptionController extends BackendController
     public function form($option_id = null)
     {
         $data['lang'] = $this->lang;
-  
+
         $this->lang->text_form = empty($option_id) ? $this->lang->trans('text_add') : $this->lang->trans('text_edit');
 
         // Breadcomb
@@ -161,13 +161,13 @@ class OptionController extends BackendController
             'text' => $this->lang->text_home,
             'href' => route('lang.admin.dashboard'),
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->text_option,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
             'href' => route('lang.admin.catalog.options.index'),
@@ -236,7 +236,7 @@ class OptionController extends BackendController
         }
 
         $data['option_translations'] = $option_translations;
-        
+
         // Option Values
         if(!empty($option->id)){
             $filter_data = [];
@@ -253,24 +253,23 @@ class OptionController extends BackendController
             if($option->model == 'Product' ){
                 $filter_data['with'][] = 'product.translation';
             }
-
+            // dd($filter_data);
             $option_values = $this->OptionService->getValues($filter_data);
 
             $data['option_values'] = $option_values;
         }else{
             $data['option_values'] = [];
         }
-        //echo '<pre>', print_r($option_values->toArray(), 1), "</pre>"; exit;
 
         return view('admin.catalog.option_form', $data);
     }
-    
+
     public function save()
     {
         $data = $this->request->all();
 
         $json = [];
-        
+
         // Check
         $validator = $this->validator($this->request->post());
 
@@ -285,7 +284,7 @@ class OptionController extends BackendController
         // Check option_value_id in product_option_values
         if (isset($data['option_values']) && isset($data['option_id'])) {
             $option_value_data = [];
-    
+
             //option_values in form
             foreach ($data['option_values'] as $option_value) {
                 if ($option_value['option_value_id']) {
@@ -293,7 +292,7 @@ class OptionController extends BackendController
                 }
             }
 
-            //option_values in database 
+            //option_values in database
             $option = $this->OptionService->getOption(['filter_id' => $data['option_id']],0);
             $option_values = [];
             if(!empty($option->product_option_values)){
@@ -337,40 +336,48 @@ class OptionController extends BackendController
     }
 
 
-    public function delete()
+    public function destroy()
     {
+        $this->initController();
+
         $data = $this->request->all();
 
         $json = [];
-        
+
 		if (isset($data['selected'])) {
 			$selected = $data['selected'];
 		} else {
 			$selected = [];
 		}
 
-        // permission
-		// if (!$this->user->hasPermission('modify', 'catalog/option')) {
-		// 	$json['error'] = $this->language->get('error_permission');
-		// }
-        
-		foreach ($selected as $option_id) {
+        // Permission
+        if($this->acting_username !== 'admin'){
+            $json['error'] = $this->lang->error_permission;
+        }
+
+        foreach ($selected as $option_id) {
             // 若有商品使用則不可刪
-			$product_count = $this->OptionService->getTotalProductsByOptionId($option_id);
-            
+			$product_count = $this->OptionService->getProductCountByOptionId($option_id);
+
 			if ($product_count) {
 				$json['error'] = $option_id .' - '.$this->lang->error_product;
 			}
 		}
-        
-		if (!$json) {
-			foreach ($selected as $option_id) {
-				$this->OptionService->deleteOptionById($option_id);
-			}
 
-			$json['success'] = $this->lang->text_success;
+		if (!$json) {
+            $result = $this->OptionService->destroy($selected);
+
+            if(empty($result['error'])){
+                $json['success'] = $this->lang->text_success;
+            }else{
+                if(config('app.debug') || auth()->user()->username == 'admin'){
+                    $json['error'] = $result['error'];
+                }else{
+                    $json['error'] = $this->lang->text_fail;
+                }
+            }
 		}
-        
+
         return response(json_encode($json))->header('Content-Type','application/json');
     }
 
@@ -418,7 +425,7 @@ class OptionController extends BackendController
                 'option_value' => $option_values,
             );
         }
-        
+
         return response(json_encode($json))->header('Content-Type','application/json');
     }
 

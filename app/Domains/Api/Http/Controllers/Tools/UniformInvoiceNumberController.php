@@ -145,7 +145,6 @@ class UniformInvoiceNumberController extends Controller
                 $roundCount++;
                 GovUniformInvoiceNumbers::upsert($insertData, ['tax_id_num']);
                 $insertData = [];
-                //echo '<pre>', print_r("第 $roundCount 回合成功", 1), "</pre>";
             }
         }
 
@@ -153,9 +152,7 @@ class UniformInvoiceNumberController extends Controller
         if (!empty($insertData)) {
            GovUniformInvoiceNumbers::upsert($insertData, ['tax_id_num']);
            $insertData = [];
-           echo '<pre>', print_r('剩餘筆數，成功', 1), "</pre>";
         }
 
-        echo '<pre>', print_r('全部成功', 1), "</pre>"; exit;
     }
 }

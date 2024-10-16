@@ -4,7 +4,7 @@ namespace App\Repositories\Eloquent\Counterparty;
 
 use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
-use App\Models\Counterparty\Bank;
+use App\Models\SysData\Bank;
 
 class BankRepository extends Repository
 {
@@ -18,6 +18,23 @@ class BankRepository extends Repository
 
             Bank::where('id', $id)->delete();
 
+            DB::commit();
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
+
+    public function destroy($ids, $debug = 0)
+    {
+        try {
+            DB::beginTransaction();
+    
+            $result = Bank::whereIn('id', $ids)->delete();
+
+            return $result;
+            
             DB::commit();
 
         } catch (\Exception $ex) {

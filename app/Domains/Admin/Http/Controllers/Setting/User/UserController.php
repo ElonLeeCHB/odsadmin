@@ -50,7 +50,7 @@ class UserController extends BackendController
         
         $data['list_url']   =  route('lang.admin.setting.user.users.list');
         $data['add_url']    = route('lang.admin.setting.user.users.form');
-        $data['delete_url'] = route('lang.admin.setting.user.users.delete');
+        $data['delete_url'] = route('lang.admin.setting.user.users.destroy');
         
         //Filters
         $data['filter_keyname'] = $query_data['filter_keyname'] ?? '';
@@ -83,8 +83,14 @@ class UserController extends BackendController
         // Prepare queries for records
         $query_data = $this->getQueries($this->request->query());
 
+        if(isset($query_data['equal_is_admin']) && $query_data['equal_is_admin'] == 0){
+            $query_data['whereDoesntHave']['metas'] = ['is_admin' => 1];
+            unset($query_data['equal_is_admin']);
+        }
+
+
         // Rows
-        $users = $this->UserService->getRows($query_data);
+        $users = $this->UserService->getUsers($query_data);
 
         if(!empty($users)){
             foreach ($users as $row) {
@@ -93,6 +99,7 @@ class UserController extends BackendController
         }
 
         $data['users'] = $users->withPath(route('lang.admin.setting.user.users.list'))->appends($query_data);
+
 
         // Prepare links for list table's header
         if($query_data['order'] == 'ASC'){
@@ -107,6 +114,7 @@ class UserController extends BackendController
         unset($query_data['sort']);
         unset($query_data['order']);
         unset($query_data['with']);
+        unset($query_data['whereDoesntHave']);
 
         $url = '';
 
@@ -121,7 +129,6 @@ class UserController extends BackendController
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_email'] = $route . "?sort=email&order=$order" .$url;
         $data['sort_created_at'] = $route . "?sort=created_at&order=$order" .$url;
-
         
         $data['list_url'] = route('lang.admin.setting.user.users.list');
 
@@ -225,7 +232,7 @@ class UserController extends BackendController
     }
 
 
-    public function delete()
+    public function destroy()
     {
         $this->initController();
         
@@ -243,26 +250,20 @@ class UserController extends BackendController
         if($this->acting_username !== 'admin'){
             $json['error'] = $this->lang->error_permission;
         }
+        
+		if (!$json) {
+            $result = $this->UserService->destroy($selected);
 
-        if (!$json) {
-            foreach ($selected as $user_id) {
-                $result = $this->UserService->removeAdmin($user_id);
-
-                if(!empty($result['error'])){
-                    if(config('app.debug')){
-                        $json['warning'] = $result['error'];
-                    }else{
-                        $json['warning'] = $this->lang->text_fail;
-                    }
-
-                    break;
+            if(empty($result['error'])){
+                $json['success'] = $this->lang->text_success;
+            }else{
+                if(config('app.debug') || auth()->user()->username == 'admin'){
+                    $json['error'] = $result['error'];
+                }else{
+                    $json['error'] = $this->lang->text_fail;
                 }
             }
-        }
-
-        if(empty($json['warning'] )){
-            $json['success'] = $this->lang->text_success;
-        }
+		}
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }

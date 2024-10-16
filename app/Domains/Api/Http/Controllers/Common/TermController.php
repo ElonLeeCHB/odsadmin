@@ -26,7 +26,7 @@ class TermController extends ApiController
             unset($phrases['data'][$key]['translation']);
             unset($phrases['data'][$key]['taxonomy']);
         }
-
+        
         return response(json_encode($phrases))->header('Content-Type','application/json');
     }
 

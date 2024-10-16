@@ -17,7 +17,7 @@
   </head>
   <body>
 <style>
-@media screen, print {
+@media print {
   @page {
     size: A4;
     margin: 2px;

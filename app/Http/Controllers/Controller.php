@@ -43,7 +43,11 @@ class Controller extends BaseController
         }else{
             $query_data['sort'] = 'id';
         }
-
+        if(!empty($data['source'])){
+            $query_data['source'] = $data['source'];
+        }else{
+            $query_data['source'] = '';
+        }
         if(!empty($data['order'])){
             $query_data['order'] = $data['order'];
         }else{
@@ -73,12 +77,18 @@ class Controller extends BaseController
         }
 
         // is_active
-        if(!isset($data['equal_is_active'])){
-            $query_data['equal_is_active'] = 1;
-        }else{
-            $query_data['equal_is_active'] = $data['equal_is_active'];
+        // if(isset($data['equal_is_active']) && $data['equal_is_active'] == '*'){
+        //     unset($data['equal_is_active']);
+        // }else{
+        //     $query_data['equal_is_active'] = $data['equal_is_active'];
+        // }
+        if(isset($data['equal_is_active'])){
+            if($data['equal_is_active'] == '*'){
+                unset($data['equal_is_active']);
+            }else{
+                $query_data['equal_is_active'] = $data['equal_is_active'];
+            }
         }
-
 
         if(isset($data['with'])){
             $query_data['with'] = $data['with'];

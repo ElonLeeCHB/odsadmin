@@ -69,7 +69,7 @@ class ProductController extends BackendController
 
         $data['list_url']   = route('lang.admin.catalog.products.list');
         $data['add_url']    = route('lang.admin.catalog.products.form');
-        $data['delete_url'] = route('lang.admin.catalog.products.delete');
+        $data['delete_url'] = route('lang.admin.catalog.products.destroy');
         return view('admin.catalog.product', $data);
     }
 
@@ -197,7 +197,14 @@ class ProductController extends BackendController
         $data['back'] = route('lang.admin.catalog.products.index', $queries);
 
         // Get Record
-        $product = $this->ProductService->findIdOrNew($product_id);
+        $result = $this->ProductService->findIdOrFailOrNew($product_id);
+
+        if(!empty($result['data'])){
+            $product = $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
+        unset($result);
 
         $data['product']  = $product;
 
@@ -220,29 +227,6 @@ class ProductController extends BackendController
             }
         }
         $data['translations'] = $translations;
-
-        // product_categories
-        if ($product_id) {
-            $ids = $product->categories->pluck('id')->toArray();
-            if(!empty($ids)){
-                $cat_filters = [
-                    'whereIn' => ['id' => $ids],
-                    'pagination' => false
-                ];
-                $product_categories = $this->CategoryService->getRows($cat_filters);
-            
-                foreach ($product_categories as $category) {
-                    $data['product_categories'][] = (object)[
-                        'category_id' => $category->id,
-                        'name'        => $category->name,
-                    ];
-                }
-            }
-        }
-        
-        if(empty($data['product_categories'])) {
-            $data['product_categories'] = [];
-        }
 
         // product_options
         $product->load('product_options.translation');
@@ -354,7 +338,6 @@ class ProductController extends BackendController
             if(!empty($product_option_value_ids_in_form)){
                 $product_option_value_ids_in_form = array_unique($product_option_value_ids_in_form);
                 sort($product_option_value_ids_in_form);
-
                 //product_options in database
                 $query_data = [
                     'equal_product_id' => $data['product_id'],
@@ -388,7 +371,6 @@ class ProductController extends BackendController
         if (isset($json['error']) && !isset($json['error']['warning'])) {
             $json['error']['warning'] = $this->lang->error_warning;
         }
-
         if(!$json) {
             $result = $this->ProductService->updateOrCreateProduct($data);
 
@@ -411,8 +393,10 @@ class ProductController extends BackendController
         return response(json_encode($json))->header('Content-Type','application/json');
     }
 
-    public function delete()
+    public function destroy()
     {
+        $this->initController();
+
         $post_data = $this->request->post();
 
         $json = [];
@@ -423,29 +407,24 @@ class ProductController extends BackendController
             $selected = [];
         }
 
-        // if (!$this->user->hasPermission('modify', 'catalog/category')) {
-        //     $json['error'] = $this->language->get('error_permission');
-        // }
+        // Permission
+        if($this->acting_username !== 'admin'){
+            $json['error'] = $this->lang->error_permission;
+        }
 
-        if (!$json) {
-            foreach ($selected as $product_id) {
-                $result = $this->ProductService->deleteProduct($product_id);
+		if (!$json) {
+            $result = $this->ProductService->destroy($selected);
 
-                if(!empty($result['error'])){
-                    if(config('app.debug')){
-                        $json['warning'] = $result['error'];
-                    }else{
-                        $json['warning'] = $this->lang->text_fail;
-                    }
-
-                    break;
+            if(empty($result['error'])){
+                $json['success'] = $this->lang->text_success;
+            }else{
+                if(config('app.debug') || auth()->user()->username == 'admin'){
+                    $json['error'] = $result['error'];
+                }else{
+                    $json['error'] = $this->lang->text_fail;
                 }
             }
-        }
-
-        if(empty($json['warning'] )){
-            $json['success'] = $this->lang->text_success;
-        }
+		}
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }

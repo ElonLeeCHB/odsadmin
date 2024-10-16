@@ -28,6 +28,30 @@ class ReceivingOrderProductRepository extends Repository
         }
 
     }
+    public function getReceivingOrderById($receiving_order_id)
+    {
+            DB::beginTransaction();
+
+            $result = ReceivingOrderProduct::where('receiving_order_id', $receiving_order_id)->get();
+
+            DB::commit();
+
+            return $result;
+
+
+    }
+    public function getReceivingOrder($receiving_order_id)
+    {
+            DB::beginTransaction();
+
+            $result = ReceivingOrder::where('id', $receiving_order_id)->get();
+
+            DB::commit();
+
+            return $result;
+
+
+    }
 
 
 }

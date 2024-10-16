@@ -116,12 +116,15 @@ class RoadController extends ApiController
 
         //find first word of each roads
         $filter_data = [
+            // 'select' => ['id','word'],
+            'select' => ['word'],
+            'pluck' => 'word',
             'limit' => 0,
             'pagination' => false,
             'sort' => 'strokes',
             'order' => 'ASC',
             'distinct' => true,
-            'orderByRaw' => 'CONVERT(`word` using big5)',
+            //'keyBy' => 'id',
         ];
 
         // if(!empty($equal_city_id)){
@@ -130,8 +133,6 @@ class RoadController extends ApiController
         //     $filter_data['select'] = 'word';
         //     $filter_data['pluck'] = 'word';
         // }
-        $filter_data['select'] = 'word';
-        $filter_data['pluck'] = 'word';
 
         if (!empty($equal_city_id)) {
             $filter_data['equal_city_id'] = $equal_city_id;

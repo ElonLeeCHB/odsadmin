@@ -13,6 +13,7 @@ use App\Models\Inventory\Unit;
 use App\Models\Inventory\Bom;
 use App\Models\Inventory\BomProduct;
 use App\Models\Counterparty\Organization;
+use App\Repositories\Eloquent\Common\TermRepository;
 
 class Product extends Model
 {
@@ -33,12 +34,6 @@ class Product extends Model
     public function main_category()
     {
         return $this->belongsTo(Term::class, 'main_category_id', 'id');
-    }
-
-
-    public function categories()
-    {
-        return $this->belongsToMany(Term::class, 'term_relations', 'object_id', 'term_id');
     }
 
 
@@ -125,9 +120,7 @@ class Product extends Model
 
 
     // Attribute
-
-
-
+    
 
     protected function mainCategoryCode(): Attribute
     {
@@ -164,12 +157,10 @@ class Product extends Model
         );
     }
 
+    // for sale
     protected function price(): Attribute
     {
-        return Attribute::make(
-            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
-            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
-        );
+        return $this->setNumberAttribute($this->attributes['price'] ?? 0,0);
     }
 
     protected function supplierName(): Attribute
@@ -195,10 +186,13 @@ class Product extends Model
 
     protected function quantity(): Attribute
     {
-        return Attribute::make(
-            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
-            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
+        return $this->setNumberAttribute($this->attributes['quantity'] ?? 0);
+    }
 
+    public function temperatureTypeName(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->temperature_type_code, 'product_storage_temperature_type') ?? '',
         );
     }
 }

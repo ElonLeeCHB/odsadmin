@@ -97,7 +97,6 @@ class RequisitionService extends Service
                             'supplier_own_product_code' =>  $bom_product->sub_product->supplier_own_product_code ?? '',
                         ];
                     }
-
                     $usage_quantity = $requisition->quantity * $bom_product->quantity;
 
                     $stock_quantity = UnitConverter::build()->qty($usage_quantity)
@@ -105,9 +104,11 @@ class RequisitionService extends Service
                             ->to($bom_product->sub_product->stock_unit_code)
                             ->product($product_id)
                             ->get();
-
+                    if (!is_numeric($stock_quantity)) {
+                        // 如果不是數字，初始化為0或其他合理值
+                        $stock_quantity = 0;
+                    }
                     $requirements[$sub_product_id]['stock_quantity'] += $stock_quantity;
-
                     $requirements[$sub_product_id]['usage_quantity'] += $usage_quantity;
                 }
             }

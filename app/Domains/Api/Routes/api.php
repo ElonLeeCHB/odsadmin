@@ -54,11 +54,38 @@ Route::group([
 
         Route::get('order', 'Sale\OrderController@list')->name('order.list');
         Route::post('order/save', 'Sale\OrderController@save')->name('order.save');
-        Route::get('order/{order_id}', 'Sale\OrderController@details')->name('order.details');
+        Route::post('order/updateOrder', 'Sale\OrderController@updateOrder')->name('order.updateOrder');
+        Route::get('order/{order_id?}', 'Sale\OrderController@details')->name('order.details');
+        Route::get('order/header/{order_id}', 'Sale\OrderController@header')->name('order.header');
 
         Route::post('order/schedule/save', 'Sale\OrderScheduleController@save')->name('order.schedule.save');
         Route::get('order/schedule/{delivery_date?}', 'Sale\OrderScheduleController@list')->name('order.schedule.list');
+        Route::post('order/getControlOrders', 'Sale\OrderController@getControlOrders')->name('order.getControlOrders');
+        Route::post('order/updateControlComment', 'Sale\OrderController@updateControlComment')->name('order.updateControlComment');
+        Route::post('order/getControlBurrito', 'Sale\OrderController@getControlBurrito')->name('order.getControlBurrito');
+        Route::get('order/getRevenue/{date}', 'Sale\OrderController@getRevenue')->name('order.getRevenue');
+        Route::get('order/getBurrito/{date}', 'Sale\OrderController@getBurrito')->name('order.getBurrito');
+    });
 
+    Route::group([
+        'prefix' => 'analysis',
+        'as' => 'analysis.',
+    ], function ()
+    {
+        Route::get('getTimeQuantity', 'Sale\OrderController@getTimeQuantity')->name('analysis.getTimeQuantity');
+        Route::get('bom_items', 'Sale\OrderController@bom_items')->name('order.bom_items');
+        Route::post('getBomProductItems', 'Sale\OrderController@getBomProductItems')->name('order.getBomProductItems');
+        Route::post('update_combo', 'Sale\OrderController@update_combo')->name('order.update_combo');
+        Route::post('getKdsCalculateStats', 'Sale\OrderController@getKdsCalculateStats')->name('order.getKdsCalculateStats');
+        Route::post('getOrderSource', 'Sale\OrderController@getOrderSource')->name('order.getOrderSource');
+        Route::post('getKdsOrder', 'Sale\OrderController@getKdsOrder')->name('order.getKdsOrder');
+        Route::post('insertOrderTaker', 'Sale\OrderController@insertOrderTaker')->name('order.insertOrderTaker');
+        Route::post('getProductDemand', 'Sale\OrderController@getProductDemand')->name('order.getProductDemand');
+        // Route::get('order/phrases/{taxonomy_code}', 'Sale\OrderController@getOrderPhrasesByTaxonomyCode')->name('order.getOrderPhrasesByTaxonomyCode');
+
+        // Route::get('order', 'Sale\OrderController@list')->name('order.list');
+        // Route::post('order/save', 'Sale\OrderController@save')->name('order.save');
+        // Route::post('order/updateOrder', 'Sale\OrderController@updateOrder')->name('order.updateOrder');
     });
 
     Route::group([
@@ -80,6 +107,16 @@ Route::group([
         Route::post('member/save', 'Member\MemberController@save')->name('member.save');
         Route::get('member/getSalutations', 'Member\MemberController@getSalutations')->name('member.getSalutations');
         Route::get('member/{member_id}', 'Member\MemberController@details')->name('member.details');
+    });
+
+    Route::group([
+        'prefix' => 'inventory',
+        'as' => 'inventory.',
+    ], function ()
+    {
+        Route::get('unit', 'Inventory\UnitController@list')->name('unit.list');
+        Route::get('unit/listAll', 'Inventory\UnitController@listAll')->name('unit.listAll');
+        Route::get('unit/info/{id?}', 'Inventory\UnitController@info')->name('unit.info');
     });
 
     

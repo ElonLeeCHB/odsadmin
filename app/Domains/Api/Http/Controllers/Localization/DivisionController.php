@@ -61,7 +61,7 @@ class DivisionController extends BackendController
 
     public function cityList()
     {
-        if(empty($this->request->filter_parent_id)){
+        if( empty($this->request->equal_parent_id) ){
             return [];
         }
         $cacheName = 'tw_division_level_2';
@@ -82,8 +82,6 @@ class DivisionController extends BackendController
                 $result[$row->parent_id][] = [
                     'city_id' => $row->id,
                     'name' => $row->name,
-                    // 'parent_id' => $row->parent_id,
-                    // 'parent_name' => $row->parentDivision->name,
                 ];
             }
 
@@ -91,9 +89,13 @@ class DivisionController extends BackendController
         });
 
         $cities = [];
+
+        if(!empty($this->request->equal_parent_id)){
+            $parent_id = $this->request->equal_parent_id;
+        }
         
-        if(!empty($this->request->filter_parent_id) && is_numeric($this->request->filter_parent_id)){
-            $cities = $divisions[$this->request->filter_parent_id];
+        if(!empty($parent_id) && is_numeric($parent_id)){
+            $cities = $divisions[$parent_id];
         }
         
         if(!empty($this->request->filter_name)){

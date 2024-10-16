@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Eloquent\Catalog;
 
+use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
 use App\Repositories\Eloquent\Catalog\OptionValueRepository;
 use App\Models\Catalog\Option;
@@ -37,39 +38,65 @@ class OptionRepository extends Repository
     }
 
 
+    public function destroy($option_ids)
+    {
+        try {
+            DB::beginTransaction();
+
+            $options = Option::whereIn('id', $option_ids)->get();
+
+            foreach ($options as $option) {
+                if ($option->option_values->isNotEmpty()) {
+                    foreach ($option->option_values as $option_value) {
+                        $option_value->translations()->delete();
+                    }
+                }
+                $option->option_values()->delete();
+                $option->translations()->delete();
+                $option->delete();
+            }
+            DB::commit();
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
+
+
     public function deleteOptionById($option_id)
     {
-        $option = $this->getRow(['equal_option_id' => $option_id]);
+        try {
 
-        if ($option) {
-            // option_values and translations
-            $option->option_values->each(function ($option_value) {
-                $option_value->translations->each(function ($translation) {
-                    $translation->delete();
-                });
+            $option = $this->getRow(['equal_option_id' => $option_id]);
 
-                $option_value->delete();
-            });
+            if ($option) {
+    
+                DB::beginTransaction();
 
-            // translations
-            $option->translations->each(function ($translation) {
-                $translation->delete();
-            });
-        
-            $option->delete();
+                $option->option_values->translations()->delete();
+                $option->option_values()->delete();
+                $option->translations()->delete();
+                $option->delete();
+
+                DB::commit();
+            }
+
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
         }
 
+
+
     }
 
 
-    public function getProductCountsByOptionId($option_id)
+    public function getProductCountByOptionId($option_id)
     {
-        return ProductOption::where('option_id', $option_id)->getCount();
+        return ProductOption::where('option_id', $option_id)->count();
     }
-
-
-
-
 
 }
 

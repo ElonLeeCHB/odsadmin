@@ -13,7 +13,7 @@ use App\Repositories\Eloquent\Common\TermRepository;
 class Counting extends Model
 {
     use ModelTrait;
-
+    
     public $table = 'inventory_countings';
     protected $guarded = [];
     protected $appends = ['status_name'];
@@ -25,10 +25,10 @@ class Counting extends Model
 
         static::observe(\App\Observers\InventoryCountingObserver::class);
     }
-
-
+    
+    
     // Relation
-
+    
     public function counting_products()
     {
         return $this->hasMany(CountingProduct::class, 'counting_id', 'id');
@@ -40,7 +40,7 @@ class Counting extends Model
         return $this->belongsTo(Unit::class, 'unit_code', 'code');
     }
 
-
+    
 
     // Attribute
 
@@ -54,7 +54,6 @@ class Counting extends Model
     public function statusName(): Attribute
     {
         return Attribute::make(
-            //get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->status_code, 'common_form_status') ?? ' - ',
             get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->status_code, 'common_form_status') ?? '',
         );
     }
@@ -66,11 +65,11 @@ class Counting extends Model
         }
         else if(!empty($this->form_date)){
             $newValue = Carbon::parse($this->form_date)->format('Y-m-d');
-        }
+        } 
 
         return Attribute::make(
             get: fn ($value) => $newValue ?? '',
         );
     }
-
+    
 }

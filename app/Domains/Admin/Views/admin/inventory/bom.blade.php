@@ -14,7 +14,6 @@
       <div class="float-end">
         <button type="button" data-bs-toggle="tooltip" title="{{ $lang->button_filter }}" onclick="$('#filter-bom').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fa-solid fa-filter"></i></button>
         <a href="{{ $add_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i></a>
-        <button type="submit" form="form-bom" formaction="{{ $delete_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_delete }}" onclick="return confirm('{{ $lang->text_confirm }}');" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
       </div>
       <h1>{{ $lang->heading_title }}</h1>
       @include('admin.common.breadcumb')
@@ -27,10 +26,14 @@
           <div class="card">
             <div class="card-header"><i class="fa-solid fa-filter"></i> {{ $lang->text_filter }}</div>
             <div class="card-body">
-              
+
               <div class="mb-3">
                 <label class="form-label">{{ $lang->column_product_name }}</label>
-                <input type="text" id="input-filter_product_name" name="filter_product_name" value="{{ $filter_product_name ?? '' }}"  data-oc-target="autocomplete-product_name" class="form-control" autocomplete="off"/>
+                <div class="input-group">
+    <!-- bull shit -->
+                <input class="input-group-text d-none" type="text" id="input-filter_product_id" name="filter_product_id" value="{{ $filter_product_id ?? '' }}"  data-oc-target="autocomplete-product_id" autocomplete="off"/>
+                <input class="form-control" type="text" id="input-filter_product_name" name="filter_product_name" value="{{ $filter_product_name ?? '' }}"  data-oc-target="autocomplete-product_name" class="form-control" autocomplete="off"/>
+                </div>
                 <ul id="autocomplete-product_name" class="dropdown-menu"></ul>
               </div>
 
@@ -42,12 +45,12 @@
                   <option value="0">{{ $lang->text_no }}</option>
                 </select>
               </div>
-              
+
               <div class="text-end">
                 <button type="reset" id="button-clear" class="btn btn-light"><i class="fa fa-refresh" aria-hidden="true"></i> {{ $lang->button_reset }}</button>
                 <button type="button" id="button-filter" class="btn btn-light"><i class="fa-solid fa-filter"></i> {{ $lang->button_filter }}</button>
               </div>
-              
+
             </div>
           </div>
         </form>
@@ -74,10 +77,10 @@ $('#bom').on('click', 'thead a, .pagination a', function(e) {
 $('#button-filter').on('click', function() {
 	url = '';
 
-	var filter_product_name = $('#input-filter_product_name').val();
+	var filter_product_id = $('#input-filter_product_id').val();
 
-	if (filter_product_name) {
-		url += '&filter_product_name=' + encodeURIComponent(filter_product_name);
+	if (filter_product_id) {
+		url += '&filter_product_id=' + encodeURIComponent(filter_product_id);
 	}
 
   var equal_is_active = $('#input-equal_is_active').val();
@@ -85,10 +88,29 @@ $('#button-filter').on('click', function() {
   if (equal_is_active) {
     url += '&equal_is_active=' + encodeURIComponent(equal_is_active);
   }
-  
+
 	url = "{{ $list_url }}?" + url;
 
 	$('#bom').load(url);
 });
+
+// 查單頭料件
+$('#input-filter_product_name').autocomplete({
+  'source': function (request, response) {
+    $.ajax({
+      url: "{{ $product_autocomplete_url }}?filter_name=" + encodeURIComponent(request),
+      dataType: 'json',
+      success: function (json) {
+        response(json);
+      }
+    });
+  },
+  'select': function (item) {
+    $('#input-filter_product_id').val(item.product_id);
+    $('#input-filter_product_name').val(item.name);
+    // $('#input-product_edit_url').attr('href', item.product_edit_url);
+  }
+});
+
 </script>
 @endsection

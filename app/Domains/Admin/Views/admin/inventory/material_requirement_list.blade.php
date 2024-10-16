@@ -3,7 +3,6 @@
     <table class="table table-bordered table-hover">
       <thead>
         <tr>
-  				<td class="text-center" style="width: 1px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></td>
           <td class="text-start"><a href="{{ $sort_required_date }}" @if($sort=='required_date') class="{{ $order }}" @endif>{{ $lang->column_required_date }}</a></td>
           <td class="text-start"><a href="{{ $sort_product_id }}" @if($sort=='product_id') class="{{ $order }}" @endif>{{ $lang->column_product_id }}</a></td>
           <td class="text-start"><a href="{{ $sort_supplier_product_code }}" @if($sort=='supplier_product_code') class="{{ $order }}" @endif>{{ $lang->column_product_supplier_own_product_code }}</a></td>
@@ -17,7 +16,6 @@
       <tbody>
         @foreach($requirements as $row)
 				<tr>
-          <td class="text-center"><input type="checkbox" name="selected[]" value="{{ $row->id }}" class="form-check-input"/></td>
           <td class="text-start">{{ $row->required_date }}</td>
           <td class="text-start">{{ $row->product_id }}</td>
           <td class="text-start">{{ $row->supplier_own_product_code }}</td>

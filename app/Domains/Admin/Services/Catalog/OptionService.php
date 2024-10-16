@@ -10,14 +10,14 @@ use App\Repositories\Eloquent\Catalog\OptionValueRepository;
 use App\Models\Catalog\OptionTranslation;
 use App\Models\Catalog\OptionValueTranslation;
 
-class OptionService extends GlobalOptionService
+class OptionService extends Service
 {
     protected $modelName = "\App\Models\Catalog\Option";
 
 
     public function __construct(protected OptionRepository $OptionRepository, protected OptionValueRepository $OptionValueRepository)
     {
-        parent::__construct($OptionRepository);
+        $this->repository = $OptionRepository;
     }
 
 
@@ -36,18 +36,17 @@ class OptionService extends GlobalOptionService
             }else{
                 return response(json_encode($result))->header('Content-Type','application/json');
             }
-
             $option->code = $code ?? null;
             $option->type = $type;
             $option->model = 'Product';
             $option->sort_order = $sort_order;
             $option->is_active = $is_active ?? '1';
-    
+
             $option->save();
 
             // Option Translations
             if(!empty($data['option_translations'])){
-                $this->saveTranslationData($option, $data['option_translations']);
+                $this->saveRowTranslationData($option, $data['option_translations']);
             }
 
             //Option Values
@@ -66,7 +65,7 @@ class OptionService extends GlobalOptionService
             // Add option values and translations
             if(!empty($data['option_values'])){
                 foreach ($data['option_values'] as $key => $option_value) {
-                    
+
                     if(empty($option_value['product_name'])){
                         $product_id = null;
                     }else{
@@ -104,17 +103,18 @@ class OptionService extends GlobalOptionService
             DB::commit();
 
             $result['data']['option_id'] = $option->id;
-            
+
             return $result;
-            
+
         } catch (\Exception $ex) {
             DB::rollback();
             $msg = $ex->getMessage();
-            echo '<pre>', print_r($msg, 1), "</pre>"; exit;
-            //return response()->json(['error' => $msg], 500);
+            return response()->json(['error' => $msg], 500);
         }
     }
-    
 
-    
+
+
+
+
 }

@@ -22,7 +22,7 @@ class GovUniformInvoiceNumberService extends Service
         if(!empty($data['filter_tax_id_num'])){
             $tax_id_num = $data['filter_tax_id_num'];
             $cacheName = 'tax_id_num_' . substr($tax_id_num,-3);
-            $records = cache()->get($cacheName);            
+            $records = cache()->get($cacheName);
 
             if (isset($records[$tax_id_num])) {
                 // 若有，則取得指定的記錄
@@ -53,7 +53,7 @@ class GovUniformInvoiceNumberService extends Service
         if(!empty($record)){
             return $record;
         }
-        
+
         return false;
     }
 
@@ -75,14 +75,12 @@ class GovUniformInvoiceNumberService extends Service
                 ];
                 $records = $this->repository->getRows($filter_data);
                 $records = $records->keyBy('tax_id_num')->toArray();
-    
+
                 Cache::put($cacheName, $records, 60*60*24*365);
-                echo '<pre>產生快取：', print_r($cacheName, 1), "</pre>";
-            } 
+            }
 
 
         }
-        echo '<pre>', print_r('End', 1), "</pre>"; exit;
     }
 
 }

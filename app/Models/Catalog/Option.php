@@ -3,14 +3,14 @@
 namespace App\Models\Catalog;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\Model\Translatable;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Traits\ModelTrait;
 
 class Option extends Model
 {
-    use Translatable;
+    use ModelTrait;
 
     public $translation_attributes = ['name'];
     protected $guarded = [];
@@ -21,7 +21,6 @@ class Option extends Model
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
 
-    public $translated_attributes = ['name',];
 
     public function option_values()
     {

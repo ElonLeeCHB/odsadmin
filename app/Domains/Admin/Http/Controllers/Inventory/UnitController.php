@@ -45,7 +45,7 @@ class UnitController extends BackendController
 
         $data['list_url'] = route('lang.admin.inventory.units.list'); //本參數在 getList() 也必須存在。
         $data['add_url'] = route('lang.admin.inventory.units.form');
-        $data['delete_url'] = route('lang.admin.inventory.units.delete');
+        $data['delete_url'] = route('lang.admin.inventory.units.destroy');
         
         return view('admin.inventory.unit', $data);
     }
@@ -241,46 +241,38 @@ class UnitController extends BackendController
 
     }
 
-    public function delete()
+    public function destroy()
     {
         $this->initController();
-
+        
         $post_data = $this->request->post();
 
-		$json = [];
+        $json = [];
+
+        if (isset($post_data['selected'])) {
+            $selected = $post_data['selected'];
+        } else {
+            $selected = [];
+        }
 
         // Permission
         if($this->acting_username !== 'admin'){
             $json['error'] = $this->lang->error_permission;
         }
-
-        // Selected
-		if (isset($post_data['selected'])) {
-			$selected = $post_data['selected'];
-		} else {
-			$selected = [];
-		}
-
-		if (!$json) {
-
-			foreach ($selected as $category_id) {
-				$result = $this->UnitService->deleteUnitById($category_id);
-
-                if(!empty($result['error'])){
-                    if(config('app.debug')){
-                        $json['error'] = $result['error'];
-                    }else{
-                        $json['error'] = $this->lang->text_fail;
-                    }
-
-                    break;
-                }
-			}
-		}
         
-        if(empty($json['error'] )){
-            $json['success'] = $this->lang->text_success;
-        }
+		if (!$json) {
+            $result = $this->UnitService->destroy($selected);
+
+            if(empty($result['error'])){
+                $json['success'] = $this->lang->text_success;
+            }else{
+                if(config('app.debug') || auth()->user()->username == 'admin'){
+                    $json['error'] = $result['error'];
+                }else{
+                    $json['error'] = $this->lang->text_fail;
+                }
+            }
+		}
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }

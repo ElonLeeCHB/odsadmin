@@ -8,6 +8,6 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 class GovUniformInvoiceNumber extends Model
 {
     protected $guarded = [];
-    protected $connection = 'sysdata'; 
+    public $connection = 'sysdata'; 
     
 }

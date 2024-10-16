@@ -29,5 +29,23 @@ class PaymentTermRepository extends Repository
     {        
         return $this->TermRepository->deleteTermById($payment_term_id, $debug);
     }
+
+    public function destroy($ids)
+    {
+        DB::beginTransaction();
+
+        try {
+            $rows = PaymentTerm::whereIn('id', $ids)->get();
+
+            foreach ($rows as $row) {
+                $row->delete();
+            }
+            DB::commit();
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
 }
 

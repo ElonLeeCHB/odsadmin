@@ -21,6 +21,20 @@ class UnitRepository extends Repository
     protected $converter;
 
 
+    public function getAllUnits()
+    {
+        $filter_data = [
+            'equal_is_active' => 1,
+            'pagination' => false,
+            'limit' => 0,
+            'keyBy' => 'code',
+        ];
+        $rows = $this->getRows($filter_data)->toArray();
+        
+        return DataHelper::unsetArrayFromArrayList($rows);
+    }
+
+
     public function getUnits($data = [], $debug = 0)
     {
         // Sort && Order
@@ -38,6 +52,22 @@ class UnitRepository extends Repository
 
         $rows = $this->getRows($data, $debug);
         return $rows;
+    }
+
+
+    public function destroy($ids)
+    {
+        try {
+            DB::beginTransaction();
+
+            Unit::whereIn('id', $ids)->delete();
+            
+            DB::commit();
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
     }
 
 
@@ -215,168 +245,5 @@ class UnitRepository extends Repository
         $this->standard_unit_codes = $result;
 
         return $result;
-    }
-
-    /**
-     * $data['product_id'] can be null
-     * $data['from_quantity']
-     * $data['from_unit_code']
-     * $data['to_unit_code']
-     */
-    public function calculateQty($params)
-    {
-        $product_id = $params['product_id'] ?? null;
-        $from_unit_code = $params['from_unit_code'];
-        $to_unit_code = $params['to_unit_code'];
-        $from_quantity = $params['from_quantity'];
-
-        $msg = [];
-        
-        if(empty($this->standard_unit_codes)){
-            $this->setStandardUnitCodes();
-        }
-
-        if($from_unit_code == $to_unit_code){
-            $to_quantity = 1;
-        }
-
-        // both standard units
-        else if(in_array($from_unit_code, $this->standard_unit_codes) && in_array($to_unit_code, $this->standard_unit_codes)){
-            $fromUnit = Unit::where('code', $from_unit_code)->first();
-            $toUnit = Unit::where('code', $to_unit_code)->first();
-
-            if($fromUnit->base_unit_code !== $toUnit->base_unit_code){
-                return ['error' => 'base_unit_code is different!'];
-            }
-    
-            $qty_of_base = $from_quantity * $fromUnit->factor;
-            $to_quantity = $qty_of_base / $toUnit->factor;
-        }
-
-        else if(!empty($product_id)){
-            $product_unit = ProductUnit::where('product_id', $product_id)->where('source_unit_code', $params['from_unit_code'])->where('destination_unit_code', $to_unit_code)->first();
-
-            if(empty($product_unit)){
-                return ['error' => 'Cannot find product unit: ' . $product_unit];
-
-            }else{
-                $arr = $product_unit->toArray();
-                unset($arr['source_unit']);
-                unset($arr['destination_unit']);
-
-                if(is_numeric($from_quantity) && is_numeric($product_unit->destination_quantity)){
-                    $to_quantity = $from_quantity * $product_unit->destination_quantity;
-                }else{
-                    // Error
-                    $msg = 'product_id='.$product_id.', from_quantity='.$from_quantity.', destination_quantity='.$product_unit->destination_quantity;
-                    return ['error' => 'product_id='.$product_id.', from_quantity='.$from_quantity.', destination_quantity='.$product_unit->destination_quantity];
-                }
-            }
-        }
-
-        if(!empty($to_quantity)){
-            return $to_quantity;
-        }
-
-        return ['error' => 'Calulation failed'];
-    }
-
-
-    // 尋找關聯，並將關聯值賦予記錄
-    public function optimizeRow($row)
-    {
-        // if(!empty($row->status)){
-        //     $row->status_name = $row->status->name;
-        // }
-
-        return $row;
-    }
-
-
-    /**
-     * 單位轉換
-     */
-
-    public static function build()
-    {
-        return self::$converter;
-    }
-
-    // mass, length
-    public function setMeasure($measure)
-    {
-        self::$converter->measure = $measure;
-
-        return $this;
-    }
-
-    public function setProduct($product_id)
-    {
-        self::$converter->product_id = $product_id;
-
-        return $this;
-    }
-
-    public function setQty($qty)
-    {
-        self::$converter->qty = $qty;
-
-        return $this;
-    }
-
-    public function from(string $fromUnitCode)
-    {
-        self::$converter->fromUnitCode = $fromUnitCode;
-
-        return $this;
-    }
-
-    public function to(string $toUnitCode)
-    {
-        self::$converter->toUnitCode = $toUnitCode;
-
-        return $this;
-    }
-
-    public function getConvertNumber()
-    {
-
-    }
-
-    public function toOld(string $toUnitCode)
-    {
-        $measure = self::$converter->measure;
-        $fromUnitCode = self::$converter->fromUnitCode;
-        $qty = self::$converter->qty;
-
-        if(empty($this->standard_unit_codes)){
-            $this->setStandardUnitCodes();
-        }
-
-        // from and to are all standard units
-        if(in_array($this->fromUnitCode, $this->standard_unit_codes) && in_array($this->toUnitCode, $this->standard_unit_codes)){
-
-            $fromUnit = Unit::where('code', $this->fromUnitCode)->first();
-            $toUnit = Unit::where('code', $this->toUnitCode)->first();
-
-            if($fromUnit->base_unit_code !== $toUnit->base_unit_code){
-                return ['error' => 'base_unit_code is different!'];
-            }
-    
-            $qty_of_base = $this->qty * $fromUnit->factor;
-            $toQty = $qty_of_base / $toUnit->factor;
-
-        }
-        
-        else{
-            //ProductUnit::where('product_id', );
-        }
-
-        // 未完成
-
-
-        //$msg = $this->qty . ' ' . $this->fromUnitCode . ' = ' . $toQty . ' ' . $this->toUnitCode;
-        
-        return $toQty;
     }
 }

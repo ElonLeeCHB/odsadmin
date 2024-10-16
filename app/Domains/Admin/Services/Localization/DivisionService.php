@@ -57,10 +57,10 @@ class DivisionService extends Service
 
 		$filter_data['filter_level'] = 2;
 
-		if(empty($data['filter_parent_id'])){
+		if(empty($data['equal_parent_id'])){
 			return false;
 		}else{
-			$filter_data['filter_parent_id'] = $data['filter_parent_id'];
+			$filter_data['equal_parent_id'] = $data['equal_parent_id'];
 		}
 
 		$filter_data['filter_is_active'] = 1;

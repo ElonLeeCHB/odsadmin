@@ -3,14 +3,14 @@
 namespace App\Models\Catalog;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\Model\Translatable;
 use App\Models\Catalog\Product;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Carbon\Carbon;
+use App\Traits\ModelTrait;
 
 class OptionValue extends Model
 {
-    use Translatable;
+    use ModelTrait;
 
     protected $guarded = [];
     protected $appends = ['name','short_name','option_value_id'];
@@ -19,7 +19,7 @@ class OptionValue extends Model
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
 
-    public $translated_attributes = ['name','short_name'];
+    public $translation_attributes = ['name','short_name'];
 
 
     //選項值對應的商品代號

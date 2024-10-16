@@ -84,7 +84,7 @@ class SupplierRepository extends Repository
                 $suppliers = $this->getRows($params);
 
                 foreach ($suppliers as $key => $supplier) {
-                    $this->setMetasToRow($supplier);
+                    $this->getMetaRows($supplier);
                 }
 
                 $suppliers_resource_collection = (new SupplierCollection($suppliers))->toArray();
@@ -102,11 +102,29 @@ class SupplierRepository extends Repository
         }
     }
 
-    public function deleteSupplier($supplier_id)
+    public function destroy($ids)
     {
-        DB::beginTransaction();
-
         try {
+            DB::beginTransaction();
+
+            OrganizationMeta::whereIn('organization_id', $ids)->delete();
+            Supplier::whereIn('id', $ids)->delete();
+
+            DB::commit();
+
+            return ['success' => true];
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
+
+    public function delete($supplier_id)
+    {
+        try {
+            DB::beginTransaction();
+    
             OrganizationMeta::where('organization_id', $supplier_id)->delete();
             Supplier::where('organization_id', $supplier_id)->delete();
 

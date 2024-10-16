@@ -16,7 +16,7 @@ use App\Models\Setting\Setting;
 use App\Domains\Admin\Services\Sale\RequisitionService;
 use App\Helpers\Classes\DataHelper;
 use App\Helpers\Classes\DateHelper;
-
+use App\Domains\Admin\Services\Sale\OrderService;
 class RequisitionController extends BackendController
 {
     private $required_date;
@@ -25,6 +25,7 @@ class RequisitionController extends BackendController
     public function __construct(
         private Request $request,
         private RequisitionService $RequisitionService,
+        private OrderService $OrderService,
         private OrderRepository $OrderRepository,
         private SettingRepository $SettingRepository,
         )
@@ -62,10 +63,9 @@ class RequisitionController extends BackendController
 
         $data['list_url'] = route('lang.admin.sale.requisitions.list');
         $data['add_url'] = route('lang.admin.sale.requisitions.form');
-
+        
         $data['export_daily_list_url'] = route('lang.admin.sale.requisitions.exportDailyList');
         $data['export_matrix_list_url'] = route('lang.admin.sale.requisitions.exportMatrixList');
-
 
         return view('admin.sale.requisition', $data);
     }
@@ -80,10 +80,10 @@ class RequisitionController extends BackendController
     private function getList()
     {
         $data['lang'] = $this->lang;
-
+        
         // Prepare query_data for records
         $query_data = $this->getQueries($this->request->query());
-
+    
         // Rows
         $query_data['with'] = DataHelper::addToArray('product', $query_data['with'] ?? []);
 
@@ -97,7 +97,7 @@ class RequisitionController extends BackendController
             $row->edit_url = route('lang.admin.sale.requisitions.form', array_merge([$row->required_date], $query_data));
             $row->is_active_name = ($row->is_active==1) ? $this->lang->text_enabled :$this->lang->text_disabled;
         }
-
+    
         $data['ingredients'] = $ingredients->withPath(route('lang.admin.sale.requisitions.list'))->appends($query_data);
 
         // Prepare links for list table's header
@@ -106,31 +106,30 @@ class RequisitionController extends BackendController
         }else{
             $order = 'ASC';
         }
-
+        
         $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
-
+    
         $query_data = $this->unsetUrlQueryData($query_data);
-
-
+        
+        
         // link of table header for sorting
         $url = '';
-
+    
         foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
-
+    
         $route = route('lang.admin.sale.requisitions.list');
-
+    
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_required_date'] = $route . "?sort=required_date&order=$order" .$url;
         $data['sort_product_id'] = $route . "?sort=product_id&order=$order" .$url;
         $data['sort_product_name'] = $route . "?sort=product_name&order=$order" .$url;
         $data['sort_supplier_product_code'] = $route . "?sort=supplier_product_code&order=$order" .$url;
         $data['sort_supplier_short_name'] = $route . "?sort=supplier_short_name&order=$order" .$url;
-
+        
         $data['list_url'] = route('lang.admin.sale.requisitions.list');
-
         return view('admin.sale.requisition_list', $data);
     }
 
@@ -181,7 +180,6 @@ class RequisitionController extends BackendController
         $data['save_url'] = route('lang.admin.sale.requisitions.save');
         $data['back_url'] = route('lang.admin.sale.requisitions.index');
         $data['calc_url'] = '';
-
         // Get Record
         if(!empty($required_date)){
             $cacheName = 'OrderProductIngredient_RequiredDate2ymd_' . $required_date_2ymd;
@@ -190,24 +188,91 @@ class RequisitionController extends BackendController
             if(empty($requisitions)){
                 $requisitions = $this->setCacheFromIngredientTable($required_date);
             }
-
             if(!empty($requisitions)){
                 $data['calc_url'] = route('lang.admin.sale.requisitions.calcRequisitionsByDate',['required_date' => $required_date_2ymd]);
             }
             $data['printForm'] = route('lang.admin.sale.requisitions.printForm',$required_date);
         }
+        // dd($requisitions);
+        foreach ($requisitions['details'] as $key => $requisition){
+                    $filter_data = [
+                        'equal_id' => $requisition['source_id'],
+                        'with' => ['order_products.order_product_options.product_option.option'
+                                , 'order_products.order_product_options.product_option_value'
+                                , 'order_products.product.main_category'
+                                ],
+                    ];
 
-
+                    $order = $this->OrderService->getRow($filter_data);
+                    $requisitions['details'][$key]['delivery_time_range']=$order['delivery_time_range'];
+                    // dd($requisition);
+        }
+        if (is_array($requisitions['details'])) {
+            usort($requisitions['details'], function ($a, $b) {
+                $timeRangeA = explode('-', $a['delivery_time_range']);
+                $timeRangeB = explode('-', $b['delivery_time_range']);
+        
+                $startTimeA = intval($timeRangeA[0]);
+                $endTimeA = (isset($timeRangeA[1]) && trim($timeRangeA[1]) !== '') ? intval($timeRangeA[1]) : $startTimeA;
+        
+                $startTimeB = intval($timeRangeB[0]);
+                $endTimeB = (isset($timeRangeB[1]) && trim($timeRangeB[1]) !== '') ? intval($timeRangeB[1]) : $startTimeB;
+        
+                // 比较结束时间，如果相同则比较开始时间
+                if ($endTimeA === $endTimeB) {
+                    return $startTimeA <=> $startTimeB;
+                } else {
+                    return $endTimeA <=> $endTimeB;
+                }
+            });
+        }
+        $Burrito = $this->getRequisitionBurrito($required_date);
+        $Burrito['morning_total'] = intval($Burrito['morning_total']);
+        $Burrito['afternoon_total'] = intval($Burrito['afternoon_total']);
+        $Burrito['total'] = intval($Burrito['total']);
+        $data['total'] = $Burrito;
         $data['printForm'] = route('lang.admin.sale.requisitions.printForm');
-
-        $data['requisitions']  = $requisitions ?? [];
-
+        $data['requisitions']  = $requisitions ?? [];   
         $data['sales_saleable_product_ingredients'] = '';
         $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
-
         return view('admin.sale.requisition_form', $data);
     }
-
+    public function getRequisitionBurrito($date){
+        $start_date = $date . ' 00:00:00';
+        $end_date = $date . ' 23:59:59';
+        $where = 'AND o.shipping_status = 3';
+        $rs = DB::select("
+        SELECT opo.id, o.delivery_time_range ,opo.order_id,
+        SUM(CASE WHEN opo.product_id = 1062 THEN opo.quantity * 2 ELSE opo.quantity END) AS total
+        FROM ".env('DB_DATABASE').".`orders` AS o
+        JOIN ".env('DB_DATABASE').".`order_product_options` AS opo ON opo.order_id = o.id
+        WHERE DATE(o.delivery_date) BETWEEN ? AND ?
+        AND o.status_code != 'Void'
+        $where
+        AND (opo.value like '%潤餅%' OR opo.value like '%春捲%')
+        Group By o.delivery_time_range ,opo.order_id,opo.id
+        ", [$start_date, $end_date]);
+        $morning_orders_total = 0;
+        $afternoon_orders_total = 0;
+        // dd($rs);
+        if(isset($rs[0])){
+            foreach ($rs as $order) {
+                // 提取時間範圍中的開始時間
+                list($start_time, $end_time) = explode('-', $order->delivery_time_range);
+                // 轉換為24小時制的數值便於比較
+                $start_time_value = intval(str_replace(':', '', $end_time));
+                // 分組並累加total
+                if ($start_time_value <= 1300) {
+                    $morning_orders_total += floatval($order->total);
+                } else {
+                    $afternoon_orders_total += floatval($order->total);
+                }
+            }
+        }
+        $orders_total = $morning_orders_total+$afternoon_orders_total;
+        return ['morning_total'=>$morning_orders_total
+        ,'afternoon_total'=>$afternoon_orders_total,'total'=>$orders_total]; 
+    }
 
     /**
      * 更新：抓取訂單資料，然後寫入資料表 order_ingredient_hours
@@ -272,7 +337,6 @@ class RequisitionController extends BackendController
                 'limit' => 0,
             ];
             $orders = $this->OrderRepository->getRows($filter_data);
-
 
             // 從設定檔找出需要除2的潤餅代號
             $sales_burrito_half_of_6_inch = $this->SettingRepository->getValueByKey('sales_burrito_half_of_6_inch');
@@ -378,16 +442,16 @@ class RequisitionController extends BackendController
             else{
                 //delete
                 $db_ingredients = OrderIngredientHour::where('required_date', $required_date)->get();
-
+    
                 $delete_ids = [];
-
+    
                 foreach ($db_ingredients as $db_ingredient) {
                     //相關主鍵在資料庫有，在訂單沒有。表示不需要，應刪除
                     if(!isset($arr[$db_ingredient->required_date][$db_ingredient->order_id][$db_ingredient->ingredient_product_id])){
                         $delete_ids[] = $db_ingredient->id;
                     }
                 }
-
+    
                 if(!empty($delete_ids)){
                     OrderIngredientHour::whereIn('id', $delete_ids)->delete();
                 }
@@ -395,7 +459,7 @@ class RequisitionController extends BackendController
             }
 
             // 寫入每日表 order_ingredients
-
+            
             if(!empty($upsert_data)){
                 $daily_upsert_data = [];
 
@@ -423,7 +487,7 @@ class RequisitionController extends BackendController
                     OrderIngredient::upsert($daily_upsert_data, ['required_date','ingredient_product_id']);
                 }
             }
-
+            
             DB::commit();
 
             return ['status' => 'success'];
@@ -462,10 +526,8 @@ class RequisitionController extends BackendController
         ];
 
         $orders = $this->OrderRepository->getRows($filter_data);
-
         $result = [];
         $result['details'] = [];
-
         foreach ($ingredient_rows as $ingredient) {
             $order_id = $ingredient->order_id;
             $ingredient_product_id = $ingredient->ingredient_product_id;
@@ -722,6 +784,7 @@ class RequisitionController extends BackendController
     public function exportMatrixList()
     {
         $params = request()->all();
+        // dd($params);
         return $this->RequisitionService->exportMatrixList($params);
     }
 

@@ -16,28 +16,28 @@ trait ModelTrait
         return Attribute::make(
             get: fn ($value) => Carbon::parse($this->created_at)->format('Y-m-d') ?? '',
         );
-    }
+    }   
 
     public function updatedYmd(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => Carbon::parse($this->updated_at)->format('Y-m-d') ?? '',
         );
-    }
+    }   
 
     public function createdYmdhi(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => Carbon::parse($this->created_at)->format('Y-m-d H:i') ?? '',
         );
-    }
+    }   
 
     public function updatedAtYmdhi(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => Carbon::parse($this->updated_at)->format('Y-m-d H:i') ?? '',
         );
-    }
+    }   
 
 
     // Relations
@@ -54,7 +54,7 @@ trait ModelTrait
         if(!isset($this->translation_model_name) || str_ends_with($this->translation_model_name, 'Translation')){
             $translation_model_name = get_class($this) . 'Translation';
             $translation_model = new $translation_model_name();
-
+    
             return $this->hasOne($translation_model::class)->ofMany([
                 'id' => 'max',
             ], function ($query) {
@@ -62,7 +62,7 @@ trait ModelTrait
             });
         }
 
-        // Using SomeMeta
+        // Using SomeMeta 
         else if (isset($this->translation_model_name) && substr($this->translation_model_name, -4) === 'Meta') {
             return $this->metas()->where('locale', app()->getLocale());
         }
@@ -73,15 +73,15 @@ trait ModelTrait
         if(empty($this->translation_attributes)){
             return false;
         }
-
+        
         // Using SomeTranslation
         if(!isset($this->translation_model_name) || str_ends_with($this->translation_model_name, 'Translation')){
             $translation_model_name = get_class($this) . 'Translation';
             $translation_model = new $translation_model_name();
-
+    
             return $this->hasMany($translation_model::class);
         }
-        // Using SomeMeta
+        // Using SomeMeta 
         else if (isset($this->translation_model_name) && substr($this->translation_model_name, -4) === 'Meta') {
             return $this->metas()->whereNotNull('locale')->where('locale', '<>', '');
         }
@@ -141,22 +141,30 @@ trait ModelTrait
         return $schemaBuilder->hasTable($tableName);
     }
 
-
-
-    public function setNumberAttribute($value, $to_fixed = 0, $keep_zero = true)
+    
+    
+    //public function setNumberAttribute($value, $to_fixed = 0, $keep_zero = 0)
+    public function setNumberAttribute($value, $to_fixed = null, $keep_zero = null)
     {
         return Attribute::make(
+            // 取出時不可在此加上千分位符號。若被用來計算會出錯。
             get: function ($value) use ($keep_zero, $to_fixed){
-                $new_value = number_format($value, $to_fixed, '.', '');
-                if($keep_zero == false){ //remove zero after the decimal point
-                    $new_value = preg_replace('/\.0+$/', '', $new_value);
+                if(is_numeric($to_fixed)){
+                    $value = round($value, 4);
                 }
-                return $new_value;
+
+                if($keep_zero === false){ //remove zero after the decimal point
+                    $value = preg_replace('/\.0+$/', '', $value);
+                }
+                return $value;
             },
             set: function ($value) use ($to_fixed){
-                $value = empty($value) ? 0 : $value; // if null or not exist, set to 0
-                $value = str_replace(',', '', $value); // only work for string, not for number
-                $value = empty($to_fixed) ? $value : number_format((float) $value, $to_fixed);
+                $value = empty($value) ? 0 : $value; // if empty, set to 0
+                $value = str_replace(',', '', $value); // remove comma. only work for string, not for number
+
+                if(is_numeric($to_fixed)){
+                    $value = round($value, 4);
+                }
                 return $value;
             }
         );
@@ -177,9 +185,11 @@ trait ModelTrait
             return $table_columns;
         }
 
-        // use connection
+
+        /* If no cache */
+
         if(empty($this->connection) ){
-            $table_columns = DB::getSchemaBuilder()->getColumnListing($table);
+            $table_columns = DB::getSchemaBuilder()->getColumnListing($table); // use default connection
         }else{
             $table_columns = DB::connection($this->connection)->getSchemaBuilder()->getColumnListing($table);
         }
@@ -196,28 +206,24 @@ trait ModelTrait
     public function toCleanObject()
     {
         // get all keys
+        $table = $this->getTable();
         $table_columns = $this->getTableColumns();
         $attributes = $this->attributesToArray();
         $attribute_keys = array_keys($attributes);
 
         $all_keys = array_unique(array_merge($table_columns, $attribute_keys, $this->meta_keys ?? []));
 
-        $arr = [];
+        $result = [];
 
-        // default value
         foreach ($all_keys as $key) {
-            $arr[$key] = '';
-        }
-        
-        // if not array
-        foreach ($attributes as $key => $value) {
-            if(!is_array($value)){
-                $arr[$key] = $value;
+            $value = $this->{$key} ?? '';
+
+            if(!is_array($key)){
+                $result[$key] = $value;
             }
         }
 
-        return (object) $arr;
-
+        return (object) $result;
     }
 
 }

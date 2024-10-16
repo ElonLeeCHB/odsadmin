@@ -11,7 +11,9 @@ class BankService extends Service
     protected $modelName = "\App\Models\SysData\Bank";
 
 	public function __construct(private BankRepository $BankRepository)
-	{}
+	{
+        $this->repository = $BankRepository;
+    }
 
     public function updateOrCreate($data)
     {
@@ -39,20 +41,6 @@ class BankService extends Service
             $result['row_id'] = $row->id;
             
             return $result;
-        } catch (\Exception $ex) {
-            DB::rollback();
-            return ['error' => $ex->getMessage()];
-        }
-    }
-
-    public function deleteFinancialInstitution($id)
-    {
-        try {
-
-            $this->BankRepository->delete($id);
-
-            return ['success' => true];
-
         } catch (\Exception $ex) {
             DB::rollback();
             return ['error' => $ex->getMessage()];

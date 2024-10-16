@@ -12,7 +12,7 @@ class LayoutComposer
     private $auth_user;
     private $acting_user;
     private $base;
-    
+
     /**
      * Create a new sidebar composer.
      *
@@ -88,15 +88,6 @@ class LayoutComposer
 
         if(1) {
             $Catalog[] = [
-                'name'	   => $this->lang->text_catalog_tag,
-                'icon'	   => '',
-                'href'     => route('lang.admin.catalog.tags.index', ['equal_is_active' => 1]),
-                'children' => []
-            ];
-        }
-
-        if(1) {
-            $Catalog[] = [
                 'name'	   => $this->lang->text_option,
                 'icon'	   => '',
                 'href'     => route('lang.admin.catalog.options.index', ['equal_is_active' => 1]),
@@ -160,7 +151,8 @@ class LayoutComposer
             $sale[] = [
                 'name'	   => $this->lang->text_order,
                 'icon'	   => '',
-                'href'     => route('lang.admin.sale.orders.index'),
+                // 'href'     => route('lang.admin.sale.orders.index'),
+                'href'     => env('APP_URL') . '/#/ordered',
                 'children' => []
             ];
         }
@@ -169,7 +161,8 @@ class LayoutComposer
             $sale[] = [
                 'name'	   => $this->lang->text_individual,
                 'icon'	   => '',
-                'href'     => route('lang.admin.member.members.index'),
+                // 'href'     => route('lang.admin.member.members.index'),
+                'href'     => env('APP_URL') . '/#/member',
                 'children' => []
             ];
         }
@@ -458,7 +451,7 @@ class LayoutComposer
                 'children' => []
             ];
         }
-        
+
         // System User
         $user = [];
 
@@ -472,22 +465,22 @@ class LayoutComposer
         }
 
         // permissions
-        if (1) {
-            $user[] = [
-                'name'	   => '權限',
-                'href'     => route('lang.admin.setting.user.permissions.index', ['equal_is_active' => 1]),
-                'icon'	   => ' ',
-            ];
-        }
+        // if (1) {
+        //     $user[] = [
+        //         'name'	   => '權限',
+        //         'href'     => '/',
+        //         'icon'	   => ' ',
+        //     ];
+        // }
 
-        // roles
-        if (1) {
-            $user[] = [
-                'name'	   => '角色',
-                'href'     => '/',
-                'icon'	   => ' ',
-            ];
-        }
+        // // roles
+        // if (1) {
+        //     $user[] = [
+        //         'name'	   => '角色',
+        //         'href'     => '/',
+        //         'icon'	   => ' ',
+        //     ];
+        // }
 
         if ($user) {
             $system[] = [

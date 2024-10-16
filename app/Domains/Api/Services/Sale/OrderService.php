@@ -7,6 +7,7 @@ use App\Services\Sale\OrderService as GlobalOrderService;
 use App\Models\Common\Term;
 use App\Models\Common\TermTranslation;
 use App\Models\Common\TermRelation;
+use App\Models\Sale\OrderTag;
 use App\Models\Sale\OrderTotal;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Catalog\ProductTranslation;
@@ -18,11 +19,10 @@ class OrderService extends GlobalOrderService
     public function updateOrCreate($data)
     {
         DB::beginTransaction();
-
         try {
 
             $order_id = $data['order_id'] ?? null;
-
+            $source = $data['source'] ?? null;//來源
             if(isset($data['customer_id'])){
                 $customer_id = $data['customer_id'];
             }else if(isset($data['member_id'])){
@@ -47,9 +47,10 @@ class OrderService extends GlobalOrderService
 
             // members table
             if(!empty($data['personal_name'])){
-                $update_member_date = [
+                $update_member_data = [
                     'name' => $data['personal_name'],
-                    'salutation_id' => $data['salutation_id'] ?? 0,
+                    'salutation_code' => $data['salutation_code'] ?? 0,
+                    'salutation_id' => $data['salutation_id'] ?? 0, 
                     'mobile' => $mobile,
                     'telephone_prefix' => $data['telephone_prefix'] ?? '',
                     'telephone' => $telephone,
@@ -57,21 +58,25 @@ class OrderService extends GlobalOrderService
                     'payment_company' => $data['payment_company'] ?? '',
                     'shipping_personal_name' => $data['shipping_personal_name'] ?? $data['personal_name'],
                     'shipping_company' => $shipping_company,
-                    'shipping_phone' => $data['shipping_phone'] ?? null,
+                    'shipping_phone' => $data['shipping_phone'] ?? '',
+                    'shipping_phone2' => $data['shipping_phone2'] ?? '',
                     'shipping_state_id' => $data['shipping_state_id'] ?? 0,
                     'shipping_city_id' => $data['shipping_city_id'] ?? 0,
                     'shipping_road' => $data['shipping_road'] ?? '',
                     'shipping_address1' => $data['shipping_address1'] ?? '',
                     'shipping_address2' => $data['shipping_address2'] ?? '',
+                    'shipping_salutation_id' => $data['salutation_id'] ?? '', 
+                    'shipping_personal_name2' => $data['shipping_personal_name2'] ?? '',
                 ];
 
                 $where_data = ['id' => $customer_id];
-
-                $customer = $this->MemberRepository->newModel()->updateOrCreate($where_data, $update_member_date,);
+                if($customer_id ===null){
+                    $customer = $this->MemberRepository->newModel()->updateOrCreate($where_data, $update_member_data,);
+                }
             }
 
             // Order
-            if(!empty($customer)){
+            // if(!empty($customer)){
                 $delivery_date = null;
 
                 if(empty($data['delivery_date_hi']) || $data['delivery_date_hi'] == '00:00'){
@@ -102,16 +107,15 @@ class OrderService extends GlobalOrderService
                 }
 
                 $result = $this->OrderRepository->findIdOrFailOrNew($order_id);
-
                 if(!empty($result['data'])){
                     $order = $result['data'];
                 }else{
                     return response(json_encode($result))->header('Content-Type','application/json');
                 }
-
                 $order->location_id = $data['location_id'];
+                $order->source = $source;//來源
                 $order->personal_name = $data['personal_name'];
-                $order->customer_id = $customer->id;
+                $order->customer_id = $customer->id ?? $data['customer_id'];
                 $order->mobile = $mobile ?? '';
                 $order->telephone_prefix = $data['telephone_prefix'] ?? '';
                 $order->telephone = $telephone ?? '';
@@ -123,13 +127,22 @@ class OrderService extends GlobalOrderService
                 $order->payment_department= $data['payment_department'] ?? '';
                 $order->payment_tin = $data['payment_tin'] ?? '';
                 $order->is_payment_tin = $data['is_payment_tin'] ?? 0;
-                $order->payment_total = $data['payment_total'] ?? 0;
-                $order->payment_paid = $data['payment_paid'] ?? 0;
-                $order->payment_unpaid = $data['payment_unpaid'] ?? 0;
+                $order->payment_total = is_numeric($data['payment_total']) ? $data['payment_total'] : 0;
+                $order->payment_paid = is_numeric($data['payment_paid']) ? $data['payment_paid'] : 0;
+                if($order->payment_paid == 0){
+                    $order->payment_unpaid = $order->payment_total;
+                }else{
+                    $order->payment_unpaid = is_numeric($data['payment_unpaid']) ? $data['payment_unpaid'] : 0;
+                }
+                //$order->payment_unpaid = is_numeric($data['payment_unpaid']) ? $data['payment_unpaid'] : 0;
                 $order->payment_method = $data['payment_method'] ?? '';
                 $order->scheduled_payment_date = $data['scheduled_payment_date'] ?? null;
                 $order->shipping_personal_name = $shipping_personal_name;
+                $order->shipping_personal_name2 = $data['shipping_personal_name2'] ?? '';
+                $order->shipping_salutation_id = $data['shipping_salutation_id'] ?? 0;
+                $order->shipping_salutation_id2 = $data['shipping_salutation_id2'] ?? 0;
                 $order->shipping_phone = $data['shipping_phone'] ?? '';
+                $order->shipping_phone2 = $data['shipping_phone2'] ?? '';
                 $order->shipping_company = $shipping_company;
                 $order->shipping_country_code = $data['shipping_country_code'] ?? 'TW';
                 $order->shipping_state_id = $data['shipping_state_id'] ?? 0;
@@ -143,90 +156,46 @@ class OrderService extends GlobalOrderService
                 $order->delivery_date = $delivery_date;
                 $order->delivery_time_range = $data['delivery_time_range'] ?? '';
                 $order->delivery_time_comment = $data['delivery_time_comment'] ?? '';
-                $order->status_id = $data['status_id'] ?? 0;
+                //$order->status_id = $data['status_id'] ?? 0;
                 $order->status_code = $data['status_code'] ?? 0;
+                $order->multiple_order = $data['multiple_order'] ?? '';
                 $order->comment = $data['comment'] ?? '';
                 $order->extra_comment = $data['extra_comment'] ?? '';
-
+                $order->internal_comment = $data['internal_comment'] ?? '';
+                $order->shipping_comment = $data['shipping_comment'] ?? '';
+                $order->control_comment = $data['control_comment'] ?? '';
                 $order->save();
                 // 訂單單頭結束
-            }
+            // }
+            // 訂單標籤
+            if(1){ //這個 if 只是為了識別處理區塊，方便收合。所以固定=1
+                OrderTag::where('order_id', $order->id)->delete();
 
-            // 標籤
-            if(!empty($data['order_tag'])){
-                if(!is_array($data['order_tag'])){
-                    $tags = explode(',', $data['order_tag']);
-                }else{
-                    $tags = $data['order_tag'];
-                }
-
-                foreach ($tags as $key => $tag) {
-                    $tag = trim($tag);
-                    if(empty($tag)){
-                        continue;
+                if(!empty($data['order_tags'])){
+                    if(is_array($data['order_tags'])){
+                        $tags = $data['order_tags'];
+                    }else{
+                        $tags = explode(',', $data['order_tags']);
                     }
 
-                    $term_translation = TermTranslation::where('name', $tag)->where('locale', app()->getLocale())->select(['id','term_id'])->first();
-
-                    // 若無此標籤則新增
-                    if($term_translation == null){
-                        $term = new Term;
-                        $term->taxonomy_code = 'order_tag';
-                        $term->object_model = 'App\Models\Sale\Order';
-                        $term->is_active = 1;
-                        $term->save();
-
-                        $term_translation = new TermTranslation;
-                        $term_translation->term_id = $term->id;
-                        $term_translation->locale = app()->getLocale();
-                        $term_translation->name = $tag;
-                        $term_translation->save();
+                    foreach ($tags as $tag_id) {
+                        $upsert_data[] = [
+                            'order_id' => $order->id,
+                            'term_id' => $tag_id,
+                        ];
                     }
 
-                    $insert_term_ids[] = $term_translation->term_id;
-
-                    // 新增到 term_relations
-                    $insertRows[] = [
-                        'object_id' => $order_id,
-                        'term_id' => $term_translation->term_id,
-                    ];
-                }
-
-                // 新增前先找出已有的 term_id
-                $original_term_ids = Term::where('taxonomy_code', 'order_tag')->whereHas('term_relations', function ($query) use ($order_id) {
-                    $query->where('object_id', $order_id);
-                })->pluck('id')->toArray();
-
-                // TermRelation 新增或更新
-                if(!empty($insertRows)){
-                    $result = TermRelation::upsert($insertRows, ['term_id','object_id']);
-                    $insertRows = [];
-                }
-
-                $diff_term_ids = array_diff($original_term_ids, $insert_term_ids);
-
-                if(!empty($diff_term_ids)){
-                    foreach ($diff_term_ids as $no_use_term_id) {
-                        //刪除不需要的 term_id
-                        TermRelation::where('term_id', $no_use_term_id)->where('object_id', $order_id)->delete();
-
-                        // 查 TermRelation 是否還有此 term_id
-                        $no_use_tr = TermRelation::where('term_id', $no_use_term_id)->count();
-
-                        // 若整張表沒用則刪除
-                        if($no_use_tr == 0){
-                            Term::where('id', $no_use_term_id)->delete();
-                            TermTranslation::where('term_id', $no_use_term_id)->delete();
-                        }
+                    if(!empty($upsert_data)){
+                        OrderTag::upsert($upsert_data, ['id']);
                     }
                 }
-
             }
 
             // Deleta all order_products
+            if(!empty($data['order_products'])){
             OrderProductOption::where('order_id', $order->id)->delete();
             $this->OrderProductRepository->newModel()->where('order_id', $order->id)->delete();
-
+            }
             // order_products table
             if(!empty($data['order_products'])){
 
@@ -326,8 +295,8 @@ class OrderService extends GlobalOrderService
                 }
 
                 $update_order_product_options = [];
-
-                foreach ($data['order_products'] as $form_order_product) {;
+                
+                foreach ($data['order_products'] as $form_order_product) {
                     $sort_order = $form_order_product['sort_order'];
                     $order_product = $db_order_products[$sort_order];
 
@@ -337,7 +306,6 @@ class OrderService extends GlobalOrderService
                             if($product_option['type'] == 'checkbox'){
 
                             }
-
                             else if($product_option['type'] == 'options_with_qty'){
                                 foreach ( $product_option['product_option_values'] as $product_option_value) {
 

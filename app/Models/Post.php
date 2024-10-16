@@ -11,6 +11,6 @@ class Post extends Model implements TranslatableContract
 {
     use Translatable;
     
-    public $translated_attributes = ['title', 'content'];
+    public $translation_attributes = ['title', 'content'];
     protected $fillable = ['author'];
 }

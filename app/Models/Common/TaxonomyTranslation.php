@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class TaxonomyTranslation extends Model
 {
-    public $timestamps = false;    
-    protected $fillable = ['name', 'description'];
+    public $timestamps = false;
+    protected $fillable = ['name', 'description','source'];
     protected $guarded = [];
 
 

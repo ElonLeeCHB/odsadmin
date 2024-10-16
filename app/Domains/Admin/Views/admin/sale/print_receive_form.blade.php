@@ -6,10 +6,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>外送訂購單</title>
-
-    <script src="{{ asset('assets-admin/javascript/jquery/jquery-3.6.1.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('assets-admin/javascript/bootstrap/js/bootstrap.bundle.min.js?v=5.2.3') }}" type="text/javascript"></script>
-    <script src="{{ asset('assets/package/bootstrap/js/bootstrap-table-1.21.2.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets-admin/javascript/jquery/jquery-3.6.1.min.js') }}" differ></script>
+    <script src="{{ asset('assets-admin/javascript/bootstrap/js/bootstrap.bundle.min.js?v=5.2.3') }}" differ></script>
+    <script src="{{ asset('assets/package/bootstrap/js/bootstrap-table-1.21.2.min.js') }}" differ></script>
     <link  href="{{ asset('assets/package/bootstrap/css/bootstrap-5.1.3.min.css') }}" rel="stylesheet" crossorigin="anonymous"/>
     <link  href="{{ asset('assets/package/bootstrap/css/bootstrap-icons-1.10.3.css') }}" rel="stylesheet"/>
     <link  href="{{ asset('assets/package/bootstrap/css/bootstrap-table-1.21.2.min.css') }}" rel="stylesheet">
@@ -116,7 +115,7 @@
           <tbody>
             <tr style="height: 60px;">
               <td class="align-top"  colspan="10">客戶備註：{{ $order->comment }}
-                <div class="commentSign" >外送五步驟：清檢放統備 &nbsp;&nbsp;簽名：{{ $underline }}</div>
+                <div class="commentSign" >外送五步驟：清檢放統備 &nbsp;&nbsp;簽名：_______________</div>
               </td>
             </tr>
           </tbody>
@@ -583,9 +582,9 @@
         <table data-toggle="table" class="table table-bordered border border-dark" style="margin-top:3px;margin-bottom:0px;">
           <tr>
             <td class="align-top">
-            客戶簽收：{{ $underline }}  日期：<BR>
-            外送人員：{{ $underline }}  出發時間：{{ $underline }}<BR>
-            租借外送機車車號：{{ $underline }} &nbsp;&nbsp;&nbsp;
+            客戶簽收：_______________  日期：<BR>
+            外送人員：_______________  出發時間：_______________<BR>
+            租借外送機車車號：_______________ &nbsp;&nbsp;&nbsp;
 
             <input type="checkbox" id="input-chk001" >
             <label for="input-chk001">膠台</label>
@@ -595,8 +594,8 @@
 
             <input type="checkbox" id="input-chk003" > 
             <label for="input-chk003">拉繩</label><BR>
-            運費代收人：{{ $underline }} 代收金額：______<BR>
-            貨款代收人：{{ $underline }} 代收金額：______ 
+            運費代收人：_______________ 代收金額：______<BR>
+            貨款代收人：_______________ 代收金額：______ 
 
             </td>
             <td class="col-sm-3 align-top" style="padding: 0px;">

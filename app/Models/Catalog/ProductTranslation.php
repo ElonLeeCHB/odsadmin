@@ -6,10 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductTranslation extends Model
 {
-    //public $timestamps = false;
+    public $timestamps = false;
     public $foreign_key = 'product_id';
     protected $guarded = [];
-    public $timestamps = false;
 
     public function product()
     {

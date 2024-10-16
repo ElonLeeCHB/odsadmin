@@ -13,14 +13,17 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\WithCustomChunkSize;
-//use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Events\BeforeWriting;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class InventoryReceivingReport implements FromArray, WithHeadings, WithEvents, WithCustomStartCell
+use App\Domains\Admin\Exports\InventoryReceiving\HeaderSheetExport;
+
+class InventoryReceivingReport implements FromArray, WithTitle, WithHeadings, WithEvents, WithCustomStartCell, WithMultipleSheets
 {
     use Exportable;
 
@@ -28,11 +31,16 @@ class InventoryReceivingReport implements FromArray, WithHeadings, WithEvents, W
     private $collection;
     private $sum_rownums;
     private $array;
+    public $receivings;
 
 
     public function __construct(private $params, private ReceivingOrderRepository $ReceivingOrderRepository, private ReceivingOrderProductRepository $ReceivingOrderProductRepository )
     {}
 
+    public function title(): string
+    {
+        return '單身匯總';
+    }
 
     public function headings(): array
     {
@@ -68,9 +76,9 @@ class InventoryReceivingReport implements FromArray, WithHeadings, WithEvents, W
         $this->params['extra_columns'] = ['form_type_name', 'tax_type_name', ];
         $this->params['with'] = DataHelper::addToArray(['receiving_products', 'supplier'], $params['with'] ?? []);
 
-        $receivings = $this->ReceivingOrderRepository->getReceivingOrders($this->params);
+        $this->receivings = $this->ReceivingOrderRepository->getReceivingOrders($this->params);
 
-        $sortedCollection = $receivings->sortBy([
+        $sortedCollection = $this->receivings->sortBy([
             ['receiving_date', 'asc'],
             ['id', 'DESC'],
         ]);
@@ -83,7 +91,7 @@ class InventoryReceivingReport implements FromArray, WithHeadings, WithEvents, W
 
         foreach($receivings_array as $key => $receiving){ //每張單的迴圈
 
-            $date = Carbon::parse($receiving['receiving_date'])->format('Y-m-d');
+            $receiving_date = Carbon::parse($receiving['receiving_date'])->format('Y-m-d');
             
             $tax = '0';
             $before_tax = '0';
@@ -104,9 +112,8 @@ class InventoryReceivingReport implements FromArray, WithHeadings, WithEvents, W
                     $before_tax = $receiving_product['amount'];
                     $after_tax = $receiving_product['amount'];
                 }
-                
                 $arr = [
-                    'receiving_date' => $date,
+                    'receiving_date' => $receiving_date,
                     'code' => $receiving['code'],
                     'supplier_id' => $receiving['supplier_id'],
                     'supplier_name' => $receiving['supplier_name'] ?? '',
@@ -128,85 +135,86 @@ class InventoryReceivingReport implements FromArray, WithHeadings, WithEvents, W
                     'amount' => $receiving_product['amount'],
                     'tax_rate' => $receiving['tax_rate'],
                     'formatted_tax_rate' => $receiving['formatted_tax_rate'],
-                    'tax_type_code' => $receiving['tax_type_code'],
+                    'tax_type_code' => $receiving['tax_type_code']
                 ];
 
-                $rows[] = $arr;
+                $dataset[$receiving_date]['data'][] = $arr;
             }
         }
+        unset($arr);
 
-        // 處理加總
-        if(!empty($rows)){
-            $next_date = '';
-        
-            $result = [];
-    
-            $rownum = 2; //起始列數！
-    
-            $daily_before_tax = 0;
-            $daily_tax = 0;
-            $daily_after_tax = 0;
-    
-            foreach ($rows as $key => $row) {
-                $date = $row['receiving_date'];
-                $next_row = next($rows);
-    
-                if($next_row != false){
-                    $next_date = $next_row['receiving_date'];
-                }else{
-                    $next_date = '';
-                }
-    
-                if($date == $next_date){ // 一般列
-                    $result[] = $row;
-                    unset($rows[$key]);
-    
-                    $daily_before_tax += $row['before_tax'];
-                    $daily_tax += $row['tax'];
-                    $daily_after_tax += $row['after_tax'];
-                }
-    
-                else if($date != $next_date){ // 加總列
-                    $arr = [
-                        'receiving_date' => $date . '總計',
-                        'code' => '',
-                        'supplier_id' => '',
-                        'supplier_name' => '',
-                        'form_type_name' => '',
-                        'tax_type_name' => '',
-                        'product_id' => '',
-                        'product_name' => '',
-                        'product_specification' => '',
-    
-                        'price' => '',
-                        'receiving_unit_name' => '',
-                        'receiving_quantity' => '',
-    
-                        'before_tax' => $daily_before_tax,
-                        'tax' => $daily_tax,
-                        'after_tax' => $daily_after_tax,
-                        
-                        'id' => '',
-                        'amount' => '',
-                        'tax_rate' => '',
-                        'formatted_tax_rate' => '',
-                        'tax_type_code' => '',
-                    ];
-                    $result[] = $arr;
-    
-                    //重新歸0
-                    $daily_before_tax = 0;
-                    $daily_tax = 0;
-                    $daily_after_tax = 0;
-    
-                    $this->sum_rownums[] = $rownum;
-                }
-    
+        foreach ($dataset as $receiving_date => $set) {
+            $before_tax = 0;
+            $tax = 0;
+            $after_tax = 0;
+
+            foreach ($set['data'] as $row) {
+                $before_tax += $row['before_tax'];
+                $tax += $row['tax'];
+                $after_tax += $row['after_tax'];
+            }
+
+            $dataset[$receiving_date]['before_tax'] = $before_tax;
+            $dataset[$receiving_date]['tax'] = $tax;
+            $dataset[$receiving_date]['after_tax'] = $after_tax;
+        }
+
+        $rownum = 2; //起始列數
+
+        foreach ($dataset as $receiving_date => $set) {
+            foreach ($set['data'] as $row) {
+                $excelRows[] = $row;
                 $rownum++;
             }
-        }
 
-        $this->array = $result;
+            $excelRows[] = [
+                'receiving_date' => $receiving_date . '總計',
+                'code' => '',
+                'supplier_id' => '',
+                'supplier_name' => '',
+                'form_type_name' => '',
+                'tax_type_name' => '',
+                'product_id' => '',
+                'product_name' => '',
+                'product_specification' => '',
+
+                'price' => '',
+                'receiving_unit_name' => '',
+                'receiving_quantity' => '',
+
+                'before_tax' => $set['before_tax'],
+                'tax' => $set['tax'],
+                'after_tax' => $set['after_tax'],
+                
+                'id' => '',
+                'amount' => '',
+                'tax_rate' => '',
+                'formatted_tax_rate' => '',
+                'tax_type_code' => '',
+            ];
+    
+            $this->sum_rownums[] = $rownum;
+
+            $rownum++;
+
+            unset($dataset[$receiving_date]);
+        }
+        
+        $this->array = $excelRows;
+    }
+
+    public function sheets(): array
+    {
+        $sheets = [];
+
+        $sheets[] = $this;
+        $secondSheet = new HeaderSheetExport($this->receivings);
+
+
+        return [
+            0 => $this,  // 第一張工作表(sheet)
+            1 => new HeaderSheetExport($this->receivings), // 第二張工作表(sheet)
+        ];
     }
 
 

@@ -253,9 +253,7 @@ class CountingController extends BackendController
     public function save()
     {
         $post_data = $this->request->post();
-
         $json = [];
-
         if(empty($this->request->name) || mb_strlen($this->request->name) < 1 ){
            // $json['error']['name'] = '請輸入名稱 1-20 個字';
         }
@@ -268,7 +266,6 @@ class CountingController extends BackendController
             'select' => ['id', 'status_code'],
         ];
         $row = $this->CountingService->getRow($params);
-
         if(!empty($row->status_code ) && $row->status_code != 'P'){
             $json['error']['status_code'] = '單據未確認才可修改。現在是 ' . $row->status_name;
             $json['error']['warning'] = '單據未確認才可修改。現在是 ' . $row->status_name;
@@ -277,9 +274,7 @@ class CountingController extends BackendController
         if(isset($json['error']) && !isset($json['error']['warning'])) {
             $json['error']['warning'] = $this->lang->error_warning;
         }
-
         if(!$json) {
-
             $result = $this->CountingService->saveCounting($post_data);
 
             if(empty($result['error'])){
@@ -306,7 +301,7 @@ class CountingController extends BackendController
         return response(json_encode($json))->header('Content-Type','application/json');
     }
 
-    public function delete()
+    public function destroy()
     {
         $this->initController();
 
@@ -329,7 +324,7 @@ class CountingController extends BackendController
 		if (!$json) {
 
 			foreach ($selected as $category_id) {
-				$result = $this->CountingService->deleteUnitById($category_id);
+				$result = $this->CountingService->destroy($category_id);
 
                 if(!empty($result['error'])){
                     if(config('app.debug')){
@@ -353,10 +348,7 @@ class CountingController extends BackendController
     public function imports($counting_id = null)
     {
         $data = request()->all();
-
         $counting_id = !empty($data['counting_id']) ? $data['counting_id'] : null;
-
-        $query_data = [];
 
         if (request()->hasFile('file')) {
             $file = request()->file('file');
@@ -374,10 +366,13 @@ class CountingController extends BackendController
 
             $result = $this->CountingService->readExcel($filename, $counting_id);
 
-            $data['counting_products'] = $result['counting_products'];
+            if(!empty($result['error'])){
+                $data['error'] = $result['error'];
+            }else{                
+                $data['counting_products'] = $result['counting_products'];
+            }
             
             return view('admin.inventory.counting_form_products', $data);
-             
         }
 
 
@@ -387,7 +382,6 @@ class CountingController extends BackendController
     public function exportCountingProductList()
     {
         $post_data = request()->post();
-
         return $this->CountingService->exportCountingProductList($post_data); 
     }
 

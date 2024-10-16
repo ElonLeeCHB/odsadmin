@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 class Bank extends Model
 {
     protected $guarded = [];
-    protected $connection = 'sysdata';
+    public $connection = 'sysdata'; //會用在 EloquentTrait, 必須是 public
 
     public function parent()
     {

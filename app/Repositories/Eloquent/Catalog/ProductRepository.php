@@ -6,17 +6,13 @@ use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
-use App\Repositories\Eloquent\Common\StaticTermRepository;
-use App\Repositories\Eloquent\Catalog\ProductUnitRepository;
 use App\Models\Catalog\Product;
+use App\Models\Catalog\ProductTranslation;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
-use App\Models\Catalog\ProductTranslation;
 use App\Models\Common\TermRelation;
-use App\Models\Inventory\BOM;
+use App\Models\Inventory\Bom;
 use App\Models\Inventory\BomProduct;
-use Carbon\Carbon;
-
 use App\Helpers\Classes\DataHelper;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
@@ -26,7 +22,7 @@ class ProductRepository extends Repository
     public $modelName = "\App\Models\Catalog\Product";
 
 
-    public function __construct(private TermRepository $TermRepository, private UnitRepository $UnitRepository, private ProductUnitRepository $ProductUnitRepository)
+    public function __construct(private TermRepository $TermRepository, private UnitRepository $UnitRepository)
     {
         parent::__construct();
     }
@@ -35,28 +31,10 @@ class ProductRepository extends Repository
     {
         $filter_data = $this->resetQueryData($data);
 
-        // if(!empty($filter_data['all_data']) && $filter_data['all_data']){
-        //     $filter_data['with'] = DataHelper::addToArray($filter_data['with'] ?? [], ['translation', 'metas']);
-        // }
-
-        // $cache_name = 'cache/products/id_keyed/' . $id . '.json';
-        // DataHelper::setJsonToStorage($cache_name);
-
         $products = $this->getRows($filter_data, $debug);
 
-        // echo '<pre>', print_r($products->toArray(), 1), "</pre>"; exit;
-
-
-        // // metas
-        // foreach ($products as $row) {
-        //     if ($row->relationLoaded('metas')) {
-        //         $this->setMetasToRow($row);
-        //     }
-        // }
-
-        
         if(count($products) == 0){
-            return $products;
+            return [];
         }
 
         // 額外欄位 預先處理是否需要 load() 或是抓取其它資料集
@@ -64,6 +42,14 @@ class ProductRepository extends Repository
         if(!empty($data['extra_columns'])){
 
             $products->load('metas');
+    
+            // metas
+            foreach ($products as $product) {
+                foreach ($product->metas as $meta) {
+                    $key = $meta->meta_key;
+                    $product->{$key} = $meta->meta_value;
+                }
+            }
 
             // units table
             $product_unit_names = ['stock_unit_name', 'counting_unit_name', 'usage_unit_name']; // 如果有用到這些單位
@@ -132,7 +118,7 @@ class ProductRepository extends Repository
 
                 // temperature_type_name
                 if(in_array('temperature_type_name', $data['extra_columns'])){
-                    $row->temperature_type_name = $temperature_types[$row->temperature_type_code]['name'] ?? '';
+                    $row->temperature_type_name = $temperature_types[$row->temperature_type_code]->name ?? '';
                 }
             }
         }
@@ -154,7 +140,6 @@ class ProductRepository extends Repository
     public function setJsonCache($id)
     {
         $product = Product::with('translations', 'translation', 'product_options', 'metas')->find($id);
-
 
         $product_array = $product->toArray();
 
@@ -202,7 +187,7 @@ class ProductRepository extends Repository
             $source_types = TermRepository::getCodeKeyedTermsByTaxonomyCode('product_source_type',false);
             $product_array['source_type_name'] = $source_types[$source_type_code]->name;
         }
-
+        
         $cache_name = 'cache/products/id_keyed/' . $id . '.json';
 
         return DataHelper::setJsonToStorage($cache_name, $product_array);
@@ -217,11 +202,10 @@ class ProductRepository extends Repository
     // 商品管理的商品基本資料 save();
     public function updateOrCreateProduct($data)
     {
-        DB::beginTransaction();
-
         try {
-            $result = $this->findIdOrFailOrNew($data['product_id']);
+            DB::beginTransaction();
 
+            $result = $this->findIdOrFailOrNew($data['product_id']);
             if(!empty($result['data'])){
                 $product = $result['data'];
             }else if($result['error']){
@@ -243,9 +227,9 @@ class ProductRepository extends Repository
             $product_id = $product->id;
 
             if(!empty($data['translations'])){
-                $this->saveTranslationData($product, $data['translations']);
+                $this->saveRowTranslationData($product, $data['translations']);
             }
-
+            
             // Product Categories - many to many
             if(!empty($data['product_categories'])){
                 // Delete all
@@ -363,40 +347,41 @@ class ProductRepository extends Repository
         return $salable_products;
     }
 
-    /**
-     * 不應該刪除商品，應設為不啟用。
-     * 或者逐一檢查，若有其它地方用到，例如 BOM 表，則回傳提示，請使用者先刪除 BOM 表。而不是在此刪除 BOM 表 ，太危險。
-     */
-    // public function deleteProduct($product_id)
-    // {
-    //     try {
 
-    //         DB::beginTransaction();
+    public function destroy($ids)
+    {
 
-    //         ProductOption::where('product_id', $product_id)->delete();
-    //         //ProductOptionTranslation::where('product_id', $product_id)->delete();
-    //         ProductOptionValue::where('product_id', $product_id)->delete();
-    //         //ProductOptionValueTranslation::where('product_id', $product_id)->delete();
+        // //不應該刪除商品。太危險。太多地方要檢臺。還有訂單、進貨單、盤點表、備料表、料件需求表… 
+        // return ['error' => 'Product should not be deleted here.'];
 
-    //         BomProduct::where('sub_product_id', $product_id)->delete();
-    //         BomProduct::where('product_id', $product_id)->delete();
-    //         Bom::where('product_id', $product_id)->delete();
+        try {
+            DB::beginTransaction();
 
-    //         ProductTranslation::where('product_id', $product_id)->delete();
+            BomProduct::whereIn('sub_product_id', $ids)->delete();
+            BomProduct::whereIn('product_id', $ids)->delete();
+            Bom::whereIn('product_id', $ids)->delete();
 
-    //         TermRelation::join('terms', 'term_relations.term_id', '=', 'terms.id')
-    //                     ->whereIn('terms.taxonomy_code', ['product_category', 'product_tag', 'product_inventory_category', 'product_accounting_category'])
-    //                     ->delete();
+            ProductOptionValue::whereIn('product_id', $ids)->delete();
+            ProductOption::whereIn('product_id', $ids)->delete();
 
-    //         Product::where('id', $product_id)->delete();
+            ProductTranslation::whereIn('product_id', $ids)->delete();
 
-    //         DB::commit();
+            $result = Product::whereIn('id', $ids)->delete();
 
-    //     } catch (\Exception $ex) {
-    //         DB::rollback();
-    //         return ['error' => $ex->getMessage()];
-    //     }
-    // }
+            DB::commit();
+
+            return $result;
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
+
+    public function deleteProductsById($ids)
+    {
+        return ['error' => '不允許批次刪除！'];
+    }
 
 
 
@@ -519,17 +504,6 @@ class ProductRepository extends Repository
         }
 
         return $new_rows;
-    }
-
-
-    // 尋找關聯，並將關聯值賦予記錄
-    public function optimizeRow($row)
-    {
-        // if(!empty($row->status)){
-        //     $row->status_name = $row->status->name;
-        // }
-
-        return $row;
     }
 
 

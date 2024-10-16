@@ -30,11 +30,9 @@ class MemberController extends ApiController
     public function list()
     {
         $query_data = $this->request->query();
-
         $filter_data = $this->getQueries($query_data);
 
         $members = $this->MemberService->getMembers($filter_data);
-
         $newmembers = (new MemberCollection($members))->toArray();
 
         return response(json_encode($newmembers))->header('Content-Type','application/json');
@@ -48,18 +46,20 @@ class MemberController extends ApiController
         $result = $this->MemberService->findIdOrFailOrNew($member_id);
 
         if(!empty($result['data'])){
-            $record = $result['data'];
+            $member = $result['data'];
         }else{
             return response(json_encode($result))->header('Content-Type','application/json');
         }
 
-        return response(json_encode($record))->header('Content-Type','application/json');
+        $member = $this->MemberService->setMetasToRow($member);
+
+        return response(json_encode($member))->header('Content-Type','application/json');
     }
 
 
     public function save()
     {
-        $data = $this->request->all();    
+        $data = $this->request->all();
 
         $json = [];
 
@@ -72,7 +72,7 @@ class MemberController extends ApiController
                     'regexp' => false,
                 ];
                 $member = $this->MemberService->getRow($filter_data);
-    
+
                 if(!empty($member)){
                     $json['error']['mobile'] = '這個手機號碼已存在，不可新增。';
                 }
@@ -84,7 +84,7 @@ class MemberController extends ApiController
                     'regexp' => false,
                 ];
                 $member = $this->MemberService->getRow($filter_data);
-    
+
                 if(!empty($member)){
                     $json['error']['email'] = '這個 email 已存在，不可新增。';
                 }
@@ -103,7 +103,7 @@ class MemberController extends ApiController
         if(isset($json['error']) && !isset($json['error']['warning'])) {
             $json['error']['warning'] = $this->lang->error_warning;
         }
-
+        // dd($data);
         if(!$json) {
             $result = $this->MemberService->saveMember($data);
 
@@ -125,7 +125,7 @@ class MemberController extends ApiController
 
     public function getSalutations()
     {
-        $json = $this->MemberService->getSalutations();
+        $json = $this->MemberService->getCodeKeyedTermsByTaxonomyCode('salutation', toArray:'false');
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }

@@ -146,12 +146,13 @@
                   @php
                     $disabled = !empty($product->stock_unit_code) ? ' disabled' : '';
                   @endphp
-                  <select id="input-stock_unit_code" name="stock_unit_code" class="form-control">
+                  <select id="input-stock_unit_code" name="stock_unit_code" class="form-control" {{ $disabled }}>
                     <option value="">--</option>
                     @foreach($units as $code => $unit)
                     <option value="{{ $unit->code }}" @if($unit->code==$product->stock_unit_code) selected @endif>{{ $unit->label }}</option>
                     @endforeach
                   </select>
+                  <div class="form-text">庫存單位一旦設定則不允許變更</div>
                   <div id="error-stock_unit_code" class="invalid-feedback"></div>
                 </div>
               </div>
@@ -168,6 +169,7 @@
                     <option value="{{ $unit->code }}" @if($unit->code==$product->counting_unit_code) selected @endif>{{ $unit->label }}</option>
                     @endforeach
                   </select>
+                  <div class="form-text">請先設定單位轉換並且儲存後，重新整理頁面</div>
                   <div id="error-counting_unit_code" class="invalid-feedback"></div>
                 </div>
               </div>
@@ -181,6 +183,7 @@
                     <option value="{{ $unit->code }}" @if($unit->code==$product->usage_unit_code) selected @endif>{{ $unit->label }}</option>
                     @endforeach
                   </select>
+                  <div class="form-text">請先設定單位轉換並且儲存後，重新整理頁面</div>
                   <div id="error-usage_unit_code" class="invalid-feedback"></div>
                 </div>
               </div>
@@ -298,6 +301,7 @@
                     <td class="text-start">來源單位</td>
                     <td class="text-start">目的數量</td>
                     <td class="text-start">目的單位(庫存單位)</td>
+                    <td class="text-start">採購使用單位(狀態)</td>
                   </tr>
 
                     @php $product_unit_row = 1; @endphp
@@ -320,13 +324,24 @@
                         <option value="{{ $product->stock_unit_code }}">{{ $product->stock_unit_name }}</option>
                       </select>
                     </td>
+                    <td>
+                      <select id="input-units-{{ $product_unit_row }}-purchase_unit_status" name="product_units[{{ $product_unit_row }}][purchase_unit_status]" class="form-control">
+                        <option value="0"  {{ $product_unit->purchase_unit_status == 0 ? 'selected' : '' }}>{{ '未啟用' }}</option>
+                        <option value="1"  {{ $product_unit->purchase_unit_status == 1 ? 'selected' : '' }}>{{ '啟用' }}</option>
+                      </select>
+                    </td>
+                    <!-- <td>
+                      <input type="hidden" name="is_active" value="0"/>
+                      <input type="checkbox" name="is_active" value="1" class="form-check-input"/>
+                    </td> -->
+                    <!-- <td><input type="text" id="input-units-{{ $product_unit_row }}-purchase_unit_status" name="product_units[{{ $product_unit_row }}][purchase_unit_status]" value="{{ $product_unit->purchase_unit_status ?? 0 }}" class="form-control"></td> -->
                   </tr>
                     @php $product_unit_row++; @endphp
                   @endforeach
 
                 </table>
                 @else
-                請先設定庫存單位(盤點單位)，然後按F5重新整理. 
+                請先設定庫存單位(盤點單位)，然後按F5重新整理.
                 @endif
               </div>
             </div>
@@ -427,7 +442,7 @@ $('.source_unit_code').on('focusout change', function() {
   // 放入庫存單位
   var stock_unit_code = $('#input-stock_unit_code').val();
   valuesArray.push(stock_unit_code);
-  
+
   var jsonArray = JSON.stringify(valuesArray);
   $('#input-available_unit_codes').val(jsonArray);
   console.log(jsonArray);

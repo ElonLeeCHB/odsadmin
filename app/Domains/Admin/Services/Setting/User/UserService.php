@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Validator;
 use App\Services\Service;
 use App\Repositories\Eloquent\User\UserRepository;
 use App\Repositories\Eloquent\User\UserMetaRepository;
+use App\Models\User\User;
+use App\Models\User\UserMeta;
 
 class UserService extends Service
 {
@@ -15,7 +17,9 @@ class UserService extends Service
 
 
 	public function __construct(private UserRepository $UserRepository, private UserMetaRepository $UserMetaRepository)
-    {}
+    {
+        $this->repository = $UserRepository;
+    }
 
 
     public function getAdminUsers($data, $debug=0)
@@ -26,7 +30,7 @@ class UserService extends Service
 
     public function getSalutations()
     {
-        return $this->UserRepository->getSalutations();
+        return $this->getCodeKeyedTermsByTaxonomyCode('salutation', toArray:'false');
     }
 
 

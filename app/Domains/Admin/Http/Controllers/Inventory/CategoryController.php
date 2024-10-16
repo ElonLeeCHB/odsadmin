@@ -55,7 +55,7 @@ class CategoryController extends BackendController
 
         $data['list_url'] = route('lang.admin.inventory.categories.list');
         $data['add_url'] = route('lang.admin.inventory.categories.form');
-        $data['delete_url'] = route('lang.admin.inventory.categories.delete');
+        $data['delete_url'] = route('lang.admin.inventory.categories.destroy');
 
         return view('admin.inventory.category', $data);
     }
@@ -254,7 +254,7 @@ class CategoryController extends BackendController
     }
 
 
-    public function delete()
+    public function destroy()
     {
         $this->initController();
         
@@ -272,26 +272,20 @@ class CategoryController extends BackendController
         if($this->acting_username !== 'admin'){
             $json['error'] = $this->lang->error_permission;
         }
+        
+		if (!$json) {
+            $result = $this->CategoryService->destroy($selected);
 
-        if (!$json) {
-            foreach ($selected as $category_id) {
-                $result = $this->CategoryService->deleteCategory($category_id);
-
-                if(!empty($result['error'])){
-                    if(config('app.debug')){
-                        $json['warning'] = $result['error'];
-                    }else{
-                        $json['warning'] = $this->lang->text_fail;
-                    }
-
-                    break;
+            if(empty($result['error'])){
+                $json['success'] = $this->lang->text_success;
+            }else{
+                if(config('app.debug') || auth()->user()->username == 'admin'){
+                    $json['error'] = $result['error'];
+                }else{
+                    $json['error'] = $this->lang->text_fail;
                 }
             }
-        }
-
-        if(empty($json['warning'] )){
-            $json['success'] = $this->lang->text_success;
-        }
+		}
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }

@@ -41,17 +41,53 @@ class CategoryRepository extends TermRepository
         return $rows;
     }
 
-    public function deleteCategory($data, $debug = 0)
+
+    public function destroy($ids, $debug = 0)
     {
+        $filter_data = [
+            'equal_taxonomy_code' => 'product_category',
+            'whereIn' => ['id' => $ids],
+        ];
+        return $this->destroyRows($filter_data, $debug);
+    }
+
+    public function deleteCategory($category_id, $debug = 0)
+    {
+        $data = [
+            'equal_term_id' => $category_id,
+            'equal_taxonomy_code' => 'product_category'
+        ];
         return $this->deleteTerm($data, $debug);
     }
 
-
-    public function updateOrCreateCategory($data)
+    //updateOrCreateCategory
+    public function saveCategory($data)
     {
-        $data['taxonomy_code'] = 'product_category';
+        try{
+            $data['taxonomy_code'] = 'product_category';
 
-        return $this->updateOrCreateTerm($data);
+            // category_id 就是 term_id，這兩個必須： (一致，或者只有其一)，不能 (兩個都有，但是不一樣)
+            if(isset($data['term_id']) && isset($data['category_id']) && $data['term_id'] != $data['category_id']){
+                throw new \Exception('缺少 term_id 或 category_id');
+            }
+
+            //一律轉換為 term_id
+            if(empty($data['term_id']) && !empty($data['category_id'])){
+                $data['term_id'] = $data['category_id'];
+                unset($data['category_id']);
+            }
+
+            // 如果還沒有 term_id, 就是新增。必須給 null 或空值
+            if(!isset($data['term_id'])){
+                $data['term_id'] = null;
+            }
+
+            return $this->saveTerm($data);
+
+        } catch (\Exception $ex) {
+            return ['error' => $ex->getMessage()];
+        }
+
     }
 }
 

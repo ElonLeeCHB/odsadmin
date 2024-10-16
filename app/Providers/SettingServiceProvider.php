@@ -29,7 +29,7 @@ class SettingServiceProvider extends ServiceProvider
 
             foreach ($settings as $setting) {
                 $key = 'settings.' . $setting->setting_key;
-    
+
                 // If json, then array
                 $value = $setting->is_json ? json_decode($setting->setting_value,1) : $setting->setting_value;
     

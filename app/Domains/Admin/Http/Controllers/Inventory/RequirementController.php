@@ -14,7 +14,7 @@ class RequirementController extends BackendController
     public function __construct(private Request $request, private RequirementService $RequirementService)
     {
         parent::__construct();
-        
+
         $this->getLang(['admin/common/common','admin/inventory/requirement']);
     }
 
@@ -28,13 +28,13 @@ class RequirementController extends BackendController
             'text' => $this->lang->text_home,
             'href' => route('lang.admin.dashboard'),
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->text_menu_inventory,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
             'href' => route('lang.admin.inventory.materialRequirements.index'),
@@ -49,7 +49,7 @@ class RequirementController extends BackendController
         $data['delete_url'] = route('lang.admin.inventory.materialRequirements.delete');
         $data['anylize_url'] = route('lang.admin.inventory.materialRequirements.anylize');
         $data['export_list'] = route('lang.admin.inventory.materialRequirements.export_list');
-        
+
         return view('admin.inventory.material_requirement', $data);
     }
 
@@ -83,13 +83,13 @@ class RequirementController extends BackendController
         }else{
             $order = 'ASC';
         }
-        
+
         $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
         $query_data = $this->unsetUrlQueryData($query_data);
-        
-        
+
+
         // link of table header for sorting
         $url = '';
 
@@ -105,9 +105,9 @@ class RequirementController extends BackendController
         $data['sort_product_name'] = $route . "?sort=product_name&order=$order" .$url;
         $data['sort_supplier_product_code'] = $route . "?sort=supplier_product_code&order=$order" .$url;
         $data['sort_supplier_short_name'] = $route . "?sort=supplier_short_name&order=$order" .$url;
-        
+
         $data['list_url'] = route('lang.admin.inventory.materialRequirements.list');
-        
+
         return view('admin.inventory.material_requirement_list', $data);
     }
 
@@ -140,20 +140,13 @@ class RequirementController extends BackendController
 
 
 
-
-
-
-        echo '<pre>', print_r($date1, 1), "</pre>";
-        echo '<pre>', print_r($date2, 1), "</pre>";
-
-
     }
 
     public function exportList()
     {
         $post_data = request()->post();
-        return $this->RequirementService->exportList($post_data); 
+        return $this->RequirementService->exportList($post_data);
     }
-    
+
 
 }

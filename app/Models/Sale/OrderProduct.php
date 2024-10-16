@@ -15,7 +15,6 @@ use App\Traits\ModelTrait;
 class OrderProduct extends Model
 {
     use ModelTrait;
-
     protected $guarded = [];
 
     public function translations()
@@ -47,41 +46,26 @@ class OrderProduct extends Model
 
     protected function quantity(): Attribute
     {
-        return Attribute::make(
-            //get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
-            set: fn ($value) => str_replace(',','',$value),
-        );
+        return $this->setNumberAttribute($this->attributes['quantity'],0);
     }
 
     protected function price(): Attribute
     {
-        return Attribute::make(
-            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
-            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
-        );
+        return $this->setNumberAttribute($this->attributes['price'],0);
     }
 
     protected function total(): Attribute
     {
-        return Attribute::make(
-            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
-            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
-        );
+        return $this->setNumberAttribute($this->attributes['total'],0);
     }
 
     protected function optionsTotal(): Attribute
     {
-        return Attribute::make(
-            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
-            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
-        );
+        return $this->setNumberAttribute($this->attributes['options_total'],0);
     }
 
     protected function finalTotal(): Attribute
     {
-        return Attribute::make(
-            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
-            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
-        );
+        return $this->setNumberAttribute($this->attributes['final_total'],0);
     }
 }

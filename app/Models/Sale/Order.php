@@ -126,8 +126,29 @@ class Order extends Model
         );
     }
     
+
     // Attribute
 
+    public function id(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => !empty($value) ? $value : 0,
+        ); 
+    }
+
+    public function shippingStateId(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => !empty($value) ? $value : 0,
+        ); 
+    }
+
+    public function shippingCityId(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => !empty($value) ? $value : 0,
+        ); 
+    }
 
     // Mobile or Telephone
 
@@ -195,6 +216,8 @@ class Order extends Model
     {
         if(!empty($this->delivery_date)){
             $newValue = Carbon::parse($this->delivery_date)->format('Y-m-d');
+        }else{
+            $newValue = date('Y-m-d');
         }
         return Attribute::make(
             get: fn ($value) => $newValue ?? '',
@@ -234,7 +257,7 @@ class Order extends Model
     protected function paymentTotal(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            get: fn ($value) => $value ?? 0,
             set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
         );
     }
@@ -242,7 +265,7 @@ class Order extends Model
     protected function paymentPaid(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            get: fn ($value) => $value ?? 0,
             set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
         );
     }
@@ -250,8 +273,11 @@ class Order extends Model
     protected function paymentUnpaid(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
+            get: fn ($value) => $value ?? 0,
             set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
         );
     }
+
+
+    // Functoins
 }

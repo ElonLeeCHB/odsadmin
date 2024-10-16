@@ -52,8 +52,6 @@ class ProductController extends ApiController
             $products = $this->ProductService->unsetRelations($products, ['translation']);
         }
 
-
-
         return response(json_encode($products))->header('Content-Type','application/json');
     }
 

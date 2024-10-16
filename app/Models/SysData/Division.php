@@ -9,7 +9,7 @@ class Division extends Model
 {
     use HasFactory;
     
-    protected $connection = 'sysdata'; 
+    public $connection = 'sysdata'; 
     
     public $timestamps = false;
 

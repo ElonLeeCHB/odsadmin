@@ -53,43 +53,55 @@ class SaleOrderRequisitionMatrixListExport implements FromArray, WithHeadings, W
         $this->params['with'] = DataHelper::addToArray('product.supplier', $params['with'] ?? []);
 
         $rows = $this->OrderIngredientRepository->getIngredients($this->params);
-
         // row_example
         $row_example = [];
         $row_example['required_date'] = '';
-        
+
         foreach ($this->product_names as $product_id => $value) {
             $row_example["$product_id"] = '';
         }
-
         // rows
         $result = [];
         foreach ($rows as $row) {
             if(empty($row->quantity)){
                 continue;
             }
-
-           $result[$row->required_date][$row->product_id] = [
+            $new_row[$row->product_id] = [
                 'required_date' => $row->required_date,
                 'product_id' => $row->product_id,
                 'required_date' => $row->required_date,
                 'product_name' => $row->product_name,
                 'quantity' => $row->quantity,
             ];
+           $result[$row->required_date] = $new_row;
         }
-        
+
         $final = [];
+        // foreach ($result as $required_date => $products) {
+        //     foreach ($row_example as $key => $value) {
+        //         if($key == 'required_date'){
+        //             $final[$required_date][] = $required_date;
+        //         }else{
+        //             $product_id = $key;
+        //             $final[$required_date][] = $products[$product_id]['quantity'] ?? 0;
+        //         }
+        //     }
+        // }
         foreach ($result as $required_date => $products) {
             foreach ($row_example as $key => $value) {
                 if($key == 'required_date'){
                     $final[$required_date][] = $required_date;
                 }else{
                     $product_id = $key;
-                    $final[$required_date][] = $products[$product_id]['quantity'] ?? 0;
+                    if(isset($products[$product_id]) && $products[$product_id]['required_date']===$required_date){
+                        $final[$required_date][] = $products[$product_id]['quantity'] ?? 0;
+                    }else {
+                        $final[$required_date][] = 0 ;
+                    }
                 }
             }
         }
-
+        // dd($final);
         return $final;
     }
 
@@ -118,7 +130,7 @@ class SaleOrderRequisitionMatrixListExport implements FromArray, WithHeadings, W
                 $highest_row = $workSheet->getHighestRow();
 
                 $workSheet->freezePane('A2'); // freezing here
-   
+
 
             },
         ];

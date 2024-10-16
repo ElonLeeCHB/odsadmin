@@ -67,7 +67,7 @@
                 </div>
 
                 <div id="tab-data" class="tab-pane">
-                  <div class="row mb-3">
+                  <div class="row mb-3 required">
                     <label for="input-taxonomy_code" class="col-sm-2 col-form-label">{{ $lang->column_taxonomy }}</label>
                     <div class="col-sm-10">
                       <div class="input-group">
@@ -77,6 +77,7 @@
                             <option value="phrase_order_extra_comment"@if($term->taxonomy_code == 'phrase_order_extra_comment') selected @endif>訂單餐點備註 (phrase_order_extra_comment)</option>
                         </select>
                       </div>
+                      <div id="error-taxonomy_code" class="invalid-feedback"></div>
                     </div>
                   </div>
                   <div class="row mb-3">

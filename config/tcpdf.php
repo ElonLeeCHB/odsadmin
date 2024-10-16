@@ -6,7 +6,7 @@ return [
     'unicode'               => true,
     'encoding'              => 'UTF-8',
     'font_directory'        => '',
-    'image_directory'       => '',
+    'image_directory'       => public_path().'/',
     'tcpdf_throw_exception' => false,
     'use_fpdi'              => false,
     'use_original_header'   => false,

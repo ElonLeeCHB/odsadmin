@@ -3,18 +3,18 @@
 if(!function_exists('zhChtToChs')){
     function zhChtToChs($input){
         if(trim($input)==''){ //输入为空则返回空字符串
-            return ''; 
+            return '';
         }
 
         $array = include_once(base_path() .'/resources/others/zhCharChtToChsArray.php');
 
-        $output = ''; 
+        $output = '';
         $count = mb_strlen($input,'utf-8'); //按照utf-8字符计数
         for($i = 0; $i <= $count; $i++){ //逐个字符处理
             $jchar = mb_substr($input,$i,1,'utf-8'); //分离出一个需要处理的字符
             $fchar = isset($array[$jchar])?$array[$jchar]:$jchar; //如果在上面的对照数组中就转换，否则原样不变
             $output .= $fchar; //逐个字符添加到输出
-        } 
+        }
         return $output;//返回输出
     }
 }
@@ -23,18 +23,18 @@ if(!function_exists('zhChsToCht')){
     function zhChsToCht($input){
         //$array = array_flip($array); //如果需要繁体到简体的转换，只需要用一个array_flip函数来对调key和value
         if(trim($input)==''){ //输入为空则返回空字符串
-            return ''; 
+            return '';
         }
-    
+
         $array = include_once(base_path() .'/resources/others/zhCharChsToChtArray.php');
-    
-        $output = ''; 
+
+        $output = '';
         $count = mb_strlen($input,'utf-8'); //按照utf-8字符计数
         for($i = 0; $i <= $count; $i++){ //逐个字符处理
             $jchar = mb_substr($input,$i,1,'utf-8'); //分离出一个需要处理的字符
             $fchar = isset($array[$jchar])?$array[$jchar]:$jchar; //如果在上面的对照数组中就转换，否则原样不变
             $output .= $fchar; //逐个字符添加到输出
-        } 
+        }
         return $output;//返回输出
     }
 }
@@ -83,7 +83,7 @@ if(!function_exists('parseDateStringTo6d')){
             $dateString = implode('', $matches[0]);
             $date2ymd = substr($dateString, -6);
         }
-        
+
         if(!empty($date2ymd)){
             return $date2ymd;
         }else{
@@ -96,45 +96,45 @@ if(!function_exists('parseDateToSqlWhere')){
     function parseDateToSqlWhere($column, $dateString)
     {
         $dateString = trim($dateString);
-    
+
         // Only allow numbers and - and / and :
         if(!preg_match('/^[0-9\-\/:]+$/', $dateString, $matches)){
             return false;
         }
-    
+
         $date1 = null;
         $date2 = null;
-    
+
         // 日期區間
         if(strlen($dateString) > 12){
             $dateString = str_replace(':','-',$dateString); //"2023-05-01:2023-05-31" change to "2023-05-01-2023-05-31"
             $count = substr_count($dateString, '-');
-    
+
             $arr = explode('-', $dateString);
-    
+
             // 整串只有1個橫線作為兩個日期的分隔
             if($count == 1){
                 $date1_year = substr($arr[0], 0, -4);
                 if($date1_year < 2000){
                     $date1_year += 2000;
                 }
-    
+
                 $date2_year = substr($arr[1], 0, -4);
                 if($date2_year < 2000){
                     $date2_year += 2000;
-                }      
-    
+                }
+
                 $date1 = $date1_year . '-' . substr($arr[0], -4, -2) . '-' . substr($arr[0], -2);
                 $date2 = $date2_year . '-' . substr($arr[1], -4, -2) . '-' . substr($arr[1], -2);
-    
+
             }else{
                 $date1_year = $arr[0] < 2000 ? $arr[0]+2000 : $arr[0];
                 $date1 = $date1_year . '-' . $arr[1] . '-' . $arr[2];
-    
+
                 $date2_year = $arr[0] < 2000 ? $arr[0]+2000 : $arr[0];
                 $date2= $date2_year . '-' . $arr[4] . '-' . $arr[5];
             }
-    
+
             $sql = "DATE($column) BETWEEN '$date1' AND '$date2'";
         }
         //單一日期
@@ -146,8 +146,8 @@ if(!function_exists('parseDateToSqlWhere')){
                 //$symbles = ['>','<','=','>=', '<='];
             }else if(preg_match('/(^\d+.*)/', $dateString, $matches)){
                 $operator = '=';
-            }            
-    
+            }
+
             if(preg_match('/(^\d{2,4}-\d{2}-\d{2}$)/', $dateString, $matches)){ //2023-05-01
                 $arr = explode('-', $dateString);
                 $date1_year = $arr[0] < 2000 ? $arr[0]+2000 : $arr[0];
@@ -164,7 +164,7 @@ if(!function_exists('parseDateToSqlWhere')){
                 return false;
             }
 
-            $date1 = date_create($date1String);            
+            $date1 = date_create($date1String);
             $date2 = date_add($date1, date_interval_create_from_date_string("1 days"));
             $date2String = $date2->format('Y-m-d');
 
@@ -174,11 +174,11 @@ if(!function_exists('parseDateToSqlWhere')){
                 $sql = "DATE($column) $operator '$date1'";
             }
         }
-    
+
         if($sql){
             return $sql;
         }
-    
+
         return false;
     }
 }
@@ -191,9 +191,6 @@ if(!function_exists('getSqlWithBindings')){
 
         $filledSql = vsprintf(str_replace('?', "'%s'", $sql), $bindings);
 
-        //return $filledSql;
-    
-        //return $filledSql;
         echo '<pre>', print_r($filledSql, 1), "</pre>"; exit;
     }
 }

@@ -2,7 +2,9 @@
 
 namespace App\Repositories\Eloquent\Catalog;
 
+use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
+use App\Models\Catalog\ProductUnit;
 
 class ProductUnitRepository extends Repository
 {
@@ -15,4 +17,19 @@ class ProductUnitRepository extends Repository
         
         return $rows;
     }
+
+    public function destroy($ids)
+    {
+        try {
+            DB::beginTransaction();
+            
+            ProductUnit::whereIn('id', $ids)->delete();
+
+            DB::commit();
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
+
 }

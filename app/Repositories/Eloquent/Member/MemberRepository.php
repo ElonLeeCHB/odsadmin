@@ -3,8 +3,9 @@
 namespace App\Repositories\Eloquent\Member;
 
 use Illuminate\Support\Facades\DB;
+use App\Models\Member\Member;
+use App\Models\User\User;
 use App\Repositories\Eloquent\User\UserRepository;
-
 use App\Http\Resources\MemberBasicListCollection;
 
 class MemberRepository extends UserRepository
@@ -19,9 +20,9 @@ class MemberRepository extends UserRepository
 
     public function saveMember($input)
     {
-        DB::beginTransaction();
-
         try {
+            DB::beginTransaction();
+    
             $member_id = $input['member_id'] ?? null;
 
             $result = $this->findIdOrFailOrNew($member_id);
@@ -35,6 +36,7 @@ class MemberRepository extends UserRepository
             
             $member->name = $input['name'];
             $member->salutation_id = $input['salutation_id'] ?? null;
+            $member->salutation_code = $input['salutation_code'] ?? null;
             $member->email = $input['email'] ?? null;
             $member->telephone_prefix = $input['telephone_prefix'] ?? null;
             $member->telephone = str_replace('-','',$input['telephone']) ?? null;
@@ -48,7 +50,6 @@ class MemberRepository extends UserRepository
             $member->payment_company = $input['payment_company'] ?? '';
             $member->payment_department = $input['payment_department'] ?? '';
             $member->payment_tin = $input['payment_tin'] ?? '';
-
             //收件資料
             $member->shipping_personal_name = $input['shipping_personal_name'] ?? $input['name'];
             $member->shipping_company = $input['shipping_company'] ?? $member->payment_company;
@@ -56,13 +57,15 @@ class MemberRepository extends UserRepository
             $member->shipping_state_id = $input['shipping_state_id'] ?? 0;
             $member->shipping_city_id = $input['shipping_city_id'] ?? 0;
             $member->shipping_road = $input['shipping_road'] ?? '';
-
-            $member->shipping_address1 = $input['shipping_address1'] ?? null;
-            $member->shipping_address2 = $input['shipping_address2'] ?? null;
-            $member->shipping_road_abbr = $input['shipping_road_abbr'] ?? null;
+            $member->shipping_salutation_id = $input['shipping_salutation_id'] ?? 0;
+            $member->shipping_salutation_id2 = $input['shipping_salutation_id2'] ?? 0;
+            $member->shipping_personal_name2 = $input['shipping_personal_name2'] ?? '';
+            $member->shipping_phone2 = $input['shipping_phone2'] ??  '';
+            $member->shipping_address1 = $input['shipping_address1'] ??  '';
+            $member->shipping_address2 = $input['shipping_address2'] ??  '';
+            $member->shipping_road_abbr = $input['shipping_road_abbr'] ??  '';
 
             $member->comment = $input['comment'] ?? null;
-            
             $member->save();
             
             $result = $this->saveRowMetaData($member, $input);
@@ -76,6 +79,12 @@ class MemberRepository extends UserRepository
             return ['error' =>$ex->getMessage()];
         }
     }
+
+
+    // 使用 UserRepository 的 destroy()
+    // public function destroy($ids)
+    // {}
+
     
     
     public function deleteMember($member_id)

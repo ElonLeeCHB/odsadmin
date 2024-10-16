@@ -26,7 +26,6 @@ class Supplier extends Organization
         'www',
         'line_id',
         'line_uid',
-        
     ];
     public $master_key = 'organization_id';
     public $meta_model = 'App\Models\Counterparty\OrganizationMeta';

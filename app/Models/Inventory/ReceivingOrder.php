@@ -19,7 +19,7 @@ class ReceivingOrder extends Model
 
     protected $table = 'receiving_orders';
     protected $guarded = [];
-    protected $appends = ['purchasing_date_ymd','receiving_date_ymd','formatted_tax_rate'];
+    protected $appends = ['purchasing_date_ymd','receiving_date_ymd','formatted_tax_rate', 'form_type_name', 'tax_type_name', 'status_name'];
     protected $casts = [
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',

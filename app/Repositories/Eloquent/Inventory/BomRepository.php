@@ -22,7 +22,7 @@ class BomRepository extends Repository
         $boms = parent::getRows($data, $debug);
 
         // 額外欄位
-        
+
         if(!empty($data['extra_columns'])){
             if(in_array('product_name', $data['extra_columns'])){
                 $boms->load('product');
@@ -30,27 +30,27 @@ class BomRepository extends Repository
         }
 
         // // 獲取關聯欄位
-        // if(!empty($data['select_relation_columns'])){
-        //     $columns = $data['select_relation_columns'];
+        if(!empty($data['select_relation_columns'])){
+            $columns = $data['select_relation_columns'];
 
-        //     foreach ($boms as $row) {
-        //         if(in_array('product_name', $columns)){
-        //             $row->product_name = $row->product->name ?? '-- emtpy --';
-        //         }
-        //     }
-        // }
-
-        foreach ($boms as $row) {
-
-            // 額外欄位 掛載到資料集
-            if(!empty($data['extra_columns'])){
-
-                if(in_array('product_name', $data['extra_columns'])){
-                    $row->product_name = $row->product->name;
-                    unset($row->product);
+            foreach ($boms as $row) {
+                if(in_array('product_name', $columns)){
+                    $row->product_name = $row->product->name ?? '';
                 }
             }
         }
+
+        // foreach ($boms as $row) {
+
+        //     // 額外欄位 掛載到資料集
+        //     if(!empty($data['extra_columns'])){
+
+        //         if(in_array('product_name', $data['extra_columns'])){
+        //             $row->product_name = $row->product->name;
+        //             unset($row->product);
+        //         }
+        //     }
+        // }
 
         return $boms;
     }
@@ -68,7 +68,7 @@ class BomRepository extends Repository
             }
 
             $bom_id = $result['id'];
-            
+
             $result = parent::findIdOrFailOrNew($bom_id);
 
             if(!empty($result['data'])){
@@ -100,13 +100,13 @@ class BomRepository extends Repository
             $bom->refresh();
             $bom->load('bom_products');
             DataHelper::setJsonToStorage('cache/inventory/BomId_' . $bom->id . '.json', $bom->toArray());
-            
+
             return ['data' => ['id' => $bom->id]];
 
         } catch (\Exception $ex) {
             DB::rollback();
             return ['error' => $ex->getMessage()];
-        } 
+        }
     }
 
 
@@ -119,7 +119,7 @@ class BomRepository extends Repository
         try{
             $bom_id = $post_data['bom_id'];
             $product_id = $post_data['product_id']; // 主件
-    
+
             foreach ($post_data['products'] as $product) {
                 $upsert_data[] = [
                     'id' => $product['id'] ?? null,
@@ -132,7 +132,7 @@ class BomRepository extends Repository
                     'amount' => $product['amount'] ?? 0,
                 ];
             }
-    
+
             if(!empty($upsert_data)){
                 BomProduct::where('bom_id', $bom_id)->delete();
                 BomProduct::upsert($upsert_data, ['id']);
@@ -147,8 +147,8 @@ class BomRepository extends Repository
             return ['error' => $ex->getMessage()];
         }
     }
-    
-    
+
+
     public function getExtraColumns($row, $columns)
     {
         if(in_array('product_name', $columns)){

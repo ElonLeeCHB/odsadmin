@@ -3,11 +3,11 @@
     <table class="table table-bordered table-hover">
       <thead>
         <tr>
-          <td class="text-center" style="width: 1px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></td>
           <td class="text-start"><a href="{{ $sort_id }}" @if($sort=='id') class="{{ $order }}" @endif>{{ $lang->column_id }}</a></td>
           <td class="text-start">{{ $lang->column_product_name }}</td>
           <td class="text-start"><a href="{{ $sort_effective_date }}" @if($sort=='effective_date') class="{{ $order }}" @endif>{{ $lang->column_effective_date }}</a></td>
           <td class="text-start"><a href="{{ $sort_expiry_date }}" @if($sort=='expiry_date') class="{{ $order }}" @endif>{{ $lang->column_expiry_date }}</a></td>
+          <td class="text-start">成本</td>
           <td class="text-start">{{ $lang->column_is_active }}</td>
           <td class="text-end">{{ $lang->column_action }}</td>
         </tr>
@@ -15,11 +15,11 @@
       <tbody>
         @foreach($boms as $term)
         <tr>
-          <td class="text-center"><input type="checkbox" name="selected[]" value="{{ $term->id }}" class="form-check-input"/></td>
           <td class="text-start">{{ $term->id }}</td>
           <td class="text-start">{{ $term->product_name }}</td>
           <td class="text-start">{{ $term->effective_date }}</td>
           <td class="text-start">{{ $term->expiry_date }}</td>
+          <td class="text-start">{{ $term->total }}</td>
           <td class="text-start">@if($term->is_active)
                                   {{ $lang->text_yes }}
                                 @else

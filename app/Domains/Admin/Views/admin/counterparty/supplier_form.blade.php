@@ -201,6 +201,7 @@
                       <input type="checkbox" name="is_often_used_supplier" value="1" class="form-check-input" @if($supplier->is_often_used_supplier) checked @endif/>
                     </div>
                   </div>
+                  <div class="form-text">用於查詢時，如果沒有輸入條件，則帶出常用廠商。例如進貨作業的廠商。</div>
                 </div>
               </div>  
 
@@ -259,7 +260,7 @@ $('#input-shipping_state_id').on('change', function(){
   if(state_id){
     $.ajax({
       type:'get',
-      url: "{{ route('lang.admin.localization.divisions.getJsonCities') }}?filter_parent_id=" + state_id,
+      url: "{{ route('lang.admin.localization.divisions.getJsonCities') }}?equal_parent_id=" + state_id,
       success:function(data){
         //console.log(JSON.stringify(data))
         html = '<option value=""> -- </option>';

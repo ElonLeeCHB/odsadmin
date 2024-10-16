@@ -42,4 +42,19 @@ class LocationRepository extends Repository
         }
     }
 
+    public function destroy($ids, $debug = 0)
+    {
+        try {
+            DB::beginTransaction();
+
+            $result = Location::whereIn('id', $ids)->delete();
+            
+            DB::commit();
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
+
 }

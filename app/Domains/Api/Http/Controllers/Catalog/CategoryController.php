@@ -13,7 +13,7 @@ class CategoryController extends ApiController
         parent::__construct();
     }
 
-
+    
     public function list()
     {
         $query_data = $this->request->query();

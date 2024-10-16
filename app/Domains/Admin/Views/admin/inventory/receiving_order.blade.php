@@ -37,12 +37,12 @@
               @endforeach
             </select>
           </div>
-
+          
           <div class="mb-3">
             <label class="form-label">{{ $lang->column_supplier_name }}</label>
             <input type="text" id="input-filter_supplier_name" name="filter_supplier_name" value="" class="form-control"/>
           </div>
-
+          
           <div class="mb-3">
             <label class="form-label">{{ $lang->column_product_name }}</label>
             <input type="text" id="input-filter_product_name" name="filter_product_name" value="" class="form-control"/>
@@ -52,7 +52,7 @@
             <label data-bs-toggle="tooltip" title="2023-02-20 或不加橫線 20230220 或範圍 20230301-20230331 或大於某日 >20230101 或小於某日 <20230101" style="font-weight: bolder;" >進貨日期 <i class="fa fa-question-circle" aria-hidden="true"></i></label>
             <input type="text" id="input-filter_receiving_date" name="filter_receiving_date" value="" placeholder="例如 2023-02-20" class="form-control"/>
           </div>
-
+          
           <div class="mb-3">
             <label class="form-label">{{ $lang->column_tax_type }}</label>
             <select id="input-filter_tax_type_code" name="filter_tax_type_code" class="form-select">
@@ -103,7 +103,15 @@ $('#receiving_order').on('click', 'thead a, .pagination a', function(e) {
 });
 
 $('#button-filter').on('click', function() {
-  url = '';
+  let queryUrl = getFilterUrl();
+  
+  url = "{{ $list_url }}?" + queryUrl;
+
+  $('#receiving_order').load(url);
+});
+
+function getFilterUrl(){
+  let url = '';
 
   var filter_code = $('#input-filter_code').val();
   if (filter_code) {
@@ -114,7 +122,7 @@ $('#button-filter').on('click', function() {
   if (equal_form_type_code) {
     url += '&equal_form_type_code=' + encodeURIComponent(equal_form_type_code);
   }
-
+  
   var filter_keyname = $('#input-filter_keyname').val();
   if (filter_keyname) {
     url += '&filter_keyname=' + encodeURIComponent(filter_keyname);
@@ -129,12 +137,7 @@ $('#button-filter').on('click', function() {
   if (filter_product_name) {
     url += '&filter_product_name=' + encodeURIComponent(filter_product_name);
   }
-
-  var filter_receiving_date = $('#input-filter_receiving_date').val();
-  if (filter_receiving_date) {
-    url += '&filter_receiving_date=' + encodeURIComponent(filter_receiving_date);
-  }
-
+  
   var filter_receiving_date = $('#input-filter_receiving_date').val();
   if (filter_receiving_date) {
     url += '&filter_receiving_date=' + encodeURIComponent(filter_receiving_date);
@@ -145,19 +148,20 @@ $('#button-filter').on('click', function() {
     url += '&filter_status_code=' + encodeURIComponent(filter_status_code);
   }
 
-  url = "{{ $list_url }}?" + url;
-
-  $('#receiving_order').load(url);
-});
+  return url;
+}
 
 //下載進貨報表
 $('#btn-export01').on('click', function () {
   $('#modal-export-loading').modal('show');
   var dataString = $('#filter-form_content').serialize();
+  var queryUrl = getFilterUrl(); 
+  var export01_url = "{{ $export01_url }}?" + queryUrl;
+  console.log('export01_url='+export01_url);
 
   $.ajax({
       type: "POST",
-      url: "{{ $export01_url }}",
+      url: export01_url,
       data: dataString,
       cache: false,
       xhrFields:{

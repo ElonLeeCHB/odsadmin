@@ -18,18 +18,15 @@ $(document).ready(function() {
 });
 
 //非數字轉成數字或0
-// String.prototype.toNum = function(){
-//   var  num = this.replace(/,/g, '');
-//   if(!$.isNumeric(num)){
-//     num = 0;
-//   }
-//   return num;
-// }
 String.prototype.toNum = function(){
   let parsedValue = parseFloat(this.replace(/,/g, ''));
 
   if (parsedValue % 1 === 0) {
     parsedValue = parseInt(parsedValue);
+  }
+
+  if(!$.isNumeric(parsedValue)){
+    parsedValue = 0;
   }
 
   return parsedValue;

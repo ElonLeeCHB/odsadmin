@@ -99,6 +99,29 @@
                       </div>
                     </div>
                   </div>
+                  <div class="row mb-3 required">
+                    <label for="input-invoice_type" class="col-sm-2 col-form-label">{{ "單據"}}</label>
+                    <div class="col-sm-10">
+                      <div class="input-group">
+                        <div class="col-sm-3">
+                          
+                        <select id="input-invoice_type" name="invoice_type" class="form-select" readonly>
+                            <option value="">--</option>
+                            @foreach($invoice_types as $code => $invoice_type)  
+                            <option value="{{ $invoice_type['code'] }}" @if($invoice_type['code'] == $receiving_order->invoice_type) selected @endif>{{ $invoice_type['name'] }}</option>
+                            @endforeach
+                          </select>
+                        </div>
+                        <div class="col-sm-6">
+                          <input type="text" id="input-invoice_num" name="invoice_num" value="{{ $receiving_order->invoice_num }}" placeholder="{{ '單據號碼' }}" class="form-control" data-oc-target="autocomplete-supplier_name"/>
+                          <div class="form-text">單據號碼</div>
+                          <ul id="autocomplete-invoice_num" class="dropdown-menu"></ul>
+                        </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
 
                   <div class="row mb-3 required">
                     <label for="input-tax_type_code" class="col-sm-2 col-form-label">{{ $lang->column_tax_type }}</label>
@@ -334,6 +357,7 @@ $('#btn-status_save').on('click', function () {
         $('#input-update_status_code').val(status_code);
         $('#input-status_code').val(status_code);
         console.log(status_code)
+        // a lot of shit
       }else{
         $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + data['error'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
       }
@@ -354,8 +378,10 @@ $('#btn-status_save').on('click', function () {
 $(document).ready(function () {
   // 進貨單價、進貨數量、進貨金額 觸發計算
   $('#products').on('focusout', '.clcProduct', function(){
+setInterval(() => {
     let rownum = $(this).closest('[data-rownum]').data('rownum');
     calcProduct(rownum)
+}, 2000);
   });
 
   // 觸發查詢料件的 click 事件
@@ -393,14 +419,22 @@ $('#input-supplier_name').autocomplete({
 $(document).on('click', '.schProductName', function() {
   $('.schProductName').autocomplete({
     'source': function (request, response) {
-      let supplier_id = $('#input-supplier_id').val();
-      let supplier_url = '';
+      var supplier_id = $('#input-supplier_id').val();
+      var supplier_url = '';
+      var form_type_code = $('#input-form_type_code').val();
 
       if(request.length == 0 && $.isNumeric(supplier_id) && supplier_id > 0){
         supplier_url = '&equal_supplier_id=' + supplier_id + '&limit=0&pagination=0';
       }
+
+      ajaxUrl = '{{ $product_autocomplete_url }}?equal_is_active=1&with=product_units&filter_name=' + encodeURIComponent(request) + '&extra_columns=stock_unit_code,stock_unit_name' + supplier_url;
+
+      if(form_type_code == 'RMT'){ //RMT原物料，如果是，則庫存管理=1。
+        ajaxUrl += '&equal_is_inventory_managed=1'
+      }
+
       $.ajax({
-          url: "{{ $product_autocomplete_url }}?equal_is_inventory_managed=1&equal_is_active=1&with=product_units&filter_name=" + encodeURIComponent(request) + '&extra_columns=stock_unit_code,stock_unit_name' + supplier_url,
+          url: ajaxUrl,
           dataType: 'json',
           success: function (json) {
             response(json);
@@ -495,10 +529,11 @@ function calcProduct(rownum){
   let amount = $('#input-products-amount-'+rownum).val() ?? 0;
   let destination_quantity = 0;
   let factor = $('#input-products-receiving_unit_code-'+rownum + ' option:selected').data('factor');
-
+  
   amount = (price*receiving_quantity).toFixed(2)
   $('#input-products-amount-'+rownum).val(amount);
-
+  
+  console.log(receiving_quantity,factor)
   if ($.isNumeric(receiving_quantity) && $.isNumeric(factor)) {
     destination_quantity = (receiving_quantity * factor).toFixed(4);
   }
@@ -607,10 +642,10 @@ function addReceivingProduct(){
   html += '    </select>';
   html += '  </td>';
   html += '  <td class="text-left">';
-  html += '    <input type="text" id="input-products-price-'+product_row+'" name="products['+product_row+'][price]" value="" class="form-control productPriceInputs clcProduct" data-rownum="'+product_row+'">';
+  html += '    <input type="text" id="input-products-receiving_quantity-'+product_row+'" name="products['+product_row+'][receiving_quantity]" value="" class="form-control productPriceInputs clcProduct" data-rownum="'+product_row+'">';
   html += '  </td>';
   html += '  <td class="text-left">';
-  html += '    <input type="text" id="input-products-receiving_quantity-'+product_row+'" name="products['+product_row+'][receiving_quantity]" value="" class="form-control productPriceInputs clcProduct" data-rownum="'+product_row+'">';
+  html += '    <input type="text" id="input-products-price-'+product_row+'" name="products['+product_row+'][price]" value="" class="form-control productPriceInputs clcProduct" data-rownum="'+product_row+'">';
   html += '  </td>';
   html += '  <td class="text-left">';
   html += '    <input type="text" id="input-products-amount-'+product_row+'" name="products['+product_row+'][amount]" value="" class="form-control productAmountInputs clcProduct" data-rownum="'+product_row+'" readonly>';

@@ -49,7 +49,7 @@ class TermRepository extends Repository
                 'limit' => 0
             ];
             $taxonomy_codes = $this->TaxonomyRepository->getTaxonomies($filter_data);
-            
+
             // Add whereIn to find in terms table
             $data['whereIn']['taxonomy_code'] = $taxonomy_codes;
             unset($data['filter_taxonomy_name']);
@@ -64,24 +64,54 @@ class TermRepository extends Repository
         return $data;
     }
 
+    public function destroyTermsByIdsAndTaxonomiesCodes($ids, $taxonomiesCodes, $debug = 0)
+    {
+        try {
+            return Term::whereIn('id', $ids)->whereIn('taxonomy_code', $taxonomiesCodes)->delete();
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
+
+    public function destroy($ids)
+    {
+        try {
+            DB::beginTransaction();
+
+            $rows = Term::whereIn('id', $ids)->get();
+
+            foreach ($rows as $row) {
+                $row->translations()->delete();
+                $row->delete();
+            }
+
+            DB::commit();
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
+
     public function deleteTerm($data)
     {
         try {
 
             if(empty($data['equal_term_id']) && !empty($data['term_id'])){
                 $data['equal_term_id'] = $data['term_id'];
+                unset($data['term_id']);
             }
 
             $term = $this->getRow($data);
-            
+
             if(empty($term)){
                 return ['error' => 'no record'];
             }
 
             DB::beginTransaction();
 
-            $term->term_relations->delete();
-            $term->translations->delete();
+            $term->translations()->delete();
             $term->delete();
 
             DB::commit();
@@ -104,11 +134,10 @@ class TermRepository extends Repository
                 'equal_term_id' => $term_id,
             ];
             $term = $this->getRow($filter_data);
-    
-            $term->term_relations->delete();
+
             $term->translations->delete();
             $term->delete();
-    
+
             DB::commit();
 
         } catch (\Exception $ex) {
@@ -158,20 +187,24 @@ class TermRepository extends Repository
                 Storage::delete($path);
             }
 
+            $path = 'cache/terms/not_keyed/' . $taxonomy_code . '.json';
+            if (Storage::exists($path)) {
+                Storage::delete($path);
+            }
+
             $result['term_id'] = $term->id;
             return $result;
-            
+
         } catch (\Exception $ex) {
             DB::rollback();
             return ['error' => $ex->getMessage()];
 
         }
-        
+
         return false;
     }
 
 
-    
 
 
     // Static
@@ -185,8 +218,8 @@ class TermRepository extends Repository
 
     /**
      * @param  int     $taxonomy_code terms.taxonomy_code = taxonomies.code
-     * @param  boolean $to_array 
-     * @param  array   $data 
+     * @param  boolean $to_array
+     * @param  array   $data
      *
      * @return array
      *
@@ -194,7 +227,7 @@ class TermRepository extends Repository
      * @created 2023-11-05
      * @updated 2023-11-05
      */
-    public static function getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray = true, $params = null): array
+    public static function getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray = true, $params = [], $debug = 0): array
     {
         $cache_name = 'cache/terms/code_keyed/' . $taxonomy_code . '.json';
 
@@ -210,9 +243,9 @@ class TermRepository extends Repository
             $filter_data['pagination'] = false;
             $filter_data['limit'] = 0;
             $filter_data['is_active'] = 1;
-            
+
             $termInstance = self::createRepository();
-            $terms = $termInstance->getRows($filter_data)->toArray();
+            $terms = $termInstance->getRows($filter_data, $debug)->toArray();
 
             $rows = [];
 
@@ -220,7 +253,7 @@ class TermRepository extends Repository
                 unset($row['translation']);
                 unset($row['taxonomy']);
                 $code = $row['code'];
-                
+
                 $rows[$code] = $row;
             }
 
@@ -234,6 +267,10 @@ class TermRepository extends Repository
 
         $objects = json_decode($json_string);
 
+        if(empty($objects)){
+            return ['error' => 'getCodeKeyedTermsByTaxonomyCode(): 找不到 cache_name ' . $cache_name];
+        }
+
         // 預設三個欄位
         if(empty($params['columns'])){
             $params['columns'] = ['id','code','name','is_active'];
@@ -241,7 +278,7 @@ class TermRepository extends Repository
             $params['columns'] = '*';
         }
 
-        // 指定欄位
+        // 預設欄位
         if($params['columns'] != '*'){
             foreach ($objects as $code => $object) {
                 foreach ($object as $column => $value) {
@@ -268,10 +305,61 @@ class TermRepository extends Repository
         return $rows;
     }
 
+    public static function getTermsByTaxonomyCode($taxonomy_code, $toArray = true, $params = [], $debug = 0)
+    {
+        $cache_name = 'cache/terms/not_keyed/' . $taxonomy_code . '.json';
+
+        $json_string = '';
+
+        if (Storage::exists($cache_name)) {
+            $json_string = Storage::get($cache_name);
+        }else{
+            $filter_data = $params;
+
+            //強制必須
+            $filter_data['equal_taxonomy_code'] = $taxonomy_code;
+            $filter_data['pagination'] = false;
+            $filter_data['limit'] = 0;
+            $filter_data['is_active'] = 1;
+
+            $termInstance = self::createRepository();
+
+            $terms = $termInstance->getRows($filter_data, $debug);
+
+
+            foreach ($terms as $term) {
+                $rows[] = $term->toCleanObject();
+            }
+
+            if(!empty($terms)){
+                Storage::put($cache_name, json_encode($rows));
+                sleep(1);
+
+                $json_string = Storage::get($cache_name);
+            }
+        }
+
+        $objects = json_decode($json_string);
+
+        $rows = [];
+
+        if($toArray == true){
+            foreach ($objects as $object) {
+                $rows[] = (array) $object;
+            }
+        }else{
+            foreach ($objects as $code => $object) {
+                $rows[] = (object) $object;
+            }
+        }
+
+        return $rows;
+    }
+
     public static function getNameByCodeAndTaxonomyCode($code, $taxonomy_code)
     {
         $terms = self::getCodeKeyedTermsByTaxonomyCode($taxonomy_code, toArray:false);
-        
+
         return !empty($terms[$code]) ? $terms[$code]->name : '';
     }
 }

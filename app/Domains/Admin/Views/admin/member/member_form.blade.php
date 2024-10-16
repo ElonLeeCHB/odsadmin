@@ -26,12 +26,14 @@
         <div class="card-body">
           <ul class="nav nav-tabs">
               <li class="nav-item"><a href="#tab-general" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_general }}</a></li>
+              <!--<li class="nav-item"><a href="#tab-supports" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_supports }}</a></li>-->
               <!--<li class="nav-item"><a href="#tab-address" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_address }}</a></li>-->
           </ul>
           <form id="form-member" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
             @csrf
             @method('POST')
             <div class="tab-content">
+
               <div id="tab-general" class="tab-pane active">
 
                   <fieldset>
@@ -45,12 +47,12 @@
                       </div>
                     </div>
                     <div class="row mb-3">
-                        <label for="input-salutation_id" class="col-sm-2 col-form-label">{{ $lang->entry_salutation }}</label>
+                        <label for="input-salutation_code" class="col-sm-2 col-form-label">{{ $lang->entry_salutation }}</label>
                         <div class="col-sm-10">
-                          <select name="salutation_id" id="input-salutation_id" class="form-select">
+                          <select name="salutation_code" id="input-salutation_code" class="form-select">
                             <option value="">--</option>
-                            @foreach($salutation['option_values'] as $option_value)
-                              <option value="{{ $option_value['option_value_id'] }}" @if($member->salutation_id == $option_value['option_value_id']) selected @endif>{{ $option_value['name']  }}</option>
+                            @foreach($salutations as $code => $salutation)
+                              <option value="{{ $code }}" @if($member->salutation_code == $code ) selected @endif>{{ $salutation->name }}</option>
                             @endforeach
                           </select>
                         </div>
@@ -95,18 +97,18 @@
                       <div class="col-sm-10">
 
                         @php
-                          $lastKey = array_key_last($find_us)
+                          $lastKey = array_key_last($find_us_array)
                         @endphp
 
-                        @foreach($find_us as $key => $row)
+                        @foreach($find_us_array as $key => $find_us_row)
                           <div class="col-md-12">
                             <div class="input-group">
                               <div>
-                                <label class="col-form-label"> <input type="radio" name="gender" value="{{ $row->code }}"> {{ $row->name }} &nbsp;&nbsp;</label> 
+                                <label class="col-form-label"> <input type="radio" name="find_us" value="{{ $find_us_row->code }}" @if($member->find_us == $find_us_row->code ) checked  @endif> {{ $find_us_row->name }} &nbsp;&nbsp;</label> 
                               </div>
                               @if($key === $lastKey) 
                               <div class="col-md-4">
-                                <input type="text" name="find_us_comment" value="{{ $row->find_us_comment ?? '' }}" placeholder="其它原因" class="form-control">
+                                <input type="text" name="find_us_comment" value="{{ $find_us_comment }}" placeholder="其它原因" class="form-control">
                               </div>
                               @endif
                             </div>
@@ -227,6 +229,267 @@
 
                   <input type="hidden" name="member_id" value="{{ $member_id }}" id="input-member_id"/>
               </div>
+
+
+              <div id="tab-supports" class="tab-pane">
+                <div class="table-responsive">
+                  <table class="table table-bordered table-hover">
+                  <thead>
+                  <tr>
+                  <td class="text-start">選項值</td>
+                  <td class="text-start">是否預設</td>
+                  <td class="text-start">是否啟用</td>
+                  <td class="text-end">價格</td>
+                  <td class="text-end">排序</td>
+                  <td></td>
+                  </tr>
+                  </thead>
+                  <tbody id="option-value-0">
+
+                      <tr id="option-value-row-0">
+                  <td class="text-start">全素潤餅3吋
+                  <input type="hidden" name="product_options[0][product_option_values][0][option_value_id]" value="1046"> 
+                  <input type="hidden" name="product_options[0][product_option_values][0][product_option_value_id]" value="1610">
+                  </td>
+                  <td class="text-start">                                      否
+                                <input type="hidden" name="product_options[0][product_option_values][0][is_default]" value="0">
+                  </td>
+                  <td class="text-start">                                      是
+                                <input type="hidden" name="product_options[0][product_option_values][0][is_active]" value="1">
+                  </td>
+                  <td class="text-end">+0
+                  <input type="hidden" name="product_options[0][product_option_values][0][price_prefix]" value="+"> 
+                  <input type="hidden" name="product_options[0][product_option_values][0][price]" value="0"></td>
+                  <td class="text-end">
+                  1
+                  <input type="hidden" name="product_options[0][product_option_values][0][sort_order]" value="1"></td>
+
+                  <td class="text-end">
+                  <button type="button" title="編輯" data-bs-toggle="tooltip" data-option-row="0" data-option-value-row="0" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></button> 
+                  <button type="button" onclick="$('#option-value-row-0').remove();" data-bs-toggle="tooltip" title="移除" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button>
+                  </td>
+                  </tr>
+                                                      <tr id="option-value-row-1">
+                  <td class="text-start">蛋素潤餅3吋
+                  <input type="hidden" name="product_options[0][product_option_values][1][option_value_id]" value="1047"> 
+                  <input type="hidden" name="product_options[0][product_option_values][1][product_option_value_id]" value="1611">
+                  </td>
+                  <td class="text-start">                                      否
+                                <input type="hidden" name="product_options[0][product_option_values][1][is_default]" value="0">
+                  </td>
+                  <td class="text-start">                                      是
+                                <input type="hidden" name="product_options[0][product_option_values][1][is_active]" value="1">
+                  </td>
+                  <td class="text-end">+0
+                  <input type="hidden" name="product_options[0][product_option_values][1][price_prefix]" value="+"> 
+                  <input type="hidden" name="product_options[0][product_option_values][1][price]" value="0"></td>
+                  <td class="text-end">
+                  2
+                  <input type="hidden" name="product_options[0][product_option_values][1][sort_order]" value="2"></td>
+
+                  <td class="text-end">
+                  <button type="button" title="編輯" data-bs-toggle="tooltip" data-option-row="0" data-option-value-row="1" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></button> 
+                  <button type="button" onclick="$('#option-value-row-1').remove();" data-bs-toggle="tooltip" title="移除" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button>
+                  </td>
+                  </tr>
+                                                      <tr id="option-value-row-2">
+                  <td class="text-start">薯泥潤餅3吋
+                  <input type="hidden" name="product_options[0][product_option_values][2][option_value_id]" value="1017"> 
+                  <input type="hidden" name="product_options[0][product_option_values][2][product_option_value_id]" value="1612">
+                  </td>
+                  <td class="text-start">                                      否
+                                <input type="hidden" name="product_options[0][product_option_values][2][is_default]" value="0">
+                  </td>
+                  <td class="text-start">                                      是
+                                <input type="hidden" name="product_options[0][product_option_values][2][is_active]" value="1">
+                  </td>
+                  <td class="text-end">+0
+                  <input type="hidden" name="product_options[0][product_option_values][2][price_prefix]" value="+"> 
+                  <input type="hidden" name="product_options[0][product_option_values][2][price]" value="0"></td>
+                  <td class="text-end">
+                  3
+                  <input type="hidden" name="product_options[0][product_option_values][2][sort_order]" value="3"></td>
+
+                  <td class="text-end">
+                  <button type="button" title="編輯" data-bs-toggle="tooltip" data-option-row="0" data-option-value-row="2" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></button> 
+                  <button type="button" onclick="$('#option-value-row-2').remove();" data-bs-toggle="tooltip" title="移除" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button>
+                  </td>
+                  </tr>
+                                                      <tr id="option-value-row-3">
+                  <td class="text-start">炸蝦潤餅3吋
+                  <input type="hidden" name="product_options[0][product_option_values][3][option_value_id]" value="1018"> 
+                  <input type="hidden" name="product_options[0][product_option_values][3][product_option_value_id]" value="1613">
+                  </td>
+                  <td class="text-start">                                      否
+                                <input type="hidden" name="product_options[0][product_option_values][3][is_default]" value="0">
+                  </td>
+                  <td class="text-start">                                      是
+                                <input type="hidden" name="product_options[0][product_option_values][3][is_active]" value="1">
+                  </td>
+                  <td class="text-end">+0
+                  <input type="hidden" name="product_options[0][product_option_values][3][price_prefix]" value="+"> 
+                  <input type="hidden" name="product_options[0][product_option_values][3][price]" value="0"></td>
+                  <td class="text-end">
+                  4
+                  <input type="hidden" name="product_options[0][product_option_values][3][sort_order]" value="4"></td>
+
+                  <td class="text-end">
+                  <button type="button" title="編輯" data-bs-toggle="tooltip" data-option-row="0" data-option-value-row="3" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></button> 
+                  <button type="button" onclick="$('#option-value-row-3').remove();" data-bs-toggle="tooltip" title="移除" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button>
+                  </td>
+                  </tr>
+                                                      <tr id="option-value-row-4">
+                  <td class="text-start">炒雞潤餅3吋
+                  <input type="hidden" name="product_options[0][product_option_values][4][option_value_id]" value="1019"> 
+                  <input type="hidden" name="product_options[0][product_option_values][4][product_option_value_id]" value="1614">
+                  </td>
+                  <td class="text-start">                                      否
+                                <input type="hidden" name="product_options[0][product_option_values][4][is_default]" value="0">
+                  </td>
+                  <td class="text-start">                                      是
+                                <input type="hidden" name="product_options[0][product_option_values][4][is_active]" value="1">
+                  </td>
+                  <td class="text-end">+0
+                  <input type="hidden" name="product_options[0][product_option_values][4][price_prefix]" value="+"> 
+                  <input type="hidden" name="product_options[0][product_option_values][4][price]" value="0"></td>
+                  <td class="text-end">
+                  5
+                  <input type="hidden" name="product_options[0][product_option_values][4][sort_order]" value="5"></td>
+
+                  <td class="text-end">
+                  <button type="button" title="編輯" data-bs-toggle="tooltip" data-option-row="0" data-option-value-row="4" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></button> 
+                  <button type="button" onclick="$('#option-value-row-4').remove();" data-bs-toggle="tooltip" title="移除" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button>
+                  </td>
+                  </tr>
+                                                      <tr id="option-value-row-5">
+                  <td class="text-start">酥魚潤餅3吋
+                  <input type="hidden" name="product_options[0][product_option_values][5][option_value_id]" value="1020"> 
+                  <input type="hidden" name="product_options[0][product_option_values][5][product_option_value_id]" value="1615">
+                  </td>
+                  <td class="text-start">                                      否
+                                <input type="hidden" name="product_options[0][product_option_values][5][is_default]" value="0">
+                  </td>
+                  <td class="text-start">                                      是
+                                <input type="hidden" name="product_options[0][product_option_values][5][is_active]" value="1">
+                  </td>
+                  <td class="text-end">+0
+                  <input type="hidden" name="product_options[0][product_option_values][5][price_prefix]" value="+"> 
+                  <input type="hidden" name="product_options[0][product_option_values][5][price]" value="0"></td>
+                  <td class="text-end">
+                  6
+                  <input type="hidden" name="product_options[0][product_option_values][5][sort_order]" value="6"></td>
+
+                  <td class="text-end">
+                  <button type="button" title="編輯" data-bs-toggle="tooltip" data-option-row="0" data-option-value-row="5" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></button> 
+                  <button type="button" onclick="$('#option-value-row-5').remove();" data-bs-toggle="tooltip" title="移除" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button>
+                  </td>
+                  </tr>
+                                                      <tr id="option-value-row-6">
+                  <td class="text-start">培根潤餅3吋
+                  <input type="hidden" name="product_options[0][product_option_values][6][option_value_id]" value="1021"> 
+                  <input type="hidden" name="product_options[0][product_option_values][6][product_option_value_id]" value="1616">
+                  </td>
+                  <td class="text-start">                                      否
+                                <input type="hidden" name="product_options[0][product_option_values][6][is_default]" value="0">
+                  </td>
+                  <td class="text-start">                                      是
+                                <input type="hidden" name="product_options[0][product_option_values][6][is_active]" value="1">
+                  </td>
+                  <td class="text-end">+0
+                  <input type="hidden" name="product_options[0][product_option_values][6][price_prefix]" value="+"> 
+                  <input type="hidden" name="product_options[0][product_option_values][6][price]" value="0"></td>
+                  <td class="text-end">
+                  7
+                  <input type="hidden" name="product_options[0][product_option_values][6][sort_order]" value="7"></td>
+
+                  <td class="text-end">
+                  <button type="button" title="編輯" data-bs-toggle="tooltip" data-option-row="0" data-option-value-row="6" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></button> 
+                  <button type="button" onclick="$('#option-value-row-6').remove();" data-bs-toggle="tooltip" title="移除" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button>
+                  </td>
+                  </tr>
+                                                      <tr id="option-value-row-7">
+                  <td class="text-start">滷肉潤餅3吋
+                  <input type="hidden" name="product_options[0][product_option_values][7][option_value_id]" value="1022"> 
+                  <input type="hidden" name="product_options[0][product_option_values][7][product_option_value_id]" value="1617">
+                  </td>
+                  <td class="text-start">                                      否
+                                <input type="hidden" name="product_options[0][product_option_values][7][is_default]" value="0">
+                  </td>
+                  <td class="text-start">                                      是
+                                <input type="hidden" name="product_options[0][product_option_values][7][is_active]" value="1">
+                  </td>
+                  <td class="text-end">+0
+                  <input type="hidden" name="product_options[0][product_option_values][7][price_prefix]" value="+"> 
+                  <input type="hidden" name="product_options[0][product_option_values][7][price]" value="0"></td>
+                  <td class="text-end">
+                  8
+                  <input type="hidden" name="product_options[0][product_option_values][7][sort_order]" value="8"></td>
+
+                  <td class="text-end">
+                  <button type="button" title="編輯" data-bs-toggle="tooltip" data-option-row="0" data-option-value-row="7" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></button> 
+                  <button type="button" onclick="$('#option-value-row-7').remove();" data-bs-toggle="tooltip" title="移除" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button>
+                  </td>
+                  </tr>
+                                                      <tr id="option-value-row-8">
+                  <td class="text-start">呱呱卷潤餅3吋
+                  <input type="hidden" name="product_options[0][product_option_values][8][option_value_id]" value="1072"> 
+                  <input type="hidden" name="product_options[0][product_option_values][8][product_option_value_id]" value="1618">
+                  </td>
+                  <td class="text-start">                                      否
+                                <input type="hidden" name="product_options[0][product_option_values][8][is_default]" value="0">
+                  </td>
+                  <td class="text-start">                                      是
+                                <input type="hidden" name="product_options[0][product_option_values][8][is_active]" value="1">
+                  </td>
+                  <td class="text-end">+0
+                  <input type="hidden" name="product_options[0][product_option_values][8][price_prefix]" value="+"> 
+                  <input type="hidden" name="product_options[0][product_option_values][8][price]" value="0"></td>
+                  <td class="text-end">
+                  9
+                  <input type="hidden" name="product_options[0][product_option_values][8][sort_order]" value="9"></td>
+
+                  <td class="text-end">
+                  <button type="button" title="編輯" data-bs-toggle="tooltip" data-option-row="0" data-option-value-row="8" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></button> 
+                  <button type="button" onclick="$('#option-value-row-8').remove();" data-bs-toggle="tooltip" title="移除" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button>
+                  </td>
+                  </tr>
+                                                      <tr id="option-value-row-9">
+                  <td class="text-start">虛擬潤餅3吋
+                  <input type="hidden" name="product_options[0][product_option_values][9][option_value_id]" value="1083"> 
+                  <input type="hidden" name="product_options[0][product_option_values][9][product_option_value_id]" value="1619">
+                  </td>
+                  <td class="text-start">                                      否
+                                <input type="hidden" name="product_options[0][product_option_values][9][is_default]" value="0">
+                  </td>
+                  <td class="text-start">                                      是
+                                <input type="hidden" name="product_options[0][product_option_values][9][is_active]" value="1">
+                  </td>
+                  <td class="text-end">+0
+                  <input type="hidden" name="product_options[0][product_option_values][9][price_prefix]" value="+"> 
+                  <input type="hidden" name="product_options[0][product_option_values][9][price]" value="0"></td>
+                  <td class="text-end">
+                  10
+                  <input type="hidden" name="product_options[0][product_option_values][9][sort_order]" value="10"></td>
+
+                  <td class="text-end">
+                  <button type="button" title="編輯" data-bs-toggle="tooltip" data-option-row="0" data-option-value-row="9" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></button> 
+                  <button type="button" onclick="$('#option-value-row-9').remove();" data-bs-toggle="tooltip" title="移除" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button>
+                  </td>
+                  </tr>
+                                                  </tbody>
+                  <tfoot>
+                  <tr>
+                  <td colspan="5"></td>
+                  <td class="text-end"><button type="button" data-bs-toggle="tooltip" title="新增" data-option-row="0" class="btn btn-primary"><i class="fa-solid fa-plus-circle"></i></button></td>
+                  </tr>
+                  </tfoot>
+                  </table>
+                </div>
+              </div>
+
+
+
+
             </form>
             </div>
             </div>
@@ -243,7 +506,7 @@ $('#input-shipping_state_id').on('change', function(){
   if(state_id){
     $.ajax({
       type:'get',
-      url: "{{ route('lang.admin.localization.divisions.getJsonCities') }}?filter_parent_id=" + state_id,
+      url: "{{ route('lang.admin.localization.divisions.getJsonCities') }}?equal_parent_id=" + state_id,
       success:function(data){
         //console.log(JSON.stringify(data))
         html = '<option value=""> -- </option>';

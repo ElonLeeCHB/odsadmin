@@ -7,6 +7,28 @@ use Illuminate\Support\Facades\Storage;
 class DataHelper
 {
 
+    public static function unsetArrayFromArrayList($rows = [])
+    {
+        foreach ($rows as $key => $row) {
+            $row = self::unsetArrayFromArray($row);
+            $result[$key] = $row;
+        }
+        
+        return $result;
+    }
+
+
+    public static function unsetArrayFromArray($data = [])
+    {
+        foreach ($data as $key => $value) {
+            if(is_array($value)){
+                unset($data[$key]);
+            }
+        }
+        
+        return $data;
+    }
+
     /**
      * $data: array or string
      */
@@ -83,6 +105,7 @@ class DataHelper
 
         return null;
     }
+    
     public static function getJsonFromStoragNew($json_path, $toArray = false)
     {
         if (Storage::exists($json_path)) {
@@ -94,7 +117,7 @@ class DataHelper
         return null;
     }
 
-
+    
     public static function setJsonToStorage($json_path, $data)
     {
         if (Storage::exists($json_path)) {

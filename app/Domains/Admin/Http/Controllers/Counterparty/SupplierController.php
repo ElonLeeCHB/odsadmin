@@ -19,7 +19,7 @@ class SupplierController extends BackendController
     public function __construct(protected Request $request, protected SupplierService $SupplierService, protected TermRepository $TermRepository, protected DivisionService $DivisionService)
     {
         parent::__construct();
-        
+
         $this->getLang(['admin/common/common','admin/counterparty/organization','admin/counterparty/supplier']);
     }
 
@@ -34,13 +34,13 @@ class SupplierController extends BackendController
             'text' => $this->lang->text_home,
             'href' => route('lang.admin.dashboard'),
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->text_supplier,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
             'href' => route('lang.admin.counterparty.suppliers.index'),
@@ -52,7 +52,7 @@ class SupplierController extends BackendController
 
         $data['list_url'] = route('lang.admin.counterparty.suppliers.list');
         $data['add_url'] = route('lang.admin.counterparty.suppliers.form');
-        $data['delete_url'] = route('lang.admin.counterparty.suppliers.delete');
+        $data['delete_url'] = route('lang.admin.counterparty.suppliers.destroy');
 
         return view('admin.counterparty.supplier', $data);
     }
@@ -78,7 +78,6 @@ class SupplierController extends BackendController
 
         // Records
         $suppliers = $this->SupplierService->getSuppliers($query_data);
-        
 
         foreach ($suppliers as $row) {
             $row->edit_url = route('lang.admin.counterparty.suppliers.form', array_merge([$row->id], $query_data));
@@ -93,7 +92,7 @@ class SupplierController extends BackendController
         }else{
             $order = 'ASC';
         }
-        
+
         $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
@@ -106,8 +105,8 @@ class SupplierController extends BackendController
         foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
-        
-        
+
+
         //link of table header for sorting
         $route = route('lang.admin.counterparty.suppliers.list');
 
@@ -117,9 +116,9 @@ class SupplierController extends BackendController
         $data['sort_short_name'] = $route . "?sort=short_name&order=$order" .$url;
         $data['sort_tax_type_code'] = $route . "?sort=tax_type_code&order=$order" .$url;
         $data['sort_telephone'] = $route . "?sort=telephone&order=$order" .$url;
-        
+
         $data['list_url'] = route('lang.admin.counterparty.suppliers.list');
-        
+
         return view('admin.counterparty.supplier_list', $data);
     }
 
@@ -180,7 +179,7 @@ class SupplierController extends BackendController
         }
 
         $data['save_url'] = route('lang.admin.counterparty.suppliers.save');
-        $data['back_url'] = route('lang.admin.counterparty.suppliers.index', $queries);      
+        $data['back_url'] = route('lang.admin.counterparty.suppliers.index', $queries);
         $data['banks_url'] = route('lang.admin.counterparty.banks.autocomplete');
 
 
@@ -205,8 +204,7 @@ class SupplierController extends BackendController
         if(empty($supplier->id)){
             $supplier->is_active = 1;
         }
-        //$data['supplier']  = $supplier;
-        //echo '<pre>', print_r( $supplier->toArray() , 1), "</pre>"; exit;
+
         $data['supplier']  = $supplier->toCleanObject();
 
         if(!empty($data['supplier']) && $supplier_id == $supplier->id){
@@ -214,7 +212,7 @@ class SupplierController extends BackendController
         }else{
             $data['supplier_id'] = null;
         }
-        
+
         $data['payment_term_autocomplete_url'] = route('lang.admin.common.payment_terms.autocomplete');
 
         $data['tax_types'] = $this->SupplierService->getCodeKeyedTermsByTaxonomyCode('tax_type',toArray:false);
@@ -222,7 +220,7 @@ class SupplierController extends BackendController
         $data['states'] = $this->DivisionService->getStates();
 
         if(!empty($supplier->shipping_state_id)){
-            $data['shipping_cities'] = $this->DivisionService->getCities(['filter_parent_id' => $supplier->shipping_state_id]);
+            $data['shipping_cities'] = $this->DivisionService->getCities(['equal_parent_id' => $supplier->shipping_state_id]);
         }else{
             $data['shipping_cities'] = [];
         }
@@ -253,7 +251,7 @@ class SupplierController extends BackendController
         }
 
         // 檢查欄位
-        // do something        
+        // do something
         if(isset($json['error']) && !isset($json['error']['warning'])) {
             $json['error']['warning'] = $this->lang->error_warning;
         }
@@ -279,46 +277,38 @@ class SupplierController extends BackendController
        return response(json_encode($json))->header('Content-Type','application/json');
     }
 
-    public function delete()
+    public function destroy()
     {
         $this->initController();
 
         $post_data = $this->request->post();
 
-		$json = [];
+        $json = [];
+
+        if (isset($post_data['selected'])) {
+            $selected = $post_data['selected'];
+        } else {
+            $selected = [];
+        }
 
         // Permission
         if($this->acting_username !== 'admin'){
             $json['error'] = $this->lang->error_permission;
         }
 
-        // Selected
-		if (isset($post_data['selected'])) {
-			$selected = $post_data['selected'];
-		} else {
-			$selected = [];
-		}
-
 		if (!$json) {
+            $result = $this->SupplierService->destroy($selected);
 
-			foreach ($selected as $category_id) {
-				$result = $this->SupplierService->deleteSupplier($category_id);
-
-                if(!empty($result['error'])){
-                    if(config('app.debug')){
-                        $json['error'] = $result['error'];
-                    }else{
-                        $json['error'] = $this->lang->text_fail;
-                    }
-
-                    break;
+            if(empty($result['error'])){
+                $json['success'] = $this->lang->text_success;
+            }else{
+                if(config('app.debug') || auth()->user()->username == 'admin'){
+                    $json['error'] = $result['error'];
+                }else{
+                    $json['error'] = $this->lang->text_fail;
                 }
-			}
+            }
 		}
-        
-        if(empty($json['error'] )){
-            $json['success'] = $this->lang->text_success;
-        }
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }
@@ -371,7 +361,7 @@ class SupplierController extends BackendController
             }
         }
 
-        
+
         // 不存在任何查詢
         if($hasFilterOrEqual !== true){
             $cache_name = 'cache/counterparty/suppliers/often_used.json';
@@ -383,10 +373,10 @@ class SupplierController extends BackendController
             if(empty($suppliers)){
                 return false;
             }
-            
+
             $suppliers = $this->rowsWithMetaData($suppliers);
         }
-        
+
         // // 不存在任何查詢
         // if($hasFilterOrEqual !== true){
         //     $filter_data['equal_is_often_used_supplier'] = 1;

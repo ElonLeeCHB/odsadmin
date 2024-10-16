@@ -4,6 +4,9 @@ return [
 // Heading
 'heading_title' => '客戶', 
 
+// Tab
+'tab_supports' => '客訴資料',
+
 // Text
 'text_member' => '客戶管理',
 'text_member_details' => '客戶資料',

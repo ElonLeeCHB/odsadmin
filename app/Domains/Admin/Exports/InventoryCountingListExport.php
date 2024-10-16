@@ -14,6 +14,7 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Helpers\Classes\DataHelper;
+use App\Helpers\Classes\UnitConverter;
 
 class InventoryCountingListExport implements FromCollection, WithHeadings, WithEvents, WithMapping, WithCustomStartCell
 {
@@ -38,7 +39,7 @@ class InventoryCountingListExport implements FromCollection, WithHeadings, WithE
     public function headings(): array
     {
         return ['ID', '品名', '規格',
-                "庫存\r\n單位", "盤點\r\n單位", '庫存單價', '盤點數量', '盤點金額',
+                "庫存\r\n單位", "盤點\r\n單位", '盤點單價', '盤點數量', '盤點金額', '溫度'
                ];
     }
 
@@ -59,9 +60,33 @@ class InventoryCountingListExport implements FromCollection, WithHeadings, WithE
 
         $products = $this->ProductRepository->getProducts($this->filter_data);
 
-        $products->sortBy('temperature_type_code');
+        foreach ($products as $product) {
+            //盤點單價
+            $product->counting_price = 0;
+            if(!empty($product->stock_unit_code) && !empty($product->stock_price)){
+                $factor = UnitConverter::build()->qty(1)
+                                ->from($product->counting_unit_code)
+                                ->to($product->stock_unit_code)
+                                ->product($product->id)
+                                ->get();
 
-        return $this->ProductRepository->getProducts($this->filter_data);
+
+                if(!empty($factor) && is_numeric($factor)){
+                    $counting_price = $product->stock_price * $factor;
+                    // $product->counting_price =  !empty($counting_price) ? number_format($counting_price, 2) : '';
+                    $product->counting_price =  $counting_price;
+                }
+            }
+
+
+            foreach ($product->metas as $meta) {
+                $key = $meta->meta_key;
+                $product->{$key} = $meta->meta_value;
+            }
+        }
+
+
+        return $products = $products->sortBy('temperature_type_code');
     }
 
 
@@ -77,9 +102,10 @@ class InventoryCountingListExport implements FromCollection, WithHeadings, WithE
             $row->stock_unit_name,
             $row->counting_unit_name,
 
-            is_numeric($row->stock_price) ? $row->stock_price : '',
+            $row->counting_price ?? '',
             '',
             '=F'.$current_row.'*G'.$current_row,
+            $row->temperature_type_name,
         ];
 
     }
@@ -87,7 +113,7 @@ class InventoryCountingListExport implements FromCollection, WithHeadings, WithE
 
     public function chunkSize(): int
     {
-        return 100;
+        return 1000;
     }
 
 
@@ -103,14 +129,14 @@ class InventoryCountingListExport implements FromCollection, WithHeadings, WithE
                 $workSheet->freezePane('A6'); // freezing here
 
                 $workSheet->mergeCells('B1:C1');
-                $workSheet->mergeCells('B2:C2'); 
+                $workSheet->mergeCells('B2:C2');
                 $workSheet->mergeCells('B3:C3');
                 $workSheet->mergeCells('D1:D3');
                 $workSheet->mergeCells('E1:H3'); //備註內容
 
                 $workSheet->setCellValue('A1', '門市代號');
                 $workSheet->setCellValue('B1', 2);  //門市代號
-                
+
                 $workSheet->setCellValue('A2', '門市名稱');
                 $workSheet->setCellValue('B2', '中華一餅和平店');
 
@@ -160,7 +186,11 @@ class InventoryCountingListExport implements FromCollection, WithHeadings, WithE
                 $workSheet->getStyle('E1')
                                 ->getAlignment()
                                 ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
-   
+                //加入總計
+                $workSheet->setCellValue('F4','庫存成本');
+                $workSheet->setCellValue('G4','合計');
+                $workSheet->setCellValue('H4','=SUM(H6:H'.$highest_row.')');
+
 
             },
         ];

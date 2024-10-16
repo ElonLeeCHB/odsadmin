@@ -64,6 +64,11 @@ class User extends Authenticatable
         return $this->hasMany(UserMeta::class, 'user_id', 'id');
     }
 
+    public function addresses()
+    {
+        return $this->hasMany(UserAddress::class, 'user_id', 'id');
+    }
+
     public function __get($key)
     {
         // 檢查屬性是否存在於 UserMeta 中

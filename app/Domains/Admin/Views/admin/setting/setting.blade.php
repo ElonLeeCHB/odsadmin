@@ -37,11 +37,6 @@
                 <input type="text" id="input-setting_key" name="filter_setting_key" value="{{ $filter_setting_key ?? '' }}" data-oc-target="autocomplete-setting_key" class="form-control" autocomplete="off"/>
                 <ul id="autocomplete-setting_key" class="dropdown-menu"></ul>
               </div>
-              <div class="mb-3">
-                <label class="form-label">{{ $lang->column_name }}</label>
-                <input type="text" id="input-name" name="filter_name" value="{{ $filter_name ?? '' }}"  data-oc-target="autocomplete-name" class="form-control" autocomplete="off"/>
-                <ul id="autocomplete-name" class="dropdown-menu"></ul>
-              </div>
               <div class="text-end">
                 <button type="reset" id="button-clear" class="btn btn-light"><i class="fa fa-refresh" aria-hidden="true"></i> {{ $lang->button_reset }}</button>
                 <button type="button" id="button-filter" class="btn btn-light"><i class="fa-solid fa-filter"></i> {{ $lang->button_filter }}</button>

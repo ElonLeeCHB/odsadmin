@@ -4,7 +4,7 @@ namespace App\Domains\Api\Services\Catalog;
 
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
-use App\Domains\Api\Services\Service;
+use App\Services\Service;
 use App\Traits\Model\EloquentTrait;
 use App\Libraries\TranslationLibrary;
 use App\Models\Catalog\ProductOption;
@@ -28,9 +28,9 @@ class ProductOptionService extends Service
 
     public function updateOrCreate($data)
     {
-        DB::beginTransaction();
-
         try {
+            DB::beginTransaction();
+
             extract($data); //$data['some_id'] => $some_id;
 
             $product = $this->findOrNew(['id'=>$product_id]);
@@ -50,27 +50,7 @@ class ProductOptionService extends Service
             $product_id = $product->id;
 
             if(!empty($data['product_translations'])){
-                $this->saveTranslationData($product, $data['product_translations']);
-            }
-
-            // Product Categories - many to many
-            if(!empty($data['product_categories'])){
-                // Delete all
-                TermRelation::where('object_id',$product->id)
-                            ->join('terms', function($join){
-                                $join->on('term_id', '=', 'terms.id');
-                                $join->where('terms.taxonomy','=','product_category');
-                            })
-                            ->delete();
-
-                // Add new
-                foreach ($data['product_categories'] as $category_id) {
-                    $insert_data[] = [
-                        'object_id' => $product->id,
-                        'term_id' => $category_id,
-                    ];
-                }
-                TermRelation::insert($insert_data);
+                $this->saveRowTranslationData($product, $data['product_translations']);
             }
 
             // Product Options
@@ -142,7 +122,6 @@ class ProductOptionService extends Service
         } catch (\Exception $ex) {
             DB::rollback();
             $msg = $ex->getMessage();
-            echo '<pre>', print_r($msg, 1), "</pre>"; exit;
             return response()->json(['error' => $ex->getMessage()], 500);
         }
     }
@@ -163,17 +142,6 @@ class ProductOptionService extends Service
         }
 
         return $result;
-    }
-
-
-    public function getTotalProductsByOptionId($option_id)
-    {
-        $filter_data = [
-            'filter_option_id' => $option_id,
-            'regexp' => false,
-        ];
-
-        return $this->getCount($filter_data);
     }
 
 

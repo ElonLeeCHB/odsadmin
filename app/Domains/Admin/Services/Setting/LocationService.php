@@ -13,7 +13,9 @@ class LocationService extends Service
 
 
     public function __construct(protected LocationRepository $LocationRepository)
-    {}
+    {
+        $this->repository = $LocationRepository;
+    }
 
 
     public function getLocations($data=[], $debug = 0)

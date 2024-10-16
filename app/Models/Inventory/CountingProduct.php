@@ -8,6 +8,7 @@ use App\Traits\ModelTrait;
 use App\Models\Catalog\Product;
 use App\Models\Inventory\Unit;
 //use App\Collections\CountingProductCollection;
+use App\Repositories\Eloquent\Common\TermRepository;
 
 class CountingProduct extends Model
 {
@@ -31,39 +32,41 @@ class CountingProduct extends Model
         return $this->belongsTo(Unit::class, 'unit_code', 'code');
     }
 
+    public function usage_unit()
+    {
+        return $this->belongsTo(Unit::class, 'unit_code', 'code');
+    }
+
+
     // Attribute
 
     protected function quantity(): Attribute
     {
-        return Attribute::make(
-            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
-            set: fn ($value) => str_replace(',','',$value),
-        );
+        return $this->setNumberAttribute($this->attributes['quantity']);
     }
 
     protected function stockQuantity(): Attribute
     {
-        return Attribute::make(
-            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
-            set: fn ($value) => str_replace(',','',$value),
-        );
+        return $this->setNumberAttribute($this->attributes['stock_quantity']);
     }
 
     protected function price(): Attribute
     {
-        return Attribute::make(
-            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
-            set: fn ($value) => str_replace(',','',$value),
-        );
+        return $this->setNumberAttribute($this->attributes['price']);
     }
 
     protected function amount(): Attribute
     {
+        return $this->setNumberAttribute($this->attributes['amount']);
+    }
+
+    public function usageUnitName(): Attribute
+    {
         return Attribute::make(
-            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
-            set: fn ($value) => str_replace(',','',$value),
+            get: fn () => $this->usage_unit->name ?? '',
         );
     }
+
     // Custom Collection
     // public function CountingProductCollection(array $models = [])
     // {

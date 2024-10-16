@@ -5,7 +5,6 @@
     <table class="table table-bordered table-hover">
       <thead>
         <tr>
-          <td class="text-center" style="width: 1px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></td>
           <td class="text-start"><a href="{{ $sort_code }}" @if($sort=='code') class="{{ $order }}" @endif>{{ $lang->column_code }}</a></td>
           <td class="text-start">{{ $lang->column_form_type }}</td>
           <td class="text-start">{{ $lang->column_supplier_name }}</td>
@@ -18,7 +17,6 @@
       <tbody>
         @foreach($receiving_orders as $row)
         <tr>
-          <td class="text-center"><input type="checkbox" name="selected[]" value="{{ $row->id }}" class="form-check-input"/></td>
           <td class="text-start">{{ $row->code }}</td>
           <td class="text-start">{{ $row->form_type_name ?? '' }}</td>
           <td class="text-start">{{ $row->supplier_name }}</td>

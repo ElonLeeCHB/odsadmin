@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class RoadFirstWord extends Model
 {
-    protected $connection = 'sysdata'; 
+    public $connection = 'sysdata'; 
     
     public $timestamps = false;
 

@@ -136,7 +136,7 @@
 
                           {{-- bom表的主索引 id --}}
                           <input type="hidden" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $bom_product->id ?? '' }}"  readonly>
-                          
+
                           {{-- bom表的主件 product_id --}}
                           <input type="hidden" id="input-products-product_id-{{ $product_row }}" name="products[{{ $product_row }}][product_id]" value="{{ $bom_product->product_id ?? '' }}"  readonly>
                         </td>
@@ -266,7 +266,7 @@ function addBOM() {
   html += '  <td><input type="text" id="input-products-amount-'+product_row+'" name="products['+product_row+'][amount]" value="" class="form-control schProductName" autocomplete="off"></td>';
   html += '  <td class="text-left"><button type="button" onclick="$(\'#bom-row'+product_row+'\').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button></td>';
   html += '</tr>';
-  
+
 	$('#bom tbody').append(html);
 
 	product_row++;

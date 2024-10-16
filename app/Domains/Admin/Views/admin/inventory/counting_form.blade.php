@@ -34,12 +34,12 @@
           </ul>
           <div class="tab-content">
             <div id="tab-general" class="tab-pane active">
-
+              
               <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">匯入檔案</label>
                 <div class="col-sm-10">
                   <div class="input-group">
-                    <button type="button" id="btn-import" data-bs-toggle="tooltip" data-loading-text="Loading..." title="匯入檔案" class="btn btn-info"
+                    <button type="button" id="btn-import" data-bs-toggle="tooltip" data-loading-text="Loading..." title="匯入檔案" class="btn btn-info" 
                         aria-label="匯入檔案">上傳</button>
                   </div>
                   <div class="form-text"></div>
@@ -59,7 +59,7 @@
                   <div id="error-code" class="invalid-feedback"></div>
                 </div>
               </div>
-
+                
               <div class="row mb-3 required">
                 <label class="col-sm-2 col-form-label">{{ $lang->column_form_date }}</label>
                 <div class="col-sm-10">
@@ -177,7 +177,7 @@
         </form>
 
         <div class="loadingdiv" id="loading" style="display: none;">
-          <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>
+          <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>     
         </div>
 
 
@@ -294,7 +294,7 @@ function calcProduct(rownum){
   let stock_quantity = 0;
   //let factor = $('#input-products-factor-'+rownum).val() ?? 0;
   let factor = $('#input-products-unit_name-'+rownum + ' option:selected').data('factor');
-
+  
   //quantity = $('#input-products-amount-'+rownum).val(amount);
   stock_quantity = (quantity * factor).toFixed(3);
   $('#input-products-stock_quantity-'+rownum).val(stock_quantity);

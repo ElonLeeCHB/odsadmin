@@ -47,13 +47,13 @@ class ProductController extends BackendController
             'text' => $this->lang->text_home,
             'href' => route('lang.admin.dashboard'),
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->text_menu_inventory,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
             'href' => route('lang.admin.inventory.products.index'),
@@ -72,12 +72,10 @@ class ProductController extends BackendController
         $data['accounting_categories'] = $this->ProductService->getKeyedAccountingCategory();
 
         $data['list'] = $this->getList();
-
         $data['list_url']   = route('lang.admin.inventory.products.list');
         $data['add_url']    = route('lang.admin.inventory.products.form');
         $data['delete_url'] = route('lang.admin.inventory.products.delete');
         $data['export_inventory_product_list'] = route('lang.admin.inventory.products.export_inventory_product_list');
-
         return view('admin.inventory.product', $data);
     }
 
@@ -102,10 +100,10 @@ class ProductController extends BackendController
         $filter_data = UrlHelper::getUrlQueriesForFilter();
 
         $filter_data['extra_columns'] = DataHelper::addToArray('accounting_category_name', $filter_data['extra_columns'] ?? []);
-        
+
         $with = $filter_data['with'] ?? [];
         $filter_data['with'] = DataHelper::addToArray('source_type', $with);
-        
+
         // Rows
         $products = $this->ProductService->getProducts($filter_data);
 
@@ -117,7 +115,7 @@ class ProductController extends BackendController
         }
 
         $products = $products->withPath(route('lang.admin.inventory.products.list'))->appends($url_queries);
-        
+
         $data['products'] = $products;
         $data['pagination'] = $products->links('admin.pagination.default');
 
@@ -127,7 +125,7 @@ class ProductController extends BackendController
         }else{
             $order = 'ASC';
         }
-        
+
         $data['sort'] = strtolower($filter_data['sort']);
         $data['order'] = strtolower($order);
 
@@ -151,7 +149,6 @@ class ProductController extends BackendController
         $data['sort_supplier_short_name'] = $route . "?sort=supplier_name&order=$order" .$url;
         $data['sort_quantity'] = $route . "?sort=quantity&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
-        
         return view('admin.inventory.product_list', $data);
     }
 
@@ -162,7 +159,7 @@ class ProductController extends BackendController
 
         // Languages
         $data['languages'] = $this->languageRepository->newModel()->active()->get();
-  
+
         $this->lang->text_form = empty($product_id) ? $this->lang->trans('text_add') : $this->lang->trans('text_edit');
 
         // Breadcomb
@@ -170,13 +167,13 @@ class ProductController extends BackendController
             'text' => $this->lang->text_home,
             'href' => route('lang.admin.dashboard'),
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->text_product,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
             'href' => route('lang.admin.inventory.products.index'),
@@ -232,34 +229,10 @@ class ProductController extends BackendController
             }
         }
         $data['product_translations'] = $product_translations;
-        
-
-        // product_categories
-		if ($product_id) {
-            $ids = $product->categories->pluck('id')->toArray();
-            if(!empty($ids)){
-                $cat_filters = [
-                    'whereIn' => ['id' => $ids],
-                    'pagination' => false
-                ];
-                $product_categories = $this->CategoryService->getRows($cat_filters);
-            
-                foreach ($product_categories as $category) {
-                    $data['product_categories'][] = (object)[
-                        'category_id' => $category->id,
-                        'name'        => $category->name,
-                    ];
-                }
-            }
-		}
-        
-        if(empty($data['product_categories'])) {
-			$data['product_categories'] = [];
-		}
 
         // 會計分類 product_accounting_category
         $data['accounting_categories'] = $this->ProductService->getCodeKeyedTermsByTaxonomyCode('product_accounting_category',toArray:false);
-        
+
         // 來源類型
         $data['source_type_codes'] = $this->ProductService->getCodeKeyedTermsByTaxonomyCode('product_source_type',toArray:false);
 
@@ -275,13 +248,13 @@ class ProductController extends BackendController
 
         // supplier_product
         $data['supplier_product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
-        
+
 
         // product_units & destination_units dropdown menu
         $product_units = $product->product_units;
-        
+
         $codes = [];
-        
+
         // 還沒設定任何單位轉換，選單只能出現庫存單位
         if(count($product_units) == 0 && !empty($product->stock_unit_code)){
             $codes[$product->stock_unit_code] = $product->stock_unit->name ?? '';
@@ -310,7 +283,6 @@ class ProductController extends BackendController
             ];
         }
 
-
         for ($i = 0; $i < 5; $i++) {
             if(!empty($product_units[$i])){
                 $product_unit = $product_units[$i];
@@ -321,6 +293,7 @@ class ProductController extends BackendController
                     'destination_unit_code' => $product_unit->destination_unit_code,
                     'destination_quantity' => $product_unit->destination_quantity,
                     'level' => $product_unit->level,
+                    'purchase_unit_status'=> $product_unit->purchase_unit_status
                 ];
             }else{
                 $new_product_units[$i] = (object) [
@@ -329,6 +302,7 @@ class ProductController extends BackendController
                     'destination_unit_code' => '',
                     'destination_quantity' => 0,
                     'level' => 0,
+                    'purchase_unit_status'=> 0
                 ];
             }
         }
@@ -341,7 +315,7 @@ class ProductController extends BackendController
             'limit' => 0,
         ];
         $data['units'] = $this->UnitRepository->getCodeKeyedActiveUnits($filter_data);
-
+        // dd($data);
         return view('admin.inventory.product_form', $data);
     }
 
@@ -349,9 +323,9 @@ class ProductController extends BackendController
     public function save()
     {
         $data = $this->request->all();
-        
+
         $json = [];
-        
+
         // Check
         foreach ($data['translations'] ?? [] as $locale => $translation) {
             if(empty($translation['name']) || mb_strlen($translation['name']) < 2){
@@ -392,7 +366,7 @@ class ProductController extends BackendController
                 }
             }
         }
-        
+
         return response(json_encode($json))->header('Content-Type','application/json');
     }
 
@@ -400,7 +374,7 @@ class ProductController extends BackendController
     public function autocomplete()
     {
         $url_queries = $this->request->query();
-        
+
         $json = [];
 
         // * 檢查錯誤
@@ -411,7 +385,7 @@ class ProductController extends BackendController
                 //檢查輸入字串是否包含注音符號
                 if (preg_match('/[\x{3105}-\x{3129}\x{02C7}]+/u', $value)) {
                     $json['error'] = '包含注音符號不允許查詢';
-                } 
+                }
             }
         }
 
@@ -464,13 +438,11 @@ class ProductController extends BackendController
             // product_units
             if(in_array('product_units', $with)){
                 $product_units = [];
-
                 if(!empty($product->product_units)){
                     $product_units = $product->product_units->keyBy('source_unit_code')->toArray();
-
                     data_forget($product_units, '*.source_unit');
                     data_forget($product_units, '*.destination_unit');
-                    
+
                     foreach ($product_units as $product_unit_key => $product_unit) {
                         $product_units[$product_unit_key] = $product_unit;
                     }
@@ -510,6 +482,6 @@ class ProductController extends BackendController
     public function exportInventoryProductList()
     {
         $post_data = request()->post();
-        return $this->ProductService->exportInventoryProductList($post_data); 
+        return $this->ProductService->exportInventoryProductList($post_data);
     }
 }

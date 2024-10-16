@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Route;
 // $route = Route::current();
 // $route = url()->current();
 // $path = request()->path();
-// echo '<pre>', print_r($path, 1), "</pre>"; exit;
 
 Route::group([
     'prefix' => config('app.admin_folder'),
@@ -60,27 +59,13 @@ Route::group(
                 'as' => 'catalog.',
             ], function ()
             {
+                //商品分類基本資料
                 Route::get('categories', 'Catalog\CategoryController@index')->name('categories.index');
                 Route::get('categories/list', 'Catalog\CategoryController@list')->name('categories.list');
                 Route::get('categories/form/{category_id?}', 'Catalog\CategoryController@form')->name('categories.form');
                 Route::post('categories/save/{category_id?}', 'Catalog\CategoryController@save')->name('categories.save');
                 Route::get('categories/autocomplete', 'Catalog\CategoryController@autocomplete')->name('categories.autocomplete');
-                Route::post('categories/delete', 'Catalog\CategoryController@delete')->name('categories.delete');
-
-                Route::get('tags', 'Catalog\TagController@index')->name('tags.index');
-                Route::get('tags/list', 'Catalog\TagController@list')->name('tags.list');
-                Route::get('tags/form/{category_id?}', 'Catalog\TagController@form')->name('tags.form');
-                Route::post('tags/save/{category_id?}', 'Catalog\TagController@save')->name('tags.save');
-                Route::get('tags/autocomplete', 'Catalog\TagController@autocomplete')->name('tags.autocomplete');
-                Route::post('tags/delete', 'Catalog\TagController@delete')->name('tags.delete');
-
-                //Route::get('main_category/autocomplete', 'Catalog\CategoryController@autocomplete')->name('categories.autocomplete');
-                Route::get('products', 'Catalog\ProductController@index')->name('products.index');
-                Route::get('products/form/{product_id?}', 'Catalog\ProductController@form')->name('products.form');
-                Route::get('products/list', 'Catalog\ProductController@list')->name('products.list');
-                Route::get('products/autocomplete', 'Catalog\ProductController@autocomplete')->name('products.autocomplete');
-                Route::post('products/save/{product_id?}', 'Catalog\ProductController@save')->name('products.save');
-                Route::post('products/delete', 'Catalog\ProductController@delete')->name('products.delete');
+                Route::post('categories/destroy', 'Catalog\CategoryController@destroy')->name('categories.destroy');
 
                 //選項基本資料
                 Route::get('options', 'Catalog\OptionController@index')->name('options.index');
@@ -88,8 +73,15 @@ Route::group(
                 Route::get('options/list', 'Catalog\OptionController@list')->name('options.list');
                 Route::get('options/autocomplete', 'Catalog\OptionController@autocomplete')->name('options.autocomplete');
                 Route::post('options/save', 'Catalog\OptionController@save')->name('options.save');
-                Route::post('options/delete', 'Catalog\OptionController@delete')->name('options.delete');
-                //Route::get('options/export', 'Catalog\OptionController@export')->name('options.export');
+                Route::post('options/destroy', 'Catalog\OptionController@destroy')->name('options.destroy');
+
+                //商品基本資料
+                Route::get('products', 'Catalog\ProductController@index')->name('products.index');
+                Route::get('products/form/{product_id?}', 'Catalog\ProductController@form')->name('products.form');
+                Route::get('products/list', 'Catalog\ProductController@list')->name('products.list');
+                Route::get('products/autocomplete', 'Catalog\ProductController@autocomplete')->name('products.autocomplete');
+                Route::post('products/save/{product_id?}', 'Catalog\ProductController@save')->name('products.save');
+                Route::post('products/destroy', 'Catalog\ProductController@destroy')->name('products.destroy');
             });
 
             Route::group([
@@ -97,16 +89,17 @@ Route::group(
                 'as' => 'sale.',
             ], function ()
             {
-                Route::get('tests', 'Sale\TestController@index')->name('tests.index');
+                //訂單
                 Route::get('orders', 'Sale\OrderController@index')->name('orders.index');
                 Route::get('orders/form/{order_id?}', 'Sale\OrderController@form')->name('orders.form');
                 Route::get('orders/list', 'Sale\OrderController@list')->name('orders.list');
                 Route::get('orders/autocomplete', 'Sale\OrderController@autocomplete')->name('orders.autocomplete');
                 Route::get('orders/autocompleteOrderTags', 'Sale\OrderController@autocompleteOrderTags')->name('orders.autocompleteOrderTags');
                 Route::post('orders/save', 'Sale\OrderController@save')->name('orders.save');
-                //Route::post('orders/copy', 'Sale\OrderController@copy')->name('orders.copy');
+
                 Route::get('orders/printOrderProducts/{order_id}', 'Sale\OrderController@printOrderProducts')->name('orders.printOrderProducts');
                 Route::get('orders/printReceiveForm/{order_id}', 'Sale\OrderController@printReceiveForm')->name('orders.printReceiveForm');
+                Route::get('orders/printReceiveFormA4/{orderIds}/{print_status}', 'Sale\OrderController@printReceiveFormA4')->name('orders.printReceiveFormA4');
                 Route::get('orders/getProductHtml', 'Sale\OrderController@getProductHtml')->name('orders.getProductHtml');
                 Route::get('orders/getProductDetailsHtml', 'Sale\OrderController@getProductDetailsHtml')->name('orders.getProductDetailsHtml');
                 Route::get('orders/getOrderCommentPhrase', 'Sale\OrderController@getOrderCommentPhrase')->name('orders.getOrderCommentPhrase');
@@ -124,7 +117,7 @@ Route::group(
                 Route::get('phrases/form/{product_id?}', 'Sale\PhraseController@form')->name('phrases.form');
                 Route::get('phrases/list', 'Sale\PhraseController@list')->name('phrases.list');
                 Route::post('phrases/save', 'Sale\PhraseController@save')->name('phrases.save');
-                Route::post('phrases/delete', 'Sale\PhraseController@delete')->name('phrases.delete');
+                Route::post('phrases/destroy', 'Sale\PhraseController@destroy')->name('phrases.destroy');
                 Route::get('phrases/autocomplete', 'Sale\PhraseController@autocomplete')->name('phrases.autocomplete');
 
 
@@ -138,10 +131,10 @@ Route::group(
                 Route::post('requisitions/setting/save', 'Sale\RequisitionController@settingSave')->name('requisitions.settingSave');
                 Route::post('requisitions/exportDailyList', 'Sale\RequisitionController@exportDailyList')->name('requisitions.exportDailyList');
                 Route::post('requisitions/exportMatrixList', 'Sale\RequisitionController@exportMatrixList')->name('requisitions.exportMatrixList');
-                
+
                 Route::get('requisitions/setting', 'Sale\RequisitionController@settingForm')->name('requisitions.setting');
                 Route::post('requisitions/setting/save', 'Sale\RequisitionController@settingSave')->name('requisitions.settingSave');
-                
+
             });
 
             Route::group([
@@ -169,7 +162,7 @@ Route::group(
                 Route::post('taxonomies/save', 'Common\TaxonomyController@save')->name('taxonomies.save');
                 Route::post('taxonomies/delete', 'Common\TaxonomyController@delete')->name('taxonomies.delete');
                 Route::get('taxonomies/autocomplete', 'Common\TaxonomyController@autocomplete')->name('taxonomies.autocomplete');
-                
+
                 //分類
                 Route::get('terms', 'Common\TermController@index')->name('terms.index');
                 Route::get('terms/list', 'Common\TermController@list')->name('terms.list');
@@ -177,13 +170,13 @@ Route::group(
                 Route::post('terms/save', 'Common\TermController@save')->name('terms.save');
                 Route::post('terms/delete', 'Common\TermController@delete')->name('terms.delete');
                 Route::get('terms/autocomplete', 'Common\TermController@autocomplete')->name('terms.autocomplete');
-                
+
                 //(收)付款條件
                 Route::get('payment_terms', 'Counterparty\PaymentTermController@index')->name('payment_terms.index');
                 Route::get('payment_terms/list', 'Counterparty\PaymentTermController@list')->name('payment_terms.list');
                 Route::get('payment_terms/form/{id?}', 'Counterparty\PaymentTermController@form')->name('payment_terms.form');
                 Route::post('payment_terms/save', 'Counterparty\PaymentTermController@save')->name('payment_terms.save');
-                Route::post('payment_terms/delete', 'Counterparty\PaymentTermController@delete')->name('payment_terms.delete');
+                Route::post('payment_terms/destroy', 'Counterparty\PaymentTermController@destroy')->name('payment_terms.destroy');
                 Route::get('payment_terms/autocomplete', 'Counterparty\PaymentTermController@autocomplete')->name('payment_terms.autocomplete');
 
             });
@@ -197,19 +190,19 @@ Route::group(
                 Route::get('warehouses/list', 'Inventory\WarehouseController@list')->name('warehouses.list');
                 Route::get('warehouses/form/{id?}', 'Inventory\WarehouseController@form')->name('warehouses.form');
                 Route::post('warehouses/save/{id?}', 'Inventory\WarehouseController@save')->name('warehouses.save');
-                Route::post('warehouses/delete', 'Inventory\WarehouseController@delete')->name('warehouses.delete');
-                
+                Route::post('warehouses/destroy', 'Inventory\WarehouseController@destroy')->name('warehouses.destroy');
+
                 Route::get('units', 'Inventory\UnitController@index')->name('units.index');
                 Route::get('units/list', 'Inventory\UnitController@list')->name('units.list');
                 Route::get('units/form/{id?}', 'Inventory\UnitController@form')->name('units.form');
                 Route::post('units/save/{id?}', 'Inventory\UnitController@save')->name('units.save');
-                Route::post('units/delete', 'Inventory\UnitController@delete')->name('units.delete');
+                Route::post('units/destroy', 'Inventory\UnitController@destroy')->name('units.destroy');
 
                 Route::get('categories', 'Inventory\CategoryController@index')->name('categories.index');
                 Route::get('categories/list', 'Inventory\CategoryController@list')->name('categories.list');
                 Route::get('categories/form/{id?}', 'Inventory\CategoryController@form')->name('categories.form');
                 Route::post('categories/save/{id?}', 'Inventory\CategoryController@save')->name('categories.save');
-                Route::post('categories/delete', 'Inventory\CategoryController@delete')->name('categories.delete');
+                Route::post('categories/destroy', 'Inventory\CategoryController@destroy')->name('categories.destroy');
                 Route::get('categories/autocomplete', 'Inventory\CategoryController@autocomplete')->name('categories.autocomplete');
 
                 Route::get('products', 'Inventory\ProductController@index')->name('products.index');
@@ -219,13 +212,14 @@ Route::group(
                 Route::post('products/delete', 'Inventory\ProductController@delete')->name('products.delete');
                 Route::get('products/autocomplete', 'Inventory\ProductController@autocomplete')->name('products.autocomplete');
                 Route::post('products/export_inventory_product_list', 'Inventory\ProductController@exportInventoryProductList')->name('products.export_inventory_product_list');
-                
+
                 Route::get('boms', 'Inventory\BomController@index')->name('boms.index');
                 Route::get('boms/list', 'Inventory\BomController@list')->name('boms.list');
                 Route::get('boms/form/{id?}', 'Inventory\BomController@form')->name('boms.form');
                 Route::post('boms/save/{id?}', 'Inventory\BomController@save')->name('boms.save');
                 Route::post('boms/delete', 'Inventory\BomController@delete')->name('boms.delete');
 
+                // 本來叫採購單，有人說改叫進貨單
                 // Route::get('purchasing', 'Inventory\PurchasingController@index')->name('purchasing.index');
                 // Route::get('purchasing/list', 'Inventory\PurchasingController@list')->name('purchasing.list');
                 // Route::get('purchasing/form/{id?}', 'Inventory\PurchasingController@form')->name('purchasing.form');
@@ -239,6 +233,7 @@ Route::group(
                 Route::post('receivings/save/{id?}', 'Inventory\ReceivingOrderController@save')->name('receivings.save');
                 Route::post('receivings/delete', 'Inventory\ReceivingOrderController@delete')->name('receivings.delete');
                 Route::get('receivings/autocomplete', 'Inventory\ReceivingOrderController@autocomplete')->name('receivings.autocomplete');
+               // Route::get('receivings/export01', 'Inventory\ReceivingOrderController@export01')->name('receivings.export01'); //測試使用
                 Route::post('receivings/export01', 'Inventory\ReceivingOrderController@export01')->name('receivings.export01');
                 Route::post('receivings/saveStatusCode', 'Inventory\ReceivingOrderController@saveStatusCode')->name('receivings.saveStatusCode');
 
@@ -297,7 +292,7 @@ Route::group(
                 Route::get('suppliers/list', 'Counterparty\SupplierController@list')->name('suppliers.list');
                 Route::get('suppliers/form/{id?}', 'Counterparty\SupplierController@form')->name('suppliers.form');
                 Route::post('suppliers/save/{id?}', 'Counterparty\SupplierController@save')->name('suppliers.save');
-                Route::post('suppliers/delete', 'Counterparty\SupplierController@delete')->name('suppliers.delete');
+                Route::post('suppliers/destroy', 'Counterparty\SupplierController@destroy')->name('suppliers.destroy');
                 Route::get('suppliers/autocomplete', 'Counterparty\SupplierController@autocomplete')->name('suppliers.autocomplete');
 
                 //金融機構
@@ -305,7 +300,7 @@ Route::group(
                 Route::get('banks/list', 'Counterparty\BankController@list')->name('banks.list');
                 Route::get('banks/form/{id?}', 'Counterparty\BankController@form')->name('banks.form');
                 Route::post('banks/save/{id?}', 'Counterparty\BankController@save')->name('banks.save');
-                Route::post('banks/delete', 'Counterparty\BankController@delete')->name('banks.delete');
+                Route::post('banks/destroy', 'Counterparty\BankController@destroy')->name('banks.destroy');
                 Route::get('banks/autocomplete', 'Counterparty\BankController@autocomplete')->name('banks.autocomplete');
             });
 
@@ -320,7 +315,13 @@ Route::group(
                 Route::get('members/autocomplete', 'Member\MemberController@autocomplete')->name('members.autocomplete');
                 Route::get('members/info/{member_id?}', 'Member\MemberController@info')->name('members.info');
                 Route::post('members/save/{member_id?}', 'Member\MemberController@save')->name('members.save');
-                Route::post('members/delete', 'Member\MemberController@delete')->name('members.delete');
+                Route::post('members/destroy', 'Member\MemberController@destroy')->name('members.destroy');
+
+                Route::post('members/support', 'Member\MemberController@supportList')->name('members.supports.list');
+
+
+
+
             });
 
             Route::group([
@@ -332,14 +333,14 @@ Route::group(
                 Route::get('locations/list', 'Setting\LocationController@list')->name('locations.list');
                 Route::get('locations/form/{location_id?}', 'Setting\LocationController@form')->name('locations.form');
                 Route::post('locations/save', 'Setting\LocationController@save')->name('locations.save');
-                Route::post('locations/delete', 'Setting\LocationController@delete')->name('locations.delete');
+                Route::post('locations/destroy', 'Setting\LocationController@destroy')->name('locations.destroy');
                 Route::get('locations/autocomplete', 'Setting\LocationController@autocomplete')->name('locations.autocomplete');
 
                 Route::get('settings', 'Setting\SettingController@index')->name('settings.index');
                 Route::get('settings/list', 'Setting\SettingController@list')->name('settings.list');
                 Route::get('settings/form/{setting_id?}', 'Setting\SettingController@form')->name('settings.form');
                 Route::post('settings/save', 'Setting\SettingController@save')->name('settings.save');
-                Route::post('settings/delete', 'Setting\SettingController@delete')->name('settings.delete');
+                Route::post('settings/destroy', 'Setting\SettingController@destroy')->name('settings.destroy');
 
                 Route::group([
                     'prefix' => 'user',
@@ -350,13 +351,8 @@ Route::group(
                     Route::get('users/form/{user_id?}', 'Setting\User\UserController@form')->name('users.form');
                     Route::get('users/list', 'Setting\User\UserController@list')->name('users.list');
                     Route::post('users/save/{user_id?}', 'Setting\User\UserController@save')->name('users.save');
-                    Route::post('users/delete', 'Setting\User\UserController@delete')->name('users.delete');
-    
-                    Route::get('permissions', 'Setting\Admin\PermissionController@index')->name('permissions.index');
-                    Route::get('permissions/form/{user_id?}', 'Setting\Admin\PermissionController@form')->name('permissions.form');
-                    Route::get('permissions/list', 'Setting\Admin\PermissionController@list')->name('permissions.list');
-                    Route::post('permissions/save/{user_id?}', 'Setting\Admin\PermissionController@save')->name('permissions.save');
-    
+                    Route::post('users/destroy', 'Setting\User\UserController@destroy')->name('users.destroy');
+
                 });
                 Route::group(['prefix' => 'maintenance', 'as' => 'maintenance.'], function (){
                     Route::group(['prefix' => 'tools', 'as' => 'tools.'], function (){

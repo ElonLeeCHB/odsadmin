@@ -29,9 +29,9 @@
       <div class="card-body">
 
         <div class="mb-3">
-          <label class="form-label">{{ $lang->column_keyname }}</label>
-          <input type="text" name="filter_keyname" value="{{ $filter_keyname ?? '' }}" placeholder="{{ $lang->column_keyname }}" id="input-keyname" list="list-keyname" class="form-control"/>
-          <datalist id="list-keyname"></datalist>
+          <label class="form-label">{{ $lang->column_keyword }}</label>
+          <input type="text" id="input-filter_keyword"  name="filter_keyword" value="{{ $filter_keyword ?? '' }}" placeholder="{{ $lang->column_keyword }}" list="list-keyword" class="form-control"/>
+          <datalist id="list-keyword"></datalist>
         </div>
 
         <div class="mb-3">
@@ -90,10 +90,10 @@ $('#user').on('click', 'thead a, .pagination a', function(e) {
 $('#button-filter').on('click', function() {
   url = '';
 
-  var filter_keyname = $('#input-keyname').val();
+  var filter_keyword = $('#input-filter_keyword').val();
 
-  if (filter_keyname) {
-    url += '&filter_keyname=' + encodeURIComponent(filter_keyname);
+  if (filter_keyword) {
+    url += '&filter_keyword=' + encodeURIComponent(filter_keyword);
   }
 
   var filter_phone = $('#input-phone').val();

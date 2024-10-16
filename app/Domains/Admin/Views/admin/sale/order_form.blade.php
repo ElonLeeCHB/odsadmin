@@ -6,7 +6,6 @@
 <link  href="{{ asset('assets/vendor/select2/select2.min.css') }}" rel="stylesheet" type="text/css"/>
 <script src="{{ asset('assets/vendor/select2/select2.min.js') }}"></script>
 <link  href="{{ asset('assets/stylesheet/path/sale/order_form.css') }}" rel="stylesheet" type="text/css"/>
-</style>
 @endsection
 
 @section('columnLeft')
@@ -18,7 +17,8 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
-        <a data-href="{{ $printReceiveForm }}" id="href-printReceiveForm"  target="_blank" data-bs-toggle="tooltip" title="列印訂單簽收單" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
+        <a data-href="{{ $printReceiveFormA4 }}" id="href-printReceiveFormA4"  target="_blank" data-bs-toggle="tooltip" title="列印訂單A4" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
+        <a data-href="{{ $printReceiveForm }}" id="href-printReceiveForm"  target="_blank" data-bs-toggle="tooltip" title="列印訂單" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
         <button type="submit" id="btn-save-order_form" form="form-order" data-bs-toggle="tooltip" title="{{ $lang->button_save }}" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
         <a href="{{ $back_url }}" id="href-save" data-bs-toggle="tooltip" title="{{ $lang->button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
       </div>
@@ -42,7 +42,7 @@
               <fieldset>
                 <div>
                   <table class="table table-bordered table-hover" id="table-order-header">
-                    <tbody>
+                    <tbody>                      
                       <tr>
                         <td class="col-md-1 text-end colname-font">訂購日期</td>
                         <td class="col-md-2">
@@ -90,7 +90,7 @@
                         <td class="col-md-1 text-end colname-font">地址簡稱</td>
                         <td class="col-md-2"><input type="text" id="input-shipping_road_abbr" name="shipping_road_abbr" value="{{ $order->shipping_road_abbr }}" class="form-control"></td>
                       </tr>
-
+                      
                       <tr>
                         <td class="col-md-1 text-end colname-font">訂購人</td>
                         <td class="col-md-2">
@@ -115,11 +115,11 @@
                         </td>
                         <td class="col-md-1 text-end colname-font">稱謂</td>
                         <td class="col-md-2">
-                          <select name="salutation_id" id="input-salutation_id" class="form-select">
+                          <select name="salutation_code" id="input-salutation_code" class="form-select">
                             <option value="">--</option>
-                              @foreach($salutations as $salutation)
-                                <option value="{{ $salutation->option_value_id }}" @if($member->salutation_id == $salutation->option_value_id) selected @endif>{{ $salutation->name  }}</option>
-                              @endforeach
+                            @foreach($salutations as $code => $salutation)
+                              <option value="{{ $code }}" @if($member->salutation_code == $code ) selected @endif>{{ $salutation->name }}</option>
+                            @endforeach
                           </select>
                         </td>
                         <td class="col-md-1 text-end colname-font">
@@ -138,12 +138,14 @@
                             <span id="span-hasOrder" style="color:red"></span>
                           </div>
                           <ul id="autocomplete-telephone" class="dropdown-menu"></ul>
-
-                       </td>
+                        </td>
                         <td class="col-md-1 text-end colname-font">公司分類</td>
                         <td class="col-md-2">
-                          <select id="input-order_tag" name="order_tag[]" class="select2-multiple form-control" multiple="multiple"></select>
-                          (暫時勿用)
+                          <select id="input-order_tags" name="order_tags[]" class="select2-multiple form-control" multiple="multiple">
+                            @foreach($order_tags as $order_tag)
+                            <option value="{{ $order_tag->term_id }}" selected>{{ $order_tag->name }}</option>
+                            @endforeach
+                          </select>
                         </td>
                       </tr>
 
@@ -264,18 +266,12 @@
               <fieldset>
                   <div>
                     <table class="table table-bordered table-hover" id="table-order-header">
-                      <tbody>
+                      <tbody>                      
                         <tr>
                           <td class="col-md-1 text-end colname-font">付款方式</td>
                           <td colspan="3">
                             <input type="radio" id="input-payment_method-cash" name="payment_method" value="cash" @if($order->payment_method=='cash') checked @endif>
                             <label for="input-payment_method-cash">現金</label>&nbsp;
-
-                            <input type="radio" id="input-payment_method-wire" name="payment_method" value="wire" @if($order->payment_method=='wire') checked @endif>
-                            <label for="input-payment_method-wire">轉帳</label>&nbsp;
-
-                            <input type="radio" id="input-payment_method-credit" name="payment_method" value="credit" @if($order->payment_method=='credit') checked @endif>
-                            <label for="input-payment_method-credit">信用卡</label>&nbsp;
 
                             <input type="radio" id="input-payment_method-debt" name="payment_method" value="debt" @if($order->payment_method=='debt') checked @endif>
                             <label for="input-payment_method-debt">記帳</label>&nbsp;
@@ -298,9 +294,9 @@
                         <tr>
                           <td class="col-md-1 text-end colname-font">付款狀況</td>
                           <td colspan="3">
-                            總金額：<input type="text" id="input-payment_total" value="{{ $order->payment_total }}" style="width:70px" readonly>&nbsp;&nbsp; &nbsp;&nbsp;
-                            已付金額： <input type="text" id="input-payment_paid" name="payment_paid" value="{{ $order->payment_paid }}" style="width:70px">&nbsp;&nbsp;
-                            未付餘額： <input type="text" id="input-payment_unpaid" name="payment_unpaid" value="{{ $order->payment_unpaid }}" style="width:70px" readonly >&nbsp;&nbsp;
+                            總金額：<input type="text" id="input-payment_total" name="payment_total" value="{{ number_format($order->payment_total ) }}" style="width:70px" readonly>&nbsp;&nbsp; &nbsp;&nbsp;
+                            已付金額： <input type="text" id="input-payment_paid" name="payment_paid" value="{{ number_format($order->payment_paid) }}" style="width:70px">&nbsp;&nbsp;
+                            未付餘額： <input type="text" id="input-payment_unpaid" name="payment_unpaid" value="{{ number_format($order->payment_unpaid) }}" style="width:70px" readonly >&nbsp;&nbsp;
                           </td>
                         </tr>
                       </tbody>
@@ -503,6 +499,17 @@ $('#href-printReceiveForm').on('click',function(e){
   }
   window.open(href);
 });
+//列印A4格式
+$('#href-printReceiveFormA4').on('click',function(e){
+  e.preventDefault();
+  var order_id = $('#input-order_id').val();
+  var href = $(this).data('href');
+  var current_order_id = href.match(/[^\/]*$/);
+  if(current_order_id == '%20' && $.isNumeric(order_id)){
+    href = href.replace('%20',order_id);
+  }
+  window.open(href);
+});
 
 //暫時不用
 /*
@@ -534,7 +541,7 @@ var shipping_city_id = {{ $order->shipping_city_id ?? 0 }}
 var payment_total = parseInt({{ $order->payment_total ?? 0 }})
     , payment_paid = parseInt({{ $order->payment_paid ?? 0 }})
     , payment_unpaid = parseInt({{ $order->payment_unpaid ?? 0 }})
-
+    
 $(document).on("change",'#input-nav_location_id', function(){
   var location_id = $(this).val();
   $('#input-location_id').val(location_id);
@@ -612,15 +619,7 @@ $(document).on("click",'.phrase', function(){
 });
 
 // 訂單標籤
-var orderTagBtnTxt = '   ';
-var qStr = '';
-
-//已存的訂單標籤
-@foreach($order_tag ?? [] as $tag)
-  $('.select2-multiple').append(new Option('{{ $tag }}','{{ $tag }}',true,true));
-@endforeach
-
-$('.select2-multiple').select2({
+$('#input-order_tags').select2({
   multiple: true,
   ajax: {
     url: "{{ route('lang.admin.sale.orders.autocompleteOrderTags') }}",
@@ -632,29 +631,32 @@ $('.select2-multiple').select2({
         };
       },
       processResults: function(data, params) {
-          return {
-            results: data.data,
-          };
+        return {
+          results: data.data.map(function(item) {
+            return { id: item.id, text: item.name };
+          }),
+        };
       },
       cache: true
   },
   // 設定顯示在下拉選單中的資料格式
   templateResult: function(item) {
-    return item.name;
+    return item.text;
   },
   // 設定選取項目後要顯示在選取框中的格式
   templateSelection: function(item) {
-    return item.name ?? '';
+    return item.text ?? '';
   }
 });
 
 //設定星期幾
-$("#input-delivery_date").on('change',function(){
+$("#input-delivery_date_ymd").on('focusout',function(){
   const d = new Date(this.value);
   let i = d.getDay();
   daystr = ["日","一","二","三","四","五","六"][i];
   $("#input-delivery_day_of_week").val(daystr);
 });
+$("#input-delivery_date_ymd").trigger('focusout');
 
 function isChineseInputCompleted(){
   return true
@@ -752,7 +754,7 @@ function setCustomerInfo(item){
   $('#input-personal_name').val(item.name);
   $('#input-customer_id').val(item.id);
   $('#input-customer').val(item.id+'_'+item.name);
-  $('#input-salutation_id').val(item.salutation_id);
+  $('#input-salutation_code').val(item.salutation_code);
   $('#input-telephone').val(item.telephone);
   $('#input-mobile').val(item.mobile);
   $('#input-email').val(item.email);
@@ -802,25 +804,14 @@ $('#input-payment_tin').autocomplete({
     }
   },
   select: function(event,ui) {
-    if(event.tax_id_num.length != 0){
-      $('#input-payment_company').val(event.label);
+    $('#input-payment_company').val(event.label);
+    $('#input-payment_company').prop('readonly', true);
+    $('#input-shipping_company').val(event.label);
 
     if(event.address_parts.after_road_section.length == 0){
         $('#input-original_address').val('目前無地址資料');
     }else{
-      if(confirm('是否覆蓋地址？')){
-        $('#input-shipping_road').val(event.address_parts.full_road_section);
-        $('#input-shipping_address1').val(event.address_parts.after_road_section);
-        $('#input-original_address').val(event.address_parts.address);
-        $("#input-shipping_state_id").val(event.address_parts.divsionL1_id);
-
-        $("#input-shipping_road").val(event.address_parts.road_section);
-
-        shipping_city_id = event.address_parts.divsionL2_id;
-        shipping_road = event.address_parts.full_road_section;
-
-        setShippingState(event.address_parts.divsionL1_id)
-      }
+      $('#input-original_address').val(event.address_parts.address);
     }
   }
 });
@@ -834,7 +825,7 @@ $('#a-payment_company').on('click', function(){
 function setShippingState(state_id){
   $.ajax({
       type:'get',
-      url: "{{ $cities_list_url }}?filter_parent_id=" + state_id,
+      url: "{{ $cities_list_url }}?equal_parent_id=" + state_id,
       success:function(json){
         html = '<option value=""> -- </option>';
 
@@ -940,7 +931,7 @@ function clearCustomer(){
   $('#input-shipping_company').val('');
   $('#input-shipping_personal_name').val('');
   $('#input-shipping_phone').val('');
-  $('#input-salutation_id').val('');
+  $('#input-salutation_code').val('');
 
   clearShippingAddress1();
 }
@@ -995,7 +986,7 @@ var product_row = {{ $product_row }};
 
 // 新增商品
 function addProduct(){
-
+  
   $.ajax({
     type:'get',
     dataType: 'html',
@@ -1124,7 +1115,7 @@ function calcProductMainMeal(this_product_row){
     }else if(ovid == '1047'){
       burrito_total_egg_veg += parseInt(qty); //蛋素
     }
-
+    
   });
 
   burrito_total_veg = burrito_total_pure_veg + burrito_total_egg_veg; //素食總和
@@ -1158,7 +1149,7 @@ function calcProductDrink(this_product_row){
     if($.isNumeric(qty) && qty > 0){
       drink_total += parseInt(qty); //全部
     }
-
+    
   });
 
   $('#input-product-'+this_product_row+'-drink_total').val(drink_total);

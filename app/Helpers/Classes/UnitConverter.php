@@ -6,11 +6,11 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * 2023-11-14
- * Ron Lee
+ * Ron Lee SB AKA SHIT MAKER
  */
 class UnitConverter
 {
-    protected $qty;
+    protected $fromQty;
     protected $fromUnit;
     protected $toUnit;
 
@@ -21,7 +21,7 @@ class UnitConverter
     protected $uc_column_source_unit_code = 'code';
     protected $uc_column_source_quantity = 'factor';
     protected $uc_column_destination_unit_code = 'base_unit_code';
-    
+
     // product unit conversion
     protected $product_id = '';
     protected $puc_table_name = 'product_units';
@@ -38,10 +38,10 @@ class UnitConverter
     {
         return new self();
     }
-    
-    public function qty($qty)
+
+    public function qty($fromQty)
     {
-        $this->qty = $qty;
+        $this->fromQty = $fromQty;
         return $this;
     }
 
@@ -68,60 +68,75 @@ class UnitConverter
         $standard_unit_codes = $this->getStandardUnitCodes();
 
         $qty = 0;
+        $toQty = 0;
 
-        if($this->fromUnit == $this->toUnit){
-            return $this->qty;
-        }
-
-        // all standard units
-        else if(in_array($this->fromUnit, $standard_unit_codes) && in_array($this->toUnit, $standard_unit_codes)){
-            $from = DB::table($this->uc_table_name)
-                        ->where($this->uc_column_source_unit_code, $this->fromUnit)
-                        ->where('is_standard', 1)
-                        ->first();
-    
-            $to = DB::table($this->uc_table_name)
-                        ->where($this->uc_column_source_unit_code, $this->toUnit)
-                        ->where('is_standard', 1)
-                        ->first();
-                        
-            $qty = $this->qty * $from->factor / $to->factor;
-        }
-
-
-        else if(!empty($this->product_id)){
-            $fromProductUnit = DB::table($this->puc_table_name)
-                            ->where($this->puc_column_product_id, $this->product_id)
-                            ->where($this->puc_column_source_unit_code, $this->fromUnit)
-                            ->first();
-
-            // 庫存單位 $fromProductUnit->destination_unit_code 就是目的單位 $this->toUnit
-            if($fromProductUnit->destination_unit_code == $this->toUnit){
-                $fromFactor = $fromProductUnit->{$this->puc_column_destination_quantity} / $fromProductUnit->{$this->puc_column_source_quantity};
-                $stock_quantity = $this->qty * $fromFactor;
-                $qty = $stock_quantity;
+        try{
+            if($this->fromUnit == $this->toUnit){
+                return $this->fromQty;
             }
-            
-            // 庫存單位 $fromProductUnit->destination_unit_code 不等於單位 $this->toUnit
-            // 另外找出目的單位的轉換記錄
-            else{
 
-                $toProductUnit = DB::table($this->puc_table_name)
+            // all standard units
+            else if(in_array($this->fromUnit, $standard_unit_codes) && in_array($this->toUnit, $standard_unit_codes)){
+                $from = DB::table($this->uc_table_name)
+                            ->where($this->uc_column_source_unit_code, $this->fromUnit)
+                            ->where('is_standard', 1)
+                            ->first();
+                            
+                $to = DB::table($this->uc_table_name)
+                            ->where($this->uc_column_source_unit_code, $this->toUnit)
+                            ->where('is_standard', 1)
+                            ->first();
+                // 基準單位必須相同
+                if($from->base_unit_code !== $to->base_unit_code){
+                    return ['error' => '單位的基準單位必須相同！來源單位：'.$this->fromUnit.', 基準單位：'.$from->base_unit_code.', 目的單位：'.$this->toUnit.', 基準單位：'.$to->base_unit_code];
+                }
+                $toQty = $this->fromQty * $from->factor / $to->factor;
+            }
+
+
+            else if(!empty($this->product_id)){
+                $productUnit = DB::table($this->puc_table_name)
                                 ->where($this->puc_column_product_id, $this->product_id)
-                                ->where($this->puc_column_source_unit_code, $this->toUnit)
+                                ->where($this->puc_column_source_unit_code, $this->fromUnit)
+                                ->where($this->puc_column_destination_unit_code, $this->toUnit)
                                 ->first();
 
-                if($fromProductUnit != null && $toProductUnit != null){
-                    $fromFactor = $fromProductUnit->{$this->puc_column_destination_quantity} / $fromProductUnit->{$this->puc_column_source_quantity};
-                    $toFactor = $toProductUnit->{$this->puc_column_destination_quantity} / $toProductUnit->{$this->puc_column_source_quantity};
-        
-                    $stock_quantity = $this->qty * $fromFactor;
-                    $qty = $stock_quantity / $toFactor;
+                if(empty($productUnit->destination_unit_code)){
+
+                    // find again if there is reverse product unit.
+                    $reverse_product_unit = DB::table($this->puc_table_name)
+                                        ->where($this->puc_column_product_id, $this->product_id)
+                                        ->where($this->puc_column_source_unit_code, $this->toUnit)
+                                        ->where($this->puc_column_destination_unit_code, $this->fromUnit)
+                                        ->first();
+
+                    //this is a shit
+                    // if(empty($productUnit->destination_unit_code)){
+                    //     throw new \Exception('沒有來源單位！ Product Id: ' . $this->product_id);
+                    // }
+
+                    // Reverse product unit exist.
+                    $productUnit = (object) [
+                        'product_id' => $reverse_product_unit->product_id,
+                        'source_unit_code' => $reverse_product_unit->destination_unit_code,
+                        'source_quantity' => $reverse_product_unit->destination_quantity,
+                        'destination_unit_code' => $reverse_product_unit->source_unit_code,
+                        'destination_quantity' => $reverse_product_unit->source_quantity,
+                        'factor' => $reverse_product_unit->source_quantity / $reverse_product_unit->destination_quantity,
+                    ];
                 }
+
+                if(!empty($productUnit)){
+                    $toQty = $this->fromQty * $productUnit->factor;
+                }
+                // this is shit from elonLee , AKA super boy
+
             }
+            return $toQty ;
+        } catch (\Exception $ex) {
+            return ['error' => $ex->getMessage()];
         }
 
-        return $qty;
     }
 
     private function getStandardUnitCodes()
