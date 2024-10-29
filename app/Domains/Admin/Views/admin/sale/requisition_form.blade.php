@@ -143,17 +143,17 @@
                             <td class="text-end">{{ $detail_row['delivery_time_range'] ?? '' }}</td>
                                                        <!-- <td class="text-end"><a href="{{ $detail_row['source_id_url'] }}" data-bs-toggle="tooltip" title="訂單連結" target="_blank">{{ $detail_row['order_code'] ?? '' }}</a></td> -->
                             <td class="text-end">
-    @if(isset($detail_row['source_id']))
-        <a href="{{env('APP_URL')}}/#/ordered/{{ $detail_row['source_id'] }}"
-           data-bs-toggle="tooltip"
-           title="訂單連結"
-           target="_blank">
-           {{ $detail_row['order_code']}}
-        </a>
-    @else
-        ''
-    @endif
-</td>
+                              @if(isset($detail_row['source_id']))
+                                  <a href="{{env('APP_URL')}}/#/ordered/{{ $detail_row['source_id'] }}"
+                                    data-bs-toggle="tooltip"
+                                    title="訂單連結"
+                                    target="_blank">
+                                    {{ $detail_row['order_code']}}
+                                  </a>
+                              @else
+                                  ''
+                              @endif
+                          </td>
 
                             <td class="text-end">{{ $detail_row['shipping_road_abbr'] }}</td>
                             @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)

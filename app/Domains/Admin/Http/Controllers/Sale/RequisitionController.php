@@ -235,6 +235,7 @@ class RequisitionController extends BackendController
         $data['requisitions']  = $requisitions ?? [];   
         $data['sales_saleable_product_ingredients'] = '';
         $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
+        //echo "<pre>",print_r($data['sales_ingredients_table_items'] ,true),"";
         return view('admin.sale.requisition_form', $data);
     }
     public function getRequisitionBurrito($date){

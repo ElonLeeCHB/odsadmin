@@ -210,6 +210,7 @@
                   <thead>
                     <tr>
                       <td class="text-left"></td>
+                      <td class="text-right"></td>
                       <td class="text-left">品名</td>
                       <td class="text-left">規格</td>
                       <td class="text-left" style="width:80px;"><label data-bs-toggle="tooltip" title="若要選擇不同單位，請先重新選擇料件" style="font-weight: bolder;" >進貨<BR>單位 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
@@ -222,11 +223,13 @@
                     </tr>
                   </thead>
                   <tbody>
+                    @php $product_i = 1; @endphp
                     @foreach($receiving_products as $receiving_product)
                     <tr id="product-row{{ $product_row }}" data-rownum="{{ $product_row }}">
                       <td class="text-start">
-                        <button type="button" onclick="$('#product-row{{ $product_row }}').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>
+                        <button type="button" data-toggle="tooltip" title="" class="btn btn-danger btn-delete-row" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>
                       </td>
+                      <td><span class="rowInd">{{ $product_i }}</span></td>
                       <td class="text-start" style="padding-left: 1px;">
                         <div class="container input-group col-sm-12" style="padding-left: 1px;">
                           <div class="col-sm-3">
@@ -271,12 +274,13 @@
                         <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">
                       </td>
                     </tr>
+                    @php $product_i++; @endphp
                     @php $product_row++; @endphp
                     @endforeach
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colspan="10" class="text-left">
+                      <td colspan="11" class="text-left">
                         <button type="button" onclick="addReceivingProduct()" data-toggle="tooltip" title="" class="btn btn-primary" data-original-title=""><i class="fa fa-plus-circle"></i></button>
                       </td>
                     </tr>
@@ -608,9 +612,13 @@ var product_row = {{ $product_row }};
 
 function addReceivingProduct(){
 
+  productInd = getMaxDataRowsInd() + 1;
+
   html = '<tr id="product-row'+product_row+'" data-rownum="'+product_row+'">';
   html += '  <td class="text-left">';
-  html += '    <button type="button" onclick="$(\'#product-row\').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>';
+  html += '    <button type="button" data-toggle="tooltip" title="" class="btn btn-danger btn-delete-row" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>';
+  html += '  </td>';
+  html += '  <td class="text-right"><span class="rowInd">'+ productInd +'</span>';
   html += '  </td>';
   html += '  <td class="text-left">';
 
@@ -670,7 +678,27 @@ function addReceivingProduct(){
 	product_row++;
 }
 
+$(document).on('click', '.btn-delete-row', function() {
+    $(this).closest('tr').remove(); // 刪除該列
+    reorderDataRowInd(); // 重新排序
+});
 
+
+function reorderDataRowInd() {
+    $('.rowInd').each(function(index) {
+        $(this).text(index + 1); // 重新設置為 1, 2, 3...
+    });
+}
+function getMaxDataRowsInd() {
+    let max = 0;
+    $('.rowInd').each(function() {
+        const num = parseInt($(this).text());
+        if (num > max) {
+            max = num;
+        }
+    });
+    return max;
+}
 </script>
 @endsection
 
