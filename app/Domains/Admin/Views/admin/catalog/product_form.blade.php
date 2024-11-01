@@ -215,7 +215,7 @@
                             <td class="text-left"><input type="text" name="product_bom[{{ $bom_row }}][item_name]" value="{{ $bom_product->name }}" placeholder="Item Name" id="input-product_name-{{ $bom_row }}" list="list-row-{{ $bom_row }}-name" class="form-control bom-product"/>
                             <datalist id="list-row-{{ $bom_row }}-name"></datalist>
                             </td>
-                            <td class="text-right"><input type="text" name="product_bom[{{ $bom_row }}][item_qty]" value="{{ $bom_product->pivot->quantity }}" placeholder="用量" class="form-control bom_item_qty isDecimal qtyDec-0" data-rel_wt_calculation="1" onchange="getGrossQty(0)"/></td>
+                            <td class="text-right"><input type="text" name="product_bom[{{ $bom_row }}][item_qty]" value="{{ optional($bom_product->pivot)->quantity ?? 0 }}" placeholder="用量" class="form-control bom_item_qty isDecimal qtyDec-0" data-rel_wt_calculation="1" onchange="getGrossQty(0)"/></td>
                             <td class="text-left"><button type="button" onclick="$('#bom-row-{{ $bom_row }}').remove();" data-toggle="tooltip" title="Remove" class="btn btn-danger"><i class="fa fa-minus-circle"></i></button></td>
                             </tr>    
                                                 

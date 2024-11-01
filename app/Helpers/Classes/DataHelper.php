@@ -3,6 +3,8 @@
 namespace App\Helpers\Classes;
 
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 class DataHelper
 {
@@ -13,7 +15,7 @@ class DataHelper
             $row = self::unsetArrayFromArray($row);
             $result[$key] = $row;
         }
-        
+
         return $result;
     }
 
@@ -25,7 +27,7 @@ class DataHelper
                 unset($data[$key]);
             }
         }
-        
+
         return $data;
     }
 
@@ -61,6 +63,64 @@ class DataHelper
         }
 
         return array_unique($result);
+    }
+
+
+    public static function toCleanObject($input, $keep_array = [])
+    {
+        $newarray = [];
+
+        if (is_object($input) && method_exists($input, 'toArray')) {
+            $newarray = $input->toArray();
+        }
+        else if (is_object($input) && method_exists($input, 'getAttributes')) {
+            $newarray = $input->getAttributes();
+        }
+        else if(is_array($input)){
+            $newarray = $input;
+        }else{
+            return [];
+        }
+
+        foreach($newarray as $key => $value){
+            if(is_array($value) && !in_array($key, $keep_array)){
+                unset($newarray[$key]);
+            }
+        }
+
+        return (object) $newarray;
+    }
+
+
+    public static function toCleanCollection($collection, $keep_array = [])
+    {
+        $result = [];
+
+        if(is_object($collection)){
+            if($collection instanceof LengthAwarePaginator){
+                $arrays = $collection->toArray()['data'];
+            }
+            else if (method_exists($collection, 'toArray')) {
+                $arrays = $collection->toArray();
+            }
+        }else if(is_array($collection)){
+            $arrays = $collection;
+        }
+
+        foreach($arrays as $key => $array){
+            $new_row = [];
+
+            foreach($array as $column => $value){
+
+                if(!is_array($value) || in_array($column, $keep_array)){
+                   $new_row[$column] = $value;
+                }
+            }
+
+            $result[$key] = (object) $new_row;
+        }
+
+        return $result;
     }
 
 
@@ -105,7 +165,7 @@ class DataHelper
 
         return null;
     }
-    
+
     public static function getJsonFromStoragNew($json_path, $toArray = false)
     {
         if (Storage::exists($json_path)) {
@@ -117,7 +177,7 @@ class DataHelper
         return null;
     }
 
-    
+
     public static function setJsonToStorage($json_path, $data)
     {
         if (Storage::exists($json_path)) {

@@ -50,10 +50,10 @@
                         <div id="error-required_date" class="invalid-feedback"></div>
                       </div>
                     </div>
-
+套餐數：{{ $allDay['packages'] }}, 盒餐：{{ $allDay['total_lunchbox'] }}, 便當：{{ $allDay['total_bento'] }}, 油飯盒：{{ $allDay['total_stickyrice'] }},
 <style>
 #tableContainer {
-  max-height: 700px; /* 设置表格容器的最大高度 */
+  max-height: 550px; /* 设置表格容器的最大高度 */
   overflow-y: auto; /* 启用垂直滚动条 */
   position: relative; /* 确保相对定位 */
 }
@@ -65,7 +65,6 @@
   z-index: 1; /* 使表头在上方 */
 }
 </style>
-<!-- 超讚 -->
 
                     <div class="table-responsive text-end mx-auto" id="tableContainer">
                       <table class="table table-bordered table-hover mx-auto">
@@ -88,13 +87,11 @@
                           </thead>
                         <tbody id="tbody_body_records">
                           <tr id="option-value-row-0">
-                            <td colspan="4">
-                            {{"全日潤餅數:"}} {{$total['total']}}  &nbsp;  
-                            全日統計</td>
+                            <td colspan="4">{{"全日6吋潤餅:"}} {{$allDay['total_6inch_lumpia']}}</td>
                             @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
-                              @if(!empty($requisitions['all_day']))
-                              @foreach($requisitions['all_day'] as $ingredient_product_id => $record)
+                              @if(!empty($allDay))
+                              @foreach($allDay as $ingredient_product_id => $record)
                                 @if($saleable_product_material_id == $ingredient_product_id)
                                   {{ $record['quantity'] }}
                                 @endif
@@ -104,13 +101,11 @@
                             @endforeach
                           </tr>
                           <tr id="option-value-row-0">
-                            <td colspan="4">
-                            {{"上午潤餅數:"}} {{$total['morning_total']}}  &nbsp;
-                            上午統計</td>
+                            <td colspan="4">{{"上午6吋潤餅:"}} {{$am['total_6inch_lumpia']}}</td>
                             @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
-                              @if(!empty($requisitions['am']))
-                              @foreach($requisitions['am'] as $ingredient_product_id => $record)
+                              @if(!empty($am))
+                              @foreach($am as $ingredient_product_id => $record)
                                 @if($saleable_product_material_id == $ingredient_product_id)
                                   {{ $record['quantity'] }}
                                 @endif
@@ -119,14 +114,12 @@
                             </td>
                             @endforeach
                           </tr>
-                          <tr id="option-value-row-0">
-                            <td colspan="4">
-                            {{"下午潤餅數:"}} {{$total['afternoon_total']}}  
-                              下午統計</td>
+                          <tr>
+                            <td colspan="4">{{"下午6吋潤餅:"}} {{$pm['total_6inch_lumpia']}}</td>
                             @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
                             <td>
-                              @if(!empty($requisitions['pm']))
-                              @foreach($requisitions['pm'] as $ingredient_product_id => $record)
+                              @if(!empty($pm))
+                              @foreach($pm as $ingredient_product_id => $record)
                                 @if($saleable_product_material_id == $ingredient_product_id)
                                   {{ $record['quantity'] }}
                                 @endif
@@ -135,10 +128,10 @@
                             </td>
                             @endforeach
                           </tr>
-                          @if(!empty($requisitions['details']))
-                          @foreach($requisitions['details'] as $key => $detail_row)
 
-                          <tr id="option-value-row-0">
+                          @if(!empty($orders))
+                          @foreach($orders as $key => $detail_row)
+                          <tr>
                             <td class="text-end">{{ $key+1 }}</td>
                             <td class="text-end">{{ $detail_row['delivery_time_range'] ?? '' }}</td>
                                                        <!-- <td class="text-end"><a href="{{ $detail_row['source_id_url'] }}" data-bs-toggle="tooltip" title="訂單連結" target="_blank">{{ $detail_row['order_code'] ?? '' }}</a></td> -->

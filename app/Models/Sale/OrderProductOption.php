@@ -4,9 +4,13 @@ namespace App\Models\Sale;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Sale\OrderProduct;
+use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductOptionValue;
 use App\Models\Catalog\ProductOption;
+use App\Models\Catalog\ProductTag;
 use App\Models\Catalog\Option;
+use App\Models\Common\Term;
+use App\Models\Catalog\OptionValue;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class OrderProductOption extends Model
@@ -46,6 +50,28 @@ ProductOptionValue
     public function product_option_value()
     {
         return $this->hasOne(ProductOptionValue::class, 'id', 'product_option_value_id');
+    }
+
+    public function optionValue()
+    {
+        return $this->belongsTo(OptionValue::class, 'option_value_id');
+    }
+
+    public function mapProduct()
+    {
+        return $this->belongsTo(Product::class, 'map_product_id');
+    }
+
+    public function mapProductTags()
+    {
+        return $this->hasManyThrough(
+            Term::class,          // 最終目標模型（Term）
+            ProductTag::class,    // 中介模型（ProductTag）
+            'product_id',         // ProductTag 表中的外鍵 (指向 map_product_id)
+            'id',                 // Term 表中的本地鍵
+            'map_product_id',     // OrderProductOption 表中的本地鍵 (指向 ProductTag 的 product_id)
+            'term_id'             // ProductTag 表中的外鍵 (指向 Term 的 id)
+        );
     }
 
 

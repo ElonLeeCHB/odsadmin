@@ -10,11 +10,16 @@ use App\Repositories\Eloquent\Inventory\RequirementRepository;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
 use App\Helpers\Classes\DateHelper;
 use App\Helpers\Classes\UnitConverter;
+use App\Models\Sale\OrderIngredient;
+use App\Models\Sale\OrderIngredientHour;
+use Illuminate\Support\Facades\DB;
+use App\Repositories\Eloquent\Sale\OrderRepository;
+use App\Repositories\Eloquent\Setting\SettingRepository;
 
 /**
- * Requisition 當備料表
- * Requirements 當需求表
- * 
+ * Requisition 備料表
+ * Requirements 需求表
+ *
  */
 class RequisitionService extends Service
 {
@@ -25,6 +30,7 @@ class RequisitionService extends Service
     , protected OrderIngredientRepository $OrderIngredientRepository
     , protected RequirementRepository $RequirementRepository
     , protected UnitRepository $UnitRepository
+    , protected OrderRepository $OrderRepository
     )
     {
         $this->repository = $OrderIngredientRepository;
@@ -33,7 +39,7 @@ class RequisitionService extends Service
     public function getIngredients($params, $debug = 0)
     {
         $params['with'] = DataHelper::addToArray('product.supplier', $params['with'] ?? []);
-        
+
         $ingredients = $this->OrderIngredientRepository->getIngredients($params, $debug);
 
         foreach ($ingredients as $row) {
@@ -58,7 +64,7 @@ class RequisitionService extends Service
         if($required_date == false){
             $json['error']['required_date'] = '日期錯誤';
         }
-        
+
         // 獲取備料表
         $params = [
             'equal_required_date' => $required_date,
@@ -112,13 +118,107 @@ class RequisitionService extends Service
                     $requirements[$sub_product_id]['usage_quantity'] += $usage_quantity;
                 }
             }
-            
+
             if(!empty($requirements)){
                 return $this->RequirementRepository->saveDailyRequirements($requirements);
             }
         }
 
-        return $json;        
+        return $json;
+    }
+
+    /**
+     * 抓取訂單資料，然後寫入資料表 order_ingredients
+     * 這個 function 應該很完美，不再需要任何調整。 2024-10-31
+     */
+    public function writeIngredientsToDbFromOrders($required_date, $orders)
+    {
+
+        try {
+            DB::beginTransaction();
+
+            $arr = [];
+
+            foreach ($orders ?? [] as $key1 => $order) {
+                foreach ($order->order_products as $key2 => $order_product) {
+                    foreach ($order_product->order_product_options as $key3 => $order_product_option) {
+
+                        //如果已不存在 product_option_value 則略過。這原因是商品基本資料已刪除某選項。但對舊訂單來說這會有問題。先略過。
+                        if(empty($order_product_option->product_option_value)){
+                            continue;
+                        }
+
+                        // 選項沒有對應的商品代號，略過
+                        if(empty($order_product_option->product_option_value->option_value)){
+                            continue;
+                        }
+
+                        // 選項本身所對應的料件
+                        $ingredient_product_id = $order_product_option->map_product_id ?? 0;
+                        $ingredient_product_name = $order_product_option->mapProduct->name ?? '';
+
+                        if(empty($ingredient_product_name)){
+                            continue;
+                        }
+
+                        if(empty($arr[$required_date][$order->id][$ingredient_product_id]['quantity'])){
+                            $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] = 0;
+                        }
+                        if(empty($arr[$required_date][$order->id][$ingredient_product_id]['original_quantity'])){
+                            $arr[$required_date][$order->id][$ingredient_product_id]['original_quantity'] = 0;
+                        }
+
+                        $arr[$required_date][$order->id][$ingredient_product_id]['required_date'] = $order->delivery_date;
+                        $arr[$required_date][$order->id][$ingredient_product_id]['delivery_time_range'] = $order->delivery_time_range;
+                        $arr[$required_date][$order->id][$ingredient_product_id]['product_id'] = $order_product->product_id;
+                        $arr[$required_date][$order->id][$ingredient_product_id]['product_name'] = $order_product->name;
+                        $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_id'] = $ingredient_product_id;
+                        $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_name'] = $ingredient_product_name;
+                        $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] += $order_product_option->quantity;
+                    }
+                }
+            }
+            // echo "<pre>",print_r($arr[$required_date][8000],true),"</pre>";exit;
+
+
+            $upsert_data = [];
+
+            foreach ($arr as $required_date => $rows1) {
+                foreach ($rows1 as $order_id => $rows2) {
+                    foreach ($rows2 as $ingredient_product_id => $row) {
+                        $upsert_data[] = [
+                            // 'required_date' => $required_date,
+                            'required_date' => $row['required_date'],
+                            'delivery_time_range' => $row['delivery_time_range'],
+                            'order_id' => $order_id,
+                            'ingredient_product_id' => $row['ingredient_product_id'],
+                            'ingredient_product_name' => $row['ingredient_product_name'],
+                            'quantity' => ceil($row['quantity']),
+                        ];
+                    }
+                }
+            }
+            OrderIngredient::where('required_date', $required_date)->delete();
+            OrderIngredient::upsert($upsert_data, ['order_id','ingredient_product_id']);
+
+            DB::commit();
+
+            return $upsert_data;
+
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ['error' => $ex->getMessage()];
+        }
+    }
+
+
+    public function getIngredientHoursByDate($required_date)
+    {
+        $rows = OrderIngredientHour::select('required_time', 'required_date', 'order_id', 'ingredient_product_id', 'ingredient_product_name', DB::raw('SUM(quantity) as quantity'))
+            ->groupBy('required_time', 'required_date', 'order_id', 'ingredient_product_id', 'ingredient_product_name')
+            ->where('required_date', $required_date)->get();
+
+        return $rows;
     }
 
 }

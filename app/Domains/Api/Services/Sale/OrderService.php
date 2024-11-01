@@ -50,7 +50,7 @@ class OrderService extends GlobalOrderService
                 $update_member_data = [
                     'name' => $data['personal_name'],
                     'salutation_code' => $data['salutation_code'] ?? 0,
-                    'salutation_id' => $data['salutation_id'] ?? 0, 
+                    'salutation_id' => $data['salutation_id'] ?? 0,
                     'mobile' => $mobile,
                     'telephone_prefix' => $data['telephone_prefix'] ?? '',
                     'telephone' => $telephone,
@@ -65,7 +65,7 @@ class OrderService extends GlobalOrderService
                     'shipping_road' => $data['shipping_road'] ?? '',
                     'shipping_address1' => $data['shipping_address1'] ?? '',
                     'shipping_address2' => $data['shipping_address2'] ?? '',
-                    'shipping_salutation_id' => $data['salutation_id'] ?? '', 
+                    'shipping_salutation_id' => $data['salutation_id'] ?? '',
                     'shipping_personal_name2' => $data['shipping_personal_name2'] ?? '',
                 ];
 
@@ -295,7 +295,7 @@ class OrderService extends GlobalOrderService
                 }
 
                 $update_order_product_options = [];
-                
+
                 foreach ($data['order_products'] as $form_order_product) {
                     $sort_order = $form_order_product['sort_order'];
                     $order_product = $db_order_products[$sort_order];
@@ -308,6 +308,11 @@ class OrderService extends GlobalOrderService
                             }
                             else if($product_option['type'] == 'options_with_qty'){
                                 foreach ( $product_option['product_option_values'] as $product_option_value) {
+
+                                    //便當已不使用豆干，但是官網下訂仍然會送來。先在這裡排除。以後改版要按照商品基本資料！
+                                    if(strpos($product_option_value['value'], '豆干') !== false && in_array($form_order_product['product_id'], [1001,1002,1003,1004,1050,1055,1080,1657,1658])){
+                                        continue;
+                                    }
 
                                     $product_option_value['quantity'] = str_replace(',', '', $product_option_value['quantity'] );
 

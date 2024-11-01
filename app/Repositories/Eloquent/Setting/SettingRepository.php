@@ -11,23 +11,31 @@ class SettingRepository
     use EloquentTrait;
 
     public $modelName = "\App\Models\Setting\Setting";
-    
 
-	public function getSetting($data)
+
+	public function getSettingValue($data, $debug = 0)
 	{
-        if(!empty($data['id'])){
-            $setting = $this->newModel()->find($data['id']);
-        }else{
-			$queries = [
-				'filter_orgination_id' => $data['orgination_id'],
-				'filter_group' => $data['group'],
-				'filter_key' => $data['key'],
-			];
-            $setting = $this->getRow($queries); // not yet
+        $data['pluck'] = 'setting_value';
+
+        $row = $this->getRow($data, $debug);
+
+        if(!empty($data['type'])){
+            if($data['type'] == 'CommaSeparated'){
+                $result = explode(',', $row);
+            }
         }
 
-        return $setting;
+        else{
+            $result = $row;
+        }
+
+        return $result;
 	}
+
+    public function resetQueryData($data)
+    {
+        return $data;
+    }
 
 
 	public function editSettings(array $postData, array $whereColumns, $updateColumns)
@@ -54,7 +62,7 @@ class SettingRepository
 
         return $result->setting_value;
     }
-    
+
 
 	public function save($data)
 	{
@@ -68,7 +76,7 @@ class SettingRepository
             }else{
                 return response(json_encode($result))->header('Content-Type','application/json');
             }
-			
+
 			$setting->location_id = $data['location_id'] ?? 0;
 			$setting->group = $data['group'];
 			$setting->setting_key = $data['setting_key'];
@@ -86,7 +94,7 @@ class SettingRepository
 			$setting->save();
 
             DB::commit();
-    
+
             return ['setting_id' => $setting->id];
         } catch (\Exception $ex) {
             DB::rollback();
@@ -99,9 +107,9 @@ class SettingRepository
     {
         try {
             DB::beginTransaction();
-    
+
             $result = Setting::whereIn('id', $ids)->delete();
-            
+
             DB::commit();
 
         } catch (\Exception $ex) {
