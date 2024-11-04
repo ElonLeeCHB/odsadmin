@@ -286,7 +286,7 @@ class OrderService extends GlobalOrderService
             if(!empty($data['order_products'])){
 
                 //重抓 order_product，需要 order_product_id
-                $tmprows = $this->OrderProductRepository->newModel()->where('order_id', $order->id)->orderBy('sort_order','ASC')->get();
+                $tmprows = $this->OrderProductRepository->newModel()->with('order_product_options.product_option_value')->where('order_id', $order->id)->orderBy('sort_order','ASC')->get();
 
                 if(!empty($tmprows)){
                     foreach ($tmprows as $tmprow) {
@@ -329,7 +329,6 @@ class OrderService extends GlobalOrderService
                                         'value'                     => $product_option_value['value'],
                                         'quantity'                  => $product_option_value['quantity'],
 
-                                        // 'product_option'
                                     ];
                                 }
 
@@ -342,6 +341,23 @@ class OrderService extends GlobalOrderService
                 if(!empty($update_order_product_options)){
                     OrderProductOption::upsert($update_order_product_options,['id']);
                     unset($update_order_product_options);
+
+                    $sql = "
+                        UPDATE order_product_options AS opo
+                        JOIN product_option_values AS pov ON opo.product_option_value_id = pov.id
+                        SET
+                            opo.option_id = pov.option_id,
+                            opo.option_value_id = pov.option_value_id;
+                        WHERE opo.order_id=" . $order->id;
+                    DB::statement($sql);
+
+                    $sql = "
+                        UPDATE order_product_options AS opo
+                        JOIN option_values AS ov ON opo.option_value_id = ov.id
+                        SET opo.map_product_id = ov.product_id;
+                        WHERE opo.order_id=" . $order->id;
+                    DB::statement($sql);
+
                 }
             }
 
