@@ -36,142 +36,147 @@
             <div class="tab-content">
               <div id="tab-general" class="tab-pane active">
 
-                  <fieldset>
+            @if(!empty($statics['allDay']))
+            <fieldset>
 
-                    <div class="row mb-3">
-                      <label for="input-required_date" class="col-sm-2 col-form-label">{{ $lang->column_required_date }}</label>
-                      <div class="col-sm-10">
-                        <div class="input-group">
-                          <input type="text" id="input-required_date" name="required_date" value="{{ $required_date }}" placeholder="{{ $lang->column_required_date }}" class="form-control date"/>
-                          <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
-                          <!-- <button type="button" id="btn-redirectToRequiredDate" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="查詢" >查詢</button> -->
-                          <button type="button" id="getDemandSource" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="重抓需求來源" onclick="calcOrders();">查詢更新</button>
-                        </div>
-                        <div id="error-required_date" class="invalid-feedback"></div>
-                      </div>
-                    </div>
-套餐數：{{ $allDay['packages'] }}, 盒餐：{{ $allDay['total_lunchbox'] }}, 便當：{{ $allDay['total_bento'] }}, 油飯盒：{{ $allDay['total_stickyrice'] }},
-<style>
-#tableContainer {
-  max-height: 550px; /* 设置表格容器的最大高度 */
-  overflow-y: auto; /* 启用垂直滚动条 */
-  position: relative; /* 确保相对定位 */
-}
+              <div class="row mb-3">
+                <label for="input-required_date" class="col-sm-2 col-form-label">{{ $lang->column_required_date }}</label>
+                <div class="col-sm-10">
+                  <div class="input-group">
+                    <input type="text" id="input-required_date" name="required_date" value="{{ $required_date }}" placeholder="{{ $lang->column_required_date }}" class="form-control date"/>
+                    <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
+                    <button type="button" id="btn-redirectToRequiredDate" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="查詢" >查詢</button> &nbsp;
+                    <button type="button" id="getDemandSource" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="重抓需求來源" onclick="calcOrders();">強制更新</button>
+                  </div>
+                  <div id="error-required_date" class="invalid-feedback"></div>
+                </div>
+              </div>
 
-#tableContainer thead {
-  background-color: #f2f2f2; /* 可选：设置表头的背景颜色 */
-  position: sticky;
-  top: 0; /* 表头初始位置在顶部 */
-  z-index: 1; /* 使表头在上方 */
-}
-</style>
+              <strong>需求日期： {{ $statics['required_date'] ?? ''}}</strong> <BR>
+              上次更新時間： {{ $statics['cache_created_at'] ?? '' }} <BR>
+              套餐數：{{ $statics['allDay']['packages'] }}, 盒餐：{{ $statics['allDay']['total_lunchbox'] }}, 便當：{{ $statics['allDay']['total_bento'] }}, 油飯盒：{{ $statics['allDay']['total_stickyrice'] }},
+              <style>
+              #tableContainer {
+                max-height: 550px; /* 设置表格容器的最大高度 */
+                overflow-y: auto; /* 启用垂直滚动条 */
+                position: relative; /* 确保相对定位 */
+              }
 
-                    <div class="table-responsive text-end mx-auto" id="tableContainer">
-                      <table class="table table-bordered table-hover mx-auto">
+              #tableContainer thead {
+                background-color: #f2f2f2; /* 可选：设置表头的背景颜色 */
+                position: sticky;
+                top: 0; /* 表头初始位置在顶部 */
+                z-index: 1; /* 使表头在上方 */
+              }
+              </style>
 
-                        <thead>
-                          <tr>
-                          <td class="text-start"> </td>
-                            <td class="text-start">時間</td>
-                            <td class="text-start">訂單編號<BR>(末4碼)</td>
-                            <td class="text-end">地址簡稱</td>
-                            @foreach($sales_ingredients_table_items as $name)
-                              <?php
-                              $characters = mb_str_split($name);
-                              $new_name = implode('<BR>', $characters);
-                              ?>
-                            <td style="width:30px;">{!! $new_name !!}</td>
-                            @endforeach
-                          </tr>
+              <div class="table-responsive text-end mx-auto" id="tableContainer">
+                <table class="table table-bordered table-hover mx-auto">
 
-                          </thead>
-                        <tbody id="tbody_body_records">
-                          <tr id="option-value-row-0">
-                            <td colspan="4">{{"全日6吋潤餅:"}} {{$allDay['total_6inch_lumpia']}}</td>
-                            @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
-                            <td>
-                              @if(!empty($allDay))
-                              @foreach($allDay as $ingredient_product_id => $record)
-                                @if($saleable_product_material_id == $ingredient_product_id)
-                                  {{ $record['quantity'] }}
-                                @endif
-                              @endforeach
-                              @endif
-                            </td>
-                            @endforeach
-                          </tr>
-                          <tr id="option-value-row-0">
-                            <td colspan="4">{{"上午6吋潤餅:"}} {{$am['total_6inch_lumpia']}}</td>
-                            @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
-                            <td>
-                              @if(!empty($am))
-                              @foreach($am as $ingredient_product_id => $record)
-                                @if($saleable_product_material_id == $ingredient_product_id)
-                                  {{ $record['quantity'] }}
-                                @endif
-                              @endforeach
-                              @endif
-                            </td>
-                            @endforeach
-                          </tr>
-                          <tr>
-                            <td colspan="4">{{"下午6吋潤餅:"}} {{$pm['total_6inch_lumpia']}}</td>
-                            @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
-                            <td>
-                              @if(!empty($pm))
-                              @foreach($pm as $ingredient_product_id => $record)
-                                @if($saleable_product_material_id == $ingredient_product_id)
-                                  {{ $record['quantity'] }}
-                                @endif
-                              @endforeach
-                              @endif
-                            </td>
-                            @endforeach
-                          </tr>
+                  <thead>
+                    <tr>
+                    <td class="text-start"> </td>
+                      <td class="text-start">時間</td>
+                      <td class="text-start">訂單編號<BR>(末4碼)</td>
+                      <td class="text-end">地址簡稱</td>
+                      @foreach($sales_ingredients_table_items as $name)
+                        <?php
+                        $characters = mb_str_split($name);
+                        $new_name = implode('<BR>', $characters);
+                        ?>
+                      <td style="width:30px;">{!! $new_name !!}</td>
+                      @endforeach
+                    </tr>
 
-                          @if(!empty($orders))
-                          @foreach($orders as $key => $detail_row)
-                          <tr>
-                            <td class="text-end">{{ $key+1 }}</td>
-                            <td class="text-end">{{ $detail_row['delivery_time_range'] ?? '' }}</td>
-                                                       <!-- <td class="text-end"><a href="{{ $detail_row['source_id_url'] }}" data-bs-toggle="tooltip" title="訂單連結" target="_blank">{{ $detail_row['order_code'] ?? '' }}</a></td> -->
-                            <td class="text-end">
-                              @if(isset($detail_row['source_id']))
-                                  <a href="{{env('APP_URL')}}/#/ordered/{{ $detail_row['source_id'] }}"
-                                    data-bs-toggle="tooltip"
-                                    title="訂單連結"
-                                    target="_blank">
-                                    {{ $detail_row['order_code']}}
-                                  </a>
-                              @else
-                                  ''
-                              @endif
-                          </td>
-
-                            <td class="text-end">{{ $detail_row['shipping_road_abbr'] }}</td>
-                            @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
-                            <td>
-                                {{ $detail_row['items'][$saleable_product_material_id]['quantity'] ?? ''}}
-                            </td>
-                            @endforeach
-                          </tr>
-                          @endforeach
+                    </thead>
+                  <tbody id="tbody_body_records">
+                    <tr id="option-value-row-0">
+                      <td colspan="4" class="text-start">{{"全日6吋潤餅:"}} {{$statics['allDay']['total_6inch_lumpia']}}</td>
+                      @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
+                      <td>
+                        @if(!empty($statics['allDay']))
+                        @foreach($statics['allDay'] as $ingredient_product_id => $record)
+                          @if($saleable_product_material_id == $ingredient_product_id)
+                            {{ $record['quantity'] }}
                           @endif
+                        @endforeach
+                        @endif
+                      </td>
+                      @endforeach
+                    </tr>
+                    <tr id="option-value-row-0">
+                      <td colspan="4" class="text-start">{{"上午6吋潤餅:"}} {{$statics['am']['total_6inch_lumpia']}}</td>
+                      @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
+                      <td>
+                        @if(!empty($statics['am']))
+                        @foreach($statics['am'] as $ingredient_product_id => $record)
+                          @if($saleable_product_material_id == $ingredient_product_id)
+                            {{ $record['quantity'] }}
+                          @endif
+                        @endforeach
+                        @endif
+                      </td>
+                      @endforeach
+                    </tr>
+                    <tr>
+                      <td colspan="4" class="text-start">{{"下午6吋潤餅:"}} {{$statics['pm']['total_6inch_lumpia']}}</td>
+                      @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
+                      <td>
+                        @if(!empty($statics['pm']))
+                        @foreach($statics['pm'] as $ingredient_product_id => $record)
+                          @if($saleable_product_material_id == $ingredient_product_id)
+                            {{ $record['quantity'] }}
+                          @endif
+                        @endforeach
+                        @endif
+                      </td>
+                      @endforeach
+                    </tr>
 
-                          @php
-                              $columns = 4 + count($sales_ingredients_table_items);
-                            @endphp
-                          @for($i=0; $i<20; $i++)
-                          <tr>
-                            <td colspan="{{ $columns }}">&nbsp;&nbsp;</td>
-                          </tr>
-                          @endfor
-                        </tbody>
-                      </table>
-                    </div>
+                    @if(!empty($statics['orders']))
+                    @foreach($statics['orders'] as $key => $detail_row)
+                    <tr>
+                      <td class="text-end">{{ $key+1 }}</td>
+                      <td class="text-end">{{ $detail_row['delivery_time_range'] ?? '' }}</td>
+                                                  <!-- <td class="text-end"><a href="{{ $detail_row['source_id_url'] }}" data-bs-toggle="tooltip" title="訂單連結" target="_blank">{{ $detail_row['order_code'] ?? '' }}</a></td> -->
+                      <td class="text-end">
+                        @if(isset($detail_row['source_id']))
+                            <a href="{{env('APP_URL')}}/#/ordered/{{ $detail_row['source_id'] }}"
+                              data-bs-toggle="tooltip"
+                              title="訂單連結"
+                              target="_blank">
+                              {{ $detail_row['order_code']}}
+                            </a>
+                        @else
+                            ''
+                        @endif
+                    </td>
+
+                      <td class="text-end">{{ $detail_row['shipping_road_abbr'] }}</td>
+                      @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
+                      <td>
+                          {{ $detail_row['items'][$saleable_product_material_id]['quantity'] ?? ''}}
+                      </td>
+                      @endforeach
+                    </tr>
+                    @endforeach
+                    @endif
+
+                    @php
+                        $columns = 4 + count($sales_ingredients_table_items);
+                      @endphp
+                    @for($i=0; $i<20; $i++)
+                    <tr>
+                      <td colspan="{{ $columns }}">&nbsp;&nbsp;</td>
+                    </tr>
+                    @endfor
+                  </tbody>
+                </table>
+              </div>
 
 
-                  </fieldset>
+            </fieldset>
+            @endif
               </div>
               <input type="hidden" id="input-location_id" name="location_id" value="0" >
             </form>

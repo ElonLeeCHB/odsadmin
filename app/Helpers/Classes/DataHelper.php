@@ -190,4 +190,24 @@ class DataHelper
         return true;
     }
 
+    public static function getSqlContent(Builder $builder)
+    {
+        $addSlashes = str_replace('?', "'?'", $builder->toSql());
+
+        $bindings = $builder->getBindings();
+
+        if(!empty($bindings)){
+            $arr['statement'] = vsprintf(str_replace('?', '%s', $addSlashes), $builder->getBindings());
+        }else{
+            $arr['statement'] = $builder->toSql();
+        }
+
+
+        $arr['original'] = [
+            'toSql' => $builder->toSql(),
+            'bidings' => $builder->getBindings(),
+        ];
+
+        echo "<pre>".print_r($arr , 1)."</pre>"; exit;
+    }
 }

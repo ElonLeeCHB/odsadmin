@@ -4,6 +4,55 @@ namespace App\Helpers\Classes;
 
 class DateHelper
 {
+    /**
+     * 解析日期，取得合法的日期字串
+     * 可以輸入兩碼西元年加上月日，可以有橫線或斜線
+     * 例如 20240101, 240101, 2024-01-01, 24-01-01
+     *
+     * @param string $dateStr
+     * @return string
+     */
+    public static function parse($dateStr)
+    {
+        //連續數字: 20231201, 231201
+        if(is_numeric($dateStr)){
+            if(strlen($dateStr) == 6){
+                $date = \DateTime::createFromFormat('ymd', $dateStr);
+                $dateYmd = $date->format('Y-m-d');
+            }
+            else if(strlen($dateStr) == 8){
+                $date = \DateTime::createFromFormat('Ymd', $dateStr);
+                $dateYmd = $date->format('Y-m-d');
+            }
+        }
+
+        //有斜線或橫線: 2023-12-01, 23-12-01
+        else{
+            $dateStr = str_replace('/', '',$dateStr);
+            $dateStr = str_replace('-', '',$dateStr);
+
+            //2023-12-01, 23-12-01
+            if(strlen($dateStr) == 6){
+                $date = \DateTime::createFromFormat('ymd', $dateStr);
+            }
+            else if(strlen($dateStr) == 8){
+                $date = \DateTime::createFromFormat('Ymd', $dateStr);
+            }
+            else if(strlen($dateStr) == 10){
+                // do nothing.
+            }
+
+            $dateYmd = $date->format('Y-m-d');
+        }
+
+        $validDateString = date('Y-m-d', strtotime($dateYmd));
+
+        if($validDateString == $dateYmd){
+            return $dateYmd;
+        }
+
+        return false;
+    }
 
     /**
      * 2023-11-13
@@ -13,7 +62,7 @@ class DateHelper
         if(strlen($dateString) > 10){
             return ['error' => 'datestring too long!'];
         }
-        
+
         if(preg_match('/(^\d{2,4}-\d{2}-\d{2}$)/', $dateString, $matches)){ //2023-05-01
             $arr = explode('-', $dateString);
             $date_year = $arr[0] < 2000 ? $arr[0]+2000 : $arr[0];
@@ -68,7 +117,7 @@ class DateHelper
                 $date2_year = substr($arr[1], 0, -4);
                 if($date2_year < 2000){
                     $date2_year += 2000;
-                }      
+                }
 
                 $date1String = $date1_year . '-' . substr($arr[0], -4, -2) . '-' . substr($arr[0], -2);
                 $date2String = $date2_year . '-' . substr($arr[1], -4, -2) . '-' . substr($arr[1], -2);
@@ -143,7 +192,7 @@ class DateHelper
             $dateString = implode('', $matches[0]);
             $date2ymd = substr($dateString, -6);
         }
-        
+
         if(!empty($date2ymd)){
             return $date2ymd;
         }else{
@@ -151,13 +200,75 @@ class DateHelper
         }
     }
 
-    public static function xxparseDiffDays($start, $end){
+    /**
+     * 20231201-20231231
+     * 231201-231231
+     * 2023-12-01-2023-12-31
+     * 23-05-01-23-12-31
+     *
+     * 20231201-
+     * -231231
+     * 2023-12-01-
+     * -23-12-31
+     */
+    public static function parseDateToSqlWhere($column, $dateStr)
+    {
+        $dateStr = trim($dateStr);
 
-        $start_timestamp = strtotime($start);
-        $end_timestamp = strtotime($end);
+        $arr = explode('-', $dateStr);
 
-        $days_diff = ceil(($start_timestamp - $end_timestamp) / (60 * 60 * 24));
+        //20231201-20231231, 231201-231231
+        if(count($arr) == 2 && !empty($arr[0]) && !empty($arr[1])){
+            $startYmd = self::parse($arr[0]);
+            $endYmd = self::parse($arr[1]);
+        }
+        //2023-12-01-2023-12-31, 23-05-01-23-12-31
+        else if(count($arr) == 6){
+            $startYmd = $arr[0] . $arr[1] . $arr[2];
+            $startYmd = self::parse($startYmd);
 
-        return $days_diff;
+            $endYmd = $arr[3] . $arr[4] . $arr[5];
+            $endYmd = self::parse($endYmd);
+        }
+        //2023-12-01-, 23-05-01-, 20231201-, 231201-
+        else if (substr($dateStr, -1) === '-') {
+            $startYmd = rtrim($dateStr, '-');
+            $startYmd = self::parse($startYmd);
+        }
+        //-2023-12-01, -23-05-01, -20231201, -231201
+        else if(str_starts_with($dateStr, '-')){
+            $endYmd = ltrim($dateStr, '-');
+            $endYmd = self::parse($endYmd);
+        }
+        //2023-12-01, 23-05-01
+        else if(count($arr) == 3){
+            $singleYmd = $arr[0] . $arr[1] . $arr[2];
+            $singleYmd = self::parse($singleYmd);
+        }
+        //20231201, 230501
+        else if(is_numeric($dateStr)){
+            $singleYmd = self::parse($dateStr);
+        }
+
+        // 日期區間
+        if(!empty($startYmd) && !empty($endYmd)){
+            return "`$column` BETWEEN '$startYmd' AND '$endYmd'";
+        }
+        // 只有開始日期
+        else if(!empty($startYmd) && empty($endYmd)){
+            return "`$column` >= '$startYmd'";
+        }
+        // 只有結束日期
+        else if(empty($startYmd) && !empty($endYmd)){
+            return "`$column` <= '$endYmd'";
+        }
+        // 只有單一日期
+        else if(!empty($singleYmd)){
+            $newDate = new \DateTime($singleYmd);
+            $newDateYmd = $newDate->modify('+1 day')->format('Y-m-d');
+            return "$column >= '$singleYmd' AND $column < '$newDateYmd'";
+        }
+
+        return false;
     }
 }

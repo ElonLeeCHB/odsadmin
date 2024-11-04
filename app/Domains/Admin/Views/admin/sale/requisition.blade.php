@@ -14,7 +14,7 @@
       <div class="float-end">
         <button type="button" id="btn-export_daily_list" data-bs-toggle="tooltip" data-loading-text="Loading..." title="下載備料表" class="btn btn-info" aria-label="下載備料表"><i class="fas fa-file-export"></i></button>
         <button type="button" id="btn-export_matrix_list" data-bs-toggle="tooltip" data-loading-text="Loading..." title="下載備料表(距陣式)" class="btn btn-info" aria-label="下載備料表(距陣式)"><i class="fas fa-file-export"></i></button>
-        <a href="{{ $add_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i></a>
+        <a href="{{ $add_url }}" data-bs-toggle="tooltip" title="日報表" class="btn btn-primary"><i class="fa-solid fa-list"></i></a>
         <button type="button" data-bs-toggle="tooltip" title="{{ $lang->button_filter }}" onclick="$('#filter-form').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fa-solid fa-filter"></i></button>
 
       </div>
@@ -34,7 +34,7 @@
                   <label data-bs-toggle="tooltip" title="例如：2023-02-20 或不加橫線 20230220 或範圍 20230301-20230331 或大於某日 >20230101 或小於某日 <20230101" style="font-weight: bolder;" >{{ $lang->column_required_date }} <i class="fa fa-question-circle" aria-hidden="true"></i></label>
                   <input type="text" id="input-filter_required_date" name="filter_required_date" value="" placeholder="例如 2023-02-20" class="form-control"/>
               </div>
-              
+
               <div class="mb-3">
                 <label class="form-label">未來七天</label>
                 <select name="equal_within7days" id="input-equal_within7days" class="form-select">
@@ -81,9 +81,9 @@
       </div>
       <div class="modal-body">
         <div class="loadingdiv" id="loading" style="display: block;">
-          <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>     
+          <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>
         </div>
-        
+
       </div>
     </div>
   </div>
@@ -110,7 +110,7 @@ $('#button-filter').on('click', function() {
   if (equal_within7days) {
     url += '&equal_within7days=' + encodeURIComponent(equal_within7days);
   }
-  
+
   var equal_product_id = $('#input-equal_product_id').val();
   if (equal_product_id) {
     url += '&equal_product_id=' + encodeURIComponent(equal_product_id);
@@ -125,7 +125,7 @@ $('#button-filter').on('click', function() {
 	if (equal_days_before) {
 		url += '&equal_days_before=' + encodeURIComponent(equal_days_before);
 	}
-  
+
 	list_url = "{{ $list_url }}" + url;
 
 	$('#ingredient').load(list_url);

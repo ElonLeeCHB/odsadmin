@@ -64,7 +64,7 @@ return new class extends Migration
             $table->integer('sort_order')->default('0');
             $table->boolean('is_active')->default('1');
             $table->boolean('is_fixed')->default('0');
-            $table->boolean('is_hidden')->default('0');            
+            $table->boolean('is_hidden')->default('0');
             $table->timestamps();
         });
 
@@ -106,7 +106,11 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        
+        Schema::create('product_tags', function (Blueprint $table) {
+            $table->unsignedBigInteger('product_id');
+            $table->unsignedBigInteger('term_id');
+            $table->primary(['product_id', 'term_id']);
+        });
     }
 
     /**
@@ -116,8 +120,9 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('product_unit_conversions');
+        Schema::dropIfExists('product_tags');
         Schema::dropIfExists('product_boms');
+        Schema::dropIfExists('product_units');
         Schema::dropIfExists('product_option_values');
         Schema::dropIfExists('product_options');
         Schema::dropIfExists('product_translations');

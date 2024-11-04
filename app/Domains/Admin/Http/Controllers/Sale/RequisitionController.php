@@ -10,7 +10,6 @@ use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Setting\SettingRepository;
-use App\Models\Sale\OrderIngredient;
 use App\Models\Sale\OrderIngredientHour;
 use App\Models\Setting\Setting;
 use App\Domains\Admin\Services\Sale\RequisitionService;
@@ -21,6 +20,7 @@ class RequisitionController extends BackendController
 {
     private $required_date;
     private $required_date_2ymd;
+    private $today_2ymd;
 
     public function __construct(
         private Request $request,
@@ -33,6 +33,13 @@ class RequisitionController extends BackendController
         parent::__construct();
 
         $this->getLang(['admin/common/common','admin/sale/requisition']);
+    }
+
+    /**
+     * 在 __construct() 之後執行
+     */
+    public function init()
+    {
     }
 
 
@@ -62,7 +69,9 @@ class RequisitionController extends BackendController
         $data['list'] = $this->getList();
 
         $data['list_url'] = route('lang.admin.sale.requisitions.list');
-        $data['add_url'] = route('lang.admin.sale.requisitions.form');
+
+        $required_date_2ymd = parseDateStringTo6d(date('Y-m-d'));
+        $data['add_url'] = route('lang.admin.sale.requisitions.form', $required_date_2ymd);
 
         $data['export_daily_list_url'] = route('lang.admin.sale.requisitions.exportDailyList');
         $data['export_matrix_list_url'] = route('lang.admin.sale.requisitions.exportMatrixList');
@@ -184,215 +193,13 @@ class RequisitionController extends BackendController
         $data['back_url'] = route('lang.admin.sale.requisitions.index');
         $data['calc_url'] = '';
 
-        //獲取訂單
-        $required_date = parseDate($required_date);
-        $required_date_2ymd = parseDateStringTo6d($required_date);
+        $data['statics'] = $this->RequisitionService->getOrderIngredients($required_date);
+        $data['statics']['required_date'] = $required_date;
 
-        $requiredDateRawSql = $this->OrderRepository->parseDateToSqlWhere('delivery_date', $required_date);
-
-        if(empty($requiredDateRawSql)){
-            return false;
-        }
-
-        //需要備料的訂單狀態代號
-        $temp_row = (new SettingRepository)->getRow(['equal_setting_key' => 'sales_orders_to_be_prepared_status']);
-        $sales_orders_to_be_prepared_status = $temp_row->setting_value; // 必須是陣列
-
-        //訂單
-        $filter_data = [
-            'with' => [ 'order_products.order_product_options.mapProductTags',
-                        'order_products.order_product_options.mapProduct'],
-            'whereRawSqls' => [$requiredDateRawSql],
-            'whereIn' => ['status_code' => $sales_orders_to_be_prepared_status],
-            'pagination' => false,
-            'limit' => 0,
-            'keyBy' => 'id'
-        ];
-        $orders = $this->OrderRepository->getRows($filter_data);
+        $data['calc_url'] = route('lang.admin.sale.requisitions.calcRequisitionsByDate',['required_date' => $required_date_2ymd]);
+        $data['printForm'] = route('lang.admin.sale.requisitions.printForm',$required_date);
 
 
-        $total_lunchbox = 0; //盒餐
-        $total_bento = 0; //便當
-        $total_stickyrice = 0; //油飯盒
-
-        foreach($orders as $key1 => $order){
-            foreach ($order['order_products'] as $key2 => $order_product) {
-                if(strpos($order_product->name, '盒餐') !== false ){
-                    $total_lunchbox += $order_product->quantity;
-                }else if(strpos($order_product->name, '便當') !== false ){
-                    $total_bento += $order_product->quantity;
-                }else if(strpos($order_product->name, '油飯盒') !== false ){
-                    $total_stickyrice += $order_product->quantity;
-                }
-            }
-        }
-
-        // Get ingredients
-        if(!empty($required_date) && !empty($orders)){
-            $ingredients = $this->RequisitionService->writeIngredientsToDbFromOrders($required_date, $orders);
-
-            if(empty($ingredients['error'])){
-                $data['calc_url'] = route('lang.admin.sale.requisitions.calcRequisitionsByDate',['required_date' => $required_date_2ymd]);
-            }
-
-            $data['printForm'] = route('lang.admin.sale.requisitions.printForm',$required_date);
-        }
-
-        if(!empty($ingredients)){
-            $ingredients = DataHelper::toCleanCollection($ingredients);
-        }
-
-        //3吋潤餅、6吋潤餅的對應
-        $sales_wrap_map = Setting::where('setting_key','sales_wrap_map')->first()->setting_value;
-        $wrap_ids_needing_halving = array_keys($sales_wrap_map); //3吋潤餅的 id
-
-        //整理陣列
-        foreach($ingredients ?? [] as $ingredient){
-            $ingredient = (object) $ingredient;
-
-            $carbon_required_time = Carbon::parse($ingredient->required_date);
-            $str_cutOffTime = $carbon_required_time->toDateString() . ' 12:59';
-            $carbon_cutOffTime = Carbon::parse($str_cutOffTime);
-
-            if(empty($data['orders'][$ingredient->order_id])){
-                $delivery_time_range_start = str_replace([' ', ':'], '', $ingredient->delivery_time_range);
-
-                $data['orders'][$ingredient->order_id] = [
-                    'delivery_time_range_start' => substr($delivery_time_range_start,0,4),
-                    'require_date_ymd' => $ingredient->required_date,
-                    'delivery_time_range' => $ingredient->delivery_time_range,
-                    'source_id' => $ingredient->order_id,
-                    'source_id_url' => route('lang.admin.sale.orders.form', [$ingredient->order_id]),
-                    'order_code' => substr($orders[$ingredient->order_id]->code,4,4),
-                    'shipping_road_abbr' => $orders[$ingredient->order_id]->shipping_road_abbr,
-                ];
-            }
-
-            if(empty($data['allDay']['total'])){
-                $data['allDay']['total'] = 0;
-            }
-
-            if(empty($data['am']['total'])){
-                $data['am']['total'] = 0;
-            }
-
-            if(empty($data['pm']['total'])){
-                $data['pm']['total'] = 0;
-            }
-
-            //不需要除2
-            if(!in_array($ingredient->ingredient_product_id, $wrap_ids_needing_halving)){
-                //details
-                    if(empty($data['orders'][$ingredient->order_id]['items'][$ingredient->ingredient_product_id]['ingredient_product_name'])){
-                        $data['orders'][$ingredient->order_id]['items'][$ingredient->ingredient_product_id]['ingredient_product_name'] = $ingredient->ingredient_product_name;
-                    }
-
-                    if(empty($data['orders'][$ingredient->order_id]['items'][$ingredient->ingredient_product_id]['quantity'])){
-                        $data['orders'][$ingredient->order_id]['items'][$ingredient->ingredient_product_id]['quantity'] = 0;
-                    }
-
-                    $data['orders'][$ingredient->order_id]['items'][$ingredient->ingredient_product_id]['quantity'] += $ingredient->quantity;
-            }
-            //需要除2的潤餅
-            else{
-                $inch_6_product_id = $sales_wrap_map[$ingredient->ingredient_product_id]['new_product_id'];
-                $inch_6_product_name = $sales_wrap_map[$ingredient->ingredient_product_id]['new_product_name'];
-                $quantity = ceil(($ingredient->quantity/2));
-
-                $allstr[] = print_r("order_id=$ingredient->order_id, code={$data['orders'][$ingredient->order_id]['order_code']}, inch_6_product_id=$inch_6_product_id, inch_6_product_name=$inch_6_product_name, quantity=$quantity",true);
-
-
-                //details
-                    if(empty($data['orders'][$ingredient->order_id]['items'][$inch_6_product_id]['quantity'] )){
-                        $data['orders'][$ingredient->order_id]['items'][$inch_6_product_id]['quantity']  = 0;
-                    }
-
-                    $data['orders'][$ingredient->order_id]['items'][$inch_6_product_id]['quantity'] += $quantity;
-
-                    //變換名稱
-                    if(empty($data['orders'][$ingredient->order_id]['items'][$inch_6_product_id]['ingredient_product_name'])){
-                        $data['orders'][$ingredient->order_id]['items'][$inch_6_product_id]['ingredient_product_name'] = $inch_6_product_name;
-                    }
-
-                    //保留原始內容
-                    if(empty($data['orders'][$ingredient->order_id]['items'][$inch_6_product_id]['old_quantity'] )){
-                        $data['orders'][$ingredient->order_id]['items'][$inch_6_product_id]['old_quantity']  = 0;
-                    }
-
-                    $data['orders'][$ingredient->order_id]['items'][$inch_6_product_id]['old_product_id'] = $ingredient->ingredient_product_id;
-                    $data['orders'][$ingredient->order_id]['items'][$inch_6_product_id]['old_product_name'] = $ingredient->ingredient_product_name;
-                    $data['orders'][$ingredient->order_id]['items'][$inch_6_product_id]['old_quantity'] += $quantity;
-            }
-        }
-
-        // 排序
-        if(!empty($data['orders'] )){
-            $data['orders'] = collect($data['orders'])->sortBy('delivery_time_range_start')->values()->all();
-            // $data['orders'] = collect($data['orders'])->sortBy('order_id')->values()->all();
-        }
-
-
-        //統計
-        $sales_6inch_lumpia = Setting::where('setting_key','sales_6inch_lumpia')->first()->setting_value;
-
-        $filter_data = [
-            'filter_setting_key' => 'sales_6inch_lumpia',
-            'filter_location_id' => '0',
-            'type' => 'CommaSeparated'
-        ];
-        $sales_6inch_lumpia = (new SettingRepository)->getSettingValue($filter_data);
-
-        $data['allDay']['total_6inch_lumpia'] = 0;
-
-        $data['allDay']['total_lunchbox'] = $total_lunchbox;
-        $data['allDay']['total_bento'] = $total_bento;
-        $data['allDay']['total_stickyrice'] = $total_stickyrice;
-        $data['allDay']['packages'] = $total_lunchbox + $total_bento + $total_stickyrice;
-
-        $data['am']['total_6inch_lumpia'] = 0;
-        $data['pm']['total_6inch_lumpia'] = 0;
-
-        foreach ($data['orders'] as $order_id => $order) {
-            foreach ($order['items'] as $ingredient_product_id => $item) {
-
-                //allDay
-                if(empty($data['allDay'][$ingredient_product_id]['quantity'])){
-                    $data['allDay'][$ingredient_product_id]['quantity'] = 0;
-                }
-                $data['allDay'][$ingredient_product_id]['quantity'] += $item['quantity'];
-
-                if(in_array($ingredient_product_id, $sales_6inch_lumpia)){
-                    $data['allDay']['total_6inch_lumpia'] += $item['quantity'];
-                }
-
-                //am
-                if($order['delivery_time_range_start'] <= '1259') {
-                    if(empty($data['am'][$ingredient_product_id]['quantity'])){
-                        $data['am'][$ingredient_product_id]['quantity'] = 0;
-                    }
-                    $data['am'][$ingredient_product_id]['quantity'] += $item['quantity'];
-
-                    if(in_array($ingredient_product_id, $sales_6inch_lumpia)){
-                        $data['am']['total_6inch_lumpia'] += $item['quantity'];
-                    }
-                }
-                //pm
-                else{
-                    if(empty($data['pm'][$ingredient_product_id]['quantity'])){
-                        $data['pm'][$ingredient_product_id]['quantity'] = 0;
-                    }
-                    $data['pm'][$ingredient_product_id]['quantity'] += $item['quantity'];
-
-                    if(in_array($ingredient_product_id, $sales_6inch_lumpia)){
-                        $data['pm']['total_6inch_lumpia'] += $item['quantity'];
-                    }
-                }
-
-
-
-
-            }
-        }
 
         $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
 
@@ -469,7 +276,7 @@ class RequisitionController extends BackendController
         //     }
         // }
 
-        $this->RequisitionService->writeIngredientsToDbFromOrders($required_date);
+        $this->RequisitionService->getOrderIngredients($required_date);
         $this->setCacheFromIngredientTable($required_date);
         echo "<pre>",print_r(777,true),"</pre>";exit;
 

@@ -328,6 +328,8 @@ class OrderService extends GlobalOrderService
                                         'type'                      => $product_option['type'],
                                         'value'                     => $product_option_value['value'],
                                         'quantity'                  => $product_option_value['quantity'],
+
+                                        // 'product_option'
                                     ];
                                 }
 
