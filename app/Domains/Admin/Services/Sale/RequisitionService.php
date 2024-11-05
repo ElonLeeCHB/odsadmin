@@ -220,6 +220,18 @@ class RequisitionService extends Service
                 }
             }
 
+            $statics['info'] = [];
+            $statics['info']['total_lunchbox'] = $total_lunchbox;
+            $statics['info']['total_bento'] = $total_bento;
+            $statics['info']['total_stickyrice'] = $total_stickyrice;
+            $statics['info']['packages'] = $total_lunchbox + $total_bento + $total_stickyrice;
+
+            //其它資料
+            $statics['info']['ingredient_products'] = [];
+            $statics['info']['ingredient_products'][1734]['ingredient_product_id'] = 1734;
+            $statics['info']['ingredient_products'][1734]['ingredient_product_name'] = '蔬菜杯';
+            $statics['info']['ingredient_products'][1734]['quantity'] = 0;
+
             //計算並寫入資料庫
                 //今天以後的資料，寫入資料庫。昨天以前的資料，禁止改寫。
                 $arr = [];
@@ -245,26 +257,65 @@ class RequisitionService extends Service
                                 continue;
                             }
 
-                            //如果 null 則 0
-                            if(empty($arr[$required_date][$order->id][$ingredient_product_id]['quantity'])){
-                                $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] = 0;
-                            }
-                            if(empty($arr[$required_date][$order->id][$ingredient_product_id]['original_quantity'])){
-                                $arr[$required_date][$order->id][$ingredient_product_id]['original_quantity'] = 0;
-                            }
-
                             //quantity
                             $quantity = $order_product_option->quantity;
                             if(strpos($order_product->name, '油飯盒') !== false && $ingredient_product_id == 1036){ //廚娘油飯
                                 $quantity = $order_product_option->quantity * 2;
                             }
 
-                            $arr[$required_date][$order->id][$ingredient_product_id]['required_date'] = $order->delivery_date;
-                            $arr[$required_date][$order->id][$ingredient_product_id]['delivery_time_range'] = $order->delivery_time_range;
-                            $arr[$required_date][$order->id][$ingredient_product_id]['product_id'] = $order_product->product_id;
-                            $arr[$required_date][$order->id][$ingredient_product_id]['product_name'] = $order_product->name;
-                            $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_id'] = $ingredient_product_id;
-                            $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_name'] = $ingredient_product_name;
+                            if($ingredient_product_id == 1734){ //蔬菜杯
+
+                                //注意，這是另外的統計 $statics
+                                $statics['info']['ingredient_products'][1734]['quantity'] += $quantity;
+
+                                //鹽水煮蛋 1032
+                                $ingredient_product_id = 1032;
+                                $ingredient_product_name = '鹽水煮蛋';
+                                $arr[$required_date][$order->id][$ingredient_product_id]['required_date'] = $order->delivery_date;
+                                $arr[$required_date][$order->id][$ingredient_product_id]['delivery_time_range'] = $order->delivery_time_range;
+                                $arr[$required_date][$order->id][$ingredient_product_id]['product_id'] = $order_product->product_id;
+                                $arr[$required_date][$order->id][$ingredient_product_id]['product_name'] = $order_product->name;
+                                $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_id'] = $ingredient_product_id;
+                                $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_name'] = $ingredient_product_name;
+
+                                if(empty($arr[$required_date][$order->id][$ingredient_product_id]['quantity'])){
+                                    $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] = 0;
+                                }
+                                $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] += $quantity;
+
+                                //玉米筍 1785
+                                $ingredient_product_id = 1785;
+                                $ingredient_product_name = '玉米筍';
+                                $arr[$required_date][$order->id][$ingredient_product_id]['required_date'] = $order->delivery_date;
+                                $arr[$required_date][$order->id][$ingredient_product_id]['delivery_time_range'] = $order->delivery_time_range;
+                                $arr[$required_date][$order->id][$ingredient_product_id]['product_id'] = $order_product->product_id;
+                                $arr[$required_date][$order->id][$ingredient_product_id]['product_name'] = $order_product->name;
+                                $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_id'] = $ingredient_product_id;
+                                $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_name'] = $ingredient_product_name;
+
+                                if(empty($arr[$required_date][$order->id][$ingredient_product_id]['quantity'])){
+                                    $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] = 0;
+                                }
+                                $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] += $quantity;
+
+                                continue;
+                            }
+                            //End quantity
+
+                            if(empty($arr[$required_date][$order->id][$ingredient_product_id]['required_date'])){
+                                $arr[$required_date][$order->id][$ingredient_product_id]['required_date'] = $order->delivery_date;
+                                $arr[$required_date][$order->id][$ingredient_product_id]['delivery_time_range'] = $order->delivery_time_range;
+                                $arr[$required_date][$order->id][$ingredient_product_id]['product_id'] = $order_product->product_id;
+                                $arr[$required_date][$order->id][$ingredient_product_id]['product_name'] = $order_product->name;
+                                $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_id'] = $ingredient_product_id;
+                                $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_name'] = $ingredient_product_name;
+                            }
+
+                            //如果 null 則 0
+                            if(empty($arr[$required_date][$order->id][$ingredient_product_id]['quantity'])){
+                                $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] = 0;
+                            }
+
                             $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] += $quantity;
                         }
                     }
@@ -277,7 +328,7 @@ class RequisitionService extends Service
                         foreach ($rows2 as $ingredient_product_id => $row) {
                             $order_ingredient_upsert_data[] = [
                                 // 'required_date' => $required_date,
-                                'required_date' => $row['required_date'],
+                                'required_date' => $row['required_date'] ?? '2099-01-01',
                                 'delivery_time_range' => $row['delivery_time_range'],
                                 'order_id' => $order_id,
                                 'ingredient_product_id' => $row['ingredient_product_id'],
@@ -435,11 +486,6 @@ class RequisitionService extends Service
 
             $statics['allDay']['total_6inch_lumpia'] = 0;
 
-            $statics['allDay']['total_lunchbox'] = $total_lunchbox;
-            $statics['allDay']['total_bento'] = $total_bento;
-            $statics['allDay']['total_stickyrice'] = $total_stickyrice;
-            $statics['allDay']['packages'] = $total_lunchbox + $total_bento + $total_stickyrice;
-
             $statics['am']['total_6inch_lumpia'] = 0;
             $statics['pm']['total_6inch_lumpia'] = 0;
 
@@ -486,9 +532,13 @@ class RequisitionService extends Service
             return $statics;
         } catch (\Exception $ex) {
             DB::rollback();
-            echo "<pre>",print_r($ex->getMessage(),true),"</pre>";exit;
             return ['error' => $ex->getMessage()];
         }
+    }
+
+    public function getTmpArray()
+    {
+        return $arr;
     }
 
 }

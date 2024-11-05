@@ -69,7 +69,7 @@ return [
             'url' => env('DB_SYSDATA_URL'),
             'host' => env('DB_SYSDATA_HOST', '127.0.0.1'),
             'port' => env('DB_SYSDATA_PORT', '3306'),
-            'database' => env('DB_SYSDATA_CONNECTION', 'forge'),
+            'database' => env('DB_SYSDATA_DATABASE', 'forge'),
             'username' => env('DB_SYSDATA_USERNAME', 'forge'),
             'password' => env('DB_SYSDATA_PASSWORD', ''),
             'unix_socket' => env('DB_SYSDATA_SOCKET', ''),

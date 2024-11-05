@@ -54,7 +54,11 @@
 
               <strong>需求日期： {{ $statics['required_date'] ?? ''}}</strong> <BR>
               上次更新時間： {{ $statics['cache_created_at'] ?? '' }} <BR>
-              套餐數：{{ $statics['allDay']['packages'] }}, 盒餐：{{ $statics['allDay']['total_lunchbox'] }}, 便當：{{ $statics['allDay']['total_bento'] }}, 油飯盒：{{ $statics['allDay']['total_stickyrice'] }},
+              套餐數：{{ $statics['info']['packages'] }}, 盒餐：{{ $statics['info']['total_lunchbox'] }}, 便當：{{ $statics['info']['total_bento'] }}, 油飯盒：{{ $statics['info']['total_stickyrice'] }},
+
+              @foreach ($statics['info']['ingredient_products'] as $ingredient_product_id => $row)
+                {{ $row['ingredient_product_name'] }}：{{ $row['quantity'] }}
+              @endforeach
               <style>
               #tableContainer {
                 max-height: 550px; /* 设置表格容器的最大高度 */

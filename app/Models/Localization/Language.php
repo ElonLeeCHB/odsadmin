@@ -7,8 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Language extends Model
 {
     public $timestamps = false;
-    public $connection = 'sysdata';
-    
+
     protected $guarded = [];
 
     public function scopeActive($query)
