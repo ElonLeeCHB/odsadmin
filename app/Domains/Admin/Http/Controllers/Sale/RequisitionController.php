@@ -193,13 +193,17 @@ class RequisitionController extends BackendController
         $data['back_url'] = route('lang.admin.sale.requisitions.index');
         $data['calc_url'] = '';
 
-        $data['statics'] = $this->RequisitionService->getOrderIngredients($required_date);
+        $data['statics'] = $this->RequisitionService->getOrderIngredients($required_date, request()->force);
+
+        if(!empty($data['statics']['error'])){
+            $data['error']['warning'] = $data['statics']['error'];
+
+        }
+
         $data['statics']['required_date'] = $required_date;
 
         $data['calc_url'] = route('lang.admin.sale.requisitions.calcRequisitionsByDate',['required_date' => $required_date_2ymd]);
         $data['printForm'] = route('lang.admin.sale.requisitions.printForm',$required_date);
-
-
 
         $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
 

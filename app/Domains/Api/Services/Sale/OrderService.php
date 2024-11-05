@@ -347,14 +347,14 @@ class OrderService extends GlobalOrderService
                         JOIN product_option_values AS pov ON opo.product_option_value_id = pov.id
                         SET
                             opo.option_id = pov.option_id,
-                            opo.option_value_id = pov.option_value_id;
+                            opo.option_value_id = pov.option_value_id
                         WHERE opo.order_id=" . $order->id;
                     DB::statement($sql);
 
                     $sql = "
                         UPDATE order_product_options AS opo
                         JOIN option_values AS ov ON opo.option_value_id = ov.id
-                        SET opo.map_product_id = ov.product_id;
+                        SET opo.map_product_id = ov.product_id
                         WHERE opo.order_id=" . $order->id;
                     DB::statement($sql);
 

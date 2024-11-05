@@ -46,7 +46,7 @@
                     <input type="text" id="input-required_date" name="required_date" value="{{ $required_date }}" placeholder="{{ $lang->column_required_date }}" class="form-control date"/>
                     <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
                     <button type="button" id="btn-redirectToRequiredDate" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="查詢" >查詢</button> &nbsp;
-                    <button type="button" id="getDemandSource" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="重抓需求來源" onclick="calcOrders();">強制更新</button>
+                    <button type="button" id="btn-redirectToRequiredDateUpdate" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="重抓需求來源">更新</button>
                   </div>
                   <div id="error-required_date" class="invalid-feedback"></div>
                 </div>
@@ -190,43 +190,54 @@
 @section('buttom')
 <script type="text/javascript">
 
-$("#btn-redirectToRequiredDate").on('click', function(){
+function redirectToDate(force){
   var required_date = $('#input-required_date').val();
   var parts = required_date.split('-');
   parts[0] = parts[0].substring(2); // 將年份的前兩位去掉
   var required_date_2ymd = parts.join('');
+
 
   if(required_date_2ymd.length > 0){
-    window.location.href = "{{ route('lang.admin.sale.requisitions.form') }}/" + required_date_2ymd;
-  }
-});
-
-function calcOrders(){
-  var required_date = $('#input-required_date').val();
-  if(required_date.length==''){
-    alert('請選擇需求日期');
-    return false;
-  }
-
-  var parts = required_date.split('-');
-  parts[0] = parts[0].substring(2); // 將年份的前兩位去掉
-  var required_date_2ymd = parts.join('');
-
-  $.ajax({
-    type:'get',
-    //dataType: 'json',
-    url: "{{ route('lang.admin.sale.requisitions.calcRequisitionsByDate') }}/"+required_date,
-    success:function(response){
-
-      if(response.error){
-        alert(response.error)
-      }else if(response.required_date_2ymd.length > 0){
-        window.location.href = "{{ route('lang.admin.sale.requisitions.form') }}/" + required_date_2ymd;
-      }
-
+    url = "{{ route('lang.admin.sale.requisitions.form') }}/" + required_date_2ymd;
+    if(force){
+      url += '?force=true';
     }
-  });
+    window.location.href = url;
+  }
 }
+
+$("#btn-redirectToRequiredDate").on('click', function(){
+  redirectToDate(0);
+});
+$("#btn-redirectToRequiredDateUpdate").on('click', function(){
+  redirectToDate(1);
+});
+// function calcOrders(){
+//   var required_date = $('#input-required_date').val();
+//   if(required_date.length==''){
+//     alert('請選擇需求日期');
+//     return false;
+//   }
+
+//   var parts = required_date.split('-');
+//   parts[0] = parts[0].substring(2); // 將年份的前兩位去掉
+//   var required_date_2ymd = parts.join('');
+
+//   $.ajax({
+//     type:'get',
+//     //dataType: 'json',
+//     url: "{{ route('lang.admin.sale.requisitions.calcRequisitionsByDate') }}/"+required_date,
+//     success:function(response){
+
+//       if(response.error){
+//         alert(response.error)
+//       }else if(response.required_date_2ymd.length > 0){
+//         window.location.href = "{{ route('lang.admin.sale.requisitions.form') }}/" + required_date_2ymd;
+//       }
+
+//     }
+//   });
+// }
 // setInterval(calcOrders, 30000); // 30000毫秒 = 30秒
 $(function(){
   //列印按鈕
@@ -238,6 +249,11 @@ $(function(){
     window.open(url);
   });
 })
+
+
+@if(!empty($error['warning']) && is_string($error['warning']))
+  $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + '{{ $error['warning'] }}' + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
+@endif
 
 </script>
 @endsection

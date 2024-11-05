@@ -10,7 +10,7 @@ use App\Repositories\Eloquent\Inventory\RequirementRepository;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
 use App\Helpers\Classes\DateHelper;
 use App\Helpers\Classes\UnitConverter;
-// use App\Models\Sale\OrderIngredient;
+use App\Models\Sale\OrderIngredient;
 use App\Models\Sale\DailyIngredient;
 use App\Models\Log\LogCronJob;
 use Illuminate\Support\Facades\DB;
@@ -221,18 +221,12 @@ class RequisitionService extends Service
             }
 
             //計算並寫入資料庫
-                //下面程式碼還是需要，只是最後寫入資料庫 upsert() 不執行。
-                //寫入資料庫 改為寫入快取。最後寫入資料庫的 upsert() 不執行。
+                //今天以後的資料，寫入資料庫。昨天以前的資料，禁止改寫。
                 $arr = [];
 
                 foreach ($orders ?? [] as $key1 => $order) {
                     foreach ($order->order_products as $key2 => $order_product) {
                         foreach ($order_product->order_product_options as $key3 => $order_product_option) {
-                            // if($order_product_option->order_id == 7833){
-                            //     echo "<pre>",print_r($order_product_option->toArray(),true),"</pre>";
-                            // }
-
-
                             //如果已不存在 product_option_value 則略過。這原因是商品基本資料已刪除某選項。但對舊訂單來說這會有問題。先略過。
                             if(empty($order_product_option->product_option_value)){
                                 continue;
@@ -251,7 +245,7 @@ class RequisitionService extends Service
                                 continue;
                             }
 
-                            //若 null = 0
+                            //如果 null 則 0
                             if(empty($arr[$required_date][$order->id][$ingredient_product_id]['quantity'])){
                                 $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] = 0;
                             }
@@ -261,7 +255,7 @@ class RequisitionService extends Service
 
                             //quantity
                             $quantity = $order_product_option->quantity;
-                            if($ingredient_product_id == 1737){ //廚娘油飯2
+                            if(strpos($order_product->name, '油飯盒') !== false && $ingredient_product_id == 1036){ //廚娘油飯
                                 $quantity = $order_product_option->quantity * 2;
                             }
 
@@ -294,9 +288,8 @@ class RequisitionService extends Service
                     }
                 }
 
-                // 應該不需要。單純用快取
-                // OrderIngredient::where('required_date', $required_date)->delete();
-                // OrderIngredient::upsert($upsert_data, ['order_id','ingredient_product_id']);
+                OrderIngredient::where('required_date', $required_date)->delete();
+                OrderIngredient::upsert($order_ingredient_upsert_data, ['order_id','ingredient_product_id']);
 
                 //寫入 DailyIngredient
                 $daily_upsert_data = [];
@@ -493,6 +486,7 @@ class RequisitionService extends Service
             return $statics;
         } catch (\Exception $ex) {
             DB::rollback();
+            echo "<pre>",print_r($ex->getMessage(),true),"</pre>";exit;
             return ['error' => $ex->getMessage()];
         }
     }
