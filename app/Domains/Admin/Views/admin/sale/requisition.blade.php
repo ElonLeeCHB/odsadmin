@@ -39,8 +39,8 @@
                 <label class="form-label">未來七天</label>
                 <select name="equal_within7days" id="input-equal_within7days" class="form-select">
                   <option value="*" > -- </option>
-                  <option value="1" selected>是</option>
-                  <option value="0" >否</option>
+                  <option value="1">是</option>
+                  <option value="0">否</option>
                 </select>
               </div>
 

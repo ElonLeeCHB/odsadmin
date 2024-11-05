@@ -47,11 +47,11 @@
   <table class="table table-bordered table-hover mx-auto">
     <tbody id="tbody_body_records">
       <tr id="option-value-row-0">
-        <td colspan="3">全日統計</td>
+        <td colspan="2">全日</td>
         @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
         <td style="width:31px;">
-          @if(!empty($requisitions['all_day']))
-          @foreach($requisitions['all_day'] as $material_product_id => $record)
+          @if(!empty($requisitions['allDay']))
+          @foreach($requisitions['allDay'] as $material_product_id => $record)
             @if($saleable_product_material_id == $material_product_id)
               {{ $record['quantity'] }}
             @endif
@@ -61,7 +61,7 @@
         @endforeach
       </tr>
       <tr id="option-value-row-0">
-        <td colspan="3">上午統計</td>
+        <td colspan="2">上午</td>
         @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
         <td>
           @if(!empty($requisitions['am']))
@@ -75,7 +75,7 @@
         @endforeach
       </tr>
       <tr id="option-value-row-0" style="border-bottom: 2px solid black;">
-        <td colspan="3">下午統計</td>
+        <td colspan="2">下午</td>
         @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
         <td>
           @if(!empty($requisitions['pm']))
@@ -91,7 +91,6 @@
       <tr style="border-bottom: 2px solid black;">
         <td class="text-start">時間</td>
         <td class="text-start">訂單編號<BR>末4碼</td>
-        <td class="text-end">地址簡稱</td>
         @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
           <?php
           $characters = mb_str_split($saleable_product_material_name);
@@ -103,33 +102,36 @@
         @endforeach
       </tr>
 
-      @if(!empty($requisitions['details']))
-      <?php $flag = 0; ?>
-      @foreach($requisitions['details'] as $details_key => $detail_record)
+      @if(!empty($requisitions['orders']))
+        <?php $flag = 0; ?>
+        @foreach($requisitions['orders'] as $details_key => $order)
 
-        <?php $dateNum = str_replace(':','',$detail_record['required_date_hi']); ?>
+          @php
+            $required_date_hi = \Carbon\Carbon::parse($order['required_date'])->format('H:i');
+            $required_date_hi_num = \Carbon\Carbon::parse($order['required_date'])->format('Hi');
+          @endphp
 
-        @if($dateNum > 1259 && $flag == 0)
-        <tr style="border-bottom: 2px solid black;">
-          <td colspan="34"></td>
-        </tr>
-        <?php $flag = 1; ?>
-        @endif
+          @if($required_date_hi_num > 1300 && $flag == 0)
+          <tr style="border-bottom: 2px solid black;">
+            <td colspan="34"></td>
+          </tr>
+          <?php $flag = 1; ?>
+          @endif
 
-      <tr class="bordered">
-        <td class="text-end">{{ $detail_record['required_date_hi'] }}</td>
-        <td class="text-end">{{ $detail_record['order_code'] ?? $detail_record['source_id'] }}</td>
-        <td class="text-end">{{ $detail_record['shipping_road_abbr'] }}</td>
-        @foreach($sales_ingredients_table_items as $product_id => $product_name)
-        <td>
-        {{ $detail_record['items'][$product_id]['quantity'] ?? ''}}
-        </td>
+          <tr class="bordered">
+            <td class="text-end">{{ $required_date_hi ?? ''}}</td>
+            <td class="text-end">{{ $order['order_code'] ?? $order['source_id'] }}</td>
+            @foreach($sales_ingredients_table_items as $product_id => $product_name)
+            <td rowspan=2>
+            {{ $order['items'][$product_id]['quantity'] ?? ''}}
+            </td>
+            @endforeach
+          </tr>
+
+          <tr>
+            <td class="text-start" colspan=2>{{ $order['shipping_road_abbr'] }}</td>
+          </tr>
         @endforeach
-      </tr>
-
-
-
-      @endforeach
       @endif
 
       </tbody>

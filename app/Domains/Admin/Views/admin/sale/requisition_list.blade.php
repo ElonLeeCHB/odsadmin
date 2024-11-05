@@ -17,8 +17,8 @@
 				<tr>
           <td class="text-center"><input type="checkbox" name="selected[]" value="{{ $row->id }}" class="form-check-input"/></td>
           <td class="text-start">{{ $row->required_date }}</td>
-          <td class="text-start">{{ $row->product_id }}</td>
-          <td class="text-start">{{ $row->product_name }}</td>
+          <td class="text-start">{{ $row->ingredient_product_id }}</td>
+          <td class="text-start">{{ $row->ingredient_product_name }}</td>
           <td class="text-start">{{ $row->supplier_short_name }}</td>
           <td class="text-end"><a href="{{ $row->edit_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_edit }}" class="btn btn-primary"><i class="fas fa-pencil-alt"></i></a></td>
 				</tr>

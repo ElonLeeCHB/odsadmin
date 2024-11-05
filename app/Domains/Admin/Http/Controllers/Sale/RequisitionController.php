@@ -96,13 +96,9 @@ class RequisitionController extends BackendController
         // Rows
         $query_data['with'] = DataHelper::addToArray('product', $query_data['with'] ?? []);
 
-        if(!isset($query_data['equal_within7days'])){
-            $query_data['equal_within7days'] = 1;
-        }
+        $ingredients = $this->RequisitionService->getDailyIngredients($query_data);
 
-        $ingredients = $this->RequisitionService->getIngredients($query_data);
-
-        foreach ($ingredients as $row) {
+        foreach ($ingredients ?? [] as $row) {
             $row->edit_url = route('lang.admin.sale.requisitions.form', array_merge([$row->required_date], $query_data));
             $row->is_active_name = ($row->is_active==1) ? $this->lang->text_enabled :$this->lang->text_disabled;
         }
@@ -215,7 +211,7 @@ class RequisitionController extends BackendController
         // $Burrito['total'] = intval($Burrito['total']);
 
         // $data['total'] = $Burrito;
-        // $data['printForm'] = route('lang.admin.sale.requisitions.printForm');
+        $data['printForm'] = route('lang.admin.sale.requisitions.printForm');
         // $data['requisitions']  = $requisitions ?? [];
         // $data['sales_saleable_product_ingredients'] = '';
         // $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
@@ -299,200 +295,6 @@ class RequisitionController extends BackendController
 
         return ['required_date_2ymd' => $required_date_2ymd];
     }
-
-    /**
-     * 抓取訂單資料，然後寫入資料表 order_ingredients
-     */
-    // private function setIngredientTableFromOrderTable($required_date)
-    // {
-
-    //     try {
-    //         DB::beginTransaction();
-
-    //         $required_date = parseDate($required_date);
-    //         $required_date_2ymd = parseDateStringTo6d($required_date);
-
-    //         $requiredDateRawSql = $this->OrderRepository->parseDateToSqlWhere('delivery_date', $required_date);
-
-    //         if(empty($requiredDateRawSql)){
-    //             return false;
-    //         }
-
-    //         //需要備料的訂單狀態代號
-    //         $temp_row = $this->SettingRepository->getRow(['equal_setting_key' => 'sales_orders_to_be_prepared_status']);
-
-    //         $sales_orders_to_be_prepared_status = $temp_row->setting_value; // 必須是陣列
-
-    //         $filter_data = [
-    //             'with' => ['order_products','order_product_options.product_option_value.option_value',],
-    //             'whereRawSqls' => [$requiredDateRawSql],
-    //             'whereIn' => ['status_code' => $sales_orders_to_be_prepared_status],
-    //             'with' => 'order_products.order_product_options.product_option_value.option_value.product',
-    //             'pagination' => false,
-    //             'limit' => 0,
-    //         ];
-    //         $orders = $this->OrderRepository->getRows($filter_data);
-
-    //         // 從設定檔找出需要除2的潤餅代號
-    //         $sales_wrap_map = $this->SettingRepository->getValueByKey('sales_wrap_map');
-    //         $burrito_half_of_6inch_ids = array_keys($sales_wrap_map);
-
-    //         // 6吋潤餅的 product_id
-    //         $burrito_6inch_ids = [];
-    //         foreach ($sales_wrap_map as $key => $row) {
-    //             $six_inch_id = $row['new_product_id'];
-    //             $sales_burrito_6i[$six_inch_id]['six_inch_id'] = $row['new_product_id'];
-    //             $sales_burrito_6i[$six_inch_id]['six_inch_name'] = $row['new_product_name'];
-    //             $sales_burrito_6i[$six_inch_id]['three_inch_id'] = $row['product_id'];
-    //             $sales_burrito_6i[$six_inch_id]['three_inch_name'] = $row['product_name'];
-
-    //             $burrito_6inch_ids[] = $six_inch_id;
-    //         }
-
-
-    //         $arr = [];
-
-    //         foreach ($orders ?? [] as $key1 => $order) {
-    //             $order_id = $order->id;
-
-    //             foreach ($order->order_products as $key2 => $order_product) {
-
-    //                 foreach ($order_product->order_product_options as $key3 => $order_product_option) {
-
-    //                     //如果已不存在 product_option_value 則略過。這原因是商品基本資料已刪除某選項。但對舊訂單來說這會有問題。先略過。
-    //                     if(empty($order_product_option->product_option_value)){
-    //                         continue;
-    //                     }
-
-    //                     // 選項沒有對應的商品代號，略過
-    //                     if(empty($order_product_option->product_option_value->option_value)){
-    //                         continue;
-    //                     }
-
-    //                     $product_option_value_id = $order_product_option->product_option_value->id;
-    //                     $option_value = $order_product_option->product_option_value->option_value;
-
-    //                     // 選項本身所對應的料件，不是訂單商品。
-    //                     $ingredient_product_id = $option_value->product_id ?? 0;
-    //                     $ingredient_product_name = $option_value->product->name ?? '';
-
-    //                     // 數量
-    //                     // 將6吋潤餅轉為3吋潤餅，並且*2。注意：這是為了解決：$upsert_data 單點6吋潤餅會覆蓋3吋的問題。
-    //                     if(in_array($ingredient_product_id, $burrito_6inch_ids)){
-    //                         $ingredient_product_name = $sales_burrito_6i[$ingredient_product_id]['three_inch_name']; //這行必須在前面
-    //                         $ingredient_product_id = $sales_burrito_6i[$ingredient_product_id]['three_inch_id']; //轉換 $ingredient_product_id
-    //                         $quantity = $order_product_option->quantity*2;
-    //                     }else{
-    //                         $quantity = $order_product_option->quantity;
-    //                     }
-
-    //                     if(empty($arr[$required_date][$order_id][$ingredient_product_id]['quantity'])){
-    //                         $arr[$required_date][$order_id][$ingredient_product_id]['quantity'] = 0;
-    //                     }
-
-    //                     $arr[$required_date][$order_id][$ingredient_product_id]['required_time'] = $order->delivery_date;
-    //                     $arr[$required_date][$order_id][$ingredient_product_id]['ingredient_product_name'] = $ingredient_product_name;
-    //                     $arr[$required_date][$order_id][$ingredient_product_id]['quantity'] += $quantity;
-    //                     // $arr[$required_date][$order_id][$ingredient_product_id]['product_id'] = $order_product->product_id;
-    //                     // $arr[$required_date][$order_id][$ingredient_product_id]['product_name'] = $order_product->name;
-    //                     // $arr[$required_date][$order_id][$ingredient_product_id]['order_product_option_value'] = $order_product_option->value;
-    //                 }
-    //             }
-    //         }
-
-
-    //         //處理3吋潤餅用6吋計算
-
-    //         $upsert_data = [];
-
-    //         foreach ($arr as $required_date => $rows1) {
-    //             foreach ($rows1 as $order_id => $rows2) {
-    //                 foreach ($rows2 as $ingredient_product_id => $row) {
-    //                     if(in_array($ingredient_product_id, $burrito_half_of_6inch_ids)){
-    //                         $new_ingredient_product_id   = $sales_wrap_map[$ingredient_product_id]['new_product_id'];
-    //                         $new_ingredient_product_name = $sales_wrap_map[$ingredient_product_id]['new_product_name'];
-    //                         $quantity = ceil($row['quantity']/2);
-    //                     }else{
-    //                         $new_ingredient_product_id   = $ingredient_product_id;
-    //                         $new_ingredient_product_name = $row['ingredient_product_name'];
-    //                         $quantity = $row['quantity'];
-    //                     }
-
-    //                     $upsert_data[] = [
-    //                         'required_time' => $row['required_time'],
-    //                         'required_date' => $required_date,
-    //                         'order_id' => $order_id,
-    //                         'ingredient_product_id' => $new_ingredient_product_id,
-    //                         'ingredient_product_name' => $new_ingredient_product_name,
-    //                         'quantity' => $quantity,
-    //                     ];
-    //                 }
-    //             }
-    //         }
-
-    //         if(empty($upsert_data)){
-    //             return ['error' => 'OrderIngredient upsert_data is empty! 001'];
-    //         }
-
-    //         else{
-    //             //delete
-    //             $db_ingredients = OrderIngredientHour::where('required_date', $required_date)->get();
-
-    //             $delete_ids = [];
-
-    //             foreach ($db_ingredients as $db_ingredient) {
-    //                 //相關主鍵在資料庫有，在訂單沒有。表示不需要，應刪除
-    //                 if(!isset($arr[$db_ingredient->required_date][$db_ingredient->order_id][$db_ingredient->ingredient_product_id])){
-    //                     $delete_ids[] = $db_ingredient->id;
-    //                 }
-    //             }
-
-    //             if(!empty($delete_ids)){
-    //                 OrderIngredientHour::whereIn('id', $delete_ids)->delete();
-    //             }
-    //             $result = OrderIngredientHour::upsert($upsert_data, ['required_date','order_id','ingredient_product_id']);
-    //         }
-
-    //         // 寫入每日表 order_ingredients
-
-    //         if(!empty($upsert_data)){
-    //             $daily_upsert_data = [];
-
-
-    //             $old_rows = OrderIngredient::where('required_date', $required_date)->get()->keyBy('ingredient_product_id');
-
-    //             foreach ($upsert_data as $set) {
-    //                 if(empty($set['ingredient_product_id'])){
-    //                     continue;
-    //                 }
-    //                 $ingredient_product_id = $set['ingredient_product_id'];
-
-    //                 if(empty($daily_upsert_data[$ingredient_product_id]['quantity'])){
-    //                     $daily_upsert_data[$ingredient_product_id]['quantity'] = 0;
-    //                 }
-
-    //                 $daily_upsert_data[$ingredient_product_id]['id'] = $old_rows[$ingredient_product_id]->id ?? null;
-    //                 $daily_upsert_data[$ingredient_product_id]['required_date'] = $set['required_date'];
-    //                 $daily_upsert_data[$ingredient_product_id]['product_id'] = $set['ingredient_product_id'];
-    //                 $daily_upsert_data[$ingredient_product_id]['quantity'] += $set['quantity'];
-    //             }
-
-    //             if(!empty($daily_upsert_data)){
-    //                 OrderIngredient::where('required_date', $required_date)->delete();
-    //                 OrderIngredient::upsert($daily_upsert_data, ['required_date','ingredient_product_id']);
-    //             }
-    //         }
-
-    //         DB::commit();
-
-    //         return ['status' => 'success'];
-
-    //     } catch (\Exception $ex) {
-    //         DB::rollback();
-    //         $msg = ['error' => $ex->getMessage()];
-    //         return response(json_encode($msg))->header('Content-Type','application/json');
-    //     }
-    // }
 
     /**
      * 抓取 order_ingredient_hours 然後產生快取
@@ -751,18 +553,16 @@ class RequisitionController extends BackendController
             }
         }
 
-        // 列印時抓cache, 不重新計算
         if(!empty($required_date_2ymd)){
-            $cacheName = 'OrderProductIngredient_RequiredDate2ymd_' . $required_date_2ymd;
-            $requisitions = cache()->get($cacheName);
+            $statics = $this->RequisitionService->getOrderIngredients($required_date_2ymd);
         }
 
-        // 使用 all_day 來判斷有無資料
-        if(empty($requisitions['all_day'])){
+        // 使用 allDay 來判斷有無資料
+        if(empty($statics['allDay'])){
             return redirect(route('lang.admin.sale.requisitions.form'))->with("warning", "$required_date_string 無資料");
         }
 
-        $data['requisitions'] = $requisitions;
+        $data['requisitions'] = $statics;
 
         $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
 

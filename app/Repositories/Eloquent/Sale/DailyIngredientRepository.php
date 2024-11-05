@@ -4,18 +4,18 @@ namespace App\Repositories\Eloquent\Sale;
 
 use App\Helpers\Classes\DataHelper;
 use App\Traits\EloquentTrait;
-use App\Domains\Admin\Exports\SaleOrderRequisitionDailyListExport;
 use App\Domains\Admin\Exports\SaleOrderRequisitionMatrixListExport;
+use App\Domains\Admin\Exports\SaleDailyRequisitionMatrixListExport;
 use Maatwebsite\Excel\Facades\Excel;
 
-class OrderIngredientRepository
+class DailyIngredientRepository
 {
     use EloquentTrait;
 
-    public $modelName = "\App\Models\Sale\OrderIngredient";
+    public $modelName = "\App\Models\Sale\DailyIngredient";
 
 
-    public function getIngredients($params, $debug = 0)
+    public function getRecords($params, $debug = 0)
     {
         $params = $this->resetQueryData($params);
 
@@ -28,6 +28,7 @@ class OrderIngredientRepository
                 }
             }
         }
+
         return $rows;
     }
 
@@ -75,14 +76,12 @@ class OrderIngredientRepository
         return $params;
     }
 
-    public function exportDailyList($post_data = [], $debug = 0)
+    public function exportMatrixList($post_data = [], $debug = 0)
     {
-        $filename = '備料表_'.date('Y-m-d_H-i-s').'.xlsx';
+        $filename = '備料表多日距陣_'.date('Y-m-d_H-i-s').'.xlsx';
 
-        //return Excel::download(new InventoryCountingListExport($post_data, $this->ProductRepository), $filename);
-        return Excel::download(new SaleOrderRequisitionDailyListExport($post_data, $this), $filename);
+        return Excel::download(new SaleDailyRequisitionMatrixListExport($post_data, $this), $filename);
     }
-
 
 }
 

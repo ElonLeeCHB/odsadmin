@@ -43,11 +43,13 @@ class Controller extends BaseController
         }else{
             $query_data['sort'] = 'id';
         }
+
         if(!empty($data['source'])){
             $query_data['source'] = $data['source'];
         }else{
             $query_data['source'] = '';
         }
+
         if(!empty($data['order'])){
             $query_data['order'] = $data['order'];
         }else{
@@ -101,7 +103,7 @@ class Controller extends BaseController
         if(!empty($data['simplelist'])){
             $query_data['simplelist'] = $data['simplelist'];
         }
-        
+
 
         return $query_data;
     }
@@ -114,7 +116,7 @@ class Controller extends BaseController
                 $arr[] = $data;
                 $data = $arr;
             }
-            
+
             $this->lang = (new TranslationLibrary())->getTranslations($data);
         }
 
@@ -127,27 +129,27 @@ class Controller extends BaseController
         if(!empty($query_data['sort'])){
             unset($query_data['sort']);
         }
-        
+
         if(!empty($query_data['order'])){
             unset($query_data['order']);
         }
-        
+
         if(!empty($query_data['with'])){
             unset($query_data['with']);
         }
-        
+
         if(!empty($query_data['whereIn'])){
             unset($query_data['whereIn']);
         }
-        
+
         if(!empty($query_data['whereRawSqls'])){
             unset($query_data['whereRawSqls']);
         }
-        
+
         if(!empty($query_data['andOrWhere'])){
             unset($query_data['andOrWhere']);
         }
-        
+
         return $query_data;
     }
 
@@ -159,7 +161,7 @@ class Controller extends BaseController
             foreach ($relations as $relation) {
                 $rows->setRelation($relation, null);
             }
-            
+
         }
 
         // $rows 是多筆

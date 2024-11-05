@@ -26,7 +26,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
  * getDebugQueryContent()
  * getTranslationModel()
  * saveRow(), saveRowBasicData(), saveTranslationData(), saveRowMetaData()
- * 
+ *
  * regexp
  * pagination
  * limit
@@ -110,7 +110,7 @@ trait EloquentTrait
             }
 
             return ['data' => $row]; // To make difference with 'error', 'data' is needed.
-            
+
         } catch (\Exception $e) {
             return ['error' => 'findIdOrFailOrNew: Please check for more details'];
         }
@@ -161,7 +161,7 @@ trait EloquentTrait
             }else{
                 $pagination = true;
             }
-    
+
             if($pagination == true && $limit != 0){  // Get some rows per page
                 if(empty($data['pluck'])){
                     $result = $query->paginate($limit);
@@ -198,7 +198,7 @@ trait EloquentTrait
         if(empty($this->table_columns)){
             $this->table_columns = $this->getTableColumns();
         }
-        
+
         $query = $this->newModel()->query();
 
         // With relations
@@ -229,8 +229,8 @@ trait EloquentTrait
         if(!empty($this->model->translation_attributes)){
             $query->with('translation');
         }
-        
-        
+
+
         // whereIn
         if(!empty($data['whereIn'])){
             foreach ($data['whereIn'] as $key => $arr) {
@@ -247,13 +247,13 @@ trait EloquentTrait
             }
         }
 
-        
+
         // is_active can only be: 1, 0, -1, *
         // if(!is_array($this->table_columns)){
         //     echo '<pre>', print_r($this->table_columns, 1), "</pre>"; exit;
         // }
         if(in_array('is_active', $this->table_columns)){
-            
+
             // - 相容以前的舊寫法
             if(isset($data['filter_is_active'])){
                 $data['equal_is_active'] = $data['filter_is_active'];
@@ -301,59 +301,12 @@ trait EloquentTrait
             }
         }
 
+
         // Sort & Order
-        // 舊寫法
-        // if(!empty($data['orderByRaw'])){
-        //     $query->orderByRaw($data['orderByRaw']);
-        // }else{
-        //     if(empty($data['sort']) || $data['sort'] == 'id'){
-        //         $sort = $this->model->getTable() . '.id';
-        //     }else{
-        //         $sort = $data['sort'];
-        //     }
-    
-        //     // Order
-        //     if (isset($data['order']) && ($data['order'] == 'ASC')) {
-        //         $order = 'ASC';
-        //     }
-        //     else{
-        //         $order = 'DESC';
-        //     }
-    
-        //     $query->orderBy($sort, $order);
-        // }
-
-        
-        
-        /*
-        //  - Sort
-        if(!empty($data['sort']) && !empty($this->model->translation_attributes) && in_array($data['sort'], $this->model->translation_attributes)){
-            $translation_table = $this->getTranslationTable();
-            $master_key = $this->getTranslationMasterKey();
-            $sort = $data['sort'];
-
-            $query->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
-                $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
-                     ->where("{$translation_table}.locale", '=', $this->locale)
-                     ->where("{$translation_table}.meta_key", '=', $sort);
-            });
-
-            $query->orderBy("{$translation_table}.meta_value", $order);
-
-            $query->select("{$this->table}.*");
-        }else{
-            if(empty($data['sort']) || $data['sort'] == 'id'){
-                $sort = $this->model->getTable() . '.id';
-            }
-            else{
-                $sort = $data['sort'];
-            }
-            $query->orderBy($sort, $order);
+        if(!empty($data['sort']) && $data['sort'] == 'id' && !in_array($data['sort'], $this->table_columns)){
+            unset($data['sort']);
         }
-        */
 
-
-        // Sort & Order
         //  - Order (default DESC)
         if (isset($data['order']) && ($data['order'] == 'ASC')) {
             $order = 'ASC';
@@ -378,16 +331,16 @@ trait EloquentTrait
                 $translation_table = $this->model->getTranslationTable();
                 $master_key = $this->model->getTranslationMasterKey();
                 $sort = $data['sort'];
-    
+
                 if (str_ends_with($this->model->translation_model_name, 'Meta')) {
-    
+
                     $query->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
                         $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
                              ->where("{$translation_table}.locale", '=', $this->locale)
                              ->where("{$translation_table}.meta_key", '=', $sort);
                     });
                     $query->orderBy("{$translation_table}.meta_value", $order);
-    
+
                 }else{ // 一般用 Translation 做結尾，例如 ProductTranslation
                     $query->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
                         $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
@@ -396,7 +349,6 @@ trait EloquentTrait
                     $query->orderBy("{$translation_table}.{$sort}", $order);
                 }
             }
-
         }
         // 未指定排序欄位，但資料表欄位有 sort_order
         else if(empty($data['sort']) && in_array('sort_order', $this->table_columns)){
@@ -404,13 +356,17 @@ trait EloquentTrait
         }
         //  -- 其它情況
         else{
-            if(empty($data['sort']) || $data['sort'] == 'id'){
+            if(empty($data['sort']) && in_array('id', $this->table_columns)){
                 $sort = $this->model->getTable() . '.id';
             }
-            else{
+            else if(!empty($data['sort'])){
                 $sort = $data['sort'];
             }
-            $query->orderBy($sort, $order);
+
+            if(!empty($sort) && !empty($order)){
+                $query->orderBy($sort, $order);
+
+            }
         }
 
         // Select
@@ -438,7 +394,7 @@ trait EloquentTrait
     {
         $translation_attributes = $this->model->translation_attributes ?? [];
         $table_columns = $this->getTableColumns($this->connection);
-        
+
         $meta_keys = $this->model->meta_keys;
         if(empty($meta_keys)){
             $meta_keys = [];
@@ -534,7 +490,7 @@ trait EloquentTrait
         if(!empty($data['whereDoesntHave'])){
             $this->setWhereDoesntHave($query, $data['whereDoesntHave']);
         }
-        
+
         // Display sql statement
         if(!empty($debug)){
             $this->getDebugQueryContent($query);
@@ -555,7 +511,7 @@ trait EloquentTrait
         foreach ($data as $key => $value) {
 
             $column = null;
-            
+
             if(str_starts_with($key, 'equal_')){ // Key must start with equal_
                 $column = str_replace('equal_', '', $key);
             }else{
@@ -881,8 +837,8 @@ trait EloquentTrait
     {
         if(!empty($input)){
             $query->withCount($input);
-        }        
-        
+        }
+
         return $query;
     }
 
@@ -916,7 +872,7 @@ trait EloquentTrait
         if(!empty($this->table_columns)){
             return $this->table_columns;
         }
-        
+
         // get from database
         if(empty($this->model->connection) ){
             $this->table_columns = DB::getSchemaBuilder()->getColumnListing($this->table);
@@ -993,7 +949,7 @@ trait EloquentTrait
 
 
             return ['id' => $id];
-            
+
         } catch (\Exception $ex) {
             return ['error' => $ex->getMessage()];
         }
@@ -1007,14 +963,14 @@ trait EloquentTrait
 
         try{
             DB::beginTransaction();
-            
+
             // If $model->fillable exists, save() then return
             if(!empty($modelInstance->getFillable())){
                 $modelInstance->fill($post_data);
                 $modelInstance->save();
                 return $modelInstance->id;
             }
-            
+
             // Save matched columns
             $table_columns = $this->table_columns;
             $form_columns = array_keys($post_data);
@@ -1088,7 +1044,7 @@ trait EloquentTrait
             }else{
                 $translation_attributes = $master_model->translation_attributes;
             }
-    
+
             // translationModel
             $translationModelName = get_class($master_model) . 'Translation';
             if(class_exists($translationModelName)){
@@ -1096,11 +1052,11 @@ trait EloquentTrait
             }else{
                 return false;
             }
-    
+
             // foreigh_key
             $foreigh_key = $translationModel->foreign_key;
             $foreigh_key_value = $master_model->id;
-    
+
             foreach($translation_data as $locale => $value){
                 $arr = [];
                 if(!empty($value['id'])){
@@ -1113,10 +1069,10 @@ trait EloquentTrait
                         $arr[$column] = $value[$column];
                     }
                 }
-    
+
                 $arrs[] = $arr;
             }
-    
+
             DB::beginTransaction();
             $translationModel->upsert($arrs,['id', $foreigh_key, 'locale']);
             DB::commit();
@@ -1124,7 +1080,7 @@ trait EloquentTrait
         } catch (\Exception $ex) {
             DB::rollback();
             throw $ex;
-        } 
+        }
     }
 
     // must be public
@@ -1162,7 +1118,7 @@ trait EloquentTrait
                 $arr['meta_value'] = $value;
                 $upsert_data[] = $arr;
             }
-            
+
             if(!empty($upsert_data)){
                 DB::beginTransaction();
                 $result = $meta_model->upsert($upsert_data,['id']);
@@ -1239,7 +1195,7 @@ trait EloquentTrait
             if(!is_array($row) && method_exists($row, 'toArray')) {
                 $row = $row->toArray();
             }
-            
+
             if(!empty($data['unset'])){
                 foreach ($data['unset'] as $key2) {
                     unset($row[$key2]);
@@ -1261,7 +1217,7 @@ trait EloquentTrait
     {
         try {
             DB::beginTransaction();
-            
+
             $query = $this->setQuery($data, $debug);
 
             if(!empty($debug)){
@@ -1273,7 +1229,7 @@ trait EloquentTrait
             DB::commit();
 
             return $result;
-            
+
         } catch (\Exception $ex) {
             DB::rollback();
             return ['error' => $ex->getMessage()];
@@ -1327,7 +1283,7 @@ trait EloquentTrait
                 $date2_year = substr($arr[1], 0, -4);
                 if($date2_year < 2000){
                     $date2_year += 2000;
-                }      
+                }
 
                 $date1 = $date1_year . '-' . substr($arr[0], -4, -2) . '-' . substr($arr[0], -2);
                 $date2 = $date2_year . '-' . substr($arr[1], -4, -2) . '-' . substr($arr[1], -2);
@@ -1351,8 +1307,8 @@ trait EloquentTrait
                 //$symbles = ['>','<','=','>=', '<='];
             }else if(preg_match('/(^\d+.*)/', $dateString, $matches)){
                 $operator = '=';
-            }            
-    
+            }
+
             if(preg_match('/(^\d{2,4}-\d{2}-\d{2}$)/', $dateString, $matches)){ //2023-05-01
                 $arr = explode('-', $dateString);
                 $date1_year = $arr[0] < 2000 ? $arr[0]+2000 : $arr[0];
@@ -1369,7 +1325,7 @@ trait EloquentTrait
                 return false;
             }
 
-            $date1 = date_create($date1String);            
+            $date1 = date_create($date1String);
             $date2 = date_add($date1, date_interval_create_from_date_string("1 days"));
             $date2String = $date2->format('Y-m-d');
 
@@ -1394,13 +1350,13 @@ trait EloquentTrait
             foreach ($relations as $relation) {
                 $row->setRelation($relation, null);
             }
-            
+
         }
         else if(is_array($row)){
             foreach ($relations as $relation) {
                 unset($row[$relation]);
             }
-            
+
         }
 
         return $row;
@@ -1425,11 +1381,11 @@ trait EloquentTrait
             foreach ($relations as $relation) {
                 unset($row[$relation]);
                 $rows[$key] = $row;
-            } 
+            }
         }
 
         return $rows;
-        
+
     }
 
     public function getYmSnCode($modelName)
@@ -1445,7 +1401,7 @@ trait EloquentTrait
         $current_sn = (int)substr($current_max_code,-4);
         $new_sn = empty($current_sn) ? 1 : ($current_sn+1);
         $new_code = $code_prefix . sprintf("%04d",$new_sn) ;
-        
+
         return $new_code;
     }
 
