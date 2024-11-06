@@ -8,8 +8,6 @@
           <td class="text-start">{{ $lang->column_product_id }}</td>
           <td class="text-start">{{ $lang->column_product_name }}</td>
           <td class="text-start">{{ $lang->column_supplier_short_name }}</td>
-
-          <td class="text-end">{{ $lang->column_action }}</td>
         </tr>
       </thead>
       <tbody>
@@ -20,7 +18,6 @@
           <td class="text-start">{{ $row->ingredient_product_id }}</td>
           <td class="text-start">{{ $row->ingredient_product_name }}</td>
           <td class="text-start">{{ $row->supplier_short_name }}</td>
-          <td class="text-end"><a href="{{ $row->edit_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_edit }}" class="btn btn-primary"><i class="fas fa-pencil-alt"></i></a></td>
 				</tr>
         @endforeach
 			</tbody>

@@ -439,11 +439,11 @@
         <table data-toggle="table" class="table table-bordered border border-dark" style="margin-top:3px;margin-bottom:0px;">
           <tbody>
             @php
-              $riceBox_title_showed = 1;
+              $oilRiceBox_title_showed = 1;
             @endphp
             @foreach($final_products as $key =>$order_product)
-              @if($order_product['main_category_code'] == 'riceBox')
-                @if($riceBox_title_showed == 1)
+              @if($order_product['main_category_code'] == 'oilRiceBox')
+                @if($oilRiceBox_title_showed == 1)
                   <tr>
                     <td></td>
                     <td style="width:65px;">數量</td>

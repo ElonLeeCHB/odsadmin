@@ -1074,7 +1074,7 @@ class OrderController extends BackendController
                                 // 否则添加新的饮料选项
                                 $organizedData[$productId]['drink']['option_values'][$drink_id] = $drink;
                             }
-                            
+
                         }
                     }
                 }
@@ -1170,8 +1170,19 @@ class OrderController extends BackendController
         }else{
             $data['order']['shipping_salutation_id2'] = '';
         }
-        
-        date_default_timezone_set('Asia/Taipei');
+
+        //額外處理雞翅油飯盒。因為雞翅不像雞腿油飯盒的雞腿是在副主餐，而是被歸在配菜。但是其它配菜又不需要顯示。
+          // 油飯盒分類 main_category_id=1406, main_category_code=oilRiceBox
+        foreach ($data['final_products'] as $key => $product) {
+            if(isset($product['main_category_code']) && $product['main_category_code'] == 'oilRiceBox'){
+                foreach ($product['product_options']['配菜'] ?? [] as $name => $row) {
+                    if(strpos($name, '雞翅') == false){
+                        unset($data['final_products'][$key]['product_options']['配菜'][$name]);
+                    }
+                }
+            }
+        }
+
         $data['order']['now'] = Carbon::now()->format('Y-m-d H:i:s');
         // $data['order']['shipping_salutation_id'] = $member['shipping_salutation_id'];
         // $data['order']['shipping_salutation_id2'] = $member['shipping_salutation_id2'];
@@ -1188,13 +1199,13 @@ class OrderController extends BackendController
         $rs = DB::select("
         update ".env('DB_DATABASE').".orders
         set print_status = 1
-        where code = $code 
+        where code = $code
         ");
          return response()->json(array('status' => 'OK'));
-    } 
+    }
     // public function printReceiveFormA4($order_id)
     // {
-        
+
     //     $data = $this->getPrintingData($order_id);
     //     return view('admin.sale.print_receive_form_a4', $data);
     // }
@@ -1202,7 +1213,7 @@ class OrderController extends BackendController
     {
         $order_ids = explode(',', $order_ids);
         $ordersData = [];
-    
+
         if (is_array($order_ids)) {
             // 如果是数组，处理多个订单
             foreach ($order_ids as $order_id) {
@@ -1211,7 +1222,7 @@ class OrderController extends BackendController
         } else {
             // 如果不是数组，处理单个订单
             $ordersData[] = $this->getPrintingData($order_ids,$print_status);
-            
+
         }
         return view('admin.sale.print_receive_form_a4', ['orders' => $ordersData]);
     }

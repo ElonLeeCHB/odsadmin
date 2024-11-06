@@ -36,12 +36,8 @@
               </div>
 
               <div class="mb-3">
-                <label class="form-label">未來七天</label>
-                <select name="equal_within7days" id="input-equal_within7days" class="form-select">
-                  <option value="*" > -- </option>
-                  <option value="1">是</option>
-                  <option value="0">否</option>
-                </select>
+                <label style="font-weight: bolder;" >未來幾天</label>
+                <input type="text" id="input-equal_future_days" name="equal_future_days" value="" placeholder="請輸入數字" class="form-control"/>
               </div>
 
               <div class="mb-3">
@@ -106,9 +102,9 @@ $('#button-filter').on('click', function() {
     url += '&filter_required_date=' + encodeURIComponent(filter_required_date);
   }
 
-  var equal_within7days = $('#input-equal_within7days').val();
-  if (equal_within7days) {
-    url += '&equal_within7days=' + encodeURIComponent(equal_within7days);
+  var equal_future_days = $('#input-equal_future_days').val();
+  if (equal_future_days) {
+    url += '&equal_future_days=' + encodeURIComponent(equal_future_days);
   }
 
   var equal_product_id = $('#input-equal_product_id').val();

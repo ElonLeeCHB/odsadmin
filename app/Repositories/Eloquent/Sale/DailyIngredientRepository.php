@@ -7,6 +7,7 @@ use App\Traits\EloquentTrait;
 use App\Domains\Admin\Exports\SaleOrderRequisitionMatrixListExport;
 use App\Domains\Admin\Exports\SaleDailyRequisitionMatrixListExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 
 class DailyIngredientRepository
 {
@@ -15,11 +16,11 @@ class DailyIngredientRepository
     public $modelName = "\App\Models\Sale\DailyIngredient";
 
 
-    public function getRecords($params, $debug = 0)
+    public function getRecords($params)
     {
         $params = $this->resetQueryData($params);
 
-        $rows = $this->getRows($params, $debug);
+        $rows = $this->getRows($params);
 
         if(!empty($params['extra_columns'])){
             if(in_array('product_name', $params['extra_columns'])){
@@ -51,12 +52,12 @@ class DailyIngredientRepository
             unset($params['filter_product_name']);
         }
 
-        // 未來七天
-        if(isset($params['equal_within7days']) && $params['equal_within7days'] == 1){
-            $yesterday = date("Y-m-d", strtotime("+8 day"));
-            $today = date('Y-m-d');
-            $params['whereRawSqls'][] = "`required_date` BETWEEN $today AND $yesterday";
-            unset($params['equal_within7days']);
+        // 未來
+        if (isset($params['equal_future_days'])) {
+            $equalFutureDays = $params['equal_future_days'];
+            $start_date = Carbon::tomorrow();
+            $last_date = $start_date->copy()->addDays($equalFutureDays)->subDay();
+            $params['whereRawSqls'][] = "`required_date` BETWEEN '$start_date' AND '$last_date'";
         }
 
         // 依料件名稱排序

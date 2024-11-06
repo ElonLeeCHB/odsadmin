@@ -147,7 +147,7 @@
         <tbody>
           <tr style="height: 60px;">
             <td class="align-top"   colspan="10">
-            <p style="white-space: pre-wrap;margin:0">餐點備註：{{ $order['order']->extra_comment }}</p>  
+            <p style="white-space: pre-wrap;margin:0">餐點備註：{{ $order['order']->extra_comment }}</p>
               <div style="text-align: right;">
                 <input type="checkbox"> {{"小卡"}}
                 外送五步驟：清檢放統備 &nbsp;&nbsp;簽名：_______________
@@ -219,11 +219,11 @@
         <table data-toggle="table" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
           <tbody>
             @php
-              $riceBox_title_showed = 1;
+              $oilRiceBox_title_showed = 1;
             @endphp
             @foreach($order['final_products'] as $key =>$order_product)
-            @if($order_product['main_category_code'] == 'riceBox')
-              @if($riceBox_title_showed == 1)
+            @if($order_product['main_category_code'] == 'oilRiceBox')
+              @if($oilRiceBox_title_showed == 1)
                   <tr>
                     <td  style="width:115px;">油飯便當系列</td>
                     <td style="width:24px;" class=" fw-bold">小計</td>
@@ -259,7 +259,7 @@
 
                   </tr>
                   @endif
-                  @php $riceBox_title_showed = 0; @endphp
+                  @php $oilRiceBox_title_showed = 0; @endphp
                 <tr>
                   <td>{{ $order_product['name'] }}</td>
                   <td>{{ $order_product['quantity'] }}</td>
@@ -279,10 +279,10 @@
                   @endif
                     </td> -->
                     <td>
-                    @if(!empty($order_product['product_options']['配菜']['香滷雞翅']))
-                  {{ $order_product['product_options']['配菜']['香滷雞翅'] ?? 0 }}
+                    @if(!empty($order_product['product_options']['配菜']['紐澳良雞翅']))
+                  {{ $order_product['product_options']['配菜']['紐澳良雞翅'] ?? 0 }}
                   @endif
-                    </td> 
+                    </td>
                     <td>
                     @if(!empty($order_product['product_options']['副主餐']['滷雞腿']))
                   {{ $order_product['product_options']['副主餐']['滷雞腿'] ?? 0 }}
@@ -380,7 +380,7 @@
                   </td>
                 </tr>
                 @endif -->
-                
+
                 {{-- 如果有備註 --}}
                 @if(!empty($order_product['comment']))
                 <tr style="height:3px">
@@ -398,13 +398,13 @@
           @foreach($order['final_products'] as $key => $order_product)
             @if($order_product['product_id']===1697)
             <tr>
-              <td>備註: 客製油飯盒 * {{ $order_product['quantity'] }}份。 
+              <td>備註: 客製油飯盒 * {{ $order_product['quantity'] }}份。
               @if(!empty($order_product['price']))
                 {{ $order_product['price'] }}
-              @else 
+              @else
                 0
                 @endif
-                元  
+                元
                 /@
               <!-- @if(!empty($order_product['main_meal']))
               【{{ $order_product['main_meal']['name'] }}{{":"}}】
@@ -428,7 +428,7 @@
               @endif
               @endforeach
               @endif
-              
+
                 <!-- @if(!empty($order_product['drink']))
                 【{{"飲料:"}}】
                       @foreach($order_product['drink']['option_values'] as $product_option_value_id => $value)
@@ -436,7 +436,7 @@
                       @endforeach
 
                 @endif -->
-  
+
               </td>
             </tr>
             @endif
@@ -620,12 +620,12 @@
                     @if(!empty($order_product['product_options']['配菜']['烤地瓜']))
                   {{ $order_product['product_options']['配菜']['烤地瓜'] ?? 0 }}
                   @endif
-                    </td>                   
+                    </td>
                      <td>
                     @if(!empty($order_product['product_options']['配菜']['薯球']))
                   {{ $order_product['product_options']['配菜']['薯球'] ?? 0 }}
                   @endif
-                    </td>                    
+                    </td>
                     <td>
                     @if(!empty($order_product['product_options']['配菜']['手作蛋塔']))
                   {{ $order_product['product_options']['配菜']['手作蛋塔'] ?? 0 }}
@@ -697,7 +697,7 @@
                   </td>
                 </tr>
                 @endif -->
-                
+
                 {{-- 如果有備註 --}}
                 @if(!empty($order_product['comment']))
                 <tr style="height:3px">
@@ -715,13 +715,13 @@
             @foreach($order['final_products'] as $key => $order_product)
             @if($order_product['product_id']===1043)
             <tr>
-              <td>備註: 客製便當 * {{ $order_product['quantity'] }}份。 
+              <td>備註: 客製便當 * {{ $order_product['quantity'] }}份。
               @if(!empty($order_product['price']))
                 {{ $order_product['price'] }}
-              @else 
+              @else
                 0
                 @endif
-                元  /@ 
+                元  /@
               @if(!empty($order_product['product_options']))
                 @foreach($order_product['product_options'] as $option_name => $options)
                   @if($option_name!=='飲料' && $option_name!=='主餐')
@@ -742,7 +742,7 @@
                       @endforeach
 
                 @endif -->
-  
+
               </td>
             </tr>
             @endif
@@ -888,7 +888,7 @@
                     @if(!empty($order_product['product_options']['配菜']['手作蛋塔']))
                   {{ $order_product['product_options']['配菜']['手作蛋塔'] ?? 0 }}
                   @endif
-                    </td> 
+                    </td>
                     <!-- <td>
                     @if(!empty($order_product['product_options']['配菜']['香蔥酥餅']))
                   {{ $order_product['product_options']['配菜']['香蔥酥餅'] ?? 0 }}
@@ -898,7 +898,7 @@
                       @if(!empty($order_product['product_options']['配菜']['紐澳良雞翅']))
                       {{ $order_product['product_options']['配菜']['紐澳良雞翅'] ?? 0 }}
                       @endif
-                    </td> 
+                    </td>
                     <!-- <td>
                     @if(!empty($order_product['product_options']['配菜']['紐澳良雞翅']))
                       {{ $order_product['product_options']['配菜']['紐澳良雞翅'] ?? 0 }}
@@ -908,7 +908,7 @@
                     @if(!empty($order_product['product_options']['配菜']['芋頭糕']))
                   {{ $order_product['product_options']['配菜']['芋頭糕'] ?? 0 }}
                   @endif
-                    </td> 
+                    </td>
                     <td>
                     @if(!empty($order_product['product_options']['配菜']['梅汁番茄']))
                   {{ $order_product['product_options']['配菜']['梅汁番茄'] ?? 0 }}
@@ -932,14 +932,14 @@
                     ||(!empty($order_product['main_meal']['option_values'][1017]['drink']))||(!empty($order_product['main_meal']['option_values'][1018]['drink']))
                     ||(!empty($order_product['main_meal']['option_values'][1019]['drink']))||(!empty($order_product['main_meal']['option_values'][1020]['drink']))
                     ||(!empty($order_product['main_meal']['option_values'][1021]['drink']))||(!empty($order_product['main_meal']['option_values'][1022]['drink']))
-                    ||(!empty($order_product['main_meal']['option_values'][1072]['drink'])) 
-                    
+                    ||(!empty($order_product['main_meal']['option_values'][1072]['drink']))
+
                     || (!empty($order_product['main_meal']['option_values'][1096]['drink'])) || (!empty($order_product['main_meal']['option_values'][1097]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1098]['drink'])) || (!empty($order_product['main_meal']['option_values'][1099]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1100]['drink'])) || (!empty($order_product['main_meal']['option_values'][1101]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1104]['drink'])) || (!empty($order_product['main_meal']['option_values'][1105]['drink'])))
                     <td>
-    
+
                     @if(!empty($order_product['main_meal']['option_values'][1046]['drink'][1023]))
                   {{$order_product['main_meal']['option_values'][1046]['drink'][1023]['quantity']}}
                   @elseif(!empty($order_product['main_meal']['option_values'][1047]['drink'][1023]))
@@ -983,7 +983,7 @@
                     ||(!empty($order_product['main_meal']['option_values'][1017]['drink']))||(!empty($order_product['main_meal']['option_values'][1018]['drink']))
                     ||(!empty($order_product['main_meal']['option_values'][1019]['drink']))||(!empty($order_product['main_meal']['option_values'][1020]['drink']))
                     ||(!empty($order_product['main_meal']['option_values'][1021]['drink']))||(!empty($order_product['main_meal']['option_values'][1022]['drink']))
-                    ||(!empty($order_product['main_meal']['option_values'][1072]['drink'])) 
+                    ||(!empty($order_product['main_meal']['option_values'][1072]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1096]['drink'])) || (!empty($order_product['main_meal']['option_values'][1097]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1098]['drink'])) || (!empty($order_product['main_meal']['option_values'][1099]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1100]['drink'])) || (!empty($order_product['main_meal']['option_values'][1101]['drink']))
@@ -1032,7 +1032,7 @@
                     ||(!empty($order_product['main_meal']['option_values'][1017]['drink']))||(!empty($order_product['main_meal']['option_values'][1018]['drink']))
                     ||(!empty($order_product['main_meal']['option_values'][1019]['drink']))||(!empty($order_product['main_meal']['option_values'][1020]['drink']))
                     ||(!empty($order_product['main_meal']['option_values'][1021]['drink']))||(!empty($order_product['main_meal']['option_values'][1022]['drink']))
-                    ||(!empty($order_product['main_meal']['option_values'][1072]['drink'])) 
+                    ||(!empty($order_product['main_meal']['option_values'][1072]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1096]['drink'])) || (!empty($order_product['main_meal']['option_values'][1097]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1098]['drink'])) || (!empty($order_product['main_meal']['option_values'][1099]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1100]['drink'])) || (!empty($order_product['main_meal']['option_values'][1101]['drink']))
@@ -1081,7 +1081,7 @@
                     ||(!empty($order_product['main_meal']['option_values'][1017]['drink']))||(!empty($order_product['main_meal']['option_values'][1018]['drink']))
                     ||(!empty($order_product['main_meal']['option_values'][1019]['drink']))||(!empty($order_product['main_meal']['option_values'][1020]['drink']))
                     ||(!empty($order_product['main_meal']['option_values'][1021]['drink']))||(!empty($order_product['main_meal']['option_values'][1022]['drink']))
-                    ||(!empty($order_product['main_meal']['option_values'][1072]['drink'])) 
+                    ||(!empty($order_product['main_meal']['option_values'][1072]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1096]['drink'])) || (!empty($order_product['main_meal']['option_values'][1097]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1098]['drink'])) || (!empty($order_product['main_meal']['option_values'][1099]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1100]['drink'])) || (!empty($order_product['main_meal']['option_values'][1101]['drink']))
@@ -1130,7 +1130,7 @@
                     ||(!empty($order_product['main_meal']['option_values'][1017]['drink']))||(!empty($order_product['main_meal']['option_values'][1018]['drink']))
                     ||(!empty($order_product['main_meal']['option_values'][1019]['drink']))||(!empty($order_product['main_meal']['option_values'][1020]['drink']))
                     ||(!empty($order_product['main_meal']['option_values'][1021]['drink']))||(!empty($order_product['main_meal']['option_values'][1022]['drink']))
-                    ||(!empty($order_product['main_meal']['option_values'][1072]['drink'])) 
+                    ||(!empty($order_product['main_meal']['option_values'][1072]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1096]['drink'])) || (!empty($order_product['main_meal']['option_values'][1097]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1098]['drink'])) || (!empty($order_product['main_meal']['option_values'][1099]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1100]['drink'])) || (!empty($order_product['main_meal']['option_values'][1101]['drink']))
@@ -1179,7 +1179,7 @@
                     ||(!empty($order_product['main_meal']['option_values'][1017]['drink']))||(!empty($order_product['main_meal']['option_values'][1018]['drink']))
                     ||(!empty($order_product['main_meal']['option_values'][1019]['drink']))||(!empty($order_product['main_meal']['option_values'][1020]['drink']))
                     ||(!empty($order_product['main_meal']['option_values'][1021]['drink']))||(!empty($order_product['main_meal']['option_values'][1022]['drink']))
-                    ||(!empty($order_product['main_meal']['option_values'][1072]['drink'])) 
+                    ||(!empty($order_product['main_meal']['option_values'][1072]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1096]['drink'])) || (!empty($order_product['main_meal']['option_values'][1097]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1098]['drink'])) || (!empty($order_product['main_meal']['option_values'][1099]['drink']))
                     || (!empty($order_product['main_meal']['option_values'][1100]['drink'])) || (!empty($order_product['main_meal']['option_values'][1101]['drink']))
@@ -1265,8 +1265,8 @@
                     @foreach($order_product['main_meal']['option_values'][1083]['drink'] as $drink_option_value_id => $drink)
                     @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
                     <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
-                    @else 
-                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span> 
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
                     @endif
                     <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
                     @endforeach
@@ -1277,8 +1277,8 @@
                     @foreach($order_product['main_meal']['option_values'][1046]['drink'] as $drink_option_value_id => $drink)
                     @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
                     <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
-                    @else 
-                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span> 
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
                     @endif
                     <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
                     @endforeach
@@ -1289,8 +1289,8 @@
                     @foreach($order_product['main_meal']['option_values'][1047]['drink'] as $drink_option_value_id => $drink)
                     @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
                     <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
-                    @else 
-                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span> 
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
                     @endif
                     <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
                     @endforeach
@@ -1301,8 +1301,8 @@
                     @foreach($order_product['main_meal']['option_values'][1017]['drink'] as $drink_option_value_id => $drink)
                     @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
                     <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
-                    @else 
-                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span> 
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
                     @endif
                     <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
                     @endforeach
@@ -1313,8 +1313,8 @@
                     @foreach($order_product['main_meal']['option_values'][1018]['drink'] as $drink_option_value_id => $drink)
                     @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
                     <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
-                    @else 
-                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span> 
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
                     @endif
                     <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
                     @endforeach
@@ -1325,8 +1325,8 @@
                     @foreach($order_product['main_meal']['option_values'][1019]['drink'] as $drink_option_value_id => $drink)
                     @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
                     <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
-                    @else 
-                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span> 
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
                     @endif
                     <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
                     @endforeach
@@ -1337,8 +1337,8 @@
                     @foreach($order_product['main_meal']['option_values'][1020]['drink'] as $drink_option_value_id => $drink)
                     @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
                     <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
-                    @else 
-                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span> 
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
                     @endif
                     <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
                     @endforeach
@@ -1349,8 +1349,8 @@
                     @foreach($order_product['main_meal']['option_values'][1021]['drink'] as $drink_option_value_id => $drink)
                     @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
                     <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
-                    @else 
-                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span> 
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
                     @endif
                     <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
                     @endforeach
@@ -1361,8 +1361,8 @@
                     @foreach($order_product['main_meal']['option_values'][1022]['drink'] as $drink_option_value_id => $drink)
                     @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
                     <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
-                    @else 
-                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span> 
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
                     @endif
                     <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
                     @endforeach
@@ -1373,8 +1373,8 @@
                     @foreach($order_product['main_meal']['option_values'][1093]['drink'] as $drink_option_value_id => $drink)
                     @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
                     <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
-                    @else 
-                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span> 
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
                     @endif
                     <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
                     @endforeach
@@ -1400,7 +1400,7 @@
                   <!-- <td>
                   @if(!empty($order_product['main_meal']['option_values'][1072]['drink']))
                     @foreach($order_product['main_meal']['option_values'][1072]['drink'] as $drink_option_value_id => $drink)
-                                       <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span> 
+                                       <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
                     <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
                     @endforeach
                     @endif
@@ -1423,17 +1423,17 @@
             @foreach($order['final_products'] as $key => $order_product)
             @if($order_product['product_id']===1044)
             <tr>
-              <td>備註: 客製盒餐 * {{ $order_product['quantity'] }}份。 
+              <td>備註: 客製盒餐 * {{ $order_product['quantity'] }}份。
               @if(!empty($order_product['price']))
                 {{ $order_product['price'] }}
-              @else 
+              @else
                 0
                 @endif
                 元  /@
               @foreach($order_product['product_options'] as $option_name => $options)
               @if($option_name!=='飲料' && $option_name!=='主餐')
               【{{ $option_name }}{{":"}}】
-  
+
                 @foreach($options as $option_value_name => $quantity)
                   {{ $option_value_name }}*{{ $quantity }}
                   @endforeach
@@ -1446,7 +1446,7 @@
                       @endforeach
 
                 @endif -->
-  
+
               </td>
             </tr>
             @endif
@@ -1564,7 +1564,7 @@
                     @if(!empty($order_product['product_options']['飲料']['無豆']))
                   {{ $order_product['product_options']['飲料']['無豆'] ?? 0 }}
                   @endif
-                    </td> 
+                    </td>
                     <td>
                     @if(!empty($order_product['product_options']['飲料']['紅茶']))
                   {{ $order_product['product_options']['飲料']['紅茶'] ?? 0 }}
@@ -1608,7 +1608,7 @@
               @foreach($order_product['product_options'] as $option_name => $options)
                 @if($option_name!=='飲料')
                   【{{ $option_name }}{{":"}}】
-  
+
                    @foreach($options as $option_value_name => $quantity)
                     {{ $option_value_name }}*{{ $quantity }}
                    @endforeach
@@ -1691,7 +1691,7 @@
                     @if(!empty($order_product['product_options']['配菜']['香滷雞翅']))
                   {{ $order_product['product_options']['配菜']['香滷雞翅'] ?? 0 }}
                   @endif
-                    </td> 
+                    </td>
                     <td>
                     @if(!empty($order_product['product_options']['副主餐']['滷雞腿']))
                   {{ $order_product['product_options']['副主餐']['滷雞腿'] ?? 0 }}
@@ -1755,7 +1755,7 @@
                   </td>
                 </tr>
                 @endif -->
-                
+
                 {{-- 如果有備註 --}}
                 @if(!empty($order_product['comment']))
                 <tr style="height:3px">
@@ -1773,27 +1773,27 @@
       <table data-toggle="table" class="table table-bordered border border-dark tr-border-top">
         <tr>
         <td class="align-top" style="width: 50%;border-right:3px solid black" >
-        <p style="white-space: pre-wrap;margin:0">訂單備註：{{ $order['order']->comment }}</p>  
+        <p style="white-space: pre-wrap;margin:0">訂單備註：{{ $order['order']->comment }}</p>
         </td>
           <td class="border-right:3px solid black">
           客戶簽收：<BR>
           @if( $order['order']->payment_method ==='cash')
           <input type="checkbox" id="checkedCheckbox" name="checkedCheckbox" checked>
-          {{"現金"}} 
+          {{"現金"}}
            @else
           <input type="checkbox">
-          {{"現金"}} 
+          {{"現金"}}
           @endif
           <BR>
           @if( $order['order']->payment_method ==='debt')
-          <input type="checkbox" id="checkedCheckbox" name="checkedCheckbox" checked> {{"預計匯款日"}} 
+          <input type="checkbox" id="checkedCheckbox" name="checkedCheckbox" checked> {{"預計匯款日"}}
           @if(!empty($order['order']->scheduled_payment_date))
-          {{ $order['order']->scheduled_payment_date}} 
+          {{ $order['order']->scheduled_payment_date}}
           @else
           {{"未填寫付款日"}}
           @endif
           @else
-          <input type="checkbox"> 
+          <input type="checkbox">
           {{"預計匯款日"}}
 
           @endif
@@ -1825,8 +1825,8 @@
           </td>
         </tr>
       </table>
-      外送人員簽名：____________ 
-      <input type="checkbox"> 外送機車/車牌：__________ 
+      外送人員簽名：____________
+      <input type="checkbox"> 外送機車/車牌：__________
       <input type="checkbox" id="input-chk001" >
       <label for="input-chk001">膠台</label>
       <input type="checkbox" id="input-chk002" >
@@ -1835,14 +1835,14 @@
       <label for="input-chk003">拉繩</label>
       @if(!empty($order['order']->order_taker))
       接單人員:  {{$order['order']->order_taker }}
-      @else 
+      @else
       接單人員:__________
       @endif
       <br>
       <div class="fw-bold"  style="text-align: right;margin-right: 1.5em">{{'製單時間：'}}{{ $order['order']->now }}</div>
     </div>
 
-    
+
     @endforeach
 
     <script type="text/javascript">
