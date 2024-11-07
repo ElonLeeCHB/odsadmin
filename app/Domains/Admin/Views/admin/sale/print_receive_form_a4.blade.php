@@ -221,7 +221,8 @@
             @php
               $oilRiceBox_title_showed = 1;
             @endphp
-            @foreach($order['final_products'] as $key =>$order_product)
+
+            @foreach($order['final_products'] as $key => $order_product)
             @if($order_product['main_category_code'] == 'oilRiceBox')
               @if($oilRiceBox_title_showed == 1)
                   <tr>

@@ -1031,7 +1031,6 @@ class OrderController extends BackendController
             $final_products[] = $arr_order_product;
         }
 
-
         $organizedData = [];
         // dd($final_products);
         foreach ($final_products as $item) {
@@ -1190,7 +1189,7 @@ class OrderController extends BackendController
         if($print_status ==='1'){
             $print = $this->updatePrintStatus($data['order']['code']);
         }
-        // dd($data['final_products']);
+
         return $data;
 
     }
@@ -1203,12 +1202,8 @@ class OrderController extends BackendController
         ");
          return response()->json(array('status' => 'OK'));
     }
-    // public function printReceiveFormA4($order_id)
-    // {
 
-    //     $data = $this->getPrintingData($order_id);
-    //     return view('admin.sale.print_receive_form_a4', $data);
-    // }
+
     public function printReceiveFormA4($order_ids,$print_status)
     {
         $order_ids = explode(',', $order_ids);
@@ -1224,6 +1219,7 @@ class OrderController extends BackendController
             $ordersData[] = $this->getPrintingData($order_ids,$print_status);
 
         }
+
         return view('admin.sale.print_receive_form_a4', ['orders' => $ordersData]);
     }
 
