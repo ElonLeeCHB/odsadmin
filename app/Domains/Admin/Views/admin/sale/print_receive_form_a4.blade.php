@@ -728,10 +728,13 @@
               @if(!empty($order_product['product_options']))
                 @foreach($order_product['product_options'] as $option_name => $options)
                   @if($option_name!=='飲料' && $option_name!=='主餐')
-                  【{{ $option_name }}{{":"}}】
+                    【{{ $option_name }}{{":"}}】
 
+                    @php
+                    $no_show_items = ['梅汁番茄','鹽水煮蛋','時蔬','蔬菜杯','廚娘油飯','香菇油飯'];
+                    @endphp
                     @foreach($options as $option_value_name => $quantity)
-                      @if($option_value_name !=='梅汁番茄' && $option_value_name !=='鹽水煮蛋' && $option_value_name !=='時蔬' && $option_value_name !=='香菇油飯' && $option_value_name !=='梅汁番茄' && $option_value_name !=='酥炸菇菇' && $option_value_name !=='香滷豆干')
+                      @if(!in_array($option_value_name, $no_show_items))
                         {{ $option_value_name }}*{{ $quantity }}
                       @endif
                     @endforeach
