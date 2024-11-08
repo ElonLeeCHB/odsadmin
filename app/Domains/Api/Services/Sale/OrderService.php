@@ -196,6 +196,7 @@ class OrderService extends GlobalOrderService
             OrderProductOption::where('order_id', $order->id)->delete();
             $this->OrderProductRepository->newModel()->where('order_id', $order->id)->delete();
             }
+
             // order_products table
             if(!empty($data['order_products'])){
 
@@ -248,6 +249,12 @@ class OrderService extends GlobalOrderService
                     if(!empty($fm_order_product['final_total'])){
                         $final_total = str_replace(',', '', $fm_order_product['final_total']);
                     }
+
+                    //riceBox 已在後台改為 oilRiceBox，但是儲存後仍然是 riceBox， 前端可能寫死 riceBox。重新強制改寫
+                    if($fm_order_product['main_category_code']  == 'riceBox'){
+                        $fm_order_product['main_category_code'] = 'oilRiceBox';
+                    }
+                    //
 
                     $update_order_product = [
                         'id' => $fm_order_product['order_product_id'] ?? null,
@@ -313,6 +320,7 @@ class OrderService extends GlobalOrderService
                                     if(strpos($product_option_value['value'], '豆干') !== false && in_array($form_order_product['product_id'], [1001,1002,1003,1004,1050,1055,1080,1657,1658])){
                                         continue;
                                     }
+                                    //
 
                                     $product_option_value['quantity'] = str_replace(',', '', $product_option_value['quantity'] );
 
@@ -328,7 +336,6 @@ class OrderService extends GlobalOrderService
                                         'type'                      => $product_option['type'],
                                         'value'                     => $product_option_value['value'],
                                         'quantity'                  => $product_option_value['quantity'],
-
                                     ];
                                 }
 

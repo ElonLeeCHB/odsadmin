@@ -1121,15 +1121,16 @@ class OrderController extends BackendController
             }
         }
         $data['final_products'] = [];
+
         // if(!empty($final_products)){
             $data['final_products'] = $organizedData;
         // }
         // dd($data['final_products'] );
         $data['statics'] = [];
+
         if(!empty($statics)){
             $data['statics'] = $statics;
         }
-
 
         // no $filter_data
         $order_totals = $this->OrderService->getOrderTotals($order->id);
@@ -1170,13 +1171,16 @@ class OrderController extends BackendController
             $data['order']['shipping_salutation_id2'] = '';
         }
 
+
+        // dd($data['order']);
+
         //額外處理雞翅油飯盒。因為雞翅不像雞腿油飯盒的雞腿是在副主餐，而是被歸在配菜。但是其它配菜又不需要顯示。
           // 油飯盒分類 main_category_id=1406, main_category_code=oilRiceBox
         foreach ($data['final_products'] as $key => $product) {
             if(isset($product['main_category_code']) && $product['main_category_code'] == 'oilRiceBox'){
                 foreach ($product['product_options']['配菜'] ?? [] as $name => $row) {
-                    if(strpos($name, '雞翅') == false){
-                        unset($data['final_products'][$key]['product_options']['配菜'][$name]);
+                    if(strpos($name, '雞翅') !== false && $name != '贈品豆花'){
+                        // unset($data['final_products'][$key]['product_options']['配菜'][$name]);
                     }
                 }
             }

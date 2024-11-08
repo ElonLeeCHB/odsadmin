@@ -164,6 +164,7 @@ class RequisitionService extends Service
 
                 //跑迴圈以完成加總
                 foreach ($orders ?? [] as $key1 => $order) {
+
                     foreach ($order->order_products as $key2 => $order_product) {
                         foreach ($order_product->order_product_options as $key3 => $order_product_option) {
                             //如果已不存在 product_option_value 則略過。這原因是商品基本資料已刪除某選項。但對舊訂單來說這會有問題。先略過。
@@ -226,7 +227,7 @@ class RequisitionService extends Service
                                     continue;
                                 }
 
-                                else if($ingredient_product_id == 1734){ //蔬菜杯
+                                if($ingredient_product_id == 1734 || $ingredient_product_id == 1033){ //蔬菜杯 1734 時疏 1033
 
                                     //注意，這是另外的統計 $statics
                                     $statics['info']['ingredient_products'][1734]['quantity'] += $quantity;

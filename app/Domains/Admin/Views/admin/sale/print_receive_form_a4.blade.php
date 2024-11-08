@@ -362,9 +362,11 @@
                   @endif
                   @endif
                     </td>
-                    <td> @if(!empty($order_product['product_options']['配菜']['贈品豆花']))
-                  {{ $order_product['product_options']['配菜']['贈品豆花'] ?? 0 }}
-                  @endif </td>
+                    <td>
+                      @if(!empty($order_product['product_options']['配菜']['贈品豆花']))
+                      {{ $order_product['product_options']['配菜']['贈品豆花'] ?? 0 }}
+                      @endif
+                    </td>
 
 
                 </tr>
