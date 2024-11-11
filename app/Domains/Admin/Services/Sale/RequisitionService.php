@@ -227,7 +227,7 @@ class RequisitionService extends Service
                                     continue;
                                 }
 
-                                if($ingredient_product_id == 1734 || $ingredient_product_id == 1033){ //蔬菜杯 1734 時疏 1033
+                                else if($ingredient_product_id == 1734 || $ingredient_product_id == 1033){ //蔬菜杯 1734 時疏 1033
 
                                     //注意，這是另外的統計 $statics
                                     $statics['info']['ingredient_products'][1734]['quantity'] += $quantity;

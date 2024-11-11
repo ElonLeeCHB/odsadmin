@@ -731,7 +731,7 @@
                     【{{ $option_name }}{{":"}}】
 
                     @php
-                    $no_show_items = ['梅汁番茄','鹽水煮蛋','時蔬','蔬菜杯','廚娘油飯','香菇油飯'];
+                    $no_show_items = ['梅汁番茄','鹽水煮蛋','時蔬','蔬菜杯','廚娘油飯','香菇油飯','烤地瓜'];
                     @endphp
                     @foreach($options as $option_value_name => $quantity)
                       @if(!in_array($option_value_name, $no_show_items))
