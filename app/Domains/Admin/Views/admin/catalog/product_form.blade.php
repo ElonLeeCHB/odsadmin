@@ -103,7 +103,7 @@
               </div>
 
               <div id="tab-data" class="tab-pane">
-                
+
                 {{-- sort_order --}}
                 <div class="row mb-3">
                   <label class="col-sm-2 col-form-label">{{ $lang->column_sort_order }}</label>
@@ -177,7 +177,7 @@
                   </div>
                 </div>
 
-                
+
                 <div class="row mb-3">
                   <label for="input-comment" class="col-sm-2 col-form-label">{{ $lang->column_comment}}</label>
                   <div class="col-sm-10">
@@ -185,7 +185,7 @@
                     <div id="error-comment" class="invalid-feedback"></div>
                   </div>
                 </div>
-                
+
               </div>
 
               <div id="tab-bom" class="tab-pane">
@@ -217,8 +217,8 @@
                             </td>
                             <td class="text-right"><input type="text" name="product_bom[{{ $bom_row }}][item_qty]" value="{{ optional($bom_product->pivot)->quantity ?? 0 }}" placeholder="用量" class="form-control bom_item_qty isDecimal qtyDec-0" data-rel_wt_calculation="1" onchange="getGrossQty(0)"/></td>
                             <td class="text-left"><button type="button" onclick="$('#bom-row-{{ $bom_row }}').remove();" data-toggle="tooltip" title="Remove" class="btn btn-danger"><i class="fa fa-minus-circle"></i></button></td>
-                            </tr>    
-                                                
+                            </tr>
+
                           <?php $bom_row++; ?>
                           @endforeach                                                                                        </tbody>
                         <tfoot>
@@ -229,9 +229,9 @@
                           </tr>
                         </tfoot>
                       </table>
-                      </div>   
+                      </div>
                     </div>
-                </div>               
+                </div>
               </div>
 
               <div id="tab-option" class="tab-pane">
@@ -245,13 +245,13 @@
 
                   <fieldset id="option-row-{{ $option_row }}">
                       <legend class="float-none">
-                        {{ $product_option->name }} 
+                        {{ $product_option->name }}
                         <span style="font-size:10px;">option_id:{{ $product_option->option_id }} </span>
                         <button type="button" class="btn btn-danger btn-sm float-end" onclick="$('#option-row-{{ $option_row }}').remove();"><i class="fa-solid fa-minus-circle"></i></button>
                       </legend>
-                      <input type="hidden" name="product_options[{{ $option_row }}][product_option_id]" value="{{ $product_option->product_option_id }}"/> 
-                      <input type="hidden" name="product_options[{{ $option_row }}][name]" value="{{ $product_option->name }}"/> 
-                      <input type="hidden" name="product_options[{{ $option_row }}][option_id]" value="{{ $product_option->option_id }}"/> 
+                      <input type="hidden" name="product_options[{{ $option_row }}][product_option_id]" value="{{ $product_option->product_option_id }}"/>
+                      <input type="hidden" name="product_options[{{ $option_row }}][name]" value="{{ $product_option->name }}"/>
+                      <input type="hidden" name="product_options[{{ $option_row }}][option_id]" value="{{ $product_option->option_id }}"/>
                       <input type="hidden" name="product_options[{{ $option_row }}][type]" value="{{ $product_option->type }}"/>
 
                       <div class="row mb-3">
@@ -361,7 +361,7 @@
                           <input type="number" id="input-option-{{ $option_row }}-sort_order" name="product_options[{{ $option_row }}][sort_order]" value="{{ $product_option->sort_order }}" class="form-control" >
                         </div>
                       </div>
-                      
+
                       @if($product_option->type == 'options_with_qty' || $product_option->type == 'select' || $product_option->type == 'radio' || $product_option->type == 'checkbox' || $product_option->type == 'image')
                         <div class="table-responsive">
                           <table class="table table-bordered table-hover">
@@ -369,6 +369,7 @@
                               <tr>
                                 <td class="text-start">{{ $lang->column_option_value }}</td>
                                 <td class="text-start">{{ $lang->column_is_default }}</td>
+                                <td class="text-start">預設數量</td>
                                 <td class="text-start">{{ $lang->column_is_active }}</td>
                                 <td class="text-end">{{ $lang->column_price }}</td>
                                 <td class="text-end">{{ $lang->column_sort_order }}</td>
@@ -376,11 +377,11 @@
                               </tr>
                             </thead>
                             <tbody id="option-value-{{ $option_row }}">
-                            
+
                               @foreach($product_option->product_option_values as $product_option_value)
                                 <tr id="option-value-row-{{ $option_value_row }}">
                                   <td class="text-start">{{ $product_option_value->name }}
-                                    <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][option_value_id]" value="{{ $product_option_value->option_value_id }}"/> 
+                                    <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][option_value_id]" value="{{ $product_option_value->option_value_id }}"/>
                                     <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][product_option_value_id]" value="{{ $product_option_value->product_option_value_id }}"/>
                                   </td>
                                   <td class="text-start">@if($product_option_value->is_default)
@@ -390,6 +391,10 @@
                                     @endif
                                     <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][is_default]" value="{{ $product_option_value->is_default }}"/>
                                   </td>
+                                  <td class="text-end">
+                                    {{ $product_option_value->quantity ?? 0 }}
+                                    <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][quantity]" value="{{ $product_option_value->quantity }}"/></td>
+                                  </td>
                                   <td class="text-start">@if($product_option_value->is_active)
                                       {{ $lang->text_yes }}
                                     @else
@@ -398,14 +403,14 @@
                                     <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][is_active]" value="{{ $product_option_value->is_active }}"/>
                                   </td>
                                   <td class="text-end">{{ $product_option_value->price_prefix }}{{ $product_option_value->price }}
-                                    <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][price_prefix]" value="{{ $product_option_value->price_prefix }}"/> 
+                                    <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][price_prefix]" value="{{ $product_option_value->price_prefix }}"/>
                                     <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][price]" value="{{ $product_option_value->price }}"/></td>
                                   <td class="text-end">
-                                  {{ $product_option_value->sort_order ?? '' }}
-                                  <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][sort_order]" value="{{ $product_option_value->sort_order }}"/></td>
+                                    {{ $product_option_value->sort_order ?? '' }}
+                                    <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][sort_order]" value="{{ $product_option_value->sort_order }}"/></td>
                                   </td>
                                   <td class="text-end">
-                                    <button type="button" title="{{ $lang->button_edit }}" data-bs-toggle="tooltip" data-option-row="{{ $option_row }}" data-option-value-row="{{ $option_value_row }}" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></button> 
+                                    <button type="button" title="{{ $lang->button_edit }}" data-bs-toggle="tooltip" data-option-row="{{ $option_row }}" data-option-value-row="{{ $option_value_row }}" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></button>
                                     <button type="button" onclick="$('#option-value-row-{{ $option_value_row }}').remove();" data-bs-toggle="tooltip" title="{{ $lang->button_remove }}" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button>
                                   </td>
                                 </tr>
@@ -414,7 +419,7 @@
                             </tbody>
                             <tfoot>
                               <tr>
-                                <td colspan="5"></td>
+                                <td colspan="6"></td>
                                 <td class="text-end"><button type="button" data-bs-toggle="tooltip" title="{{ $lang->button_add }}" data-option-row="{{ $option_row }}" class="btn btn-primary"><i class="fa-solid fa-plus-circle"></i></button></td>
                               </tr>
                             </tfoot>
@@ -632,6 +637,7 @@
               html += '      <tr>';
               html += '        <td class="text-start">{{ $lang->column_option_value }}</td>';
               html += '        <td class="text-start">{{ $lang->column_is_default }}</td>';
+              html += '        <td class="text-start">預設數量</td>';
               html += '        <td class="text-end">{{ $lang->column_price }}</td>';
               html += '        <td class="text-end">{{ $lang->column_sort_order }}</td>';
               html += '        <td></td>';
@@ -640,7 +646,7 @@
               html += '    <tbody></tbody>';
               html += '    <tfoot>';
               html += '      <tr>';
-              html += '        <td colspan="5"></td>';
+              html += '        <td colspan="6"></td>';
               html += '        <td class="text-end"><button type="button" data-option-row="' + option_row + '" data-bs-toggle="tooltip" title="{{ $lang->button_option_value_add }}" class="btn btn-primary"><i class="fa-solid fa-plus-circle"></i></button></td>';
               html += '      </tr>';
               html += '    </tfoot>';
@@ -755,6 +761,12 @@
       html += '          </div>';
       html += '        </div>';
 
+      //quantity
+      html += '        <div class="mb-3">';
+      html += '      	   <label for="input-modal-quantity" class="form-label">預設數量</label>';
+      html += '          <input type="text" id="input-modal-quantity" name="quantity" value="' + ($(element).attr('data-option-value-row') ? $('input[name=\'product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][quantity]\']').val() : '1') + '" class="form-control" autocomplete="off">';
+      html += '        </div>';
+
       //sort_order
       html += '        <div class="mb-3">';
       html += '      	   <label for="input-modal-sort_order" class="form-label">{{ $lang->column_sort_order}}</label>';
@@ -778,6 +790,7 @@
           html = '<tr id="option-value-row-' + element.option_value_row + '">';
           html += '  <td class="text-start">' + $('#modal-option select[name=\'option_value_id\'] option:selected').text() + '<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][option_value_id]" value="' + $('#modal-option select[name=\'option_value_id\']').val() + '"/><input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][product_option_value_id]" value="' + $('#modal-option input[name=\'product_option_value_id\']').val() + '"/></td>';
           html += '  <td class="text-start">' + ($('#modal-option select[name=\'is_default\'] option:selected').val() == '1' ? '{{ $lang->text_yes }}' : '{{ $lang->text_no }}') + '<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][is_default]" value="' + $('#modal-option select[name=\'is_default\'] option:selected').val() + '"/></td>';
+          html += '  <td class="text-end">'+$('#modal-option input[name=\'quantity\']').val()+'<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][quantity]" value="' + $('#modal-option input[name=\'quantity\']').val() + '"/></td>';
           html += '  <td class="text-start">' + ($('#modal-option select[name=\'is_active\'] option:selected').val() == '1' ? '{{ $lang->text_yes }}' : '{{ $lang->text_no }}') + '<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][is_active]" value="' + $('#modal-option select[name=\'is_active\'] option:selected').val() + '"/></td>';
           html += '  <td class="text-end">' + $('#modal-option select[name=\'price_prefix\'] option:selected').val() + $('#modal-option input[name=\'price\']').val() + '<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][price_prefix]" value="' + $('#modal-option select[name=\'price_prefix\'] option:selected').val() + '"/><input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][price]" value="' + $('#modal-option input[name=\'price\']').val() + '"/></td>';
           html += '  <td class="text-end">'+$('#modal-option input[name=\'sort_order\']').val()+'<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][sort_order]" value="' + $('#modal-option input[name=\'sort_order\']').val() + '"/></td>';

@@ -39,20 +39,20 @@ class ProductController extends BackendController
     public function index()
     {
         $data['lang'] = $this->lang;
-        
+
 
         // Breadcomb
         $breadcumbs[] = (object)[
             'text' => $this->lang->text_home,
             'href' => route('lang.admin.dashboard'),
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->text_product,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
             'href' => route('lang.admin.catalog.products.index'),
@@ -64,7 +64,6 @@ class ProductController extends BackendController
         // categories
         $data['categories'] = $this->CategoryService->getCategories();
 
-
         $data['list'] = $this->getList();
 
         $data['list_url']   = route('lang.admin.catalog.products.list');
@@ -74,7 +73,7 @@ class ProductController extends BackendController
     }
 
     public function list()
-    {        
+    {
         return $this->getList();
     }
 
@@ -108,7 +107,7 @@ class ProductController extends BackendController
         }else{
             $order = 'ASC';
         }
-        
+
         $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
@@ -119,8 +118,8 @@ class ProductController extends BackendController
         foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
-        
-        // link of table header for sorting        
+
+        // link of table header for sorting
         $route = route('lang.admin.catalog.products.list');
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_main_category_id'] = $route . "?sort=main_category_id&order=$order" .$url;
@@ -140,7 +139,7 @@ class ProductController extends BackendController
 
         // Languages
         $data['languages'] = $this->languageRepository->newModel()->active()->get();
-  
+
         $this->lang->text_form = empty($product_id) ? $this->lang->trans('text_add') : $this->lang->trans('text_edit');
 
         // Breadcomb
@@ -148,13 +147,13 @@ class ProductController extends BackendController
             'text' => $this->lang->text_home,
             'href' => route('lang.admin.dashboard'),
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->text_product,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
-        
+
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
             'href' => route('lang.admin.catalog.products.index'),
@@ -222,7 +221,7 @@ class ProductController extends BackendController
         }else{
             foreach ($product->translations as $translation) {
                 $translations[$translation->locale] = $translation->toArray();
-                // locale is like zh-something, the hyphen can't be as the key. 
+                // locale is like zh-something, the hyphen can't be as the key.
                 // This won't work: $translations->zh-Hant->name
             }
         }
@@ -231,9 +230,9 @@ class ProductController extends BackendController
         // product_options
         $product->load('product_options.translation');
         $product->product_options->load('product_option_values.translation');
-        
+
         //為避免 lazy load，所以先 eager load
-        $product->product_options->load('option.translation'); 
+        $product->product_options->load('option.translation');
         $product->product_options->load('option.option_values.translation');
 
         if($product->product_options->isEmpty()){
@@ -241,7 +240,7 @@ class ProductController extends BackendController
         }
         else{
             foreach ($product->product_options as $product_option) {
-                $product_option_value_data = [];    
+                $product_option_value_data = [];
                 if (!empty($product_option->product_option_values)) {
                     $sorted = $product_option->product_option_values->sortBy('sort_order');
                     foreach ($sorted as $product_option_value) {
@@ -293,26 +292,26 @@ class ProductController extends BackendController
 
         return view('admin.catalog.product_form', $data);
     }
-    
+
 
     public function save()
     {
         $data = $this->request->all();
-        
+
         $json = [];
-        
+
         // Check
         foreach ($data['translations'] as $locale => $translation) {
             if(empty($translation['name']) || mb_strlen($translation['name']) < 2){
                 $json['error']['name-' . $locale] = $this->lang->error_name;
             }
-        }   
+        }
 
         // 暫不使用
         // if(empty($data['model']) || mb_strlen($data['model']) < 2){
         //     $json['error']['model'] = $this->lang->error_model;
         // }
-        
+
         // $validator = $this->ProductService->validator($this->request->post());
 
         // if($validator->fails()){
@@ -389,7 +388,7 @@ class ProductController extends BackendController
                 }
             }
         }
-        
+
         return response(json_encode($json))->header('Content-Type','application/json');
     }
 

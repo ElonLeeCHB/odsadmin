@@ -42,7 +42,7 @@ class ProductRepository extends Repository
         if(!empty($data['extra_columns'])){
 
             $products->load('metas');
-    
+
             // metas
             foreach ($products as $product) {
                 foreach ($product->metas as $meta) {
@@ -54,7 +54,7 @@ class ProductRepository extends Repository
             // units table
             $product_unit_names = ['stock_unit_name', 'counting_unit_name', 'usage_unit_name']; // 如果有用到這些單位
             $matches = array_intersect($product_unit_names, $data['extra_columns']);
-            
+
             if (!empty($matches) || in_array('available_units', $data['extra_columns'])) {
                 $filter_data = [
                     'equal_is_active' => 1,
@@ -71,7 +71,7 @@ class ProductRepository extends Repository
             }
 
             // terms table
-            // - accounting category            
+            // - accounting category
             if(in_array('accounting_category_name', $data['extra_columns'])){
                 $products->load('accounting_category.translation');
             }
@@ -81,11 +81,11 @@ class ProductRepository extends Repository
                 $products->load('source_type.translation');
             }
 
-            // - storage type            
+            // - storage type
             if(in_array('temperature_type_name', $data['extra_columns'])){
                 $temperature_types = TermRepository::getCodeKeyedTermsByTaxonomyCode('product_storage_temperature_type',toArray:false);
             }
-            
+
         }
 
         foreach ($products as $row) {
@@ -187,7 +187,7 @@ class ProductRepository extends Repository
             $source_types = TermRepository::getCodeKeyedTermsByTaxonomyCode('product_source_type',false);
             $product_array['source_type_name'] = $source_types[$source_type_code]->name;
         }
-        
+
         $cache_name = 'cache/products/id_keyed/' . $id . '.json';
 
         return DataHelper::setJsonToStorage($cache_name, $product_array);
@@ -229,7 +229,7 @@ class ProductRepository extends Repository
             if(!empty($data['translations'])){
                 $this->saveRowTranslationData($product, $data['translations']);
             }
-            
+
             // Product Categories - many to many
             if(!empty($data['product_categories'])){
                 // Delete all
@@ -286,6 +286,7 @@ class ProductRepository extends Repository
                                         'sort_order' => $product_option_value['sort_order'] ?? 0,
                                         'is_active' => $product_option_value['is_active'] ?? 1,
                                         'is_default' => $product_option_value['is_default'] ?? 0,
+                                        'quantity' => $product_option_value['quantity'] ?? 0,
                                     ];
                                     $product_option_value_model = ProductOptionValue::create($arr);
 
@@ -313,9 +314,9 @@ class ProductRepository extends Repository
             }
 
             DB::commit();
-            
+
             $this->setJsonCache($product->id);
-            
+
             $result['product_id'] = $product->id;
 
             return $result;
@@ -351,7 +352,7 @@ class ProductRepository extends Repository
     public function destroy($ids)
     {
 
-        // //不應該刪除商品。太危險。太多地方要檢臺。還有訂單、進貨單、盤點表、備料表、料件需求表… 
+        // //不應該刪除商品。太危險。太多地方要檢臺。還有訂單、進貨單、盤點表、備料表、料件需求表…
         // return ['error' => 'Product should not be deleted here.'];
 
         try {
@@ -448,7 +449,7 @@ class ProductRepository extends Repository
 
         return $result;
     }
-    
+
 
     public function getKeyedSourceCodes()
     {
@@ -463,14 +464,14 @@ class ProductRepository extends Repository
         ];
 
         $rows = $this->TermRepository->getRows($filter_data)->toArray();
-        
+
         $new_rows = [];
         foreach ($rows as $key => $row) {
             unset($row['translation']);
             unset($row['taxonomy']);
             $code = $row['code'];
             $row['label'] = $row['code'] . ' '. $row['name'];
-            
+
             $new_rows[$code] = (object)$row;
         }
 
@@ -493,13 +494,13 @@ class ProductRepository extends Repository
         $rows = $this->TermRepository->getRows($filter_data)->toArray();
 
         $new_rows = [];
-        
+
         foreach ($rows as $key => $row) {
             unset($row['translation']);
             unset($row['taxonomy']);
             $code = $row['code'];
             $row['label'] = $row['code'] . ' '. $row['name'];
-            
+
             $new_rows[$code] = (object)$row;
         }
 
@@ -516,18 +517,18 @@ class ProductRepository extends Repository
 
         // if(in_array('avaible_unit_codes', $columns) && !empty($row->avaible_unit_codes)){
         //     // $arr = json_decode($this->avaible_unit_codes);
-        //     // $row->avaible_unit_codes = 
+        //     // $row->avaible_unit_codes =
         // }
 
         if(in_array('available_units', $columns) && !empty($row->avaible_unit_codes)){
             $available_units = 11;
         }
 
-        
+
 
         return $row;
     }
-    
+
 
     // 額外欄位 - 多筆記錄
     private function getRowsExtraColumns($rows, $columns)
@@ -583,7 +584,7 @@ class ProductRepository extends Repository
                 'usage_unit_name' => $product->usage_unit_name,
                 'is_inventory_managed' => $product->is_inventory_managed,
                 'is_active' => $product->is_active,
-                
+
             ];
         }
         $data['collection'] = collect($rows);
