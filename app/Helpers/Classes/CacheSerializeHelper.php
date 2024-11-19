@@ -19,7 +19,7 @@ class CacheSerializeHelper
 
             self::saveDataToStorage($key, $data, $seconds);
         }
-        
+
         return $data;
     }
 
@@ -41,8 +41,8 @@ class CacheSerializeHelper
             $result['data'] = $data;
 
             Storage::put($path, serialize($result));
-    
-            return self::getDataFromStorage($path);
+
+            return true;
 
         } catch (\Exception $ex) {
             throw $ex;

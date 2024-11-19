@@ -210,4 +210,114 @@ class DataHelper
 
         echo "<pre>".print_r($arr , 1)."</pre>"; exit;
     }
+
+
+    /**
+     * Cache
+     * 2024-11-19
+     */
+        public static function remember($key, $seconds = 60*60*24*7, $callback)
+        {
+            try{
+
+                $data = self::getDataFromStorage($key);
+
+                if (empty($data)) {
+                    $data = $callback();
+
+                    self::saveDataToStorage($key, $data, $seconds);
+                }
+
+                return $data;
+
+            } catch (\Exception $ex) {
+                throw $ex;
+            }
+        }
+
+        public static function saveDataToStorage($path, $data, $seconds = 0, $type = 'serialize')
+        {
+            try{
+                if (Storage::exists($path)) {
+                    Storage::delete($path);
+                }
+
+                if (empty($seconds)) {
+                    $expiresAt = time() + 60*60; //預設1小時
+                }else{
+                    $expiresAt = time() + $seconds;
+                }
+
+                $result = [];
+                $result['_expires_at'] = $expiresAt;
+                $result['data'] = $data;
+
+                if($type == 'serialize'){
+                    $input_data = serialize($result);
+                }
+                else if($type == 'json'){
+                    $input_data = json_encode($result);
+                }
+
+                Storage::put($path, serialize($result));
+
+                return true;
+
+            } catch (\Exception $ex) {
+                throw $ex;
+            }
+        }
+
+        public static function getDataFromStorage($path, $type = 'serialize')
+        {
+            try{
+                if (Storage::exists($path)) {
+                    if($type == 'json'){
+                        $result = json_decode(Storage::get($path));
+                    }else{
+                        $result = unserialize(Storage::get($path));
+                    }
+
+                    if (!empty($result['_expires_at']) && $result['_expires_at'] >= time()) {
+                        return $result['data'];
+                    }else{
+                        Storage::delete($path);
+                    }
+                }
+
+                return null;
+            } catch (\Exception $ex) {
+                throw $ex;
+            }
+        }
+    // End cache
+
+
+    public static function unsetNullUndefined($data)
+    {
+        foreach ($data as $key => $value) {
+            if ($value === 'null' || $value === 'undefined') {
+                unset($data[$key]);
+            }
+        }
+
+        return $data;
+    }
+
+
+
+    public static function removeIndexRecursive($index, array $array): array
+    {
+        foreach ($array as $key => &$value) {
+            // 如果是陣列，遞迴處理子陣列
+            if (is_array($value)) {
+                $value = self::removeIndexRecursive($index, $value);
+            }
+        }
+
+        // 移除當前層級的 'translation' 索引
+        unset($array[$index]);
+
+        return $array;
+    }
 }

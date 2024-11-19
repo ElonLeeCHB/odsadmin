@@ -1,14 +1,16 @@
 <?php
 
-namespace App\Domains\Api\Services\Catalog;
+namespace App\Domains\ApiV2\Services\Catalog;
 
 use App\Services\Service;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
+use App\Traits\EloquentTrait;
 
 class ProductService extends Service
 {
+    use EloquentTrait;
+
     public $modelName = "\App\Models\Catalog\Product";
-    protected $repository;
 
 	public function __construct(protected ProductRepository $ProductRepository)
 	{

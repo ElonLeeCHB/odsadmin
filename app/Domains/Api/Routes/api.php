@@ -119,7 +119,7 @@ Route::group([
         Route::get('unit/info/{id?}', 'Inventory\UnitController@info')->name('unit.info');
     });
 
-    
+
     Route::group([
         'prefix' => 'localization',
         'as' => 'localization.',
@@ -134,13 +134,13 @@ Route::group([
         ], function ()
         {
             Route::get('', 'Localization\RoadController@list')->name('list');
-            Route::get('fword', 'Localization\RoadController@fword')->name('fword');    
-        }); 
+            Route::get('fword', 'Localization\RoadController@fword')->name('fword');
+        });
 
         // 統一編號
         Route::get('tax_id_num', 'Localization\TaxIdNumController@list')->name('tax_id_num.list');
         Route::get('tax_id_num/{tax_id_num?}', 'Localization\TaxIdNumController@detail')->name('tax_id_num.details');
-    }); 
+    });
 
 });
 

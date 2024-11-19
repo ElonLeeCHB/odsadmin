@@ -20,8 +20,8 @@ class Product extends Model
     use ModelTrait;
 
     protected $guarded = [];
-    protected $appends = ['name','specification','description','main_category_code'];
-    public $translation_attributes = ['name','full_name','short_name','specification','meta_title','meta_description','meta_keyword',];
+    protected $appends = ['code', 'name'];
+    public $translation_attributes = ['full_name','short_name','specification','meta_title','meta_description','meta_keyword',];
 
     public $meta_keys = [
         'supplier_own_product_code',
@@ -120,7 +120,14 @@ class Product extends Model
 
 
     // Attribute
-    
+
+
+    protected function code(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->code ?? '',
+        );
+    }
 
     protected function mainCategoryCode(): Attribute
     {
@@ -132,7 +139,7 @@ class Product extends Model
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->name ?? '',
+            get: fn () => $this->name ?? '',
         );
     }
 

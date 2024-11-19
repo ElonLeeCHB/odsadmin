@@ -3,10 +3,11 @@
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Middleware\TrustProxies as Middleware;
-use Closure; 
+use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+
 class LogRequest extends Middleware
 {
     public function handle(Request $request, Closure $next)

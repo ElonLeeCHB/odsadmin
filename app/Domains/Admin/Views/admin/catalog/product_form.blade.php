@@ -392,7 +392,7 @@
                                     <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][is_default]" value="{{ $product_option_value->is_default }}"/>
                                   </td>
                                   <td class="text-end">
-                                    {{ $product_option_value->quantity ?? 0 }}
+                                    {{ $product_option_value->quantity ??= 0 }}
                                     <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][quantity]" value="{{ $product_option_value->quantity }}"/></td>
                                   </td>
                                   <td class="text-start">@if($product_option_value->is_active)

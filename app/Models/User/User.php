@@ -15,7 +15,7 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
     use ModelTrait;
-    
+
     protected $guarded = [];
 
     /**
@@ -84,7 +84,7 @@ class User extends Authenticatable
     public function isAdmin():Attribute
     {
         $userMeta = $this->metas()->where('meta_key', 'is_admin')->where('meta_value', '1')->first();
-        
+
         $is_admin = ($userMeta) ? 1 : 0;
 
         return Attribute::make(
@@ -126,7 +126,7 @@ class User extends Authenticatable
     {
         $phone = trim($phone);
 		$phone = str_replace('-', '', $phone);
-        
+
         $part3 = '';
         $new_phone = '';
 

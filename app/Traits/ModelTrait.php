@@ -16,28 +16,28 @@ trait ModelTrait
         return Attribute::make(
             get: fn ($value) => Carbon::parse($this->created_at)->format('Y-m-d') ?? '',
         );
-    }   
+    }
 
     public function updatedYmd(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => Carbon::parse($this->updated_at)->format('Y-m-d') ?? '',
         );
-    }   
+    }
 
     public function createdYmdhi(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => Carbon::parse($this->created_at)->format('Y-m-d H:i') ?? '',
         );
-    }   
+    }
 
     public function updatedAtYmdhi(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => Carbon::parse($this->updated_at)->format('Y-m-d H:i') ?? '',
         );
-    }   
+    }
 
 
     // Relations
@@ -54,7 +54,7 @@ trait ModelTrait
         if(!isset($this->translation_model_name) || str_ends_with($this->translation_model_name, 'Translation')){
             $translation_model_name = get_class($this) . 'Translation';
             $translation_model = new $translation_model_name();
-    
+
             return $this->hasOne($translation_model::class)->ofMany([
                 'id' => 'max',
             ], function ($query) {
@@ -62,7 +62,7 @@ trait ModelTrait
             });
         }
 
-        // Using SomeMeta 
+        // Using SomeMeta
         else if (isset($this->translation_model_name) && substr($this->translation_model_name, -4) === 'Meta') {
             return $this->metas()->where('locale', app()->getLocale());
         }
@@ -73,15 +73,15 @@ trait ModelTrait
         if(empty($this->translation_attributes)){
             return false;
         }
-        
+
         // Using SomeTranslation
         if(!isset($this->translation_model_name) || str_ends_with($this->translation_model_name, 'Translation')){
             $translation_model_name = get_class($this) . 'Translation';
             $translation_model = new $translation_model_name();
-    
+
             return $this->hasMany($translation_model::class);
         }
-        // Using SomeMeta 
+        // Using SomeMeta
         else if (isset($this->translation_model_name) && substr($this->translation_model_name, -4) === 'Meta') {
             return $this->metas()->whereNotNull('locale')->where('locale', '<>', '');
         }
@@ -141,8 +141,8 @@ trait ModelTrait
         return $schemaBuilder->hasTable($tableName);
     }
 
-    
-    
+
+
     //public function setNumberAttribute($value, $to_fixed = 0, $keep_zero = 0)
     public function setNumberAttribute($value, $to_fixed = null, $keep_zero = null)
     {

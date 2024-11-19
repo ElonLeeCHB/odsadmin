@@ -40,6 +40,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'api' => [
+            'driver' => 'sanctum',
+            'provider' => 'users',
+        ],
     ],
 
     /*
@@ -112,4 +117,10 @@ return [
 
     'password_timeout' => 10800,
 
+    'sanctum' => [
+        'driver' => 'sanctum',
+        'provider' => 'users',
+        'expire' => 1440, // 設置 Access Token 的有效時間, 單位：分鐘
+        'middleware' => ['web'],
+    ],
 ];

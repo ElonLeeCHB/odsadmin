@@ -12,6 +12,7 @@ use App\Models\Sale\OrderProduct;
 use App\Models\SysData\Division;
 use App\Models\Member\Organization;
 use App\Models\Catalog\OptionValue;
+use App\Models\Common\Term;
 use DateTimeInterface;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Traits\ModelTrait;
@@ -19,7 +20,7 @@ use App\Traits\ModelTrait;
 class Order extends Model
 {
     use ModelTrait;
-    
+
     // 官網指示這樣寫
     use \Staudenmeir\EloquentHasManyDeep\HasRelationships;
 
@@ -67,31 +68,16 @@ class Order extends Model
         return $this->hasManyThrough(OrderProductIngredients::class, OrderProduct::class);
     }
 
-    // public function product_options()
-    // {
-    //     //return $this->product_options($this->order_product_options(), (new OrderProductOption())->product_option()
-        
-    //     // no product_options.order_product_option_id
-    //     //return $this->hasManyDeep(ProductOption::class, [OrderProduct::class, OrderProductOption::class]);
+    public function totals()
+    {
+        return $this->hasMany(OrderTotal::class, 'order_id', 'id');
+    }
 
-    //     return $this->hasManyDeep(ProductOption::class, 
-    //         [OrderProduct::class, OrderProductOption::class],
-    //         ['order_id','order_product_id', ],
-    //         []);
-    // }
-
-    // public function options()
-    // {
-    //     return $this->hasManyDeepFromRelations($this->posts(), (new Post())->comments());
-    // }
-
-
-    // public function option_values()
-    // {
-    // }
-
-
-    // 
+    public function tags()
+    {
+        return $this->belongsToMany(Term::class, 'order_tags');
+    }
+    //
 
     public function shipping_state()
     {
@@ -114,10 +100,10 @@ class Order extends Model
     }
 
     //待廢。原本使用 options, option_values 資料表。以後改為使用 terms
-    public function status()
-    {
-        return $this->belongsTo(OptionValue::class, 'status_id', 'id');
-    }
+    // public function status()
+    // {
+    //     return $this->belongsTo(OptionValue::class, 'status_id', 'id');
+    // }
 
     public function statusName(): Attribute
     {
@@ -125,7 +111,7 @@ class Order extends Model
             get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->status_code, 'order_status') ?? '',
         );
     }
-    
+
 
     // Attribute
 
@@ -133,21 +119,21 @@ class Order extends Model
     {
         return Attribute::make(
             get: fn ($value) => !empty($value) ? $value : 0,
-        ); 
+        );
     }
 
     public function shippingStateId(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => !empty($value) ? $value : 0,
-        ); 
+        );
     }
 
     public function shippingCityId(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => !empty($value) ? $value : 0,
-        ); 
+        );
     }
 
     // Mobile or Telephone
@@ -210,7 +196,7 @@ class Order extends Model
             get: fn ($value) => Carbon::parse($value)->format('Y-m-d'),
         );
     }
-    
+
 
     protected function deliveryDateYmd(): Attribute
     {
@@ -233,7 +219,7 @@ class Order extends Model
         if(empty($newValue) || $newValue == '00:00'){
             $newValue = '';
         }
-        
+
         return Attribute::make(
             get: fn ($value) => $newValue,
         );
