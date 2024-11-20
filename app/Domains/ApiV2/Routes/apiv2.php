@@ -3,7 +3,6 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Domains\ApiV2\Http\Controllers\Auth\LoginController;
-use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,8 +46,21 @@ Route::group([
     ], function ()
     {
         Route::get('order/list', 'Sale\OrderController@list')->name('order.list');
-        Route::get('order/info/{code}', 'Sale\OrderController@info')->name('order.info');
+        Route::get('order/info/{id}', 'Sale\OrderController@info')->name('order.info');
         Route::get('order/infoByCode/{code}', 'Sale\OrderController@infoByCode')->name('order.infoByCode');
+    });
+
+    Route::group([
+        'prefix' => 'user',
+        'as' => 'user.',
+    ], function ()
+    {
+        Route::get('list', 'User\UserController@list')->name('user.list');
+        Route::get('info/{id}', 'User\UserController@info')->name('user.id');
+        Route::get('infoByCode/{code}', 'User\UserController@infoByCode')->name('user.infoByCode');
+        Route::post('resetPassword/{user_id}', 'User\UserController@resetPassword')->name('user.resetPassword');
+
+
     });
 });
 

@@ -3,10 +3,10 @@
 namespace App\Domains\ApiV2\Http\Controllers\Catalog;
 
 use Illuminate\Http\Request;
-use App\Domains\ApiV2\Http\Controllers\ApiController;
+use App\Domains\ApiV2\Http\Controllers\ApiV2Controller;
 use App\Domains\ApiV2\Services\Catalog\CategoryService;
 
-class CategoryController extends ApiController
+class CategoryController extends ApiV2Controller
 {
     public function __construct(private Request $request, private CategoryService $CategoryService)
     {
