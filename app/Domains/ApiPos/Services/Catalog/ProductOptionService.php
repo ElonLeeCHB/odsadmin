@@ -1,77 +1,56 @@
 <?php
 
-namespace App\Domains\Admin\Services\Catalog;
+namespace App\Domains\ApiPos\Services\Catalog;
 
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
-use App\Repositories\Eloquent\Catalog\ProductRepository;
-use App\Repositories\Eloquent\Common\TermRepository;
-use App\Models\Common\TermRelation;
-use App\Models\Catalog\Product;
-use App\Models\Catalog\ProductTranslation;
+use App\Traits\Model\EloquentTrait;
+use App\Libraries\TranslationLibrary;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
 
-class ProductService extends Service
+class ProductOptionService extends Service
 {
-    public $modelName = "\App\Models\Catalog\Product";
-    protected $repository;
+    use EloquentTrait;
 
-	public function __construct(protected ProductRepository $ProductRepository)
+    public $modelName;
+    public $model;
+    public $table;
+    public $lang;
+
+	public function __construct()
 	{
-        $this->repository = $ProductRepository;
-    }
+        $this->modelName = "\App\Models\Catalog\ProductOption";
+        $this->lang = (new TranslationLibrary())->getTranslations(['admin/member/member',]);
+	}
 
-    // 商品管理的商品基本資料 save();
-    public function save($data)
+
+    public function updateOrCreate($data)
     {
         try {
             DB::beginTransaction();
 
-            $result = $this->findIdOrFailOrNew($data['product_id']);
-            if(!empty($result['data'])){
-                $product = $result['data'];
-            }else if($result['error']){
-                throw new \Exception($result['error']);
-            }
-            unset($result);
+            extract($data); //$data['some_id'] => $some_id;
 
-            $product->model = $data['model'] ?? null;
+            $product = $this->findOrNew(['id'=>$product_id]);
+
+            $product->model = $data['model'] ?? 'model';
             $product->main_category_id = $data['main_category_id'] ?? null;
             $product->price = $data['price'] ?? 0;
             $product->quantity = $data['quantity'] ?? 0;
-            $product->comment = $data['comment'] ?? '';
-            $product->is_active = (int) $data['is_active'] ?? 0;
-            $product->is_salable = (int) $data['is_salable'] ?? 0;
-            $product->on_web = (int) $data['on_web'] ?? 0;
-            $product->sort_order = $data['sort_order'] ?? 999;
+            $product->is_active = $data['is_active'] ?? 0;
+            $product->is_salable = $data['is_salable'] ?? 0;
 
             $product->save();
 
+            $cacheName = app()->getLocale() . '_ProductId_' . $product->id;
+            cache()->forget($cacheName);
+
             $product_id = $product->id;
 
-            if(!empty($data['translations'])){
-                $this->saveRowTranslationData($product, $data['translations']);
-            }
-
-            // Product Categories - many to many
-            if(!empty($data['product_categories'])){
-                // Delete all
-                TermRelation::where('object_id',$product->id)
-                            ->join('terms', function($join){
-                                $join->on('term_id', '=', 'terms.id');
-                                $join->where('terms.taxonomy','=','product_category');
-                            })
-                            ->delete();
-
-                // Add new
-                foreach ($data['product_categories'] as $category_id) {
-                    $insert_data[] = [
-                        'object_id' => $product->id,
-                        'term_id' => $category_id,
-                    ];
-                }
-                TermRelation::insert($insert_data);
+            if(!empty($data['product_translations'])){
+                $this->saveRowTranslationData($product, $data['product_translations']);
             }
 
             // Product Options
@@ -80,6 +59,7 @@ class ProductService extends Service
             ProductOptionValue::where('product_id', $product->id)->delete();
 
             if(!empty($data['product_options'])){
+
                 if(!empty($data['product_options'])){
                     foreach ($data['product_options'] as $product_option) {
 
@@ -110,12 +90,8 @@ class ProductService extends Service
                                         'sort_order' => $product_option_value['sort_order'] ?? 0,
                                         'is_active' => $product_option_value['is_active'] ?? 1,
                                         'is_default' => $product_option_value['is_default'] ?? 0,
-                                        'quantity' => $product_option_value['quantity'] ?? 0,
                                     ];
                                     $product_option_value_model = ProductOptionValue::create($arr);
-
-                                    $cacheName = 'ProductId_' . $product->id . '_ProductOptionId_' . $product_option_model->id . '_ ProductOptionValues';
-                                    cache()->forget($cacheName);
                                 }
                             }
                         } else {
@@ -139,16 +115,77 @@ class ProductService extends Service
 
             DB::commit();
 
-            $this->setJsonCache($product->id);
-
-            $result['product_id'] = $product->id;
+            $result['data']['product_id'] = $product->id;
 
             return $result;
 
         } catch (\Exception $ex) {
             DB::rollback();
-            return ['error' => $ex->getMessage()];
+            $msg = $ex->getMessage();
+            return response()->json(['error' => $ex->getMessage()], 500);
         }
+    }
+
+
+    public function getProduct($data = [])
+    {
+        $cacheName = app()->getLocale() . 'ProductId_' . $data['filter_id'];
+
+        $result = cache()->remember($cacheName, 60*60*24*14, function() use($data){
+            $collection = $this->getRow($data);
+
+            return $collection;
+        });
+
+        if(empty($result)){
+            $result = [];
+        }
+
+        return $result;
+    }
+
+
+    public function getSalableProducts($filter_data = [])
+    {
+        $cacheName = app()->getLocale() . '_salable_products';
+
+        $result = cache()->remember($cacheName, 60*60*24*14, function() use($filter_data){
+            if(empty($filter_data)){
+                $filter_data = [
+                    'filter_is_active' => 1,
+                    'filter_is_salable' => 1,
+                    'regexp' => false,
+                    'limit' => 0,
+                    'pagination' => false,
+                    'sort' => 'sort_order',
+                    'order' => 'ASC',
+                    'with' => ['main_category','translation'],
+                ];
+            }
+            $collections = $this->getRecords($filter_data);
+
+            return $collections;
+        });
+
+        if(empty($result)){
+            $result = [];
+        }
+
+        return $result;
+    }
+
+
+    public function validator(array $data)
+    {
+        return Validator::make($data, [
+                'organization_id' =>'nullable|integer',
+                'name' =>'nullable|max:10',
+                'short_name' =>'nullable|max:10',
+            ],[
+                'organization_id.integer' => $this->lang->error_organization_id,
+                'name.*' => $this->lang->error_name,
+                'short_name.*' => $this->lang->error_short_name,
+        ]);
     }
 
 }

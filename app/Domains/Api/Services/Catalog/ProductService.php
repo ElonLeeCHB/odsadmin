@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\ApiV2\Services\Catalog;
+namespace App\Domains\Api\Services\Catalog;
 
 use App\Services\Service;
 use App\Repositories\Eloquent\Catalog\ProductRepository;

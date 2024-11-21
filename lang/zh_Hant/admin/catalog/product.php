@@ -10,7 +10,7 @@ return [
 
 // Text
 'text_product' => '商品管理',
-'text_product_details' => '商品資料',    
+'text_product_details' => '商品資料',
 'text_option_value' => '選項值',
 
 // Column
@@ -20,6 +20,7 @@ return [
 'column_price' => '價格',
 'column_is_active' => '是否啟用',
 'column_is_salable' => '可否銷售',
+'column_on_web' => '官網銷售', //跟上面的相近，但上面包含內部系統打單，本欄明確表示可於官網下訂。有些商品只允許內部人員下訂，官網不出現。
 'column_full_name' => '產品全稱',
 'column_short_name' => '產品簡稱',
 'column_description' => '詳細介紹',

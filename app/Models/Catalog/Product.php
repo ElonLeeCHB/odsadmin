@@ -21,14 +21,14 @@ class Product extends Model
 
     protected $guarded = [];
     protected $appends = ['code', 'name'];
-    public $translation_attributes = ['full_name','short_name','specification','meta_title','meta_description','meta_keyword',];
-
+    public $translation_attributes = ['name', 'full_name','short_name','specification','meta_title','meta_description','meta_keyword',];
     public $meta_keys = [
         'supplier_own_product_code',
         'supplier_own_product_name',
         'supplier_own_product_specification',
         'temperature_type_code',
     ];
+    protected $with = ['translations'];
 
 
     public function main_category()
@@ -139,7 +139,7 @@ class Product extends Model
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->name ?? '',
+            get: fn () => $this->translation->name ?? '',
         );
     }
 

@@ -158,20 +158,6 @@
                         <input type="checkbox" name="is_salable" value="1" class="form-check-input" @if($product->is_salable) checked @endif/>
                       </div>
                     </div>
-                    <div class="form-text">可以用於銷售，例如內部打單或是官網下訂。</div>
-                  </div>
-                </div>
-
-                <div class="row mb-3">
-                  <label class="col-sm-2 col-form-label">{{ $lang->column_on_web }}</label>
-                  <div class="col-sm-10">
-                    <div class="input-group">
-                      <div id="input-on_web" class="form-check form-switch form-switch-lg">
-                        <input type="hidden" name="on_web" value="0"/>
-                        <input type="checkbox" name="on_web" value="1" class="form-check-input" @if($product->on_web) checked @endif/>
-                      </div>
-                    </div>
-                    <div class="form-text">可以用於官網銷售。如果本欄未開，則官網不出現。官網要能下訂，必須【可否銷售】、【官網銷售】、【是否啟用】三欄同時開啟。 </div>
                   </div>
                 </div>
 
@@ -191,6 +177,7 @@
                   </div>
                 </div>
 
+
                 <div class="row mb-3">
                   <label for="input-comment" class="col-sm-2 col-form-label">{{ $lang->column_comment}}</label>
                   <div class="col-sm-10">
@@ -199,6 +186,52 @@
                   </div>
                 </div>
 
+              </div>
+
+              <div id="tab-bom" class="tab-pane">
+                <div class="col-sm-12">
+                  <div class="row">
+                    <div class="table-responsive">
+                      <table id="product-bom" class="table table-striped table-bordered table-hover">
+                        <thead>
+                          <tr>
+                            <td class="text-left"><span data-toggle="tooltip" title="(Autocomplete)">代號</span></td>
+                            <td class="text-left"><span data-toggle="tooltip" title="(Autocomplete)">品名</span></td>
+                            <td class="text-right">數量</td>
+                            <td></td>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <?php $bom_row = 0; ?>
+                          @foreach($bom_products as $i => $bom_product)
+                          <tr id="bom-row-{{ $bom_row }}">
+                            <td class="text-left"><input type="text" name="product_bom[{{ $bom_row }}][item_code]" value="{{ $bom_product->model }}" placeholder="Item Model" class="form-control" disabled/>
+                              <input type="hidden" name="product_bom[{{ $bom_row }}][component_id]" value="1"/>
+                              <input type="hidden" name="product_bom[{{ $bom_row }}][item_cost]" value="3"/>
+                              <input type="hidden" name="product_bom[{{ $bom_row }}][scrap]" value="0"/>
+                              <input type="hidden" name="product_bom[{{ $bom_row }}][material_qty_digit]" value="0"/>
+                              <input type="hidden" name="product_bom[{{ $bom_row }}][item_cost_digit]" value="0"/>
+                            </td>
+                            <td class="text-left"><input type="text" name="product_bom[{{ $bom_row }}][item_name]" value="{{ $bom_product->name }}" placeholder="Item Name" id="input-product_name-{{ $bom_row }}" list="list-row-{{ $bom_row }}-name" class="form-control bom-product"/>
+                            <datalist id="list-row-{{ $bom_row }}-name"></datalist>
+                            </td>
+                            <td class="text-right"><input type="text" name="product_bom[{{ $bom_row }}][item_qty]" value="{{ optional($bom_product->pivot)->quantity ?? 0 }}" placeholder="用量" class="form-control bom_item_qty isDecimal qtyDec-0" data-rel_wt_calculation="1" onchange="getGrossQty(0)"/></td>
+                            <td class="text-left"><button type="button" onclick="$('#bom-row-{{ $bom_row }}').remove();" data-toggle="tooltip" title="Remove" class="btn btn-danger"><i class="fa fa-minus-circle"></i></button></td>
+                            </tr>
+
+                          <?php $bom_row++; ?>
+                          @endforeach                                                                                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td colspan="3" class="text-right">
+                            </td>
+                            <td class="text-start"><button type="button" id="button-bom" data-bs-toggle="tooltip" title="{{ $lang->button_bom_add }}" class="btn btn-primary"><i class="fa-solid fa-plus-circle"></i></button></td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                      </div>
+                    </div>
+                </div>
               </div>
 
               <div id="tab-option" class="tab-pane">
@@ -478,6 +511,44 @@
       //alert(JSON.stringify(item));
       $('#input-main_category_id').val(item['value']);
       $('#input-main_category').val(item['label']);
+    }
+  });
+
+
+  var bom_row = {{ $bom_row }};
+
+  $('#button-bom').on('click', function () {
+      html = '<tr id="bom-row-' + bom_row + '">';
+      html += '  <td class="text-end"><input type="text" name="product_bom[' + bom_row + '][model]" value="" placeholder="{{ $lang->column_model }}" class="form-control" disabled /></td>';
+      html += '  <td class="text-end"><input type="text" name="product_bom[' + bom_row + '][name]" value="" placeholder="{{ $lang->column_name }}" class="form-control bom-product"/></td>';
+      html += '  <td class="text-end"><input type="text" name="product_bom[' + bom_row + '][quantity]" value="" placeholder="{{ $lang->column_quantity }}" class="form-control"/></td>';
+      html += '  <td class="text-start"><button type="button" onclick="$(\'#bom-row-' + bom_row + '\').remove();" data-bs-toggle="tooltip" title="{{ $lang->button_remove }}" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button></td>';
+      html += '</tr>';
+
+      $('#product-bom tbody').append(html);
+      bom_row++;
+  });
+
+  $('.bom-product').autocomplete({
+    'source': function(request, response) {
+      $.ajax({
+        url: "{{ route('lang.admin.catalog.products.autocomplete') }}?filter_is_salable=0&filter_name=" + encodeURIComponent(request),
+        dataType: 'json',
+        success: function(json) {
+          response($.map(json, function(item) {
+            return {
+              label: item['name'],
+              value: item['product_id']
+            }
+          }));
+        }
+      });
+    },
+    'select': function (item) {
+      // $('#input-category').val('');
+
+      // $('#product-category-' + item['value']).remove();
+
     }
   });
 

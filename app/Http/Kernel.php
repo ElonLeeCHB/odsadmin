@@ -73,6 +73,7 @@ class Kernel extends HttpKernel
         'localeViewPath'          => \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath::class,
 
         'is_admin' => \App\Domains\Admin\Http\Middleware\IsAdmin::class,
+        'verifyApiProject' => \App\Http\Middleware\VerifyApiDomainAbility::class,
 
     ];
 }

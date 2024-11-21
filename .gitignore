@@ -29,6 +29,7 @@ yarn-error.log
 *.old
 *old.php
 *.copy
+*copy*
 *copy.php 
 *.code-workspace
 phpinfo.php

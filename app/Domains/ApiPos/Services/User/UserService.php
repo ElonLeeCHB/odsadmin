@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\ApiV2\Services\User;
+namespace App\Domains\ApiPos\Services\User;
 
 use App\Services\Service;
 

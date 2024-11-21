@@ -371,7 +371,7 @@ class ProductController extends BackendController
             $json['error']['warning'] = $this->lang->error_warning;
         }
         if(!$json) {
-            $result = $this->ProductService->updateOrCreateProduct($data);
+            $result = $this->ProductService->save($data);
 
             if(empty($result['error'])){
                 $json = [
