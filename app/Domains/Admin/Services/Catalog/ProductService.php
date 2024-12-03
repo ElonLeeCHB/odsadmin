@@ -113,7 +113,6 @@ class ProductService extends Service
                                         'quantity' => 0, //暫時不用
                                         'default_quantity' => $product_option_value['default_quantity'] ?? 0,
                                     ];
-                                    $product_option_value_model = ProductOptionValue::create($arr);
 
                                     $cacheName = 'ProductId_' . $product->id . '_ProductOptionId_' . $product_option_model->id . '_ ProductOptionValues';
                                     cache()->forget($cacheName);

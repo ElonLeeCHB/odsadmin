@@ -17,7 +17,7 @@ class ProductService extends Service
     {
         $cache_key = 'cache/locale/'. app()->getLocale().'/product_' . $product_id;
 
-        return DataHelper::remember($cache_key, 60*60, function() use ($product_id){
+        return DataHelper::remember($cache_key, 60*60, 'json', function() use ($product_id){
             $product = $this->getRow([
                 'equal_id' => $product_id,
                 'with' => ['product_options.product_option_values'],

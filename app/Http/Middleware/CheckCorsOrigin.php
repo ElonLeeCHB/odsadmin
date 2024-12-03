@@ -19,8 +19,6 @@ class CheckCorsOrigin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        echo "<pre>",print_r('CheckCorsOrigin',true),"</pre>";exit;
-
         $allowedOrigins = ['https://fake-origin-WrksphDX.test', 'https://another-site.com'];
         $origin = $request->header('Origin');
 
