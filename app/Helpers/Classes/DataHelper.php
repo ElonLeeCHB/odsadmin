@@ -216,16 +216,16 @@ class DataHelper
      * Cache
      * 2024-11-19
      */
-        public static function remember($key, $seconds = 60*60*24*7, $callback)
+        public static function remember($key, $seconds = 60*60*24*7, $type, $callback)
         {
             try{
 
-                $data = self::getDataFromStorage($key);
+                $data = self::getDataFromStorage($key, $type);
 
                 if (empty($data)) {
                     $data = $callback();
 
-                    self::saveDataToStorage($key, $data, $seconds);
+                    self::saveDataToStorage($key, $data, $seconds, $type);
                 }
 
                 return $data;

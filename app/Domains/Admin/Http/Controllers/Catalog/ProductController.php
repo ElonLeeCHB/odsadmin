@@ -97,7 +97,7 @@ class ProductController extends BackendController
                 $row->edit_url = route('lang.admin.catalog.products.form', array_merge([$row->id], $query_data));
             }
         }
-
+        // echo "<pre>",print_r($products,true),"</pre>";exit;
         $data['products'] = $products->withPath(route('lang.admin.catalog.products.list'))->appends($query_data);
 
 
@@ -248,6 +248,7 @@ class ProductController extends BackendController
                             'product_option_value_id' => $product_option_value->id,
                             'option_value_id'         => $product_option_value->option_value_id,
                             'name'                    => $product_option_value->translation->name ?? '',
+                            'default_quantity'        => $product_option_value->default_quantity ?? 0,
                             'quantity'                => $product_option_value->quantity,
                             'is_default'              => $product_option_value->is_default,
                             'is_active'               => $product_option_value->is_active,

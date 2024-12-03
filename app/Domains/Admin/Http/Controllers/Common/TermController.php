@@ -98,6 +98,7 @@ class TermController extends BackendController
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_code'] = $route . "?sort=code&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
+        $data['sort_sort_order'] = $route . "?sort=sort_order&order=$order" .$url;
         $data['sort_short_name'] = $route . "?sort=short_name&order=$order" .$url;
         $data['sort_taxonomy_name'] = $route . "?sort=taxonomy_name&order=$order" .$url;
         

@@ -45,10 +45,14 @@ Route::group(
     ], function ()
     {
 
+
+        // Route::post('login', [LoginController::class, 'login'])->middleware([CheckAccessKey::class . ':APIV2_ACCESS_KEY']);
+
         Auth::routes();
 
         Route::group([
-            'middleware' => [ 'is_admin',],
+            'middleware' => [ 'is_admin'],
+            // 'middleware' => ['checkAdminAccessKey'],
         ], function ()
         {
 
@@ -135,19 +139,6 @@ Route::group(
                 Route::get('requisitions/setting', 'Sale\RequisitionController@settingForm')->name('requisitions.setting');
                 Route::post('requisitions/setting/save', 'Sale\RequisitionController@settingSave')->name('requisitions.settingSave');
 
-            });
-
-            Route::group([
-                'prefix' => 'organization',
-                'as' => 'organization.',
-            ], function ()
-            {
-                Route::get('organizations', 'Common\OrganizationController@index')->name('organizations.index');
-                Route::get('organizations/list', 'Common\OrganizationController@list')->name('organizations.list');
-                Route::get('organizations/form/{term_id?}', 'Common\OrganizationController@form')->name('organizations.form');
-                Route::post('organizations/save', 'Common\OrganizationController@save')->name('organizations.save');
-                Route::post('organizations/delete', 'Common\OrganizationController@delete')->name('organizations.delete');
-                Route::get('organizations/autocomplete', 'Common\OrganizationController@autocomplete')->name('organizations.autocomplete');
             });
 
             Route::group([

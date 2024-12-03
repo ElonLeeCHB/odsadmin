@@ -73,7 +73,9 @@ class Kernel extends HttpKernel
         'localeViewPath'          => \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath::class,
 
         'is_admin' => \App\Domains\Admin\Http\Middleware\IsAdmin::class,
-        'verifyApiProject' => \App\Http\Middleware\VerifyApiDomainAbility::class,
+        'checkCors' => \App\Http\Middleware\CheckCorsOrigin::class,
+        // 暫時用不到。直接將 class 寫在 路由檔
+        // 'checkApiAccessKey' => \App\Http\Middleware\CheckApiAccessKey::class,
 
     ];
 }

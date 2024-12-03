@@ -10,6 +10,7 @@ use App\Libraries\TranslationLibrary;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 use Auth;
+use App\Helpers\Classes\JwtHelper;
 
 class LoginController extends Controller
 {
@@ -53,6 +54,7 @@ class LoginController extends Controller
             $user = auth()->user();
             // $token = $user->createToken('posods')->plainTextToken;
             $token = $user->createToken('posods', ['*'], now()->addDay())->plainTextToken;
+
             return response()->json(['token' => $token], 200);
         }
 

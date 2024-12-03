@@ -17,7 +17,8 @@
         "mpdf/mpdf": "^8.2",
         "spatie/laravel-permission": "^5.10",
         "spatie/laravel-ray": "^1.32",
-        "staudenmeir/eloquent-has-many-deep": "^1.18"
+        "staudenmeir/eloquent-has-many-deep": "^1.18",
+        "tymon/jwt-auth": "^2.1"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.8",

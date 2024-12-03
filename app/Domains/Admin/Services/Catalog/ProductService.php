@@ -43,7 +43,7 @@ class ProductService extends Service
             $product->comment = $data['comment'] ?? '';
             $product->is_active = (int) $data['is_active'] ?? 0;
             $product->is_salable = (int) $data['is_salable'] ?? 0;
-            $product->on_web = (int) $data['on_web'] ?? 0;
+            // $product->on_web = (int) $data['on_web'] ?? 0;
             $product->sort_order = $data['sort_order'] ?? 999;
 
             $product->save();
@@ -110,7 +110,8 @@ class ProductService extends Service
                                         'sort_order' => $product_option_value['sort_order'] ?? 0,
                                         'is_active' => $product_option_value['is_active'] ?? 1,
                                         'is_default' => $product_option_value['is_default'] ?? 0,
-                                        'quantity' => $product_option_value['quantity'] ?? 0,
+                                        'quantity' => 0, //暫時不用
+                                        'default_quantity' => $product_option_value['default_quantity'] ?? 0,
                                     ];
                                     $product_option_value_model = ProductOptionValue::create($arr);
 

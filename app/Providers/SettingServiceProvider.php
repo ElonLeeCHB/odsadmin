@@ -31,8 +31,12 @@ class SettingServiceProvider extends ServiceProvider
                 $key = 'settings.' . $setting->setting_key;
 
                 // If json, then array
-                $value = $setting->is_json ? json_decode($setting->setting_value,1) : $setting->setting_value;
-    
+                if($setting->is_json && is_string($setting->setting_value)){
+                    $value = json_decode($setting->setting_value,1);
+                }else{
+                    $value = $setting->setting_value;
+                }
+
                 Config::set($key, $value);
             }
         }

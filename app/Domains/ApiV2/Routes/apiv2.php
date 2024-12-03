@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Domains\ApiV2\Http\Controllers\Auth\LoginController;
+use App\Http\Middleware\CheckAccessKey;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,14 +16,16 @@ use App\Domains\ApiV2\Http\Controllers\Auth\LoginController;
 |
 */
 
-Route::post('/login', [LoginController::class, 'login']);
+// Route::post('/login', [LoginController::class, 'login']);
+Route::post('/login', [LoginController::class, 'login'])->middleware([CheckAccessKey::class . ':APIV2_ACCESS_KEY']);
 
 Route::group([
     'namespace' => 'App\Domains\ApiV2\Http\Controllers',
-    'middleware' => ['auth:sanctum',],
+    'middleware' => ['auth:sanctum'],
     'as' => 'api.',
 ], function ()
 {
+
     Route::post('/logout', function (Request $request) {
         $request->user()->tokens()->delete();
         return response()->json(['message' => '已成功登出']);

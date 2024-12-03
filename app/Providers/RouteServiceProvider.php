@@ -37,7 +37,7 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::middleware('api')
                 // ->namespace('App\Domains\ApiV2\Http\Controllers')
-                ->prefix('apiv2')
+                ->prefix('api/v2')
                 ->group(app_path('Domains/ApiV2/Routes/apiv2.php'));
 
             Route::middleware('api')
@@ -51,7 +51,7 @@ class RouteServiceProvider extends ServiceProvider
             // Route::middleware('web')
             //     ->group(base_path('routes/web.php'));
 
-            Route::middleware('web')
+            Route::middleware(['web'])
                 ->group(app_path('Domains/Admin/Routes/admin.php'));
         });
     }

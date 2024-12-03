@@ -359,8 +359,8 @@
                                     <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][is_default]" value="{{ $product_option_value->is_default }}"/>
                                   </td>
                                   <td class="text-end">
-                                    {{ $product_option_value->quantity ??= 0 }}
-                                    <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][quantity]" value="{{ $product_option_value->quantity }}"/></td>
+                                    {{ $product_option_value->default_quantity ??= 0 }}
+                                    <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][default_quantity]" value="{{ $product_option_value->default_quantity ??= 0 }}"/></td>
                                   </td>
                                   <td class="text-start">@if($product_option_value->is_active)
                                       {{ $lang->text_yes }}
@@ -692,8 +692,8 @@
 
       //quantity
       html += '        <div class="mb-3">';
-      html += '      	   <label for="input-modal-quantity" class="form-label">預設數量</label>';
-      html += '          <input type="text" id="input-modal-quantity" name="quantity" value="' + ($(element).attr('data-option-value-row') ? $('input[name=\'product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][quantity]\']').val() : '1') + '" class="form-control" autocomplete="off">';
+      html += '      	   <label for="input-modal-default_quantity" class="form-label">預設數量</label>';
+      html += '          <input type="text" id="input-modal-quantity" name="default_quantity" value="' + ($(element).attr('data-option-value-row') ? $('input[name=\'product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][default_quantity]\']').val() : '1') + '" class="form-control" autocomplete="off">';
       html += '        </div>';
 
       //sort_order
@@ -719,7 +719,7 @@
           html = '<tr id="option-value-row-' + element.option_value_row + '">';
           html += '  <td class="text-start">' + $('#modal-option select[name=\'option_value_id\'] option:selected').text() + '<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][option_value_id]" value="' + $('#modal-option select[name=\'option_value_id\']').val() + '"/><input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][product_option_value_id]" value="' + $('#modal-option input[name=\'product_option_value_id\']').val() + '"/></td>';
           html += '  <td class="text-start">' + ($('#modal-option select[name=\'is_default\'] option:selected').val() == '1' ? '{{ $lang->text_yes }}' : '{{ $lang->text_no }}') + '<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][is_default]" value="' + $('#modal-option select[name=\'is_default\'] option:selected').val() + '"/></td>';
-          html += '  <td class="text-end">'+$('#modal-option input[name=\'quantity\']').val()+'<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][quantity]" value="' + $('#modal-option input[name=\'quantity\']').val() + '"/></td>';
+          html += '  <td class="text-end">'+$('#modal-option input[name=\'default_quantity\']').val()+'<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][default_quantity]" value="' + $('#modal-option input[name=\'default_quantity\']').val() + '"/></td>';
           html += '  <td class="text-start">' + ($('#modal-option select[name=\'is_active\'] option:selected').val() == '1' ? '{{ $lang->text_yes }}' : '{{ $lang->text_no }}') + '<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][is_active]" value="' + $('#modal-option select[name=\'is_active\'] option:selected').val() + '"/></td>';
           html += '  <td class="text-end">' + $('#modal-option select[name=\'price_prefix\'] option:selected').val() + $('#modal-option input[name=\'price\']').val() + '<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][price_prefix]" value="' + $('#modal-option select[name=\'price_prefix\'] option:selected').val() + '"/><input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][price]" value="' + $('#modal-option input[name=\'price\']').val() + '"/></td>';
           html += '  <td class="text-end">'+$('#modal-option input[name=\'sort_order\']').val()+'<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][sort_order]" value="' + $('#modal-option input[name=\'sort_order\']').val() + '"/></td>';

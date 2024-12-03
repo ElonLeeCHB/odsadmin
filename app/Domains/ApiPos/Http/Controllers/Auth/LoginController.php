@@ -53,6 +53,10 @@ class LoginController extends Controller
             $user = auth()->user();
             // $token = $user->createToken('posods')->plainTextToken;
             $token = $user->createToken('pos', ['pos'], now()->addDay())->plainTextToken;
+
+            $guard = auth()->getDefaultDriver();
+            echo "<pre>",print_r($guard,true),"</pre>";exit;
+
             return response()->json(['token' => $token], 200);
         }
 
