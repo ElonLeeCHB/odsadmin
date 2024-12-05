@@ -21,14 +21,15 @@
         padding: 0px;
     }
     @media screen, print {
-        #printableArea {
-            width: 202mm; /* A4 width */
-            height: 290mm; /* A4 height */
-        }
-        @page {
-            size: A4;
-            margin: 2px;
-        }
+      #printableArea {
+        width: 9.5in; /* 9.5 英寸寬度 */
+        height: 11in; /* 11 英寸高度 */
+      }
+
+      @page {
+        size: 9.5in 11in; /* 自訂 9.5x11 英吋尺寸 */
+        margin: 2px;
+      }
     }
     .commentSign{
       width: 360px;
