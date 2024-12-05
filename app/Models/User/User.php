@@ -53,10 +53,6 @@ class User extends Authenticatable
     protected $appends = ['is_admin'];
 
     public $meta_keys = [
-        'is_admin',
-        'first_name',
-        'last_name',
-        'short_name',
     ];
 
     public function metas()
@@ -67,29 +63,6 @@ class User extends Authenticatable
     public function addresses()
     {
         return $this->hasMany(UserAddress::class, 'user_id', 'id');
-    }
-
-    public function __get($key)
-    {
-        // 檢查屬性是否存在於 UserMeta 中
-        $userMeta = $this->metas()->where('meta_key', $key)->first();
-
-        if ($userMeta) {
-            return $userMeta->meta_value;
-        }
-
-        return parent::__get($key);
-    }
-
-    public function isAdmin():Attribute
-    {
-        $userMeta = $this->metas()->where('meta_key', 'is_admin')->where('meta_value', '1')->first();
-
-        $is_admin = ($userMeta) ? 1 : 0;
-
-        return Attribute::make(
-            get: fn ($value) => $is_admin,
-        );
     }
 
     public function orders()

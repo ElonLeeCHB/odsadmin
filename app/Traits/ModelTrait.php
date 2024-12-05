@@ -9,6 +9,27 @@ use App\Helpers\Classes\DataHelper;
 
 trait ModelTrait
 {
+    public function __get($key)
+    {
+        // 查詢 metas 關聯中是否有對應的 meta_key
+        if (!empty($this->meta_keys) && array_key_exists($key, $this->meta_keys)) {
+            if (!$this->relationLoaded('metas')) {
+                $this->load('metas');
+            }
+
+            if($this->metas){
+                $meta = $this->metas->firstWhere('meta_key', $key);
+            }
+
+            if ($meta) {
+                return $meta->meta_value; // 如果找到，返回對應的 meta_value
+            }
+        }
+
+        // 返回原本應有的內容
+        return parent::__get($key);
+    }
+    
     // Attribute
 
     public function createdYmd(): Attribute
