@@ -58,7 +58,7 @@ class LoginController extends Controller
             return response()->json(['token' => $token], 200);
         }
 
-        return response()->json(['error' => '帳號或密碼錯誤'], 401);
+        return response()->json(['error' => '帳號或密碼錯誤！'], 401);
     }
 
     /**

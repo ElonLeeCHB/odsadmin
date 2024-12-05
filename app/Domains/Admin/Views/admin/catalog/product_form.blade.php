@@ -567,6 +567,7 @@
               html += '        <td class="text-start">{{ $lang->column_option_value }}</td>';
               html += '        <td class="text-start">{{ $lang->column_is_default }}</td>';
               html += '        <td class="text-start">預設數量</td>';
+              html += '        <td class="text-start">{{ $lang->column_is_active }}</td>';
               html += '        <td class="text-end">{{ $lang->column_price }}</td>';
               html += '        <td class="text-end">{{ $lang->column_sort_order }}</td>';
               html += '        <td></td>';

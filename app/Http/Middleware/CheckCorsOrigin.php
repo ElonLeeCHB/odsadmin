@@ -19,21 +19,14 @@ class CheckCorsOrigin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $allowedOrigins = ['https://fake-origin-WrksphDX.test', 'https://another-site.com'];
+        $allowedOrigins = config('cors.allowed_origins');
         $origin = $request->header('Origin');
-
-        // if ($origin && in_array($origin, $allowedOrigins)) {
-        //     header('Access-Control-Allow-Origin: ' . $origin);
-        //     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
-        //     header('Access-Control-Allow-Headers: Content-Type, Authorization');
-        // }
+        
         if ($origin && in_array($origin, $allowedOrigins)) {
             return $next($request);
         }
 
         // 拒絕不在允許清單中的請求
-        return response()->json(['error' => 'Origin not allowed.',], 403); // 403 Forbidden 狀態碼
-
-
+        return response()->json(['error' => 'Headers Origin not allowed.',], 403); // 403 Forbidden 狀態碼
     }
 }

@@ -44,6 +44,11 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\CheckTokenExpiration::class,
             \App\Http\Middleware\LogRequest::class,
+            \App\Http\Middleware\CheckCorsOrigin::class,
+        ],
+
+        'apiv2' => [
+            \App\Http\Middleware\CheckAccessKey::class.':APIV2_ACCESS_KEY',
         ],
     ];
 
@@ -74,8 +79,7 @@ class Kernel extends HttpKernel
 
         'is_admin' => \App\Domains\Admin\Http\Middleware\IsAdmin::class,
         'checkCors' => \App\Http\Middleware\CheckCorsOrigin::class,
-        // 暫時用不到。直接將 class 寫在 路由檔
-        // 'checkApiAccessKey' => \App\Http\Middleware\CheckApiAccessKey::class,
+        'checkAccessKey' => \App\Http\Middleware\CheckAccessKey::class,
 
     ];
 }

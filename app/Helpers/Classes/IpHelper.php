@@ -21,44 +21,28 @@ class IpHelper
             ['789.789.789.0/24', '某個網段'],
         ];
      */
-    public static function isAllowedRange($clientIp, $allowedIps): bool
+    public static function isAllowedIps($client_ip, array $allowed_ips): bool
     {
-        $path = 'cache/allowedIpAddresses.json';
+        $result = false;
 
-        $allowedIps = DataHelper::remember($path, 60*60*24*7, 'json', function(){
-            //settings裡的值包括 ip 跟註解。快取只存ip
-            $allowedIps = config('settings.config_allowed_ip_addresses');
-            $allowedIps = json_decode($allowedIps);
-            $allowedIps = array_column($allowedIps, 0);
-
-            return json_encode($allowedIps);
-        });
-
-        $allowedIps = json_decode($allowedIps);
-
-
-        $ip_in_range = false;
-
-        foreach ($allowedIps as $allowedIp) {
+        foreach ($allowed_ips as $row) {
+            $allowed_ip = $row[0];
+            
             //無遮罩
-            if (strpos($allowedIp, '/') === false && $clientIp === $allowedIp) {
-                $ip_in_range = true; break;
+            if (strpos($allowed_ip, '/') === false && $client_ip === $allowed_ip) {
+                $result = true; break;
             }
 
             //遮罩
-            else if (strpos($allowedIp, '/') !== false) {
-                [$subnet, $mask] = explode('/', $allowedIp);
+            else if (strpos($allowed_ip, '/') !== false) {
+                [$subnet, $mask] = explode('/', $allowed_ip);
 
-                if( (ip2long($clientIp) & ~((1 << (32 - $mask)) - 1)) === ip2long($subnet) ){
-                    $ip_in_range = true; break;
+                if( (ip2long($client_ip) & ~((1 << (32 - $mask)) - 1)) === ip2long($subnet) ){
+                    $result = true; break;
                 }
             }
         }
 
-        if($ip_in_range == false){
-            return false;
-        }
-
-        return true;
+        return $result;
     }
 }

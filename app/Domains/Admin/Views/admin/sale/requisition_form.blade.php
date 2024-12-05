@@ -54,11 +54,13 @@
                 @if(!empty($statics))
                 <strong>需求日期： {{ $statics['required_date'] ?? ''}}</strong> <BR>
                 上次更新時間： {{ $statics['cache_created_at'] ?? '' }} <BR>
-                套餐數：{{ $statics['info']['packages'] ?? 0 }}, 盒餐：{{ $statics['info']['total_lunchbox'] ?? 0 }}, 便當：{{ $statics['info']['total_bento'] ?? 0 }}, 油飯盒：{{ $statics['info']['total_stickyrice'] ?? 0 }},
+                套餐數：{{ $statics['info']['packages'] ?? 0 }}, 盒餐：{{ $statics['info']['total_lunchbox'] ?? 0 }}, 便當：{{ $statics['info']['total_bento'] ?? 0 }}, 油飯盒：{{ $statics['info']['total_stickyrice'] ?? 0 }}, 
 
+                {{-- 不需要了
                 @foreach ($statics['info']['ingredient_products'] ?? [] as $ingredient_product_id => $row)
                   {{ $row['ingredient_product_name'] }}：{{ $row['quantity'] }}
                 @endforeach
+                --}}
                 @endif
                 <style>
                 #tableContainer {

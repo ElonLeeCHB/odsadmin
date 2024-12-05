@@ -1,4 +1,8 @@
 <?php
+/**
+ * 本檔未加適當防護，之後應棄用，改用 apiv2
+ */
+
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +26,7 @@ Route::post('/login', [LoginController::class, 'login']);
 Route::group([
     'namespace' => 'App\Domains\Api\Http\Controllers',
     //'middleware' => ['auth:sanctum',],
+    'middleware' => ['checkCors',],
     'as' => 'api.',
 ], function ()
 {
