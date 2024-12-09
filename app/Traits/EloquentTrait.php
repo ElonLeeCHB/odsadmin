@@ -224,7 +224,6 @@ trait EloquentTrait
         //     }
         // }
 
-
         // With translation relation
         if(!empty($this->model->translation_attributes)){
             $query->with('translation');

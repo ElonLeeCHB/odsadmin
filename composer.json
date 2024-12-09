@@ -15,7 +15,7 @@
         "maatwebsite/excel": "^3.1",
         "mcamara/laravel-localization": "^1.8",
         "mpdf/mpdf": "^8.2",
-        "spatie/laravel-permission": "^5.10",
+        "spatie/laravel-permission": "^6.10",
         "spatie/laravel-ray": "^1.32",
         "staudenmeir/eloquent-has-many-deep": "^1.18",
         "tymon/jwt-auth": "^2.1"
