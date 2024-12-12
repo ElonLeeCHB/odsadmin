@@ -10,7 +10,7 @@ use App\Models\Sale\Order;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Catalog\Option;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 
 class OrderProduct extends Model
 {

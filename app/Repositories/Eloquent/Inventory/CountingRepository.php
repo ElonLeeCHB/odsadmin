@@ -11,7 +11,7 @@ use App\Models\Catalog\Product;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
-use App\Traits\EloquentTrait;
+use App\Traits\Model\EloquentTrait;
 
 use Maatwebsite\Excel\Facades\Excel;
 use App\Domains\Admin\ExportsLaravelExcel\CommonExport;

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 
 class Option extends Model
 {

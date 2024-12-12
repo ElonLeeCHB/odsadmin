@@ -2,7 +2,7 @@
 
 namespace App\Repositories\Eloquent;
 
-use App\Traits\EloquentTrait;
+use App\Traits\Model\EloquentTrait;
 
 class Repository
 {

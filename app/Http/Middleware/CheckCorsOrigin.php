@@ -9,6 +9,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class CheckCorsOrigin
 {
@@ -19,14 +20,21 @@ class CheckCorsOrigin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $allowedOrigins = config('cors.allowed_origins');
+        //api請求預設沒有 Origin
         $origin = $request->header('Origin');
-        
-        if ($origin && in_array($origin, $allowedOrigins)) {
-            return $next($request);
+
+        $allowedOrigins = config('cors.allowed_origins');
+
+        if ($origin) {
+            $originHost = parse_url($origin, PHP_URL_HOST);
+            
+            // 檢查是否與 FQDN 主機名相同，或是在允許名單
+            if($originHost == config('vars.app_fqdn') || in_array($origin, $allowedOrigins)){
+                return $next($request);
+            }
         }
 
         // 拒絕不在允許清單中的請求
-        return response()->json(['error' => 'Headers Origin not allowed.',], 403); // 403 Forbidden 狀態碼
+        return response()->json(['error' => 'Forbidden',], 403);
     }
 }

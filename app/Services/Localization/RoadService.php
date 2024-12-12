@@ -3,7 +3,7 @@
 namespace App\Services\Localization;
 
 use App\Services\Service;
-use App\Traits\EloquentTrait;
+use App\Traits\Model\EloquentTrait;
 use App\Repositories\Eloquent\SysData\RoadFirstWordRepository;
 
 class RoadService extends Service

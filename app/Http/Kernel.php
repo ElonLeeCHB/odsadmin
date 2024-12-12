@@ -36,6 +36,7 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\SetTimezone::class,
         ],
 
         'api' => [
@@ -44,12 +45,23 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\CheckTokenExpiration::class,
             \App\Http\Middleware\LogRequest::class,
-            \App\Http\Middleware\CheckCorsOrigin::class,
         ],
 
-        'apiv2' => [
-            \App\Http\Middleware\CheckAccessKey::class.':APIV2_ACCESS_KEY',
-        ],
+        // //或許會廢棄
+        // 'apiv2' => [
+        //     \App\Http\Middleware\CheckCorsOrigin::class,
+        //     \App\Http\Middleware\CheckApiKeyAndIp::class.':V2',
+        // ],
+
+        // 'apipos' => [
+        //     \App\Http\Middleware\CheckCorsOrigin::class,
+        //     \App\Http\Middleware\CheckApiKeyAndIp::class.':POS',
+        // ],
+
+        // 'apiwww' => [
+        //     \App\Http\Middleware\CheckCorsOrigin::class,
+        //     \App\Http\Middleware\CheckApiKeyAndIp::class.':WWW',
+        // ],
     ];
 
     /**
@@ -79,7 +91,8 @@ class Kernel extends HttpKernel
 
         'is_admin' => \App\Domains\Admin\Http\Middleware\IsAdmin::class,
         'checkCors' => \App\Http\Middleware\CheckCorsOrigin::class,
-        'checkAccessKey' => \App\Http\Middleware\CheckAccessKey::class,
-
+        'checkApiKeyAndIp' => \App\Http\Middleware\CheckApiKeyAndIp::class,
+        'forceJsonRequest' => \App\Http\Middleware\ForceJsonRequest::class,
+        
     ];
 }

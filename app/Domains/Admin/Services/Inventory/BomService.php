@@ -4,7 +4,7 @@ namespace App\Domains\Admin\Services\Inventory;
 
 use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Inventory\BomRepository;
-use App\Traits\EloquentTrait;
+use App\Traits\Model\EloquentTrait;
 
 class BomService
 {

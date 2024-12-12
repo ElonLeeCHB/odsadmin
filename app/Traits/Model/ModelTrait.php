@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Traits;
+namespace App\Traits\Model;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -199,6 +199,7 @@ trait ModelTrait
         $table = $this->getTable();
 
         $cache_name = 'cache/table_columns/' . $table . '.json';
+        echo "<pre>",print_r(111,true),"</pre>";exit;
 
         $table_columns = DataHelper::getJsonFromStoragNew($cache_name);
 

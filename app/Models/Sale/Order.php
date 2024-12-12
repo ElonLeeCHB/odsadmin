@@ -15,7 +15,7 @@ use App\Models\Catalog\OptionValue;
 use App\Models\Common\Term;
 use DateTimeInterface;
 use App\Repositories\Eloquent\Common\TermRepository;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 
 class Order extends Model
 {

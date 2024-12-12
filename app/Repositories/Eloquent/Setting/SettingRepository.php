@@ -3,7 +3,7 @@
 namespace App\Repositories\Eloquent\Setting;
 
 use Illuminate\Support\Facades\DB;
-use App\Traits\EloquentTrait;
+use App\Traits\Model\EloquentTrait;
 use App\Models\Setting\Setting;
 
 class SettingRepository

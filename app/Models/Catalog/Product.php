@@ -4,7 +4,7 @@ namespace App\Models\Catalog;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 use App\Models\Common\Term;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductUnit;
@@ -111,11 +111,6 @@ class Product extends Model
     public function supplier_product()
     {
         return $this->belongsTo(self::class, 'supplier_product_id', 'id');
-    }
-
-    public function metas()
-    {
-        return $this->hasMany(ProductMeta::class);
     }
 
 

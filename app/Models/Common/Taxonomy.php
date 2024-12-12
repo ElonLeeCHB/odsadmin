@@ -4,7 +4,7 @@ namespace App\Models\Common;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 
 class Taxonomy extends Model
 {

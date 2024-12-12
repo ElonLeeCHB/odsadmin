@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Catalog\Product;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Carbon\Carbon;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 
 class OptionValue extends Model
 {

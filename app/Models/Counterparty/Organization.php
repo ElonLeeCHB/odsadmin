@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Counterparty\OrganizationMeta;
 use App\Models\Counterparty\PaymentTerm;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 
 class Organization extends Model
 {
@@ -23,11 +23,6 @@ class Organization extends Model
     public function payment_term()
     {
         return $this->belongsTo(PaymentTerm::class);
-    }
-
-    public function metas()
-    {
-        return $this->hasMany(OrganizationMeta::class, 'organization_id', 'id');
     }
 
     public function parent()

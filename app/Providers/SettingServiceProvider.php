@@ -32,12 +32,15 @@ class SettingServiceProvider extends ServiceProvider
             foreach ($settings ?? [] as $setting) {
                 $key = 'settings.' . $setting->setting_key;
 
-                // If json, then array
-                if($setting->is_json && is_string($setting->setting_value)){
-                    $value = json_decode($setting->setting_value,1);
+                if($setting->setting_key == 'config_allowed_ip_addresses'){
+                    $value = array_map(function($subArray) {
+                        return $subArray[0]; // 取得每個子陣列的第 0 個元素
+                    }, $setting->setting_value);
                 }else{
                     $value = $setting->setting_value;
                 }
+
+                //註：當 is_json = 1, 在 Setting model 已經自動做 json_decode()
 
                 Config::set($key, $value);
             }

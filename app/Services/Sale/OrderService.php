@@ -9,6 +9,7 @@ use App\Services\Service;
 
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
+use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
 use App\Repositories\Eloquent\Sale\OrderTotalRepository;
 use App\Repositories\Eloquent\Member\MemberRepository;
 
@@ -28,7 +29,8 @@ class OrderService extends Service
     protected $modelName = "\App\Models\Sale\Order";
 
     public function __construct(protected OrderRepository $OrderRepository
-        , protected OrderProductRepository $OrderProductRepository
+    , protected OrderProductRepository $OrderProductRepository
+    , protected OrderProductOptionRepository $OrderProductOptionRepository
         , protected OrderTotalRepository $OrderTotalRepository
         , protected MemberRepository $MemberRepository
     )

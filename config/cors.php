@@ -22,18 +22,24 @@ return [
 
     // 'allowed_origins' => ['*'],
     'allowed_origins' => [
-        // 同站的請求不需要設定
-        // 'https://ods.dtstw.com',
+        'https://salessys.chinabing.net',
+        'https://salessys.chinabing.test',
         // 以下測試
         'https://fake-origin-WrksphDX.test',
         'http://localhost:60501', // ods localhost
         'http://localhost:60502', // www localhost
         'http://localhost:60503', // hrc localhost
-        // 以下官網
-        'https://www.chinabing.net', // www
         ],
 
-    'allowed_origins_patterns' => [],
+    // 'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        // POS
+        '/^https?:\/\/ods\.dtstw\.com$/',
+        '/^https?:\/\/ods\.dtstw\.test$/',
+        //官網
+        '/^https?:\/\/www\.chinabing\.net$/',
+        '/^https?:\/\/www\.chinabing\.test$/',
+    ],
 
     'allowed_headers' => ['*'],
 

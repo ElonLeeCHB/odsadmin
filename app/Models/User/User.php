@@ -9,12 +9,15 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Sale\Order;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
+    use HasRoles;
     use ModelTrait;
+    
 
     protected $guarded = [];
 
@@ -55,11 +58,6 @@ class User extends Authenticatable
     public $meta_keys = [
     ];
 
-    public function metas()
-    {
-        return $this->hasMany(UserMeta::class, 'user_id', 'id');
-    }
-
     public function addresses()
     {
         return $this->hasMany(UserAddress::class, 'user_id', 'id');
@@ -93,6 +91,10 @@ class User extends Authenticatable
             get: fn ($value) => $this->parsePhone($value),
         );
     }
+
+    /**
+     * 其它函數 ---------------------------------------
+     */
 
     // Mobile or Telephone
     protected function parsePhone($phone)
@@ -132,5 +134,21 @@ class User extends Authenticatable
     //     return $this->hasOne(Login::class)->ofMany();
     // }
     // https://docfunc.com/posts/50/laravel-orm-%E7%9A%84%E6%96%B0%E5%8A%9F%E8%83%BDone-of-many-post
-    //可以用這個某個產品的最新訂單
+
+
+    public function createTokenWithExtras($name, array $abilities = ['*'], $expiresAt = null, array $extra = [])
+    {
+        // 創建 token
+        $token = $this->createToken($name, $abilities, $expiresAt);
+
+        // 檢查是否有 "extra" 欄位
+        if (Schema::hasColumn('personal_access_tokens', 'extra')) {
+            // 將附加資料儲存到資料表中
+            $token->token->update([
+                'extra' => json_encode($extra),
+            ]);
+        }
+
+        return $token;
+    }
 }

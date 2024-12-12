@@ -4,7 +4,7 @@ namespace App\Domains\ApiWww\Services\Sale;
 
 use App\Helpers\Classes\DataHelper;
 use App\Services\Service;
-use App\Traits\EloquentTrait;
+use App\Traits\Model\EloquentTrait;
 
 class OrderService extends Service
 {

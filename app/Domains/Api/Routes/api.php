@@ -26,7 +26,6 @@ Route::post('/login', [LoginController::class, 'login']);
 Route::group([
     'namespace' => 'App\Domains\Api\Http\Controllers',
     //'middleware' => ['auth:sanctum',],
-    'middleware' => ['checkCors',],
     'as' => 'api.',
 ], function ()
 {

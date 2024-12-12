@@ -32,6 +32,25 @@ class DataHelper
     }
 
     /**
+     * 陣列裡的子元素如果是陣列，刪除。
+     * 指定要移除的陣列
+     */
+    public static function removeFromArray($array, $remove_keys = ['translation', 'translations']): Array
+    {
+        foreach ($array as $key => &$value) {
+            if (is_array($value)) {
+                if (in_array($key, $remove_keys)) {
+                    unset($array[$key]);
+                } else {
+                    $array[$key] = self::removeFromArray($value, $remove_keys);
+                }
+            }
+        }
+
+        return $array;
+    }
+
+    /**
      * $data: array or string
      */
     public static function addToArray($data, $arr = null)
@@ -306,12 +325,14 @@ class DataHelper
 
 
 
-    public static function removeIndexRecursive($index, array $array): array
+    public static function removeIndexRecursive($indexes, array $array): array
     {
         foreach ($array as $key => &$value) {
             // 如果是陣列，遞迴處理子陣列
-            if (is_array($value)) {
-                $value = self::removeIndexRecursive($index, $value);
+            if (is_array($value) && in_array($key, $indexes)) {
+                foreach ($indexes as $index) {
+                    $value = self::removeIndexRecursive($index, $value);
+                }
             }
         }
 

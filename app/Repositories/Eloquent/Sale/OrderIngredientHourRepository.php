@@ -2,7 +2,7 @@
 
 namespace App\Repositories\Eloquent\Sale;
 
-use App\Traits\EloquentTrait;
+use App\Traits\Model\EloquentTrait;
 
 class OrderIngredientHourRepository
 {

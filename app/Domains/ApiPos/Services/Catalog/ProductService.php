@@ -5,7 +5,7 @@ namespace App\Domains\ApiPos\Services\Catalog;
 use App\Helpers\Classes\DataHelper;
 use App\Services\Service;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
-use App\Traits\EloquentTrait;
+use App\Traits\Model\EloquentTrait;
 
 class ProductService extends Service
 {
@@ -15,9 +15,9 @@ class ProductService extends Service
 
     public function getInfo($product_id)
     {
-        $cache_key = 'cache/locale/'. app()->getLocale().'/product_' . $product_id;
+        $cache_key = 'cache/locale/'. app()->getLocale().'/product_' . $product_id . '.serialized.txt';
 
-        return DataHelper::remember($cache_key, 60*60, 'json', function() use ($product_id){
+        return DataHelper::remember($cache_key, 60*60, 'serialize', function() use ($product_id){
             $product = $this->getRow([
                 'equal_id' => $product_id,
                 'with' => ['product_options.product_option_values'],
@@ -32,8 +32,9 @@ class ProductService extends Service
                     ->toArray(),
             ];
 
-            return DataHelper::removeIndexRecursive('translation', $product);
+            return DataHelper::removeFromArray($product, ['translation', 'translations']);
         });
+
     }
 
     /**

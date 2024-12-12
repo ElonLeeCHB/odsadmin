@@ -25,8 +25,7 @@ class IpHelper
     {
         $result = false;
 
-        foreach ($allowed_ips as $row) {
-            $allowed_ip = $row[0];
+        foreach ($allowed_ips as $allowed_ip) {
             
             //無遮罩
             if (strpos($allowed_ip, '/') === false && $client_ip === $allowed_ip) {

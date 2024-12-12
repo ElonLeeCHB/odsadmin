@@ -28,6 +28,9 @@ class ProductController extends ApiPosController
             $products = $this->ProductService->getList($this->url_data);
         }
 
+        $products = DataHelper::removeFromArray($products->toArray(), ['translation', 'translations']);
+        echo "<pre>",print_r($products,true),"</pre>";exit;
+
         return response(json_encode($products))->header('Content-Type','application/json');
     }
 

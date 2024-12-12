@@ -2,14 +2,15 @@
 
 namespace App\Domains\ApiPos\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Providers\RouteServiceProvider;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
-use App\Libraries\TranslationLibrary;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\ValidationException;
+use App\Http\Controllers\Controller;
+use Laravel\Sanctum\PersonalAccessToken;
 use Carbon\Carbon;
-use Auth;
+use App\Models\User\User;
 
 class LoginController extends Controller
 {
@@ -33,33 +34,62 @@ class LoginController extends Controller
      */
     protected $redirectTo = 'redirectTo';
 
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        $this->middleware('guest')->except('logout');
-    }
-
     public function login(Request $request)
     {
-        //前端欄位的 html name 必須是 username, 但值可以是 email 或 username
-        $credentials = $request->only('username', 'password');
-        $field = filter_var($credentials['username'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-
-        if (auth()->attempt([$field => $credentials['username'], 'password' => $credentials['password']])) {
-            $user = auth()->user();
-            // $token = $user->createToken('posods')->plainTextToken;
-            $token = $user->createToken('pos', ['pos'], now()->addDay())->plainTextToken;
-
-            $guard = auth()->getDefaultDriver();
-
-            return response()->json(['token' => $token], 200);
+        if(request()->header('X-Secret-Key') !== env('APIPOS_SECRET_KEY')){
+            return response()->json(['error' => 'Forbidden'], 403);
         }
 
-        return response()->json(['error' => '帳號或密碼錯誤'], 401);
+        try{
+            //前端欄位的 html name 必須是 username, 但值可以是 email 或 username
+            $credentials = $request->only('username', 'password');
+            
+            $user = User::where('username', $credentials['username'])->orWhere('email', $credentials['username'])->first();
+
+            if ($user && Hash::check($credentials['password'], $user->password)) {
+
+                $permissions = $user->permissions()->where('name', 'like', 'pos.%')->pluck('name')->toArray();
+
+                $plainTextToken = $user->createToken('pos', [$permissions], now()->addDay())->plainTextToken;
+
+                //更新用戶端識別碼
+                $ip = $request->ip();
+                $userAgent = $request->header('User-Agent');
+                $device_id = hash('sha256', $ip . $userAgent);
+
+                $token = $user->tokens->last();
+                $token->device_id = $device_id;
+                $token->save();
+
+                Session::put('device_id', $device_id);
+
+                //回應內容
+                $json = [
+                    'token' => $plainTextToken,
+                    'permissions' => $permissions,
+                ];
+
+                return response()->json($json, 200);
+            }
+            
+
+        } catch (\Exception $ex) {
+            return response()->json(['error' => '帳號或密碼錯誤！'], 403);
+        }
+
+        // //testman
+        // $user = User::where('username', 'testman')->first();
+        // $user->givePermissionTo(['pos.MainPage', 'pos.Member', 'pos.SalesOrder', 'pos.SalesOrderControl', 'pos.Financial']);
+    }
+
+
+    public function logout()
+    {
+        $device_id = Session::get('device_id') ?? '';
+        
+        request()->user()->tokens()->where('device_id', $device_id)->orWhere('expires_at', '<', Carbon::now())->delete();
+        
+        return response()->json(['message' => '已成功登出']);
     }
 
     /**
@@ -72,3 +102,4 @@ class LoginController extends Controller
         return $field;
     }
 }
+
