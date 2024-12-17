@@ -14,7 +14,7 @@ class ProductOption extends Model
     use Translatable;
     
     protected $guarded = [];
-    public $translation_attributes = ['name','short_name'];
+    public $translation_keys = ['name','short_name'];
     protected $appends = ['name', 'short_name', 'option_code'];
 
     protected static function booted()

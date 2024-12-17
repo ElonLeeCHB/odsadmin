@@ -13,7 +13,7 @@ class Unit extends Model
     protected $guarded = [];
     public $timestamps = false;
     protected $appends = ['name'];
-    public $translation_attributes = ['name'];
+    public $translation_keys = ['name'];
 
     
     public function scopeActive($query)

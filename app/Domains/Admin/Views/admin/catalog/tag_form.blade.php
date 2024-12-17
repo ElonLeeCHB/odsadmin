@@ -139,7 +139,7 @@ $('#input-parent_name').autocomplete({
     var self_id = $('#input-tag_id').val();
 
     $.ajax({
-      url: "{{ $autocomplete_url }}?filter_name=" + encodeURIComponent(request) + '&equal_taxonomy_code=product_tag' + '&exclude_id=' + self_id,
+      url: "{{ $autocomplete_url }}?filter_name=" + encodeURIComponent(request) + '&equal_taxonomy_code=ProductTag' + '&exclude_id=' + self_id,
       dataType: 'json',
       success: function (json) {
         json.unshift({

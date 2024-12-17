@@ -91,7 +91,7 @@ trait ModelTrait
 
     public function translations()
     {
-        if(empty($this->translation_attributes)){
+        if(empty($this->translation_keys)){
             return false;
         }
 

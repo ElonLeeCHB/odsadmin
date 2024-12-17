@@ -163,12 +163,12 @@
                 </div>
 
                 <div class="row mb-3">
-                  <label class="col-sm-2 col-form-label">{{ $lang->column_on_web }}</label>
+                  <label class="col-sm-2 col-form-label">官網銷售</label>
                   <div class="col-sm-10">
                     <div class="input-group">
-                      <div id="input-on_web" class="form-check form-switch form-switch-lg">
-                        <input type="hidden" name="on_web" value="0"/>
-                        <input type="checkbox" name="on_web" value="1" class="form-check-input" @if($product->on_web) checked @endif/>
+                      <div id="input-is_web_product" class="form-check form-switch form-switch-lg">
+                        <input type="hidden" name="is_web_product" value="0"/>
+                        <input type="checkbox" name="is_web_product" value="1" class="form-check-input" @if($product->is_web_product) checked @endif/>
                       </div>
                     </div>
                     <div class="form-text">可以用於官網銷售。如果本欄未開，則官網不出現。官網要能下訂，必須【可否銷售】、【官網銷售】、【是否啟用】三欄同時開啟。 </div>

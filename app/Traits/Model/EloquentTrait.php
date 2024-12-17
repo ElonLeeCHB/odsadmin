@@ -39,7 +39,7 @@ trait EloquentTrait
     public $connection;
     public $table;
     public $table_columns;
-    public $translation_attributes;
+    public $translation_keys;
     public $model;
     public $zh_hant_hans_transform;
 
@@ -53,7 +53,7 @@ trait EloquentTrait
         $this->table = $this->model->getTable();
 
         $this->table_columns = $this->getTableColumns();
-        $this->translation_attributes = $this->model->translation_attributes ?? [];
+        $this->translation_keys = $this->model->translation_keys ?? [];
         $this->zh_hant_hans_transform = false;
         $this->initialized = true;
     }
@@ -225,7 +225,7 @@ trait EloquentTrait
         // }
 
         // With translation relation
-        if(!empty($this->model->translation_attributes)){
+        if(!empty($this->model->translation_keys)){
             $query->with('translation');
         }
 
@@ -322,7 +322,7 @@ trait EloquentTrait
         // -- 指定排序欄位
         else if(!empty($data['sort'])){
             // 非多語欄位
-            if(!in_array($data['sort'], $this->translation_attributes)){
+            if(!in_array($data['sort'], $this->translation_keys)){
                 $query->orderBy($data['sort'], $order);
             }
             // 多語欄位
@@ -391,7 +391,7 @@ trait EloquentTrait
 
     private function setFiltersQuery($query, $data, $debug=0)
     {
-        $translation_attributes = $this->model->translation_attributes ?? [];
+        $translation_keys = $this->model->translation_keys ?? [];
         $table_columns = $this->getTableColumns($this->connection);
 
         $meta_keys = $this->model->meta_keys;
@@ -418,7 +418,7 @@ trait EloquentTrait
             }
 
             // Translated column is not processed here
-            if(in_array($column, $translation_attributes)){
+            if(in_array($column, $translation_keys)){
                 continue;
             }
 
@@ -460,7 +460,7 @@ trait EloquentTrait
                 $column = str_replace('filter_', '', $key);
             }
 
-            if(in_array($column, $translation_attributes) && !empty($data[$key])){
+            if(in_array($column, $translation_keys) && !empty($data[$key])){
                 $data['whereHas']['translation'][$key] = $data[$key];
                 unset($data[$key]);
             }
@@ -500,7 +500,7 @@ trait EloquentTrait
     private function setEqualsQuery($query, $data)
     {
         $table_columns = $this->getTableColumns($this->connection);
-        $translation_attributes = $this->model->translation_attributes ?? [];
+        $translation_keys = $this->model->translation_keys ?? [];
 
         $meta_keys = $this->model->meta_keys;
         if(empty($meta_keys)){
@@ -522,7 +522,7 @@ trait EloquentTrait
             }
 
             // Translated column is not processed here
-            if(in_array($column, $translation_attributes)){
+            if(in_array($column, $translation_keys)){
                 continue;
             }
 
@@ -554,7 +554,7 @@ trait EloquentTrait
                 $column = str_replace('equal_', '', $key);
             }
 
-            if(in_array($column, $translation_attributes)){
+            if(in_array($column, $translation_keys)){
                 $query->whereHas('translation', function ($query) use ($column, $value) {
                     $query->where('meta_key', $column);
                     $query->where('meta_value', $value);
@@ -779,10 +779,10 @@ trait EloquentTrait
         // check translation
         $has_translation = false;
         $appends = $this->model->getAppends() ?? [];
-        $translation_attributes = $this->model->translation_attributes ?? [];
+        $translation_keys = $this->model->translation_keys ?? [];
 
         foreach ($appends as $append) {
-            if(in_array($append, $translation_attributes)){
+            if(in_array($append, $translation_keys)){
                 $has_translation = true;
                 break;
             }
@@ -910,6 +910,11 @@ trait EloquentTrait
      */
 
     // must be public
+    /**
+     * saveRowBasicData()
+     * saveRowTranslationData()
+     * saveRowMetaData()
+     */
     public function saveRow($id, $post_data)
     {
         $this->initialize();
@@ -1013,7 +1018,7 @@ trait EloquentTrait
                 }
                 $arr['locale'] = $locale;
                 $arr[$master_key] = $master_key_value;
-                foreach ($this->model->translation_attributes as $column) {
+                foreach ($this->model->translation_keys as $column) {
                     if(!empty($value[$column])){
                         $arr[$column] = $value[$column];
                     }else{
@@ -1038,10 +1043,10 @@ trait EloquentTrait
     public function saveTranslationData($master_model, $translation_data)
     {
         try{
-            if(empty($master_model->translation_attributes)){
+            if(empty($master_model->translation_keys)){
                 return false;
             }else{
-                $translation_attributes = $master_model->translation_attributes;
+                $translation_keys = $master_model->translation_keys;
             }
 
             // translationModel
@@ -1063,7 +1068,7 @@ trait EloquentTrait
                 }
                 $arr['locale'] = $locale;
                 $arr[$foreigh_key] = $foreigh_key_value;
-                foreach ($translation_attributes as $column) {
+                foreach ($translation_keys as $column) {
                     if(!empty($value[$column])){
                         $arr[$column] = $value[$column];
                     }
@@ -1132,13 +1137,13 @@ trait EloquentTrait
         }
     }
 
-    // public function saveTranslationData($masterModel, $data, $translation_attributes=null)
+    // public function saveTranslationData($masterModel, $data, $translation_keys=null)
     // {
-    //     if(empty($translation_attributes)){
-    //         $translation_attributes = $this->model->translation_attributes;
+    //     if(empty($translation_keys)){
+    //         $translation_keys = $this->model->translation_keys;
     //     }
 
-    //     if(empty($translation_attributes)){
+    //     if(empty($translation_keys)){
     //         return false;
     //     }
 
@@ -1156,7 +1161,7 @@ trait EloquentTrait
     //         }
     //         $arr['locale'] = $locale;
     //         $arr[$foreign_key] = $foreign_key_value;
-    //         foreach ($translation_attributes as $column) {
+    //         foreach ($translation_keys as $column) {
     //             if(!empty($value[$column])){
     //                 $arr[$column] = $value[$column];
     //             }

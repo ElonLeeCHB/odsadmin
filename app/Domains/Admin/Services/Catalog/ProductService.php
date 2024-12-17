@@ -4,17 +4,18 @@ namespace App\Domains\Admin\Services\Catalog;
 
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
-use App\Repositories\Eloquent\Catalog\ProductRepository;
+use App\Repositories\Eloquent\Material\ProductRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Common\TermRelation;
-use App\Models\Catalog\Product;
-use App\Models\Catalog\ProductTranslation;
-use App\Models\Catalog\ProductOption;
-use App\Models\Catalog\ProductOptionValue;
+use App\Models\Material\Product;
+use App\Models\Material\ProductMeta;
+use App\Models\Material\ProductTranslation;
+use App\Models\Material\ProductOption;
+use App\Models\Material\ProductOptionValue;
 
 class ProductService extends Service
 {
-    public $modelName = "\App\Models\Catalog\Product";
+    public $modelName = "\App\Models\Material\Product";
     protected $repository;
 
 	public function __construct(protected ProductRepository $ProductRepository)
@@ -29,30 +30,58 @@ class ProductService extends Service
             DB::beginTransaction();
 
             $result = $this->findIdOrFailOrNew($data['product_id']);
-            if(!empty($result['data'])){
-                $product = $result['data'];
-            }else if($result['error']){
-                throw new \Exception($result['error']);
+
+            if(!empty($result['error'])){
+                return response(json_encode($result))->header('Content-Type','application/json');
             }
-            unset($result);
 
-            $product->model = $data['model'] ?? null;
-            $product->main_category_id = $data['main_category_id'] ?? null;
-            $product->price = $data['price'] ?? 0;
-            $product->quantity = $data['quantity'] ?? 0;
-            $product->comment = $data['comment'] ?? '';
-            $product->is_active = (int) $data['is_active'] ?? 0;
-            $product->is_salable = (int) $data['is_salable'] ?? 0;
-            // $product->on_web = (int) $data['on_web'] ?? 0;
-            $product->sort_order = $data['sort_order'] ?? 999;
+            $product = $result['data'];
 
-            $product->save();
+            // products
+                $product->model = $data['model'] ?? null;
+                $product->main_category_id = $data['main_category_id'] ?? null;
+                $product->price = $data['price'] ?? 0;
+                $product->quantity = $data['quantity'] ?? 0;
+                $product->comment = $data['comment'] ?? '';
+                $product->is_active = (int) $data['is_active'] ?? 0;
+                $product->is_salable = (int) $data['is_salable'] ?? 0;
+                $product->sort_order = $data['sort_order'] ?? 999;
+                $product->save();
+            //
 
-            $product_id = $product->id;
+            // product_metas
+                $meta_keys = ['web_name', 'is_web_product'];
+                $metas_query = ProductMeta::where('product_id', $product->id)->whereIn('meta_key', $meta_keys);
 
-            if(!empty($data['translations'])){
-                $this->saveRowTranslationData($product, $data['translations']);
-            }
+                // 取出後刪除
+                $metas = $metas_query->get()->keyBy('meta_key');
+                $metas_query->delete();
+
+                $upsertData = [];
+
+                foreach ($meta_keys as $meta_key) {
+                    if(!empty($data[$meta_key])){
+                        $db_meta = $metas[$meta_key] ?? [];
+
+                        $upsertData[] = [
+                            'id' => optional($db_meta)->id ?? null,
+                            'product_id' => $product->id,
+                            'meta_key' => $meta_key,
+                            'meta_value' => $data[$meta_key],
+        
+                        ];
+                    }
+                }
+                if(!empty($upsertData)){
+                    ProductMeta::upsert($upsertData, ['user_id','meta_key']);
+                }
+            //
+
+            // product_translations
+                if(!empty($data['translations'])){
+                    $this->saveRowTranslationData($product, $data['translations']);
+                }
+            //
 
             // Product Categories - many to many
             if(!empty($data['product_categories'])){

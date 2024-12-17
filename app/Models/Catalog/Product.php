@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * 這裡的 Product 相關模型可能不再使用，改用 Material 資料夾裡面的。
+ */
 namespace App\Models\Catalog;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -21,7 +23,7 @@ class Product extends Model
 
     protected $guarded = [];
     protected $appends = ['code', 'name'];
-    public $translation_attributes = ['name', 'full_name','short_name','specification','meta_title','meta_description','meta_keyword',];
+    public $translation_keys = ['name', 'full_name','short_name','specification','meta_title','meta_description','meta_keyword',];
     public $meta_keys = [
         'supplier_own_product_code',
         'supplier_own_product_name',
@@ -29,6 +31,13 @@ class Product extends Model
         'temperature_type_code',
     ];
     protected $with = ['translations'];
+
+    protected static function booted()
+    {
+        parent::boot();
+
+        static::observe(\App\Observers\ProductObserver::class);
+    }
 
 
     public function main_category()
@@ -197,4 +206,15 @@ class Product extends Model
             get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->temperature_type_code, 'product_storage_temperature_type') ?? '',
         );
     }
+    
+
+    /**
+     * 
+     */
+    public function updateCache($product_id, $product)
+     {
+         $cachePath = storage_path("cache/product-{$product_id}.serialized.txt");
+         file_put_contents($cachePath, serialize($product));
+     }
+
 }

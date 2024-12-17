@@ -35,6 +35,6 @@ class CheckCorsOrigin
         }
 
         // 拒絕不在允許清單中的請求
-        return response()->json(['error' => 'Forbidden',], 403);
+        return response()->json(['error' => 'Forbidden (cors)',], 403);
     }
 }

@@ -81,15 +81,16 @@ class OrderService extends GlobalOrderService
 
                 if(empty($data['delivery_date_hi']) || $data['delivery_date_hi'] == '00:00'){
                     $arr = explode('-',$data['delivery_time_range']);
-                    //$t1 = $arr[0];
+                    $t1 = substr($arr[0],0,2).':'.substr($arr[0],-2);
+
                     if(!empty($arr[1])){
                         $t2 = substr($arr[1],0,2).':'.substr($arr[1],-2);
                     }else if(!empty($arr[0])){
                         $t2 = substr($arr[0],0,2).':'.substr($arr[0],-2);
                     }
 
-                    if(!empty($t2)){
-                        $delivery_date_hi = $t2;
+                    if(!empty($t1)){
+                        $delivery_date_hi = $t1;
                     }else{
                         $delivery_date_hi = '';
                     }
@@ -168,7 +169,6 @@ class OrderService extends GlobalOrderService
                 // 訂單單頭結束
             // }
             // 訂單標籤
-            if(1){ //這個 if 只是為了識別處理區塊，方便收合。所以固定=1
                 OrderTag::where('order_id', $order->id)->delete();
 
                 if(!empty($data['order_tags'])){
@@ -189,7 +189,7 @@ class OrderService extends GlobalOrderService
                         OrderTag::upsert($upsert_data, ['id']);
                     }
                 }
-            }
+            //
 
             // Deleta all order_products
             if(!empty($data['order_products'])){

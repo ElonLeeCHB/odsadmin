@@ -53,7 +53,13 @@ class Order extends Model
                             option_values
     */
 
+    //這應該不是慣例命名
     public function order_products()
+    {
+        return $this->hasMany(OrderProduct::class, 'order_id', 'id');
+    }
+    //這才是慣例命名
+    public function orderProducts()
     {
         return $this->hasMany(OrderProduct::class, 'order_id', 'id');
     }

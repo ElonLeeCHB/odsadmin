@@ -12,7 +12,7 @@ class Option extends Model
 {
     use ModelTrait;
 
-    public $translation_attributes = ['name'];
+    public $translation_keys = ['name'];
     protected $guarded = [];
     protected $translationForeignKey = 'option_id';
     protected $appends = ['name'];

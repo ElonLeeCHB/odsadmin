@@ -12,7 +12,7 @@ class Term extends Model
 {
     use ModelTrait;
     
-    public $translation_attributes = ['name', 'short_name',];
+    public $translation_keys = ['name', 'short_name',];
     protected $guarded = [];
     protected $appends = ['name','short_name', 'content', 'taxonomy_name'];
 

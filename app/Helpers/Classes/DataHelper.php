@@ -293,8 +293,10 @@ class DataHelper
                 if (Storage::exists($path)) {
                     if($type == 'json'){
                         $result = json_decode(Storage::get($path));
-                    }else{
+                    }else if($type == 'serialize'){
                         $result = unserialize(Storage::get($path));
+                    }else{
+                        $result = [];
                     }
 
                     if (!empty($result['_expires_at']) && $result['_expires_at'] >= time()) {

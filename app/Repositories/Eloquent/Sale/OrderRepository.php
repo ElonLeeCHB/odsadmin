@@ -17,7 +17,7 @@ use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
 use App\Helpers\Classes\DataHelper;
-
+use App\Helpers\Classes\DateHelper;
 use PhpOffice\PhpSpreadsheet\IOFactory; 
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
@@ -25,13 +25,6 @@ class OrderRepository extends Repository
 {
     public $modelName = "\App\Models\Sale\Order";
     private $order_statuses;
-
-    public function __construct(private OptionValueRepository $OptionValueRepository, private OrderTotalRepository $OrderTotalRepository
-        , private TermRepository $TermRepository)
-    {
-        parent::__construct();
-    }
-
 
     public function getOrder($data=[], $debug=0)
     {
@@ -122,7 +115,7 @@ class OrderRepository extends Repository
             'pagination' => false,
             'limit' => 0,
         ];
-        $option_values = $this->OptionValueRepository->getRows($filter_data)->toArray();
+        $option_values = (new OptionValueRepository)->getRows($filter_data)->toArray();
 
         $result = [];
 
@@ -524,6 +517,153 @@ class OrderRepository extends Repository
         // Save 
         $helper->write($spreadsheet, __FILE__, ['Pdf']); 
         return; 
-    } 
+    }
+
+
+    public function create($data)
+    {
+        try {
+            $orderData = $this->getCommonData($data);
+
+            unset($orderData['id']);
+            unset($orderData['order_id']);
+
+            $orderData['created_at'] = now();
+            $orderData['updated_at'] = now();
+
+            return Order::create($orderData);
+
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
+    public function save($data)
+    {
+
+        try {
+
+            // 新增或編輯
+                if(empty($data['order_id'])){
+                    $isAddingOrder = true;
+                }
+
+                if (!empty($data['order_id']) && filter_var($data['order_id'], FILTER_VALIDATE_INT) !== false) {
+                    $isEdittingOrder = true;
+                }
+            //
+
+
+
+            // get order
+            $result = $this->findIdOrFailOrNew($data['order_id'] ?? null);
+
+            if(empty($result['error'])){
+                $order = $result['data'];
+            }
+
+            if($isAddingOrder){
+                $order->created_at = now();
+                $order->updated_at = now();
+            }else if($isEdittingOrder){
+                $order->updated_at = now();
+            }
+            $order->save();
+
+            return $order->id;
+
+
+        } catch (\Throwable $th) {
+            throw $th; //不使用 return
+
+            // // 可以記錄錯誤，例如使用 Laravel 的 Log 類來記錄
+            // // \Log::error('An error occurred: ' . $th->getMessage(), ['exception' => $th]);
+
+            // // 回應 JSON 格式的錯誤回應
+            // return response()->json([
+            //     'status' => 'error',
+            //     'message' => 'An unexpected error occurred. Please try again later.',
+            //     'success' => false,
+            //     'error_code' => 'INTERNAL_SERVER_ERROR',
+            //     'details' => env('APP_DEBUG') ? $th->getMessage() : null // 在開發模式下顯示錯誤訊息
+            // ], 500);  // HTTP 500 表示伺服器內部錯誤
+        }
+
+    }
+
+
+    public function getCommonData($data)
+    {
+        // delivery_date and delivery_time_range
+            // delivery_date 在資料庫是 datetime 欄位
+            // $delivery_date_Ymd = '0000-00-00'
+            // $delivery_date_His = '00:00:00'
+            // $delivery_date 在語意上只有日期。但盡量使用 $delivery_date_Ymd
+            if(empty($data['delivery_date'])){
+                throw new \Exception('送達日期必須有值！');
+            }
+            // 提取日期
+            if (preg_match('/^\d{4}-\d{2}-\d{2}/', $data['delivery_date'])) {
+                $delivery_date_Ymd = substr($data['delivery_date'], 0, 10); // 取得 YYYY-MM-DD
+            }
+            // 提取時間
+            if (strpos($data['delivery_date'], ' ') !== false) {
+                $delivery_date_His = substr($data['delivery_date'], 11); // 提取 時-分-秒
+            }else{
+                $delivery_date_His = '00:00:00';
+            }
+            //重新組合
+            $data['delivery_date'] = $delivery_date_Ymd . ' ' . $delivery_date_His;
+            //驗證
+            if(!DateHelper::isValidDateOrDatetime($data['delivery_date'])){
+                throw new \Exception('送達日期或時間錯誤！');
+            }
+        //
+
+        $orderData = [
+            'location_id' => $data['location_id'] ?? 0,
+            'delivery_date' => $data['delivery_date'] ?? null,
+            'personal_name' => $data['personal_name'] ?? '',
+            'customer_id' => $data['customer_id'] ?? 0,
+            'mobile' => $data['mobile'] ?? '',
+            'telephone_prefix' => $data['telephone_prefix'] ?? '',
+            'telephone' => $data['telephone'] ?? '',
+            'email' => $data['email'] ?? '',
+            'order_date' => $data['order_date'] ?? null,
+            'status_code' => $data['status_code'] ?? '',
+            'comment' => $data['comment'] ?? '',
+            'extra_comment' => $data['extra_comment'] ?? '',
+            'order_taker' => $data['order_taker'] ?? '',
+
+            // payment
+            'payment_company' => $data['payment_company'] ?? '',
+            'payment_department' => $data['payment_department'] ?? '',
+            'payment_tin' => $data['payment_tin'] ?? '',
+            'is_payment_tin' => $data['is_payment_tin'] ?? 0, //以後改為 payment_tin_required
+            'payment_total' => $data['payment_total'] ?? 0, // 訂單總金額
+            'payment_paid' => $data['payment_paid'] ?? 0, // 已付金額
+            'payment_unpaid' => $data['payment_unpaid'] ?? 0, //未付金額
+            'payment_method' => $data['payment_method'] ?? null, //付款方式
+            'scheduled_payment_date' => $data['scheduled_payment_date'] ?? null ,//預計付款日期
+
+            // shipping
+            'shipping_personal_name' => $data['shipping_personal_name'] ?? null, 
+            'shipping_phone' => $data['shipping_phone'] ?? '', //以後改用 shipping_contact, json 型態，可多筆
+            'shipping_company' => $data['shipping_company'] ?? '',
+            'shipping_country_code' => $data['shipping_country_code'] ?? 'TW',
+            'shipping_state_id' => $data['shipping_state_id'] ?? 0,
+            'shipping_city_id' => $data['shipping_city_id'] ?? 0,
+            'shipping_road' => $data['shipping_road'] ?? null,
+            'shipping_road_abbr' => $data['shipping_road_abbr'] ?? null, //地址簡稱。現在不常用。
+            'shipping_address1' => $data['shipping_address1'] ?? null,
+            'shipping_address2' => $data['shipping_address2'] ?? null,
+            'shipping_method' => $data['shipping_method'] ?? null,
+            'delivery_date' => $data['delivery_date'] ?? null,
+            'delivery_time_range' => $data['delivery_time_range'] ?? null,
+            'delivery_time_mark' => $data['delivery_time_mark'] ?? null, // 值是 a, b, ab 。沒有實際用過。
+        ];
+
+        return $orderData;
+    }
 }
 

@@ -31,7 +31,7 @@ class TermService extends Service
 
     public function updateOrCreateTag($data)
     {
-        $data['taxonomy_code'] = 'product_tag';
+        $data['taxonomy_code'] = 'ProductTag';
         $data['term_id'] = $data['term_id'];
         
         return $this->TermRepository->updateOrCreateTerm($data);
