@@ -34,13 +34,50 @@ class OrderProductOptionRepository extends Repository
         }
     }
 
+    /**
+     * 必須包含 order_product_option_id
+     */
+    public function upsertMany($arrOrderProductOptions, $order_id, $order_product_id)
+    {
+        $rows = [];
+
+        foreach ($arrOrderProductOptions as $row) {
+            $row = $this->getCommonData($row, $order_id, $order_product_id);
+
+            if(empty($updateColumns)){
+                $updateColumns = array_keys($row);
+                unset($updateColumns['id']);
+                unset($updateColumns['created_at']);
+            }
+
+            //更新
+            if(!empty($row['order_product_option_id'])){
+                $row['id'] = $row['order_product_option_id'];
+                unset($row['order_product_option_id']);
+
+                $row['created_at'] = now();
+                $row['updated_at'] = now();
+            }
+            //新增
+            else{
+                unset($row['id']);
+                $row['created_at'] = now();
+            }
+
+            $row['order_id'] = $order_id;
+
+            $rows[] = $row;
+        }
+
+        return OrderProductOption::upsert($rows, ['id'], $updateColumns);
+    }
 
     public function getCommonData(array $data, $order_id, $order_product_id)
     {
         return [
             'order_id' => $order_id,
             'order_product_id' => $order_product_id,
-            'product_id' => $data['product_id'] ?? null,
+            'product_id' => $data['product_id'] ?? 0,
             'product_option_id' => $data['product_option_id'],
             'product_option_value_id' => $data['product_option_value_id'],
             'parent_product_option_value_id' => $data['parent_product_option_value_id'] ?? 0,

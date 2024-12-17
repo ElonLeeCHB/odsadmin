@@ -531,6 +531,7 @@ class OrderRepository extends Repository
             $orderData['created_at'] = now();
             $orderData['updated_at'] = now();
 
+            // create() 回傳 Eloquent model, 必須。Service層會用此做 $order->load('orderProducts')
             return Order::create($orderData);
 
         } catch (\Throwable $th) {
@@ -589,6 +590,29 @@ class OrderRepository extends Repository
             // ], 500);  // HTTP 500 表示伺服器內部錯誤
         }
 
+    }
+
+    public function update($data, $id)
+    {
+        try {
+            $orderData = $this->getCommonData($data);
+
+            $orderData['id'] = $id;
+            $orderData['updated_at'] = now();
+
+            $order = Order::find($id);
+
+            if ($order) {
+                $order->update($orderData);
+
+                return $order;
+            } else {
+                throw new \Exception('找不到此訂單序號！');
+            }
+
+        } catch (\Throwable $th) {
+            throw $th;
+        }
     }
 
 

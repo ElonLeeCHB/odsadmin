@@ -38,6 +38,10 @@ class OrderProduct extends Model
     {
         return $this->hasMany(OrderProductOption::class, 'order_product_id', 'id');
     }
+    public function orderProductOptions()
+    {
+        return $this->hasMany(OrderProductOption::class, 'order_product_id', 'id');
+    }
 
     public function product_options()
     {

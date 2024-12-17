@@ -17,6 +17,7 @@ class OrderProductRepository extends Repository
             foreach ($arrOrderProducts as $row) {
                 $row = $this->getCommonData($row, $order_id);
 
+                //若使用 insert() 則必須
                 $row['created_at'] = now();
                 $row['updated_at'] = now();
 
@@ -28,6 +29,44 @@ class OrderProductRepository extends Repository
         } catch (\Throwable $th) {
             throw $th;
         }
+    }
+
+    /**
+     * 必須包含 order_product_id
+     */
+    public function upsertMany($arrOrderProducts, $order_id)
+    {
+        $rows = [];
+
+        foreach ($arrOrderProducts as $row) {
+            $row = $this->getCommonData($row, $order_id);
+
+            if(empty($updateColumns)){
+                $updateColumns = array_keys($row);
+                unset($updateColumns['id']);
+                unset($updateColumns['created_at']);
+            }
+
+            //更新
+            if(!empty($row['order_product_id'])){
+                $row['id'] = $row['order_product_id'];
+                unset($row['order_product_id']);
+
+                $row['created_at'] = now();
+                $row['updated_at'] = now();
+            }
+            //新增
+            else{
+                unset($row['id']);
+                $row['created_at'] = now();
+            }
+
+            $row['order_id'] = $order_id;
+
+            $rows[] = $row;
+        }
+
+        return OrderProduct::upsert($rows, ['id'], $updateColumns);
     }
 
     public function getCommonData(array $data, $order_id)

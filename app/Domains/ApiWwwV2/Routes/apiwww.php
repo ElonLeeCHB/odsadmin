@@ -33,6 +33,7 @@ Route::group([
         // Route::get('orders/infoByCode/{code}', 'Sale\OrderController@infoByCode')->name('orders.infoByCode');
         Route::post('orders/save', 'Sale\OrderController@save')->name('orders.save');
         Route::post('orders/store', 'Sale\OrderController@store')->name('orders.store');
+        Route::post('orders/edit/{order_id}', 'Sale\OrderController@edit')->name('orders.edit');
     });
 
 
