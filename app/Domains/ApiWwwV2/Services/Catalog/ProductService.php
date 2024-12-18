@@ -6,6 +6,7 @@ use App\Helpers\Classes\DataHelper;
 use App\Services\Service;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Traits\Model\EloquentTrait;
+use App\Helpers\Classes\RowsArrayHelper;
 
 class ProductService extends Service
 {
@@ -18,6 +19,7 @@ class ProductService extends Service
         $cache_key = 'cache/locale/'. app()->getLocale().'/product_' . $product_id;
 
         return DataHelper::remember($cache_key, 60*60, 'json', function() use ($product_id){
+
             $product = $this->getRow([
                 'equal_id' => $product_id,
                 'with' => ['product_options.product_option_values'],
@@ -32,7 +34,9 @@ class ProductService extends Service
                     ->toArray(),
             ];
 
-            return DataHelper::removeIndexRecursive('translation', $product);
+            RowsArrayHelper::removeTranslation($product);
+            
+            return $product;
         });
     }
 

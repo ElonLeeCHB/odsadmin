@@ -36,4 +36,21 @@ class RowsArrayHelper
         return $newRows;
     }
 
+
+    public static function removeTranslation(&$array)
+    {
+        foreach ($array as $key => &$value) {
+            if(is_array($value)){
+                self::removeTranslation($value); // 遞迴處理子陣列
+            }
+        }
+
+        if (isset($array['translation'])) {
+            unset($array['translation']);
+        }
+
+        if (isset($array['translations'])) {
+            unset($array['translations']);
+        }
+    }
 }

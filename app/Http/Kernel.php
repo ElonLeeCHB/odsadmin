@@ -49,17 +49,14 @@ class Kernel extends HttpKernel
 
         // //或許會廢棄
         // 'apiv2' => [
-        //     \App\Http\Middleware\CheckCorsOrigin::class,
         //     \App\Http\Middleware\CheckApiKeyAndIp::class.':V2',
         // ],
 
         'apiposv2' => [
-            // \App\Domains\Admin\Http\Middleware\CheckCorsOrigin::class,
             \App\Domains\ApiPosV2\Http\Middleware\CheckApiKeyAndIp::class,
         ],
 
         'apiwwwv2' => [
-            // \App\Http\Middleware\CheckCorsOrigin::class,
             \App\Domains\ApiWwwV2\Http\Middleware\CheckApiKeyAndIp::class,
         ],
     ];
@@ -90,11 +87,8 @@ class Kernel extends HttpKernel
         'localeViewPath'          => \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath::class,
 
         'is_admin' => \App\Domains\Admin\Http\Middleware\IsAdmin::class,
-        'checkCors' => \App\Http\Middleware\CheckCorsOrigin::class,
-        // 'checkApiKeyAndIp' => \App\Http\Middleware\CheckApiKeyAndIp::class,
-        // 'forceJsonRequest' => \App\Http\Middleware\ForceJsonRequest::class,
-        'poscheckApiKeyAndIp' => \App\Domains\ApiPosV2\Http\Middleware\CheckApiKeyAndIp::class,
-        'wwwcheckApiKeyAndIp' => \App\Domains\ApiWwwV2\Http\Middleware\CheckApiKeyAndIp::class,
+        'posCheckApiKeyAndIp' => \App\Domains\ApiPosV2\Http\Middleware\CheckApiKeyAndIp::class,
+        'wwwCheckApiKeyAndIp' => \App\Domains\ApiWwwV2\Http\Middleware\CheckApiKeyAndIp::class,
         
     ];
 }

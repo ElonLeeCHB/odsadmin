@@ -5,6 +5,7 @@ namespace App\Domains\ApiWwwV2\Http\Controllers\Sale;
 use Illuminate\Http\Request;
 use App\Domains\ApiWwwV2\Http\Controllers\ApiWwwV2Controller;
 use App\Domains\ApiWwwV2\Services\Sale\OrderService;
+use Illuminate\Support\Facades\Validator;
 
 class OrderController extends ApiWwwV2Controller
 {
@@ -18,7 +19,56 @@ class OrderController extends ApiWwwV2Controller
 
     public function list()
     {
-        $response = $this->OrderService->getList($this->url_data);
+        $queries = request()->post('queries');
+        $response = [];
+
+        $validator = Validator::make(request()->post(), [
+            'personal_name' => 'nullable|string',
+            'mobile' => 'nullable|string',
+            'code' => 'nullable|string',
+        ]);
+
+        // 在驗證後檢查至少有兩個欄位有填寫
+        $validator->after(function ($validator) use ($queries) {
+            $neededFields = array_keys($queries);
+
+            // 計算有填寫的欄位數
+            $coount = 0;
+            foreach ($neededFields as $field) {
+                if (!empty($queries[$field])) {
+                    $coount++;
+                }
+            }
+
+            // 如果填寫的欄位少於兩個，則返回錯誤
+            if ($coount < 2) {
+                $validator->errors()->add('at_least_two_fields', '至少填寫兩個欄位');
+            }
+        });
+
+        // 如果驗證失敗，返回錯誤訊息
+        if ($validator->fails()) {
+            $response['error'] = $validator->errors()->first();
+        }
+
+        if(empty($response['error'])){
+
+            $filter_data = [];
+
+            if(!empty($queries['personal_name'])){
+                $filter_data['filter_personal_name'] = $queries['personal_name'];
+            }
+            
+            if(!empty($queries['mobile'])){
+                $filter_data['filter_mobile'] = $queries['mobile'];
+            }
+            
+            if(!empty($queries['code'])){
+                $filter_data['filter_code'] = $queries['code'];
+            }
+            
+            $response = $this->OrderService->getList($filter_data);
+        }
 
         return $this->sendResponse($response);
     }

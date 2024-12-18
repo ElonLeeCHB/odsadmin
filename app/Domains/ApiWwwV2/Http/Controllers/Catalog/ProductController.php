@@ -3,12 +3,10 @@
 namespace App\Domains\ApiWwwV2\Http\Controllers\Catalog;
 
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Domains\ApiWwwV2\Http\Controllers\ApiWwwController;
+use App\Domains\ApiWwwV2\Http\Controllers\ApiWwwV2Controller;
 use App\Domains\ApiWwwV2\Services\Catalog\ProductService;
-use App\Helpers\Classes\DataHelper;
 
-class ProductController extends ApiWwwController
+class ProductController extends ApiWwwV2Controller
 {
     protected $lang;
 
@@ -20,22 +18,10 @@ class ProductController extends ApiWwwController
     }
 
 
-    public function list()
-    {
-        if(!empty($this->url_data['simplelist'])){
-            $products = $this->ProductService->getSimplelist($this->url_data);
-        }else{
-            $products = $this->ProductService->getList($this->url_data);
-        }
-
-        return response(json_encode($products))->header('Content-Type','application/json');
-    }
-
-
     public function info($product_id)
     {
         $product = $this->ProductService->getInfo($product_id);
 
-        return response(json_encode($product))->header('Content-Type','application/json');
+        return $this->sendResponse(['data' => $product]);
     }
 }

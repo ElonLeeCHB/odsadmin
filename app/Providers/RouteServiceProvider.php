@@ -35,15 +35,15 @@ class RouteServiceProvider extends ServiceProvider
                 ->prefix('api')
                 ->group(app_path('Domains/Api/Routes/api.php'));
 
-            Route::middleware(['api','checkCors'])
+            Route::middleware(['api'])
                 ->prefix('api/v2')
                 ->group(app_path('Domains/ApiV2/Routes/apiv2.php'));
 
-            Route::middleware(['api', 'checkCors'])
+            Route::middleware(['api'])
                 ->prefix('api/posv2')
                 ->group(app_path('Domains/ApiPosV2/Routes/apipos.php'));
 
-            Route::middleware(['api', 'checkCors'])
+            Route::middleware(['api'])
                 ->prefix('api/wwwv2')
                 ->group(app_path('Domains/ApiWwwV2/Routes/apiwww.php'));
 

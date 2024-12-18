@@ -60,7 +60,7 @@ class ApiWwwV2Controller extends Controller
             $status_code = 400;
         }
 
-        if($json['success'] == 'ok'){
+        if(!empty($json['success']) && $json['success'] == 'ok'){
             $status_code = 200;
         }
         
