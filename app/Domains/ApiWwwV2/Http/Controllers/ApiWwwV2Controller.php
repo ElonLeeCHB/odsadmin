@@ -5,7 +5,7 @@ namespace App\Domains\ApiWwwV2\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Helpers\Classes\DataHelper;
 
-class ApiWwwController extends Controller
+class ApiWwwV2Controller extends Controller
 {
     protected $url_data;
     protected $post_data;
@@ -49,5 +49,21 @@ class ApiWwwController extends Controller
         if(!empty($this->url_data['equal_locale'])){
             app()->setLocale($this->url_data['equal_locale']);
         }
+    }
+
+    public function sendResponse($json)
+    {
+        // 無錯誤
+        if(empty($json['error']) && empty($json['errors']) && empty($json['warning'])  && empty($json['errorWarning'])){
+            $json = ['success' => 'ok'] + $json; 
+        }else{
+            $status_code = 400;
+        }
+
+        if($json['success'] == 'ok'){
+            $status_code = 200;
+        }
+        
+        return response()->json($json, $status_code, [], JSON_UNESCAPED_UNICODE)->header('Content-Type','application/json');
     }
 }

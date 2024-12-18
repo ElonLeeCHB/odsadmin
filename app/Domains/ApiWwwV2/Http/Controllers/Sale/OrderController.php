@@ -3,10 +3,10 @@
 namespace App\Domains\ApiWwwV2\Http\Controllers\Sale;
 
 use Illuminate\Http\Request;
-use App\Domains\ApiWwwV2\Http\Controllers\ApiWwwController;
+use App\Domains\ApiWwwV2\Http\Controllers\ApiWwwV2Controller;
 use App\Domains\ApiWwwV2\Services\Sale\OrderService;
 
-class OrderController extends ApiWwwController
+class OrderController extends ApiWwwV2Controller
 {
     public function __construct(private Request $request,private OrderService $OrderService)
     {
@@ -18,20 +18,16 @@ class OrderController extends ApiWwwController
 
     public function list()
     {
-        if(!empty($this->url_data['simplelist'])){
-            $orders = $this->OrderService->getSimplelist($this->url_data);
-        }else{
-            $orders = $this->OrderService->getList($this->url_data);
-        }
+        $response = $this->OrderService->getList($this->url_data);
 
-        return response(json_encode($orders))->header('Content-Type','application/json');
+        return $this->sendResponse($response);
     }
 
     public function info($order_id)
     {
-        $order = $this->OrderService->getInfo($order_id, 'id');
+        $response = $this->OrderService->getInfo($order_id, 'id');
 
-        return response(json_encode($order))->header('Content-Type','application/json');
+        return response(json_encode($response))->header('Content-Type','application/json');
     }
 
     public function infoByCode($code)

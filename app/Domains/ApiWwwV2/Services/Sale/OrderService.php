@@ -4,6 +4,7 @@ namespace App\Domains\ApiWwwV2\Services\Sale;
 
 use Illuminate\Support\Facades\DB;
 use App\Helpers\Classes\DataHelper;
+use App\Helpers\Classes\RowsArrayHelper;
 use App\Services\Service;
 use App\Traits\Model\EloquentTrait;
 use App\Repositories\Eloquent\Sale\OrderRepository;
@@ -17,25 +18,24 @@ class OrderService extends Service
     protected $modelName = "\App\Models\Sale\Order";
 
 
-    public function getSimplelist($filters)
-    {
-       try {
-
-           $filters['with'] = [];
-
-           $filters['select'] = ['id', 'code', 'personal_name', 'delivery_date'];
-
-           return $this->getRows($filters);
-
-       } catch (\Exception $ex) {
-           return ['error' => $ex->getMessage()];
-       }
-    }
-
-
     public function getList($filters)
     {
-        return $this->getRows($filters);
+        try {
+
+            $filters['with'] = [];
+
+            $selectedColumns = ['id', 'code', 'mobile', 'personal_name', 'delivery_date', 'payment_total'];
+
+            $filters['select'] = $selectedColumns;
+            $result = $this->getRows($filters)->toArray();
+
+            $result['data'] = RowsArrayHelper::keepSelectedFields($result['data'], $selectedColumns ?? []);
+
+            return $result;
+
+        } catch (\Exception $ex) {
+            return ['error' => $ex->getMessage()];
+        }
     }
 
 

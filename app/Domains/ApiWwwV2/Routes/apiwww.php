@@ -28,12 +28,14 @@ Route::group([
         'as' => 'sales.',
     ], function ()
     {
-        // Route::get('orders/list', 'Sale\OrderController@list')->name('orders.list');
+        Route::post('orders/list', 'Sale\OrderController@list')->name('orders.list');
         // Route::get('orders/info/{id}', 'Sale\OrderController@info')->name('orders.info');
         // Route::get('orders/infoByCode/{code}', 'Sale\OrderController@infoByCode')->name('orders.infoByCode');
-        Route::post('orders/save', 'Sale\OrderController@save')->name('orders.save');
+
         Route::post('orders/store', 'Sale\OrderController@store')->name('orders.store');
-        Route::post('orders/edit/{order_id}', 'Sale\OrderController@edit')->name('orders.edit');
+        //官網目前沒有會員系統，因此只允許新增訂單，不允許修改。避免資安意外。
+        //若要修改，由公司內部修改
+        // Route::post('orders/edit/{order_id}', 'Sale\OrderController@edit')->name('orders.edit'); 
     });
 
 

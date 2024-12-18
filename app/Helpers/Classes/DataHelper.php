@@ -7,8 +7,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
 class DataHelper
-{
-
+{   
     public static function unsetArrayFromArrayList($rows = [])
     {
         foreach ($rows as $key => $row) {
