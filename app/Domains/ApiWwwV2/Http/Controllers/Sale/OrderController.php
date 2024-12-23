@@ -73,18 +73,15 @@ class OrderController extends ApiWwwV2Controller
         return $this->sendResponse($response);
     }
 
-    public function info($order_id)
+    public function infoByCode($order_code)
     {
-        $response = $this->OrderService->getInfo($order_id, 'id');
+        $filter_data = [
+            'equal_code' => $order_code,
+            'first' => true,
+        ];
+        $response = $this->OrderService->getInfoByCode($filter_data);
 
         return response(json_encode($response))->header('Content-Type','application/json');
-    }
-
-    public function infoByCode($code)
-    {
-        $order = $this->OrderService->getInfo($code, 'code');
-
-        return response(json_encode($order))->header('Content-Type','application/json');
     }
 
     public function store()

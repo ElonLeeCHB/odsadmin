@@ -199,7 +199,6 @@ trait ModelTrait
         $table = $this->getTable();
 
         $cache_name = 'cache/table_columns/' . $table . '.json';
-        echo "<pre>",print_r(111,true),"</pre>";exit;
 
         $table_columns = DataHelper::getJsonFromStoragNew($cache_name);
 

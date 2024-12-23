@@ -151,8 +151,8 @@ class LayoutComposer
             $sale[] = [
                 'name'	   => $this->lang->text_order,
                 'icon'	   => '',
-                // 'href'     => route('lang.admin.sale.orders.index'),
-                'href'     => env('APP_URL') . '/#/ordered',
+                'href'     => route('lang.admin.sale.orders.index'),
+                // 'href'     => env('APP_URL') . '/#/ordered',
                 'children' => []
             ];
         }
@@ -161,7 +161,7 @@ class LayoutComposer
             $sale[] = [
                 'name'	   => $this->lang->text_individual,
                 'icon'	   => '',
-                // 'href'     => route('lang.admin.member.members.index'),
+                'href'     => route('lang.admin.member.members.index'),
                 'href'     => env('APP_URL') . '/#/member',
                 'children' => []
             ];

@@ -324,9 +324,11 @@ class OrderController extends BackendController
         $order_id = $order->id ?? ' ';
 
         $data['printReceiveForm'] = route('lang.admin.sale.orders.printReceiveForm', ['order_id' => $order_id]);
-        $data['printReceiveFormA4'] = route('lang.admin.sale.orders.printReceiveFormA4', ['order_id' => $order_id]);
+        // $data['printReceiveFormA4'] = route('lang.admin.sale.orders.printReceiveFormA4', ['order_id' => $order_id]);
+        $data['printReceiveFormA4'] = '';
 
-        $data['printOrderProducts'] = route('lang.admin.sale.orders.printOrderProducts', ['order_id' => $order_id]);
+        //$data['printOrderProducts'] = route('lang.admin.sale.orders.printOrderProducts', ['order_id' => $order_id]);
+        $data['printOrderProducts'] = '';
 
         $arrQueries = [];
         if(!empty($this->request->getReturn)){

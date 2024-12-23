@@ -255,6 +255,8 @@ class DataHelper
 
         public static function saveDataToStorage($path, $data, $seconds = 0, $type = 'serialize')
         {
+
+
             try{
                 if (Storage::exists($path)) {
                     Storage::delete($path);
@@ -266,20 +268,19 @@ class DataHelper
                     $expiresAt = time() + $seconds;
                 }
 
-                $result = [];
-                $result['_expires_at'] = $expiresAt;
-                $result['data'] = $data;
+                $result = [
+                    'expires_at' => $expiresAt,
+                    'data' => $data,
+                ];
 
                 if($type == 'serialize'){
-                    $input_data = serialize($result);
+                    $result = serialize($result);
                 }
                 else if($type == 'json'){
-                    $input_data = json_encode($result);
+                    $result = json_encode($result);
                 }
 
-                Storage::put($path, serialize($result));
-
-                return true;
+                return Storage::put($path, $result);
 
             } catch (\Exception $ex) {
                 throw $ex;
@@ -290,22 +291,30 @@ class DataHelper
         {
             try{
                 if (Storage::exists($path)) {
+                    $data = Storage::get($path);
+
                     if($type == 'json'){
                         $result = json_decode(Storage::get($path));
+                        $expires_at = $result->expires_at;
                     }else if($type == 'serialize'){
                         $result = unserialize(Storage::get($path));
-                    }else{
-                        $result = [];
+                        $expires_at = $result['expires_at'];
                     }
 
-                    if (!empty($result['_expires_at']) && $result['_expires_at'] >= time()) {
-                        return $result['data'];
-                    }else{
+                    // expires at future
+                    if (!empty($expires_at) && $expires_at >= time()) {
+                        if($type == 'json'){
+                            return $result->data;
+                        }else if($type == 'serialize'){
+                            return $result['data'];
+                        }
+                    }
+                    // expired
+                    else{
                         Storage::delete($path);
                     }
                 }
 
-                return null;
             } catch (\Exception $ex) {
                 throw $ex;
             }

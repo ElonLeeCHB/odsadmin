@@ -14,11 +14,6 @@ class TermRepository extends Repository
 {
     public $modelName = "\App\Models\Common\Term";
 
-    public function __construct(protected TaxonomyRepository $TaxonomyRepository)
-    {
-        parent::__construct();
-    }
-
     public function getTerm($data=[], $debug = 0)
     {
         $data = $this->resetQueryData($data);
@@ -48,7 +43,7 @@ class TermRepository extends Repository
                 'pagination' => false,
                 'limit' => 0
             ];
-            $taxonomy_codes = $this->TaxonomyRepository->getTaxonomies($filter_data);
+            $taxonomy_codes = (new TaxonomyRepository)->getTaxonomies($filter_data);
 
             // Add whereIn to find in terms table
             $data['whereIn']['taxonomy_code'] = $taxonomy_codes;

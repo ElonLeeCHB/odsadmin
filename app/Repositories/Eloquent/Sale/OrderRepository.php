@@ -163,7 +163,7 @@ class OrderRepository extends Repository
             'limit' => 0,
             'pagination' => false,
         ];
-        $totals = $this->OrderTotalRepository->getRows($filter_data, $debug);
+        $totals = (new OrderTotalRepository)->getRows($filter_data, $debug);
 
         return $this->rowsToStdObj($totals);
     }
@@ -179,7 +179,7 @@ class OrderRepository extends Repository
             return [];
         }
 
-        $terms = $this->TermRepository->getTerms($data);
+        $terms = (new TermRepository)->getTerms($data);
 
         if(!empty($terms) && !empty($data['sanitize'])){
             foreach ($terms as $key => $term) {
@@ -202,6 +202,7 @@ class OrderRepository extends Repository
         foreach ($order_tags as $order_tag) {
             $rows[] = $order_tag->toCleanObject();
         }
+
         return $rows;
     }
 

@@ -10,6 +10,7 @@ use App\Traits\Model\EloquentTrait;
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
+use App\Models\Sale\Order;
 
 class OrderService extends Service
 {
@@ -40,29 +41,21 @@ class OrderService extends Service
 
 
     //混和寫法
-    public function getInfo($identifier, $type = 'id')
+    public function getInfoByCode($filter_data)
     {
-        if($type == 'id'){
-            $cache_key = 'cache/orders/orderID-' . $identifier;
-        }else if($type == 'code'){
-            $cache_key = 'cache/orders/orderCode-' . $identifier;
-        }
+        $cache_key = (new Order)->getJsonInfoCacheKey($filter_data['equal_code']);
 
-        // return DataHelper::remember($cache_key, 60*60, function() use ($identifier, $type){
-        //     if($type == 'id'){
-        //         $filter_data['equal_id'] = $identifier;
-        //     }else if($type == 'code'){
-        //         $filter_data['equal_code'] = $identifier;
-        //     }
+        $order = DataHelper::remember($cache_key, 60*60, 'json', function() use ($filter_data){
 
-        //     $filter_data['with'] = ['order_products.order_product_options', 'totals', 'tags'];
-
-        //     $order = $this->getRow($filter_data);
-
-        //     return $order;
-        // });
+            $filter_data['with'] = ['order_products.order_product_options', 'totals', 'tags'];
 
 
+            $order = $this->getRow($filter_data)->toArray();
+
+            return $order;
+        });
+
+        return $order;
     }
 
     // public function getInfo($order_id)

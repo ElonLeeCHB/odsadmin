@@ -35,6 +35,11 @@ class Order extends Model
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
 
+    public function getJsonInfoCacheKey($code)
+    {
+        return 'cache/orders/orderCode-' . $code.'.json';
+    }
+
     protected static function booted()
     {
         parent::boot();
