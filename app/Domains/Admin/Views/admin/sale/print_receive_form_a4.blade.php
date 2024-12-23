@@ -22,12 +22,14 @@
     }
     @media screen, print {
       #printableArea {
-        width: 9.5in; /* 9.5 英寸寬度 */
-        height: 11in; /* 11 英寸高度 */
+        margin: 2px auto;
+        padding: 0px;
+        width: 8.5in;
+        height: 11in;
       }
 
       @page {
-        size: 9.5in 11in; /* 自訂 9.5x11 英吋尺寸 */
+        size: 8.5in 11in;
         margin: 2px;
       }
     }
@@ -226,176 +228,175 @@
             @foreach($order['final_products'] as $key => $order_product)
             @if($order_product['main_category_code'] == 'oilRiceBox')
               @if($oilRiceBox_title_showed == 1)
-                  <tr>
-                    <td  style="width:115px;">油飯便當系列</td>
-                    <td style="width:24px;" class=" fw-bold">小計</td>
-                    <!-- <td class=" fw-bold">極品</td> -->
-                    <td style="width:24px;" class=" fw-bold">控肉</td>
-                    <!-- <td style="width:24px;" class=" fw-bold">雞胸</td> -->
-                    <td style="width:24px;" class=" fw-bold">雞翅</td>
-                    <td style="width:24px;" class=" fw-bold">雞腿</td>
-                    <td style="width:24px;" class=" fw-bold">滷牛</td>
-                    <td style="width:24px;" class=" fw-bold">鮭魚</td>
-                    <td style="width:24px;" class=" fw-bold">牛丸</td>
-                    <!-- <td style="width:24px;" class=" fw-bold">贈豆</td> -->
-                    <td style="width:24px;" class=" fw-bold"></td>
-                    <td style="width:24px;" class=" fw-bold"></td>
-                    <td style="width:24px;" class=" fw-bold"></td>
-                    <td style="width:24px;" class=" fw-bold"></td>
-                    <td style="width:24px;" class=" fw-bold"></td>
-                    <td style="width:24px;" class=" fw-bold"></td>
-                    <td style="width:24px;" class=" fw-bold"></td>
-                    <td style="width:24px;" class=" fw-bold"></td>
-                    <td style="width:24px;" class=" fw-bold"></td>
-                    <td style="width:24px;" class=" fw-bold"></td>
-                    <td style="width:24px;" class=" fw-bold"></td>
-                    <td style="width:24px;" class=" fw-bold"></td>
-                    <td style="width:24px;border-right:3px solid black" class=" fw-bold"></td>
-                    <td style="width:24px;" class=" fw-bold">微豆</td>
-                    <td style="width:24px;" class=" fw-bold">無豆</td>
-                    <td style="width:24px;" class=" fw-bold">紅茶</td>
-                    <td style="width:24px;" class=" fw-bold">奶茶</td>
-                    <td style="width:24px;" class=" fw-bold">濃湯</td>
-                    <td style="width:24px;" class=" fw-bold">甜湯</td>
-                    <td style="width:24px;" class=" fw-bold">贈花</td>
-
-                  </tr>
-                  @endif
-                  @php $oilRiceBox_title_showed = 0; @endphp
                 <tr>
-                  <td>{{ $order_product['name'] }}</td>
-                  <td>{{ $order_product['quantity'] }}</td>
-                  <!-- <td>
-                  @if(!empty($order_product['main_meal']['option_values'][1092]))
-                  {{ $order_product['main_meal']['option_values'][1092]['quantity'] ?? 0 }}
-                  @endif
+                  <td  style="width:115px;">油飯便當系列</td>
+                  <td style="width:24px;" class=" fw-bold">小計</td>
+                  <!-- <td class=" fw-bold">極品</td> -->
+                  <td style="width:24px;" class=" fw-bold">控肉</td>
+                  <!-- <td style="width:24px;" class=" fw-bold">雞胸</td> -->
+                  <td style="width:24px;" class=" fw-bold">雞翅</td>
+                  <td style="width:24px;" class=" fw-bold">雞腿</td>
+                  <td style="width:24px;" class=" fw-bold">滷牛</td>
+                  <td style="width:24px;" class=" fw-bold">鮭魚</td>
+                  <td style="width:24px;" class=" fw-bold">牛丸</td>
+                  <!-- <td style="width:24px;" class=" fw-bold">贈豆</td> -->
+                  <td style="width:24px;" class=" fw-bold"></td>
+                  <td style="width:24px;" class=" fw-bold"></td>
+                  <td style="width:24px;" class=" fw-bold"></td>
+                  <td style="width:24px;" class=" fw-bold"></td>
+                  <td style="width:24px;" class=" fw-bold"></td>
+                  <td style="width:24px;" class=" fw-bold"></td>
+                  <td style="width:24px;" class=" fw-bold"></td>
+                  <td style="width:24px;" class=" fw-bold"></td>
+                  <td style="width:24px;" class=" fw-bold"></td>
+                  <td style="width:24px;" class=" fw-bold"></td>
+                  <td style="width:24px;" class=" fw-bold"></td>
+                  <td style="width:24px;" class=" fw-bold"></td>
+                  <td style="width:24px;border-right:3px solid black" class=" fw-bold"></td>
+                  <td style="width:24px;" class=" fw-bold">微豆</td>
+                  <td style="width:24px;" class=" fw-bold">無豆</td>
+                  <td style="width:24px;" class=" fw-bold">紅茶</td>
+                  <td style="width:24px;" class=" fw-bold">奶茶</td>
+                  <td style="width:24px;" class=" fw-bold">濃湯</td>
+                  <td style="width:24px;" class=" fw-bold">甜湯</td>
+                  <td style="width:24px;" class=" fw-bold">贈花</td>
+                </tr>
+              @endif
+              @php $oilRiceBox_title_showed = 0; @endphp
+              <tr>
+                <td>{{ $order_product['name'] }}</td>
+                <td>{{ $order_product['quantity'] }}</td>
+                <!-- <td>
+                @if(!empty($order_product['main_meal']['option_values'][1092]))
+                {{ $order_product['main_meal']['option_values'][1092]['quantity'] ?? 0 }}
+                @endif
+                </td> -->
+                <td>
+                  @if(!empty($order_product['product_options']['副主餐']['控肉']))
+                {{ $order_product['product_options']['副主餐']['控肉'] ?? 0 }}
+                @endif
+                  </td>
+                <!-- <td>
+                  @if(!empty($order_product['product_options']['副主餐']['清蒸嫰雞胸']))
+                {{ $order_product['product_options']['副主餐']['清蒸嫰雞胸'] ?? 0 }}
+                @endif
                   </td> -->
                   <td>
-                    @if(!empty($order_product['product_options']['副主餐']['控肉']))
-                  {{ $order_product['product_options']['副主餐']['控肉'] ?? 0 }}
-                  @endif
-                    </td>
-                  <!-- <td>
-                    @if(!empty($order_product['product_options']['副主餐']['清蒸嫰雞胸']))
-                  {{ $order_product['product_options']['副主餐']['清蒸嫰雞胸'] ?? 0 }}
-                  @endif
-                    </td> -->
-                    <td>
-                    @if(!empty($order_product['product_options']['配菜']['紐澳良雞翅']))
-                  {{ $order_product['product_options']['配菜']['紐澳良雞翅'] ?? 0 }}
-                  @endif
-                    </td>
-                    <td>
-                    @if(!empty($order_product['product_options']['副主餐']['滷雞腿']))
-                  {{ $order_product['product_options']['副主餐']['滷雞腿'] ?? 0 }}
-                  @endif
-                    </td>
-                    <td>
-                    @if(!empty($order_product['product_options']['副主餐']['滷牛腱']))
-                  {{ $order_product['product_options']['副主餐']['滷牛腱'] ?? 0 }}
-                  @endif
-                    </td>
-                    <td>
-                    @if(!empty($order_product['product_options']['副主餐']['鮭魚']))
-                  {{ $order_product['product_options']['副主餐']['鮭魚'] ?? 0 }}
-                  @endif
-                    </td>
-                    <td>
-                    @if(!empty($order_product['product_options']['副主餐']['紅酒牛肉丸']))
-                  {{ $order_product['product_options']['副主餐']['紅酒牛肉丸'] ?? 0 }}
-                  @endif
-                    </td>
-                    <!-- <td> @if(!empty($order_product['product_options']['配菜']['贈品豆花']))
-                  {{ $order_product['product_options']['配菜']['贈品豆花'] ?? 0 }}
-                  @endif </td> -->
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td style="border-right:3px solid black"></td>
-                    <td>
-                    @if(!empty($order_product['drink']['option_values']['1023']))
-                    @if(!empty($order_product['drink']['option_values']['1023']['name']==='微豆'))
-                  {{ $order_product['drink']['option_values']['1023']['quantity']}}
-                  @endif
-                  @endif
-                    </td>
-                    <td>
-                    @if(!empty($order_product['drink']['option_values']['1024']))
-                    @if(!empty($order_product['drink']['option_values']['1024']['name']==='無豆'))
-                  {{ $order_product['drink']['option_values']['1024']['quantity']}}
-                  @endif
-                  @endif
-                    </td>
-                    <td>
-                    @if(!empty($order_product['drink']['option_values']['1025']))
-                    @if(!empty($order_product['drink']['option_values']['1025']['name']==='紅茶'))
-                  {{ $order_product['drink']['option_values']['1025']['quantity']}}
-                  @endif
-                  @endif
-                    </td>
-                    <td>
-                    @if(!empty($order_product['drink']['option_values']['1026']))
-                    @if(!empty($order_product['drink']['option_values']['1026']['name']==='奶茶'))
-                  {{ $order_product['drink']['option_values']['1026']['quantity']}}
-                  @endif
-                  @endif
-                    </td>
-                    <td>
-                    @if(!empty($order_product['drink']['option_values']['1027']))
-                    @if(!empty($order_product['drink']['option_values']['1027']['name']==='濃湯'))
-                  {{ $order_product['drink']['option_values']['1027']['quantity']}}
-                  @endif
-                  @endif
-                    </td>
-                    <td>
-                    @if(!empty($order_product['drink']['option_values']['1028']))
-                    @if(!empty($order_product['drink']['option_values']['1028']['name']==='季節甜品'))
-                  {{ $order_product['drink']['option_values']['1028']['quantity']}}
-                  @endif
-                  @endif
-                    </td>
-                    <td>
-                      @if(!empty($order_product['product_options']['配菜']['贈品豆花']))
-                      {{ $order_product['product_options']['配菜']['贈品豆花'] ?? 0 }}
-                      @endif
-                    </td>
-
-
-                </tr>
-
-                {{-- 如果有飲料 --}}
-                <!-- @if(!empty($order_product['drink']))
-                <tr>
-                  <td colspan="11"><span style="font-size: 10px;">飲料：</span>
-
-                      @foreach($order_product['drink']['option_values'] as $product_option_value_id => $value)
-                        {{ $value['name'] }}*{{ $value['quantity'] }},
-                      @endforeach
-
+                  @if(!empty($order_product['product_options']['配菜']['紐澳良雞翅']))
+                {{ $order_product['product_options']['配菜']['紐澳良雞翅'] ?? 0 }}
+                @endif
                   </td>
-                </tr>
-                @endif -->
+                  <td>
+                  @if(!empty($order_product['product_options']['副主餐']['滷雞腿']))
+                {{ $order_product['product_options']['副主餐']['滷雞腿'] ?? 0 }}
+                @endif
+                  </td>
+                  <td>
+                  @if(!empty($order_product['product_options']['副主餐']['滷牛腱']))
+                {{ $order_product['product_options']['副主餐']['滷牛腱'] ?? 0 }}
+                @endif
+                  </td>
+                  <td>
+                  @if(!empty($order_product['product_options']['副主餐']['鮭魚']))
+                {{ $order_product['product_options']['副主餐']['鮭魚'] ?? 0 }}
+                @endif
+                  </td>
+                  <td>
+                  @if(!empty($order_product['product_options']['副主餐']['紅酒牛肉丸']))
+                {{ $order_product['product_options']['副主餐']['紅酒牛肉丸'] ?? 0 }}
+                @endif
+                  </td>
+                  <!-- <td> @if(!empty($order_product['product_options']['配菜']['贈品豆花']))
+                {{ $order_product['product_options']['配菜']['贈品豆花'] ?? 0 }}
+                @endif </td> -->
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td style="border-right:3px solid black"></td>
+                  <td>
+                  @if(!empty($order_product['drink']['option_values']['1023']))
+                  @if(!empty($order_product['drink']['option_values']['1023']['name']==='微豆'))
+                {{ $order_product['drink']['option_values']['1023']['quantity']}}
+                @endif
+                @endif
+                  </td>
+                  <td>
+                  @if(!empty($order_product['drink']['option_values']['1024']))
+                  @if(!empty($order_product['drink']['option_values']['1024']['name']==='無豆'))
+                {{ $order_product['drink']['option_values']['1024']['quantity']}}
+                @endif
+                @endif
+                  </td>
+                  <td>
+                  @if(!empty($order_product['drink']['option_values']['1025']))
+                  @if(!empty($order_product['drink']['option_values']['1025']['name']==='紅茶'))
+                {{ $order_product['drink']['option_values']['1025']['quantity']}}
+                @endif
+                @endif
+                  </td>
+                  <td>
+                  @if(!empty($order_product['drink']['option_values']['1026']))
+                  @if(!empty($order_product['drink']['option_values']['1026']['name']==='奶茶'))
+                {{ $order_product['drink']['option_values']['1026']['quantity']}}
+                @endif
+                @endif
+                  </td>
+                  <td>
+                  @if(!empty($order_product['drink']['option_values']['1027']))
+                  @if(!empty($order_product['drink']['option_values']['1027']['name']==='濃湯'))
+                {{ $order_product['drink']['option_values']['1027']['quantity']}}
+                @endif
+                @endif
+                  </td>
+                  <td>
+                  @if(!empty($order_product['drink']['option_values']['1028']))
+                  @if(!empty($order_product['drink']['option_values']['1028']['name']==='季節甜品'))
+                {{ $order_product['drink']['option_values']['1028']['quantity']}}
+                @endif
+                @endif
+                  </td>
+                  <td>
+                    @if(!empty($order_product['product_options']['配菜']['贈品豆花']))
+                    {{ $order_product['product_options']['配菜']['贈品豆花'] ?? 0 }}
+                    @endif
+                  </td>
 
-                {{-- 如果有備註 --}}
-                @if(!empty($order_product['comment']))
-                <tr style="height:3px">
-                  <td colspan="11"><span style="font-size: 10px;">商品備註：</span>{{ $order_product['comment'] }}</td>
-                </tr>
-                @endif
-                @if($order['final_products'][$key]['product_id']!==1697)
-                @php unset($order['final_products'][$key]) @endphp
-                @endif
-                @endif
-                @endforeach
+
+              </tr>
+
+              {{-- 如果有飲料 --}}
+              <!-- @if(!empty($order_product['drink']))
+              <tr>
+                <td colspan="11"><span style="font-size: 10px;">飲料：</span>
+
+                    @foreach($order_product['drink']['option_values'] as $product_option_value_id => $value)
+                      {{ $value['name'] }}*{{ $value['quantity'] }},
+                    @endforeach
+
+                </td>
+              </tr>
+              @endif -->
+
+              {{-- 如果有備註 --}}
+              @if(!empty($order_product['comment']))
+              <tr style="height:3px">
+                <td colspan="11"><span style="font-size: 10px;">商品備註：</span>{{ $order_product['comment'] }}</td>
+              </tr>
+              @endif
+              @if($order['final_products'][$key]['product_id']!==1697)
+              @php unset($order['final_products'][$key]) @endphp
+              @endif
+              @endif
+              @endforeach
           </tbody>
         </table>
         <table data-toggle="table" class="table table-bordered border border-dark tr-border-special" style="margin-top:3px;margin-bottom:0px;">
@@ -446,6 +447,7 @@
             @endif
             @endforeach
           </table>
+        
         {{-- 便當 --}}
         <table class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
           <tbody>
@@ -1263,6 +1265,9 @@
                   @endif
                     </td> -->
                 </tr>
+
+                {{-- 潤餅盒餐的飲料--}}
+                @if(mb_substr($order_product['name'], 0, 2, 'UTF-8') != '刈包')
                 <tr>
                   <!-- <td></td> -->
                   <td>{{"盒餐飲料"}}</td>
@@ -1413,6 +1418,164 @@
                     @endif
                   </td> -->
                 </tr>
+                @endif
+                {{-- end 潤餅盒餐的飲料--}}
+
+                {{-- 刈包盒餐的飲料--}}
+                @if(mb_substr($order_product['name'], 0, 2, 'UTF-8') == '刈包')
+                <tr>
+                  <!-- <td></td> -->
+                  <td>{{"盒餐飲料"}}</td>
+                  <td></td>
+                  <td>
+                  @if(!empty($order_product['main_meal']['option_values'][1102]['drink']))
+                    @foreach($order_product['main_meal']['option_values'][1102]['drink'] as $drink_option_value_id => $drink)
+                    @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
+                    @endif
+                    <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
+                    @endforeach
+                    @endif
+                  </td>
+                  <td>
+                  @if(!empty($order_product['main_meal']['option_values'][1104]['drink']))
+                    @foreach($order_product['main_meal']['option_values'][1104]['drink'] as $drink_option_value_id => $drink)
+                    @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
+                    @endif
+                    <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
+                    @endforeach
+                    @endif
+                  </td>
+                  <td>
+                  @if(!empty($order_product['main_meal']['option_values'][1105]['drink']))
+                    @foreach($order_product['main_meal']['option_values'][1105]['drink'] as $drink_option_value_id => $drink)
+                    @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
+                    @endif
+                    <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
+                    @endforeach
+                    @endif
+                  </td>
+                  <td>
+                  @if(!empty($order_product['main_meal']['option_values'][1096]['drink']))
+                    @foreach($order_product['main_meal']['option_values'][1096]['drink'] as $drink_option_value_id => $drink)
+                    @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
+                    @endif
+                    <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
+                    @endforeach
+                    @endif
+                  </td>
+                  <td>
+                    @if(!empty($order_product['main_meal']['option_values'][1097]['drink']))
+                    @foreach($order_product['main_meal']['option_values'][1097]['drink'] as $drink_option_value_id => $drink)
+                    @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
+                    @endif
+                    <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
+                    @endforeach
+                    @endif
+                  </td>
+                  <td>
+                  @if(!empty($order_product['main_meal']['option_values'][1098]['drink']))
+                    @foreach($order_product['main_meal']['option_values'][1098]['drink'] as $drink_option_value_id => $drink)
+                    @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
+                    @endif
+                    <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
+                    @endforeach
+                    @endif
+                  </td>
+                  <td>
+                  @if(!empty($order_product['main_meal']['option_values'][1099]['drink']))
+                    @foreach($order_product['main_meal']['option_values'][1099]['drink'] as $drink_option_value_id => $drink)
+                    @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
+                    @endif
+                    <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
+                    @endforeach
+                    @endif
+                  </td>
+                  <td>
+                  @if(!empty($order_product['main_meal']['option_values'][1100]['drink']))
+                    @foreach($order_product['main_meal']['option_values'][1100]['drink'] as $drink_option_value_id => $drink)
+                    @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
+                    @endif
+                    <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
+                    @endforeach
+                    @endif
+                  </td>
+                  <td>
+                  @if(!empty($order_product['main_meal']['option_values'][1101]['drink']))
+                    @foreach($order_product['main_meal']['option_values'][1101]['drink'] as $drink_option_value_id => $drink)
+                    @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
+                    @endif
+                    <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
+                    @endforeach
+                    @endif
+                  </td>
+                  <td style="border-right:3px solid black">
+                  @if(!empty($order_product['main_meal']['option_values'][1093]['drink']))
+                    @foreach($order_product['main_meal']['option_values'][1093]['drink'] as $drink_option_value_id => $drink)
+                    @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
+                    @else
+                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
+                    @endif
+                    <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
+                    @endforeach
+                    @endif
+                  </td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td style="border-right:3px solid black"></td>
+                  <td ></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <!-- <td>
+                  @if(!empty($order_product['main_meal']['option_values'][1072]['drink']))
+                    @foreach($order_product['main_meal']['option_values'][1072]['drink'] as $drink_option_value_id => $drink)
+                                       <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
+                    <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
+                    @endforeach
+                    @endif
+                  </td> -->
+                </tr>
+                @endif
+                {{-- end 刈包盒餐的飲料--}}
+
                 @if(!empty($order_product['comment']))
                 <tr style="height:3px">
                   <td colspan="11"><span style="font-size: 10px;">商品備註：</span>{{ $order_product['comment'] }}</td>
