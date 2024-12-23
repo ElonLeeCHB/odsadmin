@@ -21,7 +21,7 @@ class TagRepository extends Repository
     {
         $data = $this->resetQueryData($data);
 
-        $data['equal_taxonomy_code'] = 'product_tag';
+        $data['equal_taxonomy_code'] = 'ProductTag';
         
         return $this->getRow($data, $debug);
     }
@@ -31,7 +31,7 @@ class TagRepository extends Repository
     {
         $data = $this->resetQueryData($data);
 
-        $data['equal_taxonomy_code'] = 'product_tag';
+        $data['equal_taxonomy_code'] = 'ProductTag';
 
         $rows = $this->getRows($data, $debug);
 

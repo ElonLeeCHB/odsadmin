@@ -16,7 +16,7 @@ class Tag extends Term
         parent::boot();
  
         static::addGlobalScope(function ($query) {
-            $query->where('taxonomy_code', 'product_tag');
+            $query->where('taxonomy_code', 'ProductTag');
         });
     }
 }

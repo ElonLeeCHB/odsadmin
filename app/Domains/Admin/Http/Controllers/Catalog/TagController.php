@@ -64,7 +64,7 @@ class TagController extends BackendController
         // Prepare query_data for records
         $queries = $this->getQueries($this->request->query());
 
-        $queries['equal_taxonomy_code'] = 'product_tag';
+        $queries['equal_taxonomy_code'] = 'ProductTag';
 
         // rows
         $tags = $this->TagService->getTags($queries);
@@ -150,7 +150,7 @@ class TagController extends BackendController
         $data['autocomplete_url'] = route('lang.admin.catalog.tags.autocomplete');
 
         // Get Record
-        $result = $this->TagService->findIdOrFailOrNew($tag_id,['equal_taxonomy_code' => 'product_tag']);
+        $result = $this->TagService->findIdOrFailOrNew($tag_id,['equal_taxonomy_code' => 'ProductTag']);
 
         if(!empty($result['data'])){
             $tag = $result['data'];
@@ -177,7 +177,7 @@ class TagController extends BackendController
         }
         $data['translations'] = $translations;
 
-        $data['taxonomy_code'] = 'product_tag';
+        $data['taxonomy_code'] = 'ProductTag';
         
         return view('admin.catalog.tag_form', $data);
     }
@@ -195,7 +195,7 @@ class TagController extends BackendController
 
         if(!$json) {
             
-            $data['taxonomy_code'] = 'product_tag';
+            $data['taxonomy_code'] = 'ProductTag';
 
             $result = $this->TagService->updateOrCreateTag($data);
             if(empty($result['error'])){

@@ -87,7 +87,7 @@
                   <label class="col-sm-2 col-form-label">{{ $lang->column_taxonomy_name }}</label>
                   <div class="col-sm-10">
                     <div class="input-group">
-                      <input type="text" id="input-taxonomy_name" name="taxonomy_name" value="{{ $term->taxonomy_name }}" data-oc-target="autocomplete-taxonomy" class="form-control" />
+                      <input type="text" id="input-taxonomy_name" name="taxonomy_name" value="{{ $term->taxonomy_name }}" data-oc-target="autocomplete-taxonomy" class="form-control" autocomplete="off" />
                     </div>
                     <div id="error-taxonomy_name" class="invalid-feedback"></div>
                     <input type="hidden" id="input-taxonomy_code" name="taxonomy_code" value="{{ $term->taxonomy_code }}" />
