@@ -26,12 +26,6 @@ class OrderRepository extends Repository
     public $modelName = "\App\Models\Sale\Order";
     private $order_statuses;
 
-    public function __construct(private OptionValueRepository $OptionValueRepository, private OrderTotalRepository $OrderTotalRepository
-        , private TermRepository $TermRepository)
-    {
-        parent::__construct();
-    }
-
 
     public function getOrder($data=[], $debug=0)
     {
@@ -122,7 +116,7 @@ class OrderRepository extends Repository
             'pagination' => false,
             'limit' => 0,
         ];
-        $option_values = $this->OptionValueRepository->getRows($filter_data)->toArray();
+        $option_values = (new OptionValueRepository)->getRows($filter_data)->toArray();
 
         $result = [];
 
@@ -170,7 +164,7 @@ class OrderRepository extends Repository
             'limit' => 0,
             'pagination' => false,
         ];
-        $totals = $this->OrderTotalRepository->getRows($filter_data, $debug);
+        $totals = (new OrderTotalRepository)->getRows($filter_data, $debug);
 
         return $this->rowsToStdObj($totals);
     }
@@ -186,7 +180,7 @@ class OrderRepository extends Repository
             return [];
         }
 
-        $terms = $this->TermRepository->getTerms($data);
+        $terms = (new TermRepository)->getTerms($data);
 
         if(!empty($terms) && !empty($data['sanitize'])){
             foreach ($terms as $key => $term) {

@@ -9,6 +9,8 @@ use App\Libraries\TranslationLibrary;
 use App\Domains\Api\Services\Catalog\OptionService;
 use App\Domains\Api\Services\Catalog\ProductService;
 use App\Domains\Api\Services\Catalog\CategoryService;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class ProductController extends ApiController
 {

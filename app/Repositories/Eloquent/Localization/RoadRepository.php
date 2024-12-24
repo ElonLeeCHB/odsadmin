@@ -6,6 +6,6 @@ use App\Repositories\Eloquent\Repository;
 
 class RoadRepository extends Repository
 {
-    public $modelName = "\App\Models\Localization\Road";
+    public $modelName = "\App\Models\SysData\Road";
 }
 

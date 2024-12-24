@@ -31,6 +31,24 @@ Route::group([
     });
 
     Route::group([
+        'prefix' => 'dtstw',
+        'as' => 'dtstw.',
+    ], function ()
+    {
+        Route::get('product-controls', 'DtstwApiController@productControls')->name('productControls');
+        Route::get('get-special', 'DtstwApiController@getSpecial')->name('getSpecial');
+        Route::get('get-timeslot', 'DtstwApiController@getTimeslot')->name('getTimeslot');
+        Route::get('order', 'DtstwApiController@order')->name('order');
+        Route::get('delivery', 'DtstwApiController@delivery')->name('delivery');
+        Route::get('get-road', 'DtstwApiController@getRoad')->name('getRoad');
+    });
+    
+
+
+
+
+
+    Route::group([
         'prefix' => 'catalog',
         'as' => 'catalog.',
     ], function ()

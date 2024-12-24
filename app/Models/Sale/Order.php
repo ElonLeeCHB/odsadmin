@@ -63,11 +63,6 @@ class Order extends Model
         return $this->hasManyThrough(OrderProductOption::class, OrderProduct::class);
     }
 
-    public function order_product_ingredients()
-    {
-        return $this->hasManyThrough(OrderProductIngredients::class, OrderProduct::class);
-    }
-
     public function totals()
     {
         return $this->hasMany(OrderTotal::class, 'order_id', 'id');
