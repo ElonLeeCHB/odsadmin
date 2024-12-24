@@ -45,6 +45,16 @@ Route::group([
         Route::get('order', 'DtstwApiController@order')->name('order');
         Route::get('delivery', 'DtstwApiController@delivery')->name('delivery');
         Route::get('get-road', 'DtstwApiController@getRoad')->name('getRoad');
+        
+    });
+
+    Route::group([
+        'prefix' => 'hrc-tsapi',
+        'as' => 'tsapi.',
+    ], function ()
+    {
+        Route::get('getOrderWithPaymentsByCode/{order_code}', 'Sale\OrderController@getOrderWithPaymentsByCode')->name('getOrderWithPaymentsByCode');
+        Route::post('createOrderPaymentByCode/{order_code}', 'Sale\OrderController@createOrderPaymentByCode')->name('createOrderPaymentByCode');
     });
     
 
@@ -79,6 +89,7 @@ Route::group([
         Route::post('order/updateOrder', 'Sale\OrderController@updateOrder')->name('order.updateOrder');
         Route::get('order/{order_id?}', 'Sale\OrderController@details')->name('order.details');
         Route::get('order/header/{order_id}', 'Sale\OrderController@header')->name('order.header');
+        Route::get('orders/getOrderPayments/{order_id}', 'Sale\OrderController@getOrderPayments')->name('orders.getOrderPayments');
 
         Route::post('order/schedule/save', 'Sale\OrderScheduleController@save')->name('order.schedule.save');
         Route::get('order/schedule/{delivery_date?}', 'Sale\OrderScheduleController@list')->name('order.schedule.list');

@@ -79,6 +79,14 @@ class Order extends Model
         return $this->hasMany(OrderTotal::class, 'order_id', 'id');
     }
 
+    /**
+     * 應該用 order_id 但是前人用了 order_code
+     */
+    public function payments()
+    {
+        return $this->hasMany(OrderPayment::class, 'order_code', 'code');
+    }
+
     public function tags()
     {
         return $this->belongsToMany(Term::class, 'order_tags');
@@ -104,6 +112,7 @@ class Order extends Model
     {
         return $this->belongsTo(Organization::class, 'store_id', 'id');
     }
+    
 
     //待廢。原本使用 options, option_values 資料表。以後改為使用 terms
     // public function status()

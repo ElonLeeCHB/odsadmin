@@ -22,6 +22,8 @@ use Carbon\Carbon;
 use App\Repositories\Eloquent\Sale\OrderIngredientRepository;
 use App\Helpers\Classes\DataHelper;
 use App\Models\Setting\Setting;
+use App\Models\Sale\Order;
+use App\Models\Sale\OrderPayment;
 
 class OrderController extends ApiController
 {
@@ -1090,6 +1092,119 @@ class OrderController extends ApiController
         }else{
             return null;
         }
+    }
+
+
+
+    /**
+     * pos 收入模組的修改，撈取資料
+     */
+    public function getOrderWithPaymentsByCode($order_code)
+    {
+        $order = Order::select('id', 'code', 'payment_total', 'payment_method', 'payment_paid', 'payment_unpaid', 'is_payed_off'
+                                , 'payment_tin', 'payment_comment')
+                    ->where('code', $order_code)  // 根據 order_code 查詢
+                    ->with('payments')  // 使用 with() 載入關聯的 payments 資料
+                    ->first();
+                    
+        $result = [
+            'success' => true,
+            'result' => $order,
+        ];
+
+        return response()->json($result, 200);
+    }
+
+    // public function createOrderPaymentByCode($order_code)
+    // {
+    //     $payment = new OrderPayment;
+    //     $payment->amount = 
+
+    //     $order = new Order;
+    //     $order->payment_date = request()->post('payment_date');
+    //     $order->payment_paid = request()->post('payment_paid');
+    //     $order->payment_unpaid = request()->post('payment_unpaid');
+    //     $order->payment_total = request()->post('payment_total');
+    //     $order->is_payed_off = (request()->post('is_payed_off')) ? 1 : 0;
+    //     $order->payment_method = request()->post('payment_method');
+    //     $order->scheduled_payment_date = request()->post('scheduled_payment_date');
+    //     $order->payment_comment = request()->post('payment_comment');
+    //     $order->save();
+
+    //     $result = [
+    //         'success' => true,
+    //     ];
+
+    //     return response()->json($result, 200);
+
+    // }
+
+    public function createOrderPaymentByCode($order_code)
+    {
+        $post_data = request()->post();
+        // echo "<pre>",print_r($post_data,true),"</pre>";exit;
+
+
+        DB::beginTransaction();
+
+        $order = Order::where('code', $order_code)->first();
+
+        $result = [];
+        $tmp_result = false;
+
+        if(!empty($order)){
+            $order->payment_date = request()->post('payment_date');
+            $order->payment_paid = request()->post('payment_paid');
+            $order->payment_unpaid = request()->post('payment_unpaid');
+            $order->payment_total = request()->post('payment_total');
+            $order->is_payed_off = (request()->post('is_payed_off')) ? 1 : 0;
+            $order->payment_method = request()->post('payment_method');
+            $order->scheduled_payment_date = request()->post('scheduled_payment_date');
+            $order->payment_comment = request()->post('payment_comment');
+            $tmp_result = $order->save();
+        }
+
+        // order_payments
+
+
+        if($tmp_result && !empty($post_data['payment'])){
+            $tmp_result = false;
+            /*
+const query = `INSERT INTO order_payments (order_code,payment_type_code,amount,payment_date,scheduled_payment_date,status_code,created_at,updated_at) 
+VALUES (?,?,?,?,?,?,?,?) `
+            */
+
+            
+
+            $payment = new OrderPayment;
+            $payment->order_id = $order->id;
+            $payment->order_code = $order->code;
+            $payment->amount = $post_data['payment']['amount'];
+            $payment->status_code = $post_data['payment']['status_code'];
+            $payment->payment_type_code = $post_data['payment']['payment_type_code'];
+            $payment->payment_date = $post_data['payment']['payment_date'];
+            $payment->scheduled_payment_date = $post_data['payment']['scheduled_payment_date'];
+            $tmp_result = $payment->save();
+
+            if($tmp_result){
+                $result = [
+                    'success' => true,
+                    'message' => '已新增付款記錄',
+                    'data' => [
+                        'order_payments.id' => $payment->id,
+                    ],
+                ];
+            }
+        }
+
+        if(!$tmp_result){
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => '新增失敗！'], 400);
+        }
+            
+        DB::commit();
+        DB::commit();
+        return response()->json($result, 200);
     }
 
 }

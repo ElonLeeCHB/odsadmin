@@ -163,5 +163,4 @@ class DtstwApiController extends ApiController
 
         return response()->json($rows, 200);
     }
-    
 }
