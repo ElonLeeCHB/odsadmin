@@ -17,7 +17,7 @@ use App\Http\Middleware\CheckAccessKey;
 */
 
 // Route::post('/login', [LoginController::class, 'login']);
-Route::post('/login', [LoginController::class, 'login'])->middleware([CheckAccessKey::class . ':APIV2_ACCESS_KEY']);
+Route::post('/login', [LoginController::class, 'login']);
 
 Route::group([
     'namespace' => 'App\Domains\ApiV2\Http\Controllers',

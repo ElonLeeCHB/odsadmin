@@ -4,7 +4,7 @@ namespace App\Models\Common;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 use App\Models\Common\TermRelation;
 use Illuminate\Support\Facades\Cache;
 
@@ -12,7 +12,7 @@ class Term extends Model
 {
     use ModelTrait;
     
-    public $translation_attributes = ['name', 'short_name',];
+    public $translation_keys = ['name', 'short_name',];
     protected $guarded = [];
     protected $appends = ['name','short_name', 'content', 'taxonomy_name'];
 

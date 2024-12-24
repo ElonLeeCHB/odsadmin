@@ -120,7 +120,7 @@
                   <label class="col-sm-2 col-form-label">{{ $lang->column_main_category }}</label>
                   <div class="col-sm-10">
                     <div class="input-group">
-                      <input type="text" name="main_category" value="{{ $product->main_category->translation->name ?? ''}}" placeholder="{{ $lang->column_main_category }}" id="input-main_category" data-oc-target="autocomplete-main_category_id" class="form-control"/>
+                      <input type="text" name="main_category" value="{{ $product->main_category->translation->name ?? ''}}" placeholder="{{ $lang->column_main_category }}" id="input-main_category" data-oc-target="autocomplete-main_category_id" class="form-control" autocomplete="off"/>
                     </div>
                     <input type="hidden" name="main_category_id" value="{{ $product->main_category_id }}" id="input-main_category_id"/>
                     <ul id="autocomplete-main_category_id" class="dropdown-menu"></ul>
@@ -163,12 +163,12 @@
                 </div>
 
                 <div class="row mb-3">
-                  <label class="col-sm-2 col-form-label">{{ $lang->column_on_web }}</label>
+                  <label class="col-sm-2 col-form-label">官網銷售</label>
                   <div class="col-sm-10">
                     <div class="input-group">
-                      <div id="input-on_web" class="form-check form-switch form-switch-lg">
-                        <input type="hidden" name="on_web" value="0"/>
-                        <input type="checkbox" name="on_web" value="1" class="form-check-input" @if($product->on_web) checked @endif/>
+                      <div id="input-is_web_product" class="form-check form-switch form-switch-lg">
+                        <input type="hidden" name="is_web_product" value="0"/>
+                        <input type="checkbox" name="is_web_product" value="1" class="form-check-input" @if($product->is_web_product) checked @endif/>
                       </div>
                     </div>
                     <div class="form-text">可以用於官網銷售。如果本欄未開，則官網不出現。官網要能下訂，必須【可否銷售】、【官網銷售】、【是否啟用】三欄同時開啟。 </div>
@@ -567,6 +567,7 @@
               html += '        <td class="text-start">{{ $lang->column_option_value }}</td>';
               html += '        <td class="text-start">{{ $lang->column_is_default }}</td>';
               html += '        <td class="text-start">預設數量</td>';
+              html += '        <td class="text-start">{{ $lang->column_is_active }}</td>';
               html += '        <td class="text-end">{{ $lang->column_price }}</td>';
               html += '        <td class="text-end">{{ $lang->column_sort_order }}</td>';
               html += '        <td></td>';

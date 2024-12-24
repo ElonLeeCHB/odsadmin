@@ -2,11 +2,18 @@
 
 namespace App\Domains\ApiV2\Services\Sale;
 
+use Illuminate\Support\Facades\DB;
 use App\Helpers\Classes\DataHelper;
 use App\Services\Service;
-use App\Traits\EloquentTrait;
+use App\Services\Sale\OrderService as GlobalOrderService;
+use App\Traits\Model\EloquentTrait;
 
-class OrderService extends Service
+use App\Models\Sale\OrderTag;
+use App\Models\Sale\OrderTotal;
+use App\Models\Sale\OrderProductOption;
+use App\Models\Catalog\ProductTranslation;
+
+class OrderService extends GlobalOrderService
 {
     use EloquentTrait;
 
@@ -35,7 +42,6 @@ class OrderService extends Service
     }
 
 
-    //混和寫法
     public function getInfo($identifier, $type = 'id')
     {
         if($type == 'id'){
@@ -60,32 +66,4 @@ class OrderService extends Service
 
 
     }
-
-    // public function getInfo($order_id)
-    // {
-    //     $cache_key = 'cache/orders/orderId_' . $order_id;
-
-    //     return DataHelper::remember($cache_key, 60*60, function() use ($order_id){
-    //         $order = $this->getRow([
-    //             'equal_id' => $order_id,
-    //             'with' => ['order_products.order_product_options'],
-    //         ]);
-
-    //         return $order;
-    //     });
-    // }
-
-    // public function getInfoByCode($code)
-    // {
-    //     $cache_key = 'cache/orders/orderCode_' . $code;
-
-    //     return DataHelper::remember($cache_key, 60*60, function() use ($code){
-    //         $order = $this->getRow([
-    //             'equal_code' => $code,
-    //             'with' => ['order_products.order_product_options'],
-    //         ]);
-
-    //         return $order;
-    //     });
-    // }
 }

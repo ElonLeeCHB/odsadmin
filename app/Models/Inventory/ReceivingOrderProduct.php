@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Models\Catalog\Product;
 use App\Models\Inventory\ReceivingOrder;
 use App\Models\Catalog\ProductUnit;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 use App\Repositories\Eloquent\Common\TermRepository;
 
 class ReceivingOrderProduct extends Model

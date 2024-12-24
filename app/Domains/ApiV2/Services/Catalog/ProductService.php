@@ -5,7 +5,7 @@ namespace App\Domains\ApiV2\Services\Catalog;
 use App\Helpers\Classes\DataHelper;
 use App\Services\Service;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
-use App\Traits\EloquentTrait;
+use App\Traits\Model\EloquentTrait;
 
 class ProductService extends Service
 {

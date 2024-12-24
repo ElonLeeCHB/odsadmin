@@ -157,9 +157,31 @@ class DateHelper
 
     }
 
-    function isValidDate($dateString, $format = 'Y-m-d') {
-        $dateTime = \DateTime::createFromFormat($format, $dateString);
-        return $dateTime && $dateTime->format($format) === $dateString;
+    /**
+     * 創建日期: 2024-12-17
+     * 驗證日期與時間是否合法
+     * 驗證字串 "2024-12-25" 或 "2024-12-25 13:00:00"
+     */
+    public static function isValidDateOrDatetime($inputString)
+    {
+        // 驗證開頭日期
+        if (preg_match('/^\d{4}-\d{2}-\d{2}/', $inputString)) {
+            $datePart = substr($inputString, 0, 10); // 取得 YYYY-MM-DD
+            $delivery_date_Ymd = \DateTime::createFromFormat('Y-m-d', $datePart);
+            if (!($delivery_date_Ymd && $delivery_date_Ymd->format('Y-m-d') === $datePart)) {
+                return false;
+            }
+        }
+
+        if (strpos($inputString, ' ') !== false) {
+            $timePart = substr($inputString, 11); // 提取 時-分-秒
+            $delivery_date_His = \DateTime::createFromFormat('H:i:s', $timePart);
+            if (!($delivery_date_His && $delivery_date_His->format('H:i:s') === $timePart)) {
+                return false;
+            } 
+        }
+
+        return true;
     }
 
     /**

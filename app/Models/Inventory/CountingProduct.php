@@ -4,7 +4,7 @@ namespace App\Models\Inventory;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 use App\Models\Catalog\Product;
 use App\Models\Inventory\Unit;
 //use App\Collections\CountingProductCollection;

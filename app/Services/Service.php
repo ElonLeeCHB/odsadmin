@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Traits\EloquentTrait;
+use App\Traits\Model\EloquentTrait;
 use App\Repositories\Eloquent\Common\TermRepository;
 
 class Service

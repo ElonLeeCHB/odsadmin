@@ -1,11 +1,16 @@
 <?php
 
-namespace App\Domains\ApiV2\Traits;
+namespace App\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Arr;
 use App\Helpers\Classes\DataHelper;
+use App\Helpers\Classes\CacheJsonHelper;
+use App\Helpers\Classes\CacheSerializeHelper;
+
 use App\Helpers\Classes\ChineseCharacterHelper;
+use Illuminate\Support\Facades\Schema;
 
 trait EloquentTrait
 {
@@ -66,7 +71,7 @@ trait EloquentTrait
         if(empty($row) || empty($id)){
             $row = $this->newModel();
         }
-
+        
         return $row;
     }
 
@@ -90,7 +95,7 @@ trait EloquentTrait
             }
 
             return $row;
-
+            
         } catch (\Exception $ex) {
             throw $ex;
         }
@@ -105,8 +110,12 @@ trait EloquentTrait
 
     public function getRows($data = [], $debug = 0)
     {
-        $this->initialize($data);
+        // if(!empty($data['caller']) && $data['caller'] == 'OrganizationRepository'){
+        //     echo '<pre>'.print_r($data, true).'</pre>';exit;
+        // }
 
+        $this->initialize($data);
+        
         $query = $this->newModel()->query();
 
         $query = $this->setQuery($query, $data, $debug);
@@ -126,7 +135,7 @@ trait EloquentTrait
         if ($meta !== null) {
             return $meta->meta_value;
         }
-
+        
         return null; // 或者根據需要返回任何適當的值
 
         //return $master_instance->meta_model_name::where($foreign_key, $master_instance->id)->where('meta_key', $meta_key)->where('locale', $locale)->first()->meta_value;
@@ -134,13 +143,13 @@ trait EloquentTrait
 
     public function deleteRows($data, $debug = 0)
     {
-        try {
+        try {        
             $this->initialize($data);
-
+    
             $builder = $this->newModel()->query();
-
+    
             $builder = $this->setQuery($builder, $data, $debug);
-
+    
             return $builder->delete();
 
         } catch (\Exception $ex) {
@@ -162,7 +171,7 @@ trait EloquentTrait
     public function setQuery($query, $data, $debug = 0)
     {
         $data = $this->setIsActiveForData($data);
-
+        
         $this->setSelect($query, $data);
         // $this->setSelectRaw($query, $data);
         $this->setWith($query, $data);
@@ -179,7 +188,7 @@ trait EloquentTrait
         $this->setSortOrder($query, $data);
         $this->setGroupBy($query, $data);
         $this->setTranslationsQuery($query, $data);
-
+        
         $this->showSqlQuery($query, $debug);
 
         return $query;
@@ -223,7 +232,7 @@ trait EloquentTrait
                 }
             }
         }
-
+        
         return $data;
     }
 
@@ -255,7 +264,7 @@ trait EloquentTrait
         if($has_translation){
             $width_arr[] = 'translation';
         }
-
+        
         //unique
         $width_arr = array_unique($width_arr);
 
@@ -273,6 +282,10 @@ trait EloquentTrait
     */
     private function setWhereIn(&$query, $data)
     {
+        // if(!empty($data['caller']) && $data['caller'] == 'MemberService'){
+        //     echo "<pre>setWhereIn ".print_r($data, true)."</pre>";exit;
+        // }
+        
         if(!empty($data['whereIn'])){
             foreach ($data['whereIn'] as $column => $arr) {
                 if(in_array($column, $this->table_columns) && is_array($arr) && !empty($arr)){
@@ -292,7 +305,7 @@ trait EloquentTrait
     }
 
     /**
-     * If $order_product:
+     * If $order_product: 
      * $data['whereHas] = ['product' => ['name' => 'something']];
      */
     private function setWhereHas(&$query, $data)
@@ -302,10 +315,10 @@ trait EloquentTrait
         }
 
         foreach ($data['whereHas'] as $relation_name => $whereHasData) {
-
+            
             // 只需要判斷是否有關聯記錄
             if(is_numeric($relation_name)){
-                $query->whereHas($whereHasData);
+                $query->whereHas($whereHasData); 
                 break;
             }
 
@@ -325,7 +338,7 @@ trait EloquentTrait
                         }
                     }
                     else if($key == 'andOrWhere'){
-                        // 這時候 $value 應該是陣列
+                        // 這時候 $value 應該是陣列 
                         // [
                         //     'filter_abc' => '...',
                         //     'filter_def' => '...',
@@ -335,7 +348,7 @@ trait EloquentTrait
                                 $column = $this->extractColumnName($filter_column);
                                 // $subsubQuery->orWhere($column, 'like', "%{$new_value}%");
                                 $this->setWhereQuery($subsubQuery, $column, $new_value, type:'orWhere', table_columns:$relatedColumns);
-
+                                
                             }
                         });
                     }else{
@@ -394,7 +407,7 @@ trait EloquentTrait
         foreach ($data ?? [] as $key => $value) {
 
             $column = null;
-
+            
             if(str_starts_with($key, 'equal_')){ // Key must start with equal_
                 $column = str_replace('equal_', '', $key);
             }else{
@@ -525,7 +538,7 @@ trait EloquentTrait
 
             $query = $this->setWhereQuery($query, $key, $value, 'where');
         }
-
+        
         // Filters - data table - andSubOrWhere
         if(!empty($data['andOrWhere'])){
             foreach ($data['andOrWhere'] as $set) {
@@ -560,7 +573,7 @@ trait EloquentTrait
                 unset($data[$key]);
             }
         }
-
+        
         // Display sql statement
         if(!empty($debug)){
             $this->getDebugQueryContent($query);
@@ -590,7 +603,7 @@ trait EloquentTrait
         if(empty($table_columns)){
             $table_columns = $this->getTableColumns();
         }
-
+        
         $column = '';
 
         if(str_starts_with($filter_key, 'filter_')){
@@ -602,7 +615,7 @@ trait EloquentTrait
         if(!in_array($column , $table_columns)){
             return false;
         }
-
+        
         if(str_starts_with($filter_key, 'filter_')){
 
             // escapes Ex. phone number (123)456789 => \(123\)456789
@@ -628,7 +641,7 @@ trait EloquentTrait
                     break;
                 }
             }
-
+            
             // No operator
             if($has_operator == false){
 
@@ -646,7 +659,7 @@ trait EloquentTrait
                         if(!empty($zhtw)){
                             $query->orWhere($column, 'REGEXP', $zhtw);
                         }
-
+                        
                         $zhcn = ChineseCharacterHelper::zhChtToChs($value);
                         if(!empty($zhcn)){
                             $query->orWhere($column, 'REGEXP', $zhcn);
@@ -679,7 +692,7 @@ trait EloquentTrait
                         if(!empty($zhtw)){
                             $query->orWhere($column, '=', $zhtw);
                         }
-
+                        
                         $zhcn = ChineseCharacterHelper::zhChtToChs($value);
                         if(!empty($zhcn)){
                             $query->orWhere($column, '=', $zhcn);
@@ -710,7 +723,7 @@ trait EloquentTrait
                         if(!empty($zhtw)){
                             $query->orWhere($column, '<>', $zhtw);
                         }
-
+                        
                         $zhcn = ChineseCharacterHelper::zhChtToChs($value);
                         if(!empty($zhcn)){
                             $query->orWhere($column, '<>', $zhcn);
@@ -745,7 +758,7 @@ trait EloquentTrait
                         if(!empty($zhtw)){
                             $query->orWhere($column, 'REGEXP', "$zhtw");
                         }
-
+                        
                         $zhcn = ChineseCharacterHelper::zhChtToChs($value);
                         if(!empty($zhcn)){
                             $query->orWhere($column, 'REGEXP', "$zhcn");
@@ -772,7 +785,7 @@ trait EloquentTrait
                         if(!empty($zhtw)){
                             $query->orWhere($column, 'REGEXP', "$zhtw");
                         }
-
+                        
                         $zhcn = ChineseCharacterHelper::zhChtToChs($value);
                         if(!empty($zhcn)){
                             $query->orWhere($column, 'REGEXP', "$zhcn");
@@ -854,7 +867,7 @@ trait EloquentTrait
                 $translation_table = $this->model->getTranslationTable();
                 $master_key = $this->model->getTranslationMasterKey();
                 $sort = $data['sort'];
-
+    
                 $query->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
                     $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
                          ->where("{$translation_table}.locale", '=', app()->getLocale());
@@ -989,31 +1002,31 @@ trait EloquentTrait
     /**
      * $table should be full name
      */
-    public function getTableColumns($connection = null, $table = null)
-    {
-        if(empty($table) && !empty($this->table)){
-            $table = $this->table;
-        }else if(empty($table) && empty($this->table)){
-            $table = $this->model->getTable();
-        }
+    // public function getTableColumns($connection = null, $table = null)
+    // {
+    //     if(empty($table) && !empty($this->table)){
+    //         $table = $this->table;
+    //     }else if(empty($table) && empty($this->table)){
+    //         $table = $this->model->getTable();
+    //     }
 
-        $cache_name = 'cache/table_columns/' . $table . '.serialized.txt';
+    //     $cache_name = 'cache/table_columns/' . $table . '.serialized.txt';
 
-        return DataHelper::remember($cache_name, 60*60*24*90, function() use($connection, $table){
-            if(!empty($connection)){
-                $table_columns = DB::connection($connection)->getSchemaBuilder()->getColumnListing($table);
-            }
-            else if(!empty($this->model->connection) ){
-                $table_columns = DB::connection($this->model->connection)->getSchemaBuilder()->getColumnListing($table);
-            }
-            else{
-                $table_columns = DB::getSchemaBuilder()->getColumnListing($table);
-            }
+    //     return CacheSerializeHelper::remember($cache_name, 60*60*24*90, function() use($connection, $table){
+    //         if(!empty($connection)){
+    //             $table_columns = DB::connection($connection)->getSchemaBuilder()->getColumnListing($table);
+    //         }
+    //         else if(!empty($this->model->connection) ){
+    //             $table_columns = DB::connection($this->model->connection)->getSchemaBuilder()->getColumnListing($table);
+    //         }
+    //         else{
+    //             $table_columns = DB::getSchemaBuilder()->getColumnListing($table);
+    //         }
 
-            return $table_columns;
-        });
-    }
-
+    //         return $table_columns;
+    //     });
+    // }
+    
 
     /**
      * 獲取 meta_data，並根據 meta_keys ，若 meta_key 不存在，設為空值 ''
@@ -1025,7 +1038,7 @@ trait EloquentTrait
                 $row->{$meta_key} = $meta->meta_value ?? '';
             }
         }
-
+        
         return $row;
     }
 
@@ -1050,7 +1063,7 @@ trait EloquentTrait
             $data['id'] = !empty($id) ? $id : null; // if 0, make it null
 
             $row = $this->findIdOrNew(id:$id);
-
+    
             $table_columns = $this->getTableColumns();
 
             foreach($data as $column => $value){
@@ -1058,11 +1071,11 @@ trait EloquentTrait
                     $row->{$column} = $value;
                 }
             }
-
+            
             if($row->isDirty()){
                 $row->save();
             }
-
+            
             DB::commit();
 
             return $row; // 必須回傳 model 物件，不能只回傳 id。因為可能會有後續動作，例如以此 model 實例做其它關聯更新，例如多語。
@@ -1076,7 +1089,7 @@ trait EloquentTrait
 
     /**
      * 比對表單欄位是否存在資料表欄位
-     *
+     * 
      * last modified: 2024-01-23
      */
     public function setSaveDataByTableColumn($id, $data)
@@ -1090,7 +1103,7 @@ trait EloquentTrait
                 $result[$column] = $value;
             }
         }
-
+        
         return $result;
     }
 
@@ -1103,11 +1116,11 @@ trait EloquentTrait
             if(empty($modelInstance->meta_keys)){
                 return null;
             }
-
+    
             $update_data = [];
-
+    
             $master_key = $modelInstance->getForeignKey();
-
+    
             foreach($metas as $column => $value){
                 if(in_array($column, $modelInstance->meta_keys ?? [])){
                     $update_data[] = [
@@ -1118,7 +1131,7 @@ trait EloquentTrait
                     ];
                 }
             }
-
+            
             $result = '';
 
             if(!empty($update_data)){
@@ -1138,22 +1151,22 @@ trait EloquentTrait
         try{
             if(empty($masterlInstance->translation_keys)){
                 return false;
-            }
+            } 
 
             $translation_model_name = $masterlInstance->translation_model_name;
             $master_key = $masterlInstance->getForeignKey();
             $master_id  = $masterlInstance->id;
-
+    
             // delete all translations
             $translation_model_name::where($master_key, $master_id)->forceDelete();
-
+    
             // upsert
             $update_date = [];
-
+    
             foreach($translations as $locale => $rows){
                 $update_date[$locale][$master_key] = $masterlInstance->id;
                 $update_date[$locale]['locale'] = $locale;
-
+    
                 foreach($rows as $column => $value){
                     if(in_array($column, $masterlInstance->translation_keys ?? [])){
                         $update_date[$locale][$column] = $value;
@@ -1164,17 +1177,17 @@ trait EloquentTrait
             if(!empty($update_date)){
                 $result = $masterlInstance->translation_model_name::upsert($update_date, [$master_key,'locale']);
             }
-
+    
             return $result;
-
+            
         } catch (\Exception $ex) {
             throw $ex;
-        }
+        } 
     }
 
     /**
      * 根據主模型 id 及 meta_key 強制刪除 meta 資料。不處理多語。
-     *
+     * 
      * last modified: 2024-01-23
      */
     public function forceDeleteMeta($masterModel, $meta_keys)
@@ -1183,7 +1196,7 @@ trait EloquentTrait
             DB::beginTransaction();
 
             $master_key = $masterModel->getForeignKey();
-
+    
             $builder = $masterModel->meta_model_name::query();
             $builder->where($master_key, $masterModel->id);
 
@@ -1194,12 +1207,12 @@ trait EloquentTrait
                       ->orWhere('locale', '=', '');
             });
 
-
+    
             foreach($meta_keys as $meta_key){
                 $builder->where('meta_key', $meta_key);
             }
 
-
+            
             // $result = $builder->get();
             $result = $builder->forceDelete();
 
@@ -1288,16 +1301,16 @@ trait EloquentTrait
         // foreach ($data ?? [] as $key => $value) {
         //     if(str_starts_with($key, 'filter_') && in_array($column, $this->table_columns)){
         //         $column = str_replace('filter_', '', $key);
-
+                
         //         $query = $this->setWhereQuery($query, $key, $value, 'orWhere');
         //     }
         // }
-
+        
         return $query;
     }
 
     /**
-     *
+     * 
      */
     private function getMetaModelName()
     {
@@ -1318,14 +1331,14 @@ trait EloquentTrait
         } else {
             $columnName = '';
         }
-
+    
         return $columnName;
     }
 
 
     /*
     controller的用法備份
-
+    
         if(isset($query_data['equal_is_admin']) && $query_data['equal_is_admin'] == 0){
             $query_data['whereDoesntHave']['metas'] = ['is_admin' => 1];
             unset($query_data['equal_is_admin']);

@@ -107,10 +107,28 @@
 
       $.ajaxSetup({
         headers: {
-          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+          'Origin': 'http://localhost:60502'
         }
       });
     </script>
-
+{{--
+<script>
+$.ajax({
+    url: "http://dods.dtstw.com/api/wwwv2/hello",
+    type: "get",
+    beforeSend: function(xhr) {
+        xhr.setRequestHeader("Origin", "https://localhost:60502"); //沒用！
+        xhr.setRequestHeader("X-Api-Key", "3bDCn7eX3ARkdyYT"); //有用！
+    },
+    success: function(response) {
+        console.log("Success:", response);
+    },
+    error: function(xhr, status, error) {
+        console.error("Error:", status, error);
+    }
+});
+</script>
+--}}
   </body>
 </html>

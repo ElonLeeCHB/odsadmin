@@ -3,7 +3,6 @@
 namespace App\Domains\Admin\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use App\Libraries\TranslationLibrary;

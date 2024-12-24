@@ -3,7 +3,7 @@
 namespace App\Repositories\Eloquent\Sale;
 
 use App\Helpers\Classes\DataHelper;
-use App\Traits\EloquentTrait;
+use App\Traits\Model\EloquentTrait;
 use App\Domains\Admin\Exports\SaleOrderRequisitionDailyListExport;
 use App\Domains\Admin\Exports\SaleOrderRequisitionMatrixListExport;
 use Maatwebsite\Excel\Facades\Excel;

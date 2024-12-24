@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Catalog\Product;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Carbon\Carbon;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 
 class OptionValue extends Model
 {
@@ -19,7 +19,7 @@ class OptionValue extends Model
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
 
-    public $translation_attributes = ['name','short_name'];
+    public $translation_keys = ['name','short_name'];
 
 
     //選項值對應的商品代號

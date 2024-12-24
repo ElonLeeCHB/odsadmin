@@ -11,6 +11,9 @@ use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 use Auth;
 use App\Helpers\Classes\JwtHelper;
+// use App\Models\User\Permission;
+use Spatie\Permission\Models\Permission; //暫時測試，在此分配權限。
+use App\Models\User\User;
 
 class LoginController extends Controller
 {
@@ -49,16 +52,22 @@ class LoginController extends Controller
         //前端欄位的 html name 必須是 username, 但值可以是 email 或 username
         $credentials = $request->only('username', 'password');
         $field = filter_var($credentials['username'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        
+        // //testman
+        // $user = User::where('username', 'testman')->first();
+        // $user->givePermissionTo(['pos.MainPage', 'pos.Member', 'pos.SalesOrder', 'pos.SalesOrderControl', 'pos.Financial']);
 
         if (auth()->attempt([$field => $credentials['username'], 'password' => $credentials['password']])) {
             $user = auth()->user();
-            // $token = $user->createToken('posods')->plainTextToken;
-            $token = $user->createToken('apiv2', ['*'], now()->addDay())->plainTextToken;
+
+            $permissions = $user->permissions()->where('name', 'like', 'apiv2.%')->pluck('name')->toArray();
+
+            $token = $user->createToken('apiv2', [$permissions], now()->addDay())->plainTextToken;
 
             return response()->json(['token' => $token], 200);
         }
 
-        return response()->json(['error' => '帳號或密碼錯誤'], 401);
+        return response()->json(['error' => '帳號或密碼錯誤！'], 401);
     }
 
     /**

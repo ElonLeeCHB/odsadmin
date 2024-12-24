@@ -7,7 +7,7 @@ use App\Models\User\User;
 use App\Models\Sale\Order;
 use App\Models\Localization\City;
 use App\Models\Member\MemberMeta;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 
 class Member extends User
 {
@@ -29,11 +29,6 @@ class Member extends User
     public function getForeignKey()
     {
         return $this->foreignKey;
-    }
-
-    public function metas()
-    {
-        return $this->hasMany(MemberMeta::class);
     }
 
     public function shipping_city()

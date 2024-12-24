@@ -4,7 +4,7 @@ namespace App\Models\Inventory;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 
 class Unit extends Model
 {
@@ -13,7 +13,7 @@ class Unit extends Model
     protected $guarded = [];
     public $timestamps = false;
     protected $appends = ['name'];
-    public $translation_attributes = ['name'];
+    public $translation_keys = ['name'];
 
     
     public function scopeActive($query)

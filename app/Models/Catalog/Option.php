@@ -6,16 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 
 class Option extends Model
 {
     use ModelTrait;
 
-    public $translation_attributes = ['name'];
+    public $translation_keys = ['name'];
     protected $guarded = [];
     protected $translationForeignKey = 'option_id';
     protected $appends = ['name'];
+    protected $with = ['translations'];
     protected $casts = [
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',

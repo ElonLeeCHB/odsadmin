@@ -39,8 +39,7 @@
       </tbody>
     </table>
   </div>
-  {{-- $products->withQueryString()->links() --}}
-  {!! $products->links('admin.pagination.default', ['products'=>$products]) !!}
+  {!! $pagination ?? '' !!}
 
     <?php /*
     <div class="row">

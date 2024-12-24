@@ -72,6 +72,7 @@ class ProductController extends BackendController
         return view('admin.catalog.product', $data);
     }
 
+
     public function list()
     {
         return $this->getList();
@@ -81,7 +82,6 @@ class ProductController extends BackendController
     private function getList()
     {
         $data['lang'] = $this->lang;
-
 
         // Prepare query_data for records
         $query_data = $this->getQueries($this->request->query());
@@ -96,10 +96,13 @@ class ProductController extends BackendController
                 $row->main_category_name = $row->main_category->name ?? '';
                 $row->edit_url = route('lang.admin.catalog.products.form', array_merge([$row->id], $query_data));
             }
+            
+            $data['products'] = $products;
+            $data['pagination'] = $products->withPath(route('lang.admin.catalog.categories.list'))->appends($query_data)->links('admin.pagination.default');
+        }else{
+            $data['products'] = [];
+            $data['pagination'] = '';
         }
-        // echo "<pre>",print_r($products,true),"</pre>";exit;
-        $data['products'] = $products->withPath(route('lang.admin.catalog.products.list'))->appends($query_data);
-
 
         // Prepare links for list table's header
         if($query_data['order'] == 'ASC'){

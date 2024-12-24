@@ -46,6 +46,7 @@ class Supplier extends Organization
         return $this->belongsTo(PaymentTerm::class);
     }
 
+    // 關鍵鍵特殊，覆寫 ModelTrait
     public function metas()
     {
         return $this->hasMany(OrganizationMeta::class, 'organization_id', 'id');

@@ -22,6 +22,7 @@ use Carbon\Carbon;
 use App\Repositories\Eloquent\Sale\OrderIngredientRepository;
 use App\Helpers\Classes\DataHelper;
 use App\Models\Setting\Setting;
+
 class OrderController extends ApiController
 {
 
@@ -84,6 +85,7 @@ class OrderController extends ApiController
 
         //訂單標籤
         $order->order_tags = $this->OrderService->getOrderTagsByOrderId($order->id);
+        
         $result = $this->MemberService->findIdOrFailOrNew($order['customer_id']);
         $order['salutation_id'] = $result['data']['salutation_id'];
         // $order['shipping_salutation_id']  = $result['data']['shipping_salutation_id'];

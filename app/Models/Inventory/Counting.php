@@ -5,7 +5,7 @@ namespace App\Models\Inventory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Carbon;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 use App\Models\Inventory\CountingProduct;
 use App\Models\Common\Term;
 use App\Repositories\Eloquent\Common\TermRepository;

@@ -3,7 +3,7 @@
 namespace App\Models\Log;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 
 class LogCronJob extends Model
 {

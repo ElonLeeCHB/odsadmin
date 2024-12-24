@@ -36,6 +36,7 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\SetTimezone::class,
         ],
 
         'api' => [
@@ -44,6 +45,19 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\CheckTokenExpiration::class,
             \App\Http\Middleware\LogRequest::class,
+        ],
+
+        // //或許會廢棄
+        // 'apiv2' => [
+        //     \App\Http\Middleware\CheckApiKeyAndIp::class.':V2',
+        // ],
+
+        'apiposv2' => [
+            \App\Domains\ApiPosV2\Http\Middleware\CheckApiKeyAndIp::class,
+        ],
+
+        'apiwwwv2' => [
+            \App\Domains\ApiWwwV2\Http\Middleware\CheckApiKeyAndIp::class,
         ],
     ];
 
@@ -73,9 +87,8 @@ class Kernel extends HttpKernel
         'localeViewPath'          => \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath::class,
 
         'is_admin' => \App\Domains\Admin\Http\Middleware\IsAdmin::class,
-        'checkCors' => \App\Http\Middleware\CheckCorsOrigin::class,
-        // 暫時用不到。直接將 class 寫在 路由檔
-        // 'checkApiAccessKey' => \App\Http\Middleware\CheckApiAccessKey::class,
-
+        'posCheckApiKeyAndIp' => \App\Domains\ApiPosV2\Http\Middleware\CheckApiKeyAndIp::class,
+        'wwwCheckApiKeyAndIp' => \App\Domains\ApiWwwV2\Http\Middleware\CheckApiKeyAndIp::class,
+        
     ];
 }

@@ -10,7 +10,7 @@ use App\Models\Sale\Order;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Catalog\Option;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 
 class OrderProduct extends Model
 {
@@ -40,6 +40,10 @@ class OrderProduct extends Model
     }
 
     public function order_product_options()
+    {
+        return $this->hasMany(OrderProductOption::class, 'order_product_id', 'id');
+    }
+    public function orderProductOptions()
     {
         return $this->hasMany(OrderProductOption::class, 'order_product_id', 'id');
     }

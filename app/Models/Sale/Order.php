@@ -15,7 +15,7 @@ use App\Models\Catalog\OptionValue;
 use App\Models\Common\Term;
 use DateTimeInterface;
 use App\Repositories\Eloquent\Common\TermRepository;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 
 class Order extends Model
 {
@@ -35,6 +35,11 @@ class Order extends Model
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
 
+    public function getJsonInfoCacheKey($code)
+    {
+        return 'cache/orders/orderCode-' . $code.'.json';
+    }
+
     protected static function booted()
     {
         parent::boot();
@@ -53,7 +58,13 @@ class Order extends Model
                             option_values
     */
 
+    //這應該不是慣例命名
     public function order_products()
+    {
+        return $this->hasMany(OrderProduct::class, 'order_id', 'id');
+    }
+    //這才是慣例命名
+    public function orderProducts()
     {
         return $this->hasMany(OrderProduct::class, 'order_id', 'id');
     }

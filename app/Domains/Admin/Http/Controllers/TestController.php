@@ -18,7 +18,7 @@ class TestController extends Controller
 
     public function index()
     {
-        echo '<pre>', print_r(123, 1), "</pre>"; exit;
+        echo '<pre>', print_r('TestController', 1), "</pre>"; exit;
     }
 
 }

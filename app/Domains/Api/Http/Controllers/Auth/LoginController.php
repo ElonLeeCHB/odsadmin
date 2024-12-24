@@ -49,13 +49,13 @@ class LoginController extends Controller
 
         $field = filter_var($credentials['username'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
-        if (Auth::attempt([$field => $credentials['username'], 'password' => $credentials['password']])) {
-            $user = Auth::user();
-            $token = $user->createToken('posods')->plainTextToken;
+        if (auth()->attempt([$field => $credentials['username'], 'password' => $credentials['password']])) {
+            $user = auth()->user();
+            $token = $user->createToken('apiv2')->plainTextToken;
             return response()->json(['token' => $token], 200);
         }
 
-        return response()->json(['error' => '帳號或密碼錯誤'], 401);
+        return response()->json(['error' => '帳號或密碼錯誤！'], 401);
     }
 
     /**

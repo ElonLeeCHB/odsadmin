@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Carbon;
 use App\Models\Catalog\Product;
 use App\Models\Inventory\BomProduct;
-use App\Traits\ModelTrait;
+use App\Traits\Model\ModelTrait;
 
 class Bom extends Model
 {
