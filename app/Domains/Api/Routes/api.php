@@ -56,11 +56,6 @@ Route::group([
         Route::get('getOrderWithPaymentsByCode/{order_code}', 'Sale\OrderController@getOrderWithPaymentsByCode')->name('getOrderWithPaymentsByCode');
         Route::post('createOrderPaymentByCode/{order_code}', 'Sale\OrderController@createOrderPaymentByCode')->name('createOrderPaymentByCode');
     });
-    
-
-
-
-
 
     Route::group([
         'prefix' => 'catalog',

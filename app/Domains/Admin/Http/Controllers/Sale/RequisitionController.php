@@ -278,7 +278,6 @@ class RequisitionController extends BackendController
 
         $this->RequisitionService->getOrderIngredients($required_date);
         $this->setCacheFromIngredientTable($required_date);
-        echo "<pre>",print_r(777,true),"</pre>";exit;
 
         /**
          * 2024-10-30 Elon: 下面這個可能是？我2023年用於給上暉看的料件需求？

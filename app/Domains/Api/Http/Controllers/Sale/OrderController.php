@@ -1157,7 +1157,7 @@ class OrderController extends ApiController
             $order->payment_paid = request()->post('payment_paid');
             $order->payment_unpaid = request()->post('payment_unpaid');
             $order->payment_total = request()->post('payment_total');
-            $order->is_payed_off = (request()->post('is_payed_off')) ? 1 : 0;
+            $order->is_payed_off = ($post_data['is_payed_off'] && $post_data['is_payed_off'] === 1) ? 1 : 0;
             $order->payment_method = request()->post('payment_method');
             $order->scheduled_payment_date = request()->post('scheduled_payment_date');
             $order->payment_comment = request()->post('payment_comment');
@@ -1165,16 +1165,8 @@ class OrderController extends ApiController
         }
 
         // order_payments
-
-
         if($tmp_result && !empty($post_data['payment'])){
             $tmp_result = false;
-            /*
-const query = `INSERT INTO order_payments (order_code,payment_type_code,amount,payment_date,scheduled_payment_date,status_code,created_at,updated_at) 
-VALUES (?,?,?,?,?,?,?,?) `
-            */
-
-            
 
             $payment = new OrderPayment;
             $payment->order_id = $order->id;
@@ -1202,7 +1194,6 @@ VALUES (?,?,?,?,?,?,?,?) `
             return response()->json(['success' => false, 'message' => '新增失敗！'], 400);
         }
             
-        DB::commit();
         DB::commit();
         return response()->json($result, 200);
     }

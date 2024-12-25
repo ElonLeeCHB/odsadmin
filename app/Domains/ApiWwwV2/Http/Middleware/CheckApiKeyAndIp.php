@@ -17,12 +17,12 @@ class CheckApiKeyAndIp
      */
     public function handle(Request $request, Closure $next)
     {
-        // 必要。區分不同應用。
-        $api_key = $request->query('api-key') ?? request()->header('X-Api-Key') ?? null;
+        // // 必要。區分不同應用。
+        // $api_key = $request->query('api-key') ?? request()->header('X-Api-Key') ?? null;
 
-        if(empty($api_key) || !($api_key === env('APIWWW_API_KEY'))){
-            return response()->json(['error' => 'Forbidden (api)',], 403);
-        }
+        // if(empty($api_key) || !($api_key === env('APIWWW_API_KEY'))){
+        //     return response()->json(['error' => 'Forbidden (apiwwwv2)',], 403);
+        // }
 
         // 如果 ACCESS_KEY 不符合，檢查 ip。
         $access_key = $request->query('access-key') ?? request()->header('X-Access-Key') ?? null;

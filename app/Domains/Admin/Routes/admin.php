@@ -59,6 +59,20 @@ Route::group(
             Route::get('', 'Common\DashboardController@index')->name('dashboard');
 
             Route::group([
+                'prefix' => 'auth',
+                'as' => 'auth.',
+            ], function ()
+            {
+                //商品分類基本資料
+                Route::get('categories', 'Auth\ResetPasswordController@index')->name('categories.index');
+                Route::get('categories/list', 'Auth\ResetPasswordController@list')->name('categories.list');
+                Route::get('categories/form/{category_id?}', 'Auth\CategoryController@form')->name('categories.form');
+                Route::post('categories/save/{category_id?}', 'Auth\CategoryController@save')->name('categories.save');
+                Route::get('categories/autocomplete', 'Auth\CategoryController@autocomplete')->name('categories.autocomplete');
+                Route::post('categories/destroy', 'Auth\CategoryController@destroy')->name('categories.destroy');
+            });
+
+            Route::group([
                 'prefix' => 'catalog',
                 'as' => 'catalog.',
             ], function ()

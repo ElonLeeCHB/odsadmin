@@ -59,11 +59,19 @@ class LoginController extends Controller
 
                 Session::put('device_id', $device_id);
 
-                //回應內容
-                $json = [
-                    'token' => $plainTextToken,
-                    'permissions' => $permissions,
-                ];
+                if (Hash::check($user->email, $user->password) || $user->password_reset_required) {
+                    $json = [
+                        'token' => $plainTextToken,
+                        'permissions' => [],
+                        'message' => '請重新設定帳號密碼',
+                    ];
+                }else{
+                    $json = [
+                        'token' => $plainTextToken,
+                        'permissions' => $permissions,
+                        'message' => '登入成功',
+                    ];
+                }
 
                 return response()->json($json, 200);
             }

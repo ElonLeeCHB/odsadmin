@@ -21,13 +21,16 @@ Route::group([
 ], function ()
 {
 
-    Route::post('login', 'Auth\LoginController@login')->middleware(['poscheckApiKeyAndIp']); //登入前驗證 api key 跟 ip
+    Route::post('login', 'Auth\LoginController@login')->middleware(['posCheckApiKeyAndIp']); //登入前驗證 api key 跟 ip
 
     Route::group([
         'middleware' => ['auth:sanctum'], //登入後驗證 sanctum
     ], function ()
     {
         Route::post('logout', 'Auth\LoginController@logout')->name('logout');
+
+        
+        Route::post('passwordReset', 'Auth\ResetPasswordController@passwordReset')->name('passwordReset');
     
         Route::group([
             'prefix' => 'catalog',
