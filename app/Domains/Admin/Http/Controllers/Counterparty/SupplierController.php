@@ -70,7 +70,7 @@ class SupplierController extends BackendController
 
 
         // Prepare query_data for records
-        $query_data = $this->getQueries($query_data);
+        $query_data = $this->resetUrlData($query_data);
 
         // Extra default
         $query_data['equal_is_supplier'] = 1;

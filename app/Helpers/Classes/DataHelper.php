@@ -5,20 +5,14 @@ namespace App\Helpers\Classes;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 class DataHelper
-{   
-    public static function unsetArrayFromArrayList($rows = [])
-    {
-        foreach ($rows as $key => $row) {
-            $row = self::unsetArrayFromArray($row);
-            $result[$key] = $row;
-        }
+{
 
-        return $result;
-    }
-
-
+    /**
+     * 刪除陣列裡的子陣列。無遞迴。
+     */
     public static function unsetArrayFromArray($data = [])
     {
         foreach ($data as $key => $value) {
@@ -31,23 +25,24 @@ class DataHelper
     }
 
     /**
-     * 陣列裡的子元素如果是陣列，刪除。
-     * 指定要移除的陣列
+     * 遞迴刪除陣列裡的指定元素
      */
-    public static function removeFromArray($array, $remove_keys = ['translation', 'translations']): Array
+    public static function unsetArrayIndexRecursively($array, $unset_keys): Array
     {
         foreach ($array as $key => &$value) {
             if (is_array($value)) {
-                if (in_array($key, $remove_keys)) {
+                if (in_array($key, $unset_keys)) {
                     unset($array[$key]);
                 } else {
-                    $array[$key] = self::removeFromArray($value, $remove_keys);
+                    $array[$key] = self::unsetArrayIndexRecursively($value, $unset_keys);
                 }
             }
         }
 
         return $array;
     }
+
+
 
     /**
      * $data: array or string
@@ -291,12 +286,13 @@ class DataHelper
         {
             try{
                 if (Storage::exists($path)) {
-                    $data = Storage::get($path);
 
-                    if($type == 'json'){
+                    $expires_at = '';
+
+                    if($type == 'json' && !empty($result->expires_at)){
                         $result = json_decode(Storage::get($path));
                         $expires_at = $result->expires_at;
-                    }else if($type == 'serialize'){
+                    }else if($type == 'serialize' && !empty($result['expires_at'])){
                         $result = unserialize(Storage::get($path));
                         $expires_at = $result['expires_at'];
                     }
@@ -351,4 +347,40 @@ class DataHelper
 
         return $array;
     }
+
+
+    public function unsetRelations($rows, $relations)
+    {
+        // 如果 $rows 其實是單筆
+        if ($rows instanceof \Illuminate\Database\Eloquent\Model) {
+            foreach ($relations as $relation) {
+                $rows->setRelation($relation, null);
+            }
+
+        }
+
+        // 如果 $rows 是多筆
+        else if(count($rows) > 0){
+            foreach ($rows as $row) {
+                foreach ($relations as $relation) {
+                    $row->setRelation($relation, null);
+                }
+            }
+        }
+
+        return $rows;
+    }
+
+
+    public static function getArrayDataByPaginatorOrCollection($rows)
+    {
+        if ($rows instanceof LengthAwarePaginator) {
+            $result = $rows->toArray();
+        }else if ($rows instanceof EloquentCollection) {
+            $result['data'] = $rows->toArray();
+        }
+
+        return $result;
+    }
+
 }

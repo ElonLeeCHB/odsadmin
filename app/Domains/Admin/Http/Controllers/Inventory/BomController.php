@@ -61,7 +61,7 @@ class BomController extends BackendController
         $data['lang'] = $this->lang;
 
         $query_data = $this->request->query();
-        $query_data = $this->getQueries($this->request->query());
+        $query_data = $this->resetUrlData($this->request->query());
 
 
         // Prepare query_data for records
@@ -82,7 +82,7 @@ class BomController extends BackendController
 
         $boms->withPath(route('lang.admin.inventory.boms.list'))->appends($query_data);
 
-        $data['boms'] = $this->unsetRelations($boms, ['product']);
+        $data['boms'] = DataHelper::unsetRelations($boms, ['product']);
 
         // Prepare links for list table's header
         if(!empty($query_data['order']) && $query_data['order'] == 'ASC'){
@@ -140,7 +140,7 @@ class BomController extends BackendController
 
 
         // Prepare link for save, back
-        $queries = $this->getQueries($this->request->query());
+        $queries = $this->resetUrlData($this->request->query());
 
         $data['save_url'] = route('lang.admin.inventory.boms.save');
         $data['back_url'] = route('lang.admin.inventory.boms.index', $this->request->getQueryString());

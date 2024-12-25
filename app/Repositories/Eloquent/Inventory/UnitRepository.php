@@ -31,7 +31,7 @@ class UnitRepository extends Repository
         ];
         $rows = $this->getRows($filter_data)->toArray();
         
-        return DataHelper::unsetArrayFromArrayList($rows);
+        return DataHelper::unsetArrayIndexRecursively($rows, ['translation', 'translations']);
     }
 
 

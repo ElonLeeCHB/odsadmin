@@ -59,7 +59,7 @@ class LoginController extends Controller
 
                 Session::put('device_id', $device_id);
 
-                if (Hash::check($user->email, $user->password) || $user->password_reset_required) {
+                if (Hash::check($user->username, $user->password) || $user->password_reset_required) {
                     $json = [
                         'token' => $plainTextToken,
                         'permissions' => [],

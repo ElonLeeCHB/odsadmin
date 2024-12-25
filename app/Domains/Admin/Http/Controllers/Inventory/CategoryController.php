@@ -75,7 +75,7 @@ class CategoryController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $query_data = $this->getQueries($this->request->query());
+        $query_data = $this->resetUrlData($this->request->query());
 
         // Rows
         $categories = $this->CategoryService->getInventoryCategories($query_data);
@@ -151,7 +151,7 @@ class CategoryController extends BackendController
         $data['breadcumbs'] = (object)$breadcumbs;
 
         // Prepare link for save, back
-        $queries = $this->getQueries($this->request->query());
+        $queries = $this->resetUrlData($this->request->query());
 
         $data['save_url'] = route('lang.admin.inventory.categories.save');
         $data['back_url'] = route('lang.admin.inventory.categories.index', $queries);   
@@ -293,7 +293,7 @@ class CategoryController extends BackendController
 
     public function autocomplete()
     {
-        $queries = $this->getQueries($this->request->query());
+        $queries = $this->resetUrlData($this->request->query());
 
         $queries['whereIn'] = ['taxonomy_code' => ['product_inventory_category', 'product_accounting_category']];
 

@@ -128,7 +128,7 @@ class OrderScheduleController extends BackendController
         }
 
         // Prepare filter_data for records
-        $filter_data = $this->getQueries($this->request->query());
+        $filter_data = $this->resetUrlData($this->request->query());
         $filter_data['filter_delivery_date'] = $delivery_date;
 
         // Rows

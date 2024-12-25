@@ -8,6 +8,7 @@ use Illuminate\Auth\AuthenticationException;
 //use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Domains\Exceptions\NotFoundException;
 use Throwable;
+use App\Helpers\Classes\CheckAreaHelper;
 
 class Handler extends ExceptionHandler
 {
@@ -35,15 +36,20 @@ class Handler extends ExceptionHandler
 
     protected function unauthenticated($request, AuthenticationException $exception)
     {
-        // 检查是否是 apiv2 路由
-        if ($request->is('apiv2/*')) {
-            // 如果是 apiv2 路由，返回 401 错误，而不重定向
+        if(CheckAreaHelper::isAdminArea($request)){
+            redirect()->guest($exception->redirectTo() ?? route('lang.admin.login'));
+        }
+
+        else if(CheckAreaHelper::isPublicArea($request)){
+            redirect()->guest($exception->redirectTo() ?? route('lang.login'));
+        }
+
+        else if(CheckAreaHelper::isApiArea($request)){
             return response()->json(['message' => $exception->getMessage()], 401);
         }
 
-        // 否则执行默认的重定向逻辑
-        return $this->shouldReturnJson($request, $exception)
-                    ? response()->json(['message' => $exception->getMessage()], 401)
-                    : redirect()->guest($exception->redirectTo() ?? route('login'));
+        // return $this->shouldReturnJson($request, $exception)
+        //             ? response()->json(['message' => $exception->getMessage()], 401)
+        //             : redirect()->guest($exception->redirectTo() ?? route('lang.admin.login'));
     }
 }

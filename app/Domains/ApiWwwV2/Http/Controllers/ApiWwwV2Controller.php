@@ -53,14 +53,14 @@ class ApiWwwV2Controller extends Controller
 
     public function sendResponse($json)
     {
-        // 無錯誤
+        // 無任何錯誤
         if(empty($json['error']) && empty($json['errors']) && empty($json['warning'])  && empty($json['errorWarning'])){
             $json = ['success' => 'ok'] + $json; 
         }else{
             $status_code = 400;
         }
 
-        if(!empty($json['success']) && $json['success'] == 'ok'){
+        if(isset($json['success']) && $json['success'] == 'ok'){
             $status_code = 200;
         }
         

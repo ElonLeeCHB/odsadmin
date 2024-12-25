@@ -1,19 +1,6 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Domains\ApiPosV2\Http\Controllers\Auth\LoginController;
-
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
 
 Route::group([
     'namespace' => 'App\Domains\ApiPosV2\Http\Controllers',
@@ -22,15 +9,29 @@ Route::group([
 {
 
     Route::post('login', 'Auth\LoginController@login')->middleware(['posCheckApiKeyAndIp']); //登入前驗證 api key 跟 ip
-
+    //暫時使用。直接更新密碼
+    Route::post('passwordUpdate', 'Auth\ResetPasswordController@tmpPasswordUpdate');
+    
     Route::group([
         'middleware' => ['auth:sanctum'], //登入後驗證 sanctum
     ], function ()
     {
         Route::post('logout', 'Auth\LoginController@logout')->name('logout');
 
-        
-        Route::post('passwordReset', 'Auth\ResetPasswordController@passwordReset')->name('passwordReset');
+        //密碼
+        Route::post('passwordReset/{id}', 'Auth\ResetPasswordController@passwordReset')->name('passwordReset');
+
+        Route::group([
+            'prefix' => 'user',
+            'as' => 'user.',
+        ], function ()
+        {
+            // Route::get('category/list', 'Catalog\CategoryController@list')->name('category.list');
+            // Route::get('category/info/{category_id}', 'Catalog\CategoryController@info')->name('category.info');
+    
+            Route::get('permissions/list', 'User\PermissionController@list')->name('permission.list');
+            Route::get('permissions/info/{id}', 'User\PermissionController@info')->name('permission.info');
+        });
     
         Route::group([
             'prefix' => 'catalog',
@@ -40,8 +41,8 @@ Route::group([
             // Route::get('category/list', 'Catalog\CategoryController@list')->name('category.list');
             // Route::get('category/info/{category_id}', 'Catalog\CategoryController@info')->name('category.info');
     
-            Route::get('product/list', 'Catalog\ProductController@list')->name('product.list');
-            Route::get('product/info/{product_id}', 'Catalog\ProductController@info')->name('product.info')->middleware(['auth:sanctum']);
+            Route::get('products/list', 'Catalog\ProductController@list')->name('product.list');
+            Route::get('products/info/{product_id}', 'Catalog\ProductController@info')->name('product.info')->middleware(['auth:sanctum']);
         });
     
         // Route::group([

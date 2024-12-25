@@ -16,38 +16,43 @@ class ApiPosController extends Controller
             parent::__construct();
         }
 
-        if (app()->runningInConsole()) {
-            return;
-        }
-
-        $this->resetUrlData(request()->query());
-        $this->resetPostData(request()->post());
+        $this->resetUrlData($this->url_data);
     }
 
-    public function resetPostData()
+    public function resetUrlData(&$url_data)
     {
-        $this->post_data = DataHelper::unsetNullUndefined(request()->post());
+        // 取得語言代碼。注意！不是翻譯內容的陣列。
+            //網址裡的語言變數一律使用 lang，比較直觀
+            if(!empty($url_data['lang']) && !empty($url_data['locale'])){
+                unset($url_data['locale']);
+            }
+
+            else if(empty($url_data['lang']) && !empty($url_data['locale'])){
+                $url_data['lang'] = $url_data['locale'];
+                unset($url_data['locale']);
+            }
+
+            //如果還是沒有，取得全站預設
+            if(empty($url_data['lang'])){
+                $url_data['lang'] = app()->getLocale(); 
+            }
+        //
     }
 
-    public function resetUrlData($remove_keys = [])
+    public function sendResponse($json)
     {
-        $this->url_data = DataHelper::unsetNullUndefined(request()->query());
-
-        //起初使用 lang
-        if(!empty($this->url_data['lang'])){
-            $this->url_data['equal_locale'] = $this->url_data['lang'];
-            unset($data['lang']);
+        // 無任何錯誤
+        if(empty($json['error']) && empty($json['errors']) && empty($json['warning'])  && empty($json['errorWarning'])){
+            $json = ['success' => 'ok'] + $json; 
+        }else{
+            $status_code = 400;
         }
 
-        //如果有 locale 則用之
-        if(!empty($this->url_data['locale'])){
-            $this->url_data['equal_locale'] = $this->url_data['locale'];
-            unset($this->url_data['locale']);
+        if(isset($json['success']) && $json['success'] == 'ok'){
+            $status_code = 200;
         }
-
-        //設定 equal_locale 做為本次語言
-        if(!empty($this->url_data['equal_locale'])){
-            app()->setLocale($this->url_data['equal_locale']);
-        }
+        
+        return response()->json($json, $status_code, [], JSON_UNESCAPED_UNICODE)->header('Content-Type','application/json');
     }
+    
 }

@@ -73,7 +73,7 @@ class TaxonomyController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $queries = $this->getQueries($this->request->query());
+        $queries = $this->resetUrlData($this->request->query());
 
         // Rows
         $taxonomies = $this->TaxonomyService->getRows($queries);
@@ -146,7 +146,7 @@ class TaxonomyController extends BackendController
         $data['breadcumbs'] = (object)$breadcumbs;
 
         // Prepare link for save, back
-        $queries = $this->getQueries($this->request->query());
+        $queries = $this->resetUrlData($this->request->query());
 
         $data['save_url'] = route('lang.admin.common.taxonomies.save');
         $data['back_url'] = route('lang.admin.common.taxonomies.index', $queries);
@@ -215,7 +215,7 @@ class TaxonomyController extends BackendController
 
     public function autocomplete()
     {
-        $query_data = $this->getQueries($this->request->query());
+        $query_data = $this->resetUrlData($this->request->query());
 
         if(!empty($query_data['equal_code'])){
             if (strpos($query_data['equal_code'], ',') !== false) {

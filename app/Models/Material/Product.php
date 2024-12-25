@@ -252,7 +252,7 @@ class Product extends Model
                     ->toArray(),
             ];
 
-            return DataHelper::removeFromArray($product, ['translation']);
+            return DataHelper::unsetArrayIndexRecursively($product, ['translation', 'translations']);
         });
     }
 
@@ -273,7 +273,7 @@ class Product extends Model
                     ->toArray(),
             ];
 
-            return DataHelper::removeFromArray($product, ['translation']);
+            return DataHelper::unsetArrayIndexRecursively($product, ['translation', 'translations']);
         });
     }
 

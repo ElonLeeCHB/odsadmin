@@ -183,7 +183,7 @@ class ProductController extends BackendController
 
 
         // Prepare link for save, back
-        $queries = $this->getQueries($this->request->query());
+        $queries = $this->resetUrlData($this->request->query());
 
         $data['save_url'] = route('lang.admin.inventory.products.save');
         $data['back_url'] = route('lang.admin.inventory.products.index', $queries);

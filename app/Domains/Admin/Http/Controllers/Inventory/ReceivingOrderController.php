@@ -87,7 +87,7 @@ class ReceivingOrderController extends BackendController
 
 
         // Prepare query_data for records
-        $query_data = $this->getQueries($this->request->query());
+        $query_data = $this->resetUrlData($this->request->query());
 
         // Rows
         $receiving_orders = $this->ReceivingOrderService->getReceivingOrders($query_data);
@@ -162,7 +162,7 @@ class ReceivingOrderController extends BackendController
 
 
         // Prepare link for save, back
-        $query_data = $this->getQueries($this->request->query());
+        $query_data = $this->resetUrlData($this->request->query());
 
         $data['save_url'] = route('lang.admin.inventory.receivings.save', $receiving_order_id);
         $data['back_url'] = route('lang.admin.inventory.receivings.index', $query_data);

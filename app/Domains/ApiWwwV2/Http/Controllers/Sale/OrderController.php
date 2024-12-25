@@ -79,9 +79,10 @@ class OrderController extends ApiWwwV2Controller
             'equal_code' => $order_code,
             'first' => true,
         ];
-        $response = $this->OrderService->getInfoByCode($filter_data);
 
-        return response(json_encode($response))->header('Content-Type','application/json');
+        $row = $this->OrderService->getInfoByCode($filter_data);
+
+        return $this->sendResponse(['data' => $row]);
     }
 
     public function store()

@@ -2,14 +2,14 @@
 
 namespace App\Domains\ApiPosV2\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\ResetsPasswords;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Providers\RouteServiceProvider;
+use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
 
 
-class ResetPasswordController extends Controller
+class ResetPasswordController extends ApiPosController
 {
     /*
     |--------------------------------------------------------------------------
@@ -42,6 +42,7 @@ class ResetPasswordController extends Controller
     
             // 更新密碼
             $user->password = Hash::make($validated['password']);
+            $user->password_reset_required = 0;
             $user->save();
     
             return response()->json(['status' => 'ok','message' => '密碼已成功更新。',], 200);
@@ -52,6 +53,27 @@ class ResetPasswordController extends Controller
             }
             
             return response()->json(['status' => 'error','message' => '請洽詢管理員',], 400);
+        }
+    }
+
+    public function tmpPasswordUpdate()
+    {
+        $user = \App\Models\User\User::where('username', $this->post_data['username'])->first();
+
+        if(!empty($user)){
+            $user->password = Hash::make($this->post_data['password']);
+            $user->save();
+
+            return response()->json(['message' => '密碼更新成功',], 200);
+        }
+        else{
+            $user = new \App\Models\User\User;
+            $user->name = $this->post_data['name'];
+            $user->username = $this->post_data['username'];
+            $user->password = Hash::make($this->post_data['password']);
+            $user->save();
+
+            return response()->json(['message' => '已建立使用者',], 200);
         }
     }
 }

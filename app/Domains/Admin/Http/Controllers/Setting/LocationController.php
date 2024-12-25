@@ -66,7 +66,7 @@ class LocationController extends BackendController
 
 
         // Prepare query_data for records
-        $query_data = $this->getQueries($this->request->query());
+        $query_data = $this->resetUrlData($this->request->query());
 
         $locations = $this->LocationService->getLocations($query_data);
 

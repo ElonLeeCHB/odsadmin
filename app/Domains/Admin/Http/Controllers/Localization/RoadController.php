@@ -22,7 +22,7 @@ class RoadController extends BackendController
 
     public function autocomplete()
     {
-        $query_data = $this->getQueries($this->request->query());
+        $query_data = $this->resetUrlData($this->request->query());
         $query_data['pagination'] = false;
         
         if(empty($query_data['filter_state_id']) && empty($query_data['filter_city_id'])){

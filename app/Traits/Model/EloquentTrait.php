@@ -399,7 +399,7 @@ trait EloquentTrait
             $meta_keys = [];
         }
 
-        foreach ($data as $key => $value) {
+        foreach ($data ?? [] as $key => $value) {
             // $key has prifix 'filter_'
             // $column is the name of database table's column
 
@@ -453,7 +453,7 @@ trait EloquentTrait
         }
 
         // set translated whereHas
-        foreach ($data as $key => $value) {
+        foreach ($data ?? [] as $key => $value) {
             if(!str_starts_with($key, 'filter_')){
                 continue;
             }else{
@@ -467,7 +467,7 @@ trait EloquentTrait
         }
 
         // set meta whereHas
-        foreach ($data as $key => $value) {
+        foreach ($data ?? [] as $key => $value) {
             if(!str_starts_with($key, 'filter_') || $value == '*'){
                 continue;
             }else{
@@ -507,7 +507,7 @@ trait EloquentTrait
             $meta_keys = [];
         }
 
-        foreach ($data as $key => $value) {
+        foreach ($data ?? [] as $key => $value) {
 
             $column = null;
 
@@ -547,7 +547,7 @@ trait EloquentTrait
         }
 
         // set translated whereHas
-        foreach ($data as $key => $value) {
+        foreach ($data ?? [] as $key => $value) {
             if(!str_starts_with($key, 'equal_')){
                 continue;
             }else{
@@ -564,7 +564,7 @@ trait EloquentTrait
         }
 
         // set meta whereHas
-        foreach ($data as $key => $value) {
+        foreach ($data ?? []  as $key => $value) {
             if(!str_starts_with($key, 'equal_') || $value == '*'){
                 continue;
             }else{

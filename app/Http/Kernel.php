@@ -43,8 +43,10 @@ class Kernel extends HttpKernel
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':5000,1',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            //自訂
             \App\Http\Middleware\CheckTokenExpiration::class,
             \App\Http\Middleware\LogRequest::class,
+            \App\Http\Middleware\ForceJsonAcceptHeader::class,
         ],
 
         // //或許會廢棄
@@ -89,6 +91,9 @@ class Kernel extends HttpKernel
         'is_admin' => \App\Domains\Admin\Http\Middleware\IsAdmin::class,
         'posCheckApiKeyAndIp' => \App\Domains\ApiPosV2\Http\Middleware\CheckApiKeyAndIp::class,
         'wwwCheckApiKeyAndIp' => \App\Domains\ApiWwwV2\Http\Middleware\CheckApiKeyAndIp::class,
+        'forceJsonAcceptHeader' => \App\Http\Middleware\ForceJsonAcceptHeader::class,
+
+        
         
     ];
 }
