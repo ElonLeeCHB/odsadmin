@@ -63,6 +63,7 @@ class LoginController extends Controller
                     $json = [
                         'token' => $plainTextToken,
                         'permissions' => [],
+                        'password_reset_required' => 1,
                         'message' => '請重新設定帳號密碼',
                     ];
                 }else{
