@@ -18,7 +18,7 @@ class CategoryController extends ApiController
     {
         $query_data = $this->request->query();
 
-        $filter_data = $this->getQueries($query_data);
+        $filter_data = $this->resetUrlData($query_data);
 
         $categories = $this->CategoryService->getCategories($filter_data);
 

@@ -98,7 +98,7 @@ class ProductController extends BackendController
             }
             
             $data['products'] = $products;
-            $data['pagination'] = $products->withPath(route('lang.admin.catalog.categories.list'))->appends($query_data)->links('admin.pagination.default');
+            $data['pagination'] = $products->withPath(route('lang.admin.catalog.products.list'))->appends($query_data)->links('admin.pagination.default');
         }else{
             $data['products'] = [];
             $data['pagination'] = '';

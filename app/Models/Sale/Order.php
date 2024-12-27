@@ -10,7 +10,7 @@ use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductOption;
 use App\Models\Sale\OrderProduct;
 use App\Models\SysData\Division;
-use App\Models\Member\Organization;
+use App\Models\Counterparty\Organization;
 use App\Models\Catalog\OptionValue;
 use App\Models\Common\Term;
 use DateTimeInterface;
@@ -111,6 +111,11 @@ class Order extends Model
     public function store()
     {
         return $this->belongsTo(Organization::class, 'store_id', 'id');
+    }
+
+    public function drivers()
+    {
+        return $this->hasMany(OrderDelivery::class, 'order_code', 'code'); 
     }
     
 

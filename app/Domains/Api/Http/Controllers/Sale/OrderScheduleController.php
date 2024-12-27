@@ -57,7 +57,7 @@ class OrderScheduleController extends ApiController
 
 
         // Prepare filter_data for records
-        $filter_data = $this->getQueries($this->request->query());
+        $filter_data = $this->resetUrlData($this->request->query());
         $filter_data['filter_delivery_date'] = $delivery_date;
         $filter_data['pagination'] = false;
         $filter_data['limit'] = 50;

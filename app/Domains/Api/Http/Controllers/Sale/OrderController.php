@@ -57,7 +57,7 @@ class OrderController extends ApiController
     public function list()
     {
         $query_data = $this->request->query();
-        $filter_data = $this->getQueries($query_data);
+        $filter_data = $this->resetUrlData($query_data);
         $orders = $this->OrderService->getOrders($filter_data);
         //$orders = $this->OrderService->optimizeRows($orders);
 

@@ -80,27 +80,27 @@ class DtstwApiController extends ApiController
         return response()->json($result, 200);
     }
 
-
-    public function order()
+    //官網訂單查詢 新的
+    public function ordersWithDrivers()
     {
-        $data = request()->all();
+        $post_data = request()->post();
 
         $count = 0;
 
         $filter_data = [];
 
-        if(!empty($data['code'])){
-            $filter_data['equal_code'] = $data['code'];
+        if(!empty($post_data['code'])){
+            $filter_data['equal_code'] = $post_data['code'];
             $count++;
         }
 
         if(!empty($data['personal_name'])){
-            $filter_data['equal_personal_name'] = $data['personal_name'];
+            $filter_data['equal_personal_name'] = $post_data['personal_name'];
             $count++;
         }
 
         if(!empty($data['mobile'])){
-            $filter_data['equal_mobile'] = $data['mobile'];
+            $filter_data['equal_mobile'] = $post_data['mobile'];
             $count++;
         }
 
@@ -108,37 +108,59 @@ class DtstwApiController extends ApiController
             return response()->json(['error' => '請提供至少兩個查詢條件',], 400);
         }
 
-        $filter_data['with'] = ['order_products.order_product_options','totals'];
+        $filter_data['with'] = ['drivers'];
 
         $filter_data['pagination'] = false;
         $filter_data['limit'] = 50;
 
+        $orders = (new OrderRepository)->getRows($filter_data);
 
-        $orders = (new OrderRepository)->getRows($filter_data)->toArray();
-
-        return response()->json($orders, 200);
-    }
-
-
-    public function delivery()
-    {
-        $code = request()->query('code');
-        $mobile = request()->query('mobile');
-
-        if(empty($code) || empty($mobile)){
-            return response()->json(['error' => '請提供訂單號碼及訂購人手機',], 400);
-
+        if(count($orders) != 0){
+            return response()->json($orders->toArray(), 200);
         }
 
-        $row = DB::table('order_delivery as od')
-            ->select('od.*')
-            ->leftJoin('orders as o', 'o.code', '=', 'od.order_code')
-            ->where('o.code', $code)
-            ->where('o.mobile', $mobile)
-            ->first(); 
-
-        return response()->json($row, 200);
+        return response()->json(['error' => '找不到資料'], 200);
     }
+    
+    //官網指定訂單
+    public function orderInfo($order_id)
+    {
+        $filter_data = [
+            'equal_id' => $order_id,
+            'with' => ['order_products.order_product_options'],
+            'pagination' => 0,
+            'limit' => 0
+        ];
+
+        $order = (new OrderRepository)->getRow($filter_data);
+        
+        if(!empty($order)){
+            return response()->json($order->toArray(), 200);
+        }
+
+        return response()->json(['error' => '找不到資料'], 200);
+    }
+    
+
+    // public function delivery()
+    // {
+    //     $code = request()->query('code');
+    //     $mobile = request()->query('mobile');
+
+    //     if(empty($code) || empty($mobile)){
+    //         return response()->json(['error' => '請提供訂單號碼及訂購人手機',], 400);
+
+    //     }
+
+    //     $row = DB::table('order_delivery as od')
+    //         ->select('od.*')
+    //         ->leftJoin('orders as o', 'o.code', '=', 'od.order_code')
+    //         ->where('o.code', $code)
+    //         ->where('o.mobile', $mobile)
+    //         ->first(); 
+
+    //     return response()->json($row, 200);
+    // }
 
 
     public function getRoad()

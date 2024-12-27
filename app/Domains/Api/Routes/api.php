@@ -42,7 +42,8 @@ Route::group([
         Route::get('product-controls', 'DtstwApiController@productControls')->name('productControls');
         Route::get('get-special', 'DtstwApiController@getSpecial')->name('getSpecial');
         Route::get('get-timeslot', 'DtstwApiController@getTimeslot')->name('getTimeslot');
-        Route::get('order', 'DtstwApiController@order')->name('order');
+        Route::get('order/{order_id?}', 'DtstwApiController@order')->name('order');
+        Route::get('orderInfo/{order_id}', 'DtstwApiController@orderInfo')->name('orderInfo');
         Route::get('delivery', 'DtstwApiController@delivery')->name('delivery');
         Route::get('get-road', 'DtstwApiController@getRoad')->name('getRoad');
         

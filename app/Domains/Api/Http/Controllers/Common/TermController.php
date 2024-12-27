@@ -18,7 +18,7 @@ class TermController extends ApiController
     {
         $query_data = $this->request->query();
 
-        $filter_data = $this->getQueries($query_data);
+        $filter_data = $this->resetUrlData($query_data);
 
         $phrases = $this->TermService->getTerms($filter_data)->toArray();
 
