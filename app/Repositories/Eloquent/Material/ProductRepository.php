@@ -21,12 +21,6 @@ class ProductRepository extends Repository
 {
     public $modelName = "\App\Models\Material\Product";
 
-
-    public function __construct(private TermRepository $TermRepository, private UnitRepository $UnitRepository)
-    {
-        parent::__construct();
-    }
-
     public function getProducts($data = [], $debug = 0)
     {
         $filter_data = $this->resetQueryData($data);
@@ -59,7 +53,7 @@ class ProductRepository extends Repository
                 $filter_data = [
                     'equal_is_active' => 1,
                 ];
-                $units = $this->UnitRepository->getCodeKeyedActiveUnits($filter_data);
+                $units = (new UnitRepository)->getCodeKeyedActiveUnits($filter_data);
                 $products->load('stock_unit.translation');
             }
 
@@ -335,7 +329,7 @@ class ProductRepository extends Repository
             'with' => ['taxonomy.translation'],
         ];
 
-        $rows = $this->TermRepository->getRows($filter_data)->toArray();
+        $rows = (new TermRepository)->getRows($filter_data)->toArray();
 
         $new_rows = [];
         foreach ($rows as $key => $row) {
@@ -363,7 +357,7 @@ class ProductRepository extends Repository
             'with' => ['taxonomy.translation'],
         ];
 
-        $rows = $this->TermRepository->getRows($filter_data)->toArray();
+        $rows = (new TermRepository)->getRows($filter_data)->toArray();
 
         $new_rows = [];
 

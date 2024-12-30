@@ -15,6 +15,8 @@ use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Helpers\Classes\DataHelper;
 use App\Helpers\Classes\UnitConverter;
+use App\Models\Setting\Setting;
+use App\Repositories\Eloquent\Setting\SettingRepository;
 
 class InventoryCountingListExport implements FromCollection, WithHeadings, WithEvents, WithMapping, WithCustomStartCell
 {
@@ -85,8 +87,41 @@ class InventoryCountingListExport implements FromCollection, WithHeadings, WithE
             }
         }
 
+        //設定排序
+        $filter_data = [
+            'equal_group' => 'inventory',
+            'equal_setting_key' => 'inventory_counting_setting',
+            'first' => 1,
+            'pluck' => 'setting_value',
 
-        return $products = $products->sortBy('temperature_type_code');
+        ];
+        $result = (new SettingRepository)->getRow($filter_data);
+
+        if(empty($result['error'])){
+            $inventory_counting_setting = json_decode($result);
+            $new_sort = &$inventory_counting_setting->products;
+        }
+
+        // 轉換 $new_sort 成為一個 keyed array，這樣可以直接查找每個 product_id 的 sort_order
+        $sort_order_map = collect($new_sort)->mapWithKeys(function ($item) {
+            return [$item->product_id => $item->sort_order];
+        });
+
+        // 使用 map 方法來將每個 product 添加 sort_order
+        $sorted_products = $products->map(function ($product) use ($sort_order_map) {
+            // 根據 product_id 查找對應的 sort_order
+            $product->sort_order = $sort_order_map->get($product->id, $product->sort_order);
+            return $product;
+        });
+
+        // 最後使用 sortBy 方法來根據 sort_order 進行排序
+        // $sorted_products = $sorted_products->sortBy('sort_order')->sortBy('temperature_type_code');
+        
+        $sorted_products = $sorted_products->sortBy('sort_order');
+
+
+        // return $products = $products->sortBy('temperature_type_code');
+        return $sorted_products;
     }
 
 

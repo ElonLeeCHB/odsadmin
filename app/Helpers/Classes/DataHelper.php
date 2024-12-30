@@ -229,7 +229,7 @@ class DataHelper
      * Cache
      * 2024-11-19
      */
-        public static function remember($key, $seconds = 60*60*24*7, $type, $callback)
+        public static function remember($key, $seconds, $type, $callback)
         {
             try{
 

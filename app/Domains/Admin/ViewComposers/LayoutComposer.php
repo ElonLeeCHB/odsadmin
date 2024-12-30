@@ -373,6 +373,14 @@ class LayoutComposer
                 'children' => []
             ];
         }
+        if(1) {
+            $inventory[] = [
+                'name'	   => '盤點料件設定',
+                'icon'	   => '',
+                'href'     => route('lang.admin.inventory.countings.productSettings'),
+                'children' => []
+            ];
+        }
 
         // 訂單料件表
         if(1) {

@@ -1187,6 +1187,15 @@ trait EloquentTrait
         return $row;
     }
 
+    public function setMetasToRows($rows)
+    {
+        foreach ($rows as $row) {
+            $this->setMetasToRow($row);
+        }
+
+        return $rows;
+    }
+
     //
     public function rowsToStdObj($rows, $data = [])
     {

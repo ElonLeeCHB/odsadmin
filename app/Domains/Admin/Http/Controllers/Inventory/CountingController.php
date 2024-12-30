@@ -409,4 +409,61 @@ class CountingController extends BackendController
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }
+    
+
+    public function productSettings()
+    {
+        $data['lang'] = $this->lang;
+
+        // Breadcomb
+        $breadcumbs[] = (object)[
+            'text' => $this->lang->text_home,
+            'href' => route('lang.admin.dashboard'),
+        ];
+
+        $breadcumbs[] = (object)[
+            'text' => $this->lang->text_menu_inventory,
+            'href' => 'javascript:void(0)',
+            'cursor' => 'default',
+        ];
+        
+        $breadcumbs[] = (object)[
+            'text' => '盤點作業設定',
+            'href' => route('lang.admin.inventory.countings.productSettings'),
+        ];
+
+        $data['breadcumbs'] = (object)$breadcumbs;
+
+        $data['countingSetting'] = $this->CountingService->getCountingSettings();
+
+        // 存放溫度類型 temperature_type_code
+        $data['temperature_types'] = $this->CountingService->getCodeKeyedTermsByTaxonomyCode('product_storage_temperature_type',toArray:false);
+
+        $data['save_url'] = route('lang.admin.inventory.countings.productSettings');
+
+        return view('admin.inventory.counting_setting_products_form', $data);
+        
+    }
+
+    public function saveProductSettings()
+    {
+        $json = [];
+
+
+        if(!$json) {
+            $result = $this->CountingService->saveCountingSettings($this->post_data);
+
+            if(empty($result['error'])){
+                $json['success'] = $this->lang->text_success;
+            }else{
+                if(config('app.debug')){
+                    $json['error'] = $result['error'];
+                }else{
+                    $json['error'] = $this->lang->text_fail;
+                }
+            }
+        }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
+    }
 }
