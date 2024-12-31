@@ -14,7 +14,10 @@ class OrderTag extends Model
     protected $guarded = [];
     public $timestamps = false;
     protected $appends = ['name'];
-
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
 
     public function tag()
     {

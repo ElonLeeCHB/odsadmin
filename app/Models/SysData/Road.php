@@ -3,9 +3,11 @@
 namespace App\Models\SysData;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Model\ModelTrait;
 
 class Road extends Model
 {
+    use ModelTrait;
     public $connection = 'sysdata'; 
     
     public $timestamps = false;

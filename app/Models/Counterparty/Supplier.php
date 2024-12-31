@@ -32,6 +32,11 @@ class Supplier extends Organization
     protected $table = 'organizations';
     protected $appends = ['tax_type_name'];
 
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+    
     protected static function booted()
     {
         parent::booted();

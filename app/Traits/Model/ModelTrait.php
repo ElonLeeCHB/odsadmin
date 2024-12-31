@@ -224,27 +224,90 @@ trait ModelTrait
      * $this->getAttributes();      // Original attributes, no relationships. No accessor !
      * $this->attributesToArray();  // Current attributes, no relationships. Contain accessor if defined in $append.
      */
+    // public function toCleanObject()
+    // {
+    //     // get all keys
+    //     $table = $this->getTable();
+    //     $table_columns = $this->getTableColumns();
+    //     $attributes = $this->attributesToArray();
+    //     $attribute_keys = array_keys($attributes);
+
+    //     $all_keys = array_unique(array_merge($table_columns, $attribute_keys, $this->meta_keys ?? []));
+
+    //     $result = [];
+
+    //     foreach ($all_keys as $key) {
+    //         $value = $this->{$key} ?? '';
+
+    //         if(!is_array($key)){
+    //             $result[$key] = $value;
+    //         }
+    //     }
+
+    //     return (object) $result;
+    // }
+    
     public function toCleanObject()
     {
-        // get all keys
+        // Get all keys
         $table = $this->getTable();
         $table_columns = $this->getTableColumns();
         $attributes = $this->attributesToArray();
         $attribute_keys = array_keys($attributes);
-
+    
+        // Merge all keys and remove duplicates
         $all_keys = array_unique(array_merge($table_columns, $attribute_keys, $this->meta_keys ?? []));
-
+        
+        // Get the cast settings
+        $casts = $this->casts;
+        
         $result = [];
-
+    
+        // Process regular attributes
         foreach ($all_keys as $key) {
             $value = $this->{$key} ?? '';
-
-            if(!is_array($key)){
+    
+            // Handle relationships (e.g., orderProducts)
+            if ($value instanceof \Illuminate\Database\Eloquent\Collection) {
+                // If it's a collection, convert it into an array of objects
+                $result[$key] = $value->map(function ($item) {
+                    return $item->toCleanObject();
+                })->toArray(); // Convert to array
+            } elseif ($value instanceof \Illuminate\Database\Eloquent\Model) {
+                // If it's a related model (not a collection), convert it directly
+                $result[$key] = $value->toCleanObject();
+            } else {
+                // Apply cast type if needed
+                if (isset($casts[$key])) {
+                    $castType = $casts[$key];
+                    
+                    // Handle datetime casting
+                    if ($castType === 'datetime') {
+                        $value = $value instanceof \Carbon\Carbon ? $value->format('Y-m-d H:i:s') : $value;
+                    } elseif (strpos($castType, 'datetime:') === 0) {
+                        // Handle custom datetime format
+                        $format = substr($castType, 9);
+                        $value = $value instanceof \Carbon\Carbon ? $value->format($format) : $value;
+                    }
+                }
+    
                 $result[$key] = $value;
             }
         }
-
+    
+        // Handle relationships that are not part of the $all_keys
+        foreach ($this->getRelations() as $relation => $relationModel) {
+            if ($relationModel instanceof \Illuminate\Database\Eloquent\Collection) {
+                // If it's a collection, convert it into an array of objects
+                $result[$relation] = $relationModel->map(function ($item) {
+                    return $item->toCleanObject();
+                })->toArray(); // Convert to array
+            } elseif ($relationModel instanceof \Illuminate\Database\Eloquent\Model) {
+                // If it's a related model (not a collection), convert it directly
+                $result[$relation] = $relationModel->toCleanObject();
+            }
+        }
+    
         return (object) $result;
     }
-
 }

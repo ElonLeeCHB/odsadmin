@@ -15,7 +15,11 @@ class ProductOptionValue extends Model
     protected $guarded = [];
     protected $appends = ['name','short_name'];
     public $translation_keys = ['name','short_name'];
-
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+    
     //由於參考上層 OptionValue, 並且需要指定 option_value_id, 所以必須在此指定translation(s)關聯，而非使用 Translatable
     public function translations()
     {

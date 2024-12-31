@@ -10,5 +10,8 @@ class OrderDelivery extends Model
     protected $guarded = [];
     public $timestamps = false;
     public $table = 'order_delivery';
-
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
 }

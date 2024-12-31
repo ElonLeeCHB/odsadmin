@@ -13,6 +13,11 @@ class Country extends Model
     
     protected $guarded = [];
 
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+    
     public function states()
     {
         //return $this->hasMany(Division::class, 'country_id', 'id')->where('level',1);

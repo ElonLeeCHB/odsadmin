@@ -8,15 +8,22 @@ use App\Models\Catalog\OptionTranslation;
 use App\Models\Catalog\Option;
 use App\Models\Catalog\Sale\OrderProductOption;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Traits\Model\ModelTrait;
 
 class ProductOption extends Model
 {
+    use ModelTrait;
     use Translatable;
     
     protected $guarded = [];
     public $translation_keys = ['name','short_name'];
     protected $appends = ['name', 'short_name', 'option_code'];
 
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+    
     protected static function booted()
     {
         static::addGlobalScope(fn ($query) => $query->orderBy('sort_order'));

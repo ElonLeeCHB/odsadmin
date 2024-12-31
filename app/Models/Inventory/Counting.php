@@ -18,7 +18,11 @@ class Counting extends Model
     protected $guarded = [];
     protected $appends = ['status_name'];
 
-
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+    
     protected static function booted()
     {
         parent::boot();

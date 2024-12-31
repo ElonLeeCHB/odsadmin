@@ -16,7 +16,11 @@ class Term extends Model
     protected $guarded = [];
     protected $appends = ['name','short_name', 'content', 'taxonomy_name'];
 
-
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+    
     // Relationships
 
     public function parent()

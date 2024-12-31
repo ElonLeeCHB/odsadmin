@@ -14,7 +14,11 @@ class Requirement extends Model
     protected $guarded = [];
     protected $appends = ['effective_date_ymd','expiry_date_ymd'];
 
-
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+    
     public function stock_unit()
     {
         return $this->belongsTo(Unit::class, 'stock_unit_code', 'code');

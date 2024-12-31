@@ -3,9 +3,12 @@
 namespace App\Models\Catalog;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Model\ModelTrait;
 
 class OptionValueTranslation extends Model
 {
+    use ModelTrait;
+    
     protected $guarded = [];
     public $timestamps = false;    
 

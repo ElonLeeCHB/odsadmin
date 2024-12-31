@@ -15,7 +15,11 @@ class ProductUnit extends Model
     protected $guarded = [];
     protected $appends = ['source_unit_name', 'destination_unit_name'];
 
-
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+    
     public function source_unit()
     {
         return $this->belongsTo(Unit::class, 'source_unit_code', 'code');

@@ -3,9 +3,12 @@
 namespace App\Models\Catalog;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Model\ModelTrait;
 
 class ProductTranslation extends Model
 {
+    use ModelTrait;
+    
     public $timestamps = false;
     public $foreign_key = 'product_id';
     protected $guarded = [];

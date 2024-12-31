@@ -893,6 +893,160 @@ class OrderController extends BackendController
     }
 
 
+
+    private function getPritingOrderList($order_ids)
+    {
+        $filter_data = [
+            'whereIn' => ['id' => $order_ids],
+            'with' => ['order_products.order_product_options'
+                     , 'shipping_state', 'shipping_city'
+                      ],
+        ];
+        $orders = $this->OrderService->getRows($filter_data);
+        
+        foreach ($orders ?? [] as $order) {
+            $printingOrderList = $this->getPrintingInfo($order);
+        }
+
+
+        echo "<pre>printingOrderList ",print_r($printingOrderList,true),"</pre>";exit;
+
+    }
+
+    public function getPrintingInfo($order)
+    {
+        $order_id = $order->id;
+
+        //想棄用代碼，改用 id。這樣就不用煩惱代碼詞不達意。例如原本的潤餅便當，因為原本便當只會放潤餅。所以代碼命名 bento。但是後來有刈包便當，這也是便當。只是潤餅換成刈包。
+        //但是訂單商品表 order_products 只記載了代碼 bento, 沒有它的 id。所以無法單純由訂單商品表得到分類 id, 除非再調整其它部份。暫時這樣。
+        $printingRowsByCategory = [];
+        $printingRowsByCategory['bento'] = [];         //潤餅便當
+        $printingRowsByCategory['lunchbox'] = [];      //潤餅盒餐
+        $printingRowsByCategory['oilRiceBox'] = [];    //油飯盒
+        $printingRowsByCategory['guabaoBento'] = [];   //刈包便當
+        $printingRowsByCategory['guabaoLunchbox'] = [];//刈包盒餐
+        $printingRowsByCategory['others'] = [];   //其它
+
+
+        // $order = $order->toCleanObject();
+
+        // shipping_address
+            $order->shipping_address = '';
+
+            if(!empty($order->shipping_state->name)){
+                $order->shipping_address .= $order->shipping_state->name;
+            }
+            if(!empty($order->shipping_city->name)){
+                $order->shipping_address .= $order->shipping_city->name;
+            }
+            if(!empty($order->shipping_road)){
+                $order->shipping_address .= $order->shipping_road;
+            }
+            if(!empty($order->shipping_address1)){
+                $order->shipping_address .= $order->shipping_address1;
+            }
+            unset($order->shipping_state);
+            unset($order->shipping_city);
+        //
+
+        //telephone
+            $order->telephone_full = $order->telephone;
+            if(!empty($order->telephone_prefix)){
+                $order->telephone_full = $order->telephone_prefix . '-' . $order->telephone;
+            }
+        //
+
+
+        //order_products
+        foreach ($order->order_products as $order_product) {
+            $product_id = $order_product->product_id;
+            $main_category_code = $order_product->main_category_code;
+
+            if(empty($main_category_code)){
+                $main_category_code = 'others';
+            }
+
+            if(!isset($printingRowsByCategory[$main_category_code][$product_id]['order_product_id'])){
+                $printingRowsByCategory[$main_category_code][$product_id]['order_product_id'] = $order_product->id;
+                $printingRowsByCategory[$main_category_code][$product_id]['product_id'] = $order_product->product_id;
+                $printingRowsByCategory[$main_category_code][$product_id]['main_category_code'] = $order_product->main_category_code;
+                $printingRowsByCategory[$main_category_code][$product_id]['name'] = $order_product->name;
+                $printingRowsByCategory[$main_category_code][$product_id]['price'] = $order_product->price;
+                $printingRowsByCategory[$main_category_code][$product_id]['quantity'] = 0;
+            }
+
+            $printingRowsByCategory[$main_category_code][$product_id]['quantity'] += $order_product->quantity;
+        }
+        //end order_products
+
+        //order_product_options
+        foreach ($order->order_products as $order_product) {
+            $product_id = $order_product->product_id;
+            $main_category_code = $order_product->main_category_code;
+
+            foreach ($order_product->order_product_options as $order_product_option) {
+                $option_id = $order_product_option->option_id;
+                $option_value_id = $order_product_option->option_value_id;
+                $product_option_id = $order_product_option->product_option_id;
+                $product_option_value_id = $order_product_option->product_option_value_id;
+
+                if($option_id == 1003){ //主餐 1003
+                    $tmp_option_type = 'MainMeal';
+                }
+                else if($option_id == 1007){ //副主餐 代碼 bento_main 詞意不合，但好像沒用到這個代碼
+                    $tmp_option_type = 'SecondaryMainMeal';
+                }
+                else if($option_id == 1005){ //配菜1005
+                    $tmp_option_type = 'SideDish';
+                }
+                else if($option_id == 1004){ //飲料湯品 1004
+                    $tmp_option_type = 'Drink';
+                }
+                else{
+                    $tmp_option_type = 'others';
+                }
+
+                if(empty($printingRowsByCategory[$main_category_code][$product_id]['product_options'][$tmp_option_type][$product_option_value_id]['quantity'])){
+                    $printingRowsByCategory[$main_category_code][$product_id]['product_options'][$tmp_option_type][$product_option_value_id]['map_product_id'] = $order_product_option->map_product_id;
+                    $printingRowsByCategory[$main_category_code][$product_id]['product_options'][$tmp_option_type][$product_option_value_id]['value'] = $order_product_option->value;
+                    $printingRowsByCategory[$main_category_code][$product_id]['product_options'][$tmp_option_type][$product_option_value_id]['quantity'] = 0;
+                }
+
+                $printingRowsByCategory[$main_category_code][$product_id]['product_options'][$tmp_option_type][$product_option_value_id]['quantity'] += $order_product_option->quantity;
+            }
+        }
+
+        //statics
+        foreach ($printingRowsByCategory as $main_category_code => $category) {
+
+            foreach ($category as $product_id => $products) {
+                
+                // if(!empty($products['product_options']['Drink'])){
+                //     echo "<pre>",print_r($product_options,true),"</pre>";
+                // }
+                    
+                foreach ($products['product_options']['Drink'] ?? [] as $drink) {
+                    if(!empty($drink['map_product_id'])){
+                        $tm_product_id = $drink['map_product_id'];
+                    }else{
+                        $tm_product_id = $product_id;
+                    }
+
+                    if(empty($statistics['drinks'][$tm_product_id])){
+                        $statistics['drinks'][$tm_product_id]['value'] = $drink['value'];
+                        $statistics['drinks'][$tm_product_id]['quantity'] = 0;
+                    }
+                    $statistics['drinks'][$tm_product_id]['quantity'] += $drink['quantity'];
+
+                }
+            }
+        }
+        // end statics
+
+        return ['statistics' => $statistics, 'printingRowsByCategory' => $printingRowsByCategory];
+    }
+
+    //舊寫法，將改寫
     private function getPrintingData($order_id = null,$print_status)
     {
 
@@ -905,12 +1059,14 @@ class OrderController extends BackendController
             'with' => ['order_products.order_product_options.product_option.option'
                      , 'order_products.order_product_options.product_option_value'
                      , 'order_products.product.main_category'
+                     , 'shipping_state', 'shipping_city'
                       ],
         ];
 
         $order = $this->OrderService->getRow($filter_data);
 
         $order->address = '';
+
         if(!empty($order->shipping_state->name)){
             $order->address .= $order->shipping_state->name;
         }
@@ -1200,6 +1356,28 @@ class OrderController extends BackendController
         $order_ids = explode(',', $order_ids);
         $ordersData = [];
 
+
+
+
+
+
+
+
+
+        $orders = $this->getPritingOrderList($order_ids);
+        echo "<pre>",print_r('printReceiveFormA4',true),"</pre>";exit;
+
+
+
+
+
+
+
+
+
+
+
+
         if (is_array($order_ids)) {
             // 如果是数组，处理多个订单
             foreach ($order_ids as $order_id) {
@@ -1211,6 +1389,9 @@ class OrderController extends BackendController
 
         }
 
+        // dd($ordersData[0]['order']);
+
+        echo "<pre>",print_r($ordersData[0]['final_products'],true),"</pre>";exit;
         return view('admin.sale.print_receive_form_a4', ['orders' => $ordersData]);
     }
 

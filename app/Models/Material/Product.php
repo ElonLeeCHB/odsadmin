@@ -34,6 +34,11 @@ class Product extends Model
         'is_web_product', //1, 0
     ];
 
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+    
     protected $with = ['translation'];
 
     protected static function booted()

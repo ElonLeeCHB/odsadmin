@@ -17,7 +17,10 @@ class DailyIngredient extends Model
     public $table = 'daily_ingredients';
     protected $appends = ['required_date_ymd', 'required_weekday'];
     protected $guarded = [];
-
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
 
     public function product()
     {

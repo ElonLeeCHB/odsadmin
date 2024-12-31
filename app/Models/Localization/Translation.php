@@ -9,5 +9,8 @@ class Translation extends Model
     public $timestamps = false;
     protected $guarded = [];
     protected $table = 'ltm_translations';
-    
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
 }

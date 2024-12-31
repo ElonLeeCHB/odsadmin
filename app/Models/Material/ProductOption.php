@@ -16,7 +16,11 @@ class ProductOption extends Model
     protected $guarded = [];
     public $translation_keys = ['name','short_name'];
     protected $appends = ['name', 'short_name', 'option_code'];
-
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+    
     protected static function booted()
     {
         static::addGlobalScope(fn ($query) => $query->orderBy('sort_order'));

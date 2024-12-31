@@ -30,6 +30,12 @@ class Product extends Model
         'supplier_own_product_specification',
         'temperature_type_code',
     ];
+
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+    
     protected $with = ['translations'];
 
     protected static function booted()

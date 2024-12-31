@@ -156,7 +156,7 @@ class SettingController extends BackendController
 
         if(!$json) {
             $result = $this->SettingService->save($postData);
-
+            
             if(empty($result['error']) && !empty($result['setting_id'])){
                 $json = [
                     'setting_id' => $result['setting_id'],

@@ -12,9 +12,12 @@ use App\Models\Catalog\Option;
 use App\Models\Common\Term;
 use App\Models\Catalog\OptionValue;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Traits\Model\ModelTrait;
 
 class OrderProductOption extends Model
 {
+    use ModelTrait;
+
     protected $guarded = [];
     //public $timestamps = false;
     protected $casts = [

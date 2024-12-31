@@ -13,7 +13,11 @@ class Setting extends Model
     
     public $timestamps = true;
     protected $guarded = [];
-
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+    
     public function location()
     {
         return $this->belongsTo(Location::class);

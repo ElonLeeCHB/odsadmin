@@ -3,9 +3,11 @@
 namespace App\Models\Common;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Model\ModelTrait;
 
 class TermRelation extends Model
 {
+    use ModelTrait;
 
     public $timestamps = false;
     

@@ -10,8 +10,11 @@ class City extends Division
 {
     protected $table = 'divisions';
     protected $guarded = [];
-    
     public $timestamps = false;    
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
 
     public static function boot()
     {

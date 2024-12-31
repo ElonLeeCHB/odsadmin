@@ -52,8 +52,6 @@ class CountingService extends Service
             
             $result = new \stdClass;
 
-            $result->someField = $inventory_counting_setting->someField;
-
             foreach ($inventory_counting_setting->products as $product) {
                 $result->products[] = (object)[
                     'sort_order' => $product->sort_order,

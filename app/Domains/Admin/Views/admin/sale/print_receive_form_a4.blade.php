@@ -324,45 +324,33 @@
                   <td style="border-right:3px solid black"></td>
                   <td>
                   @if(!empty($order_product['drink']['option_values']['1023']))
-                  @if(!empty($order_product['drink']['option_values']['1023']['name']==='微豆'))
-                {{ $order_product['drink']['option_values']['1023']['quantity']}}
-                @endif
-                @endif
+                    {{ $order_product['drink']['option_values']['1023']['quantity']}}
+                  @endif
                   </td>
                   <td>
                   @if(!empty($order_product['drink']['option_values']['1024']))
-                  @if(!empty($order_product['drink']['option_values']['1024']['name']==='無豆'))
-                {{ $order_product['drink']['option_values']['1024']['quantity']}}
-                @endif
-                @endif
+                    {{ $order_product['drink']['option_values']['1024']['quantity']}}
+                  @endif
                   </td>
                   <td>
                   @if(!empty($order_product['drink']['option_values']['1025']))
-                  @if(!empty($order_product['drink']['option_values']['1025']['name']==='紅茶'))
-                {{ $order_product['drink']['option_values']['1025']['quantity']}}
-                @endif
-                @endif
+                    {{ $order_product['drink']['option_values']['1025']['quantity']}}
+                  @endif
                   </td>
                   <td>
                   @if(!empty($order_product['drink']['option_values']['1026']))
-                  @if(!empty($order_product['drink']['option_values']['1026']['name']==='奶茶'))
-                {{ $order_product['drink']['option_values']['1026']['quantity']}}
-                @endif
-                @endif
+                    {{ $order_product['drink']['option_values']['1026']['quantity']}}
+                  @endif
                   </td>
                   <td>
                   @if(!empty($order_product['drink']['option_values']['1027']))
-                  @if(!empty($order_product['drink']['option_values']['1027']['name']==='濃湯'))
-                {{ $order_product['drink']['option_values']['1027']['quantity']}}
-                @endif
-                @endif
+                    {{ $order_product['drink']['option_values']['1027']['quantity']}}
+                  @endif
                   </td>
                   <td>
                   @if(!empty($order_product['drink']['option_values']['1028']))
-                  @if(!empty($order_product['drink']['option_values']['1028']['name']==='季節甜品'))
-                {{ $order_product['drink']['option_values']['1028']['quantity']}}
-                @endif
-                @endif
+                    {{ $order_product['drink']['option_values']['1028']['quantity']}}
+                  @endif
                   </td>
                   <td>
                     @if(!empty($order_product['product_options']['配菜']['贈品豆花']))
@@ -448,7 +436,9 @@
             @endforeach
           </table>
         
-        {{-- 便當 --}}
+      {{-- end 油飯盒 --}}
+
+      {{-- 便當 --}}
         <table class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
           <tbody>
             @php
@@ -682,9 +672,7 @@
                     </td>
                     <td>
                     @if(!empty($order_product['drink']['option_values']['1028']))
-                    @if(!empty($order_product['drink']['option_values']['1028']['name']==='季節甜品'))
-                  {{ $order_product['drink']['option_values']['1028']['quantity']}}
-                  @endif
+                    {{ $order_product['drink']['option_values']['1028']['quantity']}}
                   @endif
                     </td>
 
@@ -1802,7 +1790,7 @@
             @php
               $douhua_title_showed = 1;
             @endphp
-            @foreach($order['final_products'] as $key =>$order_product)
+            @foreach($order['final_products'] as $key => $order_product)
             @if($order_product['main_category_code'] == 'douhua')
             @if($douhua_title_showed == 1)
                   <tr>

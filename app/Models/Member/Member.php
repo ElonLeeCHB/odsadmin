@@ -26,6 +26,11 @@ class Member extends User
         'find_us_comment',
     ];
     
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+    
     public function getForeignKey()
     {
         return $this->foreignKey;
