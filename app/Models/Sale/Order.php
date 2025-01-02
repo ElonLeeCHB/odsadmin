@@ -8,14 +8,15 @@ use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductOption;
+use App\Models\User\User;
 use App\Models\Sale\OrderProduct;
 use App\Models\SysData\Division;
 use App\Models\Counterparty\Organization;
 use App\Models\Catalog\OptionValue;
 use App\Models\Common\Term;
-use DateTimeInterface;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Traits\Model\ModelTrait;
+use DateTimeInterface;
 
 class Order extends Model
 {
@@ -113,6 +114,11 @@ class Order extends Model
         return $this->belongsTo(Organization::class, 'store_id', 'id');
     }
 
+    public function customer()
+    {
+        return $this->belongsTo(User::class, 'customer_id', 'id'); 
+    }
+
     public function drivers()
     {
         return $this->hasMany(OrderDelivery::class, 'order_code', 'code'); 
@@ -120,10 +126,10 @@ class Order extends Model
     
 
     //待廢。原本使用 options, option_values 資料表。以後改為使用 terms
-    // public function status()
-    // {
-    //     return $this->belongsTo(OptionValue::class, 'status_id', 'id');
-    // }
+    public function status()
+    {
+        return $this->belongsTo(OptionValue::class, 'status_id', 'id');
+    }
 
     public function statusName(): Attribute
     {

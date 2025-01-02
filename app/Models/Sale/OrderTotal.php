@@ -4,9 +4,12 @@ namespace App\Models\Sale;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Traits\Model\ModelTrait;
 
 class OrderTotal extends Model
 {    
+    use ModelTrait;
+
     protected $guarded = [];
     public $timestamps = false;
     protected $casts = [

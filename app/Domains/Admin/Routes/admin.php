@@ -126,6 +126,9 @@ Route::group(
                 Route::post('orders/batch_print', 'Sale\OrderController@batchPrint')->name('orders.batch_print');
                 Route::get('orders/toPDF/{order_id?}', 'Sale\OrderController@toPDF')->name('orders.toPDF');
 
+                
+                Route::get('orders/printOrders/{order_ids}/{print_status}', 'Sale\OrderPrintingController@printOrders')->name('orders.printOrders');
+
                 Route::get('orders/schedule/list/{delivery_date?}', 'Sale\OrderScheduleController@list')->name('order_schedule.list');
                 Route::post('orders/schedule/save', 'Sale\OrderScheduleController@save')->name('order_schedule.save');
                 Route::get('orders/schedule/{delivery_date?}', 'Sale\OrderScheduleController@index')->name('order_schedule.index');

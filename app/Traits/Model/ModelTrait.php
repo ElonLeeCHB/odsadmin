@@ -224,30 +224,47 @@ trait ModelTrait
      * $this->getAttributes();      // Original attributes, no relationships. No accessor !
      * $this->attributesToArray();  // Current attributes, no relationships. Contain accessor if defined in $append.
      */
-    // public function toCleanObject()
-    // {
-    //     // get all keys
-    //     $table = $this->getTable();
-    //     $table_columns = $this->getTableColumns();
-    //     $attributes = $this->attributesToArray();
-    //     $attribute_keys = array_keys($attributes);
-
-    //     $all_keys = array_unique(array_merge($table_columns, $attribute_keys, $this->meta_keys ?? []));
-
-    //     $result = [];
-
-    //     foreach ($all_keys as $key) {
-    //         $value = $this->{$key} ?? '';
-
-    //         if(!is_array($key)){
-    //             $result[$key] = $value;
-    //         }
-    //     }
-
-    //     return (object) $result;
-    // }
-    
     public function toCleanObject()
+    {
+        // get all keys
+        $table = $this->getTable();
+        $table_columns = $this->getTableColumns();
+        $attributes = $this->attributesToArray();
+        $attribute_keys = array_keys($attributes);
+        $all_keys = array_unique(array_merge($table_columns, $attribute_keys, $this->meta_keys ?? []));
+        $casts = $this->casts;
+
+        $result = [];
+
+        foreach ($all_keys as $key) {
+            $value = $this->{$key} ?? '';
+
+            if(!is_array($key)){
+
+                // Apply cast type if needed
+                if (isset($casts[$key])) {
+                    $castType = $casts[$key];
+                    
+                    // datetime no format
+                    if ($castType === 'datetime') {
+                        $value = $value instanceof \Carbon\Carbon ? $value->format('Y-m-d H:i:s') : $value;
+                    } 
+                    // datetime with format
+                    else if (strpos($castType, 'datetime:') === 0) {
+                        // Handle custom datetime format
+                        $format = substr($castType, 9);
+                        $result[$key] = $value instanceof \Carbon\Carbon ? $value->format($format) : $value;
+                    }
+                }else{
+                    $result[$key] = $value;
+                }
+            }
+        }
+
+        return (object) $result;
+    }
+    
+    public function toCleanObjectRecursively()
     {
         // Get all keys
         $table = $this->getTable();

@@ -9,8 +9,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Sale\Order;
+use App\Models\Catalog\OptionValueTranslation;
 use App\Traits\Model\ModelTrait;
+
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Support\Facades\Schema;
 
 class User extends Authenticatable
 {
@@ -70,6 +73,14 @@ class User extends Authenticatable
         return $this->hasMany(Order::class, 'customer_id', 'id');
     }
 
+    public function salutation($locale = null)
+    {
+        if(empty($locale)){
+            $locale = app()->getLocale();
+        }
+        return $this->belongsTo(OptionValueTranslation::class, 'salutation_id', 'option_value_id')
+                    ->where('locale', $locale);
+    }
 
     protected function personalName(): Attribute
     {

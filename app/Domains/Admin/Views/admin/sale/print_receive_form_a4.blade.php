@@ -176,8 +176,8 @@
             <td>統計資料</td>
             <td style="width:65px;">數量</td>
             <td class=" fw-bold">全素</td>
-            <td class=" fw-bold">蛋素</td>
-            <td class=" fw-bold">薯泥</td>
+            <td class=" fw-bold">奶素</td>
+            <td class=" fw-bold">鮮蔬</td>
             <td class=" fw-bold">炸蝦</td>
             <td class=" fw-bold">末雞</td>
             <td class=" fw-bold">酥魚</td>
@@ -273,9 +273,9 @@
                 </td> -->
                 <td>
                   @if(!empty($order_product['product_options']['副主餐']['控肉']))
-                {{ $order_product['product_options']['副主餐']['控肉'] ?? 0 }}
-                @endif
-                  </td>
+                  {{ $order_product['product_options']['副主餐']['控肉'] ?? 0 }}
+                  @endif
+                </td>
                 <!-- <td>
                   @if(!empty($order_product['product_options']['副主餐']['清蒸嫰雞胸']))
                 {{ $order_product['product_options']['副主餐']['清蒸嫰雞胸'] ?? 0 }}
@@ -298,17 +298,10 @@
                   </td>
                   <td>
                   @if(!empty($order_product['product_options']['副主餐']['鮭魚']))
-                {{ $order_product['product_options']['副主餐']['鮭魚'] ?? 0 }}
-                @endif
+                  {{ $order_product['product_options']['副主餐']['鮭魚'] ?? 0 }}
+                  @endif
                   </td>
-                  <td>
-                  @if(!empty($order_product['product_options']['副主餐']['紅酒牛肉丸']))
-                {{ $order_product['product_options']['副主餐']['紅酒牛肉丸'] ?? 0 }}
-                @endif
-                  </td>
-                  <!-- <td> @if(!empty($order_product['product_options']['配菜']['贈品豆花']))
-                {{ $order_product['product_options']['配菜']['贈品豆花'] ?? 0 }}
-                @endif </td> -->
+                  <td></td>
                   <td></td>
                   <td></td>
                   <td></td>
@@ -323,38 +316,40 @@
                   <td></td>
                   <td style="border-right:3px solid black"></td>
                   <td>
-                  @if(!empty($order_product['drink']['option_values']['1023']))
+                    @if(!empty($order_product['drink']['option_values']['1023']))
                     {{ $order_product['drink']['option_values']['1023']['quantity']}}
-                  @endif
+                    @endif
                   </td>
                   <td>
-                  @if(!empty($order_product['drink']['option_values']['1024']))
+                    @if(!empty($order_product['drink']['option_values']['1024']))
                     {{ $order_product['drink']['option_values']['1024']['quantity']}}
-                  @endif
+                    @endif
                   </td>
                   <td>
-                  @if(!empty($order_product['drink']['option_values']['1025']))
+                    @if(!empty($order_product['drink']['option_values']['1025']))
                     {{ $order_product['drink']['option_values']['1025']['quantity']}}
-                  @endif
+                    @endif
                   </td>
                   <td>
-                  @if(!empty($order_product['drink']['option_values']['1026']))
+                    @if(!empty($order_product['drink']['option_values']['1026']))
                     {{ $order_product['drink']['option_values']['1026']['quantity']}}
-                  @endif
+                    @endif
                   </td>
                   <td>
-                  @if(!empty($order_product['drink']['option_values']['1027']))
+                    @if(!empty($order_product['drink']['option_values']['1027']))
                     {{ $order_product['drink']['option_values']['1027']['quantity']}}
-                  @endif
+                    @endif
                   </td>
                   <td>
-                  @if(!empty($order_product['drink']['option_values']['1028']))
+                    @if(!empty($order_product['drink']['option_values']['1028']))
                     {{ $order_product['drink']['option_values']['1028']['quantity']}}
-                  @endif
+                    @endif
                   </td>
                   <td>
                     @if(!empty($order_product['product_options']['配菜']['贈品豆花']))
                     {{ $order_product['product_options']['配菜']['贈品豆花'] ?? 0 }}
+                    @elseif(!empty($order_product['drink']['option_values']['1185']))
+                    {{ $order_product['drink']['option_values']['1185']['quantity']}}
                     @endif
                   </td>
 
@@ -436,9 +431,7 @@
             @endforeach
           </table>
         
-      {{-- end 油飯盒 --}}
-
-      {{-- 便當 --}}
+        {{-- 便當 --}}
         <table class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
           <tbody>
             @php
@@ -452,8 +445,8 @@
                     <td style="width:24px;" class=" fw-bold">小計</td>
                     <td style="width:24px;" class=" fw-bold">主廚</td>
                     <td style="width:24px;" class=" fw-bold">全素</td>
-                    <td style="width:24px;" class=" fw-bold">蛋素</td>
-                    <td style="width:24px;" class=" fw-bold">薯泥</td>
+                    <td style="width:24px;" class=" fw-bold">奶素</td>
+                    <td style="width:24px;" class=" fw-bold">鮮蔬</td>
                     <td style="width:24px;" class=" fw-bold">炸蝦</td>
                     <td style="width:24px;" class=" fw-bold">芥雞</td>
                     <td style="width:24px;" class=" fw-bold">酥魚</td>
@@ -672,7 +665,9 @@
                     </td>
                     <td>
                     @if(!empty($order_product['drink']['option_values']['1028']))
-                    {{ $order_product['drink']['option_values']['1028']['quantity']}}
+                    @if(!empty($order_product['drink']['option_values']['1028']['name']==='季節甜品'))
+                  {{ $order_product['drink']['option_values']['1028']['quantity']}}
+                  @endif
                   @endif
                     </td>
 
@@ -758,8 +753,8 @@
                     <td style="width:24px;" class=" fw-bold">小計</td>
                     <td style="width:24px;" class=" fw-bold">主廚</td>
                     <td style="width:24px;" class=" fw-bold">全素</td>
-                    <td style="width:24px;" class=" fw-bold">蛋素</td>
-                    <td style="width:24px;" class=" fw-bold">薯泥</td>
+                    <td style="width:24px;" class=" fw-bold">奶素</td>
+                    <td style="width:24px;" class=" fw-bold">鮮蔬</td>
                     <td style="width:24px;" class=" fw-bold">炸蝦</td>
                     <td style="width:24px;" class=" fw-bold">芥雞</td>
                     <td style="width:24px;" class=" fw-bold">酥魚</td>
@@ -1297,15 +1292,15 @@
                     @endif
                   </td>
                   <td>
-                  @if(!empty($order_product['main_meal']['option_values'][1017]['drink']))
-                    @foreach($order_product['main_meal']['option_values'][1017]['drink'] as $drink_option_value_id => $drink)
-                    @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
-                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
-                    @else
-                    <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
-                    @endif
-                    <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
-                    @endforeach
+                    @if(!empty($order_product['main_meal']['option_values'][1017]['drink']))
+                      @foreach($order_product['main_meal']['option_values'][1017]['drink'] as $drink_option_value_id => $drink)
+                        @if(!empty(mb_substr($drink['name'], 0, 1, 'UTF-8')==='季'))
+                        <span style="font-size: 15px;">{{ mb_substr($drink['name'], 2, 1, 'UTF-8')}}</span>
+                        @else
+                        <span style="font-size: 15px;">{{ mb_substr($drink['name'], 0, 1, 'UTF-8')}}</span>
+                        @endif
+                      <span style="font-size: 13px;">{{ $drink['quantity'] }}</span><BR>
+                      @endforeach
                     @endif
                   </td>
                   <td>
@@ -1620,8 +1615,8 @@
                     <td style="width:24px;"  class=" fw-bold">小計</td>
                     <!-- <td class=" fw-bold">極品</td> -->
                     <td style="width:24px;" class=" fw-bold">全素</td>
-                    <td style="width:24px;" class=" fw-bold">蛋素</td>
-                    <td style="width:24px;" class=" fw-bold">薯泥</td>
+                    <td style="width:24px;" class=" fw-bold">奶素</td>
+                    <td style="width:24px;" class=" fw-bold">鮮蔬</td>
                     <td style="width:24px;" class=" fw-bold">炸蝦</td>
                     <td style="width:24px;" class=" fw-bold">芥雞</td>
                     <td style="width:24px;" class=" fw-bold">酥魚</td>
@@ -1658,18 +1653,18 @@
                   @endif
                   </td> -->
                   <td>
-                    @if(!empty($order_product['product_options']['6吋潤餅']['全素薯泥潤餅']))
-                  {{ $order_product['product_options']['6吋潤餅']['全素薯泥潤餅'] ?? 0 }}
+                    @if(!empty($order_product['product_options']['6吋潤餅']['全素鮮蔬潤餅']))
+                  {{ $order_product['product_options']['6吋潤餅']['全素鮮蔬潤餅'] ?? 0 }}
                   @endif
                     </td>
                   <td>
-                    @if(!empty($order_product['product_options']['6吋潤餅']['蛋素薯泥潤餅']))
-                  {{ $order_product['product_options']['6吋潤餅']['蛋素薯泥潤餅'] ?? 0 }}
+                    @if(!empty($order_product['product_options']['6吋潤餅']['奶素鮮蔬潤餅']))
+                  {{ $order_product['product_options']['6吋潤餅']['奶素鮮蔬潤餅'] ?? 0 }}
                   @endif
                     </td>
                     <td>
-                    @if(!empty($order_product['product_options']['6吋潤餅']['薯泥潤餅']))
-                  {{ $order_product['product_options']['6吋潤餅']['薯泥潤餅'] ?? 0 }}
+                    @if(!empty($order_product['product_options']['6吋潤餅']['鮮蔬潤餅']))
+                  {{ $order_product['product_options']['6吋潤餅']['鮮蔬潤餅'] ?? 0 }}
                   @endif
                     </td>
                   <td>
@@ -1790,7 +1785,7 @@
             @php
               $douhua_title_showed = 1;
             @endphp
-            @foreach($order['final_products'] as $key => $order_product)
+            @foreach($order['final_products'] as $key =>$order_product)
             @if($order_product['main_category_code'] == 'douhua')
             @if($douhua_title_showed == 1)
                   <tr>
