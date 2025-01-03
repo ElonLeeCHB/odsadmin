@@ -2,25 +2,8 @@
 
 namespace App\Domains\Admin\Http\Controllers\Sale;
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
-use App\Libraries\TranslationLibrary;
 use App\Domains\Admin\Services\Sale\OrderPrintingService;
-use App\Domains\Admin\Services\Member\MemberService;
-use App\Repositories\Eloquent\User\UserRepository;
-use App\Domains\Admin\Services\Catalog\ProductService;
-use App\Domains\Admin\Services\Catalog\OptionService;
-use App\Domains\Admin\Services\Localization\CountryService;
-use App\Domains\Admin\Services\Localization\DivisionService;
-use Illuminate\Support\Facades\DB;
-//use Maatwebsite\Excel\Facades\Excel;
-use App\Domains\Admin\ExportsLaravelExcel\OrderProductExport;
-use App\Domains\Admin\ExportsLaravelExcel\UsersExport;
-use Carbon\Carbon;
-
-use App\Http\Resources\Sale\OrderProductResource;
-use Elibyy\TCPDF\Facades\TCPDF;
 
 class OrderPrintingController extends BackendController
 {
