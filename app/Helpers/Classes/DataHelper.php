@@ -330,24 +330,36 @@ class DataHelper
     }
 
 
-
-    public static function removeIndexRecursive($indexes, array $array): array
+    public static function removeIndexesRecursive($indexes, $input)
     {
-        foreach ($array as $key => &$value) {
-            // 如果是陣列，遞迴處理子陣列
-            if (is_array($value) && in_array($key, $indexes)) {
-                foreach ($indexes as $index) {
-                    $value = self::removeIndexRecursive($index, $value);
+        // 判断输入是数组还是对象
+        if (is_array($input)) {
+            foreach ($input as $key => &$value) {
+                    if (is_array($value) || is_object($value)) {
+                    $value = self::removeIndexesRecursive($indexes, $value);
+                }
+
+                if (in_array($key, $indexes)) {
+                    unset($input[$key]);
+                }
+            }
+        } elseif (is_object($input)) {
+            $properties = get_object_vars($input);
+    
+            foreach ($properties as $key => $value) {
+    
+                if (is_object($value)) {
+                    $input->$key = self::removeIndexesRecursive($indexes, $value);
+                }
+
+                if (in_array($key, $indexes)) {
+                    unset($input->$key);
                 }
             }
         }
-
-        // 移除當前層級的 'translation' 索引
-        unset($array[$index]);
-
-        return $array;
+    
+        return $input;
     }
-
 
     public function unsetRelations($rows, $relations)
     {

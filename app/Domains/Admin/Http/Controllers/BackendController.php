@@ -130,4 +130,20 @@ class BackendController extends Controller
     }
 
 
+    public function getErrorResponse($sys_error, $general_error, $status_code = 500)
+    {
+        $json = [];
+
+        if(config('app.debug')){
+            //可再增加判斷角色，例如系統管理者
+            
+            $json['error'] = $sys_error;
+        }else{
+            $json['error'] = $general_error;
+        }
+
+        return response()->json($json, $status_code);
+    }
+
+
 }

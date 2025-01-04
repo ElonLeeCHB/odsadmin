@@ -374,26 +374,27 @@ class ProductController extends BackendController
         if (isset($json['error']) && !isset($json['error']['warning'])) {
             $json['error']['warning'] = $this->lang->error_warning;
         }
-        if(!$json) {
-            $result = $this->ProductService->save($data);
 
-            if(empty($result['error'])){
-                $json = [
-                    'success' => $this->lang->text_success,
-                    'product_id' => $result['product_id'],
-                    'redirectUrl' => route('lang.admin.catalog.products.form', $result['product_id']),
-                ];
-
-            }else{
-                if(config('app.debug')){
-                    $json['error'] = $result['error'];
-                }else{
-                    $json['error'] = $this->lang->text_fail;
-                }
-            }
+        // 以上驗證錯誤，400
+        if(!empty($json)) {
+            return response()->json($json, 400);
         }
 
-        return response(json_encode($json))->header('Content-Type','application/json');
+        $result = $this->ProductService->save($data);
+
+        // 執行錯誤，500
+        if(!empty($result['error'])){
+            return $this->getErrorResponse($result['error'], $this->lang->text_fail, 500);
+        }
+
+        // 執行成功 200
+        $json = [
+            'success' => $this->lang->text_success,
+            'product_id' => $result['product_id'],
+            'redirectUrl' => route('lang.admin.catalog.products.form', $result['product_id']),
+        ];
+
+        return response()->json($json, 200);
     }
 
     public function destroy()

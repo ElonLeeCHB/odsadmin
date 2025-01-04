@@ -262,6 +262,22 @@ $(document).on('submit', 'form[data-oc-toggle=\'ajax\']', function (e) {
                 }
             }
 
+            // 新增 errors, 比照 error
+            if (typeof json['errors'] == 'object') {
+                if (json['errors']['warning']) {
+                    $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + json['errors']['warning'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
+                }
+
+                for (key in json['errors']) {
+                    if(key == 'warning'){
+                        continue;
+                    }
+                    $('#input-' + key).addClass('is-invalid').find('.form-control, .form-select, .form-check-input, .form-check-label').addClass('is-invalid');
+                    $('#error-' + key).html(json['errors'][key]).addClass('d-block');
+                }
+            }
+            // end 新增 errors
+
             if (json['success']) {
                 $('#alert').prepend('<div class="alert alert-success alert-dismissible"><i class="fa-solid fa-circle-check"></i> ' + json['success'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
 

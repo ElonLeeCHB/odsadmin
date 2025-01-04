@@ -8,16 +8,20 @@ use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderTotalRepository;
 use App\Repositories\Eloquent\Member\MemberRepository;
+use App\Repositories\Eloquent\Catalog\OptionRepository;
+use App\Repositories\Eloquent\Catalog\OptionValueRepository;
+use App\Repositories\Eloquent\Material\ProductOptionRepository;
+use App\Repositories\Eloquent\Material\ProductOptionValueRepository;
 
 use App\Models\Common\Term;
 use App\Models\Common\TermTranslation;
 use App\Models\Common\TermRelation;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Sale\OrderTag;
-use App\Models\Catalog\ProductTranslation;
 
 use Maatwebsite\Excel\Facades\Excel;
 use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
+use App\Helpers\Classes\DataHelper;
 use Carbon\Carbon;
 use Mpdf\Mpdf;
 use App\Models\Catalog\Option;
@@ -32,6 +36,9 @@ class OrderPrintingService extends Service
     private $drinks;
     private $drinksByOptionValueId;
     private $drink_ids;
+    private $lumpiaData;
+    private $hiddenSideDish;
+    private $sortedDrinksProductId;
 
     public function __construct()
     {
@@ -50,6 +57,9 @@ class OrderPrintingService extends Service
                     'name' => $option_value->name,
                 ];
             }
+
+            // $this->lumpiaData['hiddenSideDish'] = [1035,1068];
+            $this->hiddenSideDish['bento'] = [1035,1068];
         // end 潤餅便當配菜
 
         // 油飯盒配菜
@@ -67,6 +77,8 @@ class OrderPrintingService extends Service
                     'name' => $option_value->name,
                 ];
             }
+
+            $this->hiddenSideDish['oilRiceBox'] = [1118, ];
         // end 油飯盒配菜
 
         // 盒餐配菜
@@ -93,18 +105,29 @@ class OrderPrintingService extends Service
                 $query->orderBy('sort_order', 'asc'); // 按照 sort_order 升序排序
             }])->first();
 
-            foreach($option->option_values as $option_value){
+            $sortedDrinksOptionValues  = $option->option_values->sortBy('sort_order');
+
+            $this->sortedDrinksProductId = [];
+
+            foreach($sortedDrinksOptionValues as $option_value){
+                if(!in_array($option_value->product_id, $this->sortedDrinksProductId)){
+                    $this->sortedDrinksProductId[] = $option_value->product_id;
+                }
+
                 $this->drinks[] = (object)[
                     'option_value_id' => $option_value->id,
                     'name' => $option_value->name,
                     'short_name' => $option_value->short_name,
+                    'sort_order' => $option_value->sort_order,
                 ];
                 $this->drinksByOptionValueId[$option_value->id] = [
                     'name' => $option_value->name,
                     'short_name' => $option_value->short_name,
+                    'sort_order' => $option_value->sort_order,
                 ];
             }
         // end 飲料
+
     }
 
     public function getPritingOrderList($order_ids)
@@ -124,8 +147,6 @@ class OrderPrintingService extends Service
 
         $salutations = OptionValueTranslation::select('option_value_id','name')->whereIn('option_value_id',[17,18])->where('locale', app()->getLocale())
             ->pluck('name', 'option_value_id')->toArray();
-
-
 
         $result = [];
 
@@ -186,10 +207,6 @@ class OrderPrintingService extends Service
             $result[] = $newOrder;
         }
 
-        // $keys = array_keys($result[0]);
-        // echo "<pre>", print_r($keys, 1), "</pre>"; exit;
-        // $keys = array_keys($result);
-        // echo "<pre>", print_r($result[0]['items']['bento']['Columns'], 1), "</pre>"; exit;
         return $result;
     }
 
@@ -289,19 +306,28 @@ class OrderPrintingService extends Service
                 }
             //
 
-            //計算全部欄位數量
+            //計算欄位數量
                 $main_category_codes = array_keys($printingRowsByCategory);
                 foreach ($main_category_codes ?? [] as $main_category_code) {
-                    if(!isset($printingRowsByCategory[$main_category_code]['ColumnsCount'])){
-                        $printingRowsByCategory[$main_category_code]['ColumnsCount'] = 0;
+
+                    if(!empty($printingRowsByCategory[$main_category_code]['Columns']['SideDish'])){
+                        foreach ($printingRowsByCategory[$main_category_code]['Columns']['SideDish'] ?? [] as $option_value_id => $row) {
+                            if(!empty($this->hiddenSideDish[$main_category_code] ) && in_array($option_value_id, $this->hiddenSideDish[$main_category_code])){
+                                unset($printingRowsByCategory[$main_category_code]['Columns']['SideDish'][$option_value_id]);
+                            }
+                        }
+
+                        if($main_category_code == 'bento'){
+                            $printingRowsByCategory[$main_category_code]['ColumnsSideDishLeft'] = 7 - count($printingRowsByCategory[$main_category_code]['Columns']['SideDish']);
+                        }
+                        else if($main_category_code == 'oilRiceBox'){
+                            $printingRowsByCategory[$main_category_code]['ColumnsSideDishLeft'] = 17 - count($printingRowsByCategory[$main_category_code]['Columns']['SideDish']);
+                        }
+                        else if($main_category_code == 'lunchbox'){
+                            $printingRowsByCategory[$main_category_code]['ColumnsSideDishLeft'] = 14 - count($printingRowsByCategory[$main_category_code]['Columns']['SideDish']);
+                        }
+
                     }
-                    foreach ($printingRowsByCategory[$main_category_code]['Columns'] ?? [] as $IngrientCategoryCode => $columns) {
-                        $printingRowsByCategory[$main_category_code]['ColumnsCount'] += count($columns);
-                    }
-                }
-                
-                foreach ($main_category_codes ?? [] as $main_category_code) {
-                    $printingRowsByCategory[$main_category_code]['ColumnsLeft'] = 27 - $printingRowsByCategory[$main_category_code]['ColumnsCount'];
                 }
             //
             
@@ -359,28 +385,188 @@ class OrderPrintingService extends Service
             
         // end order_product_options
 
-        //statics
+        //statistics
             $statistics = [];
 
+            $tmpRows = [];
             foreach ($printingRowsByCategory as $main_category_code => $category) {
                 foreach ($category['items'] as $product_id => $products) {
                     foreach ($products['product_options']['Drink'] ?? [] as $drink) {
-                        if(!empty($drink['map_product_id'])){
-                            $tm_product_id = $drink['map_product_id'];
-                        }else{
-                            $tm_product_id = $product_id;
+
+                        $map_product_id = $drink['map_product_id'];
+
+                        if($drink['value'] == '季節甜品'){
+                            $drink['value'] = '甜湯';
                         }
 
-                        if(empty($statistics['drinks'][$tm_product_id])){
-                            $statistics['drinks'][$tm_product_id]['value'] = $drink['value'];
-                            $statistics['drinks'][$tm_product_id]['quantity'] = 0;
+                        if(!isset($tmpRows[$map_product_id]['quantity'])){
+                            $tmpRows[$map_product_id]['value'] = $drink['value'];
+                            $tmpRows[$map_product_id]['quantity'] = 0; 
                         }
-                        $statistics['drinks'][$tm_product_id]['quantity'] += $drink['quantity'];
+
+                        $tmpRows[$map_product_id]['quantity'] += $drink['quantity'];
                     }
                 }
             }
+
+            foreach ($this->sortedDrinksProductId as $map_product_id) {
+                if(!empty($tmpRows[$map_product_id])){
+                    $statistics['drinks'][] = &$tmpRows[$map_product_id];
+                }
+            }
+
         // end statics
 
         return [$cleanOrder, $printingRowsByCategory, $statistics];
+    }
+
+
+    public function getLumpiaBentoMainMeals()
+    {
+        // $filter_data = [
+        //     'equal_id' => 1011,
+        //     'pagination' => 0,
+        //     'limit' => 0,
+        //     'with' => ['optionValues'],
+        //     'sort' => 'sort_order',
+        //     'order' => 'asc',
+        // ];
+        // $options = (new OptionRepository)->getRow($filter_data);
+        // $optionValues = DataHelper::toCleanCollection($options->optionValues);
+
+        // $productOption = (new ProductOptionRepository)->newModel()->select(['option_id'])->where('product_id', 1001)
+        //     ->with(['activeOptionValues'])
+        //     ->first();
+
+        //抓潤餅便當的主餐
+        $filter_data = [
+            'equal_product_id' => 1001,
+            'equal_option_id' => 1003,
+            'pagination' => 0,
+            'limit' => 0,
+            'sort' => 'sort_order',
+            'order' => 'ASC',
+            'is_active' => 1,
+        ];
+        $productOptionValues =(new ProductOptionValueRepository)->getRows($filter_data);
+
+        foreach($productOptionValues as $row){
+            $rows[] = (object)[
+                'option_id' => $row->option_id,
+                'option_value_id' => $row->option_value_id,
+                'name' => $row->name,
+                'short_name' => $row->short_name,
+                'is_active' => $row->is_active,
+            ];
+        }
+
+        return $rows;
+    }
+
+
+    public function getLumpiasBentoSecondaryMainMeals()
+    {
+        $filter_data = [
+            'equal_option_id' => 1007, //副主餐
+            'whereIn' => ['id' => [1043,1044,1045,1071,1085]],
+            'pagination' => 0,
+            'limit' => 0,
+            'sort' => 'sort_order',
+            'order' => 'ASC',
+            'is_active' => 1,
+        ];
+        $optionValues =(new OptionValueRepository)->getRows($filter_data);
+
+        foreach($optionValues as $row){
+            $rows[] = (object)[
+                'option_id' => $row->option_id,
+                'option_value_id' => $row->option_value_id,
+                'name' => $row->name,
+                'short_name' => $row->short_name,
+                'is_active' => $row->is_active,
+            ];
+        }
+
+        return $rows;
+    }
+
+
+    public function getOilRiceBoxSecondaryMainMeals()
+    {
+        $filter_data = [
+            'equal_option_id' => 1007, //副主餐
+            'whereIn' => ['id' => [1044,1045,1120,1137]],
+            'pagination' => 0,
+            'limit' => 0,
+            'sort' => 'sort_order',
+            'order' => 'ASC',
+            'is_active' => 1,
+        ];
+        $optionValues =(new OptionValueRepository)->getRows($filter_data);
+
+        foreach($optionValues as $row){
+            $rows[] = (object)[
+                'option_id' => $row->option_id,
+                'option_value_id' => $row->option_value_id,
+                'name' => $row->name,
+                'short_name' => $row->short_name,
+                'is_active' => $row->is_active,
+            ];
+        }
+
+        return $rows;
+    }
+
+
+    public function getLunchboxSecondaryMainMeals()
+    {
+        $filter_data = [
+            'equal_option_id' => 1007, //副主餐
+            'whereIn' => ['id' => [1043,1044,1045,1071,1085]],
+            'pagination' => 0,
+            'limit' => 0,
+            'sort' => 'sort_order',
+            'order' => 'ASC',
+            'is_active' => 1,
+        ];
+        $optionValues =(new OptionValueRepository)->getRows($filter_data);
+
+        foreach($optionValues as $row){
+            $rows[] = (object)[
+                'option_id' => $row->option_id,
+                'option_value_id' => $row->option_value_id,
+                'name' => $row->name,
+                'short_name' => $row->short_name,
+                'is_active' => $row->is_active,
+            ];
+        }
+
+        return $rows;
+    }
+
+    Public function getDrinks()
+    {
+        $filter_data = [
+            'equal_option_id' => 1004,
+            'pagination' => 0,
+            'limit' => 0,
+            'sort' => 'sort_order',
+            'order' => 'ASC',
+            'is_active' => 1,
+        ];
+        $optionValues =(new OptionValueRepository)->getRows($filter_data);
+        $optionValues = $optionValues->sortBy('sort_order');
+
+        foreach($optionValues as $row){
+            $rows[] = (object)[
+                'option_id' => $row->option_id,
+                'option_value_id' => $row->option_value_id,
+                'name' => $row->name,
+                'short_name' => $row->short_name,
+                'is_active' => $row->is_active,
+            ];
+        }
+
+        return $rows;
     }
 }

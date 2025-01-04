@@ -3,14 +3,17 @@
 namespace App\Models\Material;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\Model\Translatable;
-use App\Models\Catalog\OptionTranslation;
-use App\Models\Catalog\Option;
-use App\Models\MasterData\Sale\OrderProductOption;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Traits\Model\ModelTrait;
+use App\Traits\Model\Translatable;
+use App\Models\Catalog\Option;
+use App\Models\Catalog\OptionTranslation;
+use App\Models\Catalog\OptionValue;
+use App\Models\MasterData\Sale\OrderProductOption;
 
 class ProductOption extends Model
 {
+    use ModelTrait;
     use Translatable;
     
     protected $guarded = [];
@@ -95,6 +98,17 @@ class ProductOption extends Model
     {
         return $this->belongsTo(Option::class);
     }
+
+    public function optionValues()
+    {
+        return $this->hasManyThrough(OptionValue::class, Option::class, 'id', 'option_id', 'option_id', 'id');
+    }
+
+    public function activeOptionValues()
+    {
+        return $this->hasManyThrough(OptionValue::class, Option::class, 'id', 'option_id', 'option_id', 'id')->where('is_active', 1);
+    }
+
 
     public function cachedOption()
     {

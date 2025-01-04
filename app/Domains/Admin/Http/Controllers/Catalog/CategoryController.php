@@ -196,27 +196,26 @@ class CategoryController extends BackendController
             $json['error']['warning'] = $this->lang->error_warning;
         }
 
-        if(!$json) {
-
-            $data['taxonomy_code'] = 'product_category';
-
-            $result = $this->CategoryService->saveCategory($data);
-
-            if(empty($result['error'])){
-                $json = [
-                    'category_id' => $result['term_id'],
-                    'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.catalog.categories.form', $result['term_id']),
-                ];
-            }else if(auth()->user()->username == 'admin'){
-                $json['warning'] = $result['error'];
-            }else{
-                $json['warning'] = $this->lang->text_fail;
-            }
+        // 以上驗證錯誤，400
+        if(!empty($json)) {
+            return response()->json($json, 400);
         }
-        
-        return response(json_encode($json))->header('Content-Type','application/json');
 
+        $result = $this->CategoryService->saveCategory($data);
+
+        // 執行錯誤，500
+        if(!empty($result['error'])){
+            return $this->getErrorResponse($result['error'], $this->lang->text_fail, 500);
+        }
+
+        // 執行成功 200
+        $json = [
+            'category_id' => $result['term_id'],
+            'success' => $this->lang->text_success,
+            'redirectUrl' => route('lang.admin.catalog.categories.form', $result['term_id']),
+        ];
+        
+        return response()->json($json, 200);
     }
 
 

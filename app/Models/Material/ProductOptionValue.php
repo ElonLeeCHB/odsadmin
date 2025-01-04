@@ -4,12 +4,14 @@ namespace App\Models\Material;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Traits\Model\ModelTrait;
 use App\Traits\Model\Translatable;
 use App\Models\Catalog\OptionValue;
 use App\Models\Catalog\OptionValueTranslation;
 
 class ProductOptionValue extends Model
 {
+    use ModelTrait;
     use Translatable;
     
     protected $guarded = [];

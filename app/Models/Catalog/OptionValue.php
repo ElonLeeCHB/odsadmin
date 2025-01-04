@@ -50,4 +50,12 @@ class OptionValue extends Model
             get: fn () => $this->translation->short_name ?? '',
         );
     }
+
+    /**
+     * scope
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', 1);
+    }
 }

@@ -14,12 +14,6 @@ class OptionRepository extends Repository
     public $modelName = "\App\Models\Catalog\Option";
 
 
-    public function __construct(protected OptionValueRepository $OptionValueRepository)
-    {
-        parent::__construct();
-    }
-
-
     public function getOptions($data=[], $debug = 0)
     {
         return $this->getRows($data, $debug);
@@ -34,7 +28,7 @@ class OptionRepository extends Repository
 
     public function getValues($data=[], $debug = 0)
     {
-        return $this->OptionValueRepository->getRows($data, $debug);
+        return (new OptionValueRepository)->getRows($data, $debug);
     }
 
 

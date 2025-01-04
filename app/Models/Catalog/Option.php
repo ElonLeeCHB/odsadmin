@@ -25,6 +25,11 @@ class Option extends Model
 
     public function option_values()
     {
+        return $this->optionValues();
+    }
+
+    public function optionValues()
+    {
         return $this->hasMany(OptionValue::class, 'option_id', 'id');
     }
 

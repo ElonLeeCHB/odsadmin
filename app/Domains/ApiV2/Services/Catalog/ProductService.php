@@ -32,7 +32,7 @@ class ProductService extends Service
                     ->toArray(),
             ];
 
-            return DataHelper::removeIndexRecursive('translation', $product);
+            return DataHelper::removeIndexesRecursive(['translation','translations'], $product);
         });
     }
 

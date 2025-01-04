@@ -82,6 +82,12 @@
                 <input type="text" name="code" value="{{ $option->code }}" placeholder="本欄請由開發人員修改" id="input-code" class="form-control">
               </div>
             </div>
+            <div class="row mb-3">
+              <label for="input-note" class="col-sm-2 col-form-label">備註</label>
+              <div class="col-sm-10">
+                <input type="text" id="input-note" name="note" value="{{ $option->note }}" placeholder="備註" class="form-control">
+              </div>
+            </div>
           </fieldset>
 
 

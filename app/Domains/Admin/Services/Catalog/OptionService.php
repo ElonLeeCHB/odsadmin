@@ -21,7 +21,7 @@ class OptionService extends Service
     }
 
 
-    public function updateOrCreate($data)
+    public function save($data)
     {
         DB::beginTransaction();
 
@@ -41,6 +41,7 @@ class OptionService extends Service
             $option->model = 'Product';
             $option->sort_order = $sort_order;
             $option->is_active = $is_active ?? '1';
+            $option->note = $note;
 
             $option->save();
 

@@ -22,6 +22,26 @@ class OrderPrintingController extends BackendController
 
         $data['orders'] = $this->OrderPrintingService->getPritingOrderList($order_ids);
 
+
+        // 潤餅便當的主餐 - 固定欄位
+        $data['lumpiaData']['MainMeal'] = $this->OrderPrintingService->getLumpiaBentoMainMeals();
+
+        // 潤餅便當副主餐 - 固定欄位
+        $data['lumpiaData']['SecondaryMainMeal'] = $this->OrderPrintingService->getLumpiasBentoSecondaryMainMeals();
+
+        // 潤餅盒餐的主餐 - 固定欄位
+        $data['lunchboxData']['MainMeal'] = $data['lumpiaData']['MainMeal'];
+
+        // 刈包便當副主餐 - 固定欄位
+        $data['guabaoBentoData']['SecondaryMainMeal'] = $data['lumpiaData']['SecondaryMainMeal'];
+
+        // 油飯盒副主餐 - 固定欄位
+        $data['oilRiceBoxData']['SecondaryMainMeal'] = $this->OrderPrintingService->getOilRiceBoxSecondaryMainMeals();
+
+        // 飲料 - 固定欄位
+        $data['drinkData'] = $this->OrderPrintingService->getDrinks();
+
+
         return view('admin.sale.print_orders', $data);
     }
 
