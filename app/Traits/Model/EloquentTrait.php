@@ -112,7 +112,7 @@ trait EloquentTrait
             return ['data' => $row]; // To make difference with 'error', 'data' is needed.
 
         } catch (\Exception $e) {
-            return ['error' => 'findIdOrFailOrNew: Please check for more details'];
+            return ['error' => 'findIdOrFailOrNew: ' . $e->getMessage()];
         }
     }
 

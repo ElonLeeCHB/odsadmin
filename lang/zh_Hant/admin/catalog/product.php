@@ -21,8 +21,9 @@ return [
 'column_is_active' => '是否啟用',
 'column_is_salable' => '可否銷售',
 'column_is_web_product' => '官網銷售', //跟上面的相近，但上面包含內部系統打單，本欄明確表示可於官網下訂。有些商品只允許內部人員下訂，官網不出現。
-'column_full_name' => '產品全稱',
 'column_short_name' => '產品簡稱',
+'column_full_name' => '產品全稱',
+'column_web_name' => '網站商品名稱',
 'column_description' => '詳細介紹',
 'column_meta_title' => 'Meta Tag 標籤',
 'column_meta_keyword' => 'Meta Tag 關鍵字',

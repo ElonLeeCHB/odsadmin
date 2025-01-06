@@ -45,12 +45,18 @@ class ProductService extends Service
                 $product->comment = $data['comment'] ?? '';
                 $product->is_active = (int) $data['is_active'] ?? 0;
                 $product->is_salable = (int) $data['is_salable'] ?? 0;
+                $product->is_on_web = (int) $data['is_on_web'] ?? 0;
                 $product->sort_order = $data['sort_order'] ?? 999;
                 $product->save();
             //
 
+            // echo "<pre>",print_r($data,true),"</pre>";exit;
+
+
             // product_metas
-                $meta_keys = ['web_name', 'is_web_product'];
+                //不能在這裡刪除其它 meta key, 比如 商料件名稱 supplier_product_name 不會出現在這裡。
+                //$meta_keys = $product->meta_keys;
+                $meta_keys = ['is_web_product'];
                 $metas_query = ProductMeta::where('product_id', $product->id)->whereIn('meta_key', $meta_keys);
 
                 // 取出後刪除
@@ -72,6 +78,7 @@ class ProductService extends Service
                         ];
                     }
                 }
+
                 if(!empty($upsertData)){
                     ProductMeta::upsert($upsertData, ['user_id','meta_key']);
                 }

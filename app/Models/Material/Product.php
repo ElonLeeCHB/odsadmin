@@ -23,15 +23,16 @@ class Product extends Model
 
     protected $guarded = [];
     protected $appends = ['code', 'name'];
-    public $translation_keys = ['name', 'full_name','short_name','specification','meta_title','meta_description','meta_keyword',];
+    public $translation_keys = ['name', 'short_name','web_name' , 'specification','meta_title','meta_description','meta_keyword',
+                                //以下待廢
+                                'full_name'
+                                ];
 
     public $meta_keys = [
         'supplier_own_product_code',
         'supplier_own_product_name',
         'supplier_own_product_specification',
         'temperature_type_code',
-        'web_product_name',
-        'is_web_product', //1, 0
     ];
 
     protected $casts = [

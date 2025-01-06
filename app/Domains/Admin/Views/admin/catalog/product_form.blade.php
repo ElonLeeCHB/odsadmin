@@ -54,15 +54,6 @@
                       </div>
                     </div>
                     <div class="row mb-3 ">
-                      <label for="input-full_name-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_full_name }}</label>
-                      <div class="col-sm-10">
-                        <div class="input-group">
-                          <input type="text" name="translations[{{ $language->code }}][full_name]" value="{{ $translations[$language->code]['full_name'] ?? ''  }}" placeholder="{{ $lang->column_full_name }}" id="input-name-{{ $language->code }}" class="form-control">
-                                                  </div>
-                        <div id="error-full_name-{{ $language->code }}" class="invalid-feedback"></div>
-                      </div>
-                    </div>
-                    <div class="row mb-3 ">
                       <label for="input-short_name-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_short_name }}</label>
                       <div class="col-sm-10">
                         <div class="input-group">
@@ -71,7 +62,15 @@
                         <div id="error-short_name-{{ $language->code }}" class="invalid-feedback"></div>
                       </div>
                     </div>
-
+                    <div class="row mb-3 ">
+                      <label for="input-web_name-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_web_name }}</label>
+                      <div class="col-sm-10">
+                        <div class="input-group">
+                          <input type="text" name="translations[{{ $language->code }}][web_name]" value="{{ $translations[$language->code]['web_name'] ?? ''  }}" placeholder="{{ $lang->column_web_name }}" id="input-name-{{ $language->code }}" class="form-control">
+                        </div>
+                        <div id="error-web_name-{{ $language->code }}" class="invalid-feedback"></div>
+                      </div>
+                    </div>
                     <div class="row mb-3">
                       <label for="input-meta-title-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_meta_title }}</label>
                       <div class="col-sm-10">
@@ -166,9 +165,9 @@
                   <label class="col-sm-2 col-form-label">官網銷售</label>
                   <div class="col-sm-10">
                     <div class="input-group">
-                      <div id="input-is_web_product" class="form-check form-switch form-switch-lg">
-                        <input type="hidden" name="is_web_product" value="0"/>
-                        <input type="checkbox" name="is_web_product" value="1" class="form-check-input" @if($product->is_web_product) checked @endif/>
+                      <div id="input-is_on_web" class="form-check form-switch form-switch-lg">
+                        <input type="hidden" name="is_on_web" value="0"/>
+                        <input type="checkbox" name="is_on_web" value="1" class="form-check-input" @if($product->is_on_web) checked @endif/>
                       </div>
                     </div>
                     <div class="form-text">可以用於官網銷售。如果本欄未開，則官網不出現。官網要能下訂，必須【可否銷售】、【官網銷售】、【是否啟用】三欄同時開啟。 </div>
@@ -334,6 +333,7 @@
                           <table class="table table-bordered table-hover">
                             <thead>
                               <tr>
+                                <td>POVID</td>
                                 <td class="text-start">{{ $lang->column_option_value }}</td>
                                 <td class="text-start">{{ $lang->column_is_default }}</td>
                                 <td class="text-start">預設數量</td>
@@ -347,6 +347,7 @@
 
                               @foreach($product_option->product_option_values as $product_option_value)
                                 <tr id="option-value-row-{{ $option_value_row }}">
+                                  <td>{{ $product_option_value->product_option_value_id }}</td>
                                   <td class="text-start">{{ $product_option_value->name }}
                                     <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][option_value_id]" value="{{ $product_option_value->option_value_id }}"/>
                                     <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][product_option_value_id]" value="{{ $product_option_value->product_option_value_id }}"/>
@@ -626,6 +627,7 @@
       html += '      	   <select name="option_value_id" id="input-modal-option-value" class="form-select">';
 
       option_value = $('#product-option-values-' + $(element).attr('data-option-row') + ' option');
+      html += '<option selected="selected">-- 請選擇 --</option>';
 
       for (i = 0; i < option_value.length; i++) {
           if ($(element).attr('data-option-value-row') && $(option_value[i]).val() == $('input[name=\'product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][option_value_id]\']').val()) {

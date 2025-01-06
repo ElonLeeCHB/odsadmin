@@ -199,7 +199,15 @@ class ProductController extends BackendController
         $data['back'] = route('lang.admin.catalog.products.index', $queries);
 
         // Get Record
-        $result = $this->ProductService->findIdOrFailOrNew($product_id);
+        $params = [
+            'with' => [
+                        'product_options.translation',
+                        'product_options.product_option_values.translation',
+                        'product_options.option.translation',
+                        'product_options.option.option_values.translation',
+                      ],
+        ];
+        $result = $this->ProductService->findIdOrFailOrNew($product_id, $params);
 
         if(!empty($result['data'])){
             $product = $result['data'];
@@ -229,14 +237,6 @@ class ProductController extends BackendController
             }
         }
         $data['translations'] = $translations;
-
-        // product_options
-        $product->load('product_options.translation');
-        $product->product_options->load('product_option_values.translation');
-
-        //為避免 lazy load，所以先 eager load
-        $product->product_options->load('option.translation');
-        $product->product_options->load('option.option_values.translation');
 
         if($product->product_options->isEmpty()){
             $data['product_options'] = [];
@@ -288,8 +288,8 @@ class ProductController extends BackendController
         foreach ($product->product_options as $product_option) {
             $option = $product_option->option;
             if ($option->type == 'options_with_qty' || $option->type == 'select' || $option->type == 'radio' || $option->type == 'checkbox' || $product_option->type == 'image') {
-                if (!isset($data['option_values'][$option->id])) { //避免重複。但是實際上是否有可能一個商品拉兩個顏色組？
-                    $data['option_values'][$option->id] = $option->option_values->where('is_active',1);
+                if (!isset($data['option_values'][$option->id])) { //避免重複。
+                    $data['option_values'][$option->id] = $option->option_values->where('is_active',1)->sortBy('sort_order');
                 }
             }
         }
@@ -376,15 +376,16 @@ class ProductController extends BackendController
         }
 
         // 以上驗證錯誤，400
+        // opencart 的後台 common.js 必須一律收到 200 才能處理。這個暫時不改
         if(!empty($json)) {
-            return response()->json($json, 400);
+            return response()->json($json, 200);
         }
 
         $result = $this->ProductService->save($data);
 
         // 執行錯誤，500
         if(!empty($result['error'])){
-            return $this->getErrorResponse($result['error'], $this->lang->text_fail, 500);
+            return $this->getErrorResponse($result['error'], $this->lang->text_fail, 200);
         }
 
         // 執行成功 200

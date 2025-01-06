@@ -630,45 +630,33 @@
                     <td style="border-right:3px solid black"></td>
                     <td>
                     @if(!empty($order_product['drink']['option_values']['1023']))
-                    @if(!empty($order_product['drink']['option_values']['1023']['name']==='微豆'))
-                  {{ $order_product['drink']['option_values']['1023']['quantity']}}
-                  @endif
-                  @endif
+                    {{ $order_product['drink']['option_values']['1023']['quantity']}}
+                    @endif
                     </td>
                     <td>
                     @if(!empty($order_product['drink']['option_values']['1024']))
-                    @if(!empty($order_product['drink']['option_values']['1024']['name']==='無豆'))
-                  {{ $order_product['drink']['option_values']['1024']['quantity']}}
-                  @endif
-                  @endif
+                    {{ $order_product['drink']['option_values']['1024']['quantity']}}
+                    @endif
                     </td>
                     <td>
                     @if(!empty($order_product['drink']['option_values']['1025']))
-                    @if(!empty($order_product['drink']['option_values']['1025']['name']==='紅茶'))
-                  {{ $order_product['drink']['option_values']['1025']['quantity']}}
-                  @endif
-                  @endif
+                    {{ $order_product['drink']['option_values']['1025']['quantity']}}
+                    @endif
                     </td>
                     <td>
                     @if(!empty($order_product['drink']['option_values']['1026']))
-                    @if(!empty($order_product['drink']['option_values']['1026']['name']==='奶茶'))
-                  {{ $order_product['drink']['option_values']['1026']['quantity']}}
-                  @endif
-                  @endif
+                    {{ $order_product['drink']['option_values']['1026']['quantity']}}
+                    @endif
                     </td>
                     <td>
                     @if(!empty($order_product['drink']['option_values']['1027']))
-                    @if(!empty($order_product['drink']['option_values']['1027']['name']==='濃湯'))
-                  {{ $order_product['drink']['option_values']['1027']['quantity']}}
-                  @endif
-                  @endif
+                    {{ $order_product['drink']['option_values']['1027']['quantity']}}
+                    @endif
                     </td>
                     <td>
                     @if(!empty($order_product['drink']['option_values']['1028']))
-                    @if(!empty($order_product['drink']['option_values']['1028']['name']==='季節甜品'))
-                  {{ $order_product['drink']['option_values']['1028']['quantity']}}
-                  @endif
-                  @endif
+                    {{ $order_product['drink']['option_values']['1028']['quantity']}}
+                    @endif
                     </td>
 
 
@@ -1992,7 +1980,7 @@
       接單人員:__________
       @endif
       <br>
-      <div class="fw-bold"  style="text-align: right;margin-right: 1.5em">{{'製單時間：'}}{{ now() }}</div>
+      <div class="fw-bold"  style="text-align: right;margin-right: 1.5em">{{'製單時間：'}}{{ $order['order']->now }}</div>
     </div>
 
 

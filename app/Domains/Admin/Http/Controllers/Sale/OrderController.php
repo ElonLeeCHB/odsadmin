@@ -910,6 +910,10 @@ class OrderController extends BackendController
 
         $order = $this->OrderService->getRow($filter_data);
 
+        if(empty($order)){
+            return [];
+        }
+
         $order->address = '';
         if(!empty($order->shipping_state->name)){
             $order->address .= $order->shipping_state->name;
@@ -1208,7 +1212,10 @@ class OrderController extends BackendController
         } else {
             // 如果不是数组，处理单个订单
             $ordersData[] = $this->getPrintingData($order_ids,$print_status);
+        }
 
+        if(empty($ordersData[0])){
+            return response()->json(['error' => '訂單不存在'], 400);
         }
 
         return view('admin.sale.print_receive_form_a4', ['orders' => $ordersData]);
