@@ -7,12 +7,12 @@ use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\ValidationException;
-use App\Http\Controllers\Controller;
+use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
 use Laravel\Sanctum\PersonalAccessToken;
 use Carbon\Carbon;
 use App\Models\User\User;
 
-class LoginController extends Controller
+class LoginController extends ApiPosController
 {
     /*
     |--------------------------------------------------------------------------
@@ -45,8 +45,7 @@ class LoginController extends Controller
             if ($user && Hash::check($credentials['password'], $user->password)) {
 
                 $permissions = $user->permissions()->where('name', 'like', 'pos.%')->pluck('name')->toArray();
-
-                $plainTextToken = $user->createToken('pos', [$permissions], now()->addDay())->plainTextToken;
+                $plainTextToken = $user->createToken('pos')->plainTextToken;
 
                 //更新用戶端識別碼
                 $ip = $request->ip();
@@ -77,9 +76,10 @@ class LoginController extends Controller
                 return response()->json($json, 200);
             }
             
+            return response()->json(['error' => '帳號或密碼錯誤！'], 400);         
 
         } catch (\Exception $ex) {
-            return response()->json(['error' => '帳號或密碼錯誤！'], 403);
+            return $this->getErrorResponse($ex->getMessage(), '發生未知錯誤！', 500);
         }
 
         // //testman

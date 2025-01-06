@@ -50,8 +50,6 @@ class ProductService extends Service
                 $product->save();
             //
 
-            // echo "<pre>",print_r($data,true),"</pre>";exit;
-
 
             // product_metas
                 //不能在這裡刪除其它 meta key, 比如 商料件名稱 supplier_product_name 不會出現在這裡。

@@ -58,11 +58,13 @@ class UserService extends Service
                 $user->email = $data['email'];
             }
 
+            if(isset($data['is_admin'])){
+                $user->is_admin = $data['is_admin'];
+            }
+
             if(!empty($data['password'])){
                 $user->password = Hash::make($data['password']);
             }
-
-            //$user->is_admin = $data['is_admin'] ?? 0;
             
             if($user->isDirty()){
                 $user->save();

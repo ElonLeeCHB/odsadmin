@@ -14,30 +14,28 @@ class ProductService extends Service
 
     public $modelName = "\App\Models\Catalog\Product";
 
-    public function getInfo($product_id)
+    public function getInfo($params)
     {
-        $cache_key = 'cache/locale/'. app()->getLocale().'/product_' . $product_id;
+        $product = $this->getRow($params);
 
-        return DataHelper::remember($cache_key, 60*60, 'json', function() use ($product_id){
+        if(empty($product)){
+            return [];
+        }
 
-            $product = $this->getRow([
-                'equal_id' => $product_id,
-                'with' => ['product_options.product_option_values'],
-            ]);
+        $product->web_name = $product->translation->web_name;
 
-            // 重構選項並合併到產品數據
-            $product = [
-                ...$product->toArray(),
-                'product_options' => $product->product_options
-                    ->sortBy('sort_order')
-                    ->keyBy('option_code')
-                    ->toArray(),
-            ];
+        // 重構選項並合併到產品數據
+        $product = [
+            ...$product->toArray(),
+            'product_options' => $product->product_options
+                ->sortBy('sort_order')
+                ->keyBy('option_code')
+                ->toArray(),
+        ];
 
-            RowsArrayHelper::removeTranslation($product);
-            
-            return $product;
-        });
+        RowsArrayHelper::removeTranslation($product);
+        
+        return $product;
     }
 
     /**

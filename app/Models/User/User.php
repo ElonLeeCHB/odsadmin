@@ -57,8 +57,7 @@ class User extends Authenticatable
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
 
-    // is_admin 必須 appends，會用在後台的 IsAdmin middleware 做判斷。
-    protected $appends = ['is_admin'];
+    protected $appends = [];
 
     public $meta_keys = [
     ];

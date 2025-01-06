@@ -22,23 +22,40 @@ class ProductController extends ApiWwwV2Controller
     {
         $filter_data = $this->url_data;
 
-        $filter_data['select'] = ['id', 'code', 'model', 'name'];
+        $filter_data['select'] = ['id', 'code', 'name', 'price'];
+
+        $filter_data['equal_is_on_web'] = 1;
 
         $rows = $this->ProductService->getList($filter_data);
 
+        foreach ($rows as $row) {
+            $row->web_name = $row->translation->web_name;
+        }
+
         $json = [];
 
-        $json = DataHelper::getArrayDataByPaginatorOrCollection($rows);
-
-        $json = DataHelper::unsetArrayIndexRecursively($json, ['translation', 'translations']);
+        $json = DataHelper::unsetArrayIndexRecursively($rows->toArray(), ['translation', 'translations']);
 
         return $this->sendResponse($json);
     }
     
     public function info($product_id)
     {
-        $product = $this->ProductService->getInfo($product_id);
+        $filter_data = $this->url_data;
 
-        return $this->sendResponse(['data' => $product]);
+        
+        $filter_data['equal_id'] = $product_id;
+        $filter_data['select'] = ['id', 'code', 'name', 'price'];
+        $filter_data['with'] = ['product_options.translation',
+                                'product_options.product_option_values.translation'];
+
+        $product = $this->ProductService->getInfo($filter_data);
+
+        if(empty($product)){
+            $json['error'] = '找不到商品';
+        }else{
+            $json['data'] = $product;
+        }
+        return $this->sendResponse($json);
     }
 }

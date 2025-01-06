@@ -56,16 +56,17 @@ class ProductOptionValue extends Model
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->name ?? '',
+            get: fn () => optional($this->translation)->name ?? '',
         );
     }
 
     protected function shortName(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->short_name,
+            get: fn () => optional($this->translation)->short_name ?? '',
         );
     }
+
 
     protected function quantity(): Attribute
     {

@@ -462,5 +462,7 @@ class ProductRepository extends Repository
 
         return Excel::download(new CommonExport($data), 'inventory_products.xlsx');
     }
+
+
 }
 

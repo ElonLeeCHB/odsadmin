@@ -51,7 +51,7 @@ class LoginController extends Controller
 
         if (auth()->attempt([$field => $credentials['username'], 'password' => $credentials['password']])) {
             $user = auth()->user();
-            $token = $user->createToken('apiv2')->plainTextToken;
+            $token = $user->createToken('api')->plainTextToken;
             return response()->json(['token' => $token], 200);
         }
 

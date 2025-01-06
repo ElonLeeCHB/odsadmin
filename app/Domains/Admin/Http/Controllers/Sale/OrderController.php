@@ -70,7 +70,6 @@ class OrderController extends BackendController
 
         $data['breadcumbs'] = (object)$breadcumbs;
 
-        //$data['order_statuses'] = $this->OrderService->getCachedActiveOrderStatuses();
         $data['order_statuses'] = $this->OrderService->getCodeKeyedTermsByTaxonomyCode('order_status', toArray:false);
 
         $data['states'] = $this->DivisionService->getStates();
@@ -347,7 +346,6 @@ class OrderController extends BackendController
         //$data['shipping_method'] = $order->shipping_method ?? 'shipping_pickup';
         $data['shipping_method'] = $order->shipping_method ?? '';
 
-        //$data['order_statuses'] = $this->OrderService->getCachedActiveOrderStatuses();
         $data['order_statuses'] = $this->OrderService->getCodeKeyedTermsByTaxonomyCode('order_status', toArray:false);
 
         //$data['status_id'] = $order->status_id ?? '101';

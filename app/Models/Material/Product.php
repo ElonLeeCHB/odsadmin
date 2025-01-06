@@ -164,6 +164,13 @@ class Product extends Model
         );
     }
 
+    protected function webName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->translation->web_name ?? '',
+        );
+    }
+
     protected function description(): Attribute
     {
         return Attribute::make(
@@ -223,64 +230,70 @@ class Product extends Model
      */
     public function getCacheKey($product_id)
     {
-        return 'cache/locale/'. app()->getLocale().'/product-' . $product_id . '.serialized.txt';
+        if(!empty($product_id)){
+            return 'cache/locales/' . app()->getLocale() . '/productsById/' . $product_id  . '.json';
+        }
+
+        return '';
     }
 
     public function getCache($product_id)
     {
-        $product = DataHelper::getDataFromStorage($this->getCacheKey($product_id));
+        $cache_key = $this->getCacheKey($product_id);
 
-        if(!empty($product)){
-            return $product;
+        if(empty($cache_key)){
+            return [];
         }
         
-        return DataHelper::remember($this->getCacheKey($product_id), 60*60, 'serialize', function() use ($product_id){
-            $product = self::with('translation')->with('product_options.product_option_values')->find($product_id);
-            $product = self::find($product_id);
+        $product =  DataHelper::remember($this->getCacheKey($product_id), 60*60, 'json', function() use ($product_id){
+
+            $product = self::with('translations')
+                ->with('product_options.translation')
+                ->with('product_options.product_option_values.translation')->find($product_id);
 
             if(empty($product)){
                 return [];
             }
                 
+            // foreach ($product->translation_keys ?? [] as $translation_key) {
+            //     if(!empty($product->translation->{$translation_key})){
+            //         $product->{$translation_key} = $product->translation->{$translation_key};
+            //     }else{
+            //         $product->{$translation_key} = '';
+            //     }
+            // }
+
+            // 重構選項並合併到產品數據
+            $product = [
+                ...$product->toArray(),
+                'product_options' => $product->product_options
+                                        ->sortBy('sort_order')
+                                        ->keyBy('option_code')
+                                        ->toArray(),
+                'translation_keys' => $product->translation_keys,
+            ];
+
+            return $product;
+        });
+
+        $locale = app()->getLocale();
+
+        
+        $product['translations'] = collect($product['translations'])->keyBy('locale');
+
+        foreach ($product['translations'][$locale] as $trans) {
             foreach ($product->translation_keys ?? [] as $translation_key) {
-                
-                if(!empty($product->translation->{$translation_key})){
-                    $product->{$translation_key} = $product->translation->{$translation_key};
+                if(!empty($trans[$translation_key])){
+                    $product[$translation_key] = $trans[$translation_key];
+                }else{
+                    $product[$translation_key] = '';
                 }
             }
+        }
 
-            // 重構選項並合併到產品數據
-            $product = [
-                ...$product->toArray(),
-                'product_options' => $product->product_options
-                    ->sortBy('sort_order')
-                    ->keyBy('option_code')
-                    ->toArray(),
-            ];
+        unset($product['translation_keys']);
 
-            return DataHelper::unsetArrayIndexRecursively($product, ['translation', 'translations']);
-        });
-    }
-
-    public function updateCache($product)
-    {
-        $this->deleteCache($product->id);
-
-        return DataHelper::remember($this->getCacheKey($product->id), 60*60, 'serialize', function() use ($product){
-            $product->load('translation');
-            $product->load('product_options.product_option_values');
-
-            // 重構選項並合併到產品數據
-            $product = [
-                ...$product->toArray(),
-                'product_options' => $product->product_options
-                    ->sortBy('sort_order')
-                    ->keyBy('option_code')
-                    ->toArray(),
-            ];
-
-            return DataHelper::unsetArrayIndexRecursively($product, ['translation', 'translations']);
-        });
+        return DataHelper::unsetArrayIndexRecursively($product, ['translation', 'translations']);
     }
 
     public function deleteCache($product_id)

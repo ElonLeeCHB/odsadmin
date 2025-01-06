@@ -83,10 +83,10 @@ class UserController extends BackendController
         // Prepare queries for records
         $query_data = $this->resetUrlData($this->request->query());
 
-        if(isset($query_data['equal_is_admin']) && $query_data['equal_is_admin'] == 0){
-            $query_data['whereDoesntHave']['metas'] = ['is_admin' => 1];
-            unset($query_data['equal_is_admin']);
-        }
+        // if(isset($query_data['equal_is_admin']) && $query_data['equal_is_admin'] == 0){
+        //     $query_data['whereDoesntHave']['metas'] = ['is_admin' => 1];
+        //     unset($query_data['equal_is_admin']);
+        // }
 
 
         // Rows

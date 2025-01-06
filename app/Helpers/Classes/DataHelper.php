@@ -30,7 +30,7 @@ class DataHelper
     public static function unsetArrayIndexRecursively($array, $unset_keys): Array
     {
         foreach ($array as $key => &$value) {
-            if (is_array($value)) {
+            if (is_array($value) || is_object($value)) {
                 if (in_array($key, $unset_keys)) {
                     unset($array[$key]);
                 } else {
@@ -232,7 +232,6 @@ class DataHelper
         public static function remember($key, $seconds, $type, $callback)
         {
             try{
-
                 $data = self::getDataFromStorage($key, $type);
 
                 if (empty($data)) {
@@ -250,8 +249,6 @@ class DataHelper
 
         public static function saveDataToStorage($path, $data, $seconds = 0, $type = 'serialize')
         {
-
-
             try{
                 if (Storage::exists($path)) {
                     Storage::delete($path);
@@ -286,7 +283,7 @@ class DataHelper
         {
             try{
                 if (Storage::exists($path)) {
-
+                    
                     $expires_at = '';
 
                     if($type == 'json' && !empty($result->expires_at)){

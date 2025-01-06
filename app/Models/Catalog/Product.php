@@ -16,6 +16,8 @@ use App\Models\Inventory\Bom;
 use App\Models\Inventory\BomProduct;
 use App\Models\Counterparty\Organization;
 use App\Repositories\Eloquent\Common\TermRepository;
+use Illuminate\Support\Facades\Storage;
+use App\Helpers\Classes\DataHelper;
 
 class Product extends Model
 {
@@ -215,12 +217,59 @@ class Product extends Model
     
 
     /**
-     * 
+     * cache
+     * 可能不實用。如果還要選擇欄位。
      */
-    public function updateCache($product_id, $product)
-     {
-         $cachePath = storage_path("cache/product-{$product_id}.serialized.txt");
-         file_put_contents($cachePath, serialize($product));
-     }
+    public function getCacheKey()
+    {
+        return 'cache/locales/' + app()->getLocale() + '/productsById/' . $this->attributes['id']  . '.json';
+    }
+
+    public function getCache($product_id)
+    {
+        $product = DataHelper::getDataFromStorage($this->getCacheKey($product_id));
+        
+
+        if(!empty($product)){
+            return $product;
+        }
+        
+        return DataHelper::remember($this->getCacheKey($product_id), 60*60, 'json', function() use ($product_id){
+            $product = self::with('translation')
+                ->with('product_options.translation')
+                ->with('product_options.product_option_values.translation')->find($product_id);
+            $product = self::find($product_id);
+
+            if(empty($product)){
+                return [];
+            }
+                
+            foreach ($product->translation_keys ?? [] as $translation_key) {
+                if(!empty($product->translation->{$translation_key})){
+                    $product->{$translation_key} = $product->translation->{$translation_key};
+                }else{
+                    $product->{$translation_key} = '';
+                }
+            }
+
+            // 重構選項並合併到產品數據
+            $product = [
+                ...$product->toArray(),
+                'product_options' => $product->product_options
+                    ->sortBy('sort_order')
+                    ->keyBy('option_code')
+                    ->toArray(),
+            ];
+
+            return DataHelper::unsetArrayIndexRecursively($product, ['translation', 'translations']);
+        });
+    }
+
+    public function deleteCache($product_id)
+    {
+        if (Storage::exists($this->getCacheKey($product_id))) {
+            Storage::delete($this->getCacheKey($product_id));
+        }
+    }
 
 }
