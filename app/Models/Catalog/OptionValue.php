@@ -13,14 +13,14 @@ class OptionValue extends Model
     use ModelTrait;
 
     protected $guarded = [];
-    protected $appends = ['name','short_name','option_value_id'];
+    protected $appends = ['name','short_name','web_name','option_value_id'];
     protected $casts = [
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
-    // protected $with = ['translation'];
+    protected $with = ['translation'];
 
-    public $translation_keys = ['name','short_name'];
+    public $translation_keys = ['name','short_name','web_name'];
 
 
     //選項值對應的商品代號
@@ -49,6 +49,13 @@ class OptionValue extends Model
     {
         return Attribute::make(
             get: fn () => $this->translation->short_name ?? '',
+        );
+    }
+
+    protected function webName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->translation->web_name ?? '',
         );
     }
 

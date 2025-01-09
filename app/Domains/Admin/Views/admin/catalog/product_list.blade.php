@@ -8,6 +8,7 @@
           <td class="text-center" style="width: 1px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></td>
           <td class="text-end"><a href="{{ $sort_id }}" @if($sort=='id') class="{{ $order }}" @endif>{{ $lang->column_id }}</a></td>
           <td class="text-start"><a href="{{ $sort_name }}" @if($sort=='name') class="{{ $order }}" @endif>{{ $lang->column_name }}</a></td>
+          <td class="text-start">{{ $lang->column_web_name }}</td>
           <td class="text-start"><a href="{{ $sort_price }}" @if($sort=='price') class="{{ $order }}" @endif>{{ $lang->column_price }}</a></td>
           <td class="text-start"><a href="{{ $sort_main_category_id }}" @if($sort=='main_category_id') class="{{ $order }}" @endif>{{ $lang->column_main_category }}</a></td>
           <td class="text-start">{{ $lang->column_is_salable }}</td>
@@ -21,6 +22,7 @@
           <td class="text-center"><input type="checkbox" name="selected[]" value="{{ $row->id }}" class="form-check-input"/></td>
           <td class="text-end">{{ $row->id }}</td>
           <td class="text-start">{{ $row->name }}</td>
+          <td class="text-start">{{ $row->web_name }}</td>
           <td class="text-start">{{ $row->price }}</td>
           <td class="text-start">{{ $row->main_category_name }}</td>
           <td class="text-start">@if($row->is_salable)

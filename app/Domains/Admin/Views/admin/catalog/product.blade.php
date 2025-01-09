@@ -21,53 +21,53 @@
     </div>
   </div>
   <div class="container-fluid">
-  <div class="row">
-    <div id="filter-product" class="col-lg-3 col-md-12 order-lg-last d-none d-lg-block mb-3">
-    <form id="filter-form">
-    <div class="card">
-      <div class="card-header"><i class="fas fa-filter"></i> {{ $lang->button_filter }}</div>
-      <div class="card-body">
+    <div class="row">
+      <div id="filter-product" class="col-lg-3 col-md-12 order-lg-last d-none d-lg-block mb-3">
+        <form id="filter-form">
+        <div class="card">
+          <div class="card-header"><i class="fas fa-filter"></i> {{ $lang->button_filter }}</div>
+          <div class="card-body">
 
-        <div class="mb-3">
-          <label class="form-label">{{ $lang->column_name }}</label>
-          <input type="text" id="input-filter_name" name="filter_name" value="" placeholder="{{ $lang->column_name }}" list="list-name" class="form-control"/>
-          <datalist id="list-name"></datalist>
+            <div class="mb-3">
+              <label class="form-label">{{ $lang->column_name }}</label>
+              <input type="text" id="input-filter_name" name="filter_name" value="" placeholder="{{ $lang->column_name }}" list="list-name" class="form-control"/>
+              <datalist id="list-name"></datalist>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ $lang->column_category }}</label>
+              <select name="filter_main_category_id" id="input-filter_main_category_id" class="form-select">
+                <option value="">{{ $lang->text_please_choose }}</option>
+                @foreach($categories as $category)
+                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                @endforeach
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ $lang->column_is_active }}</label>
+              <select name="equal_is_active" id="input-equal_is_active" class="form-select">
+                <option value="*">{{ $lang->text_select }}</option>
+                <option value="1" selected>{{ $lang->text_yes }}</option>
+                <option value="0">{{ $lang->text_no }}</option>
+              </select>
+            </div>
+
+            <div class="text-end">
+              <button type="reset" id="button-clear" class="btn btn-light"><i class="fa fa-refresh" aria-hidden="true"></i> {{ $lang->button_reset }}</button>
+              <button type="button" id="button-filter" class="btn btn-light"><i class="fa-solid fa-filter"></i> {{ $lang->button_filter }}</button>
+            </div>
+          </div>
         </div>
-
-        <div class="mb-3">
-          <label class="form-label">{{ $lang->column_category }}</label>
-          <select name="filter_main_category_id" id="input-filter_main_category_id" class="form-select">
-            <option value="">{{ $lang->text_select }}</option>
-            @foreach($categories as $category)
-            <option value="{{ $category->id }}">{{ $category->name }}</option>
-            @endforeach
-          </select>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">{{ $lang->column_is_active }}</label>
-          <select name="equal_is_active" id="input-equal_is_active" class="form-select">
-            <option value="*">{{ $lang->text_select }}</option>
-            <option value="1" selected>{{ $lang->text_yes }}</option>
-            <option value="0">{{ $lang->text_no }}</option>
-          </select>
-        </div>
-
-        <div class="text-end">
-          <button type="reset" id="button-clear" class="btn btn-light"><i class="fa fa-refresh" aria-hidden="true"></i> {{ $lang->button_reset }}</button>
-          <button type="button" id="button-filter" class="btn btn-light"><i class="fa-solid fa-filter"></i> {{ $lang->button_filter }}</button>
+        </form>
+      </div>
+      <div class="col-lg-9 col-md-12">
+        <div class="card">
+          <div class="card-header"><i class="fas fa-list"></i> {{ $lang->text_list }}</div>
+          <div id="product" class="card-body">{!! $list !!}</div>
         </div>
       </div>
     </div>
-    </form>
-    </div>
-    <div class="col-lg-9 col-md-12">
-    <div class="card">
-      <div class="card-header"><i class="fas fa-list"></i> {{ $lang->text_list }}</div>
-      <div id="product" class="card-body">{!! $list !!}</div>
-    </div>
-    </div>
-  </div>
   </div>
 </div>
 

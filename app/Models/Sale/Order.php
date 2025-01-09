@@ -16,11 +16,14 @@ use App\Models\Catalog\OptionValue;
 use App\Models\Common\Term;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Traits\Model\ModelTrait;
+use App\Traits\Model\FilterTrait;
 use DateTimeInterface;
+
 
 class Order extends Model
 {
     use ModelTrait;
+    use FilterTrait;
 
     // 官網指示這樣寫
     use \Staudenmeir\EloquentHasManyDeep\HasRelationships;

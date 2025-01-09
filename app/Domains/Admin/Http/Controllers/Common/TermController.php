@@ -30,7 +30,7 @@ class TermController extends BackendController
         ];
         
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_product,
+            'text' => '通用設定',
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
@@ -65,10 +65,11 @@ class TermController extends BackendController
 
         // Rows
         //$terms = $this->TermService->getRows($queries);
-        $terms = $this->TermService->getTerms($queries);
+        $terms = $this->TermService->getTerms($this->url_data);
 
         foreach ($terms as $row) {
             $row->edit_url = route('lang.admin.common.terms.form', array_merge([$row->id], $queries));
+            $row->parent_name = optional($row->parent)->name;
         }
         $data['terms'] = $terms->withPath(route('lang.admin.common.terms.list'))->appends($queries);
 
@@ -100,6 +101,7 @@ class TermController extends BackendController
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_sort_order'] = $route . "?sort=sort_order&order=$order" .$url;
         $data['sort_short_name'] = $route . "?sort=short_name&order=$order" .$url;
+        $data['sort_parent_name'] = $route . "?sort=parent_name&order=$order" .$url;
         $data['sort_taxonomy_name'] = $route . "?sort=taxonomy_name&order=$order" .$url;
         
         $data['list_url'] = route('lang.admin.common.terms.list');

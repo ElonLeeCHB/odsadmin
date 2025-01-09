@@ -20,9 +20,42 @@
     </div>
   </div>
   <div class="container-fluid">
-    <div class="card">
-      <div class="card-header"><i class="fas fa-list"></i> {{ $lang->text_list }}</div>
-      <div id="option" class="card-body">{!! $list !!}</div>
+    <div class="row">
+      <div id="filter-product" class="col-lg-3 col-md-12 order-lg-last d-none d-lg-block mb-3">
+        <form id="filter-form">
+        <div class="card">
+          <div class="card-header"><i class="fas fa-filter"></i> {{ $lang->button_filter }}</div>
+          <div class="card-body">
+
+            <div class="mb-3">
+              <label class="form-label">{{ $lang->column_name }}</label>
+              <input type="text" id="input-filter_name" name="filter_name" value="" placeholder="{{ $lang->column_name }}" list="list-name" class="form-control"/>
+              <datalist id="list-name"></datalist>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ $lang->column_is_active }}</label>
+              <select name="equal_is_active" id="input-equal_is_active" class="form-select">
+                <option value="*">{{ $lang->text_please_choose }}</option>
+                <option value="1" selected>{{ $lang->text_yes }}</option>
+                <option value="0">{{ $lang->text_no }}</option>
+              </select>
+            </div>
+
+            <div class="text-end">
+              <button type="reset" id="button-clear" class="btn btn-light"><i class="fa fa-refresh" aria-hidden="true"></i> {{ $lang->button_reset }}</button>
+              <button type="button" id="button-filter" class="btn btn-light"><i class="fa-solid fa-filter"></i> {{ $lang->button_filter }}</button>
+            </div>
+          </div>
+        </div>
+        </form>
+      </div>
+      <div class="col-lg-9 col-md-12">
+        <div class="card">
+          <div class="card-header"><i class="fas fa-list"></i> {{ $lang->text_list }}</div>
+          <div id="list" class="card-body">{!! $list !!}</div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -34,6 +67,29 @@ $('#option').on('click', 'thead a, .pagination a', function(e) {
   e.preventDefault();
 
   $('#option').load(this.href);
+});
+
+$('#button-filter').on('click', function() {
+  url = '?';
+
+  var filter_name = $('#input-filter_name').val();
+
+  if (filter_name) {
+    url += '&filter_name=' + encodeURIComponent(filter_name);
+  }
+
+  var equal_is_active = $('#input-equal_is_active').val();
+
+  if (equal_is_active) {
+    url += '&equal_is_active=' + encodeURIComponent(equal_is_active);
+  }
+
+  list_url = "{{ $list_url }}" + url;
+
+  $('#list').load(list_url);
+
+  add_url = $("#button-add").attr("href") + url
+  $("#button-add").attr("href", add_url);
 });
 //--></script>
 @endsection

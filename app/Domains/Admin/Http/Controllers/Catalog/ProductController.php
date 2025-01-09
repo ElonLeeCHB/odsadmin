@@ -243,6 +243,9 @@ class ProductController extends BackendController
         }
         else{
             foreach ($product->product_options as $product_option) {
+                if(empty($product_option->translation->name)){
+                    continue;
+                }
                 $product_option_value_data = [];
                 if (!empty($product_option->product_option_values)) {
                     $sorted = $product_option->product_option_values->sortBy('sort_order');
@@ -286,6 +289,9 @@ class ProductController extends BackendController
         $data['option_values'] = [];
 
         foreach ($product->product_options as $product_option) {
+            if(empty($product_option->translation->name)){
+                continue;
+            }
             $option = $product_option->option;
             if ($option->type == 'options_with_qty' || $option->type == 'select' || $option->type == 'radio' || $option->type == 'checkbox' || $product_option->type == 'image') {
                 if (!isset($data['option_values'][$option->id])) { //避免重複。

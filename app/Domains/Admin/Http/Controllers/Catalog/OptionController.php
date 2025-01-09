@@ -9,18 +9,41 @@ use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Libraries\TranslationLibrary;
 use App\Repositories\Eloquent\Localization\LanguageRepository;
 use App\Domains\Admin\Services\Catalog\OptionService;
-use App\Domains\Admin\Services\Catalog\ProductService;
+use App\Helpers\Classes\DataHelper;
 
 class OptionController extends BackendController
 {
+    private $breadcumbs;
+
     public function __construct(private Request $request
         , private LanguageRepository $LanguageRepository
-        , private OptionService $OptionService
-        , private ProductService $ProductService)
+        , private OptionService $OptionService)
     {
         parent::__construct();
 
-        $this->getLang(['admin/common/common','admin/common/option']);
+        $this->getLang(['admin/common/common','admin/catalog/option']);
+        $this->setBreadcumbs();
+    }
+
+    private function setBreadcumbs()
+    {
+        $this->breadcumbs = [];
+
+        $this->breadcumbs[] = (object)[
+            'text' => $this->lang->text_home,
+            'href' => route('lang.admin.dashboard'),
+        ];
+
+        $this->breadcumbs[] = (object)[
+            'text' => $this->lang->text_option,
+            'href' => 'javascript:void(0)',
+            'cursor' => 'default',
+        ];
+
+        $this->breadcumbs[] = (object)[
+            'text' => $this->lang->heading_title,
+            'href' => route('lang.admin.catalog.options.index'),
+        ];
     }
 
     /**
@@ -33,27 +56,13 @@ class OptionController extends BackendController
         $data['lang'] = $this->lang;
 
         // Breadcomb
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_home,
-            'href' => route('lang.admin.dashboard'),
-        ];
+        $data['breadcumbs'] = (object)$this->breadcumbs;
 
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_option,
-            'href' => 'javascript:void(0)',
-            'cursor' => 'default',
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.catalog.options.index'),
-        ];
-
-        $data['breadcumbs'] = (object)$breadcumbs;
         $data['list'] = $this->getList();
 
-        $data['delete_url'] = route('lang.admin.catalog.options.destroy');
+        $data['list_url']   = route('lang.admin.catalog.options.list');
         $data['add_url'] = route('lang.admin.catalog.options.form');
+        $data['delete_url'] = route('lang.admin.catalog.options.destroy');
 
         return view('admin.catalog.option', $data);
     }
@@ -75,76 +84,62 @@ class OptionController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $queries = [];
+        $query_data = $this->resetUrlData(request()->query());
 
-        if(!empty($this->request->query('page'))){
-            $page = $queries['page'] = $this->request->input('page');
-        }else{
-            $page = $queries['page'] = 1;
-        }
+        // Rows, LengthAwarePaginator
+            $options = $this->OptionService->getOptions($query_data);
 
-        if(!empty($this->request->query('sort'))){
-            $sort = $queries['sort'] = $this->request->input('sort');
-        }else{
-            $sort = $queries['sort'] = 'sort_order';
-        }
+            if(!empty($options)){
 
-        if(!empty($this->request->query('order'))){
-            $order = $queries['order'] = $this->request->query('order');
-        }else{
-            $order = $queries['order'] = 'ASC';
-        }
-
-        if(!empty($this->request->query('limit'))){
-            $limit = $queries['limit'] = $this->request->query('limit');
-        }
-
-        foreach($this->request->all() as $key => $value){
-            if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
+                foreach ($options as $row) {
+                    $row->edit_url = route('lang.admin.catalog.options.form', array_merge([$row->id], $query_data));
+                }
+                
+                $data['options'] = $options;
+                $data['pagination'] = $options->withPath(route('lang.admin.catalog.options.list'))->appends($query_data)->links('admin.pagination.default');
+            }else{
+                $data['options'] = [];
+                $data['pagination'] = '';
             }
-        }
-
-        $queries['filter_model'] = 'Product';
-
-        $data['action'] = route('lang.admin.catalog.options.list');
-
-        // Rows
-        $options = $this->OptionService->getOptions($queries);
-
-        if(!empty($options)){
-            foreach ($options as $row) {
-                $row->edit_url = route('lang.admin.catalog.options.form', array_merge([$row->id], $queries));
-            }
-        }
-        $data['options'] = $options->withPath(route('lang.admin.catalog.options.list'))->appends($queries);
+        //
 
         // Prepare links for list table's header
-        if($order == 'ASC'){
-            $order = 'DESC';
-        }else{
-            $order = 'ASC';
-        }
+            if($query_data['order'] == 'ASC'){
+                $order = 'DESC';
+            }else{
+                $order = 'ASC';
+            }
 
-        $data['sort'] = strtolower($sort);
-        $data['order'] = strtolower($order);
+            $data['sort'] = strtolower($query_data['sort']);
+            $data['order'] = strtolower($order);
 
-        unset($queries['sort']);
-        unset($queries['order']);
+            $query_data = $this->unsetUrlQueryData($query_data);
 
-        $url = '';
+            $url = '';
 
-        foreach($queries as $key => $value){
-            $url .= "&$key=$value";
-        }
+            foreach($query_data as $key => $value){
+                $url .= "&$key=$value";
+            }
+        //
 
         // link of table header for sorting
-        $route = route('lang.admin.catalog.options.list');
-        $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
-        $data['sort_model'] = $route . "?sort=model&order=$order" .$url;
-        $data['sort_price'] = $route . "?sort=price&order=$order" .$url;
-        $data['sort_quantity'] = $route . "?sort=quantity&order=$order" .$url;
-        $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
+            $route = route('lang.admin.catalog.options.list');
+
+            $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
+            $data['sort_main_category_id'] = $route . "?sort=main_category_id&order=$order" .$url;
+            $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
+            $data['sort_model'] = $route . "?sort=model&order=$order" .$url;
+            $data['sort_price'] = $route . "?sort=price&order=$order" .$url;
+            $data['sort_quantity'] = $route . "?sort=quantity&order=$order" .$url;
+            $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;
+        //
+
+        // link of table header for sorting
+            $route = route('lang.admin.catalog.options.list');
+            $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
+        //
+
+        $data['action'] = route('lang.admin.catalog.options.list');
 
         return view('admin.catalog.option_list', $data);
     }
@@ -157,23 +152,7 @@ class OptionController extends BackendController
         $this->lang->text_form = empty($option_id) ? $this->lang->trans('text_add') : $this->lang->trans('text_edit');
 
         // Breadcomb
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_home,
-            'href' => route('lang.admin.dashboard'),
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_option,
-            'href' => 'javascript:void(0)',
-            'cursor' => 'default',
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.catalog.options.index'),
-        ];
-
-        $data['breadcumbs'] = (object)$breadcumbs;
+        $data['breadcumbs'] = (object)$this->breadcumbs;
 
         // Prepare link for save, back
         $queries = [];
@@ -206,59 +185,42 @@ class OptionController extends BackendController
             $queries['limit'] = $this->request->query('limit');
         }
 
-        $data['save'] = route('lang.admin.catalog.options.save');
-        $data['back'] = route('lang.admin.catalog.options.index', $queries);
+        $data['save_url'] = route('lang.admin.catalog.options.save');
+        $data['back_url'] = route('lang.admin.catalog.options.index', $queries);
 
         // Languages
         $languages = $this->LanguageRepository->model->active()->get();
         $data['languages'] = $languages;
 
         // Get Record
-        $result = $this->OptionService->findIdOrFailOrNew($option_id);
+        $filter_data = $this->url_data;
+        $filter_data['equal_id'] = $option_id;
+        $filter_data['with'] = ['translations', 'optionValues.translations'];
+        $option = $this->OptionService->getOption($filter_data);
+        $data['option']  = DataHelper::toCleanObject($option);
 
-        if(!empty($result['data'])){
-            $option = $result['data'];
-        }else if(!empty($result['error'])){
-            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
-        }
-        unset($result);
-
-        $data['option']  = $option;
-
-        // option_translations
+        // option translations
         if($option->translations->isEmpty()){
-            $option_translations = [];
+            $data['option_translations'] = [];
         }else{
             foreach ($option->translations as $translation) {
-                $locale = str_replace('-', '_', $translation->locale);
-                $option_translations[$locale] = $translation->toArray();
+                $data['option_translations'][$translation->locale] = $translation;
             }
         }
 
-        $data['option_translations'] = $option_translations;
-
-        // Option Values
-        if(!empty($option->id)){
-            $filter_data = [];
-            $filter_data = [
-                'filter_option_id' => $option->id,
-                'regexp' => false,
-                'limit' => 0,
-                'pagination' => false,
-                'sort' => 'sort_order',
-                'order' => 'ASC',
-            ];
-
-            $filter_data['with'][] = 'translation';
-            if($option->model == 'Product' ){
-                $filter_data['with'][] = 'product.translation';
-            }
-            // dd($filter_data);
-            $option_values = $this->OptionService->getValues($filter_data);
-
-            $data['option_values'] = $option_values;
-        }else{
+        // option values
+        if($option->optionValues->isEmpty()){
             $data['option_values'] = [];
+        }else{
+            foreach ($option->optionValues as $option_value) {
+                $newOptionValue = DataHelper::toCleanObject($option_value);
+
+                if(!$option_value->translations->isEmpty()){
+                    $newOptionValue->translations = DataHelper::toCleanCollection($option_value->translations->keyBy('locale'));
+                }
+
+                $data['option_values'][] = $newOptionValue;
+            }
         }
 
         return view('admin.catalog.option_form', $data);
@@ -280,28 +242,33 @@ class OptionController extends BackendController
             }
 
         }
-
         // Check option_value_id in product_option_values
         if (isset($data['option_values']) && isset($data['option_id'])) {
-            $option_value_data = [];
+            $option_value_form_data = [];
 
             //option_values in form
             foreach ($data['option_values'] as $option_value) {
                 if ($option_value['option_value_id']) {
-                    $option_value_data[] = $option_value['option_value_id'];
+                    $option_value_form_data[] = $option_value['option_value_id'];
                 }
             }
 
             //option_values in database
-            $option = $this->OptionService->getOption(['filter_id' => $data['option_id']],0);
+            $filter_data = [
+                'equal_id' => $data['option_id'],
+                'with' => ['product_option_values'],
+            ];
+            $option = $this->OptionService->getOption($filter_data);
+
             $option_values = [];
             if(!empty($option->product_option_values)){
-                $option_values = $option->product_option_values->pluck('option_value_id')->toArray() ?? [];
+                $in_use_option_value_ids = $option->product_option_values->pluck('option_value_id')->toArray() ?? [];
             }
-            $option_value_ids = array_unique($option_values);
+            $in_use_option_value_ids = array_unique($in_use_option_value_ids);
 
-            foreach ($option_value_ids as $option_value_id) {
-                if(!in_array($option_value_id, $option_value_data)){
+            foreach ($in_use_option_value_ids as $in_use_option_value_id) {
+                //表單資料沒有使用中的 option_value_id 代表刪除動作。但這是使用中，所以不准刪。
+                if(!in_array($in_use_option_value_id, $option_value_form_data)){
                     $json['error']['warning'] = $this->lang->error_value;
                 }
             }
@@ -337,8 +304,8 @@ class OptionController extends BackendController
         // 執行成功 200
         $json = [
             'success' => $this->lang->text_success,
-            'option_id' => $result['data']['option_id'],
-            'redirectUrl' => route('lang.admin.catalog.options.form', $result['data']['option_id']),
+            'option_id' => $result['option_id'],
+            'redirectUrl' => route('lang.admin.catalog.options.form', $result['option_id']),
         ];
 
         return response()->json($json, 200);

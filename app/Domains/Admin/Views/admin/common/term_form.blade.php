@@ -87,7 +87,7 @@
                   <label class="col-sm-2 col-form-label">{{ $lang->column_taxonomy_name }}</label>
                   <div class="col-sm-10">
                     <div class="input-group">
-                      <input type="text" id="input-taxonomy_name" name="taxonomy_name" value="{{ $term->taxonomy_name }}" data-oc-target="autocomplete-taxonomy" class="form-control"/>
+                      <input type="text" id="input-taxonomy_name" name="taxonomy_name" value="{{ $term->taxonomy_name }}" data-oc-target="autocomplete-taxonomy" class="form-control" autocomplete="off"/>
                     </div>
                     <div id="error-taxonomy_name" class="invalid-feedback"></div>
                     <input type="hidden" id="input-taxonomy_code" name="taxonomy_code" value="{{ $term->taxonomy_code }}" />
@@ -101,7 +101,7 @@
                   <label class="col-sm-2 col-form-label">{{ $lang->column_parent_name }}</label>
                   <div class="col-sm-10">
                     <div class="input-group">
-                      <input type="text" id="input-parent_name" name="parent_name" value="{{ $term->parent->name ?? ''}}" data-oc-target="autocomplete-parent_name" class="form-control" />
+                      <input type="text" id="input-parent_name" name="parent_name" value="{{ $term->parent->name ?? ''}}" placeholder="請先選擇語詞屬性" data-oc-target="autocomplete-parent_name" class="form-control" autocomplete="off"/>
                     </div>
                     <div id="error-parent_name" class="invalid-feedback"></div>
                     <input type="hidden" id="input-parent_id" name="parent_id" value="{{ $term->parent_id }}" />
@@ -195,14 +195,15 @@ $('#input-parent_name').autocomplete({
       dataType: 'json',
       success: function (json) {
         json.unshift({
-            term_id: '',
+            id: '',
             name: '-- 無 --'
         });
 
         response($.map(json, function (item) {
           return {
-            value: item['term_id'],
-            label: item['name']
+            value: item['id'],
+            label: item['name'],
+            display_name: item['name'] + ' ' + item['id'],
           }
         }));
       }

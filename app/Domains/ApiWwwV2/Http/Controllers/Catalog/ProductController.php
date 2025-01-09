@@ -47,7 +47,9 @@ class ProductController extends ApiWwwV2Controller
         $filter_data['equal_id'] = $product_id;
         $filter_data['select'] = ['id', 'code', 'name', 'price'];
         $filter_data['with'] = ['product_options.translation',
-                                'product_options.product_option_values.translation'];
+                                'product_options.product_option_values.translation',
+                                'product_options.product_option_values.option_value'
+                              ];
 
         $product = $this->ProductService->getInfo($filter_data);
 

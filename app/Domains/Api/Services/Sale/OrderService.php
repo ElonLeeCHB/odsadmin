@@ -168,6 +168,7 @@ class OrderService extends GlobalOrderService
                 $order->save();
                 // 訂單單頭結束
             // }
+
             // 訂單標籤
                 OrderTag::where('order_id', $order->id)->delete();
 
@@ -321,6 +322,11 @@ class OrderService extends GlobalOrderService
                                         continue;
                                     }
                                     //
+
+                                    // 前人寫的前端送來的 value 沒有按照 api。現在要改成甜湯兩字很難改。因為前端每個商品都是獨立的邏輯，新的前端工程師說要改有點麻煩。
+                                    if($product_option_value['value'] == '季節甜品'){
+                                        $product_option_value['value'] = '甜湯';
+                                    }
 
                                     $product_option_value['quantity'] = str_replace(',', '', $product_option_value['quantity'] );
 

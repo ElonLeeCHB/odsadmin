@@ -15,9 +15,16 @@ class OptionService extends Service
     protected $modelName = "\App\Models\Catalog\Option";
 
 
-    public function __construct(protected OptionRepository $OptionRepository, protected OptionValueRepository $OptionValueRepository)
+    // 呈現表單內容，以及儲存的時候，都會用到。呈現表單的時候需要with('option_values')，儲存則不需要。以此原則，with 不適合寫在這裡。
+    public function getOption($params)
     {
-        $this->repository = $OptionRepository;
+        $result = $this->findIdOrFailOrNew($params['equal_id'], $params);
+
+        if(!empty($result['data'])){
+            return $result['data'];
+        }else if(!empty($result['error'])){
+            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
+        }
     }
 
 
@@ -39,7 +46,6 @@ class OptionService extends Service
             $option->code = $code ?? null;
             $option->type = $type;
             $option->model = 'Product';
-            $option->sort_order = $sort_order;
             $option->is_active = $is_active ?? '1';
             $option->note = $note;
 
@@ -61,10 +67,11 @@ class OptionService extends Service
 
             // Delete all option values and translations. It should be checked in controller.
             OptionValueTranslation::where('option_id',$option_id)->delete();
-            $this->OptionValueRepository->model->where('option_id',$option_id)->delete();
+            (new OptionValueRepository)->model->where('option_id',$option_id)->delete();
 
             // Add option values and translations
             if(!empty($data['option_values'])){
+                $upsert_option_value_data = [];
                 foreach ($data['option_values'] as $key => $option_value) {
 
                     if(empty($option_value['product_name'])){
@@ -77,44 +84,52 @@ class OptionService extends Service
                     $arr = [
                         'id' => $option_value['option_value_id'],
                         'option_id' => $option->id,
-                        'code' => $option_value['code'] ?? $option_value['sort_order'] ?? 0,
+                        'code' => $option_value['code'] ?? null,
                         'product_id' => $product_id,
                         'sort_order' => $option_value['sort_order'] ?? 0,
+                        'is_on_www' => $option_value['is_on_www'] ?? 1,
                         'is_active' => $option_value['is_active'] ?? 1,
                     ];
-                    $option_value_model = $this->OptionValueRepository->model->create($arr);
+                    $option_value_model = (new OptionValueRepository)->model->create($arr);
 
                     //option value translations
                     if(!empty($option_value)){
-                        $arr = [];
                         foreach($option_value['option_value_translations'] as $locale => $value){
-                            $arr = [
+                            $upsert_option_value_data[] = [
                                 'option_id' => $option->id,
                                 'option_value_id' => $option_value_model->id,
                                 'locale' => $locale,
                                 'name' => $value['name'],
                                 'short_name' => $value['short_name'] ?? $value['name'],
+                                'web_name' => $value['web_name'] ?? $value['name'],
                             ];
-                            OptionValueTranslation::create($arr);
                         }
                     }
+                }
+                if(!empty($upsert_option_value_data)){
+                    OptionValueTranslation::upsert($upsert_option_value_data, ['user_id','meta_key']);
                 }
             }
 
             DB::commit();
 
-            $result['data']['option_id'] = $option->id;
+            $result['option_id'] = $option->id;
 
             return $result;
 
         } catch (\Exception $ex) {
             DB::rollback();
-            $msg = $ex->getMessage();
-            return response()->json(['error' => $msg], 500);
+            return ['error' => $ex->getMessage()];
         }
     }
 
 
+    public function getOptions($params = [], $debug = 0)
+    {
+        $params['equal_model'] = 'Product';
+
+        return $this->getRows($params, $debug);
+    }
 
 
 

@@ -18,6 +18,8 @@ return array (
 'text_none' => '--- 無 --- ',
 'text_select' => '--- 請選擇 --- ',
 'text_select_all' => '全選',
+'text_please_choose' => '--- 請選擇 --- ',
+'text_choose_all' => '全選',
 'text_unselect_all' => '取消選擇',
 'text_filter' => '篩選',
 'text_choose' => '選擇',

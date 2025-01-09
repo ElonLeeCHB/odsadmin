@@ -4,7 +4,7 @@ namespace App\Domains\ApiWwwV2\Services\Catalog;
 
 use App\Helpers\Classes\DataHelper;
 use App\Services\Service;
-use App\Repositories\Eloquent\Catalog\ProductRepository;
+use App\Repositories\Eloquent\Material\ProductRepository;
 use App\Traits\Model\EloquentTrait;
 use App\Helpers\Classes\RowsArrayHelper;
 
@@ -12,7 +12,7 @@ class ProductService extends Service
 {
     use EloquentTrait;
 
-    public $modelName = "\App\Models\Catalog\Product";
+    public $modelName = "\App\Models\Material\Product";
 
     public function getInfo($params)
     {
@@ -32,6 +32,14 @@ class ProductService extends Service
                 ->keyBy('option_code')
                 ->toArray(),
         ];
+
+        foreach ($product['product_options'] as $key1 => $product_option) {
+            foreach ($product_option['product_option_values'] as $key2 => $product_option_value) {
+                if(empty($product_option_value['option_value']['is_on_www'])){
+                    unset($product['product_options'][$key1]['product_option_values'][$key2]);
+                }
+            }
+        }
 
         RowsArrayHelper::removeTranslation($product);
         

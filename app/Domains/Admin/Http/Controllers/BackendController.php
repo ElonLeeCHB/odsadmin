@@ -16,6 +16,9 @@ class BackendController extends Controller
         $this->url_data = $this->resetUrlData($this->url_data);
     }
 
+    /**
+     * 應該移到 Service 層
+     */
     public function resetUrlData($data)
     {
         $query_data = [];

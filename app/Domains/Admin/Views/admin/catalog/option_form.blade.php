@@ -13,7 +13,7 @@
     <div class="container-fluid">
       <div class="float-end">
         <button type="submit" form="form-option" data-bs-toggle="tooltip" title="Save" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
-        <a href="{{ $back }}" data-bs-toggle="tooltip" title="Back" class="btn btn-light"><i class="fa-solid fa-reply"></i></a></div>
+        <a href="{{ $back_url }}" data-bs-toggle="tooltip" title="Back" class="btn btn-light"><i class="fa-solid fa-reply"></i></a></div>
         <h1>{{ $lang->heading_title }}</h1>
         @include('admin.common.breadcumb')
     </div>
@@ -22,7 +22,7 @@
     <div class="card">
       <div class="card-header"><i class="fa-solid fa-pencil"></i> {{ $lang->text_form }}</div>
       <div class="card-body">
-        <form id="form-option" action="{{ $save }}" method="post" data-oc-toggle="ajax">
+        <form id="form-option" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
           @csrf
           @method('POST')
           <input type="hidden" name="option_id" value="{{ $option->id }}" id="input-option-id">
@@ -70,18 +70,14 @@
                 </select>
               </div>
             </div>
-            <div class="row mb-3">
-              <label for="input-sort_order" class="col-sm-2 col-form-label">{{ $lang->entry_sort_order }}</label>
-              <div class="col-sm-10">
-                <input type="text" name="sort_order" value="{{ $option->sort_order }}" placeholder="Sort Order" id="input-sort_order" class="form-control">
-              </div>
-            </div>
+            
             <div class="row mb-3">
               <label for="input-code" class="col-sm-2 col-form-label">編碼</label>
               <div class="col-sm-10">
                 <input type="text" name="code" value="{{ $option->code }}" placeholder="本欄請由開發人員修改" id="input-code" class="form-control">
               </div>
             </div>
+
             <div class="row mb-3">
               <label for="input-note" class="col-sm-2 col-form-label">備註</label>
               <div class="col-sm-10">
@@ -90,16 +86,19 @@
             </div>
           </fieldset>
 
-
+          {{-- 選項值 --}}
           <fieldset>
             <legend>{{ $lang->text_value }}</legend>
             <table id="option-value" class="table table-bordered table-hover">
               <thead>
                 <tr>
                   <td style="width: 50px;">項次</td>
+                  <td>ID</td>
                   <td class="text-start required">{{ $lang->entry_option_value_name }}</td>
                   <td>簡稱</td>
-                  <td class="text-end">{{ $lang->entry_sort_order }}</td>
+                  <td>官網名稱</td>
+                  <td>官網使用</td>
+                  <td style="width: 80px;" class="text-end">{{ $lang->entry_sort_order }}</td>
                   <td>對應商品</td>
                   <td>是否啟用</td>
                   <td></td>
@@ -110,6 +109,7 @@
                 @foreach($option_values as $option_value)
                 <tr id="option-value-row-{{ $option_value_row }}">
                   <td>{{ $option_value_row }}</td>
+                  <td class="text-end">{{ $option_value->id }}</td>
                   <td class="text-center">
                     <input type="hidden" name="option_values[{{ $option_value_row }}][option_value_id]" value="{{ $option_value->id }}">
                     @foreach($languages as $language)
@@ -129,6 +129,20 @@
                     <div id="error-option-value-{{ $option_value_row }}-{{ $language->code }}" class="invalid-feedback"></div>
                     @endforeach
                   </td>
+                  <td>
+                    @foreach($languages as $language)
+                    <div class="input-group">
+                      <div class="input-group-text">{{ $language->native_name }}</div>
+                      <input type="text" name="option_values[{{ $option_value_row }}][option_value_translations][{{ $language->code }}][web_name]" value="{{ $option_value->web_name }}" id="input-option-value-{{ $option_value_row }}-{{ $language->code }}-web_name" class="form-control">
+                    </div>
+                    <div id="error-option-value-{{ $option_value_row }}-{{ $language->code }}" class="invalid-feedback"></div>
+                    @endforeach
+                  </td>
+                  <td>
+                    <select id="input-is_on_www" name="option_values[{{ $option_value_row }}][is_on_www]">
+                      <option value="1" @if($option_value->is_on_www == 1 ) selected @endif>是</option>
+                      <option value="0" @if($option_value->is_on_www != 1 ) selected @endif>否</option>
+                  </td>
                   <td class="text-end"><input type="text" name="option_values[{{ $option_value_row }}][sort_order]" value="{{ $option_value->sort_order }}" class="form-control text-end"></td>
                   <td>
                     <input type="text" data-rownum="{{ $option_value_row }}" id="input-option_values-{{ $option_value_row }}-product_name" name="option_values[{{ $option_value_row }}][product_name]" value="{{ $option_value->product->name ?? '' }}" autocomplete="off" placeholder="{{ $lang->entry_name }}" data-oc-target="autocomplete-product_name" class="form-control option_value_product"/>
@@ -140,8 +154,6 @@
                     <select id="input-is_active" name="option_values[{{ $option_value_row }}][is_active]">
                       <option value="1" @if($option_value->is_active == 1 ) selected @endif>是</option>
                       <option value="0" @if($option_value->is_active != 1 ) selected @endif>否</option>
-
-                    </select>
                   </td>
                   <td class="text-end"><button type="button" onclick="$('#option-value-row-{{ $option_value_row }}').remove();" data-bs-toggle="tooltip" title="{{ $lang->button_remove }}" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button></td>
                   

@@ -22,7 +22,7 @@ class Option extends Model
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
 
-
+    //待廢棄，改用 optionValues()
     public function option_values()
     {
         return $this->optionValues();

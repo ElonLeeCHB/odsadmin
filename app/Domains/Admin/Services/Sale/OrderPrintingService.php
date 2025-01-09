@@ -45,6 +45,7 @@ class OrderPrintingService extends Service
         // 潤餅便當配菜
             $this->sideDish['bento'] = [];
 
+            // 選項代號 1020 便當系列配菜 同時用於潤餅便當系列、刈包便當系列
             $option = Option::where('id', 1020)->with(['option_values' => function ($query) {
                 $query->where('is_active',1)->where('sort_order', '<>', 999)->orderBy('sort_order', 'asc'); // 按照 sort_order 升序排序
             }])->first();
@@ -58,9 +59,30 @@ class OrderPrintingService extends Service
                 ];
             }
 
-            // $this->lumpiaData['hiddenSideDish'] = [1035,1068];
+            // 1035=梅汁番茄, 1068=毛豆。原則上都會有，節省空間不顯示
             $this->hiddenSideDish['bento'] = [1035,1068];
         // end 潤餅便當配菜
+
+        // 刈包便當配菜
+            $this->sideDish['guabao'] = [];
+
+            // 選項代號 1020 便當系列配菜 同時用於潤餅便當系列、刈包便當系列
+            $option = Option::where('id', 1020)->with(['option_values' => function ($query) {
+                $query->where('is_active',1)->where('sort_order', '<>', 999)->orderBy('sort_order', 'asc'); // 按照 sort_order 升序排序
+            }])->first();
+
+            foreach($option->option_values as $option_value){
+                $this->sideDish['guabao'][] = [
+                    'sort_order' => $option_value->sort_order,
+                    'option_value_id' => $option_value->id,
+                    'option_id' => $option_value->option_id,
+                    'name' => $option_value->name,
+                ];
+            }
+
+            // 1035=梅汁番茄, 1068=毛豆。原則上都會有，節省空間不顯示
+            $this->hiddenSideDish['guabao'] = [1035,1068];
+        // end 刈包便當配菜
 
         // 油飯盒配菜
             $this->sideDish['oilRiceBox'] = [];
@@ -421,24 +443,39 @@ class OrderPrintingService extends Service
     }
 
 
+    //抓潤餅便當的主餐
     public function getLumpiaBentoMainMeals()
     {
-        // $filter_data = [
-        //     'equal_id' => 1011,
-        //     'pagination' => 0,
-        //     'limit' => 0,
-        //     'with' => ['optionValues'],
-        //     'sort' => 'sort_order',
-        //     'order' => 'asc',
-        // ];
-        // $options = (new OptionRepository)->getRow($filter_data);
-        // $optionValues = DataHelper::toCleanCollection($options->optionValues);
+        
+        $filter_data = [
+            'equal_product_id' => 1001,
+            'equal_option_id' => 1003,
+            'pagination' => 0,
+            'limit' => 0,
+            'sort' => 'sort_order',
+            'order' => 'ASC',
+            'is_active' => 1,
+        ];
+        $productOptionValues =(new ProductOptionValueRepository)->getRows($filter_data);
 
-        // $productOption = (new ProductOptionRepository)->newModel()->select(['option_id'])->where('product_id', 1001)
-        //     ->with(['activeOptionValues'])
-        //     ->first();
+        foreach($productOptionValues as $row){
+            $rows[] = (object)[
+                'option_id' => $row->option_id,
+                'option_value_id' => $row->option_value_id,
+                'name' => $row->name,
+                'short_name' => $row->short_name,
+                'is_active' => $row->is_active,
+            ];
+        }
 
-        //抓潤餅便當的主餐
+        return $rows;
+    }
+
+
+    //抓刈包便當的主餐
+    public function getGuabaoBentoMainMeals()
+    {
+        
         $filter_data = [
             'equal_product_id' => 1001,
             'equal_option_id' => 1003,
