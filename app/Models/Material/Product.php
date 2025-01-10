@@ -5,6 +5,7 @@ namespace App\Models\Material;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\Model\ModelTrait;
+use App\Traits\Model\FilterTrait;
 use App\Models\Common\Term;
 use App\Models\Material\ProductOption;
 use App\Models\Material\ProductUnit;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\Storage;
 class Product extends Model
 {
     use ModelTrait;
+    use FilterTrait;
 
     protected $guarded = [];
     protected $appends = ['code', 'name'];
@@ -212,10 +214,13 @@ class Product extends Model
         );
     }
 
-    protected function quantity(): Attribute
-    {
-        return $this->setNumberAttribute($this->attributes['quantity'] ?? 0);
-    }
+    // protected function quantity(): Attribute
+    // {
+    //     // return $this->setNumberAttribute($this->attributes['quantity'] ?? 0);
+    //     if(!empty($this->attributes['quantity'])){
+    //         return $this->setNumberAttribute($this->attributes['quantity'] ?? 0);
+    //     }
+    // }
 
     public function temperatureTypeName(): Attribute
     {

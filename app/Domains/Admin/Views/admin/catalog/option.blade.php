@@ -63,10 +63,10 @@
 
 @section('buttom')
 <script type="text/javascript"><!--
-$('#option').on('click', 'thead a, .pagination a', function(e) {
+$('#list').on('click', 'thead a, .pagination a', function(e) {
   e.preventDefault();
 
-  $('#option').load(this.href);
+  $('#list').load(this.href);
 });
 
 $('#button-filter').on('click', function() {

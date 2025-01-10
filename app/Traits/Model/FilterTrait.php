@@ -12,12 +12,12 @@ trait FilterTrait
      * @param Builder $query
      * @return Builder
      */
-    public function scopeApplyFilters(Builder $query)
+    public function scopeApplyFilters(Builder $query, $params)
     {
         // 獲取所有的過濾參數
-        $filters = request()->query();
+        $params = request()->query();
 
-        foreach ($filters as $key => $value) {
+        foreach ($params as $key => $value) {
             // 處理 filter_ 開頭的參數
             if (str_starts_with($key, 'filter_')) {
                 $column = substr($key, 7); // 去掉 'filter_'

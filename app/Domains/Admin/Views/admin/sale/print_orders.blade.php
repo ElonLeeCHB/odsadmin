@@ -77,7 +77,7 @@
           <span class="fw-bold">星期：</span><span>{{ $order['header']->delivery_weekday }}</span>&nbsp;&nbsp;
           <span class="fw-bold">時間：</span><span>{{ $order['header']->delivery_time_range }}</span>&nbsp;
           <span class="fw-bold">手機：</span><span>{{ $order['header']->mobile }}</span>&nbsp;
-          <span class="fw-bold">訂購人：</span><span>{{ $order['header']->personal_name }}{{$order['header']->salutation_id}}</span>&nbsp;&nbsp;
+          <span class="fw-bold">訂購人：</span><span>{{ $order['header']->personal_name }}{{$order['header']->salutation_name}}</span>&nbsp;&nbsp;
         </td>
       </tr>
       <tr>

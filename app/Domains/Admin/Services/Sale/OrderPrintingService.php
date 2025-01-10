@@ -39,6 +39,7 @@ class OrderPrintingService extends Service
     private $lumpiaData;
     private $hiddenSideDish;
     private $sortedDrinksProductId;
+    private $salutations;
 
     public function __construct()
     {
@@ -150,6 +151,10 @@ class OrderPrintingService extends Service
             }
         // end 飲料
 
+        //稱呼
+
+        $this->salutations = $this->getCodeKeyedTermsByTaxonomyCode('Salutation',toArray:false);
+
     }
 
     public function getPritingOrderList($order_ids)
@@ -167,8 +172,11 @@ class OrderPrintingService extends Service
 
         $orders->load(['customer:id,name,salutation_id']);
 
-        $salutations = OptionValueTranslation::select('option_value_id','name')->whereIn('option_value_id',[17,18])->where('locale', app()->getLocale())
-            ->pluck('name', 'option_value_id')->toArray();
+        //稱呼原本用 options 資料表，改用 terms
+        // $salutations = OptionValueTranslation::select('option_value_id','name')->whereIn('option_value_id',[17,18])->where('locale', app()->getLocale())
+        //     ->pluck('name', 'option_value_id')->toArray();
+
+        $salutations = $this->getCodeKeyedTermsByTaxonomyCode('Salutation',toArray:false);
 
         $result = [];
 
@@ -176,38 +184,6 @@ class OrderPrintingService extends Service
             $newOrder = [];
 
             list($newOrder['header'], $newOrder['product_data'], $newOrder['statistics']) = $this->getPrintingInfo($order);
-
-            // order fields
-                // salutation
-                $newOrder['header']->salutation_name = $salutations[$order->customer->salutation_id];
-                $newOrder['header']->salutation_id = $order->customer->salutation_id;
-
-                // shipping_address
-                $newOrder['header']->shipping_address = '';
-
-                if(!empty($order->shipping_state->name)){
-                    $newOrder['header']->shipping_address .= $order->shipping_state->name;
-                }
-                if(!empty($order->shipping_city->name)){
-                    $newOrder['header']->shipping_address .= $order->shipping_city->name;
-                }
-                if(!empty($order->shipping_road)){
-                    $newOrder['header']->shipping_address .= $order->shipping_road;
-                }
-                if(!empty($order->shipping_address1)){
-                    $newOrder['header']->shipping_address .= $order->shipping_address1;
-                }
-                unset($newOrder['header']->shipping_state);
-                unset($newOrder['header']->shipping_city);
-                //
-
-                //telephone
-                $order->telephone_full = $order->telephone;
-                if(!empty($order->telephone_prefix)){
-                    $newOrder['header']->telephone_full = $order->telephone_prefix . '-' . $order->telephone;
-                }
-                //
-            //
 
             // order_totals
                 $order_totals = $order->totals;
@@ -237,7 +213,7 @@ class OrderPrintingService extends Service
     {
         $order_id = $order->id;
 
-        //想棄用代碼，改用 id。這樣就不用煩惱代碼詞不達意。例如原本的潤餅便當，因為原本便當只會放潤餅。所以代碼命名 bento。但是後來有刈包便當，這也是便當。只是潤餅換成刈包。
+        //想棄用選項代碼 code，改用 id。這樣就不用煩惱代碼詞不達意。例如原本的潤餅便當，因為原本便當只會放潤餅。所以代碼命名 bento。但是後來有刈包便當，這也是便當。只是潤餅換成刈包。
         //但是訂單商品表 order_products 只記載了代碼 bento, 沒有它的 id。所以無法單純由訂單商品表得到分類 id, 除非再調整其它部份。暫時這樣。
         $printingRowsByCategory = [];
         // $printingRowsByCategory['bento'] = [];    //潤餅便當
@@ -246,9 +222,40 @@ class OrderPrintingService extends Service
         // $printingRowsByCategory['quabaoBento'] = [];    //刈包便當
         // $printingRowsByCategory['quabaoLunchBox'] = []; //刈包盒餐
         // $printingRowsByCategory['others'] = [];   //其它
-
-
         // $order = $order->toCleanObject();
+
+
+        // order fields
+            // salutation
+            $order->salutation_name = $this->salutations[$order->salutation_code]->name;
+
+            // shipping_address
+            $newOrder['header']->shipping_address = '';
+
+            if(!empty($order->shipping_state->name)){
+                $newOrder['header']->shipping_address .= $order->shipping_state->name;
+            }
+            if(!empty($order->shipping_city->name)){
+                $newOrder['header']->shipping_address .= $order->shipping_city->name;
+            }
+            if(!empty($order->shipping_road)){
+                $newOrder['header']->shipping_address .= $order->shipping_road;
+            }
+            if(!empty($order->shipping_address1)){
+                $newOrder['header']->shipping_address .= $order->shipping_address1;
+            }
+            unset($newOrder['header']->shipping_state);
+            unset($newOrder['header']->shipping_city);
+            //
+
+            //telephone
+            if(!empty($order->telephone_prefix)){
+                $newOrder['header']->telephone_full = $order->telephone_prefix . '-' . $order->telephone;
+            }else{
+                $newOrder['header']->telephone_full = $order->telephone;
+            }
+            //
+        //
 
 
 

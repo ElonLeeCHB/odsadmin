@@ -55,26 +55,26 @@ class OrderProduct extends Model
 
     protected function quantity(): Attribute
     {
-        return $this->setNumberAttribute($this->attributes['quantity'],0);
+        return $this->setNumberAttribute($this->attributes['quantity'] ?? 0);
     }
 
     protected function price(): Attribute
     {
-        return $this->setNumberAttribute($this->attributes['price'],0);
+        return $this->setNumberAttribute($this->attributes['price'] ?? 0);
     }
 
     protected function total(): Attribute
     {
-        return $this->setNumberAttribute($this->attributes['total'],0);
+        return $this->setNumberAttribute($this->attributes['total'] ?? 0);
     }
 
     protected function optionsTotal(): Attribute
     {
-        return $this->setNumberAttribute($this->attributes['options_total'],0);
+        return $this->setNumberAttribute($this->attributes['options_total'] ?? 0);
     }
 
     protected function finalTotal(): Attribute
     {
-        return $this->setNumberAttribute($this->attributes['final_total'],0);
+        return $this->setNumberAttribute($this->attributes['final_total'] ?? 0);
     }
 }

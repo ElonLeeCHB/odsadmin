@@ -11,6 +11,10 @@ class OrderObserver
 		if(empty($order->code)){
 			$order->code = $this->getOrderCode();
 		}
+
+		if(empty($order->salutation_code)){
+			$order->salutation_code = 0;
+		}
 	}
 
 	public function creating(Order $order)

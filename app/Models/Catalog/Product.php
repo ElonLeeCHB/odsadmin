@@ -205,7 +205,9 @@ class Product extends Model
 
     protected function quantity(): Attribute
     {
-        return $this->setNumberAttribute($this->attributes['quantity'] ?? 0);
+        if(!empty($this->attributes['quantity'])){
+            return $this->setNumberAttribute($this->attributes['quantity'] ?? 0);
+        }
     }
 
     public function temperatureTypeName(): Attribute

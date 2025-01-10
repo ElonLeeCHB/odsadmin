@@ -1152,27 +1152,35 @@ class OrderController extends BackendController
             ];
         }
         $member = $this->MemberService->findIdFirst($data['order']->customer_id);
-        $data['order']['salutation_id'] = $member['salutation_id'];
-        if( $data['order']['salutation_id'] === 18){
-            $data['order']['salutation_id'] = '小姐';
-        }elseif ($data['order']['salutation_id'] === 17){
-            $data['order']['salutation_id'] = '先生';
-        }else{
-            $data['order']['salutation_id'] = '';
+
+        if(!empty($member['salutation_id'])){
+            if( $data['order']['salutation_id'] === 18){
+                $data['order']['salutation_id'] = '小姐';
+            }elseif ($data['order']['salutation_id'] === 17){
+                $data['order']['salutation_id'] = '先生';
+            }else{
+                $data['order']['salutation_id'] = '';
+            }
         }
-        if( $data['order']['shipping_salutation_id'] === 18){
-            $data['order']['shipping_salutation_id'] = '小姐';
-        }elseif ($data['order']['shipping_salutation_id'] === 17){
-            $data['order']['shipping_salutation_id'] = '先生';
-        }else{
-            $data['order']['shipping_salutation_id'] = '';
+
+        if(!empty($member['shipping_salutation_id'])){
+            if( $data['order']['shipping_salutation_id'] === 18){
+                $data['order']['shipping_salutation_id'] = '小姐';
+            }elseif ($data['order']['shipping_salutation_id'] === 17){
+                $data['order']['shipping_salutation_id'] = '先生';
+            }else{
+                $data['order']['shipping_salutation_id'] = '';
+            }
         }
-        if( $data['order']['shipping_salutation_id2'] === 18){
-            $data['order']['shipping_salutation_id2'] = '小姐';
-        }elseif ($data['order']['shipping_salutation_id2'] === 17){
-            $data['order']['shipping_salutation_id2'] = '先生';
-        }else{
-            $data['order']['shipping_salutation_id2'] = '';
+
+        if(!empty($member['shipping_salutation_id2'])){
+            if( $data['order']['shipping_salutation_id2'] === 18){
+                $data['order']['shipping_salutation_id2'] = '小姐';
+            }elseif ($data['order']['shipping_salutation_id2'] === 17){
+                $data['order']['shipping_salutation_id2'] = '先生';
+            }else{
+                $data['order']['shipping_salutation_id2'] = '';
+            }
         }
 
         $data['order']['now'] = Carbon::now()->format('Y-m-d H:i:s');

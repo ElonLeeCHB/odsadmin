@@ -1,4 +1,4 @@
-<form id="form-option" method="post" data-oc-toggle="ajax" data-oc-load="{{ $action }}" data-oc-target="#option">
+<form id="form-option" method="post" data-oc-toggle="ajax" data-oc-load="{{ $action }}" data-oc-target="#list">
   @csrf
   @method('POST')
   <div class="table-responsive">

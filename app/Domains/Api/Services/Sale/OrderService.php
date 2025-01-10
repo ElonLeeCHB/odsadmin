@@ -11,6 +11,7 @@ use App\Models\Sale\OrderTag;
 use App\Models\Sale\OrderTotal;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Catalog\ProductTranslation;
+use App\Events\OrderCreated;
 
 class OrderService extends GlobalOrderService
 {
@@ -22,6 +23,14 @@ class OrderService extends GlobalOrderService
         try {
 
             $order_id = $data['order_id'] ?? null;
+
+            //新增或是修改。最後會使用在 OrderCreated 事件
+            $is_new_order = 0;
+            //沒有傳入 order_id 代表新增
+            if(empty($data['order_id'])){
+                $is_new_order = 1;
+            }
+
             $source = $data['source'] ?? null;//來源
             if(isset($data['customer_id'])){
                 $customer_id = $data['customer_id'];
@@ -291,113 +300,121 @@ class OrderService extends GlobalOrderService
 
 
             // order_product_options table
-            if(!empty($data['order_products'])){
+                if(!empty($data['order_products'])){
 
-                //重抓 order_product，需要 order_product_id
-                $tmprows = $this->OrderProductRepository->newModel()->with('order_product_options.product_option_value')->where('order_id', $order->id)->orderBy('sort_order','ASC')->get();
+                    //重抓 order_product，需要 order_product_id
+                    $tmprows = $this->OrderProductRepository->newModel()->with('order_product_options.product_option_value')->where('order_id', $order->id)->orderBy('sort_order','ASC')->get();
 
-                if(!empty($tmprows)){
-                    foreach ($tmprows as $tmprow) {
-                        $db_order_products[$tmprow->sort_order] = $tmprow;
-                    }
-                }
-
-                $update_order_product_options = [];
-
-                foreach ($data['order_products'] as $form_order_product) {
-                    $sort_order = $form_order_product['sort_order'];
-                    $order_product = $db_order_products[$sort_order];
-
-                    if(!empty($form_order_product['product_options'] )){ //表單資料 $data
-                        foreach ($form_order_product['product_options'] as $product_option) {
-
-                            if($product_option['type'] == 'checkbox'){
-
-                            }
-                            else if($product_option['type'] == 'options_with_qty'){
-                                foreach ( $product_option['product_option_values'] as $product_option_value) {
-
-                                    //便當已不使用豆干，但是官網下訂仍然會送來。先在這裡排除。以後改版要按照商品基本資料！
-                                    if(strpos($product_option_value['value'], '豆干') !== false && in_array($form_order_product['product_id'], [1001,1002,1003,1004,1050,1055,1080,1657,1658])){
-                                        continue;
-                                    }
-                                    //
-
-                                    // 前人寫的前端送來的 value 沒有按照 api。現在要改成甜湯兩字很難改。因為前端每個商品都是獨立的邏輯，新的前端工程師說要改有點麻煩。
-                                    if($product_option_value['value'] == '季節甜品'){
-                                        $product_option_value['value'] = '甜湯';
-                                    }
-
-                                    $product_option_value['quantity'] = str_replace(',', '', $product_option_value['quantity'] );
-
-                                    $update_order_product_options[] = [
-                                        'id'                        => $product_option_value['order_product_option_id'] ?? 0,
-                                        'order_product_id'          => $order_product->id,
-                                        'parent_product_option_value_id' => $product_option_value['parent_povid'] ?? 0,
-                                        'order_id'                  => $order->id,
-                                        'product_id'                => $form_order_product['product_id'],
-                                        'product_option_id'         => $product_option['product_option_id'],
-                                        'product_option_value_id'   => $product_option_value['product_option_value_id'],
-                                        'name'                      => $product_option['name'],
-                                        'type'                      => $product_option['type'],
-                                        'value'                     => $product_option_value['value'],
-                                        'quantity'                  => $product_option_value['quantity'],
-                                    ];
-                                }
-
-
-                            }
-
+                    if(!empty($tmprows)){
+                        foreach ($tmprows as $tmprow) {
+                            $db_order_products[$tmprow->sort_order] = $tmprow;
                         }
                     }
+
+                    $update_order_product_options = [];
+
+                    foreach ($data['order_products'] as $form_order_product) {
+                        $sort_order = $form_order_product['sort_order'];
+                        $order_product = $db_order_products[$sort_order];
+
+                        if(!empty($form_order_product['product_options'] )){ //表單資料 $data
+                            foreach ($form_order_product['product_options'] as $product_option) {
+
+                                if($product_option['type'] == 'checkbox'){
+
+                                }
+                                else if($product_option['type'] == 'options_with_qty'){
+                                    foreach ( $product_option['product_option_values'] as $product_option_value) {
+
+                                        //便當已不使用豆干，但是官網下訂仍然會送來。先在這裡排除。以後改版要按照商品基本資料！
+                                        if(strpos($product_option_value['value'], '豆干') !== false && in_array($form_order_product['product_id'], [1001,1002,1003,1004,1050,1055,1080,1657,1658])){
+                                            continue;
+                                        }
+                                        //
+
+                                        // 前人寫的前端送來的 value 沒有按照 api。現在要改成甜湯兩字很難改。因為前端每個商品都是獨立的邏輯，新的前端工程師說要改有點麻煩。
+                                        if($product_option_value['value'] == '季節甜品'){
+                                            $product_option_value['value'] = '甜湯';
+                                        }
+
+                                        $product_option_value['quantity'] = str_replace(',', '', $product_option_value['quantity'] );
+
+                                        $update_order_product_options[] = [
+                                            'id'                        => $product_option_value['order_product_option_id'] ?? 0,
+                                            'order_product_id'          => $order_product->id,
+                                            'parent_product_option_value_id' => $product_option_value['parent_povid'] ?? 0,
+                                            'order_id'                  => $order->id,
+                                            'product_id'                => $form_order_product['product_id'],
+                                            'product_option_id'         => $product_option['product_option_id'],
+                                            'product_option_value_id'   => $product_option_value['product_option_value_id'],
+                                            'name'                      => $product_option['name'],
+                                            'type'                      => $product_option['type'],
+                                            'value'                     => $product_option_value['value'],
+                                            'quantity'                  => $product_option_value['quantity'],
+                                        ];
+                                    }
+
+
+                                }
+
+                            }
+                        }
+                    }
+                    if(!empty($update_order_product_options)){
+                        OrderProductOption::upsert($update_order_product_options,['id']);
+                        unset($update_order_product_options);
+
+                        $sql = "
+                            UPDATE order_product_options AS opo
+                            JOIN product_option_values AS pov ON opo.product_option_value_id = pov.id
+                            SET
+                                opo.option_id = pov.option_id,
+                                opo.option_value_id = pov.option_value_id
+                            WHERE opo.order_id=" . $order->id;
+                        DB::statement($sql);
+
+                        $sql = "
+                            UPDATE order_product_options AS opo
+                            JOIN option_values AS ov ON opo.option_value_id = ov.id
+                            SET opo.map_product_id = ov.product_id
+                            WHERE opo.order_id=" . $order->id;
+                        DB::statement($sql);
+
+                    }
                 }
-                if(!empty($update_order_product_options)){
-                    OrderProductOption::upsert($update_order_product_options,['id']);
-                    unset($update_order_product_options);
-
-                    $sql = "
-                        UPDATE order_product_options AS opo
-                        JOIN product_option_values AS pov ON opo.product_option_value_id = pov.id
-                        SET
-                            opo.option_id = pov.option_id,
-                            opo.option_value_id = pov.option_value_id
-                        WHERE opo.order_id=" . $order->id;
-                    DB::statement($sql);
-
-                    $sql = "
-                        UPDATE order_product_options AS opo
-                        JOIN option_values AS ov ON opo.option_value_id = ov.id
-                        SET opo.map_product_id = ov.product_id
-                        WHERE opo.order_id=" . $order->id;
-                    DB::statement($sql);
-
-                }
-            }
+            //
 
             // OrderTotal
-            if(!empty($data['order_totals'])){
-                //Delete all
-                OrderTotal::where('order_id', $data['order_id'])->delete();
+                if(!empty($data['order_totals'])){
+                    //Delete all
+                    OrderTotal::where('order_id', $data['order_id'])->delete();
 
-                $update_order_totals = [];
-                $sort_order = 1;
-                foreach($data['order_totals'] as $code => $order_total){
-                    $update_order_totals[] = [
-                        'order_id'  => $order->id,
-                        'code'      => trim($code),
-                        'title'     => trim($order_total['title']),
-                        'value'     => str_replace(',', '', $order_total['value']),
-                        'sort_order' => $sort_order,
-                    ];
-                    $sort_order++;
-                }
+                    $update_order_totals = [];
+                    $sort_order = 1;
+                    foreach($data['order_totals'] as $code => $order_total){
+                        $update_order_totals[] = [
+                            'order_id'  => $order->id,
+                            'code'      => trim($code),
+                            'title'     => trim($order_total['title']),
+                            'value'     => str_replace(',', '', $order_total['value']),
+                            'sort_order' => $sort_order,
+                        ];
+                        $sort_order++;
+                    }
 
-                if(!empty($update_order_totals)){
-                    OrderTotal::upsert($update_order_totals,['id']);
+                    if(!empty($update_order_totals)){
+                        OrderTotal::upsert($update_order_totals,['id']);
+                    }
                 }
+            //
+
+            // Events
+            if($is_new_order){
+                event(new OrderCreated($order));
             }
 
             DB::commit();
+            
             return ['data' => $order];
 
         } catch (\Exception $ex) {

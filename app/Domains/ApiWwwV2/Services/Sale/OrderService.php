@@ -11,6 +11,7 @@ use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
 use App\Models\Sale\Order;
+use App\Events\OrderCreated;
 
 class OrderService extends Service
 {
@@ -117,6 +118,9 @@ class OrderService extends Service
                     (new OrderProductOptionRepository)->createMany($arrOrderProduct['order_product_options'], $order->id, $order_product_id);
                 }
             // end order_product_options
+
+            // Events
+            event(new OrderCreated($order));
 
             DB::commit();
 

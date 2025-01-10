@@ -28,8 +28,6 @@ use App\Models\Sale\OrderPayment;
 class OrderController extends ApiController
 {
 
-
-
     public function __construct(
         private Request $request,
         private OrderService $OrderService,
@@ -242,6 +240,7 @@ class OrderController extends ApiController
 
         return response(json_encode($rows))->header('Content-Type','application/json');
     }
+
     public function updateOrder(){
         $post_data = $this->request->post();
         {
@@ -372,6 +371,7 @@ class OrderController extends ApiController
         }
         return response()->json(array('status' => 'OK'));
     }
+
     public function getTimeQuantity(){
         $rs = DB::select("
         SELECT * 
@@ -448,6 +448,7 @@ class OrderController extends ApiController
         }
         return response()->json(array('status' => 'OK','data'=>$groupedData,'total'=>$totals));
     }
+
     public function updateControlComment(Request $request){
         $code = $request->input('code');
         $comment = $request->input('comment');
@@ -458,6 +459,7 @@ class OrderController extends ApiController
         ");
          return response()->json(array('status' => 'OK'));
     }
+
     public function getControlBurrito (Request $request){
         $date = $request->input('date');
         $start_date = $date . ' 00:00:00';
@@ -494,6 +496,7 @@ class OrderController extends ApiController
         ,'afternoon_total'=>$afternoon_orders_total,'total'=>$orders_total)); 
         
     }
+
     public function getRevenue ($date){
         $start_date = $date . ' 00:00:00';
         $end_date = $date . ' 23:59:59';
@@ -516,6 +519,7 @@ class OrderController extends ApiController
         return response()->json(array('status' => 'OK','data'=>$rs[0]));
         // not_pay cash debt wire
     }
+
     public function getBurrito($date){
         $start_date = $date . ' 00:00:00';
         $end_date = $date . ' 23:59:59';
@@ -589,6 +593,7 @@ class OrderController extends ApiController
         ,'burrito_afternoon'=>$afternoon_orders_total,'total'=>$orders_total
         ,'burrito_finish_moring'=>$burrito_finish_moring,'burrito_finish_afternoon'=>$burrito_finish_afternoon)); 
     }
+    
     public function bom_items(){
         $rs = DB::select("
           select b.product_id,b.id, ot.name as option_name,ovt.name,ovt.option_id as type,b.total,
@@ -650,6 +655,7 @@ class OrderController extends ApiController
         }}
         return response()->json(array('status' => 'OK','data'=>$rs,'type'=>$rs2,'combo_data'=>$rs3));
     }
+
     public function getBomProductItems(Request $request){
         $product_id = $request->input('product_id');
         $rs = DB::select("
@@ -662,6 +668,7 @@ class OrderController extends ApiController
         ");
         return response()->json(array('status' => 'OK','data'=>$rs));
     }
+
     public function update_combo(Request $request){
         $total = $request->input('total');
         $name = $request->input('name');
@@ -817,6 +824,7 @@ class OrderController extends ApiController
         });
         return response()->json(array('status' => 'OK' , 'data'=>$rs));
     }
+
     public function getOrderSource(Request $request){
         $month = $request->input('month'); //"2024-08"
     

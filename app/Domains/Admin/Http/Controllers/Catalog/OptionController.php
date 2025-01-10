@@ -260,7 +260,6 @@ class OptionController extends BackendController
             ];
             $option = $this->OptionService->getOption($filter_data);
 
-            $option_values = [];
             if(!empty($option->product_option_values)){
                 $in_use_option_value_ids = $option->product_option_values->pluck('option_value_id')->toArray() ?? [];
             }

@@ -65,29 +65,30 @@ class OrderService extends Service
             $shipping_company = $data['shipping_company'] ?? $data['payment_company'] ?? '';
 
             // members table
-            if(!empty($data['personal_name'])){
-                $update_member_date = [
-                    'name' => $data['personal_name'],
-                    'salutation_code' => $data['salutation_code'] ?? 0,
-                    'salutation_id' => $data['salutation_id'] ?? 0, //將廢棄
-                    'mobile' => $mobile,
-                    'telephone_prefix' => $data['telephone_prefix'] ?? '',
-                    'telephone' => $telephone,
-                    'payment_tin' => $data['payment_tin'] ?? '',
-                    'shipping_personal_name' => $data['shipping_personal_name'] ?? $data['personal_name'],
-                    'shipping_company' => $shipping_company,
-                    'shipping_phone' => $data['shipping_phone'] ?? null,
-                    'shipping_state_id' => $data['shipping_state_id'] ?? 0,
-                    'shipping_city_id' => $data['shipping_city_id'] ?? 0,
-                    'shipping_road' => $data['shipping_road'] ?? '',
-                    'shipping_address1' => $data['shipping_address1'] ?? '',
-                    'shipping_address2' => $data['shipping_address2'] ?? '',
-                ];
+                if(!empty($data['personal_name'])){
+                    $update_member_date = [
+                        'name' => $data['personal_name'],
+                        'salutation_code' => $data['salutation_code'] ?? 0,
+                        'salutation_id' => $data['salutation_id'] ?? 0, //將廢棄
+                        'mobile' => $mobile,
+                        'telephone_prefix' => $data['telephone_prefix'] ?? '',
+                        'telephone' => $telephone,
+                        'payment_tin' => $data['payment_tin'] ?? '',
+                        'shipping_personal_name' => $data['shipping_personal_name'] ?? $data['personal_name'],
+                        'shipping_company' => $shipping_company,
+                        'shipping_phone' => $data['shipping_phone'] ?? null,
+                        'shipping_state_id' => $data['shipping_state_id'] ?? 0,
+                        'shipping_city_id' => $data['shipping_city_id'] ?? 0,
+                        'shipping_road' => $data['shipping_road'] ?? '',
+                        'shipping_address1' => $data['shipping_address1'] ?? '',
+                        'shipping_address2' => $data['shipping_address2'] ?? '',
+                    ];
 
-                $where_data = ['id' => $customer_id];
+                    $where_data = ['id' => $customer_id];
 
-                $customer = $this->MemberRepository->newModel()->updateOrCreate($where_data, $update_member_date,);
-            }
+                    $customer = $this->MemberRepository->newModel()->updateOrCreate($where_data, $update_member_date,);
+                }
+            //
 
             // Order
             if(!empty($customer)){
@@ -169,6 +170,7 @@ class OrderService extends Service
                 $order->save();
                 // 訂單單頭結束
             }
+            //
 
 
             // 訂單標籤(公司分類)  

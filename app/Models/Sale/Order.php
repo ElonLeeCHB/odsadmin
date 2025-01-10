@@ -65,7 +65,7 @@ class Order extends Model
     //這應該不是慣例命名
     public function order_products()
     {
-        return $this->hasMany(OrderProduct::class, 'order_id', 'id');
+        return $this->orderProducts();
     }
     //這才是慣例命名
     public function orderProducts()
