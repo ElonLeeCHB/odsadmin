@@ -12,6 +12,7 @@ use App\Models\Material\ProductMeta;
 use App\Models\Material\ProductTranslation;
 use App\Models\Material\ProductOption;
 use App\Models\Material\ProductOptionValue;
+use App\Models\Material\ProductTag;
 
 class ProductService extends Service
 {
@@ -52,8 +53,7 @@ class ProductService extends Service
 
 
             // product_metas
-                //不能在這裡刪除其它 meta key, 比如 商料件名稱 supplier_product_name 不會出現在這裡。
-                //$meta_keys = $product->meta_keys;
+                //這裡不能用全刪再新增。比如 廠商料件名稱 supplier_product_name 不會出現在這裡，會誤刪。
                 $meta_keys = ['is_web_product'];
                 $metas_query = ProductMeta::where('product_id', $product->id)->whereIn('meta_key', $meta_keys);
 
@@ -109,67 +109,83 @@ class ProductService extends Service
             }
 
             // Product Options
-            // Delete all
-            ProductOption::where('product_id', $product->id)->delete();
-            ProductOptionValue::where('product_id', $product->id)->delete();
+                // Delete all
+                ProductOption::where('product_id', $product->id)->delete();
+                ProductOptionValue::where('product_id', $product->id)->delete();
 
-            if(!empty($data['product_options'])){
                 if(!empty($data['product_options'])){
-                    foreach ($data['product_options'] as $product_option) {
+                    if(!empty($data['product_options'])){
+                        foreach ($data['product_options'] as $product_option) {
 
-                        if ($product_option['type'] == 'options_with_qty' || $product_option['type'] == 'select' || $product_option['type'] == 'radio' || $product_option['type'] == 'checkbox' || $product_option['type'] == 'image') {
-                            if (isset($product_option['product_option_values'])) {
+                            if ($product_option['type'] == 'options_with_qty' || $product_option['type'] == 'select' || $product_option['type'] == 'radio' || $product_option['type'] == 'checkbox' || $product_option['type'] == 'image') {
+                                if (isset($product_option['product_option_values'])) {
+                                    $arr = [
+                                        'id' => $product_option['product_option_id'],
+                                        'option_id' => $product_option['option_id'],
+                                        'required' => $product_option['required'] ?? 0,
+                                        'sort_order' => $product_option['sort_order'] ?? 1000,
+                                        'is_active' => $product_option['is_active'] ?? 1,
+                                        'is_fixed' => $product_option['is_fixed'] ?? 0,
+                                        'is_hidden' => $product_option['is_hidden'] ?? 0,
+                                        'product_id' => $product->id,
+                                        'type' => $product_option['type'],
+                                    ];
+                                    $product_option_model = ProductOption::create($arr);
+
+                                    foreach ($product_option['product_option_values'] as $product_option_value) {
+                                        $arr = [
+                                            'id' => $product_option_value['product_option_value_id'],
+                                            'product_option_id' => $product_option_model->id,
+                                            'option_id' => $product_option['option_id'],
+                                            'option_value_id' => $product_option_value['option_value_id'],
+                                            'product_id' => $product->id,
+                                            'price_prefix' => $product_option_value['price_prefix'],
+                                            'price' => $product_option_value['price'],
+                                            'sort_order' => $product_option_value['sort_order'] ?? 0,
+                                            'is_active' => $product_option_value['is_active'] ?? 1,
+                                            'is_default' => $product_option_value['is_default'] ?? 0,
+                                            'quantity' => 0, //暫時不用
+                                            'default_quantity' => $product_option_value['default_quantity'] ?? 0,
+                                        ];
+                                        ProductOptionValue::create($arr);
+
+                                        $cacheName = 'ProductId_' . $product->id . '_ProductOptionId_' . $product_option_model->id . '_ ProductOptionValues';
+                                        cache()->forget($cacheName);
+                                    }
+                                }
+                            } else {
                                 $arr = [
-                                    'id' => $product_option['product_option_id'],
+                                    'id' => $product_option['option_id'],
                                     'option_id' => $product_option['option_id'],
-                                    'required' => $product_option['required'] ?? 0,
+                                    'required' => $product_option['required'],
                                     'sort_order' => $product_option['sort_order'] ?? 1000,
                                     'is_active' => $product_option['is_active'] ?? 1,
-                                    'is_fixed' => $product_option['is_fixed'] ?? 0,
-                                    'is_hidden' => $product_option['is_hidden'] ?? 0,
-                                    'product_id' => $product->id,
+                                    'is_fixed' => $option_value['is_fixed'] ?? 0,
+                                    'is_hidden' => $option_value['is_hidden'] ?? 0,
+                                    'product_id' => $data['product_id'],
+                                    'value' => $product_option['value'],
                                     'type' => $product_option['type'],
                                 ];
-                                $product_option_model = ProductOption::create($arr);
-
-                                foreach ($product_option['product_option_values'] as $product_option_value) {
-                                    $arr = [
-                                        'id' => $product_option_value['product_option_value_id'],
-                                        'product_option_id' => $product_option_model->id,
-                                        'option_id' => $product_option['option_id'],
-                                        'option_value_id' => $product_option_value['option_value_id'],
-                                        'product_id' => $product->id,
-                                        'price_prefix' => $product_option_value['price_prefix'],
-                                        'price' => $product_option_value['price'],
-                                        'sort_order' => $product_option_value['sort_order'] ?? 0,
-                                        'is_active' => $product_option_value['is_active'] ?? 1,
-                                        'is_default' => $product_option_value['is_default'] ?? 0,
-                                        'quantity' => 0, //暫時不用
-                                        'default_quantity' => $product_option_value['default_quantity'] ?? 0,
-                                    ];
-                                    ProductOptionValue::create($arr);
-
-                                    $cacheName = 'ProductId_' . $product->id . '_ProductOptionId_' . $product_option_model->id . '_ ProductOptionValues';
-                                    cache()->forget($cacheName);
-                                }
+                                $product_option = ProductOption::create($arr);
                             }
-                        } else {
-                            $arr = [
-                                'id' => $product_option['option_id'],
-                                'option_id' => $product_option['option_id'],
-                                'required' => $product_option['required'],
-                                'sort_order' => $product_option['sort_order'] ?? 1000,
-                                'is_active' => $product_option['is_active'] ?? 1,
-                                'is_fixed' => $option_value['is_fixed'] ?? 0,
-                                'is_hidden' => $option_value['is_hidden'] ?? 0,
-                                'product_id' => $data['product_id'],
-                                'value' => $product_option['value'],
-                                'type' => $product_option['type'],
-                            ];
-                            $product_option = ProductOption::create($arr);
                         }
                     }
                 }
+            //
+
+            // ProductTag
+            // taxonomy_id 31 = 餐點屬性
+            ProductTag::where('taxonomy_id', 31)->where('product_id', $product->id)->delete();
+
+            foreach ($data['product_tag'] ?? [] as $term_id) {
+                $insert_data[] = [
+                    'product_id' => $product->id,
+                    'term_id' => $term_id,
+                    'taxonomy_id' => 31,
+                ];
+            }
+            if(!empty($insert_data)){
+                ProductTag::insert($insert_data);
             }
 
             DB::commit();

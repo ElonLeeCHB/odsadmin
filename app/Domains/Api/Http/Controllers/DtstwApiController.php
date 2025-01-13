@@ -68,7 +68,6 @@ class DtstwApiController extends ApiController
 
         $today = Carbon::today()->toDateString(); 
         $rows = DB::select('SELECT * FROM datelimits WHERE DATE(`Date`) >= ? ORDER BY TimeSlot asc', [$today]);
-
         foreach ($rows as &$row) {
             $month = substr($row->Date, 0, 6);
             $date = $row->Date;

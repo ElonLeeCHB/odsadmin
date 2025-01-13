@@ -208,11 +208,13 @@ class OptionController extends BackendController
             }
         }
 
+        $sortedOptionValues = $option->optionValues->isEmpty() ? collect([]) : $option->optionValues->sortBy('sort_order');
+
         // option values
-        if($option->optionValues->isEmpty()){
+        if($sortedOptionValues->isEmpty()){
             $data['option_values'] = [];
         }else{
-            foreach ($option->optionValues as $option_value) {
+            foreach ($sortedOptionValues as $option_value) {
                 $newOptionValue = DataHelper::toCleanObject($option_value);
 
                 if(!$option_value->translations->isEmpty()){

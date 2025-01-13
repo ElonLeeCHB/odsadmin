@@ -58,12 +58,4 @@ class OptionValue extends Model
             get: fn () => $this->translation->web_name ?? '',
         );
     }
-
-    /**
-     * scope
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', 1);
-    }
 }

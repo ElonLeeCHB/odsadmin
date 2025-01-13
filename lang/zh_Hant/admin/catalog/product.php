@@ -18,6 +18,8 @@ return [
 'column_model' => '產品型號',
 'column_quantity' => '數量',
 'column_price' => '價格',
+'column_meal_type_tag' => '餐點屬性標籤',
+'column_product_tag' => '商品標籤',
 'column_is_active' => '是否啟用',
 'column_is_salable' => '可否銷售',
 'column_is_web_product' => '官網銷售', //跟上面的相近，但上面包含內部系統打單，本欄明確表示可於官網下訂。有些商品只允許內部人員下訂，官網不出現。

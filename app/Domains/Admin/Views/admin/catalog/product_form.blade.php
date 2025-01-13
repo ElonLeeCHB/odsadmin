@@ -1,6 +1,18 @@
 @extends('admin.app')
 
 @section('pageJsCss')
+<link  href="{{ asset('assets/vendor/select2/select2.min.css') }}" rel="stylesheet" type="text/css"/>
+<script src="{{ asset('assets/vendor/select2/select2.min.js') }}"></script>
+
+<style>
+.select2-container .select2-selection--single{
+   height:100% !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+     height:100% !important;
+}
+</style>
 @endsection
 
 @section('columnLeft')
@@ -171,6 +183,18 @@
                       </div>
                     </div>
                     <div class="form-text">可以用於官網銷售。如果本欄未開，則官網不出現。官網要能下訂，必須【可否銷售】、【官網銷售】、【是否啟用】三欄同時開啟。 </div>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <label for="input-price" class="col-sm-2 col-form-label">{{ $lang->column_product_tag }}</label>
+                  <div class="col-sm-10">
+                    <select id="input-product_tag" name="product_tag[]" class="select2-multiple form-control" multiple="multiple">
+                      @foreach($product_tags ?? [] as $product_tag)
+                      <option value="{{ $product_tag->id }}" @if(in_array($product_tag->id, $exist_product_tag_ids)) selected @endif>{{ $product_tag->name }}</option>
+                      @endforeach
+                    </select>
+                    <div id="error-price" class="invalid-feedback"></div>
                   </div>
                 </div>
 
@@ -743,5 +767,8 @@
   });
   <?php } ?>
 
+  $('#input-product_tag').select2({
+    width:'100%',
+  });
 </script>
 @endsection

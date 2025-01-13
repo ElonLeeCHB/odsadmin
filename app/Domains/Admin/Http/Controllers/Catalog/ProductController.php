@@ -218,6 +218,13 @@ class ProductController extends BackendController
 
         $data['product']  = $product;
 
+        $data['product_tags'] = $this->ProductService->getTermsByTaxonomyCode('ProductTag',toArray:false);
+        $data['product_tags'] = array_filter($data['product_tags'], function($item) {
+            return $item->is_active == 1;
+        });
+
+        $data['exist_product_tag_ids'] = optional($product->productTags)->pluck('term_id')->toArray();
+
         $data['bom_products'] = $product->bom_products;
 
         if(!empty($data['product']) && $product_id == $product->id){

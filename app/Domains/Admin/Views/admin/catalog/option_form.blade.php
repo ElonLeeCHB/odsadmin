@@ -163,7 +163,7 @@
               </tbody>
               <tfoot>
                 <tr>
-                  <td colspan="6"></td>
+                  <td colspan="9"></td>
                   <td class="text-end"><button type="button" onclick="addOptionValue();" data-bs-toggle="tooltip" title="{{ $lang->button_add_option_value }}" class="btn btn-primary"><i class="fa-solid fa-plus-circle"></i></button></td>
                 </tr>
               </tfoot>
@@ -193,7 +193,8 @@ var option_value_row = {{ $option_value_row }};
 
 function addOptionValue() {
     html = '<tr id="option-value-row-' + option_value_row + '">';
-    html +='<td></td>';
+    html += '  <td></td>';
+    html += '  <td></td>';
 
     html += '  <td class="text-start"><input type="hidden" name="option_values[' + option_value_row + '][option_value_id]" value="" />';
     @foreach($languages as $language)
