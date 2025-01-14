@@ -392,4 +392,28 @@ class DataHelper
         return $result;
     }
 
+    public static function showSqlQuery(Builder $builder, $exit = 0, $params = [])
+    {
+        $sqlstr = str_replace('?', "'?'", $builder->toSql());
+
+        $bindings = $builder->getBindings();
+
+        if(!empty($bindings)){
+            $arr['statement'] = vsprintf(str_replace('?', '%s', $sqlstr), $builder->getBindings());
+        }else{
+            $arr['statement'] = $builder->toSql();
+        }
+
+        $arr['original'] = [
+            'toSql' => $builder->toSql(),
+            'bidings' => $builder->getBindings(),
+        ];
+
+        if($exit == 1 ){
+            echo "<pre>".print_r($arr , 1)."</pre>"; exit;
+        }else{
+            return "<pre>".print_r($arr , 1)."</pre>";
+        }
+
+    }
 }

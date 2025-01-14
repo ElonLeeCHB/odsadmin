@@ -22,6 +22,14 @@ class OptionValue extends Model
 
     public $translation_keys = ['name','short_name','web_name'];
 
+    public function translation()
+    {
+        return $this->hasOne(OptionValueTranslation::class, 'option_value_id', 'option_value_id')->ofMany([
+            'id' => 'max',
+        ], function ($query) {
+            $query->where('locale', app()->getLocale());
+        });
+    }
 
     //選項值對應的商品代號
     public function product()

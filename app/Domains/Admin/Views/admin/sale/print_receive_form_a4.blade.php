@@ -1602,6 +1602,7 @@
                     <td  style="width:113px;">單點品項</td>
                     <td style="width:24px;"  class=" fw-bold">小計</td>
                     <!-- <td class=" fw-bold">極品</td> -->
+                    <td style="width:24px;" class=" fw-bold">主廚</td>
                     <td style="width:24px;" class=" fw-bold">全素</td>
                     <td style="width:24px;" class=" fw-bold">奶素</td>
                     <td style="width:24px;" class=" fw-bold">鮮蔬</td>
@@ -1742,11 +1743,11 @@
           </tbody>
         </table>
         <table data-toggle="table" class="table table-bordered border border-dark tr-border-special" style="margin-top:3px;margin-bottom:0px;">
-            @foreach($order['final_products'] as $key => $order_product)
+            @foreach($order['final_products'] ?? [] as $key => $order_product)
             @if($order_product['product_id']===1062 && $order_product['show']=== true)
             <tr>
               <td>單點：
-              @foreach($order_product['product_options'] as $option_name => $options)
+              @foreach($order_product['product_options'] ?? [] as $option_name => $options)
                 @if($option_name!=='飲料')
                   【{{ $option_name }}{{":"}}】
 

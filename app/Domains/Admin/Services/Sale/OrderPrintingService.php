@@ -53,6 +53,9 @@ class OrderPrintingService extends Service
      * quabaoBento      刈包便當
      * quabaoLunchBox   刈包盒餐
      * oilRiceBox       油飯盒
+     * sharingMeal      分享餐
+     * soloLumpia       單點6吋
+     * otherLumpias     其它潤餅系列
      * otherCategory    其它
      */
 
@@ -221,8 +224,6 @@ class OrderPrintingService extends Service
             $result[] = $newOrder;
         }
 
-        // echo "<pre>",print_r($result,true),"</pre>";exit;
-
         return $result;
     }
 
@@ -293,6 +294,8 @@ class OrderPrintingService extends Service
                         $order_product->identifier = 'quabaoLunchBox';
                     }else if(in_array(1443, $product_tag_ids)){                                           //1443 油飯盒
                         $order_product->identifier = 'oilRiceBox';
+                    }else if($product_id == 1597){                                           // product_id=1597 分享餐
+                        $order_product->identifier = 'sharingMeal';
                     }else{
                         $order_product->identifier = 'OtherCategory';
                     }
@@ -310,18 +313,13 @@ class OrderPrintingService extends Service
 
                 $printingRowsByCategory[$identifier]['items'][$product_id]['quantity'] += $order_product->quantity;
             }
-
         //end order_products
 
         //order_product_options
-            //先處理完全部選項
+            //處理完全部選項
                 foreach ($order->order_products as $order_product) {
                     $product_id = $order_product->product_id;
                     $identifier = $order_product->identifier;
-
-                    if(empty($identifier)){
-                        $identifier = 'OtherCategory';
-                    }
 
                     foreach ($order_product->order_product_options as $order_product_option) {
                         $option_id = $order_product_option->option_id;
@@ -426,7 +424,7 @@ class OrderPrintingService extends Service
             //
             
             //處理排序
-                foreach ($printingRowsByCategory as $main_category_code => $category) {
+                foreach ($printingRowsByCategory as $identifier => $category) {
 
                     // 飲料
                     $rows = [];
@@ -437,24 +435,25 @@ class OrderPrintingService extends Service
                         }
                     }
 
-                    $printingRowsByCategory[$main_category_code]['Columns']['Drink'] = $rows;
+                    $printingRowsByCategory[$identifier]['Columns']['Drink'] = $rows;
                 }
             //
 
             //設計盒餐飲料
             foreach ($order->order_products as $order_product) {
                 $product_id = $order_product->product_id;
-                $main_category_code = $order_product->main_category_code;
+                $identifier = $order_product->identifier;
 
-                if($main_category_code !== 'lunchbox'){
+                // 判斷商品標籤是否有 盒餐(term_id=1330)
+                $product_tag_ids = $order_product->productTags->pluck('term_id')->toArray();
+
+                if(!in_array(1330, $product_tag_ids)){
                     continue;
                 }
 
+                $tmp_option_type = 'MainMeal';
+
                 foreach ($order_product->order_product_options as $order_product_option) {
-                    //限定主餐。如果不是則略過。
-                    if($order_product_option->option_id != 1003){
-                        continue;
-                    }
                     $option_id = $order_product_option->option_id;
                     $option_value_id = $order_product_option->option_value_id;
                     $product_option_value_id = $order_product_option->product_option_value_id;
@@ -465,26 +464,72 @@ class OrderPrintingService extends Service
                         $drink_option_value_id  = $drink->option_value_id;
                         
                         if(!empty($drink->parent_product_option_value_id) && $drink->parent_product_option_value_id == $order_product_option->product_option_value_id){
-                            $printingRowsByCategory[$main_category_code]['items'][$product_id]['product_options']['MainMeal'][$option_value_id]['SubDrinks'][] = [
+                            $printingRowsByCategory[$identifier]['items'][$product_id]['product_options']['MainMeal'][$option_value_id]['SubDrinks'][] = [
                                 'name' => $this->drinksByOptionValueId[$drink_option_value_id]['name'],
                                 'short_name' => $this->drinksByOptionValueId[$drink_option_value_id]['short_name'],
                                 'quantity' => $drink->quantity,
                             ];
                         }
+
+                        if(!isset($printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id])){
+                            $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['parent_product_option_value_id'] = $order_product_option->parent_product_option_value_id;
+                            $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['map_product_id'] = $order_product_option->map_product_id;
+                            $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['value'] = $order_product_option->value;
+                            $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['quantity'] = 0;
+                        }
+
+                        $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['quantity'] += $order_product_option->quantity;
+
                     }
                 }
             }
             //
-
-            
         // end order_product_options
+
+
+        // 專門處理 1062 其它商品組。以後可能棄用
+        foreach ($order->order_products as $order_product) {
+            if($order_product->product_id == 1062){
+                //借用 1062
+                $product_id = 1062;
+                // 歸到分享餐
+                $identifier = 'soloLumpia';
+
+                foreach ($order_product->orderProductOptions as $order_product_option) {
+                    $option_value_id = $order_product_option->option_value_id;
+
+                    //選項 1009 6吋潤餅
+                    if($order_product_option->option_id == 1009){
+                        if(!isset($printingRowsByCategory[$identifier]['items']['product_options']['MainMeal'][$option_value_id])){
+                            $printingRowsByCategory[$identifier]['items']['product_options']['MainMeal'][$option_value_id]['option_value_id'] = $order_product_option->option_value_id;
+                            $printingRowsByCategory[$identifier]['items']['product_options']['MainMeal'][$option_value_id]['map_product_idx'] = $order_product_option->map_product_id;
+                            $printingRowsByCategory[$identifier]['items']['product_options']['MainMeal'][$option_value_id]['value'] = $order_product_option->value;
+                            $printingRowsByCategory[$identifier]['items']['product_options']['MainMeal'][$option_value_id]['quantity'] = 0;
+                        }
+
+                        $printingRowsByCategory[$identifier]['items']['product_options']['MainMeal'][$option_value_id]['quantity'] += $order_product_option->quantity;
+                    }else{
+                        if(!isset($printingRowsByCategory[$identifier]['items']['product_options']['MainMeal'][$option_value_id])){
+                            $printingRowsByCategory[$identifier]['items']['product_options']['Others'][$option_value_id]['option_value_id'] = $order_product_option->option_value_id;
+                            $printingRowsByCategory[$identifier]['items']['product_options']['Others'][$option_value_id]['map_product_idx'] = $order_product_option->map_product_id;
+                            $printingRowsByCategory[$identifier]['items']['product_options']['Others'][$option_value_id]['value'] = $order_product_option->value;
+                            $printingRowsByCategory[$identifier]['items']['product_options']['Others'][$option_value_id]['quantity'] = 0;
+                        }
+
+                        $printingRowsByCategory[$identifier]['items']['product_options']['Others'][$option_value_id]['quantity'] += $order_product_option->quantity;
+                    }
+                }
+            }
+            // $otherProducts1062
+        }
+        //
 
         //statistics
             $statistics = [];
 
             $tmpRows = [];
-            foreach ($printingRowsByCategory as $main_category_code => $category) {
-                foreach ($category['items'] as $product_id => $products) {
+            foreach ($printingRowsByCategory as $identifier => $category) {
+                foreach ($category['items'] ?? [] as $product_id => $products) {
                     foreach ($products['product_options']['Drink'] ?? [] as $drink) {
 
                         $map_product_id = $drink['map_product_id'];
@@ -546,142 +591,11 @@ class OrderPrintingService extends Service
         return $rows;
     }
 
-
-    //抓潤餅便當的主餐
-    public function getLumpiaBentoMainMeals()
+    public function getOptionValuesByOption($option_id)
     {
-        
-        $filter_data = [
-            'equal_product_id' => 1001,
-            'equal_option_id' => 1003,
-            'pagination' => 0,
-            'limit' => 0,
-            'sort' => 'sort_order',
-            'order' => 'ASC',
-            'is_active' => 1,
-        ];
-        $productOptionValues =(new ProductOptionValueRepository)->getRows($filter_data);
+        $optionVales = OptionValue::select(['id', 'option_id'])->where('option_id', $option_id)->with(['translation'])->orderBy('sort_order')->get();
 
-        foreach($productOptionValues as $row){
-            $rows[] = (object)[
-                'option_id' => $row->option_id,
-                'option_value_id' => $row->option_value_id,
-                'name' => $row->name,
-                'short_name' => $row->short_name,
-                'is_active' => $row->is_active,
-            ];
-        }
-
-        return $rows;
-    }
-
-    //抓刈包便當的主餐
-    public function getGuabaoBentoMainMeals()
-    {
-        
-        $filter_data = [
-            'equal_product_id' => 1670, // 以刈包便當 1670 當代表
-            'equal_option_id' => 1003,  // 選項："主餐"
-            'pagination' => 0,
-            'limit' => 0,
-            'sort' => 'sort_order',
-            'order' => 'ASC',
-            'is_active' => 1,
-        ];
-        $productOptionValues =(new ProductOptionValueRepository)->getRows($filter_data);
-
-        foreach($productOptionValues as $row){
-            $rows[] = (object)[
-                'option_id' => $row->option_id,
-                'option_value_id' => $row->option_value_id,
-                'name' => $row->name,
-                'short_name' => $row->short_name,
-                'is_active' => $row->is_active,
-            ];
-        }
-
-        return $rows;
-    }
-
-
-    public function getBentoSecondaryMainMeals()
-    {
-        $filter_data = [
-            'equal_option_id' => 1007, //副主餐
-            'whereIn' => ['id' => [1071,1043,1044,1045,1085]], //1071-素排, 1043-雞胸,1044-雞腿,1045-滷牛,1085-鮭魚,
-            'pagination' => 0,
-            'limit' => 0,
-            'sort' => 'sort_order',
-            'order' => 'ASC',
-            'is_active' => 1,
-        ];
-        $optionValues =(new OptionValueRepository)->getRows($filter_data);
-
-        foreach($optionValues as $row){
-            $rows[] = (object)[
-                'option_id' => $row->option_id,
-                'option_value_id' => $row->option_value_id,
-                'name' => $row->name,
-                'short_name' => $row->short_name,
-                'is_active' => $row->is_active,
-            ];
-        }
-
-        return $rows;
-    }
-
-
-    public function getOilRiceBoxSecondaryMainMeals()
-    {
-        $filter_data = [
-            'equal_option_id' => 1007, //副主餐
-            'whereIn' => ['id' => [1044,1045,1120,1137]],
-            'pagination' => 0,
-            'limit' => 0,
-            'sort' => 'sort_order',
-            'order' => 'ASC',
-            'is_active' => 1,
-        ];
-        $optionValues =(new OptionValueRepository)->getRows($filter_data);
-
-        foreach($optionValues as $row){
-            $rows[] = (object)[
-                'option_id' => $row->option_id,
-                'option_value_id' => $row->option_value_id,
-                'name' => $row->name,
-                'short_name' => $row->short_name,
-                'is_active' => $row->is_active,
-            ];
-        }
-
-        return $rows;
-    }
-
-
-    public function getLunchboxSecondaryMainMeals()
-    {
-        $filter_data = [
-            'equal_option_id' => 1007, //副主餐
-            'whereIn' => ['id' => [1043,1044,1045,1071,1085]],
-            'pagination' => 0,
-            'limit' => 0,
-            'sort' => 'sort_order',
-            'order' => 'ASC',
-            'is_active' => 1,
-        ];
-        $optionValues =(new OptionValueRepository)->getRows($filter_data);
-
-        foreach($optionValues as $row){
-            $rows[] = (object)[
-                'option_id' => $row->option_id,
-                'option_value_id' => $row->option_value_id,
-                'name' => $row->name,
-                'short_name' => $row->short_name,
-                'is_active' => $row->is_active,
-            ];
-        }
-
-        return $rows;
+        return DataHelper::toCleanCollection($optionVales);
     }
 
     Public function getDrinks()

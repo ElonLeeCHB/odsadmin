@@ -21,7 +21,7 @@ class OrderPrintingController extends BackendController
         $data['lang'] = $this->lang;
 
         $data['orders'] = $this->OrderPrintingService->getPritingOrderList($order_ids);
-        
+
         // 潤餅便當的主餐 - 固定欄位
         $data['lumpiaBentoData']['MainMeal'] = $this->OrderPrintingService->getOptionValuesByProductOption(1001, 1003); // 以招牌潤餅便當 1001 當代表
 
@@ -35,12 +35,17 @@ class OrderPrintingController extends BackendController
         $data['lumpiaLunchBoxData']['MainMeal'] = $data['lumpiaBentoData']['MainMeal'];
 
         // 刈包盒餐的主餐 - 固定欄位
-        $data['guabaoLunchBoxData']['MainMeal'] = $data['lumpiaBentoData']['MainMeal'];
+        $data['guabaoLunchBoxData']['MainMeal'] = $data['guabaoBentoData']['MainMeal'];
 
+        // 分享餐的主餐 - 固定欄位
+        $data['sharingMealData']['MainMeal'] = $this->OrderPrintingService->getOptionValuesByProductOption(1597, 1003);
+
+        // 選項 6吋潤餅主餐 - 固定欄位
+        $data['optionSoloLumpia']['MainMeal'] = $this->OrderPrintingService->getOptionValuesByOption(1009);
+        // echo "<pre>",print_r($data['optionSoloLumpia']['MainMeal'],true),"</pre>";exit;
         // 飲料 - 固定欄位
         $data['drinkData'] = $this->OrderPrintingService->getDrinks();
-
-
+        // echo "<pre>",print_r($data['orders'][0],true),"</pre>";exit;
         return view('admin.sale.print_orders', $data);
     }
 
