@@ -2,9 +2,14 @@
 
 namespace App\Domains\ApiPosV2\Services\Sale;
 
+use Illuminate\Support\Facades\DB;
 use App\Helpers\Classes\DataHelper;
 use App\Services\Service;
 use App\Traits\Model\EloquentTrait;
+use App\Repositories\Eloquent\Sale\OrderRepository;
+use App\Repositories\Eloquent\Sale\OrderProductRepository;
+use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
+use App\Events\OrderCreated;
 
 class OrderService extends Service
 {
@@ -44,7 +49,7 @@ class OrderService extends Service
             $cache_key = 'cache/orders/orderCode-' . $identifier;
         }
 
-        return DataHelper::remember($cache_key, 60*60, function() use ($identifier, $type){
+        return DataHelper::remember($cache_key, 60*60, 'json', function() use ($identifier, $type){
             if($type == 'id'){
                 $filter_data['equal_id'] = $identifier;
             }else if($type == 'code'){
@@ -61,31 +66,49 @@ class OrderService extends Service
 
     }
 
-    // public function getInfo($order_id)
-    // {
-    //     $cache_key = 'cache/orders/orderId_' . $order_id;
+    public function store($data)
+    {
+        try {
+            DB::beginTransaction();
 
-    //     return DataHelper::remember($cache_key, 60*60, function() use ($order_id){
-    //         $order = $this->getRow([
-    //             'equal_id' => $order_id,
-    //             'with' => ['order_products.order_product_options'],
-    //         ]);
+            // order
+            $order = (new OrderRepository)->create($data);
 
-    //         return $order;
-    //     });
-    // }
+            // order_products
+                foreach ($data['order_products'] as &$order_product) {
+                    unset($order_product['id']);
+                    unset($order_product['order_product_id']);
+                }
 
-    // public function getInfoByCode($code)
-    // {
-    //     $cache_key = 'cache/orders/orderCode_' . $code;
+                $data['order_products'] = DataHelper::resetSortOrder($data['order_products']);
+                
+                (new OrderProductRepository)->createMany($data['order_products'], $order->id);
+            // end order_products
 
-    //     return DataHelper::remember($cache_key, 60*60, function() use ($code){
-    //         $order = $this->getRow([
-    //             'equal_code' => $code,
-    //             'with' => ['order_products.order_product_options'],
-    //         ]);
+            // order_product_optionss
+                $order->load(['orderProducts:id,order_id,sort_order,product_id']);
+                $orderProducts = $order->orderProducts->keyBy('sort_order');
 
-    //         return $order;
-    //     });
-    // }
+                foreach ($data['order_products'] ?? [] as $sort_order => $arrOrderProduct) {
+                    $order_product_id = $orderProducts[$sort_order]->id;
+                    foreach ($arrOrderProduct['order_product_options'] as &$order_product_option) {
+                        $order_product_option['product_id'] = $orderProducts[$sort_order]->product_id;
+                    }
+                    (new OrderProductOptionRepository)->createMany($arrOrderProduct['order_product_options'], $order->id, $order_product_id);
+                }
+            // end order_product_options
+
+            // Events
+            event(new OrderCreated($order));
+
+            DB::commit();
+
+            return ['data' => ['id' => $order->id, 'code' => $order->code]];
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+            throw $th;
+        }
+    }
+
 }

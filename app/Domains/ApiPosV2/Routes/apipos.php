@@ -45,15 +45,16 @@ Route::group([
             Route::get('products/info/{product_id}', 'Catalog\ProductController@info')->name('product.info')->middleware(['auth:sanctum']);
         });
     
-        // Route::group([
-        //     'prefix' => 'sale',
-        //     'as' => 'sale.',
-        // ], function ()
-        // {
-        //     Route::get('order/list', 'Sale\OrderController@list')->name('order.list');
-        //     Route::get('order/info/{id}', 'Sale\OrderController@info')->name('order.info');
-        //     Route::get('order/infoByCode/{code}', 'Sale\OrderController@infoByCode')->name('order.infoByCode');
-        // });
+        Route::group([
+            'prefix' => 'sales',
+            'as' => 'sales.',
+        ], function ()
+        {
+            Route::get('orders/list', 'Sale\OrderController@list')->name('orders.list');
+            Route::get('orders/info/{id}', 'Sale\OrderController@info')->name('orders.info');
+            Route::get('orders/infoByCode/{code}', 'Sale\OrderController@infoByCode')->name('orders.infoByCode');
+            Route::get('orders/store', 'Sale\OrderController@store')->name('orders.store');
+        });
     
         // Route::group([
         //     'prefix' => 'user',

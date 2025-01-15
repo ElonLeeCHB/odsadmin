@@ -524,7 +524,7 @@ class OrderRepository extends Repository
     public function create($data)
     {
         try {
-            $orderData = $this->getCommonData($data);
+            $orderData = $this->normalizeData($data);
 
             unset($orderData['id']);
             unset($orderData['order_id']);
@@ -596,7 +596,7 @@ class OrderRepository extends Repository
     public function update($data, $id)
     {
         try {
-            $orderData = $this->getCommonData($data);
+            $orderData = $this->normalizeData($data);
 
             $orderData['id'] = $id;
             $orderData['updated_at'] = now();
@@ -617,13 +617,12 @@ class OrderRepository extends Repository
     }
 
 
-    public function getCommonData($data)
+    public function normalizeData($data)
     {
         // delivery_date and delivery_time_range
             // delivery_date 在資料庫是 datetime 欄位
             // $delivery_date_Ymd = '0000-00-00'
             // $delivery_date_His = '00:00:00'
-            // $delivery_date 在語意上只有日期。但盡量使用 $delivery_date_Ymd
             if(empty($data['delivery_date'])){
                 throw new \Exception('送達日期必須有值！');
             }

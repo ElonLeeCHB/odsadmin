@@ -28,7 +28,7 @@ class HandleOrderCreated
           
                 if(!empty($order_id)){
 
-                    $guabao_total = OrderProduct::where('name', 'like', '%刈包%')->sum('final_total');
+                    $guabao_total = OrderProduct::where('name', 'like', '%刈包%')->where('order_id', $order_id)->sum('final_total');
 
                     if($guabao_total >= 1500){
                         $gift_product_id = 1803; //1803 = 滷味盒
@@ -40,7 +40,7 @@ class HandleOrderCreated
     
                         $order_product = new \App\Models\Sale\OrderProduct;
                         $order_product->order_id = $event->order->id;
-                        $order_product->product_id = $gift_product->id;
+                        $order_product->product_id = $gift_product_id;
                         $order_product->name = $gift_product->name;
                         $order_product->quantity = 1;
                         $order_product->sort_order = $maxSortOrder + 1;

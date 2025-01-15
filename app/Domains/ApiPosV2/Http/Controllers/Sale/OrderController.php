@@ -41,4 +41,27 @@ class OrderController extends ApiPosController
         return response(json_encode($order))->header('Content-Type','application/json');
     }
 
+    public function store()
+    {
+        try {
+            $result = $this->OrderService->store(request()->post());
+    
+            $json = [
+                'success' => true,
+                'message' => '新增成功！',
+                'data' => [
+                    'id' => $result['data']['id'],
+                    'code' => $result['data']['code'],
+                ],
+            ];
+    
+            return response(json_encode($json))->header('Content-Type','application/json');
+
+        } catch (\Throwable $th) {
+            $json = [
+                'error' => $th->getMessage(),
+            ];
+            return response(json_encode($json))->header('Content-Type','application/json');
+        }
+    }
 }

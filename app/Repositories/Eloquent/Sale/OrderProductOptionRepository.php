@@ -15,7 +15,7 @@ class OrderProductOptionRepository extends Repository
             $rows = [];
 
             foreach ($arrOrderProductOptions ?? [] as $row) {
-                $row = $this->getCommonData($row, $order_id, $order_product_id);
+                $row = $this->normalizeData($row, $order_id, $order_product_id);
 
                 $row['created_at'] = now();
                 $row['updated_at'] = now();
@@ -42,7 +42,7 @@ class OrderProductOptionRepository extends Repository
         $rows = [];
 
         foreach ($arrOrderProductOptions as $row) {
-            $row = $this->getCommonData($row, $order_id, $order_product_id);
+            $row = $this->normalizeData($row, $order_id, $order_product_id);
 
             if(empty($updateColumns)){
                 $updateColumns = array_keys($row);
@@ -72,7 +72,7 @@ class OrderProductOptionRepository extends Repository
         return OrderProductOption::upsert($rows, ['id'], $updateColumns);
     }
 
-    public function getCommonData(array $data, $order_id, $order_product_id)
+    public function normalizeData(array $data, $order_id, $order_product_id)
     {
         return [
             'order_id' => $order_id,

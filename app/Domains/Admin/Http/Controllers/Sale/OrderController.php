@@ -80,8 +80,6 @@ class OrderController extends BackendController
         $url_query_data = $this->resetUrlData($this->request->query());
 
         // Rows
-        //$orders = $this->OrderService->getOrders($url_query_data,1);
-
         $data['export_order_products_url'] = route('lang.admin.sale.orders.product_reports');
         $data['batch_print_url'] = route('lang.admin.sale.orders.batch_print');
 

@@ -141,25 +141,23 @@ class DtstwApiController extends ApiController
     }
     
 
-    // public function delivery()
-    // {
-    //     $code = request()->query('code');
-    //     $mobile = request()->query('mobile');
+    public function delivery()
+    {
+        $code = request()->query('code');
+        $mobile = request()->query('mobile');
 
-    //     if(empty($code) || empty($mobile)){
-    //         return response()->json(['error' => '請提供訂單號碼及訂購人手機',], 400);
+        if(empty($code)){
+            return response()->json(['error' => '請提供訂單編號',], 400);
+        }
 
-    //     }
+        $row = DB::table('order_delivery as od')
+            ->select('od.*')
+            ->leftJoin('orders as o', 'o.code', '=', 'od.order_code')
+            ->where('o.code', $code)
+            ->first(); 
 
-    //     $row = DB::table('order_delivery as od')
-    //         ->select('od.*')
-    //         ->leftJoin('orders as o', 'o.code', '=', 'od.order_code')
-    //         ->where('o.code', $code)
-    //         ->where('o.mobile', $mobile)
-    //         ->first(); 
-
-    //     return response()->json($row, 200);
-    // }
+        return response()->json($row, 200);
+    }
 
 
     public function getRoad()

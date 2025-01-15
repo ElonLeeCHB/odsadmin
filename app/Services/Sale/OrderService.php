@@ -27,7 +27,7 @@ use Mpdf\Mpdf;
 class OrderService extends Service
 {
     protected $modelName = "\App\Models\Sale\Order";
-
+    
     public function __construct(protected OrderRepository $OrderRepository
     , protected OrderProductRepository $OrderProductRepository
     , protected OrderProductOptionRepository $OrderProductOptionRepository
@@ -37,6 +37,4 @@ class OrderService extends Service
     {
         $this->repository = $OrderRepository;
     }
-
-
 }

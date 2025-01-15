@@ -87,7 +87,7 @@ class OrderService extends Service
     //     });
     // }
 
-    public function storeOrder($data)
+    public function store($data)
     {
         try {
             DB::beginTransaction();
@@ -101,7 +101,7 @@ class OrderService extends Service
                     unset($order_product['order_product_id']);
                 }
 
-                $data['order_products'] = $this->resortOrderProducts($data['order_products']);
+                $data['order_products'] = DataHelper::resetSortOrder($data['order_products']);
                 
                 (new OrderProductRepository)->createMany($data['order_products'], $order->id);
             // end order_products
@@ -110,7 +110,7 @@ class OrderService extends Service
                 $order->load(['orderProducts:id,order_id,sort_order,product_id']);
                 $orderProducts = $order->orderProducts->keyBy('sort_order');
 
-                foreach ($data['order_products'] as $sort_order => $arrOrderProduct) {
+                foreach ($data['order_products'] ?? [] as $sort_order => $arrOrderProduct) {
                     $order_product_id = $orderProducts[$sort_order]->id;
                     foreach ($arrOrderProduct['order_product_options'] as &$order_product_option) {
                         $order_product_option['product_id'] = $orderProducts[$sort_order]->product_id;
@@ -130,7 +130,6 @@ class OrderService extends Service
             DB::rollback();
             throw $th;
         }
-
     }
 
     public function editOrder($data, $order_id)
@@ -187,43 +186,6 @@ class OrderService extends Service
 
     }
 
-    public function resortOrderProducts($order_products)
-    {
-        //整理排序
-        foreach ($order_products as &$row) {
-            if (empty($row['sort_order'])) {
-                $row['sort_order'] = 0;
-            }
-        }
-
-        usort($order_products, function ($a, $b) {
-            if ($a['sort_order'] == 0 && $b['sort_order'] == 0) {
-                return 0; // 若兩者都是 0，保持原順序
-            }
-            if ($a['sort_order'] == 0) {
-                return 1; // $a 的 sort_order 為 0，應排在後面
-            }
-            if ($b['sort_order'] == 0) {
-                return -1; // $b 的 sort_order 為 0，應排在後面
-            }
-            return $a['sort_order'] <=> $b['sort_order']; // 非 0 的情況下升冪排序
-        });
-
-        // 給所有 sort_order 為 0 的項目重新編號，從最大的 non-zero sort_order 開始遞增
-        $sortOrderCounter = count(array_filter($order_products, function ($row) {
-            return $row['sort_order'] !== 0; // 計算非 0 的項目數量
-        })) + 1; // 確保從最大的 non-zero sort_order 開始編號
-
-        // 重新編號所有 sort_order 為 0 的項目
-        foreach ($order_products as &$row) {
-            if ($row['sort_order'] == 0) {
-                $row['sort_order'] = $sortOrderCounter++; // 重新編號
-            }
-        }
-
-        // 最後重新索引，讓陣列的索引等於 sort_order
-        return array_column($order_products, null, 'sort_order');
-    }
 
     public function createOrderProductOptionsByOrderProduct($arrOrderProductOptions, $order_id, $order_product_id)
     {
