@@ -23,17 +23,29 @@ class OrderService extends Service
     public function getList($filters)
     {
         try {
+            // $rows = Order::select(['id', 'code', 'personal_name'])
+            //         ->with(['deliveries' => function($query) {
+            //             $query->select('id', 'name', 'order_code','phone','cartype');
+            //         }])
+            //         ->get();
+            $builder = Order::select(['id', 'code', 'personal_name'])->applyFilters();
 
-            $filters['with'] = [];
+            // DataHelper::showSqlContent($builder,1);
 
-            $selectedColumns = ['id', 'code', 'mobile', 'personal_name', 'delivery_date', 'payment_total'];
+            if(!empty($filters['with'])){
+                if(is_string($filters['with'])){
+                    $with = explode(',', $filters['with']);
+                }
+                if(in_array('deliveries', $with)){
+                    $builder->with(['deliveries' => function($query) {
+                                    $query->select('id', 'name', 'order_code','phone','cartype');
+                                }]);
+                }
+            }
 
-            $filters['select'] = $selectedColumns;
-            $result = $this->getRows($filters)->toArray();
+            $rows = $this->getResult($builder, $filters);
 
-            $result['data'] = RowsArrayHelper::keepSelectedFields($result['data'], $selectedColumns ?? []);
-
-            return $result;
+            return  $rows->toArray();
 
         } catch (\Exception $ex) {
             return ['error' => $ex->getMessage()];

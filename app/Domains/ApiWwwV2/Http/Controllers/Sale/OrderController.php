@@ -19,55 +19,47 @@ class OrderController extends ApiWwwV2Controller
 
     public function list()
     {
-        $queries = request()->post('queries');
         $response = [];
 
-        $validator = Validator::make(request()->post(), [
-            'personal_name' => 'nullable|string',
-            'mobile' => 'nullable|string',
-            'code' => 'nullable|string',
-        ]);
+        $queries = request()->all();
 
-        // 在驗證後檢查至少有兩個欄位有填寫
-        $validator->after(function ($validator) use ($queries) {
-            $neededFields = array_keys($queries);
+        $allowed_query_keys = ['equal_code', 'equal_personal_name', 'equal_mobile', ];
 
-            // 計算有填寫的欄位數
-            $coount = 0;
-            foreach ($neededFields as $field) {
-                if (!empty($queries[$field])) {
-                    $coount++;
-                }
+        // 計算有填寫的欄位數
+        $filled_count = 0;
+        foreach ($allowed_query_keys as $key) {
+            if (!empty($queries[$key])) {
+                $filled_count++;
             }
-
-            // 如果填寫的欄位少於兩個，則返回錯誤
-            if ($coount < 2) {
-                $validator->errors()->add('at_least_two_fields', '至少填寫兩個欄位');
-            }
-        });
-
-        // 如果驗證失敗，返回錯誤訊息
-        if ($validator->fails()) {
-            $response['error'] = $validator->errors()->first();
         }
 
-        if(empty($response['error'])){
+        // 檢查是否有至少兩個欄位被填寫
+        if ($filled_count > 1) {
+            return response()->json([
+                'error' => '至少填寫兩個欄位: equal_code, equal_personal_name, equal_mobile'
+            ], 400);  // 400 表示錯誤的請求
+        }
 
-            $filter_data = [];
+        foreach ($queries as $key => $value) {
+            if(empty($queries[$key])){
+                unset($queries[$key]);
+            }
 
-            if(!empty($queries['personal_name'])){
-                $filter_data['filter_personal_name'] = $queries['personal_name'];
+            // equal_, 僅保留指定的三個精確欄位
+            if(str_starts_with($key, 'equal_') && !in_array($key, $allowed_query_keys)){
+                unset($queries[$key]);
             }
-            
-            if(!empty($queries['mobile'])){
-                $filter_data['filter_mobile'] = $queries['mobile'];
+            // filter_, 刪除所有模糊欄位
+            if(str_starts_with($key, 'filter_')){
+                unset($queries[$key]);
             }
+        }
+
+
+        if(empty($response['error']))
+        {
             
-            if(!empty($queries['code'])){
-                $filter_data['filter_code'] = $queries['code'];
-            }
-            
-            $response = $this->OrderService->getList($filter_data);
+            $response = $this->OrderService->getList($queries);
         }
 
         return $this->sendResponse($response);
@@ -75,6 +67,7 @@ class OrderController extends ApiWwwV2Controller
 
     public function infoByCode($order_code)
     {
+
         $filter_data = [
             'equal_code' => $order_code,
             'first' => true,

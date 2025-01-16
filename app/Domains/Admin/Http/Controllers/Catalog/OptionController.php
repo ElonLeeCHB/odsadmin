@@ -195,7 +195,7 @@ class OptionController extends BackendController
         // Get Record
         $filter_data = $this->url_data;
         $filter_data['equal_id'] = $option_id;
-        $filter_data['with'] = ['translations', 'optionValues.translations'];
+        $filter_data['with'] = ['translations', 'optionValues.translations', 'optionValues.product'];
         $option = $this->OptionService->getOption($filter_data);
         $data['option']  = DataHelper::toCleanObject($option);
 
@@ -209,7 +209,7 @@ class OptionController extends BackendController
         }
 
         $sortedOptionValues = $option->optionValues->isEmpty() ? collect([]) : $option->optionValues->sortBy('sort_order');
-
+        
         // option values
         if($sortedOptionValues->isEmpty()){
             $data['option_values'] = [];
@@ -219,12 +219,13 @@ class OptionController extends BackendController
 
                 if(!$option_value->translations->isEmpty()){
                     $newOptionValue->translations = DataHelper::toCleanCollection($option_value->translations->keyBy('locale'));
+                    $newOptionValue->product = DataHelper::toCleanObject($option_value->product);
                 }
 
                 $data['option_values'][] = $newOptionValue;
             }
         }
-
+        
         return view('admin.catalog.option_form', $data);
     }
 

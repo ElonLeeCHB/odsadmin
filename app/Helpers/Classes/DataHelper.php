@@ -203,26 +203,7 @@ class DataHelper
         return true;
     }
 
-    public static function getSqlContent(Builder $builder)
-    {
-        $addSlashes = str_replace('?', "'?'", $builder->toSql());
 
-        $bindings = $builder->getBindings();
-
-        if(!empty($bindings)){
-            $arr['statement'] = vsprintf(str_replace('?', '%s', $addSlashes), $builder->getBindings());
-        }else{
-            $arr['statement'] = $builder->toSql();
-        }
-
-
-        $arr['original'] = [
-            'toSql' => $builder->toSql(),
-            'bidings' => $builder->getBindings(),
-        ];
-
-        echo "<pre>".print_r($arr , 1)."</pre>"; exit;
-    }
 
 
     /**
@@ -392,7 +373,7 @@ class DataHelper
         return $result;
     }
 
-    public static function showSqlQuery(Builder $builder, $exit = 0, $params = [])
+    public static function showSqlContent(Builder $builder, $exit = 0, $params = [])
     {
         $sqlstr = str_replace('?', "'?'", $builder->toSql());
 
@@ -454,4 +435,71 @@ class DataHelper
         return array_column($collection, null, 'sort_order');
     }
 
+
+
+
+    public function getResult(Builder $builder, $debug = 0)
+    {
+        if($debug){
+            DataHelper::showSqlContent($builder, 0);
+        }
+
+        $rows = [];
+
+        if(isset($data['first']) && $data['first'] = true){
+            if(empty($data['pluck'])){
+                $rows = $builder->first();
+            }else{
+                $rows = $builder->pluck($data['pluck'])->first();
+            }
+        }else{
+
+            // Limit
+            if(isset($data['limit'])){
+                $limit = (int) $data['limit'];
+            }else{
+                $limit = (int) config('settings.config_admin_pagination_limit');
+
+                if(empty($limit)){
+                    $limit = 10;
+                }
+            }
+
+            // Pagination default to true
+            if(isset($data['pagination']) ){
+                $pagination = (boolean)$data['pagination'];
+            }else{
+                $pagination = true;
+            }
+
+            // Get rows
+            if($pagination === true && $limit > 0){  // Get some rows per page
+                $rows = $builder->paginate($limit);
+            }
+            else if($pagination === true && $limit == 0){  // get all but keep LengthAwarePaginator
+                $rows = $builder->paginate($builder->count());
+            }
+            else if($pagination === false && $limit != 0){  // Get some rows without pagination
+                $rows = $builder->limit($limit)->get();
+            }
+            else if($pagination === false && $limit == 0){  // Get all matched rows
+                $rows = $builder->get();
+            }
+
+            // Pluck
+            if(!empty($data['pluck'])){
+                $rows = $rows->pluck($data['pluck']);
+            }
+
+            if(!empty($data['keyBy'])){
+                $rows = $rows->keyBy($data['keyBy']);
+            }
+        }
+
+        if(!empty($rows) && !empty($data['toCleanCollection'])){
+            $rows = DataHelper::toCleanCollection($rows);
+        }
+
+        return $rows;
+    }
 }

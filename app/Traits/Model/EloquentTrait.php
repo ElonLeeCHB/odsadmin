@@ -1450,4 +1450,107 @@ trait EloquentTrait
             return ['error' => $ex->getMessage()];
         }
     }
+
+    public function applyFilters($builder, $params = [])
+    {
+        if(empty($params)){
+            $params = request()->all();
+        }
+
+        foreach ($params as $key => $value) {
+            // 處理 filter_ 開頭的參數
+            if (str_starts_with($key, 'filter_')) {
+                $column = substr($key, 7); // 去掉 'filter_'
+                
+                // 檢查是否包含範圍操作符 > 或 <
+                if (str_starts_with($key, '>')) {
+                    $val = trim(substr($value, 1));
+                    $builder->where($column, '>', $val);
+                } else if (str_starts_with($key, '<')) {
+                    $val = trim(substr($value, 1));
+                    $builder->where($column, '<', $val);
+                } elseif (strpos($value, '*') !== false) {
+                    // 如果有 '*'，則使用模糊匹配處理
+                    if (str_starts_with($value, '*')) {
+                        $pattern = substr($value, 1);
+                        $builder->whereRaw("{$column} REGEXP ?", ['.*' . preg_quote($pattern, '/') . '$']);
+                    } elseif (str_ends_with($value, '*')) {
+                        $pattern = substr($value, 0, -1);
+                        $builder->whereRaw("{$column} REGEXP ?", ['^' . preg_quote($pattern, '/') . '.*']);
+                    } else {
+                        $pattern = str_replace('*', '.*', $value);
+                        $builder->whereRaw("{$column} REGEXP ?", [$pattern]);
+                    }
+                } else {
+                    // 沒有 '*' 或範圍符號時，執行模糊匹配
+                    $builder->where($column, 'like', '%' . $value . '%');
+                }
+            }
+            // 處理 equal_ 開頭的參數
+            elseif (str_starts_with($key, 'equal_')) {
+                $column = substr($key, 6); // 去掉 'equal_'
+                $builder->where($column, '=', $value); // 精確匹配
+            }
+        }
+
+        // Sort & Order
+            //  指定排序字串
+            if(!empty($params['orderByRaw'])){
+                $builder->orderByRaw($params['orderByRaw']);
+            }
+            // 指定排序欄位
+            else if(!empty($params['sort'])){
+                //  設定排序順序。預設 DESC
+                if (isset($params['order']) && $params['order'] == 'ASC') {
+                    $order = 'ASC';
+                }
+                else{
+                    $order = 'DESC';
+                }           
+
+                // 非多語欄位而且本表有此欄位
+                if(in_array($params['sort'], $this->table_columns)){
+                    if(empty($this->translation_keys) ||  //不存在多語欄位
+                    (!empty($this->translation_keys) && !in_array($params['sort'], $this->translation_keys)) // 或是有多語欄位，但查詢欄位不在其中
+                    ){
+                        $builder->orderBy($this->getTable() . '.' . $params['sort'], $order);
+                    }
+                }
+                // 多語欄位
+                else{
+                    $translation_table = $this->model->getTranslationTable();
+                    $master_key = $this->model->getTranslationMasterKey();
+                    $sort = $params['sort'];
+
+                    if (str_ends_with($this->model->translation_model_name, 'Meta')) {
+
+                        $builder->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
+                            $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
+                                ->where("{$translation_table}.locale", '=', $this->locale)
+                                ->where("{$translation_table}.meta_key", '=', $sort);
+                        });
+                        $builder->orderBy("{$translation_table}.meta_value", $order);
+
+                    }else{ // 以 Translation 做結尾，例如 ProductTranslation
+                        $builder->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
+                            $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
+                                ->where("{$translation_table}.locale", '=', app()->getLocale());
+                        });
+                        $builder->orderBy("{$translation_table}.{$sort}", $order);
+                    }
+                }
+            }
+            
+            // 未指定排序欄位
+            else if(empty($params['sort'])){
+                if(in_array('sort_order', $this->getTableColumns())){
+                    $builder->orderBy($this->getTable() . '.sort_order', 'ASC');
+                }else if(in_array('id', $this->getTableColumns())){
+                    $builder->orderBy($this->getTable() . '.id', 'DESC');
+                }
+            }
+        //
+
+        return $this;
+    }
 }

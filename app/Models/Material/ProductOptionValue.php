@@ -15,8 +15,8 @@ class ProductOptionValue extends Model
     use Translatable;
     
     protected $guarded = [];
-    protected $appends = ['name','short_name'];
-    public $translation_keys = ['name','short_name'];
+    protected $appends = ['name', 'short_name', 'web_name'];
+    public $translation_keys = ['name','short_name','web_name'];
     protected $casts = [
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',
@@ -67,6 +67,12 @@ class ProductOptionValue extends Model
         );
     }
 
+    protected function webName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => optional($this->translation)->web_name ?? '',
+        );
+    }
 
     protected function quantity(): Attribute
     {

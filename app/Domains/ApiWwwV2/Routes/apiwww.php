@@ -27,9 +27,10 @@ Route::group([
         'as' => 'sales.',
     ], function ()
     {
-        Route::post('orders/list', 'Sale\OrderController@list')->name('orders.list');
+        Route::get('orders/list', 'Sale\OrderController@list')->name('orders.list');
         Route::get('orders/infoById/{id}', 'Sale\OrderController@infoById')->name('orders.infoById');
         Route::get('orders/infoByCode/{code}', 'Sale\OrderController@infoByCode')->name('orders.infoByCode');
+        Route::get('orders/info/{id?}', 'Sale\OrderController@info')->name('orders.info');
 
         Route::post('orders/store', 'Sale\OrderController@store')->name('orders.store');
 

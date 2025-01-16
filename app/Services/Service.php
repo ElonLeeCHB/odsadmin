@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use Illuminate\Database\Eloquent\Builder;
 use App\Traits\Model\EloquentTrait;
 use App\Repositories\Eloquent\Common\TermRepository;
+use App\Helpers\Classes\DataHelper;
 
 class Service
 {
@@ -86,5 +88,68 @@ class Service
         return TermRepository::getTermsByTaxonomyCode($taxonomy_code, $toArray, $params, $debug);
     }
 
-    
+    public function getResult(Builder $builder, $data, $debug = 0)
+    {
+        if($debug){
+            DataHelper::showSqlContent($builder, 0);
+        }
+
+        $rows = [];
+
+        if(isset($data['first']) && $data['first'] = true){
+            if(empty($data['pluck'])){
+                $rows = $builder->first();
+            }else{
+                $rows = $builder->pluck($data['pluck'])->first();
+            }
+        }else{
+
+            // Limit
+            if(isset($data['limit'])){
+                $limit = (int) $data['limit'];
+            }else{
+                $limit = (int) config('settings.config_admin_pagination_limit');
+
+                if(empty($limit)){
+                    $limit = 10;
+                }
+            }
+
+            // Pagination default to true
+            if(isset($data['pagination']) ){
+                $pagination = (boolean)$data['pagination'];
+            }else{
+                $pagination = true;
+            }
+
+            // Get rows
+            if($pagination === true && $limit > 0){  // Get some rows per page
+                $rows = $builder->paginate($limit);
+            }
+            else if($pagination === true && $limit == 0){  // get all but keep LengthAwarePaginator
+                $rows = $builder->paginate($builder->count());
+            }
+            else if($pagination === false && $limit != 0){  // Get some rows without pagination
+                $rows = $builder->limit($limit)->get();
+            }
+            else if($pagination === false && $limit == 0){  // Get all matched rows
+                $rows = $builder->get();
+            }
+
+            // Pluck
+            if(!empty($data['pluck'])){
+                $rows = $rows->pluck($data['pluck']);
+            }
+
+            if(!empty($data['keyBy'])){
+                $rows = $rows->keyBy($data['keyBy']);
+            }
+        }
+
+        if(!empty($rows) && !empty($data['toCleanCollection'])){
+            $rows = DataHelper::toCleanCollection($rows);
+        }
+
+        return $rows;
+    }
 }
