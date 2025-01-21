@@ -336,6 +336,7 @@ class OrderRepository extends Repository
         return Excel::download(new CommonExport($data), 'invoices.pdf', \Maatwebsite\Excel\Excel::MPDF);
     }
 
+    // 2025-01-17 下面可能是舊版。新版即將上線。
     public function getOrderPrintData($order)
     {
         // shipping_address

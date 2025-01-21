@@ -3,6 +3,7 @@
 namespace App\Repositories\Eloquent;
 
 use App\Traits\Model\EloquentTrait;
+use App\Libraries\TranslationLibrary;
 
 class Repository
 {
@@ -13,6 +14,9 @@ class Repository
     public $zh_hant_hans_transform;
     
     public function __construct(){
-        $this->initialize(); // in EloquentTrait
+        if (method_exists($this, 'initialize')) {
+            $this->initialize();
+        }
+
     }
 }

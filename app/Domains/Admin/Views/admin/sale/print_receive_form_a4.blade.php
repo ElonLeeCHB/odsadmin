@@ -1911,77 +1911,78 @@
         </table>
 
 
-      {{-- 客戶簽收 --}}
-      <table data-toggle="table" class="table table-bordered border border-dark tr-border-top">
-        <tr>
-          <td class="align-top" style="width: 50%;border-right:3px solid black" >
-            <p style="white-space: pre-wrap;margin:0">訂單備註：{{ $order['order']->comment }}</p>
-          </td>
-          <td class="border-right:3px solid black">
-            客戶簽收：<BR>
-            @if( $order['order']->payment_method ==='cash')
-            <input type="checkbox" id="checkedCheckbox" name="checkedCheckbox" checked>
-            {{"現金"}}
-            @else
-            <input type="checkbox">
-            {{"現金"}}
-            @endif
-            <BR>
-            @if( $order['order']->payment_method ==='debt')
-            <input type="checkbox" id="checkedCheckbox" name="checkedCheckbox" checked> {{"預計匯款日"}}
-            @if(!empty($order['order']->scheduled_payment_date))
-            {{ $order['order']->scheduled_payment_date}}
-            @else
-            {{"未填寫付款日"}}
-            @endif
-            @else
-            <input type="checkbox">
-            {{"預計匯款日"}}
+      <!-- 客戶簽收 -->
+        <table data-toggle="table" class="table table-bordered border border-dark tr-border-top">
+          <tr>
+            <td class="align-top" style="width: 50%;border-right:3px solid black" >
+              <p style="white-space: pre-wrap;margin:0">訂單備註：{{ $order['order']->comment }}</p>
+            </td>
+            <td class="border-right:3px solid black">
+              客戶簽收：<BR>
+              @if( $order['order']->payment_method ==='cash')
+              <input type="checkbox" id="checkedCheckbox" name="checkedCheckbox" checked>
+              {{"現金"}}
+              @else
+              <input type="checkbox">
+              {{"現金"}}
+              @endif
+              <BR>
+              @if( $order['order']->payment_method ==='debt')
+              <input type="checkbox" id="checkedCheckbox" name="checkedCheckbox" checked> {{"預計匯款日"}}
+              @if(!empty($order['order']->scheduled_payment_date))
+              {{ $order['order']->scheduled_payment_date}}
+              @else
+              {{"未填寫付款日"}}
+              @endif
+              @else
+              <input type="checkbox">
+              {{"預計匯款日"}}
 
-            @endif
-            <!-- 日期：<BR> -->
-            <!-- 外送人員：_______________  出發時間：_______________<BR>
-            租借外送機車車號：_______________ &nbsp;&nbsp;&nbsp;
+              @endif
+              <!-- 日期：<BR> -->
+              <!-- 外送人員：_______________  出發時間：_______________<BR>
+              租借外送機車車號：_______________ &nbsp;&nbsp;&nbsp;
 
-            <input type="checkbox" id="input-chk001" >
-            <label for="input-chk001">膠台</label>
+              <input type="checkbox" id="input-chk001" >
+              <label for="input-chk001">膠台</label>
 
-            <input type="checkbox" id="input-chk002" >
-            <label for="input-chk002">推車</label>
+              <input type="checkbox" id="input-chk002" >
+              <label for="input-chk002">推車</label>
 
-            <input type="checkbox" id="input-chk003" >
-            <label for="input-chk003">拉繩</label><BR>
-            運費代收人：_______________ 代收金額：______<BR>
-            貨款代收人：_______________ 代收金額：______ -->
+              <input type="checkbox" id="input-chk003" >
+              <label for="input-chk003">拉繩</label><BR>
+              運費代收人：_______________ 代收金額：______<BR>
+              貨款代收人：_______________ 代收金額：______ -->
 
-          </td>
-          <td class="" style="padding: 0px;border-left:3px solid black">
-            <table  class="table  border no-border border-left:3px solid black" style="width: 100%;">
-              @foreach($order['order_totals'] as $code => $order_total)
-              <tr  >
-                <td class="text-end">{{ $order_total->title }}: </td>
-                <td class="text-end">{{ $order_total->value }}</td>
-              </tr>
-              @endforeach
-            </table>
-          </td>
-        </tr>
-      </table>
-      外送人員簽名：____________
-      <input type="checkbox"> 外送機車/車牌：__________
-      <input type="checkbox" id="input-chk001" >
-      <label for="input-chk001">膠台</label>
-      <input type="checkbox" id="input-chk002" >
-      <label for="input-chk002">推車</label>
-      <input type="checkbox" id="input-chk003" >
-      <label for="input-chk003">拉繩</label>
-      @if(!empty($order['order']->order_taker))
-      接單人員:  {{$order['order']->order_taker }}
-      @else
-      接單人員:__________
-      @endif
-      <br>
-      <div class="fw-bold"  style="text-align: right;margin-right: 1.5em">{{'製單時間：'}}{{ $order['order']->now }}</div>
+            </td>
+            <td class="" style="padding: 0px;border-left:3px solid black">
+              <table  class="table  border no-border border-left:3px solid black" style="width: 100%;">
+                @foreach($order['order_totals'] as $code => $order_total)
+                <tr  >
+                  <td class="text-end">{{ $order_total->title }}: </td>
+                  <td class="text-end">{{ $order_total->value }}</td>
+                </tr>
+                @endforeach
+              </table>
+            </td>
+          </tr>
+        </table>
+        外送人員簽名：____________
+        <input type="checkbox"> 外送機車/車牌：__________
+        <input type="checkbox" id="input-chk001" >
+        <label for="input-chk001">膠台</label>
+        <input type="checkbox" id="input-chk002" >
+        <label for="input-chk002">推車</label>
+        <input type="checkbox" id="input-chk003" >
+        <label for="input-chk003">拉繩</label>
+        @if(!empty($order['order']->order_taker))
+        接單人員:  {{$order['order']->order_taker }}
+        @else
+        接單人員:__________
+        @endif
+        <br>
+        <div class="fw-bold"  style="text-align: right;margin-right: 1.5em">{{'製單時間：'}}{{ $order['order']->now }}</div>
+      <!-- End 客戶簽收 -->
     </div>
 
 

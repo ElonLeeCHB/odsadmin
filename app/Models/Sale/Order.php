@@ -28,11 +28,12 @@ class Order extends Model
 
     protected $guarded = [];
 
-    protected $appends = ['delivery_date_ymd', 'delivery_date_hi', 'delivery_weekday','status_name'];
+    protected $appends = ['order_date_ymd', 'delivery_date_ymd', 'delivery_date_hi', 'delivery_weekday','status_name'];
 
     protected $casts = [
         'is_closed' => 'boolean',
         'is_payed_off' => 'boolean',
+        // 'order_date' => 'date:Y-m-d',
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
@@ -100,7 +101,17 @@ class Order extends Model
         return $this->belongsTo(Division::class, 'shipping_state_id', 'id');
     }
 
+    public function shippingState()
+    {
+        return $this->belongsTo(Division::class, 'shipping_state_id', 'id');
+    }
+
     public function shipping_city()
+    {
+        return $this->belongsTo(Division::class, 'shipping_city_id', 'id');
+    }
+
+    public function shippingCity()
     {
         return $this->belongsTo(Division::class, 'shipping_city_id', 'id');
     }
@@ -146,6 +157,18 @@ class Order extends Model
     {
         return Attribute::make(
             get: fn ($value) => !empty($value) ? $value : 0,
+        );
+    }
+
+    protected function orderDateYmd(): Attribute
+    {
+        if(!empty($this->order_date)){
+            $newValue = Carbon::parse($this->order_date)->format('Y-m-d');
+        }else{
+            $newValue = date('Y-m-d');
+        }
+        return Attribute::make(
+            get: fn ($value) => $newValue ?? '',
         );
     }
 

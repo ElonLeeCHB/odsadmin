@@ -383,17 +383,20 @@ class OrderController extends ApiController
         $date = $request->input('date');
         $start_date = $date . ' 00:00:00';
         $end_date = $date . ' 23:59:59';
-        //shipping_city_id
-        $data = DB::select("
+
+        $sql = "
         SELECT o.id,o.code,o.control_comment as remark,o.delivery_time_range,o.shipping_city_id,d.name AS road, SUM(op.quantity) AS amount
         FROM ".env('DB_DATABASE').".`orders` AS o
-        JOIN ".env('DB_DATABASE').".`order_products` AS op ON op.order_id = o.id
-        JOIN ".env('DB_DATABASE').".`divisions` AS d ON d.id = o.shipping_city_id
+        LEFT JOIN ".env('DB_DATABASE').".`order_products` AS op ON op.order_id = o.id
+        LEFT JOIN ".env('DB_DATABASE').".`divisions` AS d ON d.id = o.shipping_city_id
         WHERE DATE(o.delivery_date) BETWEEN ? AND ?
         AND o.status_code != 'Void'
         AND (o.status_code = 'Confirmed' OR o.status_code = 'CCP')
         Group By o.id,o.code,o.control_comment,o.delivery_time_range,o.shipping_city_id,d.name
-        ", [$start_date, $end_date]);
+        ";
+
+        //shipping_city_id
+        $data = DB::select($sql, [$start_date, $end_date]);
         // dd($data);
         $timeLimits = [
             "07:00-08:00",

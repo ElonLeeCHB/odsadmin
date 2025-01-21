@@ -18,6 +18,7 @@
         "spatie/laravel-permission": "^6.10",
         "spatie/laravel-ray": "^1.32",
         "staudenmeir/eloquent-has-many-deep": "^1.18",
+        "tecnickcom/tcpdf": "^6.6",
         "tymon/jwt-auth": "^2.1"
     },
     "require-dev": {

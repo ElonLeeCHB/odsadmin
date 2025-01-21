@@ -13,6 +13,8 @@ class ProductTag extends Model
     use ModelTrait;
 
     public $timestamps = false;
+    protected $with = ['translation'];
+    protected $appends = ['name'];
     protected $guarded = [];
     protected $casts = [
         'created_at' => 'datetime:Y-m-d H:i:s',
@@ -37,10 +39,10 @@ class ProductTag extends Model
 
     // Attribute
 
-    protected function tagName(): Attribute
+    protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->tag->name ?? '',
+            get: fn () => optional($this->translation)->name ?? '',
         );
     }
 }

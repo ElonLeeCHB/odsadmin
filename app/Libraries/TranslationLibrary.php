@@ -19,6 +19,16 @@ class TranslationLibrary
     public $paths;
     public $driver;
 
+    public function getLang($data)
+    {
+        if(!is_array($data)){
+            $arr[] = $data;
+            $data = $arr;
+        }
+
+        return $this->getTranslations($data);
+    }
+
     // getTransBypaths
     public function getTranslations($paths)
     {        

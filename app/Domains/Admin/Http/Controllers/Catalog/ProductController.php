@@ -139,7 +139,7 @@ class ProductController extends BackendController
     public function form($product_id = null)
     {
         $data['lang'] = $this->lang;
-
+        
         // Languages
         $data['languages'] = $this->languageRepository->newModel()->active()->get();
 

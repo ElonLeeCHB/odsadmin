@@ -7,19 +7,13 @@ use App\Services\Service;
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderTotalRepository;
+use App\Repositories\Eloquent\Sale\OrderPrintingRepository;
+use App\Repositories\Eloquent\Material\ProductOptionValueRepository;
 use App\Repositories\Eloquent\Member\MemberRepository;
-
-use App\Models\Common\Term;
-use App\Models\Common\TermTranslation;
-use App\Models\Common\TermRelation;
+use App\Repositories\Eloquent\Catalog\OptionValueRepository;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Sale\OrderTag;
 use App\Models\Catalog\ProductTranslation;
-
-use Maatwebsite\Excel\Facades\Excel;
-use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
-use Carbon\Carbon;
-use Mpdf\Mpdf;
 
 class OrderService extends Service
 {
@@ -424,5 +418,41 @@ class OrderService extends Service
             DB::rollback();
             return ['error' => $ex->getMessage()];
         }
+    }
+
+    public function getMultiOrdersForPrinting($params)
+    {
+        return (new OrderPrintingRepository)->getMultiOrders($params);
+    }
+
+    public function getOptionValuesByProductOption($product_id, $option_id)
+    {
+        return (new ProductOptionValueRepository)->getOptionValuesByProductOption($product_id, $option_id);
+    }
+
+    Public function getDrinks()
+    {
+        $filter_data = [
+            'equal_option_id' => 1004,
+            'pagination' => 0,
+            'limit' => 0,
+            'sort' => 'sort_order',
+            'order' => 'ASC',
+            'is_active' => 1,
+        ];
+        $optionValues =(new OptionValueRepository)->getRows($filter_data);
+        $optionValues = $optionValues->sortBy('sort_order');
+
+        foreach($optionValues as $row){
+            $rows[] = (object)[
+                'option_id' => $row->option_id,
+                'option_value_id' => $row->option_value_id,
+                'name' => $row->name,
+                'short_name' => $row->short_name,
+                'is_active' => $row->is_active,
+            ];
+        }
+
+        return $rows;
     }
 }

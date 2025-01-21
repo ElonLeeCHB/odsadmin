@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8"/>
     <title>{{ $appName }}</title>
-    <base href="{{ $base }}"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
     <meta http-equiv="cache-control" content="no-cache">
     <meta http-equiv="expires" content="0">

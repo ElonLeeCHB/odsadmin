@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>外送訂購單</title>
+  <script src="http://ods.dtstw.test/backend/assets-admin/javascript/jquery/jquery-3.6.1.min.js" differ></script>
+  <script src="http://ods.dtstw.test/backend/assets-admin/javascript/bootstrap/js/bootstrap.bundle.min.js?v=5.2.3" differ></script>
+  <script src="http://ods.dtstw.test/backend/assets/package/bootstrap/js/bootstrap-table-1.21.2.min.js" differ></script>
+  <link  href="http://ods.dtstw.test/backend/assets/package/bootstrap/css/bootstrap-5.1.3.min.css" rel="stylesheet" crossorigin="anonymous"/>
+  <link  href="http://ods.dtstw.test/backend/assets/package/bootstrap/css/bootstrap-icons-1.10.3.css" rel="stylesheet"/>
+  <link  href="http://ods.dtstw.test/backend/assets/package/bootstrap/css/bootstrap-table-1.21.2.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    #printableArea {
+        margin: 2px auto;
+        padding: 0px;
+    }
+    @media screen, print {
+      #printableArea {
+        margin: 2px auto;
+        padding: 0px;
+        width: 8.5in;
+        height: 11in;
+      }
+
+      @page {
+        size: 8.5in 11in;
+        margin: 2px;
+      }
+    }
+    .commentSign{
+      width: 360px;
+      position: absolute;
+      top: 30px;
+      right: 0px;
+    }
+   .tr-border-top {
+    border-top: 3px solid black !important;
+    border-bottom: 3px solid black !important;
+    border-left:3px solid black !important;
+    border-right:3px solid black !important;
+   }
+   .tr-border-special {
+    border-bottom: 3px solid black !important;
+    border-left:3px solid black !important;
+    border-right:3px solid black !important;
+   }
+
+  </style>
+
+</head>
+<body>
+  <div id="printableArea">
+      
+    
+      <table id="contactInfo" class="border-none contact" style="width: 100%;" >
+        <tr style="height: 70px;">
+          <td class="col-sm-1"><img width="60" src="http://ods.dtstw.test/backend/image/logo.png" alt="Chinabing" title="Chinabing"/></td>
+          <td class="text-center"><span style="font-size: 1.5em;">外送訂購單</span></td>
+          <td style="width: 160px;">下單日期 2025-01-10<BR></td>
+        </tr>
+        <tr>
+          <td colspan="3">
+          <div class="fw-bold"  style="text-align: right;margin-right: 1.5em">外送人員：________</div>
+          <div class="fw-bold"  style="text-align: right;margin-right: 1.5em">出餐時間：________</div>
+          <span class="fw-bold">訂單編號：</span><span> 25010166</span><span class="fw-bold"> &nbsp;&nbsp;
+                    <BR>
+            <span class="fw-bold">送達日：</span><span>2025-01-22 11:00:00</span>&nbsp;&nbsp;
+            <span class="fw-bold">星期：</span><span>三</span>&nbsp;&nbsp;
+            <span class="fw-bold">時間：</span><span>1100-1200</span>&nbsp;
+            <span class="fw-bold">手機：</span><span>0912-345678</span>&nbsp;
+            <span class="fw-bold">訂購人：</span><span>測試</span>&nbsp;&nbsp;
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3">
+            <span class="fw-bold">訂餐公司：</span><span>測試</span>&nbsp;&nbsp;
+            <span class="fw-bold">部門：</span><span></span>&nbsp;&nbsp;
+            <span class="fw-bold">市內電話：</span><span></span>&nbsp;&nbsp;
+                        <span class="fw-bold">不需要統編</span>
+                      </td>
+        </tr>
+        <tr>
+          <td colspan="3">
+            <span class="fw-bold">送達公司：</span><span>
+          <span class="fw-bold">送達地址：</span>
+                      臺北市大同區五原路xxx&nbsp;&nbsp;
+                        &nbsp;&nbsp;
+            <!-- <span class="fw-bold">送達聯絡人：</span><span>測試</span>&nbsp;&nbsp;
+            <span class="fw-bold">聯絡電話：</span><span>0912-345678</span> -->
+                      <!-- <input type="checkbox"> 餐飲總額
+            <input type="checkbox"> 會議盒餐
+            <input type="checkbox"> _______ -->
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3">
+          <!-- <span class="fw-bold">送達地址：</span> -->
+                      <!-- 臺北市大同區五原路xxx&nbsp;&nbsp; -->
+            <!--  -->
+            <!-- <span class="fw-bold">送達公司：</span><span>測試 -->
+            <!--  -->
+                                    <span class="fw-bold">送達聯絡①：</span><span>測試 17</span>&nbsp;&nbsp;
+            <span class="fw-bold">聯絡電話①：</span><span>0912-345678</span>
+                                                        </td>
+          </tr>
+          <!-- <tr>
+          <td colspan="3">
+          <input type="checkbox"> 小卡
+          外送五步驟：清檢放統備 &nbsp;&nbsp;簽名：_______________
+          </td>
+          </tr> -->
+      </table>
+    
+
+    
+      <table id="customerNote" data-toggle="table" class="table table-bordered border border-dark">
+        <tbody>
+          <tr style="height: 60px;">
+            <td class="align-top"   colspan="10">
+            <p style="white-space: pre-wrap;margin:0">餐點備註：</p>
+              <div style="text-align: right;">
+                <input type="checkbox"> 小卡
+                外送五步驟：清檢放統備 &nbsp;&nbsp;簽名：_______________
+            </div>
+          </td>
+          </tr>
+        </tbody>
+      </table>
+    
+            
+    <!-- 潤餅便當系列 -->
+            <table id="lumpiaBento" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
+        <thead>
+          <tr>
+            <td style="width:100px;" class="fw-bold">潤餅便當</td>
+            <td style="width:24px;" class="fw-bold">小計</td>
+                                      <td style="width:24px; " class="fw-bold">
+                全素
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                奶素
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                鮮蔬
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                炸蝦
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                芥雞
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                酥魚
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                培根
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                滷肉
+              </td>
+                                        <td style="width:24px;  border-right:3px solid black " class="fw-bold">
+                春捲
+              </td>
+                          
+                          <td style="width:24px;  border-right:3px solid black " class="fw-bold">
+                雞腿
+              </td>
+                          
+                          <td style="width:24px; " class="fw-bold">
+                廚娘油飯
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                番茄
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                毛豆
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                玉米筍
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                花椰菜
+              </td>
+                                        <td style="width:24px;  border-right:3px solid black " class="fw-bold">
+                半顆蛋
+              </td>
+                          
+                          <td style="width:24px; " class="fw-bold">
+                紅
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                奶
+              </td>
+                                        <td style="width:24px;  border-right:3px solid black " class="fw-bold">
+                甜
+              </td>
+                          
+                                      <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px;  border-right:3px solid black " class="fw-bold"> </td>
+                      </tr>
+        </thead>
+        <tbody>
+                    <tr>
+            <td>招牌便當</td>
+            <td>50</td>
+                                      <td style="">
+                                  5
+                              </td>
+                                        <td style="">
+                                  5
+                              </td>
+                                        <td style="">
+                                  10
+                              </td>
+                                        <td style="">
+                                  5
+                              </td>
+                                        <td style="">
+                                  5
+                              </td>
+                                        <td style="">
+                                  5
+                              </td>
+                                        <td style="">
+                                  5
+                              </td>
+                                        <td style="">
+                                  5
+                              </td>
+                                        <td style=" border-right:3px solid black ">
+                                  5
+                              </td>
+                          
+                          <td style=" border-right:3px solid black ">
+                              </td>
+                          
+                          <td style="">
+                                  50
+                              </td>
+                                        <td style="">
+                                  50
+                              </td>
+                                        <td style="">
+                                  50
+                              </td>
+                                        <td style="">
+                                  50
+                              </td>
+                                        <td style="">
+                                  50
+                              </td>
+                                        <td style=" border-right:3px solid black ">
+                                  50
+                              </td>
+                          
+                          <td style="">
+                                  20
+                              </td>
+                                        <td style="">
+                                  20
+                              </td>
+                                        <td style=" border-right:3px solid black ">
+                                  10
+                              </td>
+                          
+                                      <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px;  border-right:3px solid black "> </td>
+                      </tr>
+                    <tr>
+            <td>雞腿便當</td>
+            <td>50</td>
+                                      <td style="">
+                              </td>
+                                        <td style="">
+                              </td>
+                                        <td style="">
+                              </td>
+                                        <td style="">
+                                  20
+                              </td>
+                                        <td style="">
+                                  20
+                              </td>
+                                        <td style="">
+                                  10
+                              </td>
+                                        <td style="">
+                              </td>
+                                        <td style="">
+                              </td>
+                                        <td style=" border-right:3px solid black ">
+                              </td>
+                          
+                          <td style=" border-right:3px solid black ">
+                                  50
+                              </td>
+                          
+                          <td style="">
+                                  50
+                              </td>
+                                        <td style="">
+                                  50
+                              </td>
+                                        <td style="">
+                                  50
+                              </td>
+                                        <td style="">
+                                  50
+                              </td>
+                                        <td style="">
+                                  50
+                              </td>
+                                        <td style=" border-right:3px solid black ">
+                                  50
+                              </td>
+                          
+                          <td style="">
+                                  50
+                              </td>
+                                        <td style="">
+                              </td>
+                                        <td style=" border-right:3px solid black ">
+                              </td>
+                          
+                                      <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px;  border-right:3px solid black "> </td>
+                      </tr>
+                                                                                                </tbody>
+      </table>
+          <!-- end 潤餅便當系列 -->
+
+    <!-- 刈包便當系列 -->
+              <table id="quabaoBento" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
+          <thead>
+            <tr>
+              <td style="width:100px;" class="fw-bold">刈包便當</td>
+              <td style="width:24px;" class="fw-bold">小計</td>
+                                            <td style="width:24px; " class="fw-bold">
+                  炸蝦
+                </td>
+                                              <td style="width:24px; " class="fw-bold">
+                  芥雞
+                </td>
+                                              <td style="width:24px; " class="fw-bold">
+                  鮮蔬
+                </td>
+                                              <td style="width:24px; " class="fw-bold">
+                  酥魚
+                </td>
+                                              <td style="width:24px;  border-right:3px solid black " class="fw-bold">
+                  培根
+                </td>
+                              
+                              <td style="width:24px;  border-right:3px solid black " class="fw-bold">
+                  雞胸
+                </td>
+                              
+                              <td style="width:24px; " class="fw-bold">
+                  廚娘油飯
+                </td>
+                                              <td style="width:24px; " class="fw-bold">
+                  番茄
+                </td>
+                                              <td style="width:24px; " class="fw-bold">
+                  毛豆
+                </td>
+                                              <td style="width:24px; " class="fw-bold">
+                  半顆蛋
+                </td>
+                                              <td style="width:24px; " class="fw-bold">
+                  玉米筍
+                </td>
+                                              <td style="width:24px;  border-right:3px solid black " class="fw-bold">
+                  花椰菜
+                </td>
+                              
+              
+                                            <td style="width:24px; " class="fw-bold"> </td>
+                              <td style="width:24px; " class="fw-bold"> </td>
+                              <td style="width:24px; " class="fw-bold"> </td>
+                              <td style="width:24px; " class="fw-bold"> </td>
+                              <td style="width:24px; " class="fw-bold"> </td>
+                              <td style="width:24px; " class="fw-bold"> </td>
+                              <td style="width:24px; " class="fw-bold"> </td>
+                              <td style="width:24px; " class="fw-bold"> </td>
+                              <td style="width:24px; " class="fw-bold"> </td>
+                              <td style="width:24px; " class="fw-bold"> </td>
+                              <td style="width:24px; " class="fw-bold"> </td>
+                              <td style="width:24px; " class="fw-bold"> </td>
+                              <td style="width:24px; " class="fw-bold"> </td>
+                              <td style="width:24px; " class="fw-bold"> </td>
+                              <td style="width:24px; " class="fw-bold"> </td>
+                              <td style="width:24px; " class="fw-bold"> </td>
+                              <td style="width:24px;  border-right:3px solid black " class="fw-bold"> </td>
+                          </tr>
+          </thead>
+          <tbody>
+                        <tr>
+              <td>刈包便當</td>
+              <td>20</td>
+                                            <td style="">
+                                      10
+                                  </td>
+                                              <td style="">
+                                      10
+                                  </td>
+                                              <td style="">
+                                  </td>
+                                              <td style="">
+                                  </td>
+                                              <td style=" border-right:3px solid black ">
+                                  </td>
+                              
+                              <td style=" border-right:3px solid black ">
+                                  </td>
+                              
+                              <td style="">
+                                      20
+                                  </td>
+                                              <td style="">
+                                      20
+                                  </td>
+                                              <td style="">
+                                      20
+                                  </td>
+                                              <td style="">
+                                      20
+                                  </td>
+                                              <td style="">
+                                      20
+                                  </td>
+                                              <td style=" border-right:3px solid black ">
+                                      20
+                                  </td>
+                              
+              
+                                            <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px;  border-right:3px solid black "> </td>
+                          </tr>
+                        <tr>
+              <td>雞胸刈包便當</td>
+              <td>100</td>
+                                            <td style="">
+                                      20
+                                  </td>
+                                              <td style="">
+                                      20
+                                  </td>
+                                              <td style="">
+                                      20
+                                  </td>
+                                              <td style="">
+                                      20
+                                  </td>
+                                              <td style=" border-right:3px solid black ">
+                                      20
+                                  </td>
+                              
+                              <td style=" border-right:3px solid black ">
+                                      100
+                                  </td>
+                              
+                              <td style="">
+                                      100
+                                  </td>
+                                              <td style="">
+                                      100
+                                  </td>
+                                              <td style="">
+                                      100
+                                  </td>
+                                              <td style="">
+                                      100
+                                  </td>
+                                              <td style="">
+                                      100
+                                  </td>
+                                              <td style=" border-right:3px solid black ">
+                                      100
+                                  </td>
+                              
+              
+                                            <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px; "> </td>
+                              <td style="width:24px;  border-right:3px solid black "> </td>
+                          </tr>
+                                                                                                  </tbody>
+        </table>
+          <!-- end 刈包便當系列 -->
+
+    <!-- 潤餅盒餐系列 -->
+            <table id="lumpiaLunchBox" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
+        <thead>
+          <tr>
+            <td style="width:100px;" class="fw-bold">潤餅盒餐</td>
+            <td style="width:24px;" class="fw-bold">小計</td>
+                                      <td style="width:24px; " class="fw-bold">
+                全素
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                奶素
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                鮮蔬
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                炸蝦
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                芥雞
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                酥魚
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                培根
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                滷肉
+              </td>
+                                        <td style="width:24px;  border-right:3px solid black " class="fw-bold">
+                春捲
+              </td>
+                          
+                          <td style="width:24px; " class="fw-bold">
+                炸地瓜
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                蛋塔
+              </td>
+                                        <td style="width:24px;  border-right:3px solid black " class="fw-bold">
+                雞翅
+              </td>
+                          
+                          <td style="width:24px; " class="fw-bold">
+                微
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                紅
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                甜
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                奶
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                濃
+              </td>
+                                        <td style="width:24px;  border-right:3px solid black " class="fw-bold">
+                無
+              </td>
+                          
+                                      <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px;  border-right:3px solid black "> </td>
+                      </tr>
+        </thead>
+        <tbody>
+                    <tr>
+            <td>貴賓盒餐</td>
+            <td>100</td>
+                                      <td style="" data-option_value_id="1046">
+                                  20
+                              </td>
+                                        <td style="" data-option_value_id="1047">
+                                  20
+                              </td>
+                                        <td style="" data-option_value_id="1017">
+                                  5
+                              </td>
+                                        <td style="" data-option_value_id="1018">
+                                  10
+                              </td>
+                                        <td style="" data-option_value_id="1019">
+                                  10
+                              </td>
+                                        <td style="" data-option_value_id="1020">
+                                  10
+                              </td>
+                                        <td style="" data-option_value_id="1021">
+                                  10
+                              </td>
+                                        <td style="" data-option_value_id="1022">
+                                  10
+                              </td>
+                                        <td style=" border-right:3px solid black " data-option_value_id="1093">
+                                  5
+                              </td>
+                          
+                          <td style="" data-option_value_id="1029">
+                                  100
+                              </td>
+                                        <td style="" data-option_value_id="1030">
+                                  100
+                              </td>
+                                        <td style=" border-right:3px solid black " data-option_value_id="1032">
+                              </td>
+                          
+                          <td style="" data-option_value_id="1023">
+                                  75
+                              </td>
+                                        <td style="" data-option_value_id="1025">
+                                  10
+                              </td>
+                                        <td style="" data-option_value_id="1028">
+                                  5
+                              </td>
+                                        <td style="" data-option_value_id="1026">
+                                  5
+                              </td>
+                                        <td style="" data-option_value_id="1027">
+                                  5
+                              </td>
+                                        <td style=" border-right:3px solid black " data-option_value_id="1024">
+                              </td>
+                          
+                                      <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px;  border-right:3px solid black "> </td>
+                      </tr>
+          <tr>
+            <td>飲料</td>
+            <td></td>
+                                      <td style="" data-option_value_id="1046">
+                                                      微5
+                                      紅5
+                                      甜5
+                                                </td>
+                                        <td style="" data-option_value_id="1047">
+                                                      微20
+                                                </td>
+                                        <td style="" data-option_value_id="1017">
+                                                      微5
+                                                </td>
+                                        <td style="" data-option_value_id="1018">
+                                                      微10
+                                                </td>
+                                        <td style="" data-option_value_id="1019">
+                                                      紅5
+                                      奶5
+                                      濃5
+                                                </td>
+                                        <td style="" data-option_value_id="1020">
+                                                      微10
+                                                </td>
+                                        <td style="" data-option_value_id="1021">
+                                                      微10
+                                                </td>
+                                        <td style="" data-option_value_id="1022">
+                                                      微10
+                                                </td>
+                                        <td style=" border-right:3px solid black " data-option_value_id="1093">
+                                                      微5
+                                                </td>
+                                    </tr>
+                    <tr>
+            <td>首席盒餐</td>
+            <td>50</td>
+                                      <td style="" data-option_value_id="1046">
+                                  5
+                              </td>
+                                        <td style="" data-option_value_id="1047">
+                                  5
+                              </td>
+                                        <td style="" data-option_value_id="1017">
+                                  5
+                              </td>
+                                        <td style="" data-option_value_id="1018">
+                                  5
+                              </td>
+                                        <td style="" data-option_value_id="1019">
+                                  5
+                              </td>
+                                        <td style="" data-option_value_id="1020">
+                                  5
+                              </td>
+                                        <td style="" data-option_value_id="1021">
+                                  5
+                              </td>
+                                        <td style="" data-option_value_id="1022">
+                                  10
+                              </td>
+                                        <td style=" border-right:3px solid black " data-option_value_id="1093">
+                                  5
+                              </td>
+                          
+                          <td style="" data-option_value_id="1029">
+                                  50
+                              </td>
+                                        <td style="" data-option_value_id="1030">
+                                  50
+                              </td>
+                                        <td style=" border-right:3px solid black " data-option_value_id="1032">
+                                  50
+                              </td>
+                          
+                          <td style="" data-option_value_id="1023">
+                                  2
+                              </td>
+                                        <td style="" data-option_value_id="1025">
+                                  43
+                              </td>
+                                        <td style="" data-option_value_id="1028">
+                              </td>
+                                        <td style="" data-option_value_id="1026">
+                                  1
+                              </td>
+                                        <td style="" data-option_value_id="1027">
+                                  2
+                              </td>
+                                        <td style=" border-right:3px solid black " data-option_value_id="1024">
+                                  2
+                              </td>
+                          
+                                      <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px;  border-right:3px solid black "> </td>
+                      </tr>
+          <tr>
+            <td>飲料</td>
+            <td></td>
+                                      <td style="" data-option_value_id="1046">
+                                                      紅5
+                                                </td>
+                                        <td style="" data-option_value_id="1047">
+                                                      紅5
+                                                </td>
+                                        <td style="" data-option_value_id="1017">
+                                                      無2
+                                      微2
+                                      紅1
+                                                </td>
+                                        <td style="" data-option_value_id="1018">
+                                                      紅5
+                                                </td>
+                                        <td style="" data-option_value_id="1019">
+                                                      紅5
+                                                </td>
+                                        <td style="" data-option_value_id="1020">
+                                                      紅2
+                                      奶1
+                                      濃2
+                                                </td>
+                                        <td style="" data-option_value_id="1021">
+                                                      紅5
+                                                </td>
+                                        <td style="" data-option_value_id="1022">
+                                                      紅10
+                                                </td>
+                                        <td style=" border-right:3px solid black " data-option_value_id="1093">
+                                                      紅5
+                                                </td>
+                                    </tr>
+                  </tbody>
+      </table>
+          <!-- end 潤餅盒餐系列 -->
+
+    <!-- 刈包盒餐系列 -->
+            <table id="quabaoLunchBox" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
+        <thead>
+          <tr>
+            <td style="width:100px;" class="fw-bold">刈包盒餐</td>
+            <td style="width:24px;" class="fw-bold">小計</td>
+                                      <td style="width:24px;  border-right:3px solid black " class="fw-bold">
+                炸蝦
+              </td>
+                          
+                          <td style="width:24px; " class="fw-bold">
+                炸地瓜
+              </td>
+                                        <td style="width:24px;  border-right:3px solid black " class="fw-bold">
+                酥餅
+              </td>
+                          
+                          <td style="width:24px;  border-right:3px solid black " class="fw-bold">
+                紅
+              </td>
+                          
+                                      <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px;  border-right:3px solid black "> </td>
+                      </tr>
+        </thead>
+        <tbody>
+                    <tr>
+            <td>刈包貴賓盒餐</td>
+            <td>50</td>
+                                      <td style=" border-right:3px solid black " data-option_value_id="1097">
+                                  50
+                              </td>
+                          
+                          <td style="" data-option_value_id="1029">
+                                  50
+                              </td>
+                                        <td style=" border-right:3px solid black " data-option_value_id="1031">
+                                  50
+                              </td>
+                          
+                          <td style=" border-right:3px solid black " data-option_value_id="1025">
+                                  50
+                              </td>
+                          
+                                      <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px;  border-right:3px solid black "> </td>
+                      </tr>
+          <tr>
+            <td>飲料</td>
+            <td></td>
+                                      <td style=" border-right:3px solid black " data-option_value_id="1097">
+                                                      紅50
+                                                </td>
+                                    </tr>
+                  </tbody>
+      </table>
+          <!-- end 刈包盒餐系列 -->
+     
+    <!-- 分享餐系列 -->
+            <table id="sharingMeal" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
+        <thead>
+          <tr>
+            <td style="width:100px;" class="fw-bold">分享餐</td>
+            <td style="width:24px;" class="fw-bold">小計</td>
+                                      <td style="width:24px; " class="fw-bold">
+                鮮蔬
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                炸蝦
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                芥雞
+              </td>
+                                        <td style="width:24px;  border-right:3px solid black " class="fw-bold">
+                酥魚
+              </td>
+                          
+                                      <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px;  border-right:3px solid black " class="fw-bold"> </td>
+                      </tr>
+        </thead>
+        <tbody>
+                    <tr>
+            <td>分享餐</td>
+            <td>2</td>
+                                      <td style="">
+                                  3
+                              </td>
+                                        <td style="">
+                                  3
+                              </td>
+                                        <td style="">
+                                  3
+                              </td>
+                                        <td style=" border-right:3px solid black ">
+                                  3
+                              </td>
+                          
+                                      <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px; "> </td>
+                          <td style="width:24px;  border-right:3px solid black "> </td>
+                      </tr>
+                  </tbody>
+      </table>
+          <!-- end 分享餐系列 -->
+
+    <!-- 單點 -->
+            <table id="sharingMeal" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
+        <thead>
+          <tr>
+            <td style="width:100px;" class="fw-bold">單點</td>
+            
+                          <td style="width:24px; " class="fw-bold">
+                炸蝦潤餅6吋
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                芥雞潤餅6吋
+              </td>
+                                        <td style="width:24px;  border-right:3px solid black " class="fw-bold">
+                酥魚潤餅6吋
+              </td>
+                          
+                          <td style="width:24px;" class="fw-bold">
+                奶素刈包
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                炸蝦刈包
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                酥魚刈包
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                黑糖旋律
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                無豆
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                紅茶
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                奶茶
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                濃湯
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                環保袋(小)
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                環保袋(中)
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                環保袋(大)
+              </td>
+                          
+                                      <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px; " class="fw-bold"> </td>
+                          <td style="width:24px;  border-right:3px solid black " class="fw-bold"> </td>
+                      </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td> </td>
+            
+                          <td style="width:24px; " class="fw-bold">
+                6
+              </td>
+                                        <td style="width:24px; " class="fw-bold">
+                7
+              </td>
+                                        <td style="width:24px;  border-right:3px solid black " class="fw-bold">
+                8
+              </td>
+                                      
+                          <td style="width:24px;" class="fw-bold">
+                6
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                7
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                3
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                3
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                7
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                3
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                2
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                6
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                3
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                2
+              </td>
+                                        <td style="width:24px;" class="fw-bold">
+                1
+              </td>
+                          
+                                      <td style=""> </td>
+                          <td style=""> </td>
+                          <td style=""> </td>
+                          <td style=""> </td>
+                          <td style=""> </td>
+                          <td style=""> </td>
+                          <td style=""> </td>
+                          <td style=""> </td>
+                          <td style=""> </td>
+                          <td style=""> </td>
+                          <td style=""> </td>
+                          <td style=""> </td>
+                          <td style=""> </td>
+                          <td style=""> </td>
+                          <td style=" border-right:3px solid black "> </td>
+                      </tr>
+        </tbody>
+      </table>
+          <!-- end 單點潤餅 -->
+
+    <!-- 統計 -->
+        <table id="lunchbox" data-toggle="table" class=" table-bordered border border-dark rounded-3 tr-border-top" style="margin-top:3px;margin-bottom:0px; width:100%">
+        <tr>
+        <td style="width:100px;" >統計</td>
+        <td>
+                        微豆:77, 
+                        無豆:9, 
+                        紅茶:176, 
+                        奶茶:28, 
+                        濃湯:13, 
+                        甜湯:45, 
+                    </td>
+        </tr>
+        </table>
+    <!-- end 統計 -->
+      
+      <table data-toggle="table" class="table table-bordered border border-dark tr-border-top">
+        <tr>
+          <td class="align-top" style="width: 50%;border-right:3px solid black" >
+            <p style="white-space: pre-wrap;margin:0">訂單備註：</p>
+          </td>
+          <td class="border-right:3px solid black">
+            客戶簽收：<BR>
+                        <input type="checkbox" id="checkedCheckbox" name="checkedCheckbox" checked>
+            現金
+                        <BR>
+                        <input type="checkbox">
+            預計匯款日
+
+                        <!-- 日期：<BR> -->
+            <!-- 外送人員：_______________  出發時間：_______________<BR>
+            租借外送機車車號：_______________ &nbsp;&nbsp;&nbsp;
+
+            <input type="checkbox" id="input-chk001" >
+            <label for="input-chk001">膠台</label>
+
+            <input type="checkbox" id="input-chk002" >
+            <label for="input-chk002">推車</label>
+
+            <input type="checkbox" id="input-chk003" >
+            <label for="input-chk003">拉繩</label><BR>
+            運費代收人：_______________ 代收金額：______<BR>
+            貨款代收人：_______________ 代收金額：______ -->
+
+          </td>
+          <td class="" style="padding: 0px;border-left:3px solid black">
+            <table  class="table  border no-border border-left:3px solid black" style="width: 100%;">
+                            <tr  >
+                <td class="text-end">商品合計: </td>
+                <td class="text-end">62643</td>
+              </tr>
+                            <tr  >
+                <td class="text-end">優惠折扣: </td>
+                <td class="text-end">0</td>
+              </tr>
+                            <tr  >
+                <td class="text-end">運費: </td>
+                <td class="text-end">0</td>
+              </tr>
+                            <tr  >
+                <td class="text-end">總計: </td>
+                <td class="text-end">62643</td>
+              </tr>
+                          </table>
+          </td>
+        </tr>
+      </table>
+      外送人員簽名：____________
+      <input type="checkbox"> 外送機車/車牌：__________
+      <input type="checkbox" id="input-chk001" >
+      <label for="input-chk001">膠台</label>
+      <input type="checkbox" id="input-chk002" >
+      <label for="input-chk002">推車</label>
+      <input type="checkbox" id="input-chk003" >
+      <label for="input-chk003">拉繩</label>
+            接單人員:  李宜龍
+            <br>
+      <div class="fw-bold"  style="text-align: right;margin-right: 1.5em">製單時間：2025-01-20 01:50:49</div>
+    </div>
+
+
+
+
+
+</body>
+</html>

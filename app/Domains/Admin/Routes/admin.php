@@ -123,11 +123,11 @@ Route::group(
                 Route::get('orders/getOrderCommentPhrase', 'Sale\OrderController@getOrderCommentPhrase')->name('orders.getOrderCommentPhrase');
                 Route::get('orders/getOrderExtraCommentPhrase', 'Sale\OrderController@getOrderExtraCommentPhrase')->name('orders.getOrderExtraCommentPhrase');
                 Route::post('orders/product_reports', 'Sale\OrderController@product_reports')->name('orders.product_reports');
-                Route::post('orders/batch_print', 'Sale\OrderController@batchPrint')->name('orders.batch_print');
+                // Route::post('orders/batch_print', 'Sale\OrderController@batchPrint')->name('orders.batch_print');
                 Route::get('orders/toPDF/{order_id?}', 'Sale\OrderController@toPDF')->name('orders.toPDF');
 
-                
-                Route::get('orders/printOrders/{order_ids}/{print_status}', 'Sale\OrderPrintingController@printOrders')->name('orders.printOrders');
+                // Route::get('orders/printOrders/{order_ids}/{print_status}', 'Sale\OrderPrintingController@printOrders')->name('orders.printOrders');
+                Route::get('orders/printMultiOrders', 'Sale\OrderController@printMultiOrders')->name('orders.printMultiOrders');
 
                 Route::get('orders/schedule/list/{delivery_date?}', 'Sale\OrderScheduleController@list')->name('order_schedule.list');
                 Route::post('orders/schedule/save', 'Sale\OrderScheduleController@save')->name('order_schedule.save');
