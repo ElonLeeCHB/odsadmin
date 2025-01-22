@@ -91,7 +91,7 @@ class Service
     public function getResult(Builder $builder, $data, $debug = 0)
     {
         if($debug){
-            DataHelper::showSqlContent($builder, 0);
+            DataHelper::showSqlContent($builder, 1);
         }
 
         $rows = [];

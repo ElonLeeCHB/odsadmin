@@ -253,8 +253,28 @@ class OrderPrintingRepository extends Repository
         
                 // order fields
                     // salutation
+                    if($order->salutation_code == 17){
+                        $order->salutation_code = 1;
+                    }else if($order->salutation_code == 18){
+                        $order->salutation_code = 2;
+                    }
+
+                    if($order->shipping_salutation_id == 17){
+                        $order->shipping_salutation_id = 1;
+                    }else if($order->shipping_salutation_id == 18){
+                        $order->shipping_salutation_id = 2;
+                    }
+
+                    if($order->shipping_salutation_id2 == 17){
+                        $order->shipping_salutation_id2 = 1;
+                    }else if($order->shipping_salutation_id2 == 18){
+                        $order->shipping_salutation_id2 = 2;
+                    }
+                    
                     $order->salutation_name = !empty($order->salutation_code) ? $salutations[$order->salutation_code]->name : '';
-        
+                    $order->shipping_salutation_name = !empty($order->shipping_salutation_id) ? $salutations[$order->shipping_salutation_id]->name : '';
+                    $order->shipping_salutation_name2 = !empty($order->shipping_salutation_id2) ? $salutations[$order->shipping_salutation_id2]->name : '';
+                    
                     // shipping_address
                     $order->shipping_address = '';
         
@@ -540,7 +560,7 @@ class OrderPrintingRepository extends Repository
             if(!empty($params['printStatus']) && !empty($real_order_ids)){
                 Order::whereIn('id', $real_order_ids)->update(['print_status' => 1]);
             }
-            
+
             return $ordersData;
 
         } catch (\Throwable $e) {

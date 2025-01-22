@@ -836,11 +836,11 @@ class OrderController extends BackendController
                 $params['template'] = 'V01';
             }
 
+            //這段還沒寫好
             if($params['template'] == 'V03' ){
                 foreach ($data['orders'] ?? [] as $key1 => &$order) {
                     foreach ($order['categories'] ?? [] as $category_code => &$category) {
                         foreach ($category['items'] ?? [] as $product_id => &$product) {
-
                             // term_id 1439 客製
                             if(!empty($product['product_tag_ids']) && !in_array(1439, $product['product_tag_ids'])){
                                 unset($data['orders'][$key1]['categories'][$category_code]['items'][$product_id]['product_options']['SideDish']);
@@ -850,7 +850,8 @@ class OrderController extends BackendController
                 }
             }
 
-            return view('admin.sale.printMultiOrders' . $params['template'], $data);
+            $data['template'] = $params['template'];
+            return view('admin.sale.printMultiOrders', $data);
         }
 
         return response()->json(['error' => $result['error']], 500);

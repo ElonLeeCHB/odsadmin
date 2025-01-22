@@ -34,10 +34,10 @@ class OrderController extends ApiWwwV2Controller
         }
 
         // 檢查是否有至少兩個欄位被填寫
-        if ($filled_count > 1) {
+        if ($filled_count < 2) {
             return response()->json([
                 'error' => '至少填寫兩個欄位: equal_code, equal_personal_name, equal_mobile'
-            ], 400);  // 400 表示錯誤的請求
+            ], 400);
         }
 
         foreach ($queries as $key => $value) {
@@ -55,12 +55,7 @@ class OrderController extends ApiWwwV2Controller
             }
         }
 
-
-        if(empty($response['error']))
-        {
-            
-            $response = $this->OrderService->getList($queries);
-        }
+        $response = $this->OrderService->getList($queries);
 
         return $this->sendResponse($response);
     }
