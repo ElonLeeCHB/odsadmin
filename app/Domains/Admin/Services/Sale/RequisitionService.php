@@ -121,8 +121,10 @@ class RequisitionService extends Service
             $total_bento = 0; //便當
             $total_stickyrice = 0; //油飯盒
 
-            foreach($orders as $key1 => $order){
-                foreach ($order['order_products'] as $key2 => $order_product) {
+            foreach($orders as $order_id => $order){
+                $order['order_products'] = $order['order_products']->keyBy('id');
+
+                foreach ($order['order_products'] as $order_product_id => $order_product) {
                     if(strpos($order_product->name, '盒餐') !== false ){
                         $total_lunchbox += $order_product->quantity;
                     }else if(strpos($order_product->name, '便當') !== false ){
@@ -189,6 +191,7 @@ class RequisitionService extends Service
 
                                 $quantity  = $order_product_option->quantity;
 
+                                // 3吋潤餅/2 = 6吋潤餅
                                 if(in_array($ingredient_product_id, $wrap_ids_needing_halving)){
 
                                     $inch_6_product_id = $sales_wrap_map[$ingredient_product_id]['new_product_id'];
@@ -209,7 +212,7 @@ class RequisitionService extends Service
                                     continue;
                                 }
 
-                                //極品油飯，是廚娘油飯*2
+                                // 極品油飯 = 廚娘油飯*2
                                 else if($ingredient_product_id == 1737){ //極品油飯 1737
                                     $ingredient_product_id = 1036; //廚娘油飯 1036
                                     $ingredient_product_name = '廚娘油飯';
@@ -232,20 +235,35 @@ class RequisitionService extends Service
                                     //注意，這是另外的統計 $statics
                                     $statics['info']['ingredient_products'][1734]['quantity'] += $quantity;
 
-                                    //鹽水煮蛋 1032
-                                    $ingredient_product_id = 1032;
-                                    $ingredient_product_name = '鹽水煮蛋';
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['required_date'] = $order->delivery_date;
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['delivery_time_range'] = $order->delivery_time_range;
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['product_id'] = $order_product->product_id;
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['product_name'] = $order_product->name;
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_id'] = $ingredient_product_id;
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_name'] = $ingredient_product_name;
+                                    
 
-                                    if(empty($arr[$required_date][$order->id][$ingredient_product_id]['quantity'])){
-                                        $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] = 0;
-                                    }
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] += $quantity;
+                                    //鹽水煮蛋 1032
+                                        //前端傳來的東西，已知滷牛潤餅便當，有蔬菜杯，並且有蛋。可能有些其它商品丟過來 蔬菜杯但沒有另外的蛋。
+                                        //所以拆解時，如果已經有蛋，則蔬菜杯不再拆出蛋。如果沒有蛋，則蔬菜杯要拆出蛋。
+
+                                        $already_has_egg = false;
+                                        foreach ($order_product->order_product_options as $key3 => $order_product_option) {
+                                            if (str_contains($order_product_option->value, '蛋')) {
+                                                $already_has_egg = true;
+                                            }
+                                        }
+
+                                        if($already_has_egg == false){
+                                            $ingredient_product_id = 1032;
+                                            $ingredient_product_name = '鹽水煮蛋';
+                                            $arr[$required_date][$order->id][$ingredient_product_id]['required_date'] = $order->delivery_date;
+                                            $arr[$required_date][$order->id][$ingredient_product_id]['delivery_time_range'] = $order->delivery_time_range;
+                                            $arr[$required_date][$order->id][$ingredient_product_id]['product_id'] = $order_product->product_id;
+                                            $arr[$required_date][$order->id][$ingredient_product_id]['product_name'] = $order_product->name;
+                                            $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_id'] = $ingredient_product_id;
+                                            $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_name'] = $ingredient_product_name;
+        
+                                            if(empty($arr[$required_date][$order->id][$ingredient_product_id]['quantity'])){
+                                                $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] = 0;
+                                            }
+                                            $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] += $quantity;
+                                        }
+                                    //
 
                                     //玉米筍 1785
                                     $ingredient_product_id = 1785;

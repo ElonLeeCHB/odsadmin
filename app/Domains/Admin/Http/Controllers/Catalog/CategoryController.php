@@ -221,8 +221,6 @@ class CategoryController extends BackendController
 
     public function destroy()
     {
-        $this->initController();
-        
         $post_data = $this->request->post();
 
         $json = [];

@@ -342,7 +342,6 @@ trait ModelTrait
             if(empty($params)){
                 $params = request()->all();
             }
-
             foreach ($params as $key => $value) {
                 // 處理 filter_ 開頭的參數
                 if (str_starts_with($key, 'filter_')) {

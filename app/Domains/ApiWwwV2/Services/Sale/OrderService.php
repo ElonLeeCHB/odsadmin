@@ -23,13 +23,8 @@ class OrderService extends Service
     public function getList($filters)
     {
         try {
-            // $rows = Order::select(['id', 'code', 'personal_name'])
-            //         ->with(['deliveries' => function($query) {
-            //             $query->select('id', 'name', 'order_code','phone','cartype');
-            //         }])
-            //         ->get();
-            $builder = Order::select(['id', 'code', 'personal_name'])->applyFilters();
 
+            $builder = Order::select(['id', 'code', 'personal_name'])->applyFilters($filters);
             // DataHelper::showSqlContent($builder,1);
 
             if(!empty($filters['with'])){

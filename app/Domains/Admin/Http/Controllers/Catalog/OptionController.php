@@ -316,8 +316,6 @@ class OptionController extends BackendController
 
     public function destroy()
     {
-        $this->initController();
-
         $data = $this->request->all();
 
         $json = [];

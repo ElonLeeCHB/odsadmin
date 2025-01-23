@@ -28,12 +28,5 @@ class Controller extends BaseController
     }
 
 
-    // public function initController()
-    // {
-    //     if(empty($this->acting_user)){
-    //         $this->acting_user = app('acting_user');
-    //     }
 
-    //     $this->acting_username = $this->acting_user->username ?? '';
-    // }
 }

@@ -6,15 +6,32 @@ use App\Http\Controllers\Controller;
 use App\Libraries\TranslationLibrary;
 
 class BackendController extends Controller
-{    
+{
+    private $user;
+
     public function __construct()
     {
         if (method_exists(parent::class, '__construct')) {
             parent::__construct();
         }
 
-        $this->url_data = $this->resetUrlData($this->url_data);
+        $this->middleware(function ($request, $next) {
+            $this->user = auth()->user();
+            $this->url_data = $this->resetUrlData($this->url_data);
+            
+            return $next($request);
+        });
     }
+
+    //模擬身份。沒在用。
+    // public function initController()
+    // {
+    //     if(empty($this->acting_user)){
+    //         $this->acting_user = app('acting_user');
+    //     }
+
+    //     $this->acting_username = $this->acting_user->username ?? '';
+    // }
 
     /**
      * 應該移到 Service 層
