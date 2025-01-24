@@ -16,6 +16,7 @@ use App\Domains\Admin\Services\Sale\RequisitionService;
 use App\Helpers\Classes\DataHelper;
 use App\Helpers\Classes\DateHelper;
 use App\Domains\Admin\Services\Sale\OrderService;
+
 class RequisitionController extends BackendController
 {
     private $required_date;
@@ -33,13 +34,6 @@ class RequisitionController extends BackendController
         parent::__construct();
 
         $this->getLang(['admin/common/common','admin/sale/requisition']);
-    }
-
-    /**
-     * 在 __construct() 之後執行
-     */
-    public function init()
-    {
     }
 
 

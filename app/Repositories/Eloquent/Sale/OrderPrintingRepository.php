@@ -307,30 +307,43 @@ class OrderPrintingRepository extends Repository
                     foreach ($order->order_products as $order_product) {
                         $product_id = $order_product->product_id;
         
-                        // 設定分類名稱。依據 product_tags.id
+                        // 設定分類名稱。依據 product_tags.id  1439=客製
                             $product_tag_ids = $order_product->productTags->pluck('term_id')->toArray();
-        
-                            if(in_array(1441, $product_tag_ids) && in_array(1329, $product_tag_ids)){       //1441 潤餅, 1329 便當
-                                $order_product->identifier = 'lumpiaBento';
-                                $printingRowsByCategory[$order_product->identifier]['name'] = '潤餅便當';
-                            }else if(in_array(1441, $product_tag_ids) && in_array(1330, $product_tag_ids)){ //1441 潤餅, 1330 盒餐
-                                $order_product->identifier = 'lumpiaLunchBox';
-                                $printingRowsByCategory[$order_product->identifier]['name'] = '潤餅盒餐';
-                            }else if(in_array(1440, $product_tag_ids) && in_array(1329, $product_tag_ids)){ //1440 刈包, 1329 便當
-                                $order_product->identifier = 'quabaoBento';
-                                $printingRowsByCategory[$order_product->identifier]['name'] = '刈包便當';
-                            }else if(in_array(1440, $product_tag_ids) && in_array(1330, $product_tag_ids)){ //1440 刈包, 1330 盒餐
-                                $order_product->identifier = 'guabaoLunchBox';
-                                $printingRowsByCategory[$order_product->identifier]['name'] = '刈包盒餐';
-                            }else if(in_array(1443, $product_tag_ids)){                                     //1443 油飯盒
-                                $order_product->identifier = 'oilRiceBox';
-                                $printingRowsByCategory[$order_product->identifier]['name'] = '油飯盒';
-                            }else if($product_id == 1597){                                                  // product_id=1597 分享餐
-                                $order_product->identifier = 'sharingMeal';
-                                $printingRowsByCategory[$order_product->identifier]['name'] = '分享餐';
-                            }else{
-                                $order_product->identifier = 'otherCategory';
-                                $printingRowsByCategory[$order_product->identifier]['name'] = '其它';
+                            //非客製
+                            if(!in_array(1439, $product_tag_ids)){
+                                if(in_array(1441, $product_tag_ids) && in_array(1329, $product_tag_ids)){       //1441 潤餅, 1329 便當
+                                    $order_product->identifier = 'lumpiaBento';
+                                    $printingRowsByCategory[$order_product->identifier]['name'] = '潤餅便當';
+                                }else if(in_array(1441, $product_tag_ids) && in_array(1330, $product_tag_ids)){ //1441 潤餅, 1330 盒餐
+                                    $order_product->identifier = 'lumpiaLunchBox';
+                                    $printingRowsByCategory[$order_product->identifier]['name'] = '潤餅盒餐';
+                                }else if(in_array(1440, $product_tag_ids) && in_array(1329, $product_tag_ids)){ //1440 刈包, 1329 便當
+                                    $order_product->identifier = 'guabaoBento';
+                                    $printingRowsByCategory[$order_product->identifier]['name'] = '刈包便當';
+                                }else if(in_array(1440, $product_tag_ids) && in_array(1330, $product_tag_ids)){ //1440 刈包, 1330 盒餐
+                                    $order_product->identifier = 'guabaoLunchBox';
+                                    $printingRowsByCategory[$order_product->identifier]['name'] = '刈包盒餐';
+                                }else if(in_array(1443, $product_tag_ids)){                                     //1443 油飯盒
+                                    $order_product->identifier = 'oilRiceBox';
+                                    $printingRowsByCategory[$order_product->identifier]['name'] = '油飯盒';
+                                }else if($product_id == 1597){                                                  // product_id=1597 分享餐
+                                    $order_product->identifier = 'sharingMeal';
+                                    $printingRowsByCategory[$order_product->identifier]['name'] = '分享餐';
+                                }else{
+                                    $order_product->identifier = 'otherCategory';
+                                    $printingRowsByCategory[$order_product->identifier]['name'] = '其它';
+                                }
+                            }
+                            
+                            // 客製
+                            else{
+                                if(in_array(1329, $product_tag_ids)){   //1329 便當，包含潤餅、刈包
+                                    $order_product->identifier = 'customLumpiaGuabaoBento';
+                                    $printingRowsByCategory[$order_product->identifier]['name'] = '客製便當';
+                                }else if(in_array(1330, $product_tag_ids)){ //1330 盒餐，包含潤餅、刈包
+                                    $order_product->identifier = 'customLumpiaGuabaoLunchbox';
+                                    $printingRowsByCategory[$order_product->identifier]['name'] = '客製潤餅盒餐';
+                                }
                             }
         
                             $identifier = $order_product->identifier;

@@ -809,13 +809,13 @@ class OrderController extends BackendController
         $params = request()->all();
         
         $result = $this->OrderService->getMultiOrdersForPrinting($params);
-
+        // echo "<pre>",print_r($result[0]['categories']['oilRiceBox']['Columns'],true),"</pre>";exit;
         if(empty($result['error'])){
             $data['orders'] = $result;
 
-            //全部固定欄位的選項。用於 V02 固定欄位的模版。
-                //潤餅便當 lumpiaBento 以 1002 雞胸潤餅便當 當代表
-                $data['columns']['lumpiaBento']['MainMeal'] = $this->OrderService->getOptionValuesByProductOption(product_id:1002, option_id:1003);
+            //固定欄位的選項。用於 V02 固定欄位的模版。
+                //潤餅便當 lumpiaBento 以 1001 招牌潤餅便當 當代表
+                $data['columns']['lumpiaBento']['MainMeal'] = $this->OrderService->getOptionValuesByProductOption(product_id:1001, option_id:1003);
 
                 //刈包便當 guabaoBento 以 1671 雞胸刈包便當 當代表
                 $data['columns']['guabaoBento']['MainMeal'] = $this->OrderService->getOptionValuesByProductOption(product_id:1671, option_id:1003);
@@ -830,6 +830,20 @@ class OrderController extends BackendController
 
                 //飲料 抓選項
                 $data['columns']['Drink'] = $this->OrderService->getDrinks();
+
+                //新方案 for template=V03 
+                $data['columns']['MainMeal'] = [
+                    (object) ['short_name' => '主廚', 'option_value_ids' => [1083, 1102,]],
+                    (object) ['short_name' => '全素', 'option_value_ids' => [1046, 1104,]],
+                    (object) ['short_name' => '奶素', 'option_value_ids' => [1047, 1105,]],
+                    (object) ['short_name' => '鮮蔬', 'option_value_ids' => [1017, 1096,]],
+                    (object) ['short_name' => '炸蝦', 'option_value_ids' => [1018, 1097,]],
+                    (object) ['short_name' => '芥雞', 'option_value_ids' => [1019, 1098,]],
+                    (object) ['short_name' => '酥魚', 'option_value_ids' => [1020, 1099,]],
+                    (object) ['short_name' => '培根', 'option_value_ids' => [1021, 1100,]],
+                    (object) ['short_name' => '滷肉', 'option_value_ids' => [1022, 1101,]],
+                    (object) ['short_name' => '春捲', 'option_value_ids' => [1093]],
+                ];
             //
 
             if(empty($params['template'])){
