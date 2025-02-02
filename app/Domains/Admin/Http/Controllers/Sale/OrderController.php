@@ -809,7 +809,7 @@ class OrderController extends BackendController
         $params = request()->all();
         
         $result = $this->OrderService->getMultiOrdersForPrinting($params);
-        // echo "<pre>",print_r($result[0]['categories']['oilRiceBox']['Columns'],true),"</pre>";exit;
+        // echo "<pre>",print_r($result[0]['categories']['lumpiaLunchBox']['items'][1007]['product_options']['SideDish'],true),"</pre>";exit;
         if(empty($result['error'])){
             $data['orders'] = $result;
 

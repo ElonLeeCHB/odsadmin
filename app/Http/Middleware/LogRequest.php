@@ -22,10 +22,11 @@ class LogRequest extends Middleware
             $path = $request->path();
             $method =  $request->method();
             $taiwanTime = Carbon::now('Asia/Taipei');
+            $ip = $request->ip();
+
             $rs = DB::select("
             insert into ".env('DB_DATABASE').".log
-            set user_id  = '$authorization',url = '$url',path='$path',method = '$method',
-            data = '$data',created_at = '$taiwanTime'
+            set user_id  = '$authorization', url = '$url',path='$path', method = '$method', ip='$ip', data = '$data',created_at = '$taiwanTime'
             ");
         }
         // $insert_log = ['mid'=>$request->input('mid'),'url'=>$request->url(),'path'=>$request->path(),

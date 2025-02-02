@@ -337,7 +337,7 @@ class OrderPrintingRepository extends Repository
                             
                             // 客製
                             else{
-                                if(in_array(1329, $product_tag_ids)){   //1329 便當，包含潤餅、刈包
+                                if(in_array(1329, $product_tag_ids)){   //1329 便當，包含潤餅或刈包，二擇一
                                     $order_product->identifier = 'customLumpiaGuabaoBento';
                                     $printingRowsByCategory[$order_product->identifier]['name'] = '客製便當';
                                 }else if(in_array(1330, $product_tag_ids)){ //1330 盒餐，包含潤餅、刈包

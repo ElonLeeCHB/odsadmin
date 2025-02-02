@@ -1,5 +1,3 @@
-    
-     
     <!-- 油飯盒系列 -->
       @if(!empty($order['categories']['oilRiceBox']))
         <table id="oilRiceBox" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
@@ -347,13 +345,6 @@
               @php $column_used_num++; @endphp
             @endforeach
 
-            @foreach($order['categories']['lumpiaLunchBox']['Columns']['SecondaryMainMeal'] ?? [] as $option_value_id => $name)
-              <td style="width:24px; @if ($loop->last) border-right:3px solid black @endif" class="fw-bold">
-              {{ $name }}
-              </td>
-              @php $column_used_num++; @endphp
-            @endforeach
-
             @foreach($order['categories']['lumpiaLunchBox']['Columns']['SideDish'] ?? [] as $option_value_id => $name)
               <td style="width:24px; @if ($loop->last) border-right:3px solid black @endif" class="fw-bold">
                 {{ $name }}
@@ -375,25 +366,16 @@
           </tr>
         </thead>
         <tbody>
-          @foreach($order['categories']['lumpiaLunchBox']['items'] ?? [] as $product_id => $row)
+          @foreach($order['categories']['lumpiaLunchBox']['items'] ?? [] as $product_id => $product)
           <tr>
-            <td>{{ $row['name'] }}</td>
-            <td>{{ $row['quantity'] }}</td>
+            <td>{{ $product['name'] }}</td>
+            <td>{{ $product['quantity'] }}</td>
             @php $column_used_num = 2; @endphp
             @foreach($columns['lumpiaLunchBox']['MainMeal'] ?? [] as $item)
               @php $option_value_id = $item->option_value_id;  @endphp
               <td style="@if ($loop->last) border-right:3px solid black @endif" data-option_value_id="{{ $option_value_id }}">
                 @if(!empty($row['product_options']['MainMeal'][$option_value_id]['quantity']))
                   {{ $row['product_options']['MainMeal'][$option_value_id]['quantity'] }}
-                @endif
-              </td>
-              @php $column_used_num++; @endphp
-            @endforeach
-
-            @foreach($order['categories']['lumpiaLunchBox']['Columns']['SecondaryMainMeal'] ?? [] as $option_value_id => $name)
-              <td style="@if ($loop->last) border-right:3px solid black @endif">
-                @if(!empty($row['product_options']['SecondaryMainMeal'][$option_value_id]['quantity']))
-                  {{ $row['product_options']['SecondaryMainMeal'][$option_value_id]['quantity'] }}
                 @endif
               </td>
               @php $column_used_num++; @endphp

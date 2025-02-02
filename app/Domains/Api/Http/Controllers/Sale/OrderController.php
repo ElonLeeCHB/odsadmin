@@ -122,6 +122,7 @@ class OrderController extends ApiController
     {
         $post_data = $this->request->post();
         $post_data['source'] = isset($post_data['source']) ? $post_data['source'] : null;//來源
+        
         if(isset($postData['customer_id'])){
             $customer_id = $postData['customer_id'];
         }else if(isset($postData['member_id'])){
