@@ -168,7 +168,7 @@
     @includeIf('admin.sale.partials.ordersMultiPrintingProducts' . $template, ['order' => $order])
 
     <!-- 統計 -->
-        <table id="lunchbox" data-toggle="table" class=" table-bordered border border-dark rounded-3 tr-border-top" style="margin-top:3px;margin-bottom:0px; width:100%">
+      <table id="lunchbox" data-toggle="table" class=" table-bordered border border-dark rounded-3 tr-border-top" style="margin-top:3px;margin-bottom:0px; width:100%">
         <tr>
         <td style="width:100px;" >統計</td>
         <td>
@@ -177,7 +177,7 @@
             @endforeach
         </td>
         </tr>
-        </table>
+      </table>
     <!-- end 統計 -->
     
     <!-- 客戶簽收 -->

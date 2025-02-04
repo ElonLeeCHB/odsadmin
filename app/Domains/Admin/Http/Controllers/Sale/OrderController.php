@@ -809,7 +809,7 @@ class OrderController extends BackendController
         $params = request()->all();
         
         $result = $this->OrderService->getMultiOrdersForPrinting($params);
-        // echo "<pre>",print_r($result[0]['categories']['lumpiaLunchBox']['items'][1007]['product_options']['SideDish'],true),"</pre>";exit;
+
         if(empty($result['error'])){
             $data['orders'] = $result;
 
@@ -850,13 +850,12 @@ class OrderController extends BackendController
                 $params['template'] = 'V01';
             }
 
-            //這段還沒寫好
             if($params['template'] == 'V03' ){
                 foreach ($data['orders'] ?? [] as $key1 => &$order) {
                     foreach ($order['categories'] ?? [] as $category_code => &$category) {
                         foreach ($category['items'] ?? [] as $product_id => &$product) {
-                            // term_id 1439 客製
-                            if(!empty($product['product_tag_ids']) && !in_array(1439, $product['product_tag_ids'])){
+                            // term_id: 1439 客製, 13229 便當
+                            if(!empty($product['product_tag_ids']) && !in_array(1439, $product['product_tag_ids']) && in_array(13229, $product['product_tag_ids'])){
                                 unset($data['orders'][$key1]['categories'][$category_code]['items'][$product_id]['product_options']['SideDish']);
                             }
                         }
@@ -865,6 +864,8 @@ class OrderController extends BackendController
             }
 
             $data['template'] = $params['template'];
+            // return response(json_encode($data['orders'][0]['categories']['customLunchbox']['items']))->header('Content-Type','application/json');
+
             return view('admin.sale.printMultiOrders', $data);
         }
 

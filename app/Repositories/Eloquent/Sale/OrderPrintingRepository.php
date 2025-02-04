@@ -306,6 +306,10 @@ class OrderPrintingRepository extends Repository
                 //order_products
                     foreach ($order->order_products as $order_product) {
                         $product_id = $order_product->product_id;
+
+                        if($order_product->product_id == 1044){
+                            $order_product->name = '客製潤餅盒餐';
+                        }
         
                         // 設定分類名稱。依據 product_tags.id  1439=客製
                             $product_tag_ids = $order_product->productTags->pluck('term_id')->toArray();
@@ -335,14 +339,14 @@ class OrderPrintingRepository extends Repository
                                 }
                             }
                             
-                            // 客製
+                            // 客製 此時 product_tag 必定有 1439 客製
                             else{
                                 if(in_array(1329, $product_tag_ids)){   //1329 便當，包含潤餅或刈包，二擇一
-                                    $order_product->identifier = 'customLumpiaGuabaoBento';
+                                    $order_product->identifier = 'customBento';
                                     $printingRowsByCategory[$order_product->identifier]['name'] = '客製便當';
                                 }else if(in_array(1330, $product_tag_ids)){ //1330 盒餐，包含潤餅、刈包
-                                    $order_product->identifier = 'customLumpiaGuabaoLunchbox';
-                                    $printingRowsByCategory[$order_product->identifier]['name'] = '客製潤餅盒餐';
+                                    $order_product->identifier = 'customLunchbox';
+                                    $printingRowsByCategory[$order_product->identifier]['name'] = '客製盒餐';
                                 }
                             }
         
@@ -356,7 +360,6 @@ class OrderPrintingRepository extends Repository
                                 $printingRowsByCategory[$identifier]['items'][$product_id]['name'] = $order_product->name;
                                 $printingRowsByCategory[$identifier]['items'][$product_id]['price'] = $order_product->price;
                                 $printingRowsByCategory[$identifier]['items'][$product_id]['quantity'] = 0;
-                                // $printingRowsByCategory[$identifier]['items'][$product_id]['product_tag_ids'] = $product_tag_ids;
                             }
         
                             $printingRowsByCategory[$identifier]['items'][$product_id]['quantity'] += $order_product->quantity;
@@ -420,6 +423,7 @@ class OrderPrintingRepository extends Repository
                             }
                         }
                     //
+                    
         
                     //設計盒餐飲料
                     foreach ($order->order_products as $order_product) {
@@ -493,7 +497,7 @@ class OrderPrintingRepository extends Repository
                         // $otherProducts1062
                     }
                 //
-        
+
                 //下面中文要改寫
                 // order_totals
                     $order_totals = $order->totals;
@@ -511,7 +515,7 @@ class OrderPrintingRepository extends Repository
                         ];
                     }
                 // end order_totals
-        
+
                 //statistics
                     $statistics = [];
         
