@@ -2,4 +2,12 @@
 
 return [
     'app_fqdn' => env('APP_FQDN', 'localhost'),
+
+    //keys
+    'admin_access_key' => env('ADMIN_ACCESS_KEY', ''),
+    'admin_api_key' => env('ADMIN_API_KEY', ''),
+    'pos_access_key' => env('POS_ACCESS_KEY', ''),
+    'pos_api_key' => env('POS_API_KEY', ''),
+    'www_access_key' => env('WWW_ACCESS_KEY', ''),
+    'www_api_key' => env('WWW_API_KEY', ''),
 ];

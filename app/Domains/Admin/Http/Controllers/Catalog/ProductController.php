@@ -84,7 +84,7 @@ class ProductController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData($this->request->query());
+        $query_data = $this->resetUrlData(request()->query());
 
         // Rows, LengthAwarePaginator
         $products = $this->ProductService->getSalableProducts($query_data);
@@ -105,14 +105,19 @@ class ProductController extends BackendController
         }
 
         // Prepare links for list table's header
-        if($query_data['order'] == 'ASC'){
+        if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
 
-        $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
+
+        if(isset($query_data['sort'])){
+            $data['sort'] = strtolower($query_data['sort']);
+        }else{
+            $data['sort'] = '';
+        }
 
         $query_data = $this->unsetUrlQueryData($query_data);
 

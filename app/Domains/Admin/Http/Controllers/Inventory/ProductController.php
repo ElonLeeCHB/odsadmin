@@ -93,7 +93,7 @@ class ProductController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        $url_queries = $this->request->query();
+        $query_data = $this->resetUrlData(request()->query());
 
 
         // Prepare query_data for records
@@ -109,12 +109,12 @@ class ProductController extends BackendController
 
         if(!empty($products)){
             foreach ($products as $row) {
-                $row->edit_url = route('lang.admin.inventory.products.form', array_merge([$row->id], $url_queries));
+                $row->edit_url = route('lang.admin.inventory.products.form', array_merge([$row->id], $query_data));
                 $row->supplier_short_name = $row->supplier->short_name ?? '';
             }
         }
 
-        $products = $products->withPath(route('lang.admin.inventory.products.list'))->appends($url_queries);
+        $products = $products->withPath(route('lang.admin.inventory.products.list'))->appends($query_data);
 
         $data['products'] = $products;
         $data['pagination'] = $products->links('admin.pagination.default');
@@ -129,11 +129,11 @@ class ProductController extends BackendController
         $data['sort'] = strtolower($filter_data['sort']);
         $data['order'] = strtolower($order);
 
-        $url_queries = UrlHelper::resetUrlQueries(unset_arr:['sort', 'order']);
+        $query_data = UrlHelper::resetUrlQueries(unset_arr:['sort', 'order']);
 
         $url = '';
 
-        foreach($url_queries as $key => $value){
+        foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
 
@@ -183,7 +183,7 @@ class ProductController extends BackendController
 
 
         // Prepare link for save, back
-        $queries = $this->resetUrlData($this->request->query());
+        $queries = $this->resetUrlData(request()->query());
 
         $data['save_url'] = route('lang.admin.inventory.products.save');
         $data['back_url'] = route('lang.admin.inventory.products.index', $queries);
@@ -373,13 +373,13 @@ class ProductController extends BackendController
 
     public function autocomplete()
     {
-        $url_queries = $this->request->query();
+        $query_data = $this->resetUrlData(request()->query());
 
         $json = [];
 
         // * 檢查錯誤
 
-        foreach ($url_queries as $key => $value) {
+        foreach ($query_data as $key => $value) {
             //檢查查詢字串
             if(str_starts_with($key, 'filter_') || str_starts_with($key, 'equal_')){
                 //檢查輸入字串是否包含注音符號

@@ -4,11 +4,11 @@ namespace App\Domains\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Libraries\TranslationLibrary;
+use App\Helpers\Classes\DataHelper;
+use App\Helpers\Classes\IpHelper;
 
 class BackendController extends Controller
 {
-    private $user;
-
     public function __construct()
     {
         if (method_exists(parent::class, '__construct')) {
@@ -16,26 +16,12 @@ class BackendController extends Controller
         }
 
         $this->middleware(function ($request, $next) {
-            $this->user = auth()->user();
             $this->url_data = $this->resetUrlData($this->url_data);
-            
             return $next($request);
         });
     }
 
-    //模擬身份。沒在用。
-    // public function initController()
-    // {
-    //     if(empty($this->acting_user)){
-    //         $this->acting_user = app('acting_user');
-    //     }
 
-    //     $this->acting_username = $this->acting_user->username ?? '';
-    // }
-
-    /**
-     * 應該移到 Service 層
-     */
     public function resetUrlData($data)
     {
         $query_data = [];
@@ -43,7 +29,7 @@ class BackendController extends Controller
         if(!empty($data['sort'])){
             $query_data['sort'] = $data['sort'];
         }else{
-            $query_data['sort'] = 'id';
+            $query_data['sort'] = '';
         }
 
         if(!empty($data['source'])){
@@ -55,7 +41,7 @@ class BackendController extends Controller
         if(!empty($data['order'])){
             $query_data['order'] = $data['order'];
         }else{
-            $query_data['order'] = 'DESC';
+            $query_data['order'] = '';
         }
 
         if(isset($data['page'])){
@@ -99,7 +85,6 @@ class BackendController extends Controller
         if(!empty($data['simplelist'])){
             $query_data['simplelist'] = $data['simplelist'];
         }
-
 
         return $query_data;
     }

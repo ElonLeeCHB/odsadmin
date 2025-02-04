@@ -60,14 +60,11 @@ class BomController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        $query_data = $this->request->query();
-        $query_data = $this->resetUrlData($this->request->query());
-
+        $query_data = $this->resetUrlData(request()->query());
 
         // Prepare query_data for records
         $filter_data = $query_data;
 
-    //    $query_data['select'] = ['id', 'product_id'];
         $filter_data['select_relation_columns'] = ['product_name'];
 
         $filter_data['extra_columns'][] = 'product_name';
@@ -140,7 +137,7 @@ class BomController extends BackendController
 
 
         // Prepare link for save, back
-        $queries = $this->resetUrlData($this->request->query());
+        $queries = $this->resetUrlData(request()->query());
 
         $data['save_url'] = route('lang.admin.inventory.boms.save');
         $data['back_url'] = route('lang.admin.inventory.boms.index', $this->request->getQueryString());

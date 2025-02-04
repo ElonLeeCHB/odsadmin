@@ -128,11 +128,11 @@ class OrderScheduleController extends BackendController
         }
 
         // Prepare filter_data for records
-        $filter_data = $this->resetUrlData($this->request->query());
-        $filter_data['filter_delivery_date'] = $delivery_date;
+        $query_data = $this->resetUrlData(request()->query());
+        $query_data['filter_delivery_date'] = $delivery_date;
 
         // Rows
-        $orders = $this->OrderScheduleService->getOrders($filter_data);
+        $orders = $this->OrderScheduleService->getOrders($query_data);
 
         foreach ($orders as $key => $row) {
             $row->delivery_date = Carbon::parse($row->delivery_date)->format('Y-m-d');

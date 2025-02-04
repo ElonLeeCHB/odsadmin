@@ -90,7 +90,7 @@ class MemberController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData($this->request->query());
+        $query_data = $this->resetUrlData(request()->query());
 
         
         // Rows
@@ -366,7 +366,7 @@ class MemberController extends BackendController
 
     public function autocomplete()
     {
-        $query_data = $this->request->query();
+        $query_data = $this->resetUrlData(request()->query());
 
         $query_data['pagination'] = false;
         $query_data['limit'] = 10;

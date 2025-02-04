@@ -64,7 +64,7 @@ class RequirementController extends BackendController
 
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData($this->request->query());
+        $query_data = $this->resetUrlData(request()->query());
 
         // Rows
         $requirements = $this->RequirementService->getRequirementsDaily($query_data);

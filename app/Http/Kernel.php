@@ -89,8 +89,12 @@ class Kernel extends HttpKernel
         'localeViewPath'          => \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath::class,
 
         'is_admin' => \App\Domains\Admin\Http\Middleware\IsAdmin::class,
-        'posCheckApiKeyAndIp' => \App\Domains\ApiPosV2\Http\Middleware\CheckApiKeyAndIp::class,
-        'wwwCheckApiKeyAndIp' => \App\Domains\ApiWwwV2\Http\Middleware\CheckApiKeyAndIp::class,
+
+        'checkAdminAuthorization'    => \App\Http\Middleware\CheckAdminAuthorization::class,
+        'checkApiAuthorization'      => \App\Http\Middleware\CheckApiAuthorization::class,
+        'checkApiPosV2Authorization' => \App\Http\Middleware\CheckApiPosV2Authorization::class,
+        'checkApiWwwV2Authorization' => \App\Http\Middleware\CheckApiWwwV2Authorization::class,
+        
         'forceJsonAcceptHeader' => \App\Http\Middleware\ForceJsonAcceptHeader::class,
 
         

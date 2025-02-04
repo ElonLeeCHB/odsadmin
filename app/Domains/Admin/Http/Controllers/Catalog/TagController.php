@@ -62,7 +62,7 @@ class TagController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $queries = $this->resetUrlData($this->request->query());
+        $queries = $this->resetUrlData(request()->query());
 
         $queries['equal_taxonomy_code'] = 'ProductTag';
 
@@ -143,7 +143,7 @@ class TagController extends BackendController
         $data['breadcumbs'] = (object)$breadcumbs;
 
         // Prepare link for save, back
-        $queries = $this->resetUrlData($this->request->query());
+        $queries = $this->resetUrlData(request()->query());
 
         $data['save_url'] = route('lang.admin.catalog.tags.save');
         $data['back_url'] = route('lang.admin.catalog.tags.index', $queries);   
@@ -256,14 +256,12 @@ class TagController extends BackendController
 
     public function autocomplete()
     {
-        $query_data = $this->request->query();
+        $query_data = $this->resetUrlData(request()->query());
 
-        $queries = $this->resetUrlData($this->request->query());
-
-        $queries['pagination'] = false;
+        $query_data['pagination'] = false;
 
         // Rows
-        $rows = $this->TagService->getTags($queries);
+        $rows = $this->TagService->getTags($query_data);
 
         $json = [];
 

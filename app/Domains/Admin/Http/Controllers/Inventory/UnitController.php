@@ -61,7 +61,7 @@ class UnitController extends BackendController
 
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData($this->request->query());
+        $query_data = $this->resetUrlData(request()->query());
 
         // Rows
         $units = $this->UnitService->getUnits($query_data);

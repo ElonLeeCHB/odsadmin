@@ -74,7 +74,7 @@ class PurchasingController extends BackendController
 
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData($this->request->query());
+        $query_data = $this->resetUrlData(request()->query());
 
         // Rows
         $purchasing_orders = $this->PurchasingOrderService->getPurchasingOrders($query_data);
@@ -152,7 +152,7 @@ class PurchasingController extends BackendController
 
 
         // Prepare link for save, back
-        $query_data = $this->resetUrlData($this->request->query());
+        $query_data = $this->resetUrlData(request()->query());
 
         $data['save_url'] = route('lang.admin.inventory.purchasing.save');
         $data['back_url'] = route('lang.admin.inventory.purchasing.index', $query_data);

@@ -71,7 +71,7 @@ class BankController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare queries for records
-        $query_data = $this->resetUrlData($this->request->query());
+        $query_data = $this->resetUrlData(request()->query());
 
         // Rows
         $institutions = $this->BankService->getRows($query_data);
@@ -143,7 +143,7 @@ class BankController extends BackendController
         $data['breadcumbs'] = (object)$breadcumbs;
 
         // Prepare link for save, back
-        $queries = $this->resetUrlData($this->request->query());
+        $queries = $this->resetUrlData(request()->query());
 
         $data['save_url'] = route('lang.admin.counterparty.banks.save');
         $data['back_url'] = route('lang.admin.counterparty.banks.index', $queries);   
@@ -246,8 +246,7 @@ class BankController extends BackendController
 
     public function autocomplete()
     {
-        $queries = $this->resetUrlData($this->request->query());
-        //echo '<pre>', print_r($queries, 1), "</pre>"; exit;
+        $queries = $this->resetUrlData(request()->query());
 
         // Rows
         $rows = $this->BankService->getRows($queries);

@@ -4,6 +4,7 @@ namespace App\Domains\ApiWwwV2\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Helpers\Classes\DataHelper;
+use App\Helpers\Classes\IpHelper;
 
 class ApiWwwV2Controller extends Controller
 {
@@ -16,12 +17,25 @@ class ApiWwwV2Controller extends Controller
             parent::__construct();
         }
 
-        if (app()->runningInConsole()) {
-            return;
-        }
+        //檢查 X-API-KEY'
+        $this->middleware(function ($request, $next) {
+            if ($request->hasHeader('X-API-KEY')) {
+                $apiKey = $request->header('X-API-KEY');
+    
+                if ($apiKey == config('vars.www_api_key')) {
+                    return $next($request);
+                }
+            }
+    
+            return response()->json(['error' => 'Invalid API Key'], 401);
+        });
 
-        $this->resetUrlData(request()->query());
-        $this->resetPostData(request()->post());
+        $this->middleware(function ($request, $next) {
+            $this->resetUrlData(request()->query());
+            $this->resetPostData(request()->post());
+
+            return $next($request);
+        });
     }
 
     public function resetPostData()
@@ -29,7 +43,7 @@ class ApiWwwV2Controller extends Controller
         $this->post_data = DataHelper::unsetNullUndefined(request()->post());
     }
 
-    public function resetUrlData($remove_keys = [])
+    public function resetUrlData()
     {
         $this->url_data = DataHelper::unsetNullUndefined(request()->query());
 

@@ -76,9 +76,6 @@ class OrderController extends BackendController
 
         $data['list'] = $this->getList();
 
-
-        $url_query_data = $this->resetUrlData($this->request->query());
-
         // Rows
         $data['export_order_products_url'] = route('lang.admin.sale.orders.product_reports');
         $data['batch_print_url'] = route('lang.admin.sale.orders.batch_print');
@@ -110,7 +107,7 @@ class OrderController extends BackendController
 
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData($this->request->query());
+        $query_data = $this->resetUrlData(request()->query());
 
         // Extra
         //$query_data['equal_is_active'] = 1;

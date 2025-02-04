@@ -25,7 +25,7 @@ class UserController extends BackendController
     {
         $data['lang'] = $this->lang;
         
-        $query_data = $this->resetUrlData($this->request->query());
+        $query_data = $this->resetUrlData(request()->query());
 
         // Breadcomb
         $breadcumbs[] = (object)[
@@ -81,7 +81,7 @@ class UserController extends BackendController
 
 
         // Prepare queries for records
-        $query_data = $this->resetUrlData($this->request->query());
+        $query_data = $this->resetUrlData(request()->query());
 
         // if(isset($query_data['equal_is_admin']) && $query_data['equal_is_admin'] == 0){
         //     $query_data['whereDoesntHave']['metas'] = ['is_admin' => 1];
@@ -162,7 +162,7 @@ class UserController extends BackendController
         $data['breadcumbs'] = (object)$breadcumbs;
 
         // Prepare link for save, back
-        $queries = $this->resetUrlData($this->request->query());
+        $queries = $this->resetUrlData(request()->query());
 
         $data['save_url'] = route('lang.admin.setting.user.users.save');
         $data['back_url'] = route('lang.admin.setting.user.users.index', $queries);

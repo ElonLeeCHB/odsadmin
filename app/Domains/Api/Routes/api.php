@@ -25,7 +25,7 @@ Route::post('/login', [LoginController::class, 'login']);
 // 將需要帶 Token 才能使用的 API 放在下面的 Route::group
 Route::group([
     'namespace' => 'App\Domains\Api\Http\Controllers',
-    //'middleware' => ['auth:sanctum',],
+    'middleware' => ['checkApiAuthorization',],
     'as' => 'api.',
 ], function ()
 {

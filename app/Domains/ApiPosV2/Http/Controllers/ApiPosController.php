@@ -4,6 +4,7 @@ namespace App\Domains\ApiPosV2\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Helpers\Classes\DataHelper;
+use App\Helpers\Classes\IpHelper;
 
 class ApiPosController extends Controller
 {
@@ -16,27 +17,47 @@ class ApiPosController extends Controller
             parent::__construct();
         }
 
-        $this->resetUrlData($this->url_data);
+        //檢查 X-API-KEY'
+        $this->middleware(function ($request, $next) {
+            if ($request->hasHeader('X-API-KEY')) {
+                $apiKey = $request->header('X-API-KEY');
+    
+                if ($apiKey == config('vars.pos_api_key')) {
+                    return $next($request);
+                }
+            }
+    
+            return response()->json(['error' => 'Invalid API Key'], 401);
+        });
+        
+        $this->middleware(function ($request, $next) {
+            $this->resetUrlData(request()->query());
+            $this->resetPostData(request()->post());
+
+            return $next($request);
+        });
     }
 
-    public function resetUrlData(&$url_data)
+    public function resetUrlData()
     {
-        // 取得語言代碼。注意！不是翻譯內容的陣列。
-            //網址裡的語言變數一律使用 lang，比較直觀
-            if(!empty($url_data['lang']) && !empty($url_data['locale'])){
-                unset($url_data['locale']);
-            }
+        $this->url_data = DataHelper::unsetNullUndefined(request()->query());
 
-            else if(empty($url_data['lang']) && !empty($url_data['locale'])){
-                $url_data['lang'] = $url_data['locale'];
-                unset($url_data['locale']);
-            }
+        //起初使用 lang
+        if(!empty($this->url_data['lang'])){
+            $this->url_data['equal_locale'] = $this->url_data['lang'];
+            unset($data['lang']);
+        }
 
-            //如果還是沒有，取得全站預設
-            if(empty($url_data['lang'])){
-                $url_data['lang'] = app()->getLocale(); 
-            }
-        //
+        //如果有 locale
+        else if(!empty($this->url_data['locale'])){
+            $this->url_data['equal_locale'] = $this->url_data['locale'];
+            unset($this->url_data['locale']);
+        }
+
+        //設定 equal_locale 做為本次語言
+        if(!empty($this->url_data['equal_locale'])){
+            app()->setLocale($this->url_data['equal_locale']);
+        }
     }
 
     public function sendResponse($json)

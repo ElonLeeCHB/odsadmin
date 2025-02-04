@@ -238,7 +238,7 @@
       <table id="customBento" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
         <thead>
           <tr>
-            <td style="width:100px;" class="fw-bold">{{ $order['categories']['customBento']['name'] }}</td>
+            <td style="width:135px;" class="fw-bold">{{ $order['categories']['customBento']['name'] }}</td>
             <td style="width:24px;" class="fw-bold">小計</td>
             @php $column_used_num = 2; @endphp
             @foreach($columns['MainMeal'] ?? [] as $item)
@@ -262,7 +262,7 @@
               @php $column_used_num++; @endphp
             @endforeach
 
-            @php $left = 24-$column_used_num; @endphp
+            @php $left = 22-$column_used_num; @endphp
             @for($i = 1; $i <= $left; $i++)
               <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
             @endfor
@@ -278,7 +278,7 @@
         <tbody>
           @foreach($order['categories']['customBento']['items'] ?? [] as $product_id => $row)
           <tr>
-            <td>{{ $row['name'] }}</td>
+            <td>{{ $row['name'] }} <BR> 價格: {{ $row['final_total']/$row['quantity'] }}</td>
             <td>{{ $row['quantity'] }}</td>
             @php $column_used_num = 2; @endphp
             @foreach($columns['MainMeal'] ?? [] as $item)
@@ -310,7 +310,7 @@
               @php $column_used_num++; @endphp
             @endforeach
 
-            @php $left = 24-$column_used_num; @endphp
+            @php $left = 22-$column_used_num; @endphp
             @for($i = 1; $i <= $left; $i++)
               <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
             @endfor
@@ -571,7 +571,7 @@
         <tbody>
           @foreach($order['categories']['customLunchbox']['items'] ?? [] as $product_id => $row)
           <tr>
-            <td>{{ $row['name'] }}</td>
+            <td>{{ $row['name'] }} <BR> 價格: {{ $row['final_total']/$row['quantity'] }} </td>
             <td>{{ $row['quantity'] }}</td>
             @php $column_used_num = 2; @endphp
 

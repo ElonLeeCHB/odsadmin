@@ -305,14 +305,26 @@ class OrderPrintingRepository extends Repository
         
                 //order_products
                     foreach ($order->order_products as $order_product) {
-                        $product_id = $order_product->product_id;
+                        $product_tag_ids = $order_product->productTags->pluck('term_id')->toArray();
 
-                        if($order_product->product_id == 1044){
+                        //product_id
+                          // 注意！ 客製餐點不合併，所以將 product_id 加再上 sort_order 做為新的 product_id
+                          // 後面必須使用 $product_id, 不能再使用 $order_product->product_id
+                            if(!in_array(1439, $product_tag_ids)){
+                                $product_id = $order_product->product_id;
+                            }else{
+                                $product_id = $order_product->product_id . '-' . $product_id = $order_product->sort_order;
+                            }
+                        //
+
+                        if($order_product->product_id == 1043){
+                            $order_product->name = '客製潤餅便當';
+                        }
+                        else if($order_product->product_id == 1044){
                             $order_product->name = '客製潤餅盒餐';
                         }
         
                         // 設定分類名稱。依據 product_tags.id  1439=客製
-                            $product_tag_ids = $order_product->productTags->pluck('term_id')->toArray();
                             //非客製
                             if(!in_array(1439, $product_tag_ids)){
                                 if(in_array(1441, $product_tag_ids) && in_array(1329, $product_tag_ids)){       //1441 潤餅, 1329 便當
@@ -352,13 +364,14 @@ class OrderPrintingRepository extends Repository
         
                             $identifier = $order_product->identifier;
                         //
-        
+
                         // 設定新的訂單商品集合 $printingRowsByCategory
                             if(!isset($printingRowsByCategory[$identifier]['items'][$product_id])){
-                                $printingRowsByCategory[$identifier]['items'][$product_id]['product_id'] = $order_product->product_id;
+                                $printingRowsByCategory[$identifier]['items'][$product_id]['product_id'] = $product_id; //$product_id 有變化過，不能使用 $order_product->product_id
                                 $printingRowsByCategory[$identifier]['items'][$product_id]['identifier'] = $order_product->identifier;
                                 $printingRowsByCategory[$identifier]['items'][$product_id]['name'] = $order_product->name;
-                                $printingRowsByCategory[$identifier]['items'][$product_id]['price'] = $order_product->price;
+                                $printingRowsByCategory[$identifier]['items'][$product_id]['price'] = (int)$order_product->price;
+                                $printingRowsByCategory[$identifier]['items'][$product_id]['final_total'] = (int)$order_product->final_total;
                                 $printingRowsByCategory[$identifier]['items'][$product_id]['quantity'] = 0;
                             }
         
@@ -378,7 +391,17 @@ class OrderPrintingRepository extends Repository
                 //order_product_options
                     //處理全部選項
                         foreach ($order->order_products as $order_product) {
-                            $product_id = $order_product->product_id;
+                            $product_tag_ids = $order_product->productTags->pluck('term_id')->toArray();
+                            //product_id
+                                // 注意！ 客製餐點不合併，所以將 product_id 加再上 sort_order 做為新的 product_id
+                                // 後面必須使用 $product_id, 不能再使用 $order_product->product_id
+                                if(!in_array(1439, $product_tag_ids)){
+                                    $product_id = $order_product->product_id;
+                                }else{
+                                    $product_id = $order_product->product_id . '-' . $product_id = $order_product->sort_order;
+                                }
+                            //
+
                             $identifier = $order_product->identifier;
         
                             foreach ($order_product->order_product_options as $order_product_option) {
@@ -427,7 +450,16 @@ class OrderPrintingRepository extends Repository
         
                     //設計盒餐飲料
                     foreach ($order->order_products as $order_product) {
-                        $product_id = $order_product->product_id;
+                        $product_tag_ids = $order_product->productTags->pluck('term_id')->toArray();
+
+                        //product_id
+                          // 注意！ 客製餐點不合併，所以將 product_id 加再上 sort_order 做為新的 product_id
+                          // 後面必須使用 $product_id, 不能再使用 $order_product->product_id
+                          if(!in_array(1439, $product_tag_ids)){
+                            $product_id = $order_product->product_id;
+                        }else{
+                            $product_id = $order_product->product_id . '-' . $product_id = $order_product->sort_order;
+                        }
                         $identifier = $order_product->identifier;
         
                         // 判斷商品標籤是否有 盒餐(term_id=1330)

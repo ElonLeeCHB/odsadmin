@@ -87,7 +87,7 @@ class ReceivingOrderController extends BackendController
 
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData($this->request->query());
+        $query_data = $this->resetUrlData(request()->query());
 
         // Rows
         $receiving_orders = $this->ReceivingOrderService->getReceivingOrders($query_data);
@@ -162,7 +162,7 @@ class ReceivingOrderController extends BackendController
 
 
         // Prepare link for save, back
-        $query_data = $this->resetUrlData($this->request->query());
+        $query_data = $this->resetUrlData(request()->query());
 
         $data['save_url'] = route('lang.admin.inventory.receivings.save', $receiving_order_id);
         $data['back_url'] = route('lang.admin.inventory.receivings.index', $query_data);
@@ -330,9 +330,9 @@ class ReceivingOrderController extends BackendController
 
     public function export01()
     {
-        $params = $this->request->query();
+        $query_data = $this->resetUrlData(request()->query());
 
-        return $this->ReceivingOrderService->export01($params);
+        return $this->ReceivingOrderService->export01($query_data);
     }
 
 

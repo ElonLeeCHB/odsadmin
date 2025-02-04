@@ -64,7 +64,8 @@ class CategoryController extends BackendController
 
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData($this->request->query());
+        $query_data = $this->resetUrlData(request()->query());
+        
 
         // Extra
         $query_data['equal_taxonomy_code'] = 'product_category';
@@ -146,7 +147,7 @@ class CategoryController extends BackendController
         $data['breadcumbs'] = (object)$breadcumbs;
 
         // Prepare link for save, back
-        $queries = $this->resetUrlData($this->request->query());
+        $queries = $this->resetUrlData(request()->query());
 
         $data['save_url'] = route('lang.admin.catalog.categories.save');
         $data['back_url'] = route('lang.admin.catalog.categories.index', $queries);
@@ -256,7 +257,7 @@ class CategoryController extends BackendController
     
     public function autocomplete()
     {
-        $query_data = $this->resetUrlData($this->request->query());
+        $query_data = $this->resetUrlData(request()->query());
         $query_data['pagination'] = false;
 
         // Rows

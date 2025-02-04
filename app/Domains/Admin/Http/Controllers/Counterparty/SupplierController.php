@@ -64,11 +64,11 @@ class SupplierController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        $query_data = $this->request->query();
+        $query_data = $this->resetUrlData(request()->query());
 
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData($query_data);
+        $query_data = $this->resetUrlData(request()->query());
 
         // Extra default
         $query_data['equal_is_supplier'] = 1;
@@ -343,7 +343,7 @@ class SupplierController extends BackendController
     {
         $json = [];
 
-        $query_data = $this->request->query();
+        $query_data = $this->resetUrlData(request()->query());
 
         $filter_data = $query_data;
         $filter_data['with'] = ['payment_term', 'metas'];

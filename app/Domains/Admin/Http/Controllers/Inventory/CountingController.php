@@ -72,7 +72,7 @@ class CountingController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        $url_queries = $this->request->query();
+        $query_data = $this->resetUrlData(request()->query());
 
 
         // Prepare query_data for records
@@ -89,11 +89,11 @@ class CountingController extends BackendController
         $countings = $this->CountingService->getCountings($filter_data);
 
         foreach ($countings ?? [] as $row) {
-            $row->edit_url = route('lang.admin.inventory.countings.form', array_merge([$row->id], $url_queries));
+            $row->edit_url = route('lang.admin.inventory.countings.form', array_merge([$row->id], $query_data));
             $row->unit_name = $row->unit->name ?? '';
         }
 
-        $data['countings'] = $countings->withPath(route('lang.admin.inventory.countings.list'))->appends($url_queries);
+        $data['countings'] = $countings->withPath(route('lang.admin.inventory.countings.list'))->appends($query_data);
 
 
         //$data['pagination'] = $countings->links('admin.pagination.default');
@@ -112,11 +112,11 @@ class CountingController extends BackendController
         $data['order'] = strtolower($order);
 
         
-        $url_queries = UrlHelper::resetUrlQueries(unset_arr:['sort', 'order']);
+        $query_data = UrlHelper::resetUrlQueries(unset_arr:['sort', 'order']);
 
         $url = '';
 
-        foreach($url_queries as $key => $value){
+        foreach($query_data as $key => $value){
             $url .= "&$key=$value";
         }
         

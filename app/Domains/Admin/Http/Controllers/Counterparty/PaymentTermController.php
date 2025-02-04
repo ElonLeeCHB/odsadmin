@@ -60,7 +60,7 @@ class PaymentTermController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData($this->request->query());
+        $query_data = $this->resetUrlData(request()->query());
 
         // Rows
         $payment_terms = $this->PaymentTermService->getPaymentTerms($query_data);
@@ -283,7 +283,7 @@ class PaymentTermController extends BackendController
 
     public function autocomplete()
     {
-        $query_data = $this->request->query();
+        $query_data = $this->resetUrlData(request()->query());
         
         $filter_data['equal_type'] = 2;
 
