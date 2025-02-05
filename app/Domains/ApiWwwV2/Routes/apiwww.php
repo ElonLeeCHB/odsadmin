@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 Route::group([
     'namespace' => 'App\Domains\ApiWwwV2\Http\Controllers',
     'as' => 'api.wwwv2.',
-    'middleware' => ['wwwCheckApiKeyAndIp'],
+    'middleware' => ['checkApiWwwV2Authorization'],
 ], function ()
 {
     Route::get('/hello', function () {

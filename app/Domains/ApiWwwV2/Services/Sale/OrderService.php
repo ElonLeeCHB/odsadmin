@@ -24,7 +24,7 @@ class OrderService extends Service
     {
         try {
 
-            $builder = Order::select(['id', 'code', 'personal_name'])->applyFilters($filters);
+            $builder = Order::select(['id', 'code', 'personal_name', 'delivery_time_range','status_code'])->applyFilters($filters);
             // DataHelper::showSqlContent($builder,1);
 
             if(!empty($filters['with'])){

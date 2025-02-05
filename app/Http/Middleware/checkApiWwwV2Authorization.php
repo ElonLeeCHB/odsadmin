@@ -36,12 +36,10 @@ class checkApiWwwV2Authorization
         //
 
         // 檢查 X-API-KEY'
-            if ($request->hasHeader('X-API-KEY')) {
-                $apiKey = $request->header('X-API-KEY');
-    
-                if ($apiKey == config('vars.www_api_key')) {
-                    $is_api_key_allowed = true;
-                }
+            $api_key = $request->header('X-API-KEY') ?? $request->query('api-key');
+
+            if ($api_key == config('vars.www_api_key')) {
+                $is_api_key_allowed = true;
             }
         //
 

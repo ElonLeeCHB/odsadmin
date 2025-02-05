@@ -41,6 +41,7 @@ class LogRequest extends Middleware
 
             $log = new Log;
 
+            $log->area = config('app.env');
             $log->url = $request->fullUrl();
             $log->method = $request->method();
             $log->created_at = Carbon::now('Asia/Taipei');

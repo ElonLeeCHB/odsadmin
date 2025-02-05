@@ -36,11 +36,7 @@ class CheckAdminAuthorization
 
         //檢查 X-ACCESS-KEY'
             // 如果 header 或是網址有 ACCESS_KEY 都允許
-            $access_key = $request->header('X-ACCESS-KEY')
-                        ?? $request->query('access_key') 
-                        ?? $request->query('access-key') 
-                        ?? $request->query('ACCESS-KEY') 
-                        ?? $request->query('ACCESS_KEY');
+            $access_key = $request->header('X-ACCESS-KEY') ?? $request->query('access-key');
 
             if ($access_key == config('vars.admin_access_key')) {
                 $is_access_key_allowed = true;

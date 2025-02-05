@@ -19,14 +19,14 @@ use Illuminate\Support\Facades\Route;
 // $route = url()->current();
 // $path = request()->path();
 
-// Route::group([
-//     'prefix' => config('app.admin_folder'),
-// ], function ()
-// {
-//     Route::get('refresh-token', function() {
-//         return csrf_token();
-//     })->name('getToken');
-// });
+Route::group([
+    'prefix' => config('app.admin_folder'),
+], function ()
+{
+    Route::get('refresh-token', function() {
+        return csrf_token();
+    })->name('getToken');
+});
 
 Route::group(
     [

@@ -17,19 +17,6 @@ class ApiWwwV2Controller extends Controller
             parent::__construct();
         }
 
-        //檢查 X-API-KEY'
-        $this->middleware(function ($request, $next) {
-            if ($request->hasHeader('X-API-KEY')) {
-                $apiKey = $request->header('X-API-KEY');
-    
-                if ($apiKey == config('vars.www_api_key')) {
-                    return $next($request);
-                }
-            }
-    
-            return response()->json(['error' => 'Invalid API Key'], 401);
-        });
-
         $this->middleware(function ($request, $next) {
             $this->resetUrlData(request()->query());
             $this->resetPostData(request()->post());
