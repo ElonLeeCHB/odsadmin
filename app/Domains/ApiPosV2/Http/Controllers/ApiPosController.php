@@ -16,19 +16,6 @@ class ApiPosController extends Controller
         if (method_exists(parent::class, '__construct')) {
             parent::__construct();
         }
-
-        //檢查 X-API-KEY'
-        $this->middleware(function ($request, $next) {
-            if ($request->hasHeader('X-API-KEY')) {
-                $apiKey = $request->header('X-API-KEY');
-    
-                if ($apiKey == config('vars.pos_api_key')) {
-                    return $next($request);
-                }
-            }
-    
-            return response()->json(['error' => 'Invalid API Key'], 401);
-        });
         
         $this->middleware(function ($request, $next) {
             $this->resetUrlData(request()->query());
@@ -36,6 +23,11 @@ class ApiPosController extends Controller
 
             return $next($request);
         });
+    }
+
+    public function resetPostData()
+    {
+        $this->post_data = DataHelper::unsetNullUndefined(request()->post());
     }
 
     public function resetUrlData()

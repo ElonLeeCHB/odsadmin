@@ -51,20 +51,25 @@ class OrderService extends Service
     }
 
 
-    //混和寫法
-    public function getInfoByCode($filter_data)
+    public function getInfo($filter_data, $type= 'id')
     {
-        $cache_key = (new Order)->getJsonInfoCacheKey($filter_data['equal_code']);
+        if($type == 'id'){
+            $filter_data['equal_id'] = $filter_data['equal_id'];
+        }else if($type == 'code'){
+            $filter_data['equal_code'] = $filter_data['equal_code'];
+        }
 
-        $order = DataHelper::remember($cache_key, 60*60, 'json', function() use ($filter_data){
+        $filter_data['with'] = ['order_products.order_product_options', 'totals', 'tags'];
 
-            $filter_data['with'] = ['order_products.order_product_options', 'totals', 'tags'];
+        $order = $this->getRow($filter_data);
 
+        $order->shipping_state_name = optional($order->shipping_state)->name;
+        $order->shipping_city_name = optional($order->shipping_city)->name;
 
-            $order = $this->getRow($filter_data)->toArray();
+        $order = $order->toArray();
 
-            return $order;
-        });
+        unset($order['shipping_state']);
+        unset($order['shipping_city']);
 
         return $order;
     }

@@ -37,6 +37,11 @@ Route::group([
         //官網目前沒有會員系統，因此只允許新增訂單，不允許修改。避免資安意外。
         //若要修改，由公司內部修改
         // Route::post('orders/edit/{order_id}', 'Sale\OrderController@edit')->name('orders.edit'); 
+
+        
+        Route::post('update-timeslot', 'Sale\QuantityControlController@updateTimeslot')->name('updateTimeslot');
+        Route::get('get-timeslot', 'Sale\QuantityControlController@getTimeslot')->name('getTimeslot');
+        Route::post('add-special', 'Sale\QuantityControlController@addSpecial')->name('addSpecial');
     });
 
 

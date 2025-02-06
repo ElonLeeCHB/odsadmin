@@ -11,32 +11,26 @@ use App\Models\SysData\Log;
 
 class LogRequest extends Middleware
 {
-    // public function handle(Request $request, Closure $next)
-    // {
-    //     if($request->method()=='POST'){
-    //         $authorization = $request->header('Authorization');
-    //         if ($authorization && strpos($authorization, 'Bearer ') === 0) {
-    //             $authorization = substr($authorization, 7);
-    //         }
-    //         $data = json_encode($request->all());
-    //         $url = $request->url();
-    //         $path = $request->path();
-    //         $method =  $request->method();
-    //         $taiwanTime = Carbon::now('Asia/Taipei');
-    //         $ip = $request->ip();
-
-    //         $rs = DB::select("
-    //         insert into ".env('DB_DATABASE').".log
-    //         set user_id  = '$authorization', url = '$url',path='$path', method = '$method', ip='$ip', data = '$data',created_at = '$taiwanTime'
-    //         ");
-    //     }
-
-    //     return $next($request);
-    // }
-
     public function handle(Request $request, Closure $next)
     {
-        
+        if($request->method()=='POST'){
+            $authorization = $request->header('Authorization');
+            if ($authorization && strpos($authorization, 'Bearer ') === 0) {
+                $authorization = substr($authorization, 7);
+            }
+            $data = json_encode($request->all());
+            $url = $request->url();
+            $path = $request->path();
+            $method =  $request->method();
+            $taiwanTime = Carbon::now('Asia/Taipei');
+            $ip = $request->ip();
+
+            $rs = DB::select("
+            insert into ".env('DB_DATABASE').".log
+            set user_id  = '$authorization', url = '$url',path='$path', method = '$method', ip='$ip', data = '$data',created_at = '$taiwanTime'
+            ");
+        }
+
         if($request->method() == 'POST'){
 
             $log = new Log;
@@ -57,6 +51,9 @@ class LogRequest extends Middleware
             //client_ipv4
             if ($request->hasHeader('X-CLIENT-IPV4')) {
                 $log->client_ipv4 = $request->header('X-CLIENT-IPV4');
+            }
+            else if ($request->has('X-CLIENT-IPV4')) {
+                $log->client_ipv4 = $request->input('X-CLIENT-IPV4');
             }
 
             //api_ipv4

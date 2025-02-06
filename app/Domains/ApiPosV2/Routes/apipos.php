@@ -5,10 +5,11 @@ use Illuminate\Support\Facades\Route;
 Route::group([
     'namespace' => 'App\Domains\ApiPosV2\Http\Controllers',
     'as' => 'api.posv2.',
+    'middleware' => ['checkApiPosV2Authorization']
 ], function ()
 {
 
-    Route::post('login', 'Auth\LoginController@login')->middleware(['posCheckApiKeyAndIp']); //登入前驗證 api key 跟 ip
+    Route::post('login', 'Auth\LoginController@login');
     //暫時使用。直接更新密碼
     Route::post('passwordUpdate', 'Auth\ResetPasswordController@tmpPasswordUpdate');
     
@@ -56,6 +57,11 @@ Route::group([
             Route::get('orders/store', 'Sale\OrderController@store')->name('orders.store');
         });
     
+        
+        Route::post('update-timeslot', 'Sale\QuantityControlController@updateTimeslot')->name('updateTimeslot');
+        Route::get('get-timeslot', 'Sale\QuantityControlController@getTimeslot')->name('getTimeslot');
+        Route::post('add-special', 'Sale\QuantityControlController@addSpecial')->name('addSpecial');
+        
         // Route::group([
         //     'prefix' => 'user',
         //     'as' => 'user.',

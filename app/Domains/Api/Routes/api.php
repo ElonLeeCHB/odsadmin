@@ -47,6 +47,7 @@ Route::group([
         Route::get('delivery', 'DtstwApiController@delivery')->name('delivery');
         Route::get('get-road', 'DtstwApiController@getRoad')->name('getRoad');
         
+        
     });
 
     Route::group([

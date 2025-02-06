@@ -72,7 +72,7 @@ class OrderController extends ApiWwwV2Controller
             'first' => true,
         ];
 
-        $row = $this->OrderService->getInfoByCode($filter_data);
+        $row = $this->OrderService->getInfo($filter_data, 'code');
 
         return $this->sendResponse(['data' => $row]);
     }
