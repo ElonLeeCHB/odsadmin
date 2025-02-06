@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Traits\Model\ModelTrait;
 use App\Traits\Model\Translatable;
+use App\Models\Catalog\Option;
 use App\Models\Catalog\OptionValue;
 use App\Models\Catalog\OptionValueTranslation;
 
@@ -39,7 +40,17 @@ class ProductOptionValue extends Model
         });
     }
 
+    public function option()
+    {
+        return $this->belongsTo(Option::class);
+    }
+
     public function option_value()
+    {
+        return $this->belongsTo(OptionValue::class);
+    }
+
+    public function optionValue()
     {
         return $this->belongsTo(OptionValue::class);
     }
@@ -71,6 +82,13 @@ class ProductOptionValue extends Model
     {
         return Attribute::make(
             get: fn () => optional($this->translation)->web_name ?? '',
+        );
+    }
+
+    protected function optionName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => optional($this->option)->name ?? '',
         );
     }
 

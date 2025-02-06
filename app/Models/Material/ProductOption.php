@@ -52,6 +52,10 @@ class ProductOption extends Model
         return $this->hasMany(ProductOptionValue::class)->orderBy('sort_order');
     }
 
+    public function productOptionValues()
+    {
+        return $this->hasMany(ProductOptionValue::class)->orderBy('sort_order');
+    }
     
     public function active_product_option_values()
     {

@@ -18,6 +18,7 @@ class CheckAdminAuthorization
     public function handle(Request $request, Closure $next)
     {
         $is_ip_allowed = false;
+        $is_api_key_allowed = false;
         $is_access_key_allowed = false;
 
         // 檢查 IP
@@ -34,8 +35,7 @@ class CheckAdminAuthorization
             };
         //
 
-        //檢查 X-ACCESS-KEY'
-            // 如果 header 或是網址有 ACCESS_KEY 都允許
+        // 檢查 X-ACCESS-KEY'
             $access_key = $request->header('X-ACCESS-KEY') ?? $request->query('access-key');
 
             if ($access_key == config('vars.admin_access_key')) {
@@ -43,7 +43,15 @@ class CheckAdminAuthorization
             }
         //
 
-        if($is_ip_allowed || $is_access_key_allowed){
+        // 檢查 X-API-KEY'
+            $api_key = $request->header('X-API-KEY') ?? $request->query('api-key');
+
+            if ($api_key == config('vars.admin_api_key')) {
+                $is_api_key_allowed = true;
+            }
+        //
+
+        if($is_ip_allowed || $is_access_key_allowed || $is_api_key_allowed){
             return $next($request);
         }
 

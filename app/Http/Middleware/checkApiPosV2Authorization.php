@@ -19,7 +19,7 @@ class CheckApiPosV2Authorization
     {
         $is_ip_allowed = false;
         $is_api_key_allowed = false;
-        // $is_access_key_allowed = false;
+        $is_access_key_allowed = false;
 
         // 檢查 IP
             $apiRequesterIp = $request->ip();
@@ -35,6 +35,14 @@ class CheckApiPosV2Authorization
             };
         //
 
+        // 檢查 X-ACCESS-KEY'
+            $access_key = $request->header('X-ACCESS-KEY') ?? $request->query('access-key');
+
+            if ($access_key == config('vars.pos_access_key')) {
+                $is_access_key_allowed = true;
+            }
+        //
+
         // 檢查 X-API-KEY'
             $api_key = $request->header('X-API-KEY') ?? $request->query('api-key');
 
@@ -43,7 +51,7 @@ class CheckApiPosV2Authorization
             }
         //
 
-        if($is_ip_allowed && $is_api_key_allowed){
+        if($is_ip_allowed || $is_api_key_allowed || $is_access_key_allowed){
             return $next($request);
         }
 

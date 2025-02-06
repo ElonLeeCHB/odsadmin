@@ -62,8 +62,12 @@ class OrderController extends ApiWwwV2Controller
 
     public function infoByCode($order_code)
     {
+        if(empty(request()->query('personal_name'))){
+            return $this->sendResponse(['error' => 'Unauthorized']);
+        }
 
         $filter_data = [
+            'equal_personal_name' => request()->query('personal_name'),
             'equal_code' => $order_code,
             'first' => true,
         ];

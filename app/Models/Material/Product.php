@@ -98,6 +98,10 @@ class Product extends Model
         return $this->hasMany(ProductOption::class,'product_id', 'id')->orderBy('sort_order');
     }
 
+    public function productOptions()
+    {
+        return $this->hasMany(ProductOption::class,'product_id', 'id')->orderBy('sort_order');
+    }
 
     public function cachedProductOptions()
     {
