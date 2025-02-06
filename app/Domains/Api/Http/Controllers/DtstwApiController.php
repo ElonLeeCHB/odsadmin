@@ -150,13 +150,13 @@ class DtstwApiController extends ApiController
             return response()->json(['error' => '請提供訂單編號',], 400);
         }
 
-        $row = DB::table('order_delivery as od')
+        $rows = DB::table('order_delivery as od')
             ->select('od.*')
             ->leftJoin('orders as o', 'o.code', '=', 'od.order_code')
             ->where('o.code', $code)
-            ->first(); 
+            ->get(); 
 
-        return response()->json($row, 200);
+        return response()->json($rows, 200);
     }
 
 

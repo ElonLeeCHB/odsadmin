@@ -39,9 +39,18 @@ Route::group([
         // Route::post('orders/edit/{order_id}', 'Sale\OrderController@edit')->name('orders.edit'); 
 
         
+        Route::get('orders/deliveries/list', 'Sale\OrderDeliveryController@list')->name('orders.deliveries.list');
+
         Route::post('update-timeslot', 'Sale\QuantityControlController@updateTimeslot')->name('updateTimeslot');
         Route::get('get-timeslot', 'Sale\QuantityControlController@getTimeslot')->name('getTimeslot');
         Route::post('add-special', 'Sale\QuantityControlController@addSpecial')->name('addSpecial');
+    });
+
+    Route::group([
+        'prefix' => 'common',
+        'as' => 'common.',
+    ], function ()
+    {
     });
 
 

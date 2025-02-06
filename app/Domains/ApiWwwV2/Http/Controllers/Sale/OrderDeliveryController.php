@@ -4,20 +4,15 @@ namespace App\Domains\ApiWwwV2\Http\Controllers\Sale;
 
 use Illuminate\Http\Request;
 use App\Domains\ApiWwwV2\Http\Controllers\ApiWwwV2Controller;
-use App\Domains\ApiWwwV2\Services\Sale\OrderService;
+use App\Domains\ApiWwwV2\Services\Sale\DeliveryService;
 use App\Helpers\Classes\DataHelper;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use App\Models\Sale\Order;
+use App\Models\Sale\OrderDelivery;
 
-class OrderController extends ApiWwwV2Controller
+class OrderDeliveryController extends ApiWwwV2Controller
 {
-    public function __construct(private Request $request,private OrderService $OrderService)
-    {
-        if (method_exists(parent::class, '__construct')) {
-            parent::__construct();
-        }
-    }
-
 
     public function list()
     {
@@ -57,9 +52,15 @@ class OrderController extends ApiWwwV2Controller
             }
         }
 
-        $response = $this->OrderService->getList($queries);
+        $order = Order::select(['id','code'])->applyFilters()->with('deliveries')->first();
 
-        return $this->sendResponse($response);
+        $deliveries = [];
+
+        if($order->deliveries){
+            $deliveries = $order->deliveries;
+        }
+
+        return $this->sendResponse(['data' => $deliveries]);
     }
 
     public function infoByCode($order_code)

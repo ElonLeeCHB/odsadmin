@@ -8,21 +8,23 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Setting\Setting;
 use App\Models\Sale\Datelimit;
 use App\Models\Sale\TimeSlotLimit;
+use App\Services\Sales\QuantityControlService;
 
 class QuantityControlController extends ApiPosController
 {
+    public function __construct(private Request $request,private QuantityControlService $QuantityControlService)
+    {
+        if (method_exists(parent::class, '__construct')) {
+            parent::__construct();
+        }
+    }
+    
     public function updateTimeslot()
     {
         try {
             $content = request()->post();
-            
-            
-            $row = Setting::where('group','pos')->where('setting_key', 'pos_timeslotlimits')->first();
 
-            if ($row) {
-                $row->setting_value = json_encode($content);
-                $row->save();
-            }
+            $this->QuantityControlService->updateTimeslot($content);
             
             return response()->json(['status' => 'ok']);
 
@@ -33,9 +35,10 @@ class QuantityControlController extends ApiPosController
 
     public function getTimeslot()
     {
-        try {            
-            $row = Setting::where('group','pos')->where('setting_key', 'pos_timeslotlimits')->first();
-            return $this->sendResponse(['data' => $row->setting_value]);
+        try {
+            $content = $this->QuantityControlService->getTimeslot();        
+
+            return $this->sendResponse(['data' => $content]);
 
         } catch (\Throwable $th) {
             return response()->json(['error' => $th->getMessage()], 400);
@@ -44,23 +47,8 @@ class QuantityControlController extends ApiPosController
 
     public function addSpecial()
     {
-
         try {
-            $content = request()->post();
-
-            Datelimit::where('Date', $content['Date'])->delete();
-
-            foreach ($content['TimeSlots'] as $key => $limit) {
-                $insert_data[] = [
-                    'Date' => $content['Date'],
-                    'TimeSlot' => $key,
-                    'LimitCount' => $limit,
-                ];
-            }
-
-            if(!empty($insert_data)){
-                Datelimit::insert($insert_data);
-            }
+            $this->QuantityControlService->getTimeslot(request()->post());
             
             return response()->json(['status' => 'ok']);
 

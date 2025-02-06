@@ -405,7 +405,7 @@ class DataHelper
         return $result;
     }
 
-    public static function showSqlContent(Builder $builder, $exit = 0, $params = [])
+    public static function showSqlContent($builder, $exit = 0, $params = [])
     {
         $sqlstr = str_replace('?', "'?'", $builder->toSql());
 
@@ -470,10 +470,10 @@ class DataHelper
 
 
 
-    public function getResult(Builder $builder, $debug = 0)
+    public static function getResult($builder, $debug = 0)
     {
         if($debug){
-            DataHelper::showSqlContent($builder, 0);
+            DataHelper::showSqlContent($builder, 1);
         }
 
         $rows = [];

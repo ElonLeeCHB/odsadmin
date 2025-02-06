@@ -337,7 +337,7 @@ trait ModelTrait
             return $query->where('is_active', 1);
         }
 
-        public function scopeApplyFilters(Builder $builder, $params = [])
+        public function scopeApplyFilters($builder, $params = [])
         {
             if(empty($params)){
                 $params = request()->all();
@@ -437,6 +437,11 @@ trait ModelTrait
             //
 
             return $builder;
+        }
+
+        public function scopeDebug($builder)
+        {
+            DataHelper::showSqlContent($builder, 1);
         }
     // end scope
 }

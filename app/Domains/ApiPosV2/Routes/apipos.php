@@ -55,12 +55,12 @@ Route::group([
             Route::get('orders/info/{id}', 'Sale\OrderController@info')->name('orders.info');
             Route::get('orders/infoByCode/{code}', 'Sale\OrderController@infoByCode')->name('orders.infoByCode');
             Route::get('orders/store', 'Sale\OrderController@store')->name('orders.store');
+        
+            Route::post('update-timeslot', 'Sale\QuantityControlController@updateTimeslot')->name('updateTimeslot');
+            Route::get('get-timeslot', 'Sale\QuantityControlController@getTimeslot')->name('getTimeslot');
+            Route::post('add-special', 'Sale\QuantityControlController@addSpecial')->name('addSpecial');
         });
     
-        
-        Route::post('update-timeslot', 'Sale\QuantityControlController@updateTimeslot')->name('updateTimeslot');
-        Route::get('get-timeslot', 'Sale\QuantityControlController@getTimeslot')->name('getTimeslot');
-        Route::post('add-special', 'Sale\QuantityControlController@addSpecial')->name('addSpecial');
         
         // Route::group([
         //     'prefix' => 'user',
