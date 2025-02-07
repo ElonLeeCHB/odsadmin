@@ -32,7 +32,7 @@ class QuantityControlService extends Service
         }
     }
 
-    public function addSpecial($content)
+    public function updateDatelimits($content)
     {
         try {
             Datelimit::where('Date', $content['Date'])->delete();

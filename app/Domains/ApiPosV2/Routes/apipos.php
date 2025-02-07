@@ -58,7 +58,7 @@ Route::group([
         
             Route::post('update-timeslot', 'Sale\QuantityControlController@updateTimeslot')->name('updateTimeslot');
             Route::get('get-timeslot', 'Sale\QuantityControlController@getTimeslot')->name('getTimeslot');
-            Route::post('add-special', 'Sale\QuantityControlController@addSpecial')->name('addSpecial');
+            Route::post('update-datelimits', 'Sale\QuantityControlController@updateDatelimits')->name('updateDatelimits');
         });
     
         

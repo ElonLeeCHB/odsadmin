@@ -69,6 +69,9 @@ class ProductController extends BackendController
         $data['list_url']   = route('lang.admin.catalog.products.list');
         $data['add_url']    = route('lang.admin.catalog.products.form');
         $data['delete_url'] = route('lang.admin.catalog.products.destroy');
+
+        $data['product_tags'] = $this->ProductService->getProductTags();
+
         return view('admin.catalog.product', $data);
     }
 

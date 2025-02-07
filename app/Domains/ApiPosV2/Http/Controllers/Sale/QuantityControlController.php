@@ -45,10 +45,10 @@ class QuantityControlController extends ApiPosController
         }
     }
 
-    public function addSpecial()
+    public function updateDatelimits()
     {
         try {
-            $this->QuantityControlService->getTimeslot(request()->post());
+            $this->QuantityControlService->updateDatelimits(request()->post());
             
             return response()->json(['status' => 'ok']);
 

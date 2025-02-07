@@ -13,6 +13,7 @@ use App\Models\Material\ProductTranslation;
 use App\Models\Material\ProductOption;
 use App\Models\Material\ProductOptionValue;
 use App\Models\Material\ProductTag;
+use App\Models\Common\Term;
 
 class ProductService extends Service
 {
@@ -200,6 +201,11 @@ class ProductService extends Service
             DB::rollback();
             return ['error' => $ex->getMessage()];
         }
+    }
+
+    public function getProductTags()
+    {
+        return (new ProductRepository)->getProductTags();
     }
 
 }

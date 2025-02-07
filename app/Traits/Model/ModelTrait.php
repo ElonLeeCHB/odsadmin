@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use App\Helpers\Classes\DataHelper;
+use Illuminate\Support\Facades\Schema;
 
 trait ModelTrait
 {
@@ -329,6 +330,24 @@ trait ModelTrait
         return (object) $result;
     }
 
+    //處理 guarded()。原本 model 內建的 create() 會受 fillable() 限制。但是若使用 guarded() 不會包含在 fillable() 裡面。因此新增判斷
+    public function getFillable()
+    {
+        $fillable = parent::getFillable();
+
+        if (empty($fillable)) {
+            $table_columns = $this->getTableColumns();
+
+            $fillable = array_diff($table_columns, $this->getGuarded());
+        }
+
+        if(empty($fillable)){
+            $fillable = $table_columns;
+        }
+
+        // 排除 $guarded 中列出的欄位
+        return $fillable;
+    }
 
 
     // scope

@@ -1,6 +1,18 @@
 @extends('admin.app')
 
 @section('pageJsCss')
+<link  href="{{ asset('assets/vendor/select2/select2.min.css') }}" rel="stylesheet" type="text/css"/>
+<script src="{{ asset('assets/vendor/select2/select2.min.js') }}"></script>
+
+<style>
+.select2-container .select2-selection--single{
+   height:100% !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+     height:100% !important;
+}
+</style>
 @endsection
 
 @section('columnLeft')
@@ -45,6 +57,16 @@
             </div>
 
             <div class="mb-3">
+              <label class="form-label">商品標籤</label>
+              <select id="input-filter_product_tags" name="filter_product_tags[]" class="select2-multiple form-control" multiple="multiple">
+                @foreach($product_tags ?? [] as $term_id => $product_tag_name)
+                <option value="{{ $term_id }}">{{ $product_tag_name }}</option>
+                @endforeach
+              </select>
+              <!--{{--<input type="text" id="input-filter_status_code"  name="filter_status_code" value="{{ $filter_status_code ?? '' }}" class="form-control"/>--}}-->
+            </div>
+
+            <div class="mb-3">
               <label class="form-label">{{ $lang->column_is_active }}</label>
               <select name="equal_is_active" id="input-equal_is_active" class="form-select">
                 <option value="*">{{ $lang->text_select }}</option>
@@ -85,19 +107,21 @@ $('#button-filter').on('click', function() {
   url = '?';
 
   var filter_name = $('#input-filter_name').val();
-
   if (filter_name) {
     url += '&filter_name=' + encodeURIComponent(filter_name);
   }
 
   var filter_main_category_id = $('#input-filter_main_category_id').val();
-
   if (filter_main_category_id) {
     url += '&filter_main_category_id=' + encodeURIComponent(filter_main_category_id);
   }
 
-  var equal_is_active = $('#input-equal_is_active').val();
+  var filter_product_tags = $('#input-filter_product_tags').val();
+  if (filter_product_tags && filter_product_tags.length > 0) {
+    url += '&filter_product_tags=' + encodeURIComponent(filter_product_tags);
+  }
 
+  var equal_is_active = $('#input-equal_is_active').val();
   if (equal_is_active) {
     url += '&equal_is_active=' + encodeURIComponent(equal_is_active);
   }
@@ -109,5 +133,11 @@ $('#button-filter').on('click', function() {
   add_url = $("#button-add").attr("href") + url
   $("#button-add").attr("href", add_url);
 });
+
+$('#input-filter_product_tags').select2({
+  width:'100%',
+});
+
+
 </script>
 @endsection

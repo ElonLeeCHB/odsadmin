@@ -26,8 +26,6 @@ class Order extends Model
     // 官網指示這樣寫
     use \Staudenmeir\EloquentHasManyDeep\HasRelationships;
 
-    protected $guarded = [];
-
     protected $appends = ['order_date_ymd', 'delivery_date_ymd', 'delivery_date_hi', 'delivery_weekday','status_name'];
 
     protected $casts = [
@@ -142,6 +140,8 @@ class Order extends Model
     {
         return $this->belongsTo(OptionValue::class, 'status_id', 'id');
     }
+
+    
 
     public function statusName(): Attribute
     {
@@ -316,4 +316,10 @@ class Order extends Model
 
 
     // Functoins
+    public function setDefaultData($data)
+    {
+        $data['customer_id'] = $data['customer_id'] ?? 0;
+
+        return $data;
+    }
 }

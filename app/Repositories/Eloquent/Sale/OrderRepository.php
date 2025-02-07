@@ -127,6 +127,7 @@ class OrderRepository extends Repository
 
         return $result;
     }
+    
 
     public function getCachedActiveOrderStatuses($reset = false)
     {
@@ -525,15 +526,46 @@ class OrderRepository extends Repository
     public function create($data)
     {
         try {
-            $orderData = $this->normalizeData($data);
 
-            unset($orderData['id']);
-            unset($orderData['order_id']);
+            // delivery_date and delivery_time_range
+                // 說明：delivery_date 在資料庫是 datetime 欄位
+                // $delivery_date_Ymd = '0000-00-00'
+                // $delivery_date_His = '00:00:00'
+                if(empty($data['delivery_date'])){
+                    throw new \Exception('送達日期必須有值！');
+                }
+                // 提取日期
+                if (preg_match('/^\d{4}-\d{2}-\d{2}/', $data['delivery_date'])) {
+                    $delivery_date_Ymd = substr($data['delivery_date'], 0, 10); // 取得 YYYY-MM-DD
+                }
+                // 提取時間
+                if (strpos($data['delivery_date'], ' ') !== false) {
+                    $delivery_date_His = substr($data['delivery_date'], 11); // 提取 時-分-秒
+                }else{
+                    $delivery_date_His = '00:00:00';
+                }
+                //重新組合
+                $data['delivery_date'] = $delivery_date_Ymd . ' ' . $delivery_date_His;
 
-            $orderData['created_at'] = now();
-            $orderData['updated_at'] = now();
+                //驗證
+                if(!DateHelper::isValidDateOrDatetime($data['delivery_date'])){
+                    throw new \Exception('送達日期或時間錯誤！');
+                }
+            //
 
-            // create() 回傳 Eloquent model, 必須。Service層會用此做 $order->load('orderProducts')
+            $orderData = [];
+
+            $fillable = $this->model->getFillable();
+
+            foreach ($fillable as $column) {
+                if($column != 'id' && isset($data[$column])){
+                    $orderData[$column] = $data[$column];
+                }
+            }
+
+            $orderData = $this->model->setDefaultData($orderData);
+
+            // create() 回傳 Eloquent model, 必須。Service層可能後續會使用。例如 $order->load('orderProducts')
             return Order::create($orderData);
 
         } catch (\Throwable $th) {
@@ -543,7 +575,6 @@ class OrderRepository extends Repository
 
     public function save($data)
     {
-
         try {
 
             // 新增或編輯
@@ -555,8 +586,6 @@ class OrderRepository extends Repository
                     $isEdittingOrder = true;
                 }
             //
-
-
 
             // get order
             $result = $this->findIdOrFailOrNew($data['order_id'] ?? null);
@@ -597,10 +626,19 @@ class OrderRepository extends Repository
     public function update($data, $id)
     {
         try {
-            $orderData = $this->normalizeData($data);
+            $fillable = $this->model->getFillable();
+
+            $orderData = [];
+            
+            foreach ($fillable as $column) {
+                if($column != 'id' && isset($data[$column])){
+                    $orderData[$column] = $data[$column];
+                }
+            }
+
+            $orderData = $this->model->setDefaultData($data);
 
             $orderData['id'] = $id;
-            $orderData['updated_at'] = now();
 
             $order = Order::find($id);
 
@@ -615,80 +653,6 @@ class OrderRepository extends Repository
         } catch (\Throwable $th) {
             throw $th;
         }
-    }
-
-
-    public function normalizeData($data)
-    {
-        // delivery_date and delivery_time_range
-            // delivery_date 在資料庫是 datetime 欄位
-            // $delivery_date_Ymd = '0000-00-00'
-            // $delivery_date_His = '00:00:00'
-            if(empty($data['delivery_date'])){
-                throw new \Exception('送達日期必須有值！');
-            }
-            // 提取日期
-            if (preg_match('/^\d{4}-\d{2}-\d{2}/', $data['delivery_date'])) {
-                $delivery_date_Ymd = substr($data['delivery_date'], 0, 10); // 取得 YYYY-MM-DD
-            }
-            // 提取時間
-            if (strpos($data['delivery_date'], ' ') !== false) {
-                $delivery_date_His = substr($data['delivery_date'], 11); // 提取 時-分-秒
-            }else{
-                $delivery_date_His = '00:00:00';
-            }
-            //重新組合
-            $data['delivery_date'] = $delivery_date_Ymd . ' ' . $delivery_date_His;
-            //驗證
-            if(!DateHelper::isValidDateOrDatetime($data['delivery_date'])){
-                throw new \Exception('送達日期或時間錯誤！');
-            }
-        //
-
-        $orderData = [
-            'location_id' => $data['location_id'] ?? 0,
-            'delivery_date' => $data['delivery_date'] ?? null,
-            'personal_name' => $data['personal_name'] ?? '',
-            'customer_id' => $data['customer_id'] ?? 0,
-            'mobile' => $data['mobile'] ?? '',
-            'telephone_prefix' => $data['telephone_prefix'] ?? '',
-            'telephone' => $data['telephone'] ?? '',
-            'email' => $data['email'] ?? '',
-            'order_date' => $data['order_date'] ?? null,
-            'status_code' => $data['status_code'] ?? '',
-            'comment' => $data['comment'] ?? '',
-            'extra_comment' => $data['extra_comment'] ?? '',
-            'order_taker' => $data['order_taker'] ?? '',
-
-            // payment
-            'payment_company' => $data['payment_company'] ?? '',
-            'payment_department' => $data['payment_department'] ?? '',
-            'payment_tin' => $data['payment_tin'] ?? '',
-            'is_payment_tin' => $data['is_payment_tin'] ?? 0, //以後改為 payment_tin_required
-            'payment_total' => $data['payment_total'] ?? 0, // 訂單總金額
-            'payment_paid' => $data['payment_paid'] ?? 0, // 已付金額
-            'payment_unpaid' => $data['payment_unpaid'] ?? 0, //未付金額
-            'payment_method' => $data['payment_method'] ?? null, //付款方式
-            'scheduled_payment_date' => $data['scheduled_payment_date'] ?? null ,//預計付款日期
-
-            // shipping
-            'shipping_personal_name' => $data['shipping_personal_name'] ?? null, 
-            'shipping_phone' => $data['shipping_phone'] ?? '', //以後改用 shipping_contact, json 型態，可多筆
-            'shipping_company' => $data['shipping_company'] ?? '',
-            'shipping_country_code' => $data['shipping_country_code'] ?? 'TW',
-            'shipping_state_id' => $data['shipping_state_id'] ?? 0,
-            'shipping_city_id' => $data['shipping_city_id'] ?? 0,
-            'shipping_road' => $data['shipping_road'] ?? null,
-            'shipping_road_abbr' => $data['shipping_road_abbr'] ?? null, //地址簡稱。現在不常用。
-            'shipping_address1' => $data['shipping_address1'] ?? null,
-            'shipping_address2' => $data['shipping_address2'] ?? null,
-            'shipping_method' => $data['shipping_method'] ?? null,
-            'delivery_date' => $data['delivery_date'] ?? null,
-            'delivery_time_range' => $data['delivery_time_range'] ?? null,
-            'delivery_time_mark' => $data['delivery_time_mark'] ?? null, // 值是 a, b, ab 。沒有實際用過。
-        ];
-
-        return $orderData;
     }
 }
 

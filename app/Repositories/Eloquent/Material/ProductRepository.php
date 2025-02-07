@@ -10,7 +10,7 @@ use App\Models\Material\Product;
 use App\Models\Material\ProductTranslation;
 use App\Models\Material\ProductOption;
 use App\Models\Material\ProductOptionValue;
-use App\Models\Common\TermRelation;
+use App\Models\Common\Term;
 use App\Models\Inventory\Bom;
 use App\Models\Inventory\BomProduct;
 use App\Helpers\Classes\DataHelper;
@@ -463,6 +463,17 @@ class ProductRepository extends Repository
         return Excel::download(new CommonExport($data), 'inventory_products.xlsx');
     }
 
+
+    public function getProductTags()
+    {
+        $rows = Term::where('taxonomy_code', 'ProductTag')->active()->with('translation')->get();
+
+        foreach ($rows as $row) {
+            $statuses[$row->id] = $row->name;
+        }
+
+        return $statuses;
+    }
 
 }
 
