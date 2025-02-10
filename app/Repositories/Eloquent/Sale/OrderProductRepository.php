@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent\Sale;
 
 use App\Repositories\Eloquent\Repository;
 use App\Models\Sale\OrderProduct;
+use App\Models\Sale\OrderProductOption;
 
 class OrderProductRepository extends Repository
 {
@@ -14,8 +15,14 @@ class OrderProductRepository extends Repository
         try {
             $rows = [];
 
+            OrderProductOption::where('order_id', $order_id)->delete();
+            OrderProduct::where('order_id', $order_id)->delete();
+
             foreach ($arrOrderProducts as $row) {
                 $row = $this->normalizeData($row, $order_id);
+
+                unset($row['id']);
+                unset($row['order_product_id']);
 
                 //若使用 insert() 則必須
                 $row['created_at'] = now();
@@ -31,16 +38,22 @@ class OrderProductRepository extends Repository
         }
     }
 
-    /**
-     * 必須包含 order_product_id
-     */
     public function upsertMany($arrOrderProducts, $order_id)
     {
         $rows = [];
 
+        // OrderProductOption 必須在後續另外處理，這裡先全刪。
+        OrderProductOption::where('order_id', $order_id)->delete();
+        OrderProduct::where('order_id', $order_id)->delete();
+
         foreach ($arrOrderProducts as $row) {
             $row = $this->normalizeData($row, $order_id);
 
+            // 要求 id 必須存在。如果前端用了 order_product_id，改為 id
+            $row['id'] = $row['id'] ?? $row['order_product_id'] ?? null;
+            unset($row['order_product_id']);
+
+            // 如果記錄已存在，需要更新的欄位
             if(empty($updateColumns)){
                 $updateColumns = array_keys($row);
                 unset($updateColumns['id']);
@@ -48,16 +61,12 @@ class OrderProductRepository extends Repository
             }
 
             //更新
-            if(!empty($row['order_product_id'])){
-                $row['id'] = $row['order_product_id'];
-                unset($row['order_product_id']);
-
+            if(!empty($row['id'])){
                 $row['created_at'] = now();
                 $row['updated_at'] = now();
             }
             //新增
             else{
-                unset($row['id']);
                 $row['created_at'] = now();
             }
 

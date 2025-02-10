@@ -318,7 +318,8 @@ class Order extends Model
     // Functoins
     public function setDefaultData($data)
     {
-        $data['customer_id'] = $data['customer_id'] ?? 0;
+        $data['customer_id'] = !empty($data['customer_id']) ? $data['customer_id'] : 0;
+        $data['telephone_prefix'] = !empty($data['telephone_prefix']) ? $data['telephone_prefix'] : '';
 
         return $data;
     }

@@ -54,7 +54,8 @@ Route::group([
             Route::get('orders/list', 'Sale\OrderController@list')->name('orders.list');
             Route::get('orders/info/{id}', 'Sale\OrderController@info')->name('orders.info');
             Route::get('orders/infoByCode/{code}', 'Sale\OrderController@infoByCode')->name('orders.infoByCode');
-            Route::get('orders/store', 'Sale\OrderController@store')->name('orders.store');
+            Route::post('orders/store', 'Sale\OrderController@store')->name('orders.store');
+            Route::post('orders/update/{id}', 'Sale\OrderController@update')->name('orders.update');
         
             Route::post('update-timeslot', 'Sale\QuantityControlController@updateTimeslot')->name('updateTimeslot');
             Route::get('get-timeslot', 'Sale\QuantityControlController@getTimeslot')->name('getTimeslot');

@@ -626,6 +626,13 @@ class OrderRepository extends Repository
     public function update($data, $id)
     {
         try {
+
+            $order = Order::find($id);
+
+            if($order == null){
+                throw new \Exception('找不到此訂單序號！');
+            }
+
             $fillable = $this->model->getFillable();
 
             $orderData = [];
@@ -636,18 +643,14 @@ class OrderRepository extends Repository
                 }
             }
 
-            $orderData = $this->model->setDefaultData($data);
-
             $orderData['id'] = $id;
 
-            $order = Order::find($id);
+            $orderData = $this->model->setDefaultData($data);
 
-            if ($order) {
+            if (!empty($orderData)) {
                 $order->update($orderData);
 
                 return $order;
-            } else {
-                throw new \Exception('找不到此訂單序號！');
             }
 
         } catch (\Throwable $th) {
