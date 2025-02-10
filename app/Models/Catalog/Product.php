@@ -26,6 +26,7 @@ class Product extends Model
     protected $guarded = [];
     protected $appends = ['code', 'name'];
     public $translation_keys = ['name', 'full_name','short_name','specification','meta_title','meta_description','meta_keyword',];
+
     public $meta_keys = [
         'supplier_own_product_code',
         'supplier_own_product_name',
@@ -273,5 +274,4 @@ class Product extends Model
             Storage::delete($this->getCacheKey($product_id));
         }
     }
-
 }

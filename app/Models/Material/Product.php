@@ -16,6 +16,7 @@ use App\Models\Counterparty\Organization;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Helpers\Classes\DataHelper;
 use Illuminate\Support\Facades\Storage;
+use App\Libraries\EloquentLibrary;
 
 class Product extends Model
 {

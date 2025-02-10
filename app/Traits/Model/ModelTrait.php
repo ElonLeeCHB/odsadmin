@@ -8,6 +8,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use App\Helpers\Classes\DataHelper;
 use Illuminate\Support\Facades\Schema;
+use App\Libraries\EloquentLibrary;
+use App\Helpers\Classes\EloquentHelper;
 
 trait ModelTrait
 {
@@ -362,50 +364,72 @@ trait ModelTrait
                 $params = request()->all();
             }
 
-            foreach ($params as $key => $value) {
-                // 處理 filter_ 開頭的參數
-                if (str_starts_with($key, 'filter_')) {
-                    $column = substr($key, 7); // 去掉 'filter_'
+            $builder = $this->query();
 
-                    if(!in_array($column, $this->getTableColumns())){
+            $eloquentLibrary = new EloquentLibrary($this);
+
+            // translation
+            $eloquentLibrary->setTranslationsQuery($builder, $params);
+
+            // 過濾值
+                foreach ($params as $key => $value) {
+
+                    if (str_starts_with($key, 'filter_')) {
+                        $column = str_replace('filter_', '', $key);
+                    }else if (str_starts_with($key, 'equal_')) {
+                        $column = str_replace('equal_', '', $key);
+                    }else{
+                        $column = $key;
+                    }
+
+                    if(in_array($column, $this->translation_keys)){
                         continue;
                     }
-                    
-                    // 檢查是否包含範圍操作符 > 或 <
-                    if (str_starts_with($key, '>')) {
-                        $val = trim(substr($value, 1));
-                        $builder->where($column, '>', $val);
-                    } else if (str_starts_with($key, '<')) {
-                        $val = trim(substr($value, 1));
-                        $builder->where($column, '<', $val);
-                    } elseif (strpos($value, '*') !== false) {
-                        // 如果有 '*'，則使用模糊匹配處理
-                        if (str_starts_with($value, '*')) {
-                            $pattern = substr($value, 1);
-                            $builder->whereRaw("{$column} REGEXP ?", ['.*' . preg_quote($pattern, '/') . '$']);
-                        } elseif (str_ends_with($value, '*')) {
-                            $pattern = substr($value, 0, -1);
-                            $builder->whereRaw("{$column} REGEXP ?", ['^' . preg_quote($pattern, '/') . '.*']);
-                        } else {
-                            $pattern = str_replace('*', '.*', $value);
-                            $builder->whereRaw("{$column} REGEXP ?", [$pattern]);
+
+                    // 處理 filter_ 開頭的參數
+                    if (str_starts_with($key, 'filter_')) {
+                        $column = substr($key, 7); // 去掉 'filter_'
+
+                        if(!in_array($column, $this->getTableColumns())){
+                            continue;
                         }
-                    } else {
-                        // 沒有 '*' 或範圍符號時，執行模糊匹配
-                        $builder->where($column, 'like', '%' . $value . '%');
+                        
+                        // 檢查是否包含範圍操作符 > 或 <
+                        if (str_starts_with($key, '>')) {
+                            $val = trim(substr($value, 1));
+                            $builder->where($column, '>', $val);
+                        } else if (str_starts_with($key, '<')) {
+                            $val = trim(substr($value, 1));
+                            $builder->where($column, '<', $val);
+                        } elseif (strpos($value, '*') !== false) {
+                            // 如果有 '*'，則使用模糊匹配處理
+                            if (str_starts_with($value, '*')) {
+                                $pattern = substr($value, 1);
+                                $builder->whereRaw("{$column} REGEXP ?", ['.*' . preg_quote($pattern, '/') . '$']);
+                            } elseif (str_ends_with($value, '*')) {
+                                $pattern = substr($value, 0, -1);
+                                $builder->whereRaw("{$column} REGEXP ?", ['^' . preg_quote($pattern, '/') . '.*']);
+                            } else {
+                                $pattern = str_replace('*', '.*', $value);
+                                $builder->whereRaw("{$column} REGEXP ?", [$pattern]);
+                            }
+                        } else {
+                            // 沒有 '*' 或範圍符號時，執行模糊匹配
+                            $builder->where($column, 'like', '%' . $value . '%');
+                        }
+                    }
+                    // 處理 equal_ 開頭的參數
+                    elseif (str_starts_with($key, 'equal_')) {
+                        $column = substr($key, 6); // 去掉 'equal_'
+
+                        if(!in_array($column, $this->getTableColumns())){
+                            continue;
+                        }
+
+                        $builder->where($column, '=', $value); // 精確匹配
                     }
                 }
-                // 處理 equal_ 開頭的參數
-                elseif (str_starts_with($key, 'equal_')) {
-                    $column = substr($key, 6); // 去掉 'equal_'
-
-                    if(!in_array($column, $this->getTableColumns())){
-                        continue;
-                    }
-
-                    $builder->where($column, '=', $value); // 精確匹配
-                }
-            }
+            //
 
             // Sort & Order
                 //  指定排序字串
@@ -420,7 +444,7 @@ trait ModelTrait
                     }
                     else{
                         $order = 'DESC';
-                    }           
+                    }
 
                     // 非多語欄位而且本表有此欄位
                     if(in_array($params['sort'], $this->table_columns)){
@@ -537,5 +561,23 @@ trait ModelTrait
         }
 
         return $rows;
+    }
+
+    public static function getQueryHelper($model = null)
+    {
+        if (is_null($model)) {
+            $model = new static();
+        }
+
+        return new EloquentLibrary($model);
+    }
+
+    public function getMetaModelName(): string
+    {
+        $namespace = __NAMESPACE__; // 例如 App\Models\Material
+
+        $className = class_basename(self::class); // Product
+
+        return $namespace . '\\' . $className . 'Meta'; // 例如 App\Models\Material\ProductMeta
     }
 }

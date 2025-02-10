@@ -937,68 +937,6 @@ trait EloquentTrait
         echo "<pre>".print_r($arr , 1)."</pre>"; exit;
     }
 
-
-    public function getResult($query, $data)
-    {
-        $rows = [];
-
-        if(isset($data['first']) && $data['first'] = true){
-            if(empty($data['pluck'])){
-                $rows = $query->first();
-            }else{
-                $rows = $query->pluck($data['pluck'])->first();
-            }
-        }else{
-
-            // Limit
-            if(isset($data['limit'])){
-                $limit = (int) $data['limit'];
-            }else{
-                $limit = (int) config('settings.config_admin_pagination_limit');
-
-                if(empty($limit)){
-                    $limit = 10;
-                }
-            }
-
-            // Pagination default to true
-            if(isset($data['pagination']) ){
-                $pagination = (boolean)$data['pagination'];
-            }else{
-                $pagination = true;
-            }
-
-            // Get rows
-            if($pagination === true && $limit > 0){  // Get some rows per page
-                $rows = $query->paginate($limit);
-            }
-            else if($pagination === true && $limit == 0){  // get all but keep LengthAwarePaginator
-                $rows = $query->paginate($query->count());
-            }
-            else if($pagination === false && $limit != 0){  // Get some rows without pagination
-                $rows = $query->limit($limit)->get();
-            }
-            else if($pagination === false && $limit == 0){  // Get all matched rows
-                $rows = $query->get();
-            }
-
-            // Pluck
-            if(!empty($data['pluck'])){
-                $rows = $rows->pluck($data['pluck']);
-            }
-
-            if(!empty($data['keyBy'])){
-                $rows = $rows->keyBy($data['keyBy']);
-            }
-        }
-
-        if(!empty($data['toCleanCollection'])){
-            $rows = DataHelper::toCleanCollection($rows);
-        }
-
-        return $rows;
-    }
-
     /**
      * $table should be full name
      */

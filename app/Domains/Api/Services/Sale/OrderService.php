@@ -19,8 +19,14 @@ class OrderService extends GlobalOrderService
 
     public function updateOrCreate($data)
     {
-        DB::beginTransaction();
+        foreach($data as $key => $value){
+            if($data[$key] === 'null' || $data[$key] === 'undefined'){
+                unset($data[$key]);
+            }
+        }
+        
         try {
+            DB::beginTransaction();
 
             $order_id = $data['order_id'] ?? null;
 
