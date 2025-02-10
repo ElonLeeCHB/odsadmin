@@ -111,7 +111,7 @@ trait EloquentTrait
 
         $query = $this->setQuery($query, $data, $debug);
 
-        $rows = $this->getResult($query, $data);
+        $rows = DataHelper::getResult($query, $data);
 
         return $rows;
     }
@@ -999,7 +999,7 @@ trait EloquentTrait
 
         $cache_name = 'cache/table_columns/' . $table . '.serialized.txt';
 
-        return DataHelper::remember($cache_name, 60*60*24*90, function() use($connection, $table){
+        return DataHelper::remember($cache_name, 60*60*24*90, 'json', function() use($connection, $table){
             if(!empty($connection)){
                 $table_columns = DB::connection($connection)->getSchemaBuilder()->getColumnListing($table);
             }

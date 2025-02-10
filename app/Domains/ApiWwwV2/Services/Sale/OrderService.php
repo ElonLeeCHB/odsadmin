@@ -41,7 +41,7 @@ class OrderService extends Service
                 }
             }
 
-            $rows = $this->getResult($builder, $filters);
+            $rows = DataHelper::getResult($builder, $filters);
 
             return  $rows->toArray();
 

@@ -90,7 +90,7 @@ class ProductController extends BackendController
         $query_data = $this->resetUrlData(request()->query());
 
         // Rows, LengthAwarePaginator
-        $products = $this->ProductService->getSalableProducts($query_data);
+        $products = $this->ProductService->getProductsForList($query_data);
 
         if(!empty($products)){
             $products->load('main_category');
@@ -285,6 +285,7 @@ class ProductController extends BackendController
                     }
                 }
                 $data['product_options'][] = (object)[
+                    'id'                   => $product_option->id,
                     'product_option_id'    => $product_option->id,
                     'product_option_values' => $product_option_value_data,
                     'option_id'            => $product_option->option_id,

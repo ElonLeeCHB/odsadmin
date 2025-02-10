@@ -469,8 +469,12 @@ class DataHelper
 
 
 
-
-    public static function getResult($builder, $debug = 0)
+/**
+ * $builder: 
+ *     Illuminate\Database\Eloquent\Builder
+ *     還有一種，忘了是什麼
+ */
+    public static function getResult(Builder $builder, $data = [], $debug = 0)
     {
         if($debug){
             DataHelper::showSqlContent($builder, 1);

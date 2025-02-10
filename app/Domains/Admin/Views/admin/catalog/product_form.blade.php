@@ -236,7 +236,7 @@
                   <fieldset id="option-row-{{ $option_row }}">
                       <legend class="float-none">
                         {{ $product_option->name }}
-                        <span style="font-size:10px;">option_id:{{ $product_option->option_id }} </span>
+                        <span style="font-size:10px;">option_id:{{ $product_option->option_id }}, product_option_id:{{ $product_option->id }} </span>
                         <button type="button" class="btn btn-danger btn-sm float-end" onclick="$('#option-row-{{ $option_row }}').remove();"><i class="fa-solid fa-minus-circle"></i></button>
                       </legend>
                       <input type="hidden" name="product_options[{{ $option_row }}][product_option_id]" value="{{ $product_option->product_option_id }}"/>

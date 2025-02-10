@@ -2,6 +2,7 @@
 
 namespace App\Domains\Admin\Services\Catalog;
 
+use App\Helpers\Classes\DataHelper;
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
 use App\Repositories\Eloquent\Material\ProductRepository;
@@ -206,6 +207,25 @@ class ProductService extends Service
     public function getProductTags()
     {
         return (new ProductRepository)->getProductTags();
+    }
+
+    public function getProductsForList($data)
+    {
+        $data['equal_is_salable'] = 1;
+
+        $builder = Product::select(['id','code','main_category_id','sort_order','price','is_active','is_salable'])->applyFilters($data);
+
+        if (!empty($data['filter_product_tags'])) {
+            $product_tags = explode(',', $data['filter_product_tags']);
+
+            foreach ($product_tags as $term_id) {
+                $builder->whereHas('ProductTags', function ($builder) use ($term_id) {
+                    $builder->where('term_id', $term_id);
+                });
+            }
+        }
+
+        return DataHelper::getResult($builder, $data);
     }
 
 }

@@ -361,10 +361,15 @@ trait ModelTrait
             if(empty($params)){
                 $params = request()->all();
             }
+
             foreach ($params as $key => $value) {
                 // 處理 filter_ 開頭的參數
                 if (str_starts_with($key, 'filter_')) {
                     $column = substr($key, 7); // 去掉 'filter_'
+
+                    if(!in_array($column, $this->getTableColumns())){
+                        continue;
+                    }
                     
                     // 檢查是否包含範圍操作符 > 或 <
                     if (str_starts_with($key, '>')) {
@@ -393,6 +398,11 @@ trait ModelTrait
                 // 處理 equal_ 開頭的參數
                 elseif (str_starts_with($key, 'equal_')) {
                     $column = substr($key, 6); // 去掉 'equal_'
+
+                    if(!in_array($column, $this->getTableColumns())){
+                        continue;
+                    }
+
                     $builder->where($column, '=', $value); // 精確匹配
                 }
             }
@@ -463,4 +473,69 @@ trait ModelTrait
             DataHelper::showSqlContent($builder, 1);
         }
     // end scope
+
+    public function getResult($builder, $data, $debug = 0)
+    {
+        if($debug){
+            DataHelper::showSqlContent($builder, 1);
+        }
+
+        $rows = [];
+
+        if(isset($data['first']) && $data['first'] = true){
+            if(empty($data['pluck'])){
+                $rows = $builder->first();
+            }else{
+                $rows = $builder->pluck($data['pluck'])->first();
+            }
+        }else{
+
+            // Limit
+            if(isset($data['limit'])){
+                $limit = (int) $data['limit'];
+            }else{
+                $limit = (int) config('settings.config_admin_pagination_limit');
+
+                if(empty($limit)){
+                    $limit = 10;
+                }
+            }
+
+            // Pagination default to true
+            if(isset($data['pagination']) ){
+                $pagination = (boolean)$data['pagination'];
+            }else{
+                $pagination = true;
+            }
+
+            // Get rows
+            if($pagination === true && $limit > 0){  // Get some rows per page
+                $rows = $builder->paginate($limit);
+            }
+            else if($pagination === true && $limit == 0){  // get all but keep LengthAwarePaginator
+                $rows = $builder->paginate($builder->count());
+            }
+            else if($pagination === false && $limit != 0){  // Get some rows without pagination
+                $rows = $builder->limit($limit)->get();
+            }
+            else if($pagination === false && $limit == 0){  // Get all matched rows
+                $rows = $builder->get();
+            }
+
+            // Pluck
+            if(!empty($data['pluck'])){
+                $rows = $rows->pluck($data['pluck']);
+            }
+
+            if(!empty($data['keyBy'])){
+                $rows = $rows->keyBy($data['keyBy']);
+            }
+        }
+
+        if(!empty($rows) && !empty($data['toCleanCollection'])){
+            $rows = DataHelper::toCleanCollection($rows);
+        }
+
+        return $rows;
+    }
 }

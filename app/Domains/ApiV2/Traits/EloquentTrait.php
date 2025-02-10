@@ -120,7 +120,7 @@ trait EloquentTrait
 
         $query = $this->setQuery($query, $data, $debug);
 
-        $rows = $this->getResult($query, $data);
+        $rows = DataHelper::getResult($query, $data);
 
         return $rows;
     }
