@@ -842,7 +842,7 @@ class OrderController extends BackendController
                     (object) ['short_name' => '春捲', 'option_value_ids' => [1093]],
                 ];
             //
-
+            
             if(empty($params['template'])){
                 $params['template'] = 'V01';
             }
@@ -861,7 +861,7 @@ class OrderController extends BackendController
             }
 
             $data['template'] = $params['template'];
-            // return response(json_encode($data['orders'][0]['categories']['customLunchbox']['items']))->header('Content-Type','application/json');
+            // return response(json_encode($data['orders'][0]['categories']['guabaoBento']['items']))->header('Content-Type','application/json');
 
             return view('admin.sale.printMultiOrders', $data);
         }

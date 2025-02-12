@@ -160,7 +160,7 @@
         <table id="guabaoBento" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
           <thead>
             <tr>
-              <td style="width:120px;" class="fw-bold">{{ $order['categories']['guabaoBento']['name'] }}</td>
+              <td style="width:150px;" class="fw-bold">{{ $order['categories']['guabaoBento']['name'] }}</td>
               <td style="width:24px;" class="fw-bold">小計</td>
               @php $column_used_num = 2; @endphp
               @foreach($columns['guabaoBento']['MainMeal'] ?? [] as $item)
@@ -177,7 +177,7 @@
                 @php $column_used_num++; @endphp
               @endforeach
 
-              @php $left = 24-$column_used_num; @endphp
+              @php $left = 23-$column_used_num; @endphp
               @for($i = 1; $i <= $left; $i++)
                 <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
               @endfor
@@ -214,7 +214,7 @@
                 @php $column_used_num++; @endphp
               @endforeach
 
-              @php $left = 24-$column_used_num; @endphp
+              @php $left = 23-$column_used_num; @endphp
               @for($i = 1; $i <= $left; $i++)
                 <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
               @endfor

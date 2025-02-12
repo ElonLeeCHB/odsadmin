@@ -507,10 +507,6 @@ class EloquentLibrary
             $column = str_replace('equal_', '', $filter_key);
         }
 
-        if(!in_array($column , $table_columns)){
-            return false;
-        }
-        
         if(str_starts_with($filter_key, 'filter_')){
 
             // escapes Ex. phone number (123)456789 => \(123\)456789

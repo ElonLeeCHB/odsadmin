@@ -135,6 +135,7 @@ class ProductController extends BackendController
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_main_category_id'] = $route . "?sort=main_category_id&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
+        $data['sort_web_name'] = $route . "?sort=web_name&order=$order" .$url;
         $data['sort_model'] = $route . "?sort=model&order=$order" .$url;
         $data['sort_price'] = $route . "?sort=price&order=$order" .$url;
         $data['sort_quantity'] = $route . "?sort=quantity&order=$order" .$url;

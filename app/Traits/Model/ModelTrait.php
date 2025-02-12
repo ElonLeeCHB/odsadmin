@@ -358,7 +358,7 @@ trait ModelTrait
             return $query->where('is_active', 1);
         }
 
-        public function scopeApplyFilters($builder, $params = [])
+        public function scopeApplyFilters($builder, $params = [], $debug = 0)
         {
             if(empty($params)){
                 $params = request()->all();
@@ -368,8 +368,8 @@ trait ModelTrait
 
             $eloquentLibrary = new EloquentLibrary($this);
 
-            // translation
-            $eloquentLibrary->setTranslationsQuery($builder, $params);
+            // translation 要重新改寫
+            $eloquentLibrary->setTranslationsQuery($builder, $params, $debug);
 
             // 過濾值
                 foreach ($params as $key => $value) {
@@ -431,6 +431,9 @@ trait ModelTrait
                 }
             //
 
+            $table_columns = $this->getTableColumns();
+            $this->table = $this->getTable();
+
             // Sort & Order
                 //  指定排序字串
                 if(!empty($params['orderByRaw'])){
@@ -438,6 +441,7 @@ trait ModelTrait
                 }
                 // 指定排序欄位
                 else if(!empty($params['sort'])){
+
                     //  設定排序順序。預設 DESC
                     if (isset($params['order']) && $params['order'] == 'ASC') {
                         $order = 'ASC';
@@ -446,21 +450,14 @@ trait ModelTrait
                         $order = 'DESC';
                     }
 
-                    // 非多語欄位而且本表有此欄位
-                    if(in_array($params['sort'], $this->table_columns)){
-                        if(empty($this->translation_keys) ||  //不存在多語欄位
-                        (!empty($this->translation_keys) && !in_array($params['sort'], $this->translation_keys)) // 或是有多語欄位，但查詢欄位不在其中
-                        ){
-                            $builder->orderBy($this->getTable() . '.' . $params['sort'], $order);
-                        }
-                    }
-                    // 多語欄位
-                    else{
-                        $translation_table = $this->model->getTranslationTable();
-                        $master_key = $this->model->getTranslationMasterKey();
+                    // 多語表欄位
+                    if(!empty($this->translation_keys) && in_array($params['sort'], $this->translation_keys))
+                    {
+                        $translation_table = $this->getTranslationTable();
+                        $master_key = $this->getTranslationMasterKey();
                         $sort = $params['sort'];
 
-                        if (str_ends_with($this->model->translation_model_name, 'Meta')) {
+                        if (str_ends_with($this->translation_model_name, 'Meta')) {
 
                             $builder->join($translation_table, function ($join) use ($translation_table, $master_key, $sort){
                                 $join->on("{$this->table}.id", '=', "{$translation_table}.{$master_key}")
@@ -477,6 +474,10 @@ trait ModelTrait
                             $builder->orderBy("{$translation_table}.{$sort}", $order);
                         }
                     }
+                    // 多語表無欄位但本表有此欄位
+                    else if(!empty($params['sort']) && in_array($params['sort'], $table_columns)){
+                        $builder->orderBy($this->getTable() . '.' . $params['sort'], $order);
+                    }
                 }
                 
                 // 未指定排序欄位
@@ -488,6 +489,10 @@ trait ModelTrait
                     }
                 }
             //
+
+            if($debug == 1){
+                DataHelper::showSqlContent($builder, 1);
+            }
 
             return $builder;
         }
