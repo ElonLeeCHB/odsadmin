@@ -79,12 +79,9 @@ trait ModelTrait
         if(!isset($this->translation_model_name) || str_ends_with($this->translation_model_name, 'Translation')){
             $translation_model_name = get_class($this) . 'Translation';
             $translation_model = new $translation_model_name();
+            $key_name = $translation_model->foreign_key;
 
-            return $this->hasOne($translation_model::class)->ofMany([
-                'id' => 'max',
-            ], function ($query) {
-                $query->where('locale', app()->getLocale());
-            });
+            return $this->hasOne($translation_model::class, $key_name)->where('locale', app()->getLocale());
         }
 
         // Using SomeMeta
@@ -370,6 +367,15 @@ trait ModelTrait
 
             // translation 要重新改寫
             $eloquentLibrary->setTranslationsQuery($builder, $params, $debug);
+
+            // 沒設定 equal_is_active 的時候，預設=1
+            if(!isset($params['equal_is_active'])){
+                $params['equal_is_active'] = 1;
+            }
+            // 存在 equal_is_active, 但值 = '*'
+            else if($params['equal_is_active'] == '*'){
+                unset($params['equal_is_active']);
+            }
 
             // 過濾值
                 foreach ($params as $key => $value) {

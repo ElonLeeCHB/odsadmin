@@ -88,10 +88,10 @@ class ProductController extends BackendController
 
         // Prepare query_data for records
         $query_data = $this->resetUrlData(request()->query());
-
+        
         // Rows, LengthAwarePaginator
         $products = $this->ProductService->getProductsForList($query_data);
-
+        
         if(!empty($products)){
             $products->load('main_category');
 

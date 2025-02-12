@@ -224,6 +224,7 @@ class ProductService extends Service
                 });
             }
         }
+
         return DataHelper::getResult($builder);
     }
 
