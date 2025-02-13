@@ -196,6 +196,7 @@
               <td>{{ $row['name'] }}</td>
               <td>{{ $row['quantity'] }}</td>
               @php $column_used_num = 2; @endphp
+
               @foreach($columns['guabaoBento']['MainMeal'] ?? [] as $item)
                 <td style="@if ($loop->last) border-right:3px solid black @endif">
                   @if(!empty($row['product_options']['MainMeal'][$item->option_value_id]['quantity']))
@@ -697,8 +698,29 @@
           @foreach($order['categories']['solo']['items']['product_options']['Other'] ?? [] as $option_value_id => $row)
             {{ $row['value'] }}*{{ $row['quantity'] }}, 
           @endforeach
+        </td>
+        </tr>
+      </table>
+      @endif
+    <!-- end 單點 -->
 
-
+    <!-- 單點 1062 其它商品-->
+    @if(!empty($order['categories']['solo']))
+      <table id="lunchbox" data-toggle="table" class="table-bordered border border-dark rounded-3 tr-border-top" style="margin-top:3px;margin-bottom:0px; width:100%">
+        <tr>
+        <td style="width:100px;" class="fw-bold">單點</td>
+        <td>
+          @foreach($order['categories']['solo']['items']['product_options']['Lumpia6inch'] ?? [] as $option_value_id => $row)
+            {{ $row['value'] }}*{{ $row['quantity'] }}, 
+          @endforeach
+          <BR>
+          @foreach($order['categories']['solo']['items']['product_options']['BigGuabao'] ?? [] as $option_value_id => $row)
+            {{ $row['value'] }}*{{ $row['quantity'] }}, 
+          @endforeach
+          <BR>
+          @foreach($order['categories']['solo']['items']['product_options']['Other'] ?? [] as $option_value_id => $row)
+            {{ $row['value'] }}*{{ $row['quantity'] }}, 
+          @endforeach
         </td>
         </tr>
       </table>

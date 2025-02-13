@@ -812,7 +812,7 @@ class OrderController extends BackendController
         if(empty($result['error'])){
             $data['orders'] = $result;
 
-            //固定欄位的選項。用於 V02 固定欄位的模版。
+            //固定欄位的選項
                 //潤餅便當 lumpiaBento 以 1001 招牌潤餅便當 當代表
                 $data['columns']['lumpiaBento']['MainMeal'] = $this->OrderService->getOptionValuesByProductOption(product_id:1001, option_id:1003);
 
@@ -863,7 +863,6 @@ class OrderController extends BackendController
             }
 
             $data['template'] = $params['template'];
-            // return response(json_encode($data['orders'][0]['categories']['guabaoBento']['items']))->header('Content-Type','application/json');
 
             return view('admin.sale.printMultiOrders', $data);
         }

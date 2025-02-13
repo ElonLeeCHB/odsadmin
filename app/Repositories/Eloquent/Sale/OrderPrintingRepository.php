@@ -504,18 +504,30 @@ class OrderPrintingRepository extends Repository
                             foreach ($order_product->orderProductOptions as $order_product_option) {
                                 $option_value_id = $order_product_option->option_value_id;
         
-                                //選項1009=6吋潤餅
+                                // 選項 1009 = 6吋潤餅
                                 if($order_product_option->option_id == 1009){
-                                    if(!isset($printingRowsByCategory[$identifier]['items']['product_options']['MainMeal'][$option_value_id])){
-                                        $printingRowsByCategory[$identifier]['items']['product_options']['MainMeal'][$option_value_id]['option_value_id'] = $order_product_option->option_value_id;
-                                        $printingRowsByCategory[$identifier]['items']['product_options']['MainMeal'][$option_value_id]['map_product_id'] = $order_product_option->map_product_id;
-                                        $printingRowsByCategory[$identifier]['items']['product_options']['MainMeal'][$option_value_id]['value'] = $order_product_option->value;
-                                        $printingRowsByCategory[$identifier]['items']['product_options']['MainMeal'][$option_value_id]['quantity'] = 0;
+                                    if(!isset($printingRowsByCategory[$identifier]['items']['product_options']['Lumpia6inch'][$option_value_id])){
+                                        $printingRowsByCategory[$identifier]['items']['product_options']['Lumpia6inch'][$option_value_id]['option_value_id'] = $order_product_option->option_value_id;
+                                        $printingRowsByCategory[$identifier]['items']['product_options']['Lumpia6inch'][$option_value_id]['map_product_id'] = $order_product_option->map_product_id;
+                                        $printingRowsByCategory[$identifier]['items']['product_options']['Lumpia6inch'][$option_value_id]['value'] = $order_product_option->value;
+                                        $printingRowsByCategory[$identifier]['items']['product_options']['Lumpia6inch'][$option_value_id]['quantity'] = 0;
                                     }
         
-                                    $printingRowsByCategory[$identifier]['items']['product_options']['MainMeal'][$option_value_id]['quantity'] += $order_product_option->quantity;
-                                }else{
-                                    if(!isset($printingRowsByCategory[$identifier]['items']['product_options']['MainMeal'][$option_value_id])){
+                                    $printingRowsByCategory[$identifier]['items']['product_options']['Lumpia6inch'][$option_value_id]['quantity'] += $order_product_option->quantity;
+                                }
+                                //選項 1017 = 大刈包
+                                else if($order_product_option->option_id == 1017){
+                                    if(!isset($printingRowsByCategory[$identifier]['items']['product_options']['BigGuabao'][$option_value_id])){
+                                        $printingRowsByCategory[$identifier]['items']['product_options']['BigGuabao'][$option_value_id]['option_value_id'] = $order_product_option->option_value_id;
+                                        $printingRowsByCategory[$identifier]['items']['product_options']['BigGuabao'][$option_value_id]['map_product_id'] = $order_product_option->map_product_id;
+                                        $printingRowsByCategory[$identifier]['items']['product_options']['BigGuabao'][$option_value_id]['value'] = $order_product_option->value;
+                                        $printingRowsByCategory[$identifier]['items']['product_options']['BigGuabao'][$option_value_id]['quantity'] = 0;
+                                    }
+        
+                                    $printingRowsByCategory[$identifier]['items']['product_options']['BigGuabao'][$option_value_id]['quantity'] += $order_product_option->quantity;
+                                }
+                                else{
+                                    if(!isset($printingRowsByCategory[$identifier]['items']['product_options']['Other'][$option_value_id])){
                                         $printingRowsByCategory[$identifier]['items']['product_options']['Other'][$option_value_id]['option_value_id'] = $order_product_option->option_value_id;
                                         $printingRowsByCategory[$identifier]['items']['product_options']['Other'][$option_value_id]['map_product_id'] = $order_product_option->map_product_id;
                                         $printingRowsByCategory[$identifier]['items']['product_options']['Other'][$option_value_id]['value'] = $order_product_option->value;
@@ -528,6 +540,7 @@ class OrderPrintingRepository extends Repository
                         }
                         // $otherProducts1062
                     }
+                    
                 //
 
                 //下面中文要改寫
