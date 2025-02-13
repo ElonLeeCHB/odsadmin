@@ -537,7 +537,7 @@ class RequisitionController extends BackendController
     {
         $data['lang'] = $this->lang;
         $data['base'] = config('app.admin_url');
-
+        
         // parseDate
         if(!empty($required_date_string)){
             //$required_date = parseDate($required_date_string);

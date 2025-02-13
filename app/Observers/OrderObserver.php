@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Sale\Order;
+use App\Models\Sale\DateLimit;
 
 class OrderObserver
 {
