@@ -209,11 +209,11 @@ class ProductService extends Service
         return (new ProductRepository)->getProductTags();
     }
 
-    public function getProductsForList($data, $debug = 0)
+    public function getList($data)
     {
         $data['equal_is_salable'] = 1;
-
-        $builder = Product::select(['id','code','main_category_id','sort_order','price','is_active','is_salable'])->applyFilters($data, $debug);
+        
+        $builder = Product::applyFilters($data);
 
         if (!empty($data['filter_product_tags'])) {
             $product_tags = explode(',', $data['filter_product_tags']);
@@ -225,7 +225,7 @@ class ProductService extends Service
             }
         }
 
-        return DataHelper::getResult($builder);
+        return $builder->getResult($data);
     }
 
 }

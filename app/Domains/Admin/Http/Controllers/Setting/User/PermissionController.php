@@ -84,33 +84,33 @@ class PermissionController extends Controller
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $queries = [];
+        $query_data = [];
 
         if(!empty($this->request->query('page'))){
-            $page = $queries['page'] = $this->request->input('page');
+            $page = $query_data['page'] = $this->request->input('page');
         }else{
-            $page = $queries['page'] = 1;
+            $page = $query_data['page'] = 1;
         }
 
         if(!empty($this->request->query('sort'))){
-            $sort = $queries['sort'] = $this->request->input('sort');
+            $sort = $query_data['sort'] = $this->request->input('sort');
         }else{
-            $sort = $queries['sort'] = 'id';
+            $sort = $query_data['sort'] = 'id';
         }
 
         if(!empty($this->request->query('order'))){
-            $order = $queries['order'] = $this->request->query('order');
+            $order = $query_data['order'] = $this->request->query('order');
         }else{
-            $order = $queries['order'] = 'DESC';
+            $order = $query_data['order'] = 'DESC';
         }
 
         if(!empty($this->request->query('limit'))){
-            $limit = $queries['limit'] = $this->request->query('limit');
+            $limit = $query_data['limit'] = $this->request->query('limit');
         }
 
         foreach($this->request->all() as $key => $value){
             if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
+                $query_data[$key] = $value;
             }
         }
 
@@ -118,15 +118,15 @@ class PermissionController extends Controller
         //$queries['user_meta']['is_admin'] = 1;
 
         // Rows
-        $users = $this->UserService->getAdminUsers($queries);
+        $users = $this->UserService->getAdminUsers($query_data);
 
         if(!empty($users)){
             foreach ($users as $row) {
-                $row->edit_url = route('lang.admin.setting.user.users.form', array_merge([$row->id], $queries));
+                $row->edit_url = route('lang.admin.setting.user.users.form', array_merge([$row->id], $query_data));
             }
         }
 
-        $data['users'] = $users->withPath(route('lang.admin.setting.user.users.list'))->appends($queries);
+        $data['users'] = $users->withPath(route('lang.admin.setting.user.users.list'))->appends($query_data);
 
         // Prepare links for list table's header
         if($order == 'ASC'){
@@ -138,13 +138,15 @@ class PermissionController extends Controller
         $data['sort'] = strtolower($sort);
         $data['order'] = strtolower($order);
 
-        unset($queries['sort']);
-        unset($queries['order']);
+        unset($query_data['sort']);
+        unset($query_data['order']);
 
         $url = '';
 
-        foreach($queries as $key => $value){
-            $url .= "&$key=$value";
+        foreach($query_data as $key => $value){
+            if(is_string($value)){
+                $url .= "&$key=$value";
+            }
         }
 
         //link of table header for sorting

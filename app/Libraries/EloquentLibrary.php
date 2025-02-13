@@ -26,7 +26,6 @@ class EloquentLibrary
     public function __construct(Model $model)
     {
         $this->model = $model;
-        $this->modelName = get_class($model);
         // $this->meta_model_name = $this->model->getMetaModelName();
         $this->table = $this->model->getTable();
         $this->table_columns = $this->getTableColumns();
@@ -36,13 +35,9 @@ class EloquentLibrary
 
     public function newModel()
     {
-        $model = new $this->modelName;
+        $modelName = get_class($this->model);
 
-        if(empty($this->model)){
-            $this->model = $model;
-        }
-
-        return new $this->modelName;
+        return new $modelName;
     }
 
     public function findIdOrFailOrNew($id, $params = null, $debug = 0)
@@ -330,7 +325,7 @@ class EloquentLibrary
                 $basic_translation_filter_data[$key] = $value;
             }
         }
-        
+
         //判斷進階查詢是否存在
         $advanced_translation_filter_data = [];
 

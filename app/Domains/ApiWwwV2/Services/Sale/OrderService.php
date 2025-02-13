@@ -23,16 +23,18 @@ class OrderService extends Service
     protected $modelName = "\App\Models\Sale\Order";
 
 
-    public function getList($filters)
+    public function getList($data)
     {
         try {
 
-            $builder = Order::select(['id', 'code', 'personal_name', 'delivery_time_range','status_code'])->applyFilters($filters);
+            // $builder = Order::select(['id', 'code', 'personal_name', 'delivery_time_range','status_code'])->applyFilters($filters);
+            $data['select'] = ['id', 'code', 'personal_name', 'delivery_time_range','status_code'];
+            $builder = Order::applyFilters($data);
             // DataHelper::showSqlContent($builder,1);
 
-            if(!empty($filters['with'])){
-                if(is_string($filters['with'])){
-                    $with = explode(',', $filters['with']);
+            if(!empty($data['with'])){
+                if(is_string($data['with'])){
+                    $with = explode(',', $data['with']);
                 }
                 if(in_array('deliveries', $with)){
                     $builder->with(['deliveries' => function($query) {
@@ -41,9 +43,7 @@ class OrderService extends Service
                 }
             }
 
-            $rows = DataHelper::getResult($builder, $filters);
-
-            return  $rows->toArray();
+            return $builder->getResult($data);
 
         } catch (\Exception $ex) {
             return ['error' => $ex->getMessage()];
