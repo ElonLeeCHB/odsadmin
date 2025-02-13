@@ -361,21 +361,40 @@ trait ModelTrait
                 $params = request()->all();
             }
 
-            $builder = $this->query();
+            $table_columns = $this->getTableColumns();
+            $this->table = $this->getTable();
+
+            // select
+                if(empty($params['select'])){
+                    $select = $table_columns;
+                }else{
+                    $select = array_intersect($params['select'], $table_columns);
+                }
+                // 刪除多語欄位，稍後排序會join，但是跟多語欄位會有歧義 ambiguous 問題，id, name
+                $select = array_diff($select, $this->translation_keys ?? []);
+
+                foreach ($select ?? [] as $key => $column) {
+                    $select[$key] = $this->table . '.' . $column;
+                }
+                
+                $builder->select($select);
+            //
 
             $eloquentLibrary = new EloquentLibrary($this);
 
             // translation 要重新改寫
             $eloquentLibrary->setTranslationsQuery($builder, $params, $debug);
 
-            // 沒設定 equal_is_active 的時候，預設=1
-            if(!isset($params['equal_is_active'])){
-                $params['equal_is_active'] = 1;
-            }
-            // 存在 equal_is_active, 但值 = '*'
-            else if($params['equal_is_active'] == '*'){
-                unset($params['equal_is_active']);
-            }
+            // IS ACTIVE
+                // 沒設定 equal_is_active 的時候，預設=1
+                if(!isset($params['equal_is_active'])){
+                    $params['equal_is_active'] = 1;
+                }
+                // 存在 equal_is_active, 但值 = '*'
+                else if($params['equal_is_active'] == '*'){
+                    unset($params['equal_is_active']);
+                }
+            //
 
             // 過濾值
                 foreach ($params as $key => $value) {
@@ -388,7 +407,7 @@ trait ModelTrait
                         $column = $key;
                     }
 
-                    if(in_array($column, $this->translation_keys)){
+                    if(!empty($this->translation_keys) && in_array($column, $this->translation_keys)){
                         continue;
                     }
 
@@ -437,9 +456,6 @@ trait ModelTrait
                 }
             //
 
-            $table_columns = $this->getTableColumns();
-            $this->table = $this->getTable();
-
             // Sort & Order
                 //  指定排序字串
                 if(!empty($params['orderByRaw'])){
@@ -456,9 +472,13 @@ trait ModelTrait
                         $order = 'DESC';
                     }
 
+                    // 本表欄位做排序
+                    if(in_array($params['sort'], $table_columns) && !in_array($params['sort'], $this->translation_keys)){
+                        $builder->orderBy($this->getTable() . '.' . $params['sort'], $order);
+                    }
                     // 多語表欄位
-                    if(!empty($this->translation_keys) && in_array($params['sort'], $this->translation_keys))
-                    {
+                    // 如果有 select() 欄位，會有 id ambibuous 的問題。改去 Datahelper::getResult()
+                    else if(!empty($this->translation_keys) && in_array($params['sort'], $this->translation_keys)){
                         $translation_table = $this->getTranslationTable();
                         $master_key = $this->getTranslationMasterKey();
                         $sort = $params['sort'];
@@ -480,10 +500,6 @@ trait ModelTrait
                             $builder->orderBy("{$translation_table}.{$sort}", $order);
                         }
                     }
-                    // 多語表無欄位但本表有此欄位
-                    else if(!empty($params['sort']) && in_array($params['sort'], $table_columns)){
-                        $builder->orderBy($this->getTable() . '.' . $params['sort'], $order);
-                    }
                 }
                 
                 // 未指定排序欄位
@@ -496,11 +512,82 @@ trait ModelTrait
                 }
             //
 
+            // $debug = 1;
             if($debug == 1){
                 DataHelper::showSqlContent($builder, 1);
             }
 
             return $builder;
+        }
+
+        /**
+         * $builder: 
+         *     使用 Illuminate\Database\Eloquent\Builder
+         *     不使用 Illuminate\Database\Query\Builder。
+         */
+        public function scopeGetResult(Builder $builder, $data, $debug = 0)
+        {
+            if($debug){
+                DataHelper::showSqlContent($builder, 1);
+            }
+    
+            $rows = [];
+    
+            if(isset($data['first']) && $data['first'] = true){
+                if(empty($data['pluck'])){
+                    $rows = $builder->first();
+                }else{
+                    $rows = $builder->pluck($data['pluck'])->first();
+                }
+            }else{
+    
+                // Limit
+                if(isset($data['limit'])){
+                    $limit = (int) $data['limit'];
+                }else{
+                    $limit = (int) config('settings.config_admin_pagination_limit');
+    
+                    if(empty($limit)){
+                        $limit = 10;
+                    }
+                }
+    
+                // Pagination default to true
+                if(isset($data['pagination']) ){
+                    $pagination = (boolean)$data['pagination'];
+                }else{
+                    $pagination = true;
+                }
+    
+                // Get rows
+                if($pagination === true && $limit > 0){  // Get some rows per page
+                    $rows = $builder->paginate($limit);
+                }
+                else if($pagination === true && $limit == 0){  // get all but keep LengthAwarePaginator
+                    $rows = $builder->paginate($builder->count());
+                }
+                else if($pagination === false && $limit != 0){  // Get some rows without pagination
+                    $rows = $builder->limit($limit)->get();
+                }
+                else if($pagination === false && $limit == 0){  // Get all matched rows
+                    $rows = $builder->get();
+                }
+    
+                // Pluck
+                if(!empty($data['pluck'])){
+                    $rows = $rows->pluck($data['pluck']);
+                }
+    
+                if(!empty($data['keyBy'])){
+                    $rows = $rows->keyBy($data['keyBy']);
+                }
+            }
+    
+            if(!empty($rows) && !empty($data['toCleanCollection'])){
+                $rows = DataHelper::toCleanCollection($rows);
+            }
+
+            return $rows;
         }
 
         public function scopeDebug($builder)
@@ -509,70 +596,7 @@ trait ModelTrait
         }
     // end scope
 
-    public function getResult($builder, $data, $debug = 0)
-    {
-        if($debug){
-            DataHelper::showSqlContent($builder, 1);
-        }
 
-        $rows = [];
-
-        if(isset($data['first']) && $data['first'] = true){
-            if(empty($data['pluck'])){
-                $rows = $builder->first();
-            }else{
-                $rows = $builder->pluck($data['pluck'])->first();
-            }
-        }else{
-
-            // Limit
-            if(isset($data['limit'])){
-                $limit = (int) $data['limit'];
-            }else{
-                $limit = (int) config('settings.config_admin_pagination_limit');
-
-                if(empty($limit)){
-                    $limit = 10;
-                }
-            }
-
-            // Pagination default to true
-            if(isset($data['pagination']) ){
-                $pagination = (boolean)$data['pagination'];
-            }else{
-                $pagination = true;
-            }
-
-            // Get rows
-            if($pagination === true && $limit > 0){  // Get some rows per page
-                $rows = $builder->paginate($limit);
-            }
-            else if($pagination === true && $limit == 0){  // get all but keep LengthAwarePaginator
-                $rows = $builder->paginate($builder->count());
-            }
-            else if($pagination === false && $limit != 0){  // Get some rows without pagination
-                $rows = $builder->limit($limit)->get();
-            }
-            else if($pagination === false && $limit == 0){  // Get all matched rows
-                $rows = $builder->get();
-            }
-
-            // Pluck
-            if(!empty($data['pluck'])){
-                $rows = $rows->pluck($data['pluck']);
-            }
-
-            if(!empty($data['keyBy'])){
-                $rows = $rows->keyBy($data['keyBy']);
-            }
-        }
-
-        if(!empty($rows) && !empty($data['toCleanCollection'])){
-            $rows = DataHelper::toCleanCollection($rows);
-        }
-
-        return $rows;
-    }
 
     public static function getQueryHelper($model = null)
     {

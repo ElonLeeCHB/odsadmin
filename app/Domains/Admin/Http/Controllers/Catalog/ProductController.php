@@ -90,7 +90,8 @@ class ProductController extends BackendController
         $query_data = $this->resetUrlData(request()->query());
         
         // Rows, LengthAwarePaginator
-        $products = $this->ProductService->getProductsForList($query_data);
+        $query_data['select'] = ['id','code','main_category_id','sort_order','price','is_active','is_salable'];
+        $products = $this->ProductService->getList($query_data);
         
         if(!empty($products)){
             $products->load('main_category');
@@ -107,6 +108,8 @@ class ProductController extends BackendController
             $data['pagination'] = '';
         }
 
+        $query_data = $this->resetUrlData(request()->query());
+
         // Prepare links for list table's header
         if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
             $order = 'DESC';
@@ -122,16 +125,19 @@ class ProductController extends BackendController
             $data['sort'] = '';
         }
 
-        $query_data = $this->unsetUrlQueryData($query_data);
+        $query_data = $this->unsetUrlQueryData(request()->query());
 
         $url = '';
 
         foreach($query_data as $key => $value){
-            $url .= "&$key=$value";
+            if(is_string($value)){
+                $url .= "&$key=$value";
+            }
         }
 
         // link of table header for sorting
         $route = route('lang.admin.catalog.products.list');
+
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_main_category_id'] = $route . "?sort=main_category_id&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;

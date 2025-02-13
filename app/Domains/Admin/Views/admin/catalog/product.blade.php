@@ -47,16 +47,6 @@
             </div>
 
             <div class="mb-3">
-              <label class="form-label">{{ $lang->column_category }}</label>
-              <select name="filter_main_category_id" id="input-filter_main_category_id" class="form-select">
-                <option value="">{{ $lang->text_please_choose }}</option>
-                @foreach($categories as $category)
-                <option value="{{ $category->id }}">{{ $category->name }}</option>
-                @endforeach
-              </select>
-            </div>
-
-            <div class="mb-3">
               <label class="form-label">商品標籤</label>
               <select id="input-filter_product_tags" name="filter_product_tags[]" class="select2-multiple form-control" multiple="multiple">
                 @foreach($product_tags ?? [] as $term_id => $product_tag_name)
@@ -109,11 +99,6 @@ $('#button-filter').on('click', function() {
   var filter_name = $('#input-filter_name').val();
   if (filter_name) {
     url += '&filter_name=' + encodeURIComponent(filter_name);
-  }
-
-  var filter_main_category_id = $('#input-filter_main_category_id').val();
-  if (filter_main_category_id) {
-    url += '&filter_main_category_id=' + encodeURIComponent(filter_main_category_id);
   }
 
   var filter_product_tags = $('#input-filter_product_tags').val();

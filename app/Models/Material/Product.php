@@ -163,7 +163,7 @@ class Product extends Model
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->name ?? '',
+            get: fn () => $this->translation->name ?? '123',
         );
     }
 

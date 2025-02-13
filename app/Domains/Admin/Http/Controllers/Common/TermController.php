@@ -61,36 +61,38 @@ class TermController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $queries = $this->resetUrlData(request()->query());
+        $query_data = $this->resetUrlData(request()->query());
 
         // Rows
-        //$terms = $this->TermService->getRows($queries);
+        //$terms = $this->TermService->getRows($query_data);
         $terms = $this->TermService->getTerms($this->url_data);
 
         foreach ($terms as $row) {
-            $row->edit_url = route('lang.admin.common.terms.form', array_merge([$row->id], $queries));
+            $row->edit_url = route('lang.admin.common.terms.form', array_merge([$row->id], $query_data));
             $row->parent_name = optional($row->parent)->name;
         }
-        $data['terms'] = $terms->withPath(route('lang.admin.common.terms.list'))->appends($queries);
+        $data['terms'] = $terms->withPath(route('lang.admin.common.terms.list'))->appends($query_data);
 
         // Prepare links for sort on list table's header
-        if($queries['order'] == 'ASC'){
+        if($query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($queries['sort']);
+        $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
-        unset($queries['sort']);
-        unset($queries['order']);
-        unset($queries['with']);
+        unset($query_data['sort']);
+        unset($query_data['order']);
+        unset($query_data['with']);
 
         $url = '';
 
-        foreach($queries as $key => $value){
-            $url .= "&$key=$value";
+        foreach($query_data as $key => $value){
+            if(is_string($value)){
+                $url .= "&$key=$value";
+            }
         }
         
         //link of table header for sorting

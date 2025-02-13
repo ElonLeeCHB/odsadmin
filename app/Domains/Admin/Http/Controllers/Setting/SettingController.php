@@ -66,42 +66,42 @@ class SettingController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $queries = [];
+        $query_data = [];
 
         if(!empty($this->request->query('page'))){
-            $page = $queries['page'] = $this->request->input('page');
+            $page = $query_data['page'] = $this->request->input('page');
         }else{
-            $page = $queries['page'] = 1;
+            $page = $query_data['page'] = 1;
         }
 
         if(!empty($this->request->query('sort'))){
-            $sort = $queries['sort'] = $this->request->input('sort');
+            $sort = $query_data['sort'] = $this->request->input('sort');
         }else{
-            $sort = $queries['sort'] = 'id';
+            $sort = $query_data['sort'] = 'id';
         }
 
         if(!empty($this->request->query('order'))){
-            $order = $queries['order'] = $this->request->query('order');
+            $order = $query_data['order'] = $this->request->query('order');
         }else{
-            $order = $queries['order'] = 'DESC';
+            $order = $query_data['order'] = 'DESC';
         }
 
         if(!empty($this->request->query('limit'))){
-            $limit = $queries['limit'] = $this->request->query('limit');
+            $limit = $query_data['limit'] = $this->request->query('limit');
         }
 
         foreach($this->request->all() as $key => $value){
             if(strpos($key, 'filter_') !== false){
-                $queries[$key] = $value;
+                $query_data[$key] = $value;
             }
         }
 
         // Rows
-        $settings = $this->SettingService->getRows($queries);
+        $settings = $this->SettingService->getRows($query_data);
 
         if(!empty($settings)){
             foreach ($settings as $row) {
-                $row->edit_url = route('lang.admin.setting.settings.form', array_merge([$row->id], $queries));
+                $row->edit_url = route('lang.admin.setting.settings.form', array_merge([$row->id], $query_data));
                 if(!empty($row->location) && !empty($row->location->name)){
                     $row->location_name = $row->location->name;
                 }else{
@@ -110,7 +110,7 @@ class SettingController extends BackendController
             }
         }
 
-        $data['settings'] = $settings->withPath(route('lang.admin.setting.settings.list'))->appends($queries);
+        $data['settings'] = $settings->withPath(route('lang.admin.setting.settings.list'))->appends($query_data);
 
         // Prepare links for list table's header
         if($order == 'ASC'){
@@ -122,13 +122,15 @@ class SettingController extends BackendController
         $data['sort'] = strtolower($sort);
         $data['order'] = strtolower($order);
 
-        unset($queries['sort']);
-        unset($queries['order']);
+        unset($query_data['sort']);
+        unset($query_data['order']);
 
         $url = '';
 
-        foreach($queries as $key => $value){
-            $url .= "&$key=$value";
+        foreach($query_data as $key => $value){
+            if(is_string($value)){
+                $url .= "&$key=$value";
+            }
         }
 
         //link of table header for sorting

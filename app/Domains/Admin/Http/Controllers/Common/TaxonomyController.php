@@ -73,34 +73,36 @@ class TaxonomyController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $queries = $this->resetUrlData(request()->query());
+        $query_data = $this->resetUrlData(request()->query());
 
         // Rows
-        $taxonomies = $this->TaxonomyService->getRows($queries);
+        $taxonomies = $this->TaxonomyService->getRows($query_data);
 
         if(!empty($taxonomies)){
             foreach ($taxonomies as $row) {
-                $row->edit_url = route('lang.admin.common.taxonomies.form', array_merge([$row->id], $queries));
+                $row->edit_url = route('lang.admin.common.taxonomies.form', array_merge([$row->id], $query_data));
                 unset($row->translation);
             }
         }
 
-        $data['taxonomies'] = $taxonomies->withPath(route('lang.admin.common.taxonomies.list'))->appends($queries);
+        $data['taxonomies'] = $taxonomies->withPath(route('lang.admin.common.taxonomies.list'))->appends($query_data);
 
         // Prepare links for list table's header
-        if($queries['order'] == 'ASC'){
+        if($query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($queries['sort']);
+        $data['sort'] = strtolower($query_data['sort']);
         $data['order'] = strtolower($order);
 
         $url = '';
 
-        foreach($queries as $key => $value){
-            $url .= "&$key=$value";
+        foreach($query_data as $key => $value){
+            if(is_string($value)){
+                $url .= "&$key=$value";
+            }
         }
         
         // link of table header for sorting        

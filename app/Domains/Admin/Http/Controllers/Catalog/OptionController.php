@@ -118,7 +118,9 @@ class OptionController extends BackendController
             $url = '';
 
             foreach($query_data as $key => $value){
-                $url .= "&$key=$value";
+                if(is_string($value)){
+                    $url .= "&$key=$value";
+                }
             }
         //
 
@@ -197,7 +199,7 @@ class OptionController extends BackendController
         $filter_data['equal_id'] = $option_id;
         $filter_data['with'] = ['translations', 'optionValues.translations', 'optionValues.product'];
         $option = $this->OptionService->getOption($filter_data);
-        $data['option']  = DataHelper::toCleanObject($option);
+        $data['option']  = $option; //這裡不能用 toCleanObject() 新增的時候會沒資料導致出錯。
 
         // option translations
         if($option->translations->isEmpty()){
@@ -225,7 +227,13 @@ class OptionController extends BackendController
                 $data['option_values'][] = $newOptionValue;
             }
         }
-        
+
+        if($option_id == $option->id){
+            $data['option_id'] = $option_id;
+        }else{
+            $data['option_id'] = null;
+        }
+
         return view('admin.catalog.option_form', $data);
     }
 

@@ -99,7 +99,9 @@ class CategoryController extends BackendController
         $url = '';
 
         foreach($query_data as $key => $value){
-            $url .= "&$key=$value";
+            if(is_string($value)){
+                $url .= "&$key=$value";
+            }
         }
 
         $route = route('lang.admin.catalog.categories.list');

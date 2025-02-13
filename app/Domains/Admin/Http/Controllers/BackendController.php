@@ -90,6 +90,9 @@ class BackendController extends Controller
     }
 
 
+    /**
+     * 這個之後應該棄用。
+     */
     public function unsetUrlQueryData($query_data)
     {
         if(!empty($query_data['sort'])){
