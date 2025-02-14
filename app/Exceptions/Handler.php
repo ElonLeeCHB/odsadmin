@@ -48,6 +48,7 @@ class Handler extends ExceptionHandler
             return response()->json(['message' => $exception->getMessage()], 401);
         }
 
+
         // return $this->shouldReturnJson($request, $exception)
         //             ? response()->json(['message' => $exception->getMessage()], 401)
         //             : redirect()->guest($exception->redirectTo() ?? route('lang.admin.login'));
