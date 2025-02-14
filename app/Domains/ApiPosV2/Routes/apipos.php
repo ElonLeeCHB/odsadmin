@@ -61,6 +61,9 @@ Route::group([
             Route::get('get-timeslot', 'Sale\QuantityControlController@getTimeslot')->name('getTimeslot');
             Route::post('update-datelimits', 'Sale\QuantityControlController@updateDatelimits')->name('updateDatelimits');
             Route::get('get-datelimits/{date}', 'Sale\QuantityControlController@getDatelimits')->name('getDatelimits');
+            Route::get('refreshDatelimitsByDate/{date}', 'Sale\QuantityControlController@refreshDatelimitsByDate')->name('refreshDatelimitsByDate');
+
+            
         });
     
         

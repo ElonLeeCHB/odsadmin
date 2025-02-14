@@ -371,7 +371,7 @@ trait ModelTrait
                     $select = array_intersect($params['select'], $table_columns);
                 }
                 // 刪除多語欄位，稍後排序會join，但是跟多語欄位會有歧義 ambiguous 問題，id, name
-                $select = array_diff($select, $this->translation_keys);
+                $select = array_diff($select, $this->translation_keys ?? []);
 
                 foreach ($select ?? [] as $key => $column) {
                     $select[$key] = $this->table . '.' . $column;

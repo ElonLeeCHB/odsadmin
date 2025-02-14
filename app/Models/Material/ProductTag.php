@@ -24,11 +24,13 @@ class ProductTag extends Model
     //必須在此指定translation(s)關聯，而非使用 Translatable
     public function translation()
     {
-        return $this->hasOne(TermTranslation::class, 'term_id', 'term_id')->ofMany([
-            'id' => 'max',
-        ], function ($query) {
-            $query->where('locale', app()->getLocale());
-        });
+        // return $this->hasOne(TermTranslation::class, 'term_id', 'term_id')->ofMany([
+        //     'id' => 'max',
+        // ], function ($query) {
+        //     $query->where('locale', app()->getLocale());
+        // });
+        // return $this->hasOne(TermTranslation::class, 'term_id')->where('locale', app()->getLocale());
+        return $this->hasOne(TermTranslation::class, 'term_id', 'term_id')->where('locale', app()->getLocale());
     }
 
     public function tag()

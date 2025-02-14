@@ -44,9 +44,7 @@ class Handler extends ExceptionHandler
             redirect()->guest($exception->redirectTo() ?? route('lang.login'));
         }
 
-        else if(CheckAreaHelper::isApiArea($request)){
-            return response()->json(['message' => $exception->getMessage()], 401);
-        }
+        return response()->json(['message' => $exception->getMessage()], 401);
 
 
         // return $this->shouldReturnJson($request, $exception)

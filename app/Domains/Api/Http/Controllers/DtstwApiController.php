@@ -50,7 +50,7 @@ class DtstwApiController extends ApiController
     {
         // // 取得去重後的資料
         // $uniqueRecords = DB::table('datelimits')
-        //     ->select('Date', 'TimeSlot', 'LimitCount')
+        //     ->select('Date', 'TimeSlot', 'LimitQuantity')
         //     ->distinct()
         //     ->get();
 
@@ -62,7 +62,7 @@ class DtstwApiController extends ApiController
         //     DB::table('datelimits')->insert([
         //         'Date' => $record->Date,
         //         'TimeSlot' => $record->TimeSlot,
-        //         'LimitCount' => $record->LimitCount,
+        //         'LimitQuantity' => $record->LimitQuantity,
         //     ]);
         // }
 
@@ -73,7 +73,7 @@ class DtstwApiController extends ApiController
             $date = $row->Date;
             $timeslot = $row->TimeSlot;
 
-            $result[$month][$date][$timeslot] = $row->LimitCount;
+            $result[$month][$date][$timeslot] = $row->LimitQuantity;
         }
 
         return response()->json($result, 200);

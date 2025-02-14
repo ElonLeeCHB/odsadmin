@@ -39,11 +39,7 @@ class ProductOption extends Model
 
     public function translation()
     {
-        return $this->hasOne(OptionTranslation::class, 'option_id', 'option_id')->ofMany([
-            'id' => 'max',
-        ], function ($query) {
-            $query->where('locale', app()->getLocale());
-        });
+        return $this->hasOne(OptionTranslation::class, 'option_id', 'option_id')->where('locale', app()->getLocale());
     }
 
     
