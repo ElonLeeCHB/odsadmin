@@ -20,6 +20,7 @@ class EventServiceProvider extends ServiceProvider
         ],
 
         \App\Events\OrderCreated::class => [\App\Listeners\HandleOrderCreated::class,],
+        \App\Events\OrderChanged::class => [\App\Listeners\HandleOrderChanged::class,],
     ];
 
     /**

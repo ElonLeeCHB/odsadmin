@@ -1,6 +1,7 @@
 <?php
 namespace App\Services\Sales;
 
+use App\Helpers\Classes\DateHelper;
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
 use App\Models\Setting\Setting;
@@ -54,6 +55,21 @@ class QuantityControlService extends Service
         } catch (\Throwable $th) {
             throw new \Exception('Error: ' . $th->getMessage());
         }
+    }
+
+    public function getDatelimits($date)
+    {
+        if(DateHelper::isValidDateOrDatetime($date)){
+            $rows = DB::select('SELECT * FROM datelimits WHERE DATE(`Date`) = ? ORDER BY `TimeSlot` ASC', [$date]);
+
+            // datelimits 資料表，前人設計，有重複的問題。使用下面的形式確保消除重複
+            foreach ($rows as &$row) {
+                $result['Date'] = $row->Date;
+                $result['TimeSlots'][$row->TimeSlot] = $row->LimitCount;
+            }
+        }
+
+        return $result;
     }
 
 }

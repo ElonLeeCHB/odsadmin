@@ -55,6 +55,20 @@ class QuantityControlController extends ApiPosController
         } catch (\Throwable $th) {
             return response()->json(['error' => $th->getMessage()], 400);
         }
-
     }
+
+    public function getDatelimits($date)
+    {
+        try {
+            $data = $this->QuantityControlService->getDatelimits($date);
+            
+            return $this->sendResponse(['data' => $data]);
+
+        } catch (\Throwable $th) {
+            return response()->json(['error' => $th->getMessage()], 400);
+        }
+    }
+
+
+    
 }
