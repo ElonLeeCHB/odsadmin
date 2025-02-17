@@ -56,12 +56,21 @@ Route::group([
             Route::get('orders/infoByCode/{code}', 'Sale\OrderController@infoByCode')->name('orders.infoByCode');
             Route::post('orders/store', 'Sale\OrderController@store')->name('orders.store');
             Route::post('orders/update/{id}', 'Sale\OrderController@update')->name('orders.update');
-        
-            Route::post('update-timeslot', 'Sale\QuantityControlController@updateTimeslot')->name('updateTimeslot');
-            Route::get('get-timeslot', 'Sale\QuantityControlController@getTimeslot')->name('getTimeslot');
-            Route::post('update-datelimits', 'Sale\QuantityControlController@updateDatelimits')->name('updateDatelimits');
-            Route::get('get-datelimits/{date}', 'Sale\QuantityControlController@getDatelimits')->name('getDatelimits');
-            Route::get('refreshDatelimitsByDate/{date}', 'Sale\QuantityControlController@refreshDatelimitsByDate')->name('refreshDatelimitsByDate');
+
+            Route::group([
+                'prefix' => 'datelimits',
+                'as' => 'datelimits.',
+            ], function ()
+            {
+                Route::post('updateTimeslots', 'Sale\QuantityControlController@updateTimeslots')->name('updateTimeslots');
+                Route::get('getTimeslots', 'Sale\QuantityControlController@getTimeslots')->name('getTimeslots');
+
+                Route::get('getDatelimitsByDate/{date}', 'Sale\QuantityControlController@getDatelimitsByDate')->name('getDatelimitsByDate');
+
+                Route::post('updateMaxQuantityByDate', 'Sale\QuantityControlController@updateMaxQuantityByDate')->name('updateMaxQuantityByDate');
+                Route::get('refreshOrderedQuantityByDate/{date}', 'Sale\QuantityControlController@refreshOrderedQuantityByDate')->name('refreshOrderedQuantityByDate');
+                Route::get('resetMaxQuantityByDate/{date}', 'Sale\QuantityControlController@resetMaxQuantityByDate')->name('resetMaxQuantityByDate');
+            });
 
             
         });

@@ -1,6 +1,7 @@
 <?php
 namespace App\Services\Sales;
 
+use App\Helpers\Classes\DataHelper;
 use App\Helpers\Classes\DateHelper;
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
@@ -14,7 +15,7 @@ class QuantityControlService extends Service
     private $default_time_slots_with_quantity = [];
     private $default_date_time_slots = [];
 
-    public function getTimeslotLimits()
+    public function getTimeslots()
     {
         if(empty($this->default_time_slots_with_quantity)){
             $row = Setting::where('group','pos')->where('setting_key', 'pos_timeslotlimits')->first();
@@ -24,7 +25,7 @@ class QuantityControlService extends Service
         return $this->default_time_slots_with_quantity;
     }
 
-    public function updateTimeslot($content)
+    public function updateTimeslots($content)
     {
         try {
             $row = Setting::where('group','pos')->where('setting_key', 'pos_timeslotlimits')->first();
@@ -40,44 +41,44 @@ class QuantityControlService extends Service
         }
     }
 
-    public function updateDatelimits($content)
+    public function updateMaxQuantityByDate($data)
     {
         try {
-            Datelimit::where('Date', $content['Date'])->delete();
+            $current_date_time_slots = (new Datelimit)->getCurrentDateLimits($data['Date']);
 
-            foreach ($content['TimeSlots'] as $key => $limit) {
+            $update_data = [];
+
+            foreach ($current_date_time_slots['TimeSlots'] as $time_slot => $row) {
+                if(isset($data['TimeSlots'][$time_slot])){
+                    $maxQuantity = $data['TimeSlots'][$time_slot];
+                }else{
+                    $maxQuantity = 0;
+                }
+
+                $acceptableQuantity = $maxQuantity - $row['OrderedQuantity'];
+                $acceptableQuantity = ($acceptableQuantity > 0) ? $acceptableQuantity : 0;
+                
                 $insert_data[] = [
-                    'Date' => $content['Date'],
-                    'TimeSlot' => $key,
-                    'LimitQuantity' => $limit,
+                    'Date' => $data['Date'],
+                    'TimeSlot' => $time_slot,
+                    'MaxQuantity' => $maxQuantity,
+                    'OrderedQuantity' => $row['OrderedQuantity'], //照舊
+                    'AcceptableQuantity' => $acceptableQuantity,
                 ];
             }
-    
-            if(!empty($insert_data)){
-                Datelimit::insert($insert_data);
-            }
+
+            Datelimit::whereDate('Date', $data['Date'])->delete();
+
+            Datelimit::insert($insert_data);
 
             return true;
 
-        } catch (\Throwable $th) {
-            throw new \Exception('Error: ' . $th->getMessage());
+        } catch (\Throwable $th) {echo "<pre>",print_r($th->getMessage(),true),"</pre>";exit;
+
+            return ['error' => $th->getMessage()];
         }
     }
 
-    public function getDatelimits($date)
-    {
-        if(DateHelper::isValidDateOrDatetime($date)){
-            $rows = DB::select('SELECT * FROM datelimits WHERE DATE(`Date`) = ? ORDER BY `TimeSlot` ASC', [$date]);
-
-            // datelimits 資料表，前人設計，有重複的問題。使用下面的形式確保消除重複
-            foreach ($rows as &$row) {
-                $result['Date'] = $row->Date;
-                $result['TimeSlots'][$row->TimeSlot] = $row->LimitQuantity;
-            }
-        }
-
-        return $result;
-    }
                 // echo "<pre>",print_r($date,true),"</pre>";exit;
                 // $orders = Order::whereDate('delivery_date', '=', '2025-02-10')->get();
 
@@ -93,103 +94,106 @@ class QuantityControlService extends Service
                 // ->get();
                 //             echo "<pre>",print_r($orders,true),"</pre>";exit;
                 // // $sql = DB::getQueryLog();
-    public function refreshDatelimitsByDate($date)
+
+    // 重設每日上限
+    public function resetMaxQuantityByDate($date)
     {
-        $current_date_time_slots = $this->getCurrentDateTimeSlots($date);
+        try {
+            return (new Datelimit)->setDefaultDateLimits($date);
+        } catch (\Throwable $th) {
+            return ['error' => $th->getMessage()];
+        }
+    }
+
+    // 更新訂單數量，但每日上限不變，
+    public function refreshOrderedQuantityByDate($date)
+    {
+        $current_date_time_slots = $this->getDatelimitsByDate($date);
 
         try {
-            if (DateHelper::isValidDateOrDatetime($date)) {
-                $rows = DB::select("
-                    SELECT o.id, o.delivery_date, op.id AS order_product_id, op.order_id, op.product_id, op.name, op.quantity
-                    FROM orders o
-                    JOIN order_products op ON o.id = op.order_id
-                    JOIN product_tags pt ON op.product_id = pt.product_id
-                    WHERE DATE(o.delivery_date) = :delivery_date AND pt.term_id = 1331
-                ", [
-                    'delivery_date' => $date
-                ]);
-            
+            if (DateHelper::isValid($date)) {
+
+                // 訂單資料
+                $builder = DB::table('orders as o')
+                            ->select('o.id', 'o.delivery_date', 'op.id as order_product_id', 'op.order_id', 'op.product_id', 'op.name', 'op.quantity')
+                            ->join('order_products as op', 'o.id', '=', 'op.order_id')
+                            ->join('product_tags as pt', 'op.product_id', '=', 'pt.product_id')
+                            ->where('pt.term_id', 1331)  //1331=套餐
+                            ->whereDate('o.delivery_date', $date)
+                            ->whereIn('o.status_code', ['CCP', 'Confirmed']);
+
+                $orders = $builder->get();
+
                 // 初始化結果數組
+                $result = [];
                 $result['Date'] = $date;
                 $result['TimeSlots'] = [];
 
-                foreach ($rows as $row) {
-                    $time_slot = $this->getTimeSlotString($row->delivery_date);
+                foreach ($orders as $order) {
 
-                    $current_date_time_slots['Date'] = $date;
+                    $time_slot = $this->getTimeSlotString($order->delivery_date);
 
-                    if(!isset($current_date_time_slots['TimeSlots'][$time_slot]['OrderedQuantity'])){
-                        $current_date_time_slots['TimeSlots'][$time_slot]['OrderedQuantity'] = 0;
+
+                    if(!isset($array[$time_slot]) || !isset($array[$time_slot]['MaxQuantity']) || !isset($array[$time_slot]['OrderedQuantity'])){
+                        $array[$time_slot]['MaxQuantity'] = $current_date_time_slots['TimeSlots'][$time_slot]['MaxQuantity'] ?? 0;
+                        $array[$time_slot]['OrderedQuantity'] = 0;
                     }
 
-                    $current_date_time_slots['TimeSlots'][$time_slot]['OrderedQuantity'] += $row->quantity;
-
-                    $AcceptableQuantity = $current_date_time_slots['TimeSlots'][$time_slot]['MaxQuantity'] - $current_date_time_slots['TimeSlots'][$time_slot]['OrderedQuantity'];
-                    $current_date_time_slots['TimeSlots'][$time_slot]['AcceptableQuantity'] = $AcceptableQuantity;
+                    $array[$time_slot]['OrderedQuantity'] += $order->quantity;
                 }
 
-                return $current_date_time_slots;
-            }
-        } catch (\Throwable $th) {
-            throw new \Exception('Error: ' . $th->getMessage());
-        }
-    }
+                // 上面迴圈必須跑完執行完，才能執行下面的迴圈。
 
-    private function getCurrentDateTimeSlots($date)
-    {
-        if (!DateHelper::isValidDateOrDatetime($date)) {
-            return [];
-        }
+                $upsert_data = [];
 
-        $current_date_time_slots = Datelimit::where('Date', $date)->get();
-
-        $result['Date'] = $date;
-
-        // 如果 date_time_slots 是空的，從設定檔填充預設值
-        if(empty($current_date_time_slots)){
-            $row = Setting::where('group','pos')->where('setting_key', 'pos_timeslotlimits')->first();
-            $default_time_slots = $row->setting_value;
-            
-            if(!empty($default_time_slots)){
-                foreach ($default_time_slots as $time_slot => $value) {
-                    $result['TimeSlots'][$time_slot]['MaxQuantity'] = $value;
-                    $result['TimeSlots'][$time_slot]['OrderedQuantity'] = 0;
-                    $result['TimeSlots'][$time_slot]['AcceptableQuantity'] = $value;
-                }
-
-                // 新增記錄
-                
-                foreach ($default_time_slots as $time_slot => $value) {
-                    $create_date[] = [
+                foreach ($array as $time_slot => $row) {
+                    $upsert_data[] = [
                         'Date' => $date,
                         'TimeSlot' => $time_slot,
-                        'MaxQuantity' => $value,
-                        'OrderedQuantity' => 0,
-                        'AcceptableQuantity' => $value,
+                        'MaxQuantity' => $row['MaxQuantity'],
+                        'OrderedQuantity' => $row['OrderedQuantity'],
+                        'AcceptableQuantity' => $row['MaxQuantity'] - $row['OrderedQuantity'],
                     ];
                 }
 
-                if(!empty($create_date)){
-                    Datelimit::insert($create_date);
-                }
-            }
+                Datelimit::upsert($upsert_data, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
 
-        }
-        // 不是空的
-        else{
-            foreach ($current_date_time_slots as $row) {
-                $time_slot = $this->getTimeSlotString($row->TimeSlot);
-
-                $result['TimeSlots'][$time_slot]['MaxQuantity'] = $row->MaxQuantity;
-                $result['TimeSlots'][$time_slot]['OrderedQuantity'] = $row->OrderedQuantity ?? 0;
-                $result['TimeSlots'][$time_slot]['AcceptableQuantity'] = $row->AcceptableQuantity ?? $row->MaxQuantity;
+                // 重新再抓一次然後返回
+                return $this->getDatelimitsByDate($date);
             }
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
         }
-        
-        return $result;
     }
 
-    public function getTimeSlotString($datetime)
+    public function getDatelimitsByDate($date)
+    {
+        try {    
+            $current_date_time_slots = Datelimit::where('Date', $date)->get();
+
+            $result['Date'] = $date;
+    
+            // 如果 date_time_slots 是空的，根據預設做更新
+            if($current_date_time_slots->isEmpty()){
+                (new Datelimit)->setDefaultDateLimits($date);
+
+                $current_date_time_slots = Datelimit::where('Date', $date)->get();
+            }
+
+            foreach ($current_date_time_slots as $row) {
+                $result['TimeSlots'][$row->TimeSlot]['MaxQuantity'] = $row->MaxQuantity;
+                $result['TimeSlots'][$row->TimeSlot]['OrderedQuantity'] = $row->OrderedQuantity ?? 0;
+                $result['TimeSlots'][$row->TimeSlot]['AcceptableQuantity'] = $row->AcceptableQuantity ?? $row->MaxQuantity;
+            }
+
+            return $result;
+
+        } catch (\Throwable $th) {
+            return ['error' => $th->getMessage()];
+        }
+    }
+
+    private function getTimeSlotString($datetime)
     {
         // 檢查是否為 datetime 格式（例如：2025-02-14 14:30:00）
         if (strtotime($datetime)) {
@@ -209,6 +213,6 @@ class QuantityControlService extends Service
         $end_minute = 59;
     
         // 格式化時間區段
-        return sprintf("%02d%02d-%02d%02d", $start_hour, $start_minute, $start_hour, $end_minute);
+        return sprintf("%02d:%02d-%02d:%02d", $start_hour, $start_minute, $start_hour, $end_minute);
     }
 }

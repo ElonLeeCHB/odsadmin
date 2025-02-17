@@ -162,7 +162,7 @@ class DateHelper
      * 驗證日期與時間是否合法
      * 驗證字串 "2024-12-25" 或 "2024-12-25 13:00:00"
      */
-    public static function isValidDateOrDatetime($inputString)
+    public static function isValid($inputString)
     {
         // 驗證開頭日期
         if (preg_match('/^\d{4}-\d{2}-\d{2}/', $inputString)) {

@@ -1,5 +1,32 @@
 <?php
 
+if(!function_exists('parseBuilderSql')){
+    function parseBuilderSql($builder, $exit = 1){
+        // $sql = $builder->toSql()
+
+        $sqlstr = str_replace('?', "'?'", $builder->toSql());
+
+        $bindings = $builder->getBindings();
+
+        if(!empty($bindings)){
+            $arr['statement'] = vsprintf(str_replace('?', '%s', $sqlstr), $builder->getBindings());
+        }else{
+            $arr['statement'] = $builder->toSql();
+        }
+
+        $arr['original'] = [
+            'toSql' => $builder->toSql(),
+            'bidings' => $builder->getBindings(),
+        ];
+
+        if($exit == 1 ){
+            echo "<pre>".print_r($arr , 1)."</pre>"; exit;
+        }else{
+            return "<pre>".print_r($arr , 1)."</pre>";
+        }
+    }
+}
+
 if(!function_exists('zhChtToChs')){
     function zhChtToChs($input){
         if(trim($input)==''){ //输入为空则返回空字符串

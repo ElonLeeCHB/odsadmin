@@ -548,7 +548,7 @@ class OrderRepository extends Repository
                 $data['delivery_date'] = $delivery_date_Ymd . ' ' . $delivery_date_His;
 
                 //驗證
-                if(!DateHelper::isValidDateOrDatetime($data['delivery_date'])){
+                if(!DateHelper::isValid($data['delivery_date'])){
                     throw new \Exception('送達日期或時間錯誤！');
                 }
             //

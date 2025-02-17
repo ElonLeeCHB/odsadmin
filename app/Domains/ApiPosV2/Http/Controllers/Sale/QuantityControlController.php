@@ -19,12 +19,12 @@ class QuantityControlController extends ApiPosController
         }
     }
     
-    public function updateTimeslot()
+    public function updateTimeslots()
     {
         try {
             $content = request()->post();
 
-            $this->QuantityControlService->updateTimeslot($content);
+            $this->QuantityControlService->updateTimeslots($content);
             
             return response()->json(['status' => 'ok']);
 
@@ -33,10 +33,10 @@ class QuantityControlController extends ApiPosController
         }
     }
 
-    public function getTimeslot()
+    public function getTimeslots()
     {
         try {
-            $content = $this->QuantityControlService->getTimeslot();        
+            $content = $this->QuantityControlService->getTimeslots();        
 
             return $this->sendResponse(['data' => $content]);
 
@@ -45,11 +45,11 @@ class QuantityControlController extends ApiPosController
         }
     }
 
-    public function updateDatelimits()
+    public function updateMaxQuantityByDate()
     {
         try {
-            $this->QuantityControlService->updateDatelimits(request()->post());
-            
+            $this->QuantityControlService->updateMaxQuantityByDate(request()->post());
+
             return response()->json(['status' => 'ok']);
 
         } catch (\Throwable $th) {
@@ -57,24 +57,36 @@ class QuantityControlController extends ApiPosController
         }
     }
 
-    public function getDatelimits($date)
+    public function getDatelimitsByDate($date)
     {
         try {
-            $data = $this->QuantityControlService->getDatelimits($date);
-            
-            return $this->sendResponse(['data' => $data]);
+            $result = $this->QuantityControlService->getDatelimitsByDate($date);
+
+            return $this->sendResponse($result);
 
         } catch (\Throwable $th) {
             return response()->json(['error' => $th->getMessage()], 400);
         }
     }
 
-    public function refreshDatelimitsByDate($date)
+    public function refreshOrderedQuantityByDate($date)
     {
         try {
-            $data = $this->QuantityControlService->refreshDatelimitsByDate($date);
+            $result = $this->QuantityControlService->refreshOrderedQuantityByDate($date);
+
+            return $this->sendResponse($result);
+
+        } catch (\Throwable $th) {
+            return response()->json(['error' => $th->getMessage()], 400);
+        }
+    }
+
+    public function resetMaxQuantityByDate($date)
+    {
+        try {
+            $result = $this->QuantityControlService->resetMaxQuantityByDate($date);
             
-            return $this->sendResponse(['data' => $data]);
+            return $this->sendResponse($result);
 
         } catch (\Throwable $th) {
             return response()->json(['error' => $th->getMessage()], 400);

@@ -54,9 +54,17 @@ class ApiPosController extends Controller
 
     public function sendResponse($json)
     {
-        // 無任何錯誤
+        if($json === true){
+            $json = [];
+        }
+
         if(empty($json['error']) && empty($json['errors']) && empty($json['warning'])  && empty($json['errorWarning'])){
-            $json = ['success' => 'ok'] + $json; 
+            if(!empty($json)){
+                $tmp = [];
+                $tmp['data'] = $json;
+                $json = $tmp;
+            }
+            $json = array_merge(['success' => 'ok'], $json);
         }else{
             $status_code = 400;
         }
@@ -64,7 +72,7 @@ class ApiPosController extends Controller
         if(isset($json['success']) && $json['success'] == 'ok'){
             $status_code = 200;
         }
-        
+
         return response()->json($json, $status_code, [], JSON_UNESCAPED_UNICODE)->header('Content-Type','application/json');
     }
 
