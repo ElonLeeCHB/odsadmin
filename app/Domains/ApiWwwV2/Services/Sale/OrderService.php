@@ -26,11 +26,9 @@ class OrderService extends Service
     public function getList($data)
     {
         try {
-
-            // $builder = Order::select(['id', 'code', 'personal_name', 'delivery_time_range','status_code'])->applyFilters($filters);
-            $data['select'] = ['id', 'code', 'personal_name', 'delivery_time_range','status_code'];
+            $data['select'] = ['id', 'code', 'personal_name', 'delivery_time_range','status_code','order_date','delivery_date'];
+            
             $builder = Order::applyFilters($data);
-            // DataHelper::showSqlContent($builder,1);
 
             if(!empty($data['with'])){
                 if(is_string($data['with'])){
@@ -227,7 +225,7 @@ class OrderService extends Service
 
         } catch (\Throwable $th) {
             DB::rollback();
-            throw $th;
+            return ['error' => $th->getMessage()];
         }
     }
 

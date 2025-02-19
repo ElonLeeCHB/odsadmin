@@ -544,12 +544,15 @@ class OrderRepository extends Repository
                 }else{
                     $delivery_date_His = '00:00:00';
                 }
+
                 //重新組合
-                $data['delivery_date'] = $delivery_date_Ymd . ' ' . $delivery_date_His;
+                if(!empty($delivery_date_Ymd) && !empty($delivery_date_His)){
+                    $data['delivery_date'] = $delivery_date_Ymd . ' ' . $delivery_date_His;
+                }
 
                 //驗證
                 if(!DateHelper::isValid($data['delivery_date'])){
-                    throw new \Exception('送達日期或時間錯誤！');
+                    throw new \Exception('送達日期錯誤！' . $data['delivery_date']);
                 }
             //
 

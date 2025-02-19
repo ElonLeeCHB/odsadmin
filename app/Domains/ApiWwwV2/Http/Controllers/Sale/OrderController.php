@@ -8,6 +8,7 @@ use App\Domains\ApiWwwV2\Services\Sale\OrderService;
 use App\Helpers\Classes\DataHelper;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use App\Models\SysData\Log as CustomLog;
 
 class OrderController extends ApiWwwV2Controller
 {
@@ -81,26 +82,26 @@ class OrderController extends ApiWwwV2Controller
 
     public function store()
     {
-        try {
-            $result = $this->OrderService->store(request()->post());
-    
+        $result = $this->OrderService->store(request()->post());
+
+        if(empty($result['error'])){
             $json = [
-                'success' => true,
+                'success' => 'ok',
                 'message' => '新增成功！',
                 'data' => [
                     'id' => $result['data']['id'],
                     'code' => $result['data']['code'],
                 ],
             ];
-    
-            return response(json_encode($json))->header('Content-Type','application/json');
-
-        } catch (\Throwable $th) {
+        }else{
             $json = [
-                'error' => $th->getMessage(),
+                'error' => $result['error'],
+                'message' => '新增失敗！',
             ];
-            return response(json_encode($json))->header('Content-Type','application/json');
+            $this->logError($result['error']);
         }
+
+        return response(json_encode($json))->header('Content-Type','application/json');
     }
 
     public function edit($order_id)

@@ -17,4 +17,9 @@ class TermTranslation extends Model
     {
         return $this->belongsTo(Term::class, 'term_id');
     }
+
+    // public function term()
+    // {
+    //     return $this->belongsTo(Term::class, 'term_id');
+    // }
 }

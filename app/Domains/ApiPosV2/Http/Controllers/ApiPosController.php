@@ -59,17 +59,12 @@ class ApiPosController extends Controller
         }
 
         if(empty($json['error']) && empty($json['errors']) && empty($json['warning'])  && empty($json['errorWarning'])){
-            if(!empty($json)){
-                $tmp = [];
-                $tmp['data'] = $json;
-                $json = $tmp;
-            }
-            $json = array_merge(['success' => 'ok'], $json);
+            $json = array_merge(['success' => true], $json);
         }else{
             $status_code = 400;
         }
 
-        if(isset($json['success']) && $json['success'] == 'ok'){
+        if(isset($json['success']) && $json['success'] == true){
             $status_code = 200;
         }
 

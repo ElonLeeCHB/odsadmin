@@ -7,6 +7,8 @@ use App\Services\Service;
 use App\Repositories\Eloquent\Material\ProductRepository;
 use App\Traits\Model\EloquentTrait;
 use App\Models\Material\Product;
+use App\Models\Material\ProductTag;
+use App\Models\Common\TermTranslation;
 
 class ProductService extends Service
 {
@@ -42,8 +44,44 @@ class ProductService extends Service
      }
 
 
-    public function getList($filters)
+    public function getList($filter_data)
     {
-        return $this->getRows($filters);
+        $builder = Product::query();
+
+        if(!empty($filter_data['filter_product_tag'])){
+            $product_tag_names = explode(',', $filter_data['filter_product_tag']);
+
+            $tags = TermTranslation::where('locale', app()->getLocale())
+                ->where(function($query) use ($product_tag_names) {
+                    foreach ($product_tag_names ?? [] as $product_tag_name) {
+                        $query->orWhere('name', 'like', "%{$product_tag_name}%");
+                    }
+                })
+                ->whereHas('master', function($query) {
+                    $query->where('taxonomy_code', 'ProductTag');  // 過濾 taxonomy_code 為 'ProductTag' 的 term
+                });
+            // $rows->debug();
+
+            $tag_ids = $tags->pluck('term_id')->toArray();
+
+            $builder->whereHas('productTags', function($query) use ($tag_ids) {
+                $query->whereIn('term_id', $tag_ids);  // 過濾 productTag 中的 tag_id
+            });
+        }
+        
+        $builder->select(['id', 'price']);
+
+        $products = $builder->getResult($filter_data);
+
+        foreach ($products as $product) {
+            $result[] = [
+                'id' => $product->id,
+                'name' => $product->translation->name,
+                'web_name' => $product->translation->web_name,
+                'price' => $product->price,
+            ];
+        }
+
+        return $result;
     }
 }

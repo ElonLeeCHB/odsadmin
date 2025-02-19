@@ -22,17 +22,11 @@ class ProductController extends ApiPosController
     {
         $filter_data = $this->url_data;
 
-        $filter_data['select'] = ['id', 'code', 'model', 'name'];
+        $filter_data['pagination'] = false;
 
-        $rows = $this->ProductService->getList($filter_data);
+        $products = $this->ProductService->getList($filter_data);
 
-        $json = [];
-
-        $json = DataHelper::getArrayDataByPaginatorOrCollection($rows);
-
-        $json = DataHelper::unsetArrayIndexRecursively($json, ['translation', 'translations']);
-
-        return $this->sendResponse($json);
+        return $this->sendResponse(['data' => $products]);
     }
 
     public function info($product_id)

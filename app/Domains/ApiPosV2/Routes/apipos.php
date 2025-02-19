@@ -64,9 +64,7 @@ Route::group([
             {
                 Route::post('updateTimeslots', 'Sale\QuantityControlController@updateTimeslots')->name('updateTimeslots');
                 Route::get('getTimeslots', 'Sale\QuantityControlController@getTimeslots')->name('getTimeslots');
-
                 Route::get('getDatelimitsByDate/{date}', 'Sale\QuantityControlController@getDatelimitsByDate')->name('getDatelimitsByDate');
-
                 Route::post('updateMaxQuantityByDate', 'Sale\QuantityControlController@updateMaxQuantityByDate')->name('updateMaxQuantityByDate');
                 Route::get('refreshOrderedQuantityByDate/{date}', 'Sale\QuantityControlController@refreshOrderedQuantityByDate')->name('refreshOrderedQuantityByDate');
                 Route::get('resetMaxQuantityByDate/{date}', 'Sale\QuantityControlController@resetMaxQuantityByDate')->name('resetMaxQuantityByDate');

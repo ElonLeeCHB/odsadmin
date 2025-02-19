@@ -84,17 +84,4 @@ class DateLimit extends Model
             throw new \Exception('Error: ' . $th->getMessage());
         }
     }
-
-    // public function setMaxQuantityToDefaultByDate($date)
-    // {
-    //     $default_time_slots = $this->getDefaultDateLimits($date);
-
-    //     if(!empty($default_time_slots)){
-    //         foreach ($default_time_slots as $time_slot => $value) {
-    //             $result['TimeSlots'][$time_slot]['MaxQuantity'] = $value;
-    //             $result['TimeSlots'][$time_slot]['OrderedQuantity'] = 0;
-    //             $result['TimeSlots'][$time_slot]['AcceptableQuantity'] = $value;
-    //         }
-    //     }
-    // }
 }

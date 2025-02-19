@@ -48,19 +48,6 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\LogRequest::class,
             \App\Http\Middleware\ForceJsonAcceptHeader::class,
         ],
-
-        // //或許會廢棄
-        // 'apiv2' => [
-        //     \App\Http\Middleware\CheckApiKeyAndIp::class.':V2',
-        // ],
-
-        'apiposv2' => [
-            \App\Domains\ApiPosV2\Http\Middleware\CheckApiKeyAndIp::class,
-        ],
-
-        'apiwwwv2' => [
-            \App\Domains\ApiWwwV2\Http\Middleware\CheckApiKeyAndIp::class,
-        ],
     ];
 
     /**

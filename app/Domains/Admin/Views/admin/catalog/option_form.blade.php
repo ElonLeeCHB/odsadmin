@@ -25,7 +25,7 @@
         <form id="form-option" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
           @csrf
           @method('POST')
-          <input type="hidden" name="option_id" value="{{ $option->id }}" id="input-option-id">
+          <input type="hidden" name="option_id" value="{{ $option_id }}" id="input-option-id">
           <fieldset>
             <legend>{{ $lang->text_option }}</legend>
 

@@ -69,6 +69,8 @@ class LoginController extends ApiPosController
                     $json = [
                         'token' => $plainTextToken,
                         'permissions' => $permissions,
+                        'user_id' => $user->id,
+                        'name' => $user->name,
                         'message' => '登入成功',
                     ];
                 }
