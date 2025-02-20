@@ -38,15 +38,11 @@ class HandleOrderCreated
         } catch (\Throwable $th) {
             throw $th;
         }
-        //
-
-
-
-
     }
 
     /**
      * 刈包相關的訂單金額達到一千五，送滷味盒
+     * 只有在2025年1月存在很短時間。留著以後參考。
      */
     public function giftProducts(Order $order)
     {

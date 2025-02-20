@@ -6,7 +6,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Sale\Order;
 
-class OrderChanged
+class OrderUpdated
 {
     use Dispatchable, SerializesModels;
 

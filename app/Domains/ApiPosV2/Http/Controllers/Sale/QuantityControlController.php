@@ -57,12 +57,12 @@ class QuantityControlController extends ApiPosController
         }
     }
 
-    public function getDatelimitsByDate($date)
+    public function getOrderlimitsByDate($date)
     {
         try {
-            $result = $this->QuantityControlService->getDatelimitsByDate($date);
+            $result = $this->QuantityControlService->getOrderlimitsByDate($date);
 
-            return $this->sendResponse($result);
+            return $this->sendResponse(['data' => $result]);
 
         } catch (\Throwable $th) {
             return response()->json(['error' => $th->getMessage()], 400);
@@ -74,7 +74,7 @@ class QuantityControlController extends ApiPosController
         try {
             $result = $this->QuantityControlService->refreshOrderedQuantityByDate($date);
 
-            return $this->sendResponse($result);
+            return $this->sendResponse(['data' => $result]);
 
         } catch (\Throwable $th) {
             return response()->json(['error' => $th->getMessage()], 400);
@@ -85,8 +85,12 @@ class QuantityControlController extends ApiPosController
     {
         try {
             $result = $this->QuantityControlService->resetMaxQuantityByDate($date);
+
+            if(!empty($result['error'])){
+                return response()->json(['error' => $result['error']], 400);
+            }
             
-            return $this->sendResponse($result);
+            return $this->sendResponse(['data' => $result]);
 
         } catch (\Throwable $th) {
             return response()->json(['error' => $th->getMessage()], 400);

@@ -6,7 +6,7 @@ use App\Helpers\Classes\DateHelper;
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
 use App\Models\Setting\Setting;
-use App\Models\Sale\Datelimit;
+use App\Models\Sale\OrderLimit;
 use App\Models\Sale\Order;
 use Carbon\Carbon;
 
@@ -44,9 +44,9 @@ class QuantityControlService extends Service
     public function updateMaxQuantityByDate($data)
     {
         try {
-            $current_date_time_slots = (new Datelimit)->getCurrentDateLimits($data['Date']);
+            $current_date_time_slots = (new OrderLimit)->getCurrentOrderLimits($data['Date']);
 
-            $update_data = [];
+            $insert_data = [];
 
             foreach ($current_date_time_slots['TimeSlots'] as $time_slot => $row) {
                 if(isset($data['TimeSlots'][$time_slot])){
@@ -67,19 +67,18 @@ class QuantityControlService extends Service
                 ];
             }
 
-            Datelimit::whereDate('Date', $data['Date'])->delete();
+            OrderLimit::whereDate('Date', $data['Date'])->delete();
 
-            Datelimit::insert($insert_data);
+            OrderLimit::insert($insert_data);
 
             return true;
 
-        } catch (\Throwable $th) {echo "<pre>",print_r($th->getMessage(),true),"</pre>";exit;
-
+        } catch (\Throwable $th) {
             return ['error' => $th->getMessage()];
         }
     }
 
-                // echo "<pre>",print_r($date,true),"</pre>";exit;
+                // echo "<pre>",setDefaultOrderlimits($date,true),"</pre>";exit;
                 // $orders = Order::whereDate('delivery_date', '=', '2025-02-10')->get();
 
                 // $orders = Order::select('id', 'delivery_date')->whereDate('delivery_date', '2025-02-10')
@@ -92,14 +91,16 @@ class QuantityControlService extends Service
                 //     });
                 // }])
                 // ->get();
-                //             echo "<pre>",print_r($orders,true),"</pre>";exit;
+                //             echo "<pre>",setDefaultOrderlimits($orders,true),"</pre>";exit;
                 // // $sql = DB::getQueryLog();
 
     // 重設每日上限
     public function resetMaxQuantityByDate($date)
     {
         try {
-            return (new Datelimit)->setDefaultDateLimits($date);
+            (new OrderLimit)->setDefaultOrderlimits($date);
+
+            return (new OrderLimit)->getDefaultOrderlimits($date);
         } catch (\Throwable $th) {
             return ['error' => $th->getMessage()];
         }
@@ -108,7 +109,7 @@ class QuantityControlService extends Service
     // 更新訂單數量，但每日上限不變，
     public function refreshOrderedQuantityByDate($date)
     {
-        $current_date_time_slots = $this->getDatelimitsByDate($date);
+        $current_date_time_slots = $this->getOrderlimitsByDate($date);
 
         try {
             if (DateHelper::isValid($date)) {
@@ -156,28 +157,28 @@ class QuantityControlService extends Service
                     ];
                 }
 
-                Datelimit::upsert($upsert_data, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
+                OrderLimit::upsert($upsert_data, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
 
                 // 重新再抓一次然後返回
-                return $this->getDatelimitsByDate($date);
+                return $this->getOrderlimitsByDate($date);
             }
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }
     }
 
-    public function getDatelimitsByDate($date)
+    public function getOrderlimitsByDate($date)
     {
         try {    
-            $current_date_time_slots = Datelimit::where('Date', $date)->get();
+            $current_date_time_slots = OrderLimit::where('Date', $date)->get();
 
             $result['Date'] = $date;
     
             // 如果 date_time_slots 是空的，根據預設做更新
             if($current_date_time_slots->isEmpty()){
-                (new Datelimit)->setDefaultDateLimits($date);
+                (new OrderLimit)->setDefaultOrderlimits($date);
 
-                $current_date_time_slots = Datelimit::where('Date', $date)->get();
+                $current_date_time_slots = OrderLimit::where('Date', $date)->get();
             }
 
             foreach ($current_date_time_slots as $row) {

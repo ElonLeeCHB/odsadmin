@@ -82,7 +82,10 @@ class OrderController extends ApiWwwV2Controller
 
     public function store()
     {
-        $result = $this->OrderService->store(request()->post());
+        $data = request()->json()->all();
+        echo "<pre>",print_r($data,true),"</pre>";exit;
+
+        $result = $this->OrderService->store($data);
 
         if(empty($result['error'])){
             $json = [

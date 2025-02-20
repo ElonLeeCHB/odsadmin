@@ -9,7 +9,8 @@ use App\Traits\Model\EloquentTrait;
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
-use App\Events\OrderCreated;
+use App\Events\OrderSaved;
+use App\Models\Sale\Order;
 
 class OrderService extends Service
 {
@@ -98,11 +99,11 @@ class OrderService extends Service
                     (new OrderProductOptionRepository)->createMany($arrOrderProduct['order_product_options'], $order->id, $order_product_id);
                 }
             // end order_product_options
-
-            // Events
-            event(new OrderCreated($order));
+            event(new OrderSaved(saved_order:$order, action:'insert'));
 
             DB::commit();
+
+            // Events //有些事項必須在交易外執行，例如 DateLimits如果沒有當天，要根據預設的TimeSlots立即填充。
 
             return ['data' => ['id' => $order->id, 'code' => $order->code]];
 
@@ -120,7 +121,10 @@ class OrderService extends Service
 
             DB::beginTransaction();
 
-            // order
+            // old order
+            $old_order = Order::findOrNew($order_id);
+
+            // new order
             $order = (new OrderRepository)->update($data, $order_id);
 
             // order_products
@@ -149,7 +153,7 @@ class OrderService extends Service
             // end order_product_options
 
             // Events
-            event(new OrderCreated($order));
+            event(new OrderSaved(saved_order:$order, old_order:$old_order, action:'update'));
 
             DB::commit();
 

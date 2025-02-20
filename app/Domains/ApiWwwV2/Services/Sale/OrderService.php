@@ -14,7 +14,7 @@ use App\Repositories\Eloquent\Material\ProductRepository;
 use App\Models\Sale\Order;
 use App\Models\Material\Product;
 use App\Models\Material\ProductOption;
-use App\Events\OrderCreated;
+use App\Events\OrderSaved;
 
 class OrderService extends Service
 {
@@ -104,7 +104,7 @@ class OrderService extends Service
     {
         try {
             DB::beginTransaction();
-
+            echo "<pre>asdf",print_r($data,true),"</pre>";exit;
             // order
             $order = (new OrderRepository)->create($data);
 
@@ -217,7 +217,7 @@ class OrderService extends Service
             // end order_product_options
 
             // Events
-            event(new OrderCreated($order));
+            event(new OrderSaved(order:$order, is_new:true));
 
             DB::commit();
 
