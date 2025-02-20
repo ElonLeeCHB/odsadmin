@@ -104,7 +104,7 @@ class OrderService extends Service
     {
         try {
             DB::beginTransaction();
-            echo "<pre>asdf",print_r($data,true),"</pre>";exit;
+            echo "<pre>",print_r($data,true),"</pre>";exit;
             // order
             $order = (new OrderRepository)->create($data);
 

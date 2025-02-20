@@ -526,7 +526,6 @@ class OrderRepository extends Repository
     public function create($data)
     {
         try {
-
             // delivery_date and delivery_time_range
                 // 說明：delivery_date 在資料庫是 datetime 欄位
                 // $delivery_date_Ymd = '0000-00-00'

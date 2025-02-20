@@ -8,9 +8,12 @@ use App\Models\Setting\Setting;
 use App\Models\Sale\TimeSlotLimit;
 use Carbon\Carbon;
 use App\Helpers\Classes\DateHelper;
+use App\Traits\Model\ModelTrait;
 
 class OrderLimit extends Model
 {
+    use ModelTrait;
+
     protected $guarded = [];
     public $timestamps = false;
 
@@ -20,7 +23,7 @@ class OrderLimit extends Model
      */
 
     // 取得格式化之後的陣列。$rows 可以是 collection 或是陣列
-    public function getFormattedData($rows)
+    public function getFormattedDataFromRows($rows)
     {
         $rows  = DataHelper::toCleanCollection($rows);
 
@@ -40,15 +43,16 @@ class OrderLimit extends Model
 
     }
 
-    public function getCurrentOrderLimits($date)
+    public function getOrderLimitsByDate($date)
     {
-        $rows = OrderLimit::where('Date', $date)->get();
+        $date = Carbon::parse($date)->toDateString();
+        $rows = OrderLimit::whereDate('Date', $date)->get();
 
         if($rows->isEmpty()){
             $result = $this->setDefaultOrderLimits($date);
             $result = $this->getDefaultOrderLimits($date);
         }else{
-            $result = $this->getFormattedData($rows);
+            $result = $this->getFormattedDataFromRows($rows);
         }
 
         return $result;
@@ -74,7 +78,7 @@ class OrderLimit extends Model
             }
     
             return $result;
-            
+
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }
@@ -107,6 +111,33 @@ class OrderLimit extends Model
             throw new \Exception('Error: ' . $th->getMessage());
         }
     }
+
+    public function decreaseByOrder(Order $order)
+    {
+        if(empty($order->id)){
+            return;
+        }
+    }
+
+    public function increaseByOrder(Order $order)
+    {
+        echo "<pre>",print_r('increaseByOrder',true),"</pre>\r\n";
+        $order_limits = $this->getOrderLimitsByDate($order->delivery_date);
+
+        
+        echo "<pre>",print_r($order_limits,true),"</pre>";exit;
+
+    }
+
+
+
+
+
+
+
+
+
+
 
     // 時間段的格式為 'HH:00-HH:59'
     // $datelimits = [
@@ -162,7 +193,7 @@ class OrderLimit extends Model
             $datelimits = $this->resetOrderLimitsArrayAcceptableQuantity($datelimits);
 
             //當前資料庫的資料
-            $db_date_time_slots = (new OrderLimit)->getCurrentOrderLimits($datelimits['Date']);
+            $db_date_time_slots = (new OrderLimit)->getOrderLimitsByDate($datelimits['Date']);
 
             $insert_data = [];
 

@@ -99,11 +99,11 @@ class OrderService extends Service
                     (new OrderProductOptionRepository)->createMany($arrOrderProduct['order_product_options'], $order->id, $order_product_id);
                 }
             // end order_product_options
-            event(new OrderSaved(saved_order:$order, action:'insert'));
 
             DB::commit();
 
             // Events //有些事項必須在交易外執行，例如 DateLimits如果沒有當天，要根據預設的TimeSlots立即填充。
+            event(new OrderSaved(saved_order:$order, action:'insert'));
 
             return ['data' => ['id' => $order->id, 'code' => $order->code]];
 

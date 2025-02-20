@@ -11,10 +11,11 @@ use App\Models\Material\Product;
 use App\Models\Material\ProductTranslation;
 use App\Helpers\Classes\DataHelper;
 use App\Models\Sale\Order;
-use App\Models\Sale\DateLimit;
+use App\Models\Sale\OrderLimit;
 use App\Models\Sale\TimeSlotLimit;
 use App\Repositories\Eloquent\Sale\OrderPrintingMpdfRepository;
 use Carbon\Carbon;
+
 
 use TCPDF;
 use Illuminate\Support\Facades\Storage;
@@ -40,6 +41,7 @@ class HandleOrderSaved
             // 儲存後的訂單
             $saved_order = $event->saved_order;
 
+            // 更新訂單數量控制表
             $this->resetQuantityControl($old_order, $saved_order);
 
             // $this->giftProducts($order);
@@ -74,101 +76,94 @@ class HandleOrderSaved
         $old_order->load('orderProducts.productTags');
         $saved_order->load('orderProducts.productTags');
 
-
-        //日期相同
-        if (Carbon::parse($old_order->delivery_date)->toDateString() == Carbon::parse($saved_order->delivery_date)->toDateString()) {
-
-        }else{
-
-        }
-        
-
-
-
+        (new OrderLimit)->decreaseByOrder($old_order);
+        (new OrderLimit)->increaseByOrder($saved_order);
     }
 
-    public function resetDatelimitsByDate(&$date)
-    {
-        $datelimits = (new DateLimit)->getCurrentDateLimits($date);
+    /*
+        public function resetDatelimitsByDate(&$date)
+        {
+            $datelimits = (new DateLimit)->getCurrentDateLimits($date);
 
-        $orders = Order::whereDate('delivery_date', $date)
-                    ->with(['orderProducts' => function($query) {
-                        $query->with('productTags');
-                    }])
-                    ->get();
+            $orders = Order::whereDate('delivery_date', $date)
+                        ->with(['orderProducts' => function($query) {
+                            $query->with('productTags');
+                        }])
+                        ->get();
 
-        $order->load('orderProducts');
+            $order->load('orderProducts');
 
-        foreach ($order->orderProducts ?? [] as $orderProduct) {
-            $should_caculate = false;
+            foreach ($order->orderProducts ?? [] as $orderProduct) {
+                $should_caculate = false;
 
-            foreach ($orderProduct->productTags ?? [] as $productTag) {
-                if($productTag->term_id == 1331){ // 1331=套餐
-                    $should_caculate = true;
-                    break;
+                foreach ($orderProduct->productTags ?? [] as $productTag) {
+                    if($productTag->term_id == 1331){ // 1331=套餐
+                        $should_caculate = true;
+                        break;
+                    }
+                }
+                if($should_caculate == true){
+                    $time_slot_key = (new TimeSlotLimit)->getTimeSlotKey($order->delivery_date);
+                    $datelimits['TimeSlots'][$time_slot_key]['OrderedQuantity'] -= $orderProduct->quantity;
+                    $datelimits['TimeSlots'][$time_slot_key]['AcceptableQuantity'] = $datelimits['TimeSlots'][$time_slot_key]['MaxQuantity'] - $datelimits['TimeSlots'][$time_slot_key]['OrderedQuantity'];
                 }
             }
-            if($should_caculate == true){
-                $time_slot_key = (new TimeSlotLimit)->getTimeSlotKey($order->delivery_date);
-                $datelimits['TimeSlots'][$time_slot_key]['OrderedQuantity'] -= $orderProduct->quantity;
-                $datelimits['TimeSlots'][$time_slot_key]['AcceptableQuantity'] = $datelimits['TimeSlots'][$time_slot_key]['MaxQuantity'] - $datelimits['TimeSlots'][$time_slot_key]['OrderedQuantity'];
-            }
         }
-    }
 
-    private function decreaseOrderProductQuantityInQuantityControl($order)
-    {
-        $order->load('orderProducts.productTags');
+        private function decreaseOrderProductQuantityInQuantityControl($order)
+        {
+            $order->load('orderProducts.productTags');
 
 
-        $datelimits = (new DateLimit)->getCurrentDateLimits($order->delivery_date_ymd);
+            $datelimits = (new DateLimit)->getCurrentDateLimits($order->delivery_date_ymd);
 
-        foreach ($order->order_products ?? [] as $order_product) {
-            $should_decrease = false;
+            foreach ($order->order_products ?? [] as $order_product) {
+                $should_decrease = false;
 
-            foreach ($order_product->productTags ?? [] as $productTag) {
-                if($productTag->term_id == 1331){ // 1331=套餐
-                    $should_decrease = true;
-                    break;
+                foreach ($order_product->productTags ?? [] as $productTag) {
+                    if($productTag->term_id == 1331){ // 1331=套餐
+                        $should_decrease = true;
+                        break;
+                    }
+                }
+                if($should_decrease == true){
+                    $time_slot = (new TimeSlotLimit)->getTimeSlotKey($order->delivery_date);
+                    $datelimits['TimeSlots'][$time_slot]['OrderedQuantity'] -= $order_product->quantity;
+                    $datelimits['TimeSlots'][$time_slot]['AcceptableQuantity'] = $datelimits['TimeSlots'][$time_slot]['MaxQuantity'] - $datelimits['TimeSlots'][$time_slot]['OrderedQuantity'];
                 }
             }
-            if($should_decrease == true){
-                $time_slot = (new TimeSlotLimit)->getTimeSlotKey($order->delivery_date);
-                $datelimits['TimeSlots'][$time_slot]['OrderedQuantity'] -= $order_product->quantity;
-                $datelimits['TimeSlots'][$time_slot]['AcceptableQuantity'] = $datelimits['TimeSlots'][$time_slot]['MaxQuantity'] - $datelimits['TimeSlots'][$time_slot]['OrderedQuantity'];
-            }
+            
+            // 最後重新整理時間段數量
+            (new DateLimit)->updateWithFormat($datelimits);
         }
-        
-        // 最後重新整理時間段數量
-        (new DateLimit)->updateWithFormat($datelimits);
-    }
 
-    private function increaseOrderProductQuantityInQuantityControl($order)
-    {
-        $order->load('orderProducts.productTags');
+        private function increaseOrderProductQuantityInQuantityControl($order)
+        {
+            $order->load('orderProducts.productTags');
 
-        $datelimits = (new DateLimit)->getCurrentDateLimits($order->delivery_date_ymd);
-        // $datelimits['TimeSlots']
+            $datelimits = (new DateLimit)->getCurrentDateLimits($order->delivery_date_ymd);
+            // $datelimits['TimeSlots']
 
-        foreach ($order->order_products ?? [] as $order_product) {
-            $should_increase = false;
+            foreach ($order->order_products ?? [] as $order_product) {
+                $should_increase = false;
 
-            foreach ($order_product->productTags ?? [] as $productTag) {
-                if($productTag->term_id == 1331){ // 1331=套餐
-                    $should_increase = true;
-                    break;
+                foreach ($order_product->productTags ?? [] as $productTag) {
+                    if($productTag->term_id == 1331){ // 1331=套餐
+                        $should_increase = true;
+                        break;
+                    }
+                }
+                if($should_increase == true){
+                    $time_slot = (new TimeSlotLimit)->getTimeSlotKey($order->delivery_date);
+                    $datelimits['TimeSlots'][$time_slot]['OrderedQuantity'] += $order_product->quantity;
+                    $datelimits['TimeSlots'][$time_slot]['AcceptableQuantity'] = $datelimits['TimeSlots'][$time_slot]['MaxQuantity'] - $datelimits['TimeSlots'][$time_slot]['OrderedQuantity'];
                 }
             }
-            if($should_increase == true){
-                $time_slot = (new TimeSlotLimit)->getTimeSlotKey($order->delivery_date);
-                $datelimits['TimeSlots'][$time_slot]['OrderedQuantity'] += $order_product->quantity;
-                $datelimits['TimeSlots'][$time_slot]['AcceptableQuantity'] = $datelimits['TimeSlots'][$time_slot]['MaxQuantity'] - $datelimits['TimeSlots'][$time_slot]['OrderedQuantity'];
-            }
+            
+            // 最後重新整理時間段數量
+            (new DateLimit)->updateWithFormat($datelimits);
         }
-        
-        // 最後重新整理時間段數量
-        (new DateLimit)->updateWithFormat($datelimits);
-    }
+    */
 
     /**
      * 刈包相關的訂單金額達到一千五，送滷味盒
