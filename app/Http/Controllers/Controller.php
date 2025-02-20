@@ -51,7 +51,7 @@ class Controller extends BaseController
                 $log->data = json_encode(request()->all());
             }
 
-            //client_ipv4
+            //client_ip
             if (request()->hasHeader('X-CLIENT-IPV4')) {
                 $log->client_ip = request()->header('X-CLIENT-IPV4');
             }
@@ -59,7 +59,7 @@ class Controller extends BaseController
                 $log->client_ip = request()->input('X-CLIENT-IPV4');
             }
 
-            //api_ipv4
+            //api_ip
             $log->api_ip = request()->ip();
 
             $log->note = $error;

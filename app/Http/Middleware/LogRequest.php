@@ -48,16 +48,16 @@ class LogRequest extends Middleware
                 $log->data = json_encode($request->all());
             }
 
-            //client_ipv4
+            //client_ip
             if ($request->hasHeader('X-CLIENT-IPV4')) {
-                $log->client_ipv4 = $request->header('X-CLIENT-IPV4');
+                $log->client_ip = $request->header('X-CLIENT-IPV4');
             }
             else if ($request->has('X-CLIENT-IPV4')) {
-                $log->client_ipv4 = $request->input('X-CLIENT-IPV4');
+                $log->client_ip = $request->input('X-CLIENT-IPV4');
             }
 
-            //api_ipv4
-            $log->api_ipv4 = $request->ip();
+            //api_ip
+            $log->api_ip = $request->ip();
 
             $log->save();
         }

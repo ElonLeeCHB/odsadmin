@@ -18,83 +18,54 @@ class QuantityControlController extends ApiPosController
             parent::__construct();
         }
     }
-    
-    public function updateTimeslots()
-    {
-        try {
-            $content = request()->post();
 
-            $this->QuantityControlService->updateTimeslots($content);
-            
-            return response()->json(['status' => 'ok']);
-
-        } catch (\Throwable $th) {
-            return response()->json(['error' => $th->getMessage()], 400);
-        }
-    }
-
+    // 預設時間段數量-獲取
     public function getTimeslots()
     {
-        try {
-            $content = $this->QuantityControlService->getTimeslots();        
+        $result = $this->QuantityControlService->getTimeslots();
 
-            return $this->sendResponse(['data' => $content]);
+        return $this->sendResponse($result);
+    }
+    
+    // 預設時間段數量-更新
+    public function updateTimeslots()
+    {
+        $result = $this->QuantityControlService->updateTimeslots(request()->post());
 
-        } catch (\Throwable $th) {
-            return response()->json(['error' => $th->getMessage()], 400);
-        }
+        return $this->sendResponse($result);
     }
 
-    public function updateMaxQuantityByDate()
+    // 某日數量資料-獲取
+    public function getOrderDateLimitsByDate($date)
     {
-        try {
-            $this->QuantityControlService->updateMaxQuantityByDate(request()->post());
+        $result = $this->QuantityControlService->getOrderDateLimitsByDate($date);
 
-            return response()->json(['status' => 'ok']);
-
-        } catch (\Throwable $th) {
-            return response()->json(['error' => $th->getMessage()], 400);
-        }
+        return $this->sendResponse($result);
     }
 
-    public function getOrderlimitsByDate($date)
+    // 某日數量資料-更新上限
+    public function updateMaxQuantityByDate($date)
     {
-        try {
-            $result = $this->QuantityControlService->getOrderlimitsByDate($date);
+        $data['Date'] = $date;
+        $data['TimeSlots'] = request()->post();
+        $result = $this->QuantityControlService->updateMaxQuantityByDate($data);
 
-            return $this->sendResponse(['data' => $result]);
+        return $this->sendResponse($result);
+    }
 
-        } catch (\Throwable $th) {
-            return response()->json(['error' => $th->getMessage()], 400);
-        }
+    // 某日數量資料-恢復預設上限
+    public function resetDefaultMaxQuantityByDate($date)
+    {
+        $result = $this->QuantityControlService->resetDefaultMaxQuantityByDate($date);
+
+        return $this->sendResponse($result);
     }
 
     public function refreshOrderedQuantityByDate($date)
     {
-        try {
-            $result = $this->QuantityControlService->refreshOrderedQuantityByDate($date);
+        $result = $this->QuantityControlService->refreshOrderedQuantityByDate($date);
 
-            return $this->sendResponse(['data' => $result]);
-
-        } catch (\Throwable $th) {
-            return response()->json(['error' => $th->getMessage()], 400);
-        }
-    }
-
-    public function resetMaxQuantityByDate($date)
-    {
-        try {
-            $result = $this->QuantityControlService->resetMaxQuantityByDate($date);
-
-            if(!empty($result['error'])){
-                return response()->json(['error' => $result['error']], 400);
-            }
-            
-            return $this->sendResponse(['data' => $result]);
-
-        } catch (\Throwable $th) {
-            return response()->json(['error' => $th->getMessage()], 400);
-        }
+        return $this->sendResponse($result);
     }
 
 

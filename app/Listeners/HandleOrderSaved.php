@@ -14,6 +14,7 @@ use App\Models\Sale\Order;
 use App\Models\Sale\OrderLimit;
 use App\Models\Sale\TimeSlotLimit;
 use App\Repositories\Eloquent\Sale\OrderPrintingMpdfRepository;
+use App\Repositories\Eloquent\Sale\OrderDateLimitRepository;
 use Carbon\Carbon;
 
 
@@ -22,6 +23,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
 
 // 訂單所有的變動，insert, update, delete
+// 執行到本物件的時候，訂單異動必須完成。如果有交易，必須已經 DB::commit()
+
 class HandleOrderSaved
 {
     use InteractsWithQueue;
@@ -42,7 +45,7 @@ class HandleOrderSaved
             $saved_order = $event->saved_order;
 
             // 更新訂單數量控制表
-            $this->resetQuantityControl($old_order, $saved_order);
+            (new OrderDateLimitRepository)->resetQuantityControl($saved_order, $old_order);
 
             // $this->giftProducts($order);
             // (new OrderPrintingMpdfRepository)->generatePDF($order->id, 'S');
@@ -53,32 +56,7 @@ class HandleOrderSaved
         }
     }
 
-    /**
-     * 關鍵：送達日期是否相同、送達時間段是否相同
-     * 
-     * 日期相同、時間段相同、數量不同
-     * 日期相同、時間段不同、勿略數量異動
-     * 日期不同、時間段相同
-     * 日期不同、時間段不同
-     */
-    private function resetQuantityControl($old_order, $saved_order)
-    {
-        $statuses_of_increase = ['Confirmed', 'CCP'];
 
-        // // 新增數量控制。原本不是新增數量的狀態，改為需要新增數量的狀態
-        // if(!in_array($old_order->status_code, $statuses_of_increase) && in_array($saved_order->status_code, $statuses_of_increase)){
-        //     $this->increaseOrderProductQuantityInQuantityControl($saved_order);
-        // }
-        // // 減少數量控制。原本是新增數量的狀態，改為不需新增數量的狀態
-        // else if(in_array($old_order->status_code, $statuses_of_increase) && !in_array($saved_order->status_code, $statuses_of_increase)){
-        //     $this->decreaseOrderProductQuantityInQuantityControl($saved_order);
-        // }
-        $old_order->load('orderProducts.productTags');
-        $saved_order->load('orderProducts.productTags');
-
-        (new OrderLimit)->decreaseByOrder($old_order);
-        (new OrderLimit)->increaseByOrder($saved_order);
-    }
 
     /*
         public function resetDatelimitsByDate(&$date)
@@ -110,32 +88,7 @@ class HandleOrderSaved
             }
         }
 
-        private function decreaseOrderProductQuantityInQuantityControl($order)
-        {
-            $order->load('orderProducts.productTags');
 
-
-            $datelimits = (new DateLimit)->getCurrentDateLimits($order->delivery_date_ymd);
-
-            foreach ($order->order_products ?? [] as $order_product) {
-                $should_decrease = false;
-
-                foreach ($order_product->productTags ?? [] as $productTag) {
-                    if($productTag->term_id == 1331){ // 1331=套餐
-                        $should_decrease = true;
-                        break;
-                    }
-                }
-                if($should_decrease == true){
-                    $time_slot = (new TimeSlotLimit)->getTimeSlotKey($order->delivery_date);
-                    $datelimits['TimeSlots'][$time_slot]['OrderedQuantity'] -= $order_product->quantity;
-                    $datelimits['TimeSlots'][$time_slot]['AcceptableQuantity'] = $datelimits['TimeSlots'][$time_slot]['MaxQuantity'] - $datelimits['TimeSlots'][$time_slot]['OrderedQuantity'];
-                }
-            }
-            
-            // 最後重新整理時間段數量
-            (new DateLimit)->updateWithFormat($datelimits);
-        }
 
         private function increaseOrderProductQuantityInQuantityControl($order)
         {
