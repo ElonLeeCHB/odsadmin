@@ -11,6 +11,7 @@ use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
 use App\Events\OrderSaved;
 use App\Models\Sale\Order;
+use App\Models\Sale\OrderTotal;
 
 class OrderService extends Service
 {
@@ -100,6 +101,27 @@ class OrderService extends Service
                 }
             // end order_product_options
 
+            // OrderTotal
+                if(!empty($data['order_totals'])){
+                    $update_order_totals = [];
+                    $sort_order = 1;
+                    foreach($data['order_totals'] as $code => $order_total){
+                        $update_order_totals[] = [
+                            'order_id'  => $order->id,
+                            'code'      => trim($code),
+                            'title'     => trim($order_total['title']),
+                            'value'     => str_replace(',', '', $order_total['value']),
+                            'sort_order' => $sort_order,
+                        ];
+                        $sort_order++;
+                    }
+
+                    if(!empty($update_order_totals)){
+                        OrderTotal::upsert($update_order_totals, ['order_id', 'code']);
+                    }
+                }
+            //
+
             DB::commit();
 
             // Events //有些事項必須在交易外執行，例如 DateLimits如果沒有當天，要根據預設的TimeSlots立即填充。
@@ -152,6 +174,26 @@ class OrderService extends Service
                 }
             // end order_product_options
 
+            // OrderTotal
+                if(!empty($data['order_totals'])){
+                    $update_order_totals = [];
+                    $sort_order = 1;
+                    foreach($data['order_totals'] as $code => $order_total){
+                        $update_order_totals[] = [
+                            'order_id'  => $order->id,
+                            'code'      => trim($code),
+                            'title'     => trim($order_total['title']),
+                            'value'     => str_replace(',', '', $order_total['value']),
+                            'sort_order' => $sort_order,
+                        ];
+                        $sort_order++;
+                    }
+
+                    if(!empty($update_order_totals)){
+                        OrderTotal::upsert($update_order_totals, ['order_id', 'code']);
+                    }
+                }
+            //
             // Events
             event(new OrderSaved(saved_order:$order, old_order:$old_order, action:'update'));
 

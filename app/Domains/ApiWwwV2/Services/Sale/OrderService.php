@@ -12,6 +12,7 @@ use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
 use App\Repositories\Eloquent\Material\ProductRepository;
 use App\Models\Sale\Order;
+use App\Models\Sale\OrderTotal;
 use App\Models\Material\Product;
 use App\Models\Material\ProductOption;
 use App\Events\OrderSaved;
@@ -21,7 +22,6 @@ class OrderService extends Service
     use EloquentTrait;
 
     protected $modelName = "\App\Models\Sale\Order";
-
 
     public function getList($data)
     {
@@ -48,7 +48,6 @@ class OrderService extends Service
         }
     }
 
-
     public function getInfo($filter_data, $type= 'id')
     {
         if($type == 'id'){
@@ -72,39 +71,11 @@ class OrderService extends Service
         return $order;
     }
 
-    // public function getInfo($order_id)
-    // {
-    //     $cache_key = 'cache/orders/orderId_' . $order_id;
-
-    //     return DataHelper::remember($cache_key, 60*60, function() use ($order_id){
-    //         $order = $this->getRow([
-    //             'equal_id' => $order_id,
-    //             'with' => ['order_products.order_product_options'],
-    //         ]);
-
-    //         return $order;
-    //     });
-    // }
-
-    // public function getInfoByCode($code)
-    // {
-    //     $cache_key = 'cache/orders/orderCode_' . $code;
-
-    //     return DataHelper::remember($cache_key, 60*60, function() use ($code){
-    //         $order = $this->getRow([
-    //             'equal_code' => $code,
-    //             'with' => ['order_products.order_product_options'],
-    //         ]);
-
-    //         return $order;
-    //     });
-    // }
-
     public function store($data)
     {
         try {
             DB::beginTransaction();
-            echo "<pre>",print_r($data,true),"</pre>";exit;
+
             // order
             $order = (new OrderRepository)->create($data);
 
@@ -216,8 +187,29 @@ class OrderService extends Service
                 }
             // end order_product_options
 
+            // OrderTotal
+                if(!empty($data['order_totals'])){
+                    $update_order_totals = [];
+                    $sort_order = 1;
+                    foreach($data['order_totals'] as $code => $order_total){
+                        $update_order_totals[] = [
+                            'order_id'  => $order->id,
+                            'code'      => trim($code),
+                            'title'     => trim($order_total['title']),
+                            'value'     => str_replace(',', '', $order_total['value']),
+                            'sort_order' => $sort_order,
+                        ];
+                        $sort_order++;
+                    }
+
+                    if(!empty($update_order_totals)){
+                        OrderTotal::upsert($update_order_totals, ['order_id', 'code']);
+                    }
+                }
+            //
+
             // Events
-            event(new OrderSaved(order:$order, is_new:true));
+            event(new OrderSaved(saved_order:$order, action:'insert'));
 
             DB::commit();
 
@@ -228,90 +220,4 @@ class OrderService extends Service
             return ['error' => $th->getMessage()];
         }
     }
-
-    public function editOrder($data, $order_id)
-    {
-        try {
-            DB::beginTransaction();
-
-            // order
-            $order = (new OrderRepository)->update($data, $order_id);
-
-            //先刪除 order_product_options, order_products。
-                $orderProducts = $order->orderProducts()->select('id', 'created_at', 'updated_at')->get()->keyBy('id');
-                $existedOrderProductIds = $orderProducts->pluck('id')->toArray();
-                $newOrderProductIds = array_column($data['order_products'], 'order_product_id');
-                $deletedOrderProductIds = array_diff($existedOrderProductIds, $newOrderProductIds);
-                $addedOrderProductIds = array_diff($newOrderProductIds, $existedOrderProductIds);
-
-                foreach ($orderProducts as $id => $orderProduct) {
-                    if(in_array($id, $deletedOrderProductIds)){
-                        $orderProduct->orderProductOptions()->delete();
-                    }
-                    $orderProduct->delete();
-                }
-            //
-
-            // order_products 
-                //設定排序
-                $data['order_products'] = $this->resortOrderProducts($data['order_products']);
-                //更新
-                (new OrderProductRepository)->upsertMany($data['order_products'], $order_id);
-            // end order_products
-
-
-            // order_product_options
-                //重須load() 以取得新的 $orderProducts 才會有 order_product_id
-                $order->load(['orderProducts:id,order_id,sort_order,product_id']);
-                $orderProducts = $order->orderProducts->keyBy('sort_order');
-
-                foreach ($data['order_products'] as $sort_order => $arrOrderProduct) {
-                    $order_product_id = $orderProducts[$sort_order]->id;
-
-                    (new OrderProductOptionRepository)->upsertMany($arrOrderProduct['order_product_options'], $order->id, $order_product_id);
-                }
-            // end order_product_options
-
-            DB::commit();
-
-            return ['data' => ['id' => $order->id, 'code' => $order->code]];
-
-        } catch (\Throwable $th) {
-            DB::rollback();
-            throw $th;
-        }
-
-    }
-
-
-    public function createOrderProductOptionsByOrderProduct($arrOrderProductOptions, $order_id, $order_product_id)
-    {
-        $rows = [];
-
-        foreach ($arrOrderProductOptions ?? [] as $row) {
-            $row['order_id'] = $order_id;
-            $row['order_product_id'] = $order_product_id;
-            $rows[] = $row;
-        }
-
-        (new OrderProductOptionRepository)->createMany($arrOrderProductOptions, $order_id, $order_product_id);
-
-
-        /*
-
-        $order->load(['orderProducts:id,order_id,sort_order,product_id']);
-        $orderProducts = $order->orderProducts->refresh()->keyBy('sort_order');
-
-        foreach ($data['order_products'] as $sort_order => $arrOrderProduct) {
-            $order_product_id = $orderProducts[$sort_order]->id;
-            foreach ($arrOrderProduct['order_product_options'] as &$order_product_option) {
-                $order_product_option['product_id'] = $orderProducts[$sort_order]->product_id;
-            }
-            (new OrderProductOptionRepository)->createMany($arrOrderProduct['order_product_options'], $order->id, $order_product_id);
-        }
-
-        */
-    }
-    
-
 }

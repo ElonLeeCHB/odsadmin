@@ -177,19 +177,12 @@ class OrderDateLimitRepository extends Repository
     // 執行重設的入口
     public function resetQuantityControl(Order $saved_order, Order $old_order)
     {
-        try {
+        $this->reloadNecessaryRelationships($saved_order);
+        $this->reloadNecessaryRelationships($old_order);
 
-            $this->reloadNecessaryRelationships($saved_order);
-            $this->reloadNecessaryRelationships($old_order);
-    
-            // $this->decreaseByOrder($old_order);
-            // echo "<pre>", print_r('decreaseByOrder 結束', true), "</pre>";exit;
-            $this->increaseByOrder($saved_order);
-            echo "<pre>", print_r('increaseByOrder 結束', true), "</pre>";exit;
-
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+        // $this->decreaseByOrder($old_order);
+        // echo "<pre>", print_r('decreaseByOrder 結束', true), "</pre>";exit;
+        $this->increaseByOrder($saved_order);
     }
 
     public function getOrderProductsQuantity($order_id)

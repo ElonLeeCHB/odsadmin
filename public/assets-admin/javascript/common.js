@@ -211,8 +211,6 @@ $(document).on('submit', 'form[data-oc-toggle=\'ajax\']', function (e) {
     }
 
     $.ajax({
-        //url: action.replaceAll('&amp;', '&'),
-        //url: action.replace(/&amp;/g, '&'),
         url: action,
         type: method,
         data: $(form).serialize(),
