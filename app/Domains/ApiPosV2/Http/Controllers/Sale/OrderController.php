@@ -43,49 +43,46 @@ class OrderController extends ApiPosController
 
     public function store()
     {
-        try {
-            $result = $this->OrderService->store(request()->post());
-    
+        $result = $this->OrderService->store(request()->post());
+
+        $json = [];
+
+        if(empty($result['error'])){
             $json = [
                 'success' => true,
                 'message' => '新增成功！',
                 'data' => [
-                    'id' => $result['data']['id'],
-                    'code' => $result['data']['code'],
+                    'id' => $result->id,
+                    'code' => $result->code,
                 ],
             ];
-    
-            return response(json_encode($json))->header('Content-Type','application/json');
-
-        } catch (\Throwable $th) {
-            $json = [
-                'error' => $th->getMessage(),
-            ];
-            return response(json_encode($json))->header('Content-Type','application/json');
+        }else{
+            $json['error'] = $result['error'];
         }
+
+        return $this->sendResponse($json);
     }
 
     public function update($order_id)
     {
-        try {
-            $result = $this->OrderService->update(request()->post(), $order_id);
-    
+        $result = $this->OrderService->update(request()->post(), $order_id);
+
+        $json = [];
+
+        if(empty($result['error'])){
+
             $json = [
                 'success' => true,
-                'message' => '新增成功！',
+                'message' => '更新成功！',
                 'data' => [
-                    'id' => $result['data']['id'],
-                    'code' => $result['data']['code'],
+                    'id' => $result->id,
+                    'code' => $result->code,
                 ],
             ];
-    
-            return response(json_encode($json))->header('Content-Type','application/json');
-
-        } catch (\Throwable $th) {
-            $json = [
-                'error' => $th->getMessage(),
-            ];
-            return response(json_encode($json))->header('Content-Type','application/json');
+        }else{
+            $json['error'] = $result['error'];
         }
+
+        return $this->sendResponse($json);
     }
 }

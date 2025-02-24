@@ -1,5 +1,22 @@
 <?php
 
+if(!function_exists('arrayToObject')){
+    function arrayToObject($array)
+    {
+        if (!is_array($array)) {
+            return $array;
+        }
+    
+        $object = new stdClass();
+        foreach ($array as $key => $value) {
+            $object->$key = arrayToObject($value);
+        }
+    
+        return $object;
+    }
+}
+
+
 if(!function_exists('parseBuilderSql')){
     function parseBuilderSql($builder, $exit = 1){
         // $sql = $builder->toSql()

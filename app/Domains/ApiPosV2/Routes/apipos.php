@@ -65,12 +65,14 @@ Route::group([
                 Route::post('updateTimeslots', 'Sale\QuantityControlController@updateTimeslots')->name('updateTimeslots');
                 Route::get('getTimeslots', 'Sale\QuantityControlController@getTimeslots')->name('getTimeslots');
                 Route::get('getOrderDateLimitsByDate/{date}', 'Sale\QuantityControlController@getOrderDateLimitsByDate')->name('getOrderDateLimitsByDate');
+
+                // // 某日數量資料-更新上限
                 Route::post('updateMaxQuantityByDate/{date}', 'Sale\QuantityControlController@updateMaxQuantityByDate')->name('updateMaxQuantityByDate');
 
-                // 某日上限數量-恢復預設
+                // 某日數量資料-恢復預設上限
                 Route::get('resetDefaultMaxQuantityByDate/{date}', 'Sale\QuantityControlController@resetDefaultMaxQuantityByDate')->name('resetDefaultMaxQuantityByDate');
 
-                // 某日訂單數量-重算
+                // 某日數量資料-重算訂單
                 Route::get('refreshOrderedQuantityByDate/{date}', 'Sale\QuantityControlController@refreshOrderedQuantityByDate')->name('refreshOrderedQuantityByDate');
             });
 

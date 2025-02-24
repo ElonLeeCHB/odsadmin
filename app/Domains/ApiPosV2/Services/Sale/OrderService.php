@@ -9,7 +9,6 @@ use App\Traits\Model\EloquentTrait;
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
-use App\Events\OrderSaved;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderTotal;
 
@@ -123,29 +122,40 @@ class OrderService extends Service
             //
 
             DB::commit();
+            
+            event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order));
 
-            // Events //有些事項必須在交易外執行，例如 DateLimits如果沒有當天，要根據預設的TimeSlots立即填充。
-            event(new OrderSaved(saved_order:$order, action:'insert'));
-
-            return ['data' => ['id' => $order->id, 'code' => $order->code]];
+            return $order;
 
         } catch (\Throwable $th) {
             DB::rollback();
-            throw $th;
+            return ['error' => $th->getMessage()];
         }
     }
 
     public function update($data, $order_id)
     {
         try {
-
             $data['id'] = $order_id;
 
             DB::beginTransaction();
 
-            // old order
-            $old_order = Order::findOrNew($order_id);
+            // old order 待處理
+            // $old_order_array = Order::with(['orderProducts.productTags'])->findOrFail($order_id)->toArray();
 
+            $old_order = Order::select('id','status_code', 'delivery_date')->with([
+                'orderProducts' => function ($query) {
+                    $query->select('id', 'order_id', 'product_id', 'quantity') // 只能在這裡指定欄位
+                          ->with([
+                              'productTags' => function ($query) {
+                                  $query->select('term_id', 'product_id'); // 這裡也是用 select()
+                              }
+                          ]);
+                }
+            ])->findOrFail($order_id)->toArray();
+
+            $old_order = arrayToObject($old_order);
+            
             // new order
             $order = (new OrderRepository)->update($data, $order_id);
 
@@ -194,16 +204,16 @@ class OrderService extends Service
                     }
                 }
             //
-            // Events
-            event(new OrderSaved(saved_order:$order, old_order:$old_order, action:'update'));
 
             DB::commit();
+            
+            event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order, old_order:$old_order));
 
-            return ['data' => ['id' => $order->id, 'code' => $order->code]];
+            return $order;
 
         } catch (\Throwable $th) {
             DB::rollback();
-            throw $th;
+            return ['error' => $th->getMessage()];
         }
     }
 

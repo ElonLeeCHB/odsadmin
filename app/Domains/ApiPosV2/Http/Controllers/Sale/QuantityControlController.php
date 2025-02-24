@@ -61,6 +61,7 @@ class QuantityControlController extends ApiPosController
         return $this->sendResponse($result);
     }
 
+    // 某日數量資料-重算訂單
     public function refreshOrderedQuantityByDate($date)
     {
         $result = $this->QuantityControlService->refreshOrderedQuantityByDate($date);

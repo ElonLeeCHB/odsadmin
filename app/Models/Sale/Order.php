@@ -64,6 +64,7 @@ class Order extends Model
     {
         return $this->orderProducts();
     }
+    
     //這才是慣例命名
     public function orderProducts()
     {

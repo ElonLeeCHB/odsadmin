@@ -4,9 +4,9 @@ namespace App\Repositories\Eloquent\Sale;
 
 use App\Repositories\Eloquent\Repository;
 use App\Helpers\Classes\DataHelper;
-use App\Helpers\Classes\DateHelper;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderDateLimit;
+use App\Models\Sale\TimeSlotLimit;
 use App\Models\Setting\Setting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -34,19 +34,19 @@ class OrderDateLimitRepository extends Repository
             $this->default_limits = $row->setting_value;
         }
 
-        return $this->sortDefaultLimits($this->default_limits);
+        return $this->sortTimeSlotKeys($this->default_limits);
     }
 
     // 確保時間段按照時間由早到晚
-    public function sortDefaultLimits($default_limits) {
-        uksort($default_limits, function($a, $b) {
+    public function sortTimeSlotKeys($default_limit_rows) {
+        uksort($default_limit_rows, function($a, $b) {
             $startA = explode('-', $a)[0];
             $startB = explode('-', $b)[0];
     
             return strtotime($startA) - strtotime($startB);
         });
     
-        return $default_limits;
+        return $default_limit_rows;
     }
 
     // 取得特定陣列格式。傳入的 $rows 必須是 OrderDateLimit 的 Collection 或是陣列化。
@@ -69,14 +69,14 @@ class OrderDateLimitRepository extends Repository
         return $result;
     }
 
-    // 取得指定日期的數量資料
-    public function getDateLimitsByDate($date)
+    // 取得資料庫指定日期的數量資料
+    public function getDbDateLimitsByDate($date)
     {
         $date = Carbon::parse($date)->toDateString();
         $rows = OrderDateLimit::whereDate('Date', $date)->get();
 
         if($rows->isEmpty()){
-            $result = $this->getDefaultDateLimits($date);
+            $result = $this->getFormattedByDefault($date);
         }else{
             $result = $this->getFormattedDataFromRows($rows);
         }
@@ -85,59 +85,48 @@ class OrderDateLimitRepository extends Repository
     }
 
     // 根據預設的數量基本資料，轉為指定日期的特定陣列
-    public function getDefaultDateLimits($date)
+    public function getFormattedByDefault($date)
     {
-        try {
-            $row = Setting::where('group','pos')->where('setting_key', 'pos_timeslotlimits')->first();
-            $default_time_slots = $row->setting_value;
-    
-            $result = [];
-    
-            if(!empty($default_time_slots)){
-                $result['Date'] = $date;
-    
-                foreach ($default_time_slots as $time_slot => $value) {
-                    $result['TimeSlots'][$time_slot]['MaxQuantity'] = $value;
-                    $result['TimeSlots'][$time_slot]['OrderedQuantity'] = 0;
-                    $result['TimeSlots'][$time_slot]['AcceptableQuantity'] = $value;
-                }
-            }
-    
-            return $result;
+        $row = Setting::where('group','pos')->where('setting_key', 'pos_timeslotlimits')->first();
+        $default_time_slots = $row->setting_value;
 
-        } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+        $result = [];
+
+        if(!empty($default_time_slots)){
+            $result['Date'] = $date;
+
+            foreach ($default_time_slots as $time_slot => $value) {
+                $result['TimeSlots'][$time_slot]['MaxQuantity'] = $value;
+                $result['TimeSlots'][$time_slot]['OrderedQuantity'] = 0;
+                $result['TimeSlots'][$time_slot]['AcceptableQuantity'] = $value;
+            }
         }
+
+        return $result;
     }
 
     // 根據預設的每日基本資料，重設每日的預設
     public function setDefaultDateLimits($date)
     {
-        try {
-            $default_limits = $this->getDefaultDateLimits($date);
+        $default_limits = $this->getFormattedByDefault($date);
 
-            // 新增記錄
-            foreach ($default_limits['TimeSlots'] as $time_slot => $row) {
-                $create_data[] = [
-                    'Date' => $date,
-                    'TimeSlot' => $time_slot,
-                    'MaxQuantity' => $row['MaxQuantity'],
-                    'OrderedQuantity' => 0,
-                    'AcceptableQuantity' => $row['AcceptableQuantity'],
-                ];
-            }
+        // 新增記錄
+        $upsert_data = [];
 
-            OrderDateLimit::whereDate('Date', $date)->delete();
-
-            if(!empty($create_data)){
-                OrderDateLimit::insert($create_data);
-            }
-
-        } catch (\Throwable $th) {
-            throw new \Exception('Error: ' . $th->getMessage());
+        foreach ($default_limits['TimeSlots'] as $time_slot => $row) {
+            $upsert_data[] = [
+                'Date' => $date,
+                'TimeSlot' => $time_slot,
+                'MaxQuantity' => $row['MaxQuantity'],
+                'OrderedQuantity' => 0,
+                'AcceptableQuantity' => $row['AcceptableQuantity'],
+            ];
         }
+
+        OrderDateLimit::upsert($upsert_data, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
     }
 
+    // 獲取時間段字串 09:00-09:59
     public function getTimeSlotKey($datetime)
     {
         // 檢查是否為 datetime 格式（例如：2025-02-14 14:30:00）
@@ -161,30 +150,141 @@ class OrderDateLimitRepository extends Repository
         return sprintf("%02d:%02d-%02d:%02d", $start_hour, $start_minute, $start_hour, $end_minute);
     }
 
-    // 確保載入關聯
-    private function reloadNecessaryRelationships(Order $order)
+    // 重設資料陣列。不寫入資料庫
+    public function adjustFormattedData(&$formatted_data)
     {
-        if (!$order->relationLoaded('orderProducts')) {
-            $order->load(['orderProducts' => function($query) {
-                $query->select('id', 'name')
-                      ->with(['productTags' => function($query) {
-                          $query->select('term_sdfid', 'product_id');
-                      }]);
-            }]);
+        $time_slot_keys = array_keys($formatted_data['TimeSlots']);
+        
+        // 從最晚的時間段開始處理
+        $time_slot_keys = array_keys($formatted_data['TimeSlots']);
+        $current_time_slot_key = last($time_slot_keys);
+        
+        // 從下午回推到早上九點停止
+        while(substr($current_time_slot_key,0,2) != '09'){
+
+            // 上一個時間段
+            $time_parts = explode('-', $current_time_slot_key);
+            $start_time = Carbon::parse($time_parts[0]);
+            $previous_time = $start_time->subHour()->format('H:i');
+            $previous_time_slot_key = (new TimeSlotLimit)->getTimeSlotKey($previous_time);
+
+            // 可訂量
+            if($formatted_data['TimeSlots'][$current_time_slot_key]['AcceptableQuantity'] < 0){
+                // 將上一個時間段的可訂量再扣掉當前時間段的可訂量。
+                $formatted_data['TimeSlots'][$previous_time_slot_key]['AcceptableQuantity'] -= abs($formatted_data['TimeSlots'][$current_time_slot_key]['AcceptableQuantity']);
+                $formatted_data['TimeSlots'][$current_time_slot_key]['AcceptableQuantity'] = 0; // 當前時間段的可訂量設為0
+            }
+
+            $current_time_slot_key = $previous_time_slot_key; // 為了繼續處理上一個時間段
+        }
+
+        return $formatted_data;
+    }
+
+    // 根據輸入的資料陣列，更新資料庫
+    public function upsertWithFormat(&$formatted_data)
+    {
+        try {
+            //先調整數量
+            $formatted_data = $this->adjustFormattedData($formatted_data);
+            echo "<pre>", print_r($formatted_data, true), "</pre>";exit;
+            $upsert_data = [];
+
+            foreach ($formatted_data['TimeSlots'] as $time_slot => $row) {
+                $upsert_data[] = [
+                    'Date' => $formatted_data['Date'],
+                    'TimeSlot' => $time_slot,
+                    'MaxQuantity' => $formatted_data['TimeSlots'][$time_slot]['MaxQuantity'],
+                    'OrderedQuantity' => $formatted_data['TimeSlots'][$time_slot]['OrderedQuantity'],
+                    'AcceptableQuantity' => $formatted_data['TimeSlots'][$time_slot]['AcceptableQuantity'],
+                ];
+            }
+
+            OrderDateLimit::upsert($upsert_data, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
+
+            return true;
+
+        } catch (\Throwable $th) {
+            return ['error' => $th->getMessage()];
         }
     }
 
-    // 執行重設的入口
-    public function resetQuantityControl(Order $saved_order, Order $old_order)
+    // 計算指定日期的訂單數量並更新資料庫
+    public function refreshOrderedQuantityByDate($date)
     {
-        $this->reloadNecessaryRelationships($saved_order);
-        $this->reloadNecessaryRelationships($old_order);
+        // 獲取指定日期的資料
+        $db_formatted =  $this->getDbDateLimitsByDate($date);
 
-        // $this->decreaseByOrder($old_order);
-        // echo "<pre>", print_r('decreaseByOrder 結束', true), "</pre>";exit;
-        $this->increaseByOrder($saved_order);
+        // 訂單資料
+
+            // $orders = Order::whereDate('delivery_date', '=', '2025-02-10')->get();
+
+            // $orders = Order::select('id', 'delivery_date')->whereDate('delivery_date', '2025-02-10')
+            // ->whereHas('orderProducts.productTags', function($query) {
+            //     $query->where('term_id', 1331);  // 確保有 term_id = 1331
+            // })
+            // ->with(['orderProducts' => function($query) {
+            //     $query->whereHas('productTags', function($query) {
+            //         $query->where('term_id', 1331);  // 只載入包含 term_id = 1331 的 productTags
+            //     });
+            // }])
+            // ->get();
+            //             echo "<pre>",setDefaultOrderlimits($orders,true),"</pre>";exit;
+            // // $sql = DB::getQueryLog();
+
+            $builder = DB::table('orders as o')
+                        ->select('o.id', 'o.delivery_date', 'op.id as order_product_id', 'op.order_id', 'op.product_id', 'op.name', 'op.quantity')
+                        ->join('order_products as op', 'o.id', '=', 'op.order_id')
+                        ->join('product_tags as pt', 'op.product_id', '=', 'pt.product_id')
+                        ->where('pt.term_id', 1331)  //1331=套餐
+                        ->whereDate('o.delivery_date', $date)
+                        ->whereIn('o.status_code', $this->increase_status_codes);
+
+            $orders = $builder->get();
+        //
+
+        // 初始化結果數組
+        $result = [];
+        $result['Date'] = $date;
+        $result['TimeSlots'] = [];
+
+        $array = [];
+
+        foreach ($orders ?? [] as $order) {
+
+            $time_slot_key = (new OrderDateLimitRepository)->getTimeSlotKey($order->delivery_date);
+
+            if(!isset($array[$time_slot_key]) || !isset($array[$time_slot_key]['MaxQuantity']) || !isset($array[$time_slot_key]['OrderedQuantity'])){
+                $array[$time_slot_key]['MaxQuantity'] = $db_formatted['TimeSlots'][$time_slot_key]['MaxQuantity'] ?? 0;
+                $array[$time_slot_key]['OrderedQuantity'] = 0;
+            }
+
+            $array[$time_slot_key]['OrderedQuantity'] += $order->quantity;
+        }
+
+        // 上面迴圈必須跑完執行完，才能執行下面的迴圈。
+
+        $upsert_data = [];
+
+        foreach ($array as $time_slot_key => $row) {
+            $upsert_data[] = [
+                'Date' => $date,
+                'TimeSlot' => $time_slot_key,
+                'MaxQuantity' => $row['MaxQuantity'],
+                'OrderedQuantity' => $row['OrderedQuantity'],
+                'AcceptableQuantity' => $row['MaxQuantity'] - $row['OrderedQuantity'],
+            ];
+        }
+
+        OrderDateLimit::upsert($upsert_data, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
+
+        // 重新再抓一次然後返回
+        $formatted =  (new OrderDateLimitRepository)->getDbDateLimitsByDate($date);
+        
+        return $formatted;
     }
 
+    // 根據訂單id 取得套餐數量
     public function getOrderProductsQuantity($order_id)
     {
         return DB::table('orders as o')
@@ -195,64 +295,46 @@ class OrderDateLimitRepository extends Repository
                         ->sum('op.quantity');  // 計算 op.quantity 的總和
     }
 
-    //未完 減去訂單數量
-    public function decreaseByOrder(Order $order)
-    {
-        if(empty($order->id)){
-            return;
-        }
-
-        $datelimits = (new OrderDateLimit)->getCurrentDateLimits($order->delivery_date_ymd);
-
-        foreach ($order->order_products ?? [] as $order_product) {
-            $should_decrease = false;
-
-            foreach ($order_product->productTags ?? [] as $productTag) {
-                if($productTag->term_id == 1331){ // 1331=套餐
-                    $should_decrease = true;
-                    break;
-                }
-            }
-            if($should_decrease == true){
-                $time_slot_key = $this->getTimeSlotKey($order->delivery_date);
-                $datelimits['TimeSlots'][$time_slot_key]['OrderedQuantity'] -= $order_product->quantity;
-                $datelimits['TimeSlots'][$time_slot_key]['AcceptableQuantity'] = $datelimits['TimeSlots'][$time_slot_key]['MaxQuantity'] - $datelimits['TimeSlots'][$time_slot_key]['OrderedQuantity'];
-            }
-        }
-        
-        // 最後重新整理時間段數量
-        (new OrderDateLimit)->updateWithFormat($datelimits);
-    }
-
-    //撰寫中 增加訂單數量
+    //增加訂單數量 訂單商品必須包含 product_tag_ids
     public function increaseByOrder(Order $order)
     {
-        try {
-            $sumQuantity = $this->getOrderProductsQuantity($order->id);
-            $date = Carbon::parse($order->delivery_date)->toDateString();
-            $time_slot_key = $this->getTimeSlotKey($order->delivery_date);
+        $data = request()->all();
 
-            // 獲取指定日期的資料
-            $db_formatted =  (new OrderDateLimitRepository)->getDateLimitsByDate($date);
+        $time_slot_key = (new OrderDateLimitRepository)->getTimeSlotKey($order->delivery_date);
 
-            // 增加訂單數量
-            $db_formatted['TimeSlots'][$time_slot_key]['OrderedQuantity'] += $sumQuantity;
+        $db_formatted =  (new OrderDateLimitRepository)->getDbDateLimitsByDate($order->delivery_date);
 
-            $MaxQuantity     = $db_formatted['TimeSlots'][$time_slot_key]['MaxQuantity'];
-            $OrderedQuantity = $db_formatted['TimeSlots'][$time_slot_key]['OrderedQuantity'];
-
-            $db_formatted['TimeSlots'][$time_slot_key]['AcceptableQuantity'] = $MaxQuantity - $OrderedQuantity;
-
-            // 調整負數
-
-
-
-            //
-            
-            return true;
-        } catch (\Throwable $th) {
-            return ['error' => $th->getMessage()];
+        foreach ($data['order_products'] ?? [] as $order_product) { //1331 = 套餐
+            if(in_array(1331, $order_product['product_tag_ids'] ?? [])){
+                $db_formatted['TimeSlots'][$time_slot_key]['OrderedQuantity'] += $order_product['quantity'];
+                $db_formatted['TimeSlots'][$time_slot_key]['AcceptableQuantity'] = $db_formatted['TimeSlots'][$time_slot_key]['MaxQuantity'] - $db_formatted['TimeSlots'][$time_slot_key]['OrderedQuantity'];
+            }
         }
+
+        $this->updateWithFormattedData($db_formatted);
+    }
+
+    // 傳入格式化的陣列，更新資料庫
+    public function updateWithFormattedData($db_formatted)
+    {
+        // 先調整負數數量
+        $this->adjustFormattedData($db_formatted);
+
+        // 新增記錄
+        $upsert_data = [];
+
+        foreach ($db_formatted['TimeSlots'] as $time_slot => $row) {
+            $upsert_data[] = [
+                'Date' => $db_formatted['Date'],
+                'TimeSlot' => $time_slot,
+                'MaxQuantity' => $row['MaxQuantity'],
+                'OrderedQuantity' => 0,
+                'AcceptableQuantity' => $row['AcceptableQuantity'],
+            ];
+        }
+
+        OrderDateLimit::upsert($upsert_data, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
+
     }
 }
 

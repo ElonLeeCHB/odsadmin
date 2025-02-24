@@ -54,18 +54,16 @@ class ApiWwwV2Controller extends Controller
 
     public function sendResponse($json)
     {
-        //有任何錯誤
-        if(!empty($json['error']) || !empty($json['errors']) || !empty($json['warning']) || !empty($json['errorWarning'])){
-            if(!empty($json['status_code'])){
-                $status_code = $json['status_code'];
-            }else{
-                $status_code = 400;
-            }
+        if(!is_array($json)){
+            $json = [];
         }
+
         //無任何錯誤
-        else{
-            $json['success'] = 'ok';
+        if(empty($json['error']) && empty($json['errors']) && empty($json['warning'])  && empty($json['errorWarning'])){
+            $json = array_merge(['success' => true], $json);
             $status_code = 200;
+        }else{
+            $status_code = 400;
         }
 
         return response()->json($json, $status_code, [], JSON_UNESCAPED_UNICODE)->header('Content-Type','application/json');
