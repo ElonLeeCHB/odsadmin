@@ -6,6 +6,9 @@ use Illuminate\Console\Command;
 use App\Repositories\Eloquent\Sale\OrderDateLimitRepository;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * 暫時用不到。在訂單新增的時候處理。
+ */
 class FillOrderDateLimit extends Command
 {
     protected $signature = 'app:fill-order-date-limit';
@@ -14,7 +17,7 @@ class FillOrderDateLimit extends Command
     public function handle()
     {
         try {
-            (new OrderDateLimitRepository)->makeFuture30Days();
+            (new OrderDateLimitRepository)->makeFutureDays(60);
             $this->info('FillOrderDateLimit 執行完成');
         } catch (\Exception $e) {
             Log::error('app:fill-order-date-limit 執行失敗: ' . $e->getMessage());

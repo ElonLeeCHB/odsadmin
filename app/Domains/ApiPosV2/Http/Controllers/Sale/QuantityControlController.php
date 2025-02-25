@@ -69,6 +69,20 @@ class QuantityControlController extends ApiPosController
         return $this->sendResponse($result);
     }
 
+    // 未來資料
+    public function getFutureDays($days = 30)
+    {
+        $days = min($days, 60);
+
+        $result = $this->QuantityControlService->getFutureDays($days);
+
+        return $this->sendResponse($result);
+    }
+
+    
+
+    
+
 
     
 }

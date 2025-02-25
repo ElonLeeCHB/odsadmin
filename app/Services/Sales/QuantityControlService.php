@@ -132,7 +132,19 @@ class QuantityControlService extends Service
             
             return ['data' => $formatted];
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            return ['error' => $th->getMessage()];
+        }
+    }
+
+    // 未來資料
+    public function getFutureDays($futuredays)
+    {
+        try {
+            $rows =   (new OrderDateLimitRepository)->getFutureDays($futuredays);
+
+            return ['data' => $rows];
+        } catch (\Throwable $th) {
+            return ['error' => $th->getMessage()];
         }
     }
 }

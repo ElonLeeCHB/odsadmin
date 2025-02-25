@@ -123,7 +123,7 @@ class OrderService extends Service
 
             DB::commit();
             
-            event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order));
+            event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
 
             return $order;
 
