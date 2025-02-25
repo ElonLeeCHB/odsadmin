@@ -94,6 +94,9 @@ Route::group([
         // });
     });
 
+
+    Route::get('test', 'ApiPosController@test')->name('test');
+
 });
 
 

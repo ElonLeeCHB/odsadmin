@@ -84,5 +84,12 @@ class ApiPosController extends Controller
 
         return response()->json($json, $status_code);
     }
+
+    public function test()
+    {
+        (new \App\Repositories\Eloquent\Sale\OrderDateLimitRepository)->makeFuture30Days();
+
+        return response()->json(['data' => 123], 200);
+    }
     
 }

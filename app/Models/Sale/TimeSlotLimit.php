@@ -13,16 +13,22 @@ class TimeSlotLimit extends Model
 
     public function getTimeSlotKey($datetime)
     {
-        // 先將 $datetime 轉換成 Carbon 實例
-        $carbonDate = Carbon::parse($datetime);
-        
-        // 計算出當前小時的開始時間 (例如： 09:00)
-        $startOfHour = $carbonDate->copy()->startOfHour();
+        if (strtotime($datetime)) {
+            $time = Carbon::parse($datetime);
+        } else if (strlen($datetime) == 4 && ctype_digit($datetime)) {
+            $time = substr($datetime, 0, 2) . ':' . substr($datetime, 2, 2);
+        } else if (Carbon::createFromFormat('H:i', $datetime)) {
+            $time = Carbon::createFromFormat('H:i', $datetime);
+        }else{
+            $time = '00:00';
+        }
     
-        // 計算出當前小時的結束時間 (例如： 09:59)
-        $endOfHour = $carbonDate->copy()->endOfHour();
+        $hour = (int)$time->format('H');
         
-        // 返回格式化後的時間段，例如： "09:00-09:59"
-        return $startOfHour->format('H:i') . '-' . $endOfHour->format('H:i');
+        $start_hour = floor($hour / 1) * 1; 
+        $start_minute = 0;
+        $end_minute = 59;
+    
+        return sprintf("%02d:%02d-%02d:%02d", $start_hour, $start_minute, $start_hour, $end_minute);
     }
 }

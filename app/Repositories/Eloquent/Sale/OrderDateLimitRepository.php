@@ -38,7 +38,8 @@ class OrderDateLimitRepository extends Repository
     }
 
     // 確保時間段按照時間由早到晚
-    public function sortTimeSlotKeys($default_limit_rows) {
+    public function sortTimeSlotKeys($default_limit_rows) 
+    {
         uksort($default_limit_rows, function($a, $b) {
             $startA = explode('-', $a)[0];
             $startB = explode('-', $b)[0];
@@ -69,7 +70,7 @@ class OrderDateLimitRepository extends Repository
         return $result;
     }
 
-    // 取得資料庫指定日期的數量資料
+    // 取得指定日期的資料
     public function getDbDateLimitsByDate($date)
     {
         $date = Carbon::parse($date)->toDateString();
@@ -124,30 +125,6 @@ class OrderDateLimitRepository extends Repository
         }
 
         OrderDateLimit::upsert($upsert_data, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
-    }
-
-    // 獲取時間段字串 09:00-09:59
-    public function getTimeSlotKey($datetime)
-    {
-        // 檢查是否為 datetime 格式（例如：2025-02-14 14:30:00）
-        if (strtotime($datetime)) {
-            // 如果是 datetime 格式，使用 Carbon 解析
-            $time = Carbon::parse($datetime);
-        } else {
-            // 如果是時間格式（H:i）
-            $time = Carbon::createFromFormat('H:i', $datetime);
-        }
-    
-        // 提取小時部分
-        $hour = (int)$time->format('H');
-        
-        // 根據小時決定時間區段
-        $start_hour = floor($hour / 1) * 1; // 每個區段寬度是 1 小時
-        $start_minute = 0;
-        $end_minute = 59;
-    
-        // 格式化時間區段
-        return sprintf("%02d:%02d-%02d:%02d", $start_hour, $start_minute, $start_hour, $end_minute);
     }
 
     // 重設資料陣列。不寫入資料庫
@@ -252,7 +229,7 @@ class OrderDateLimitRepository extends Repository
 
         foreach ($orders ?? [] as $order) {
 
-            $time_slot_key = (new OrderDateLimitRepository)->getTimeSlotKey($order->delivery_date);
+            $time_slot_key = (new TimeSlotLimit)->getTimeSlotKey($order->delivery_date);
 
             if(!isset($array[$time_slot_key]) || !isset($array[$time_slot_key]['MaxQuantity']) || !isset($array[$time_slot_key]['OrderedQuantity'])){
                 $array[$time_slot_key]['MaxQuantity'] = $db_formatted['TimeSlots'][$time_slot_key]['MaxQuantity'] ?? 0;
@@ -300,7 +277,7 @@ class OrderDateLimitRepository extends Repository
     {
         $data = request()->all();
 
-        $time_slot_key = (new OrderDateLimitRepository)->getTimeSlotKey($order->delivery_date);
+        $time_slot_key = (new TimeSlotLimit)->getTimeSlotKey($order->delivery_date);
 
         $db_formatted =  (new OrderDateLimitRepository)->getDbDateLimitsByDate($order->delivery_date);
 
@@ -334,7 +311,48 @@ class OrderDateLimitRepository extends Repository
         }
 
         OrderDateLimit::upsert($upsert_data, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
-
     }
+
+    // 產生未來30天的預設資料 若已有資料則略過
+    public function makeFuture30Days()
+    {
+        $futureDays = 30;
+        $today = Carbon::today();
+        $todaySring = $today->format('Y-m-d');
+        $targetDateString = Carbon::today()->addDays($futureDays)->format('Y-m-d');
+
+        $record = OrderDateLimit::where('Date', 'LIKE', "$targetDateString%")->first();
+
+        if ($record) {
+            return true;
+        }
+
+        $records = OrderDateLimit::whereBetween('Date', [$todaySring, $targetDateString]);
+        $records = $records->get()->keyBy('Date');
+
+        $default_limits = $this->getDefaultLimits();
+
+        $upsert_data = [];
+
+        // 遍歷未來30天
+        for ($i = 0; $i < $futureDays; $i++) {
+            $date = Carbon::today()->addDays($i)->format('Y-m-d');
+
+            if(empty($records[$date])){
+                foreach ($default_limits as $time_slot_key => $max) {
+                    $upsert_data[] = [
+                        'Date' => $date,
+                        'TimeSlot' => $time_slot_key,
+                        'MaxQuantity' => $max,
+                        'OrderedQuantity' => 0,
+                        'AcceptableQuantity' => $max,
+                    ];
+                }
+                OrderDateLimit::upsert($upsert_data, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
+            }
+        }
+    }
+
+
 }
 
