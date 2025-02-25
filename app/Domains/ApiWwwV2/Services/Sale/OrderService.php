@@ -208,10 +208,10 @@ class OrderService extends Service
                 }
             //
 
-            // Events
-            event(new OrderSaved(saved_order:$order, action:'insert'));
-
             DB::commit();
+            
+            // Events
+            event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
 
             return ['data' => ['id' => $order->id, 'code' => $order->code]];
 

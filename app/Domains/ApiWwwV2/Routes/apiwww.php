@@ -44,6 +44,15 @@ Route::group([
         Route::post('update-timeslot', 'Sale\QuantityControlController@updateTimeslot')->name('updateTimeslot');
         Route::get('get-timeslot', 'Sale\QuantityControlController@getTimeslot')->name('getTimeslot');
         Route::post('add-special', 'Sale\QuantityControlController@addSpecial')->name('addSpecial');
+
+        Route::group([
+            'prefix' => 'orderlimit',
+            'as' => 'orderlimit.',
+        ], function ()
+        {
+            // 取得未來數量
+            Route::get('getFutureDays/{days}', 'Sale\QuantityControlController@getFutureDays')->name('getFutureDays');
+        });
     });
 
     Route::group([

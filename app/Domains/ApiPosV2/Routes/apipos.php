@@ -75,7 +75,7 @@ Route::group([
                 // 某日數量資料-重算訂單
                 Route::get('refreshOrderedQuantityByDate/{date}', 'Sale\QuantityControlController@refreshOrderedQuantityByDate')->name('refreshOrderedQuantityByDate');
 
-                // 某日數量資料-重算訂單
+                // 取得未來數量
                 Route::get('getFutureDays/{days}', 'Sale\QuantityControlController@getFutureDays')->name('getFutureDays');
             });
 

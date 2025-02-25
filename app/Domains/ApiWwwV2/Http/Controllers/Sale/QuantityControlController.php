@@ -15,16 +15,14 @@ class QuantityControlController extends ApiWwwV2Controller
             parent::__construct();
         }
     }
-    
-    public function getTimeslot()
+
+    // 未來資料
+    public function getFutureDays($days = 30)
     {
-        try {
-            $content = $this->QuantityControlService->getTimeslot();        
+        $days = min($days, 60);
 
-            return $this->sendResponse(['data' => $content]);
+        $result = $this->QuantityControlService->getFutureDays($days);
 
-        } catch (\Throwable $th) {
-            return response()->json(['error' => $th->getMessage()], 400);
-        }
+        return $this->sendResponse($result);
     }
 }

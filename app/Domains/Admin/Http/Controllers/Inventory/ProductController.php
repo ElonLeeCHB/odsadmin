@@ -352,7 +352,7 @@ class ProductController extends BackendController
 
         if(!$json) {
             $result = $this->ProductService->saveProduct($data);
-
+            echo "<pre>",print_r($result,true),"</pre>\r\n";exit;
             if(empty($result['error'])){
                 $json = [
                     'success' => $this->lang->text_success,

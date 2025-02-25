@@ -27,7 +27,6 @@ class AppServiceProvider extends ServiceProvider
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
 
         // Events
-        // \App\Events\OrderSavedAfterCommit::class => [\App\Listeners\SalesOrder\UpdateOrderQuantityControl::class,];
         Event::listen(\App\Events\OrderSavedAfterCommit::class, \App\Listeners\SalesOrder\UpdateOrderQuantityControl::class);
     }
 }

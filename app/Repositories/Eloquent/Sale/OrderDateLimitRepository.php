@@ -363,7 +363,7 @@ class OrderDateLimitRepository extends Repository
             }
         }
     }
-    
+
     // 取得未來數量
     public function getFutureDays($futureDays = 30)
     {
@@ -394,13 +394,25 @@ class OrderDateLimitRepository extends Repository
             if(empty($result[$month][$date])){
                 $default_limits = $this->getDefaultLimits();
 
+                $upsert_date = [];
+
                 foreach ($default_limits as $time_slot_key => $max) {
                     $result[$month][$date][$time_slot_key] = [
                         'MaxQuantity' => $max,
                         'OrderedQuantity' => 0,
                         'AcceptableQuantity' => $max,
                     ];
+
+                    $upsert_date[] = [
+                        'Date' => $date,
+                        'TimeSlot' => $$time_slot_key,
+                        'MaxQuantity' => $max,
+                        'OrderedQuantity' => 0,
+                        'AcceptableQuantity' => $max,
+                    ];
                 }
+                
+                OrderDateLimit::upsert($upsert_date, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
             }
 
         }

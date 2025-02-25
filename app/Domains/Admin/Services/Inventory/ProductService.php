@@ -27,6 +27,7 @@ class ProductService extends Service
     public function saveProduct($post_data, $debug = 0)
     {
         DB:: beginTransaction();
+
         try {
 
             $product_id = $post_data['product_id'] ?? $post_data['id'] ?? null;
@@ -120,6 +121,7 @@ class ProductService extends Service
                 }
             }
 
+            DB::commit();
             DB::commit();
 
             // save to json cache

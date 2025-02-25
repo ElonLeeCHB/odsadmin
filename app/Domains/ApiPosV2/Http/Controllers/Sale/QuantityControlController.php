@@ -78,11 +78,4 @@ class QuantityControlController extends ApiPosController
 
         return $this->sendResponse($result);
     }
-
-    
-
-    
-
-
-    
 }
