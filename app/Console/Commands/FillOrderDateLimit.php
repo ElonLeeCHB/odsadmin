@@ -7,7 +7,7 @@ use App\Repositories\Eloquent\Sale\OrderDateLimitRepository;
 use Illuminate\Support\Facades\Log;
 
 /**
- * 暫時用不到。在訂單新增的時候處理。
+ * 暫時用不到。在訂單新增的時候自動處理。
  */
 class FillOrderDateLimit extends Command
 {
