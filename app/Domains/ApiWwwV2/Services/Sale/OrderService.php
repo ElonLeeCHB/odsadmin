@@ -12,6 +12,7 @@ use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
 use App\Repositories\Eloquent\Material\ProductRepository;
 use App\Models\Sale\Order;
+use App\Models\Sale\OrderTotal;
 use App\Models\Material\Product;
 use App\Models\Material\ProductOption;
 use App\Events\OrderCreated;
@@ -216,6 +217,26 @@ class OrderService extends Service
                 }
             // end order_product_options
 
+            // OrderTotal
+                if(!empty($data['order_totals'])){
+                    $update_order_totals = [];
+                    $sort_order = 1;
+                    foreach($data['order_totals'] as $code => $order_total){
+                        $update_order_totals[] = [
+                            'order_id'  => $order->id,
+                            'code'      => trim($code),
+                            'title'     => trim($order_total['title']),
+                            'value'     => str_replace(',', '', $order_total['value']),
+                            'sort_order' => $sort_order,
+                        ];
+                        $sort_order++;
+                    }
+
+                    if(!empty($update_order_totals)){
+                        OrderTotal::upsert($update_order_totals,['id']);
+                    }
+                }
+            //
             // Events
             event(new OrderCreated($order));
 

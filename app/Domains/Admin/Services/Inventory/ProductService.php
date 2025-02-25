@@ -121,6 +121,7 @@ class ProductService extends Service
             }
 
             DB::commit();
+            DB::commit();
 
             // save to json cache
             $this->repository->setJsonCache($product->id);
