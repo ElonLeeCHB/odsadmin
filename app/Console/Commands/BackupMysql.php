@@ -23,7 +23,7 @@ class BackupMysql extends Command
             $backup_dir = env('DB_BACKUP_DIR');
 
             // 壓縮程式執行檔
-            $zipexe = env('ZIPEXE');
+            $zipexe = env('7ZEXE');
 
             $db_host = 'localhost';
             $db_user = config('database.connections.mysql.username');

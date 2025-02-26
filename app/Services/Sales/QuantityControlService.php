@@ -70,7 +70,7 @@ class QuantityControlService extends Service
                 }else{
                     $maxQuantity = $row['MaxQuantity'];
                 }
-                
+
                 $insert_data[] = [
                     'Date' => $data['Date'],
                     'TimeSlot' => $time_slot,
@@ -79,11 +79,12 @@ class QuantityControlService extends Service
                     'AcceptableQuantity' => $maxQuantity - $row['OrderedQuantity'],
                 ];
             }
+            // echo "<pre>",print_r($insert_data,true),"</pre>\r\n";exit;
 
             OrderDateLimit::whereDate('Date', $data['Date'])->delete();
             OrderDateLimit::insert($insert_data);
 
-            $formatted =  (new OrderDateLimitRepository)->getFormattedByDefault($data['Date']);
+            $formatted =  (new OrderDateLimitRepository)->getDbDateLimitsByDate($data['Date']);
             
             return ['data' => $formatted];
 

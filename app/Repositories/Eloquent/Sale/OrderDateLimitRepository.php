@@ -164,8 +164,6 @@ class OrderDateLimitRepository extends Repository
 
             $current_time_slot_key = $previous_time_slot_key; // 為了繼續處理上一個時間段
         }
-
-        return $formatted_data;
     }
 
     // 根據輸入的資料陣列，更新資料庫
@@ -173,8 +171,8 @@ class OrderDateLimitRepository extends Repository
     {
         try {
             //先調整數量
-            $formatted_data = $this->adjustFormattedData($formatted_data);
-            echo "<pre>", print_r($formatted_data, true), "</pre>";exit;
+            $this->adjustFormattedData($formatted_data);
+
             $upsert_data = [];
 
             foreach ($formatted_data['TimeSlots'] as $time_slot => $row) {
@@ -345,7 +343,6 @@ class OrderDateLimitRepository extends Repository
 
         $upsert_data = [];
 
-        // 遍歷未來30天
         for ($i = 0; $i < $futureDays; $i++) {
             $date = Carbon::today()->addDays($i)->format('Y-m-d');
 
@@ -414,7 +411,6 @@ class OrderDateLimitRepository extends Repository
                 
                 OrderDateLimit::upsert($upsert_date, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
             }
-
         }
 
         return $result;
