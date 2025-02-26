@@ -645,14 +645,14 @@
             <td style="width:100px;" class="fw-bold">{{ $order['categories']['sharingMeal']['name'] }}</td>
             <td style="width:24px;" class="fw-bold">小計</td>
             @php $column_used_num = 2; @endphp
-            @foreach($order['categories']['sharingMeal']['Columns']['MainMeal'] ?? [] as $option_value_id => $name)
+            @foreach($columns['lumpiaSharing']['MainMeal'] ?? [] as $item)
               <td style="width:24px; @if ($loop->last) border-right:3px solid black @endif" class="fw-bold">
-                {{ $name }}
+                {{ $item->short_name }}
               </td>
               @php $column_used_num++; @endphp
             @endforeach
 
-            @php $left = 31-$column_used_num; @endphp
+            @php $left = 30-$column_used_num; @endphp
             @for($i = 1; $i <= $left; $i++)
               <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif" class="fw-bold"> </td>
             @endfor
@@ -664,16 +664,16 @@
             <td>{{ $row['name'] }}</td>
             <td>{{ $row['quantity'] }}</td>
             @php $column_used_num = 2; @endphp
-            @foreach($order['categories']['sharingMeal']['Columns']['MainMeal'] ?? [] as $option_value_id => $name)
+            @foreach($columns['lumpiaSharing']['MainMeal'] ?? [] as $item)
               <td style="@if ($loop->last) border-right:3px solid black @endif">
-                @if(!empty($row['product_options']['MainMeal'][$option_value_id]['quantity']))
-                  {{ $row['product_options']['MainMeal'][$option_value_id]['quantity'] }}
+                @if(!empty($row['product_options']['MainMeal'][$item->option_value_id]['quantity']))
+                  {{ $row['product_options']['MainMeal'][$item->option_value_id]['quantity'] }}
                 @endif
               </td>
               @php $column_used_num++; @endphp
             @endforeach
 
-            @php $left = 31-$column_used_num; @endphp
+            @php $left = 30-$column_used_num; @endphp
             @for($i = 1; $i <= $left; $i++)
               <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
             @endfor

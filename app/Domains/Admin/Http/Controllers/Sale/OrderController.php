@@ -827,6 +827,9 @@ class OrderController extends BackendController
                 $data['columns']['guabaoLunchBox']['MainMeal'] = $this->OrderService->getOptionValuesByProductOption(product_id:1680, option_id:1003);
                 $data['columns']['guabaoLunchBox']['SideDish'] = $this->OrderService->getOptionValuesByProductOption(product_id:1680, option_id:1005);
 
+                //分享餐的主餐 使用潤餅便當
+                $data['columns']['lumpiaSharing']['MainMeal'] = $data['columns']['lumpiaBento']['MainMeal'];
+                
                 //飲料 抓選項
                 $data['columns']['Drink'] = $this->OrderService->getDrinks();
 
