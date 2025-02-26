@@ -319,7 +319,7 @@ class OrderDateLimitRepository extends Repository
                 'AcceptableQuantity' => $row['AcceptableQuantity'],
             ];
         }
-
+        
         OrderDateLimit::upsert($upsert_data, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
     }
 

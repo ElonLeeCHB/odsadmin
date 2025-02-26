@@ -830,7 +830,6 @@ class OrderController extends BackendController
                 //分享餐的主餐 使用潤餅便當
                 $data['columns']['lumpiaSharing']['MainMeal'] = $data['columns']['lumpiaBento']['MainMeal'];
 
-
                 //飲料 抓選項
                 $data['columns']['Drink'] = $this->OrderService->getDrinks();
 

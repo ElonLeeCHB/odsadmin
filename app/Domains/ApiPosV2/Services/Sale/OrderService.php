@@ -52,7 +52,9 @@ class OrderService extends Service
             $filter_data['equal_code'] = $identifier;
         }
 
-        $filter_data['with'] = ['order_products.order_product_options', 'totals', 'tags'];
+        $filter_data['with'] = ['orderProducts.orderProductOptions'
+                                , 'orderProducts.productTags'
+                                , 'totals', 'tags'];
 
         $order = $this->getRow($filter_data);
 
@@ -63,7 +65,9 @@ class OrderService extends Service
 
         unset($order['shipping_state']);
         unset($order['shipping_city']);
-        
+
+        $order = DataHelper::unsetArrayIndexRecursively($order, ['translation', 'translations']);
+
         return $order;
 
     }

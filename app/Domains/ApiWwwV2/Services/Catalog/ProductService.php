@@ -7,6 +7,7 @@ use App\Services\Service;
 use App\Repositories\Eloquent\Material\ProductRepository;
 use App\Traits\Model\EloquentTrait;
 use App\Helpers\Classes\RowsArrayHelper;
+use App\Models\Material\ProductTag;
 
 class ProductService extends Service
 {
@@ -20,6 +21,10 @@ class ProductService extends Service
 
         if(empty($product)){
             return [];
+        }
+
+        if (!$product->relationLoaded('productTags')) {
+            $product->load('productTags');
         }
 
         $product->web_name = $product->translation->web_name;

@@ -258,6 +258,7 @@ class Product extends Model
         $product =  DataHelper::remember($this->getCacheKey($product_id), 60*60, 'json', function() use ($product_id){
 
             $product = self::with('translations')
+                ->with('productTags.translation')
                 ->with('product_options.translation')
                 ->with('product_options.product_option_values.translation')->find($product_id);
 

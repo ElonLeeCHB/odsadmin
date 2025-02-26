@@ -29,7 +29,7 @@ class OrderService extends Service
             $data['select'] = ['id', 'code', 'personal_name', 'delivery_time_range','status_code','order_date','delivery_date'];
             
             $builder = Order::applyFilters($data);
-
+            
             if(!empty($data['with'])){
                 if(is_string($data['with'])){
                     $with = explode(',', $data['with']);

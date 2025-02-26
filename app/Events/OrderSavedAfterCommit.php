@@ -6,7 +6,6 @@ namespace App\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Sale\Order;
 
 class OrderSavedAfterCommit
 {
