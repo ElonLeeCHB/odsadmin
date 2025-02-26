@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
  */
 class BackupMysql extends Command
 {
-    protected $signature = 'app:backup-database';
+    protected $signature = 'schedule:backup-database';
     protected $description = '備份資料庫';
 
     public function handle()

@@ -21,7 +21,6 @@ Route::group([
         Route::get('products/info/{product_id}', 'Catalog\ProductController@info')->name('products.info');
     });
 
-
     Route::group([
         'prefix' => 'sales',
         'as' => 'sales.',

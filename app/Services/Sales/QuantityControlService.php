@@ -8,7 +8,7 @@ use App\Repositories\Eloquent\Sale\OrderDateLimitRepository;
 
 class QuantityControlService extends Service
 {
-    // 完成。絕對不再改
+    // 預設時間段數量-獲取
     public function getTimeslots()
     {
         try {
@@ -21,7 +21,7 @@ class QuantityControlService extends Service
         }
     }
 
-    // 完成。絕對不再改
+    // 預設時間段數量-更新
     public function updateTimeslots($content)
     {
         try {
@@ -39,7 +39,7 @@ class QuantityControlService extends Service
         }
     }
 
-    // 完成。絕對不再改
+    // 某日數量資料-獲取
     public function getOrderDateLimitsByDate($date)
     {
         try {
@@ -52,7 +52,7 @@ class QuantityControlService extends Service
         }
     }
 
-    // 完成。絕對不再改
+    // 某日數量資料-更新上限
     public function updateMaxQuantityByDate($data)
     {
         // 這裡只更新 order_date_limits。不重新掃描 orders 訂單表。
@@ -62,16 +62,16 @@ class QuantityControlService extends Service
             // 獲取指定日期的資料
             $db_formatted =  (new OrderDateLimitRepository)->getFormattedByDefault($data['Date']);
 
-            $insert_data = [];
+            $upsert_date = [];
 
             foreach ($db_formatted['TimeSlots'] as $time_slot => $row) {
                 if(isset($data['TimeSlots'][$time_slot])){
-                    $maxQuantity = $data['TimeSlots'][$time_slot];
+                    $maxQuantity = $data['TimeSlots'][$time_slot]['MaxQuantity'];
                 }else{
                     $maxQuantity = $row['MaxQuantity'];
                 }
 
-                $insert_data[] = [
+                $upsert_date[] = [
                     'Date' => $data['Date'],
                     'TimeSlot' => $time_slot,
                     'MaxQuantity' => $maxQuantity,
@@ -79,21 +79,19 @@ class QuantityControlService extends Service
                     'AcceptableQuantity' => $maxQuantity - $row['OrderedQuantity'],
                 ];
             }
-            // echo "<pre>",print_r($insert_data,true),"</pre>\r\n";exit;
 
-            OrderDateLimit::whereDate('Date', $data['Date'])->delete();
-            OrderDateLimit::insert($insert_data);
+            OrderDateLimit::upsert($upsert_date, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
 
             $formatted =  (new OrderDateLimitRepository)->getDbDateLimitsByDate($data['Date']);
             
-            return ['data' => $formatted];
+            return true;
 
         } catch (\Throwable $th) {
             return ['error' => $th->getMessage()];
         }
     }
 
-    // 完成。絕對不再改
+    // 某日數量資料-恢復預設上限
     public function resetDefaultMaxQuantityByDate($date)
     {
         // 只用於更新上限數量，然後沿用當前的訂單數量，據以計算可訂量。不重新讀取訂單表等相關資料。
@@ -125,7 +123,7 @@ class QuantityControlService extends Service
         }
     }
 
-    // 更新訂單數量
+    // 某日數量資料-重算訂單
     public function refreshOrderedQuantityByDate($date)
     {
         try {
@@ -141,9 +139,9 @@ class QuantityControlService extends Service
     public function getFutureDays($futuredays)
     {
         try {
-            $rows =   (new OrderDateLimitRepository)->getFutureDays($futuredays);
+            $result =   (new OrderDateLimitRepository)->getFutureDays($futuredays);
 
-            return ['data' => $rows];
+            return ['data' => $result];
         } catch (\Throwable $th) {
             return ['error' => $th->getMessage()];
         }

@@ -375,9 +375,8 @@ class OrderDateLimitRepository extends Repository
 
         foreach ($records ?? [] as $row) {
             $date = $row->Date->format('Y-m-d');
-            $month = $row->Date->format('Y-m');
 
-            $result[$month][$date][$row->TimeSlot] = [
+            $result[$date][$row->TimeSlot] = [
                     'MaxQuantity' => $row->MaxQuantity,
                     'OrderedQuantity' => $row->OrderedQuantity,
                     'AcceptableQuantity' => $row->AcceptableQuantity,
@@ -386,15 +385,14 @@ class OrderDateLimitRepository extends Repository
 
         for ($i = 0; $i < $futureDays; $i++) {
             $date = Carbon::today()->addDays($i)->format('Y-m-d');
-            $month = Carbon::today()->addDays($i)->format('Y-m');
 
-            if(empty($result[$month][$date])){
+            if(empty($result[$date])){
                 $default_limits = $this->getDefaultLimits();
 
                 $upsert_date = [];
 
                 foreach ($default_limits as $time_slot_key => $max) {
-                    $result[$month][$date][$time_slot_key] = [
+                    $result[$date][$time_slot_key] = [
                         'MaxQuantity' => $max,
                         'OrderedQuantity' => 0,
                         'AcceptableQuantity' => $max,
@@ -402,7 +400,7 @@ class OrderDateLimitRepository extends Repository
 
                     $upsert_date[] = [
                         'Date' => $date,
-                        'TimeSlot' => $$time_slot_key,
+                        'TimeSlot' => $time_slot_key,
                         'MaxQuantity' => $max,
                         'OrderedQuantity' => 0,
                         'AcceptableQuantity' => $max,

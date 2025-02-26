@@ -43,11 +43,21 @@ class QuantityControlController extends ApiPosController
         return $this->sendResponse($result);
     }
 
-    // 某日數量資料-更新上限
+    // 某日數量資料-更新上限 注意傳入的網址參數是 $date, 不是 $data
     public function updateMaxQuantityByDate($date)
     {
-        $data['Date'] = $date;
-        $data['TimeSlots'] = request()->post();
+        $data = [];
+
+        $post_data = request()->post();
+
+        if(!empty($post_data['Date']) && !empty($post_data['TimeSlots'])){
+            $data['Date'] = $post_data['Date'];
+            $data['TimeSlots'] = $post_data['TimeSlots'];
+        }else{
+            $data['Date'] = $date;
+            $data['TimeSlots'] = request()->post();
+        }
+
         $result = $this->QuantityControlService->updateMaxQuantityByDate($data);
 
         return $this->sendResponse($result);

@@ -10,11 +10,12 @@ class Kernel extends ConsoleKernel
     /**
      * Define the application's command schedule.
      * everyMinute, daily
+     * C:\Servers\php\php83\php.exe artisan schedule:run
+     * C:\Servers\php\php83\php.exe artisan schedule:work
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('app:fill-order-date-limit')->daily();
-        $schedule->command('app:backup-database')->at('23:00');
+        $schedule->command('schedule:backup-database')->at('23:30');
     }
 
     /**
