@@ -7,11 +7,13 @@ use App\Services\Sale\OrderService as GlobalOrderService;
 use App\Models\Common\Term;
 use App\Models\Common\TermTranslation;
 use App\Models\Common\TermRelation;
+use App\Models\Sale\Order;
 use App\Models\Sale\OrderTag;
 use App\Models\Sale\OrderTotal;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Catalog\ProductTranslation;
 use App\Events\OrderCreated;
+use Carbon\Carbon;
 
 class OrderService extends GlobalOrderService
 {
@@ -30,12 +32,25 @@ class OrderService extends GlobalOrderService
 
             $order_id = $data['order_id'] ?? null;
 
-            //新增或是修改。最後會使用在 OrderCreated 事件
-            $is_new_order = 0;
-            //沒有傳入 order_id 代表新增
-            if(empty($data['order_id'])){
-                $is_new_order = 1;
+            // old order
+            if(!empty($order_id)){
+                $old_order = Order::select('id','status_code', 'delivery_date')->with([
+                    'orderProducts' => function ($query) {
+                        $query->select('id', 'order_id', 'product_id', 'quantity') // 只能在這裡指定欄位
+                            ->with([
+                                'productTags' => function ($query) {
+                                    $query->select('term_id', 'product_id'); // 這裡也是用 select()
+                                }
+                            ]);
+                    }
+                ])->findOrFail($order_id)->toArray();
+
+                $old_order = arrayToObject($old_order);
+            }else{
+                $old_order = null;
             }
+
+            //新增或是修改。最後會使用在 OrderCreated 事件
 
             $source = $data['source'] ?? null;//來源
             if(isset($data['customer_id'])){
@@ -91,44 +106,43 @@ class OrderService extends GlobalOrderService
             }
 
             // Order
-            // if(!empty($customer)){
-                $delivery_date = null;
+                // delivery_date
+                    //沒傳入指定時間
+                    if(empty($data['delivery_date_hi'])){
+                        if(!empty($data['delivery_time_range'])){ 
+                            $arr = explode('-',$data['delivery_time_range']); // 必須以橫線做分隔
+                            $t1 = substr($arr[0],0,2).':'.substr($arr[0],-2);
+                            if(!empty($arr[1])){
+                                $t2 = substr($arr[1],0,2).':'.substr($arr[1],-2);
+                            }else{
+                                $t2 = $t1;
+                            }
 
-                if(empty($data['delivery_date_hi']) || $data['delivery_date_hi'] == '00:00'){
-                    $arr = explode('-',$data['delivery_time_range']);
-                    $t1 = substr($arr[0],0,2).':'.substr($arr[0],-2);
-
-                    if(!empty($arr[1])){
-                        $t2 = substr($arr[1],0,2).':'.substr($arr[1],-2);
-                    }else if(!empty($arr[0])){
-                        $t2 = substr($arr[0],0,2).':'.substr($arr[0],-2);
+                            $delivery_date_hi = Carbon::parse($t2)->subMinutes(5)->format('H:i'); //送達時間預設取前5分鐘
+                        }
+                    }
+                    //有傳入指定時間
+                    else{
+                        //避免使用者只打數字，例如 1630，所以抓頭尾的數字
+                        $delivery_date_hi = substr($data['delivery_date_hi'],0,2).':'.substr($data['delivery_date_hi'],-2);
                     }
 
-                    if(!empty($t1)){
-                        $delivery_date_hi = $t1;
-                    }else{
-                        $delivery_date_hi = '';
+                    if(empty($delivery_date_hi) || $delivery_date_hi == ':'){
+                        $delivery_date_hi = '00:00';
                     }
-                }else if(!empty($data['delivery_date_hi'])){
-                    //避免使用者只打數字，例如 1630
-                    $delivery_date_hi = substr($data['delivery_date_hi'],0,2).':'.substr($data['delivery_date_hi'],-2);
-                }
 
-                if(!empty($data['delivery_date_ymd'])){
-                    if(!empty($delivery_date_hi)){
-                        $delivery_date = $data['delivery_date_ymd'] . ' ' . $delivery_date_hi;
-                    }else{
-                        $delivery_date = $data['delivery_date_ymd'];
-                    }
-                }
+                    $delivery_date = $data['delivery_date_ymd'] . ' ' . $delivery_date_hi . ':00';
+                //
 
                 $result = $this->OrderRepository->findIdOrFailOrNew($order_id);
+
                 if(!empty($result['data'])){
                     $order = $result['data'];
                 }else{
                     return response(json_encode($result))->header('Content-Type','application/json');
                 }
-                $order->location_id = $data['location_id'];
+
+                $order->location_id = $data['location_id'] ?? 0;
                 $order->source = $source;//來源
                 $order->personal_name = $data['personal_name'];
                 $order->customer_id = $customer->id ?? $data['customer_id'];
@@ -414,17 +428,17 @@ class OrderService extends GlobalOrderService
                 }
             //
 
-            // Events
-            if($is_new_order){
-                event(new OrderCreated($order));
-            }
-
             DB::commit();
+            DB::commit();
+
+            // Events
+            event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order, old_order:$old_order));
             
             return ['data' => $order];
 
         } catch (\Exception $ex) {
             DB::rollback();
+            echo "<pre>",print_r(999,true),"</pre>\r\n";exit;
             return ['error' => $ex->getMessage()];
         }
     }

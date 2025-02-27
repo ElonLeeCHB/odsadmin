@@ -23,10 +23,6 @@ class ProductService extends Service
             return [];
         }
 
-        if (!$product->relationLoaded('productTags')) {
-            $product->load('productTags');
-        }
-
         $product->web_name = $product->translation->web_name;
 
         // 重構選項並合併到產品數據

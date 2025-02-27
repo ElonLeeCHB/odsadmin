@@ -9,6 +9,7 @@ use App\Traits\Model\EloquentTrait;
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
+use App\Models\Material\ProductTag;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderTotal;
 
@@ -144,9 +145,7 @@ class OrderService extends Service
 
             DB::beginTransaction();
 
-            // old order 待處理
-            // $old_order_array = Order::with(['orderProducts.productTags'])->findOrFail($order_id)->toArray();
-
+            // old order
             $old_order = Order::select('id','status_code', 'delivery_date')->with([
                 'orderProducts' => function ($query) {
                     $query->select('id', 'order_id', 'product_id', 'quantity') // 只能在這裡指定欄位
@@ -167,6 +166,8 @@ class OrderService extends Service
                 foreach ($data['order_products'] as $key => $order_product) {
                     $data['order_products'][$key]['id'] = $order_product['id'] ?? $order_product['order_product_id'] ?? null;
                     unset($data['order_products'][$key]['order_product_id'] );
+
+                    $product_ids[] = $order_product['product_id']; //為了取得商品標籤
                 }
 
                 $data['order_products'] = DataHelper::resetSortOrder($data['order_products']);

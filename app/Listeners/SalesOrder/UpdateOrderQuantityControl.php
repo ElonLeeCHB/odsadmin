@@ -39,8 +39,13 @@ class UpdateOrderQuantityControl
         }
 
         // 處理新單訂單數量
+        $old_date = Carbon::parse($old_order->delivery_date)->format('Y-m-d');
+        $new_date = Carbon::parse($saved_order->delivery_date)->format('Y-m-d');
+        
         if(in_array($saved_order->status_code, $this->increase_status_codes)){
-            (new OrderDateLimitRepository)->increaseByOrder($saved_order);
+            if($old_date != $new_date){ //不同日期才執行新增。如果同日期，會在 refreshOrderedQuantityByDate 處理。
+                (new OrderDateLimitRepository)->increaseByOrder($saved_order);
+            }
         }
     }
 }

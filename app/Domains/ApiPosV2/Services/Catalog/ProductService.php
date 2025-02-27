@@ -48,8 +48,8 @@ class ProductService extends Service
     {
         $builder = Product::query();
 
-        if(!empty($filter_data['filter_product_tag'])){
-            $product_tag_names = explode(',', $filter_data['filter_product_tag']);
+        if(!empty($filter_data['filter_product_tag_names'])){
+            $product_tag_names = explode(',', $filter_data['filter_product_tag_names']);
 
             $tags = TermTranslation::where('locale', app()->getLocale())
                 ->where(function($query) use ($product_tag_names) {

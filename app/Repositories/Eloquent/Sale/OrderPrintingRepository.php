@@ -67,6 +67,7 @@ class OrderPrintingRepository extends Repository
     private $guabaoBento;       //刈包便當
     private $guabaoLunchbox;    //刈包盒餐
     private $oilRiceBox;        //油飯盒
+    private $solo;              //單點
 
 
     public function __construct()
@@ -110,8 +111,6 @@ class OrderPrintingRepository extends Repository
         // $mpdf->WriteHTML('<h1>這是使用 Noto Sans TC 字型的 PDF</h1>');
         $mpdf->WriteHTML($html);
         $mpdf->Output();
-
-        echo "<pre>",print_r(333,true),"</pre>";exit;
 
         $fontPath = public_path('assets/fonts/'); // 使用 Laravel 的 base_path() 獲取字體目錄
         if (is_dir($fontPath)) {
@@ -327,7 +326,7 @@ class OrderPrintingRepository extends Repository
                         // 設定分類名稱。依據 product_tags.id  1439=客製
                             //非客製
                             if(!in_array(1439, $product_tag_ids)){
-                                if(in_array(1441, $product_tag_ids) && in_array(1329, $product_tag_ids)){       //1441 潤餅, 1329 便當
+                                if(in_array(1331, $product_tag_ids) && in_array(1441, $product_tag_ids) && in_array(1329, $product_tag_ids)){ //1441 潤餅, 1329 便當
                                     $order_product->identifier = 'lumpiaBento';
                                     $printingRowsByCategory[$order_product->identifier]['name'] = '潤餅便當';
                                 }else if(in_array(1441, $product_tag_ids) && in_array(1330, $product_tag_ids)){ //1441 潤餅, 1330 盒餐
@@ -387,6 +386,7 @@ class OrderPrintingRepository extends Repository
                         }
                     }
                 //end order_products
+                
         
                 //order_product_options
                     //處理全部選項
@@ -499,7 +499,7 @@ class OrderPrintingRepository extends Repository
                         if($order_product->product_id == 1062){
                             //借用 1062
                             $product_id = 1062;
-                            $identifier = 'solo';
+                            $identifier = 'solo1062';
         
                             foreach ($order_product->orderProductOptions as $order_product_option) {
                                 $option_value_id = $order_product_option->option_value_id;
