@@ -19,13 +19,15 @@ class IsAdmin
     {
         $acting_user = auth()->user();
         app()->instance('acting_user', $acting_user);
-
+        
         if(!empty($acting_user) && $acting_user->is_admin){
             return $next($request);
         }else{
             auth()->logout();
-            $route = route('lang.admin.login') . "?prev_url=" . url()->current();
-            return redirect($route)->with('error_warning',"您沒有後台權限");
+
+            $url = route('lang.admin.login') . '?prev_url=' . url()->current();
+            
+            return redirect($url)->with('error_warning',"您沒有後台權限");
         }
     }
 }
