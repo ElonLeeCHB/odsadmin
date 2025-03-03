@@ -5,13 +5,13 @@ namespace App\Domains\ApiWwwV2\Http\Controllers\Sale;
 use Illuminate\Http\Request;
 use App\Domains\ApiWwwV2\Http\Controllers\ApiWwwV2Controller;
 use App\Domains\ApiWwwV2\Services\Sale\OrderService;
-use App\Helpers\Classes\DataHelper;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
-use App\Models\SysData\Log as CustomLog;
 
 class OrderController extends ApiWwwV2Controller
 {
+    private $status_code = 200;
+    private $default_error_status_code = 400;
+
     public function __construct(private Request $request,private OrderService $OrderService)
     {
         if (method_exists(parent::class, '__construct')) {
@@ -22,140 +22,177 @@ class OrderController extends ApiWwwV2Controller
 
     public function list()
     {
-        $response = [];
-
-        $queries = request()->all();
-
-        $allowed_query_keys = ['equal_code', 'equal_personal_name', 'equal_mobile', ];
-
-        // 計算有填寫的欄位數
-        $filled_count = 0;
-        foreach ($allowed_query_keys as $key) {
-            if (!empty($queries[$key])) {
-                $filled_count++;
+        try {
+            $queries = request()->all();
+    
+            $allowed_query_keys = ['equal_code', 'equal_personal_name', 'equal_mobile', ];
+    
+            // 計算有填寫的欄位數
+            $filled_count = 0;
+            foreach ($allowed_query_keys as $key) {
+                if (!empty($queries[$key])) {
+                    $filled_count++;
+                }
             }
+    
+            // 檢查是否有至少兩個欄位被填寫
+            if ($filled_count < 2) {
+                return response()->json([
+                    'error' => '至少填寫兩個欄位: equal_code, equal_personal_name, equal_mobile'
+                ], 400);
+            }
+    
+            foreach ($queries as $key => $value) {
+                if(empty($queries[$key])){
+                    unset($queries[$key]);
+                }
+    
+                // equal_, 僅保留指定的三個精確欄位
+                if(str_starts_with($key, 'equal_') && !in_array($key, $allowed_query_keys)){
+                    unset($queries[$key]);
+                }
+                // filter_, 刪除所有模糊欄位
+                if(str_starts_with($key, 'filter_')){
+                    unset($queries[$key]);
+                }
+            }
+    
+            $result = $this->OrderService->getList($queries);
+
+            if(empty($result['error'])){
+                $json = [
+                    'success' => 'ok',
+                    'data' => $result,
+                ];
+            }else{
+                $json = [
+                    'error' => $result['error'],
+                ];
+
+                $this->status_code = 400;
+
+                $this->logError($result['error']);
+            }
+
+            return response()->json($json, $this->status_code);
+
+        } catch (\Throwable $th) {
+            return response()->json(['error' => $th->getMessage()], $th->getCode());
         }
-
-        // 檢查是否有至少兩個欄位被填寫
-        if ($filled_count < 2) {
-            return response()->json([
-                'error' => '至少填寫兩個欄位: equal_code, equal_personal_name, equal_mobile'
-            ], 400);
-        }
-
-        foreach ($queries as $key => $value) {
-            if(empty($queries[$key])){
-                unset($queries[$key]);
-            }
-
-            // equal_, 僅保留指定的三個精確欄位
-            if(str_starts_with($key, 'equal_') && !in_array($key, $allowed_query_keys)){
-                unset($queries[$key]);
-            }
-            // filter_, 刪除所有模糊欄位
-            if(str_starts_with($key, 'filter_')){
-                unset($queries[$key]);
-            }
-        }
-
-        $response = $this->OrderService->getList($queries);
-
-        return $this->sendResponse($response);
     }
 
     public function infoByCode($order_code)
     {
-        if(empty(request()->query('personal_name'))){
-            return $this->sendResponse(['error' => 'Unauthorized']);
+        try {
+            if(empty(request()->query('personal_name'))){
+                throw new \Exception('姓名錯誤', 401);
+            }
+    
+            $filter_data = [
+                'equal_personal_name' => request()->query('personal_name'),
+                'equal_code' => $order_code,
+                'first' => true,
+            ];
+    
+            $result = $this->OrderService->getInfo($filter_data, 'code');
+    
+            if(empty($result['error'])){
+                $json = [
+                    'success' => 'ok',
+                    'data' => $result,
+                ];
+            }else{
+                $json = [
+                    'error' => $result['error'],
+                ];
+
+                $this->status_code = 400;
+
+                $this->logError($result['error']);
+            }
+
+            return response()->json($json, $this->status_code);
+
+        } catch (\Throwable $th) {
+            return response()->json(['error' => $th->getMessage()], $th->getCode());
         }
-
-        $filter_data = [
-            'equal_personal_name' => request()->query('personal_name'),
-            'equal_code' => $order_code,
-            'first' => true,
-        ];
-
-        $row = $this->OrderService->getInfo($filter_data, 'code');
-
-        return $this->sendResponse(['data' => $row]);
     }
 
     public function store()
     {
-        $data = request()->all();
-
-        $result = $this->OrderService->store($data);
-
-        if(empty($result['error'])){
-            $json = [
-                'success' => 'ok',
-                'message' => '新增成功！',
-                'data' => [
-                    'id' => $result['data']['id'],
-                    'code' => $result['data']['code'],
-                ],
-            ];
-        }else{
-            $json = [
-                'error' => $result['error'],
-                'message' => '新增失敗！',
-            ];
-            $this->logError($result['error']);
-        }
-
-        return response(json_encode($json))->header('Content-Type','application/json');
-    }
-
-    public function edit($order_id)
-    {
         try {
-            if(!empty(request()->post('order_id')) && $order_id !== request()->post('order_id')){
-                throw new \Exception('訂單序號錯誤！');
-            }
+            $data = request()->all();
+    
+            $result = $this->OrderService->store($data);
+    
+            if(empty($result['error'])){
+                $json = [
+                    'success' => 'ok',
+                    'message' => '新增成功！',
+                    'data' => $result,
+                ];
 
-            $result = $this->OrderService->editOrder(request()->post(), $order_id);
-    
-            $json = [
-                'success' => true,
-                'message' => '更新成功！',
-                'data' => [
-                    'id' => $result['data']['id'],
-                    'code' => $result['data']['code'],
-                ],
-            ];
-    
-            return response(json_encode($json))->header('Content-Type','application/json');
+            }else{
+                $json = [
+                    'error' => $result['error'],
+                    'message' => '新增失敗！',
+                ];
+
+                $this->status_code = 400;
+
+                $this->logError($result['error']);
+            }
+            
+            return response()->json($json, $this->status_code);
 
         } catch (\Throwable $th) {
-            $json = [
-                'error' => $th->getMessage(),
-            ];
-            return response(json_encode($json))->header('Content-Type','application/json');
+            return response()->json(['error' => $th->getMessage()], $th->getCode());
         }
     }
 
 
     public function deliveries()
     {
-        $code = request()->query('equal_order_code');
-        $personal_name = request()->query('equal_personal_name');
+        try {
+            $code = request()->query('equal_order_code');
+            $personal_name = request()->query('equal_personal_name');
+    
+            if(empty($code)){
+                return response()->json(['error' => '請提供訂單編號',], 400);
+            }
+    
+            if(empty($personal_name)){
+                return response()->json(['error' => '請提供姓名',], 400);
+            }
+    
+            $builder = DB::table('order_delivery as od')
+                ->select('od.*')
+                ->leftJoin('orders as o', 'o.code', '=', 'od.order_code')
+                ->where('o.code', $code);
+                
+            $result = $builder->get();
 
-        if(empty($code)){
-            return response()->json(['error' => '請提供訂單編號',], 400);
+            if(empty($result['error'])){
+                $json = [
+                    'success' => 'ok',
+                    'data' => $result,
+                ];
+
+            }else{
+                $json = [
+                    'error' => $result['error'],
+                ];
+
+                $this->status_code = 400;
+
+                $this->logError($result['error']);
+            }
+
+            return response()->json($json, $this->status_code);
+
+        } catch (\Throwable $th) {
+            return response()->json(['error' => $th->getMessage()], $th->getCode());
         }
-
-        if(empty($personal_name)){
-            return response()->json(['error' => '請提供姓名',], 400);
-        }
-
-        $builder = DB::table('order_delivery as od')
-            ->select('od.*')
-            ->leftJoin('orders as o', 'o.code', '=', 'od.order_code')
-            ->where('o.code', $code);
-            
-        $rows = $builder->get();
-
-        return response()->json($rows, 200);
     }
 
 }

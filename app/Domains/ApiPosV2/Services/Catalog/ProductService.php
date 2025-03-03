@@ -58,16 +58,18 @@ class ProductService extends Service
                     }
                 })
                 ->whereHas('master', function($query) {
-                    $query->where('taxonomy_code', 'ProductTag');  // 過濾 taxonomy_code 為 'ProductTag' 的 term
+                    $query->where('taxonomy_code', 'ProductTag');
+                    $query->where('is_active', 1);
                 });
-            // $rows->debug();
 
             $tag_ids = $tags->pluck('term_id')->toArray();
 
             $builder->whereHas('productTags', function($query) use ($tag_ids) {
-                $query->whereIn('term_id', $tag_ids);  // 過濾 productTag 中的 tag_id
+                $query->whereIn('term_id', $tag_ids)
+                      ->havingRaw('COUNT(DISTINCT term_id) = ?', [count($tag_ids)]);
             });
         }
+        // $builder->debug();
         
         $builder->select(['id', 'price']);
 

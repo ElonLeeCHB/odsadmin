@@ -213,7 +213,7 @@ class OrderService extends Service
             // Events
             event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
 
-            return ['data' => ['id' => $order->id, 'code' => $order->code]];
+            return ['id' => $order->id, 'code' => $order->code];
 
         } catch (\Throwable $th) {
             DB::rollback();

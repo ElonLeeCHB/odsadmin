@@ -14,7 +14,7 @@ class QuantityControlService extends Service
         try {
             $result = (new OrderDateLimitRepository)->getDefaultLimits();
     
-            return ['data' => $result];
+            return $result;
 
         } catch (\Throwable $th) {
             return ['error' => $th->getMessage()];
@@ -53,27 +53,27 @@ class QuantityControlService extends Service
     }
 
     // 某日數量資料-更新上限
-    public function updateMaxQuantityByDate($data)
+    public function updateMaxQuantityByDate($date, $data)
     {
         // 這裡只更新 order_date_limits。不重新掃描 orders 訂單表。
         // 只用於更新上限數量，然後沿用當前的訂單數量，據以計算可訂量。不重新讀取訂單表等相關資料。
 
         try {
             // 獲取指定日期的資料
-            $db_formatted =  (new OrderDateLimitRepository)->getFormattedByDefault($data['Date']);
+            $db_formatted =  (new OrderDateLimitRepository)->getDbDateLimitsByDate($date);
 
             $upsert_date = [];
 
-            foreach ($db_formatted['TimeSlots'] as $time_slot => $row) {
-                if(isset($data['TimeSlots'][$time_slot])){
-                    $maxQuantity = $data['TimeSlots'][$time_slot]['MaxQuantity'];
+            foreach ($db_formatted['TimeSlots'] as $time_slot_key => $row) {
+                if(isset($data[$time_slot_key])){
+                    $maxQuantity = $data[$time_slot_key];
                 }else{
                     $maxQuantity = $row['MaxQuantity'];
                 }
 
                 $upsert_date[] = [
-                    'Date' => $data['Date'],
-                    'TimeSlot' => $time_slot,
+                    'Date' => $date,
+                    'TimeSlot' => $time_slot_key,
                     'MaxQuantity' => $maxQuantity,
                     'OrderedQuantity' => $row['OrderedQuantity'], //照舊
                     'AcceptableQuantity' => $maxQuantity - $row['OrderedQuantity'],
@@ -81,8 +81,6 @@ class QuantityControlService extends Service
             }
 
             OrderDateLimit::upsert($upsert_date, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
-
-            $formatted =  (new OrderDateLimitRepository)->getDbDateLimitsByDate($data['Date']);
             
             return true;
 
@@ -98,7 +96,7 @@ class QuantityControlService extends Service
         
         try {
             // 獲取指定日期的資料
-            $db_formatted =  (new OrderDateLimitRepository)->getFormattedByDefault($date);
+            $db_formatted =  (new OrderDateLimitRepository)->getDbDateLimitsByDate($date);
 
             $insert_data = [];
 
@@ -115,7 +113,7 @@ class QuantityControlService extends Service
             OrderDateLimit::whereDate('Date', $date)->delete();
             OrderDateLimit::insert($insert_data);
 
-            $formatted =  (new OrderDateLimitRepository)->getFormattedByDefault($date);
+            $formatted =  (new OrderDateLimitRepository)->getDbDateLimitsByDate($date);
             
             return ['data' => $formatted];
         } catch (\Throwable $th) {
@@ -139,11 +137,34 @@ class QuantityControlService extends Service
     public function getFutureDays($futuredays)
     {
         try {
-            $result =   (new OrderDateLimitRepository)->getFutureDays($futuredays);
+            $rows =  (new OrderDateLimitRepository)->getFutureDays($futuredays);
+
+            $start_hour = 10;
+
+            foreach ($rows as $date => $time_slots) {
+                foreach ($time_slots as $time_slot_key => $row) {
+                    $cur_start_hour = substr($time_slot_key,0,2);
+                    if($cur_start_hour < $start_hour){
+                        unset($rows[$date][$time_slot_key]);
+                    }
+                }
+            }
+
+            return $rows;
+
+        } catch (\Throwable $th) {
+            return ['error' => $th->getMessage()];
+        }
+    }
+
+    public function resetFutureOrders()
+    {
+        try {
+            $result =   (new OrderDateLimitRepository)->resetFutureOrders();
 
             return ['data' => $result];
         } catch (\Throwable $th) {
-            return ['error' => $th->getMessage()];
+            throw $th;
         }
     }
 }

@@ -52,18 +52,30 @@ class ApiWwwV2Controller extends Controller
         }
     }
 
-    public function sendResponse($json)
+    // $input['error'] 必須是執行過程的錯誤訊息。正常的資料欄位不可以包含 error。
+    // 如果 $input['error'] 不存在，則 $input 本身就是資料內容，即 data 元素
+    public function sendResponse($input, $status_code = 200, $message = '', )
     {
-        if(!is_array($json)){
-            $json = [];
-        }
+        $json = [];
 
         //無任何錯誤
-        if(empty($json['error']) && empty($json['errors']) && empty($json['warning'])  && empty($json['errorWarning'])){
-            $json = array_merge(['success' => true], $json);
+        if(empty($input['error']) && empty($input['errors']) && empty($input['warning'])  && empty($input['errorWarning'])){
+            $json = [
+                'success' => true,
+                'data' => $input,
+            ];
             $status_code = 200;
         }else{
-            $status_code = 400;
+            $json = [
+                'error' => $input['error'] ?? $input['errors'] ?? $input['warning'] ?? $input['errorWarning']
+            ];
+            if(empty($status_code) || $status_code == 200){
+                $status_code = 400;
+            }
+        }
+
+        if(!empty($message)){
+            $json['message'] = $input['message'];
         }
 
         return response()->json($json, $status_code, [], JSON_UNESCAPED_UNICODE)->header('Content-Type','application/json');

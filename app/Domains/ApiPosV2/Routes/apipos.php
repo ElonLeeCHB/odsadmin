@@ -77,6 +77,9 @@ Route::group([
 
                 // 取得未來數量
                 Route::get('getFutureDays/{days}', 'Sale\QuantityControlController@getFutureDays')->name('getFutureDays');
+
+                // 重算全部未來訂單
+                Route::get('resetFutureOrders', 'Sale\QuantityControlController@resetFutureOrders')->name('resetFutureOrders');
             });
 
             
