@@ -20,11 +20,12 @@ class OrderProductRepository extends Repository
             OrderProduct::where('order_id', $order_id)->delete();
 
             foreach ($arrOrderProducts as $row) {
+
                 //修正商品名稱
                     $db_product = Product::where('id', $row['product_id'])->first();
                     $row['name'] = $db_product['name'];
                 //
-                
+
                 $row = $this->normalizeData($row, $order_id);
 
                 unset($row['id']);

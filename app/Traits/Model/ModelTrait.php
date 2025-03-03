@@ -590,9 +590,9 @@ trait ModelTrait
             return $rows;
         }
 
-        public function scopeDebug($builder, $debug = 1)
+        public function scopeDebug($builder)
         {
-            DataHelper::showSqlContent($builder, $debug);
+            DataHelper::showSqlContent($builder, 1);
         }
     // end scope
 

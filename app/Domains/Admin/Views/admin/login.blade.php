@@ -9,7 +9,7 @@
         <div class="card">
           <div class="card-header"><i class="fas fa-lock"></i> {{ $lang->text_login }}</div>
           <div class="card-body">
-              <form id="form-login" action="{{ route('lang.admin.login') }}" method="post">
+              <form id="form-login" action="{{ $action }}" method="post">
                 @csrf
                 @if($errors->has('password'))                   
                 <div class="alert alert-danger alert-dismissible"><i class="fas fa-exclamation-circle"></i> {{ $errors->first('password') }}</div>

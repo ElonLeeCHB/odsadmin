@@ -63,6 +63,7 @@ class LoginController extends Controller
         $prev_url = url()->previous();
         $query = parse_url($prev_url, PHP_URL_QUERY);
         parse_str($query, $params);
+
         if(!empty($params['prev_url']) ){
             return redirect($params['prev_url']);
         }
@@ -95,11 +96,18 @@ class LoginController extends Controller
     {
         $data['lang'] = $this->lang;
 
-       $data['refresh_token_url'] = route('getToken');
+        $data['refresh_token_url'] = route('getToken');
 
-        $data['base'] = env('APP_URL') . '/' . env('FOLDER_ADMIN');
+        if(request()->has('access-key')){
+            $data['action'] = route('lang.admin.login') . '?access-key=' . request()->query('access-key');
+        }else{
+            $data['action'] = route('lang.admin.login');
+        }
+
         return view('admin.login', $data);
     }
+
+    
 
     /**
      * Overwrite
@@ -116,8 +124,6 @@ class LoginController extends Controller
             return $response;
         }
 
-        return $request->wantsJson()
-            ? new JsonResponse([], 204)
-            : redirect(route('lang.admin.login'));
+        return redirect(route('lang.admin.login'));
     }
 }

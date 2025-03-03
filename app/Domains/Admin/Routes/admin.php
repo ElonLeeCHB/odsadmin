@@ -13,12 +13,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-
-// $currentRoute = Route::getCurrentRoute();
-// $route = Route::current();
-// $route = url()->current();
-// $path = request()->path();
-
 Route::group([
     'prefix' => config('app.admin_folder'),
 ], function ()
@@ -35,27 +29,18 @@ Route::group(
     'as' => 'lang.',
     ], function()
 {
-
-    //Route::get('test', 'Catalog\CategoryController@test')->name('categories.test');
-
     Route::group([
         'prefix' => config('app.admin_folder'),
         'namespace' => 'App\Domains\Admin\Http\Controllers',
         'as' => 'admin.',
     ], function ()
     {
-
-
-        // Route::post('login', [LoginController::class, 'login'])->middleware([CheckAccessKey::class . ':APIV2_ACCESS_KEY']);
-
         Auth::routes();
 
         Route::group([
             'middleware' => [ 'is_admin'],
-            // 'middleware' => ['checkAdminAccessKey'],
         ], function ()
         {
-
             Route::get('', 'Common\DashboardController@index')->name('dashboard');
 
             Route::group([

@@ -1,5 +1,5 @@
     <!-- 油飯盒系列 -->
-      @if(!empty($order['categories']['oilRiceBox']))
+    @if(!empty($order['categories']['oilRiceBox']))
         <table id="oilRiceBox" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
           <thead>
             <tr>
