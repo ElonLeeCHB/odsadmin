@@ -33,52 +33,6 @@ class DtstwApiController extends ApiController
         return response()->json($rows, 200);
     }
 
-    /**
-     * https://www.dtstw.com/api/get-timeslot
-     * 
-     */
-    public function getTimeslot()
-    {
-        $rows = DB::select('SELECT * FROM timeslotlimits');
-        return response()->json($rows, 200);
-    }
-
-    /**
-     * https://dtstw.com/api/get-special
-     */
-    public function getSpecial()
-    {
-        // // 取得去重後的資料
-        // $uniqueRecords = DB::table('datelimits')
-        //     ->select('Date', 'TimeSlot', 'LimitQuantity')
-        //     ->distinct()
-        //     ->get();
-
-        // // 清空原資料表
-        // DB::table('datelimits')->truncate();
-
-        // // 將去重後的資料插回資料表
-        // foreach ($uniqueRecords as $record) {
-        //     DB::table('datelimits')->insert([
-        //         'Date' => $record->Date,
-        //         'TimeSlot' => $record->TimeSlot,
-        //         'LimitQuantity' => $record->LimitQuantity,
-        //     ]);
-        // }
-
-        $today = Carbon::today()->toDateString(); 
-        $rows = DB::select('SELECT * FROM datelimits WHERE DATE(`Date`) >= ? ORDER BY TimeSlot asc', [$today]);
-        foreach ($rows as &$row) {
-            $month = substr($row->Date, 0, 6);
-            $date = $row->Date;
-            $timeslot = $row->TimeSlot;
-
-            $result[$month][$date][$timeslot] = $row->LimitQuantity;
-        }
-
-        return response()->json($result, 200);
-    }
-
     //官網訂單查詢 新的
     public function ordersWithDrivers()
     {
