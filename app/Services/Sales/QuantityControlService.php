@@ -95,18 +95,21 @@ class QuantityControlService extends Service
         // 只用於更新上限數量，然後沿用當前的訂單數量，據以計算可訂量。不重新讀取訂單表等相關資料。
         
         try {
+            //預設 date_limit
+            $default_limits =  (new OrderDateLimitRepository)->getDefaultLimits();
+
             // 獲取指定日期的資料
             $db_formatted =  (new OrderDateLimitRepository)->getDbDateLimitsByDate($date);
 
             $insert_data = [];
 
-            foreach ($db_formatted['TimeSlots'] as $time_slot => $row) {
+            foreach ($db_formatted['TimeSlots'] as $time_slot_key => $row) {
                 $insert_data[] = [
                     'Date' => $date,
-                    'TimeSlot' => $time_slot,
-                    'MaxQuantity' => $row['MaxQuantity'],
+                    'TimeSlot' => $time_slot_key,
+                    'MaxQuantity' => $default_limits[$time_slot_key],
                     'OrderedQuantity' => $row['OrderedQuantity'], //照舊
-                    'AcceptableQuantity' => $row['MaxQuantity'] - $row['OrderedQuantity'],
+                    'AcceptableQuantity' => $default_limits[$time_slot_key] - $row['OrderedQuantity'],
                 ];
             }
 

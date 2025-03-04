@@ -20,44 +20,49 @@ class ProductController extends ApiWwwV2Controller
 
     public function list()
     {
-        $filter_data = $this->url_data;
+        try {
+            $filter_data = $this->url_data;
+    
+            $filter_data['select'] = ['id', 'code', 'name', 'price'];
+    
+            $filter_data['equal_is_on_web'] = 1;
+    
+            $rows = $this->ProductService->getList($filter_data);
+    
+            foreach ($rows as $row) {
+                $row->web_name = $row->translation->web_name;
+            }
+    
+            $json = [];
+    
+            $json = DataHelper::unsetArrayIndexRecursively($rows->toArray(), ['translation', 'translations']);
+    
+            return $this->sendResponse($json);
 
-        $filter_data['select'] = ['id', 'code', 'name', 'price'];
-
-        $filter_data['equal_is_on_web'] = 1;
-
-        $rows = $this->ProductService->getList($filter_data);
-
-        foreach ($rows as $row) {
-            $row->web_name = $row->translation->web_name;
+        } catch (\Throwable $th) {
+            return $this->sendResponse(['error' => $th->getMessage()], $th->getCode());
         }
-
-        $json = [];
-
-        $json = DataHelper::unsetArrayIndexRecursively($rows->toArray(), ['translation', 'translations']);
-
-        return $this->sendResponse($json);
     }
     
     public function info($product_id)
     {
-        $filter_data = $this->url_data;
-
+        try {
+            $filter_data = $this->url_data;
         
-        $filter_data['equal_id'] = $product_id;
-        $filter_data['select'] = ['id', 'code', 'name', 'price'];
-        $filter_data['with'] = ['product_options.translation',
-                                'product_options.product_option_values.translation',
-                                'product_options.product_option_values.option_value'
-                              ];
+                
+            $filter_data['equal_id'] = $product_id;
+            $filter_data['select'] = ['id', 'code', 'name', 'price'];
+            $filter_data['with'] = ['product_options.translation',
+                                    'product_options.product_option_values.translation',
+                                    'product_options.product_option_values.option_value'
+                                  ];
+    
+            $result = $this->ProductService->getInfo($filter_data);
 
-        $product = $this->ProductService->getInfo($filter_data);
+            return $this->sendResponse($result);
 
-        if(empty($product)){
-            $json['error'] = '找不到商品';
-        }else{
-            $json['data'] = $product;
+        } catch (\Throwable $th) {
+            return $this->sendResponse(['error' => $th->getMessage()], $th->getCode());
         }
-        return $this->sendResponse($json);
     }
 }

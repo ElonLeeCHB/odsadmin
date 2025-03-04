@@ -11,7 +11,8 @@ class IpHelper
         // 檢查是否屬於私有 IP 範圍
         return ($ipLong >= ip2long('10.0.0.0') && $ipLong <= ip2long('10.255.255.255')) ||
                ($ipLong >= ip2long('172.16.0.0') && $ipLong <= ip2long('172.31.255.255')) ||
-               ($ipLong >= ip2long('192.168.0.0') && $ipLong <= ip2long('192.168.255.255'));
+               ($ipLong >= ip2long('192.168.0.0') && $ipLong <= ip2long('192.168.255.255')) ||
+               ($ipLong == ip2long('127.0.0.1'));
     }
 
     /*

@@ -344,7 +344,7 @@ class OrderPrintingRepository extends Repository
                                 }else if($product_id == 1597){                                                  // product_id=1597 分享餐
                                     $order_product->identifier = 'sharingMeal';
                                     $printingRowsByCategory[$order_product->identifier]['name'] = '分享餐';
-                                }else{
+                                }else if($product_id != 1062){
                                     $order_product->identifier = 'otherCategory';
                                     $printingRowsByCategory[$order_product->identifier]['name'] = '其它';
                                 }

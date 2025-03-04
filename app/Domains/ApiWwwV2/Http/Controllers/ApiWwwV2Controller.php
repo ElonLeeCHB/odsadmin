@@ -58,26 +58,34 @@ class ApiWwwV2Controller extends Controller
     {
         $json = [];
 
-        //無任何錯誤
-        if(empty($input['error']) && empty($input['errors']) && empty($input['warning'])  && empty($input['errorWarning'])){
+        $error = $input['error'] ?? $input['errors'] ?? $input['warning'] ?? $input['errorWarning'] ?? '';
+
+        // 無任何錯誤
+        if(empty($error)){
             $json = [
                 'success' => true,
                 'data' => $input,
             ];
             $status_code = 200;
-        }else{
-            $json = [
-                'error' => $input['error'] ?? $input['errors'] ?? $input['warning'] ?? $input['errorWarning']
-            ];
-            if(empty($status_code) || $status_code == 200){
+        }
+        
+        // 有錯誤
+        else{
+            if($status_code == 404){
+                $json['error'] = '找不到';
+            }
+
+            if(empty($status_code)){
+                $json['error'] = '請求錯誤';
                 $status_code = 400;
             }
         }
 
+        // 如果有 message。通常使用 error
         if(!empty($message)){
             $json['message'] = $input['message'];
         }
 
-        return response()->json($json, $status_code, [], JSON_UNESCAPED_UNICODE)->header('Content-Type','application/json');
+        return response()->json($json, $status_code, [], JSON_UNESCAPED_UNICODE); // JSON_UNESCAPED_UNICODE 使用原本的字串，不要轉成 unicode
     }
 }

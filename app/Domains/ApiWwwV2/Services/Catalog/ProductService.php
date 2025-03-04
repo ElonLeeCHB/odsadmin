@@ -18,11 +18,11 @@ class ProductService extends Service
     public function getInfo($params)
     {
         $product = $this->getRow($params);
-
-        if(empty($product)){
-            return [];
+    
+        if (empty($product)) {
+            throw new \Exception('Product not found', 404);  // 404 是 HTTP 狀態碼
         }
-
+        
         $product->web_name = $product->translation->web_name;
 
         // 重構選項並合併到產品數據
@@ -43,29 +43,9 @@ class ProductService extends Service
         }
 
         RowsArrayHelper::removeTranslation($product);
-        
+
         return $product;
     }
-
-    /**
-     * simplelist
-     * basictable
-     */
-
-     public function getSimplelist($filters)
-     {
-        try {
-
-            $filters['with'] = [];
-
-            $filters['select'] = ['id', 'code', 'model', 'name'];
-
-            return $products = $this->getRows($filters);
-
-        } catch (\Exception $ex) {
-            return ['error' => $ex->getMessage()];
-        }
-     }
 
 
     public function getList($filters)
