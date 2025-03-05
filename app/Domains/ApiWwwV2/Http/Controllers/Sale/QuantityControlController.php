@@ -4,12 +4,11 @@ namespace App\Domains\ApiWwwV2\Http\Controllers\Sale;
 
 use Illuminate\Http\Request;
 use App\Domains\ApiWwwV2\Http\Controllers\ApiWwwV2Controller;
-use App\Models\Setting\Setting;
-use App\Services\Sales\QuantityControlService;
+use App\Repositories\Eloquent\Sale\OrderDateLimitRepository;
 
 class QuantityControlController extends ApiWwwV2Controller
 {
-    public function __construct(private Request $request,private QuantityControlService $QuantityControlService)
+    public function __construct(private Request $request,private OrderDateLimitRepository $OrderDateLimitRepository)
     {
         if (method_exists(parent::class, '__construct')) {
             parent::__construct();
@@ -21,8 +20,19 @@ class QuantityControlController extends ApiWwwV2Controller
     {
         $days = min($days, 60);
 
-        $result = $this->QuantityControlService->getFutureDays($days);
+        $rows =  (new OrderDateLimitRepository)->getFutureDays($days);
 
-        return $this->sendResponse($result);
+        $start_hour = 10;
+
+        foreach ($rows as $date => $time_slots) {
+            foreach ($time_slots as $time_slot_key => $row) {
+                $cur_start_hour = substr($time_slot_key,0,2);
+                if($cur_start_hour < $start_hour){
+                    unset($rows[$date][$time_slot_key]);
+                }
+            }
+        }
+
+        return $this->sendResponse($rows);
     }
 }

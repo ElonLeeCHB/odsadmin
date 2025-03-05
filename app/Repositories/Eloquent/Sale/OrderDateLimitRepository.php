@@ -107,7 +107,7 @@ class OrderDateLimitRepository extends Repository
         $rows = OrderDateLimit::whereDate('Date', $date)->get();
 
         if($rows->isEmpty()){
-            $formatted_data = $this->getFormattedByDateDefault($date); //從 settings 產生資料。但如果 settings 的時間段有缺？
+            $formatted_data = $this->getDefaultFormattedDataByDate($date); //從 settings 產生資料。但如果 settings 的時間段有缺？
         }else{
             $formatted_data = $this->getFormattedDataFromRowsByDate($date, $rows); //從資料庫而來，但如果當日的時間段有缺？
         }
@@ -117,7 +117,7 @@ class OrderDateLimitRepository extends Repository
         return $formatted_data;
     }
 
-    public function getFormattedDefaultTimeSlots()
+    public function getDefaultFormattedTimeSlots()
     {
         if(!empty($this->default_formatted_time_slots)){
             return $this->default_formatted_time_slots;
@@ -141,7 +141,7 @@ class OrderDateLimitRepository extends Repository
     }
 
     // 根據預設的數量基本資料，轉為指定日期的特定陣列
-    public function getFormattedByDateDefault($date)
+    public function getDefaultFormattedDataByDate($date)
     {        
         $default_time_slots = $this->getDefaultLimits();
 
@@ -163,7 +163,7 @@ class OrderDateLimitRepository extends Repository
     // 根據預設的每日基本資料，重設每日的預設
     public function setDefaultDateLimits($date)
     {
-        $default_limits = $this->getFormattedByDateDefault($date);
+        $default_limits = $this->getDefaultFormattedDataByDate($date);
 
         // 新增記錄
         $upsert_data = [];
@@ -263,7 +263,7 @@ class OrderDateLimitRepository extends Repository
     public function refreshOrderedQuantityByDate($date)
     {
         $date = Carbon::parse($date)->format('Y-m-d');
-
+        
         // 獲取指定日期的資料
         $formatted_data =  $this->getDbDateLimitsByDate($date);
 
@@ -284,10 +284,16 @@ class OrderDateLimitRepository extends Repository
                     ->orderBy('o.delivery_date');
         
         $customOrders = $builder->get();
+        
+        $this->updateCustomOrders($customOrders);
 
-        $all_formatted_data = $this->updateCustomOrders($customOrders);
+        $formatted_data =  $this->getDbDateLimitsByDate($date); //抓 order_date_limits
 
-        return $all_formatted_data[$date];
+        if(empty($formatted_data)){
+            $formatted_data = $this->getDefaultFormattedDataByDate($date); //抓預設的
+        }
+
+        return $formatted_data;
     }
 
     // 根據訂單id 取得套餐數量
@@ -484,7 +490,7 @@ class OrderDateLimitRepository extends Repository
             $time_slot_key = (new TimeSlotLimit)->getTimeSlotKey($order->delivery_date);
 
             if(empty($all_formatted_data[$delivery_date])){
-                $all_formatted_data[$delivery_date] = $this->getFormattedByDateDefault($delivery_date);
+                $all_formatted_data[$delivery_date] = $this->getDefaultFormattedDataByDate($delivery_date);
             }
 
             $all_formatted_data[$delivery_date]['TimeSlots'][$time_slot_key]['OrderedQuantity'] += $order->quantity;
@@ -493,6 +499,8 @@ class OrderDateLimitRepository extends Repository
 
         //以下計算 formatted_data 的可訂量。
         $upsert_data = [];
+
+        $dates = [];
 
         foreach ($all_formatted_data as $delivery_date => $formatted_data) {
             $this->adjustFormattedData($formatted_data);
@@ -504,19 +512,18 @@ class OrderDateLimitRepository extends Repository
                     'TimeSlot' => $time_slot_key,
                     'MaxQuantity' => $row['MaxQuantity'],
                     'OrderedQuantity' => $row['OrderedQuantity'],
-                    'AcceptableQuantity' => $row['AcceptableQuantity'], 
+                    'AcceptableQuantity' => $row['MaxQuantity'] - $row['OrderedQuantity'], 
                 ];
 
                 $dates[] = $delivery_date;
             }
         }
+        $dates = array_unique($dates);
 
         if(!empty($upsert_data)){
             OrderDateLimit::whereIn('Date', $dates)->delete();
             OrderDateLimit::upsert($upsert_data, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
         }
-
-        return $all_formatted_data;
     }
 
 

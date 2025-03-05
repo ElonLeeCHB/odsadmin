@@ -1,5 +1,6 @@
 <?php
-namespace App\Services\Sales;
+
+namespace App\Domains\ApiPosV2\Services\Sale;
 
 use App\Services\Service;
 use App\Models\Setting\Setting;
@@ -142,7 +143,7 @@ class QuantityControlService extends Service
         try {
             $rows =  (new OrderDateLimitRepository)->getFutureDays($futuredays);
 
-            $start_hour = 10;
+            $start_hour = 07;
 
             foreach ($rows as $date => $time_slots) {
                 foreach ($time_slots as $time_slot_key => $row) {

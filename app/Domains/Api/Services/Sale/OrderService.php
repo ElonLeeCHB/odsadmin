@@ -438,7 +438,6 @@ class OrderService extends GlobalOrderService
 
         } catch (\Exception $ex) {
             DB::rollback();
-            echo "<pre>",print_r(999,true),"</pre>\r\n";exit;
             return ['error' => $ex->getMessage()];
         }
     }

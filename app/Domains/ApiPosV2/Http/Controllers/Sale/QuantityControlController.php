@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Setting\Setting;
 use App\Models\Sale\Datelimit;
 use App\Models\Sale\TimeSlotLimit;
-use App\Services\Sales\QuantityControlService;
+use App\Domains\ApiPosV2\Services\Sale\QuantityControlService;
 
 class QuantityControlController extends ApiPosController
 {
