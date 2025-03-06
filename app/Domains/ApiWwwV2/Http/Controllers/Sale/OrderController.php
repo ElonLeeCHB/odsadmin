@@ -122,6 +122,8 @@ class OrderController extends ApiWwwV2Controller
     {
         try {
             $data = request()->all();
+
+            $data['order_taker'] = 'web';
     
             $result = $this->OrderService->store($data);
     

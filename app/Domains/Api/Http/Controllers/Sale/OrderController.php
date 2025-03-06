@@ -392,7 +392,7 @@ class OrderController extends ApiController
         LEFT JOIN ".env('DB_DATABASE').".`divisions` AS d ON d.id = o.shipping_city_id
         WHERE DATE(o.delivery_date) BETWEEN ? AND ?
         AND o.status_code != 'Void'
-        AND (o.status_code = 'Confirmed' OR o.status_code = 'CCP')
+        AND o.status_code IN ('Pending', 'Confirmed', 'CCP')
         Group By o.id,o.code,o.control_comment,o.delivery_time_range,o.shipping_city_id,d.name
         ";
 
@@ -475,7 +475,7 @@ class OrderController extends ApiController
         JOIN ".env('DB_DATABASE').".`order_product_options` AS opo ON opo.order_id = o.id
         WHERE DATE(o.delivery_date) BETWEEN ? AND ?
         AND o.status_code != 'Void'
-        AND (o.status_code = 'Confirmed' OR o.status_code = 'CCP')
+        AND o.status_code IN ('Pending', 'Confirmed', 'CCP')
         AND (opo.value like '%潤餅%' OR opo.value like '%春捲%')
         Group By o.delivery_time_range ,opo.order_id,opo.id
         ", [$start_date, $end_date]);

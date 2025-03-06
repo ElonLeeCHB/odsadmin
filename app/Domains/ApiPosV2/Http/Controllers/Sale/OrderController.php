@@ -43,7 +43,11 @@ class OrderController extends ApiPosController
 
     public function store()
     {
-        $result = $this->OrderService->store(request()->post());
+        $post_data = request()->post();
+
+        $post_data['order_taker'] = auth()->user()->name;
+
+        $result = $this->OrderService->store($post_data);
 
         $json = [];
 

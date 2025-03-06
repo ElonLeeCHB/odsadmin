@@ -178,7 +178,6 @@ class OrderPrintingRepository extends Repository
     public function getMultiOrders($params)
     {
         try {
-
             //抓訂單、處理單頭
                 // orders.id
                 $order_ids = [];
@@ -615,12 +614,11 @@ class OrderPrintingRepository extends Repository
                     'statistics' => $statistics,
                     'totals' => $totals,
                 ];
-                $real_order_ids[] = $order->id;
             }
 
             // 處理訂單列印狀態
-            if(!empty($params['printStatus']) && !empty($real_order_ids)){
-                Order::whereIn('id', $real_order_ids)->update(['print_status' => 1]);
+            if(!empty($params['printStatus']) && !empty($order_ids)){
+                Order::whereIn('id', $order_ids)->update(['print_status' => 1]);
             }
 
             return $ordersData;

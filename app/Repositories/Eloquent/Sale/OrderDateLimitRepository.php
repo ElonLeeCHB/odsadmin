@@ -24,20 +24,18 @@ $datelimits = [
 class OrderDateLimitRepository extends Repository
 {
     public $modelName = "\App\Models\Sale\OrderDateLimit";
-    public $increase_status_codes = ['Confirmed', 'CCP'];
+    public $controlled_status_code = ['Pending', 'Confirmed', 'CCP'];
     private $default_limits = [];
-    private $time_slot_keys = ["09:00-09:59", "10:00-10:59", "11:00-11:59", "12:00-12:59", "13:00-13:59","14:00-14:59", "15:00-15:59", "16:00-16:59", "17:00-17:59"];
+    private $time_slot_keys = ["07:00-07:59", "08:00-08:59", "09:00-09:59", "10:00-10:59", "11:00-11:59", "12:00-12:59", "13:00-13:59","14:00-14:59", "15:00-15:59", "16:00-16:59", "17:00-17:59"];
     private $default_limit_count = 200;
     public $default_formatted_time_slots = [];
 
     // 獲取預設的數量設定。來源： settings.setting_key = pos_timeslotlimits
     public function getDefaultLimits()
     {
-        if(empty($this->default_limits)){
-            $row = Setting::where('group','pos')->where('setting_key', 'pos_timeslotlimits')->first();
-            $this->default_limits = $row->setting_value;
-        }
+        $this->default_limits = Setting::where('group','pos')->where('setting_key', 'pos_timeslotlimits')->first()->setting_value;
 
+        //排序
         uksort($this->default_limits , function($a, $b) {
             $startA = explode('-', $a)[0];
             $startB = explode('-', $b)[0];
@@ -45,7 +43,7 @@ class OrderDateLimitRepository extends Repository
             return strtotime($startA) - strtotime($startB);
         });
 
-        //  確保每個時段都有
+        //  確保每個時段都有預設的上限數量
         foreach ($this->time_slot_keys as $time_slot_key) {
             if(empty($this->default_limits[$time_slot_key])){
                 $this->default_limits[$time_slot_key] = $this->default_limit_count;
@@ -280,7 +278,7 @@ class OrderDateLimitRepository extends Repository
                     ->join('product_tags as pt', 'op.product_id', '=', 'pt.product_id')
                     ->where('pt.term_id', 1331)  //1331=套餐
                     ->whereDate('o.delivery_date', $date)
-                    ->whereIn('o.status_code', $this->increase_status_codes)
+                    ->whereIn('o.status_code', $this->controlled_status_code)
                     ->orderBy('o.delivery_date');
         
         $customOrders = $builder->get();
@@ -470,7 +468,7 @@ class OrderDateLimitRepository extends Repository
                     ->join('product_tags as pt', 'op.product_id', '=', 'pt.product_id')
                     ->where('pt.term_id', 1331)  //1331=套餐
                     ->where('delivery_date', '>', $today)
-                    ->whereIn('o.status_code', $this->increase_status_codes)
+                    ->whereIn('o.status_code', $this->controlled_status_code)
                     ->orderBy('o.delivery_date');
 
         $customOrders = $builder->get();
