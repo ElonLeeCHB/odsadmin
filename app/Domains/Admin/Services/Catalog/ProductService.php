@@ -45,6 +45,7 @@ class ProductService extends Service
                 $product->main_category_id = $data['main_category_id'] ?? null;
                 $product->price = $data['price'] ?? 0;
                 $product->quantity = $data['quantity'] ?? 0;
+                $product->quantity_for_control = $data['quantity_for_control'] ?? 0;
                 $product->comment = $data['comment'] ?? '';
                 $product->is_active = (int) $data['is_active'] ?? 0;
                 $product->is_salable = (int) $data['is_salable'] ?? 0;
@@ -84,7 +85,7 @@ class ProductService extends Service
                 }
             //
 
-            // product_translations
+            // product_translationsl
                 if(!empty($data['translations'])){
                     $this->saveRowTranslationData($product, $data['translations']);
                 }

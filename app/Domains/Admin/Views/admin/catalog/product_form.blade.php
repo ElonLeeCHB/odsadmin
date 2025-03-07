@@ -187,14 +187,22 @@
                 </div>
 
                 <div class="row mb-3">
-                  <label for="input-price" class="col-sm-2 col-form-label">{{ $lang->column_product_tag }}</label>
+                  <label for="input-product_tag" class="col-sm-2 col-form-label">{{ $lang->column_product_tag }}</label>
                   <div class="col-sm-10">
                     <select id="input-product_tag" name="product_tag[]" class="select2-multiple form-control" multiple="multiple">
                       @foreach($product_tags ?? [] as $product_tag)
                       <option value="{{ $product_tag->id }}" @if(in_array($product_tag->id, $exist_product_tag_ids)) selected @endif>{{ $product_tag->name }}</option>
                       @endforeach
                     </select>
-                    <div id="error-price" class="invalid-feedback"></div>
+                    <div id="error-product_tag" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <label for="input-quantity_for_control" class="col-sm-2 col-form-label">{{ $lang->column_quantity_for_control}}</label>
+                  <div class="col-sm-10">
+                    <input type="text" name="quantity_for_control" value="{{ $product->quantity_for_control }}" placeholder="{{ $lang->placeholder_quantity_for_control }}" id="input-quantity_for_control" class="form-control"/>
+                    <div id="error-quantity_for_control" class="invalid-feedback"></div>
                   </div>
                 </div>
 

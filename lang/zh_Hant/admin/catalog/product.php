@@ -52,12 +52,14 @@ return [
 'column_comment' => '備註',
 'column_is_default' => '是否預設',
 'column_category' => '分類',
+'column_quantity_for_control' => '控單計量',
 
 'button_option_value_add' => '新增選項值',
 
 
 // Placholder
 'placeholder_date_available' => '上架日期',
+'placeholder_quantity_for_control' => '用於訂單的數量控制',
 
 // Help
 'help_category' => '(自動完成)',

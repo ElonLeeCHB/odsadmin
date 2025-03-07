@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 use App\Domains\Admin\ExportsLaravelExcel\OrderProductExport;
 use App\Domains\Admin\ExportsLaravelExcel\UsersExport;
 use Carbon\Carbon;
-
+use App\Helpers\Classes\DataHelper;
 use App\Http\Resources\Sale\OrderProductResource;
 use Elibyy\TCPDF\Facades\TCPDF;
 
@@ -805,71 +805,87 @@ class OrderController extends BackendController
 
     public function printMultiOrders()
     {
-        $params = request()->all();
+        $request_data = request()->all();
+        $url_data = request()->query();
+
+        $cache_key = 'cache/orders/PrintingData_'.app()->getLocale().'_' . md5(json_encode($url_data));
+
+        if(!empty($url_data['fresh'])){
+            DataHelper::deleteDataFromStorage($cache_key);
+        }
         
-        $result = $this->OrderService->getMultiOrdersForPrinting($params);
+        $data = DataHelper::remember($cache_key, 60*10, 'serialize', function() use ($request_data){
+            $result = $this->OrderService->getMultiOrdersForPrinting($request_data);
 
-        if(empty($result['error'])){
-            $data['orders'] = $result;
-
-            //固定欄位的選項
-                //潤餅便當 lumpiaBento 以 1001 招牌潤餅便當 當代表
-                $data['columns']['lumpiaBento']['MainMeal'] = $this->OrderService->getOptionValuesByProductOption(product_id:1001, option_id:1003);
-
-                //刈包便當 guabaoBento 以 1671 雞胸刈包便當 當代表
-                $data['columns']['guabaoBento']['MainMeal'] = $this->OrderService->getOptionValuesByProductOption(product_id:1671, option_id:1003);
-
-                //潤餅盒餐 lumpiaLunchBox 以 1008 潤餅首席盒餐 當代表
-                $data['columns']['lumpiaLunchBox']['MainMeal'] = $this->OrderService->getOptionValuesByProductOption(product_id:1008, option_id:1003);
-                $data['columns']['lumpiaLunchBox']['SideDish'] = $this->OrderService->getOptionValuesByProductOption(product_id:1008, option_id:1005);
+            if(empty($result['error'])){
+                $data['orders'] = $result;
+    
+                //固定欄位的選項
+                    //潤餅便當 lumpiaBento 以 1001 招牌潤餅便當 當代表
+                    $data['columns']['lumpiaBento']['MainMeal'] = $this->OrderService->getOptionValuesByProductOption(product_id:1001, option_id:1003);
+    
+                    //刈包便當 guabaoBento 以 1671 雞胸刈包便當 當代表
+                    $data['columns']['guabaoBento']['MainMeal'] = $this->OrderService->getOptionValuesByProductOption(product_id:1671, option_id:1003);
+    
+                    //潤餅盒餐 lumpiaLunchBox 以 1008 潤餅首席盒餐 當代表
+                    $data['columns']['lumpiaLunchBox']['MainMeal'] = $this->OrderService->getOptionValuesByProductOption(product_id:1008, option_id:1003);
+                    $data['columns']['lumpiaLunchBox']['SideDish'] = $this->OrderService->getOptionValuesByProductOption(product_id:1008, option_id:1005);
+                    
+                    //刈包盒餐 guabaoLunchBox 以 1680 刈包首席盒餐 當代表
+                    $data['columns']['guabaoLunchBox']['MainMeal'] = $this->OrderService->getOptionValuesByProductOption(product_id:1680, option_id:1003);
+                    $data['columns']['guabaoLunchBox']['SideDish'] = $this->OrderService->getOptionValuesByProductOption(product_id:1680, option_id:1005);
+    
+                    //分享餐的主餐 使用潤餅便當
+                    $data['columns']['lumpiaSharing']['MainMeal'] = $data['columns']['lumpiaBento']['MainMeal'];
+    
+                    //飲料 抓選項
+                    $data['columns']['Drink'] = $this->OrderService->getDrinks();
+    
+                    //新方案 for template=V03 
+                    $data['columns']['MainMeal'] = [
+                        (object) ['short_name' => '主廚', 'option_value_ids' => [1083, 1102,]],
+                        (object) ['short_name' => '全素', 'option_value_ids' => [1046, 1104,]],
+                        (object) ['short_name' => '奶素', 'option_value_ids' => [1047, 1105,]],
+                        (object) ['short_name' => '鮮蔬', 'option_value_ids' => [1017, 1096,]],
+                        (object) ['short_name' => '炸蝦', 'option_value_ids' => [1018, 1097,]],
+                        (object) ['short_name' => '芥雞', 'option_value_ids' => [1019, 1098,]],
+                        (object) ['short_name' => '酥魚', 'option_value_ids' => [1020, 1099,]],
+                        (object) ['short_name' => '培根', 'option_value_ids' => [1021, 1100,]],
+                        (object) ['short_name' => '滷肉', 'option_value_ids' => [1022, 1101,]],
+                        (object) ['short_name' => '春捲', 'option_value_ids' => [1093]],
+                    ];
+                //
                 
-                //刈包盒餐 guabaoLunchBox 以 1680 刈包首席盒餐 當代表
-                $data['columns']['guabaoLunchBox']['MainMeal'] = $this->OrderService->getOptionValuesByProductOption(product_id:1680, option_id:1003);
-                $data['columns']['guabaoLunchBox']['SideDish'] = $this->OrderService->getOptionValuesByProductOption(product_id:1680, option_id:1005);
-
-                //分享餐的主餐 使用潤餅便當
-                $data['columns']['lumpiaSharing']['MainMeal'] = $data['columns']['lumpiaBento']['MainMeal'];
-
-                //飲料 抓選項
-                $data['columns']['Drink'] = $this->OrderService->getDrinks();
-
-                //新方案 for template=V03 
-                $data['columns']['MainMeal'] = [
-                    (object) ['short_name' => '主廚', 'option_value_ids' => [1083, 1102,]],
-                    (object) ['short_name' => '全素', 'option_value_ids' => [1046, 1104,]],
-                    (object) ['short_name' => '奶素', 'option_value_ids' => [1047, 1105,]],
-                    (object) ['short_name' => '鮮蔬', 'option_value_ids' => [1017, 1096,]],
-                    (object) ['short_name' => '炸蝦', 'option_value_ids' => [1018, 1097,]],
-                    (object) ['short_name' => '芥雞', 'option_value_ids' => [1019, 1098,]],
-                    (object) ['short_name' => '酥魚', 'option_value_ids' => [1020, 1099,]],
-                    (object) ['short_name' => '培根', 'option_value_ids' => [1021, 1100,]],
-                    (object) ['short_name' => '滷肉', 'option_value_ids' => [1022, 1101,]],
-                    (object) ['short_name' => '春捲', 'option_value_ids' => [1093]],
-                ];
-            //
-            
-            if(empty($params['template'])){
-                $params['template'] = 'V01';
-            }
-
-            if($params['template'] == 'V03' ){
-                foreach ($data['orders'] ?? [] as $key1 => &$order) {
-                    foreach ($order['categories'] ?? [] as $category_code => &$category) {
-                        foreach ($category['items'] ?? [] as $product_id => &$product) {
-                            // term_id: 1439 客製, 13229 便當
-                            if(!empty($product['product_tag_ids']) && !in_array(1439, $product['product_tag_ids']) && in_array(13229, $product['product_tag_ids'])){
-                                unset($data['orders'][$key1]['categories'][$category_code]['items'][$product_id]['product_options']['SideDish']);
+                if(empty($request_data['template'])){
+                    $request_data['template'] = 'V01';
+                }
+    
+                if($request_data['template'] == 'V03' ){
+                    foreach ($data['orders'] ?? [] as $key1 => &$order) {
+                        foreach ($order['categories'] ?? [] as $category_code => &$category) {
+                            foreach ($category['items'] ?? [] as $product_id => &$product) {
+                                // term_id: 1439 客製, 13229 便當
+                                if(!empty($product['product_tag_ids']) && !in_array(1439, $product['product_tag_ids']) && in_array(13229, $product['product_tag_ids'])){
+                                    unset($data['orders'][$key1]['categories'][$category_code]['items'][$product_id]['product_options']['SideDish']);
+                                }
                             }
                         }
                     }
                 }
+    
+                $data['template'] = $request_data['template'];
+    
+                return $data;
+            }else{
+                return ['error' => $result['error']];
             }
+        });
 
-            $data['template'] = $params['template'];
 
+        if(empty($data['error'])){
             return view('admin.sale.printMultiOrders', $data);
         }
 
-        return response()->json(['error' => $result['error']], 500);
+        return response()->json(['error' => $data['error']], 500);
     }
 }

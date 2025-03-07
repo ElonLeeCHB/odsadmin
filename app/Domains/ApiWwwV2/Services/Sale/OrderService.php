@@ -185,6 +185,20 @@ class OrderService extends Service
                     // 批次建立
                     (new OrderProductOptionRepository)->createMany($fm_order_product['order_product_options'], $order->id, $order_product_id);
                 }
+
+                // 更新 option_id, option_value_id, map_product_id
+                if(!empty($order->id)){
+                    $sql = "
+                        UPDATE order_product_options AS opo
+                        JOIN product_option_values AS pov ON pov.id=opo.product_option_value_id
+                        JOIN option_values AS ov ON ov.id=pov.option_value_id
+                        SET
+                            opo.option_id = pov.option_id,
+                            opo.option_value_id = pov.option_value_id,
+                            opo.map_product_id = IFNULL(ov.product_id, opo.map_product_id)
+                            WHERE opo.order_id = " . $order->id;
+                    DB::statement($sql);
+                }
             // end order_product_options
 
             // OrderTotal

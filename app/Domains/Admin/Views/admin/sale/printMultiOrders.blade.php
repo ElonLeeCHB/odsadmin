@@ -18,20 +18,14 @@
       padding: 0px;
       width: 8.5in;
       height: 11in;
-      page-break-after: always; 
+      display: table;  /* 讓它像表格，提高 break-after 支援度 */
+      page-break-after: always; /* 舊版屬性 */
+      break-after: page; /* 新版屬性 */
     }
-    @media screen, print {
-      .order {
-        margin: 2px auto;
-        padding: 0px;
-        width: 8.5in;
-        height: 11in;
-        page-break-after: always; 
-      }
-
+    @media print {
       @page {
         size: 8.5in 11in;
-        margin: 2px;
+        margin: 3px;
       }
     }
     .commentSign{
@@ -56,9 +50,8 @@
 
 </head>
 <body>
-
   @foreach($orders as $order)
-  <div class="order">
+  <section  class="order">
     {{-- 聯絡資料表格 --}}
       <table id="contactInfo" class="border-none contact" style="width: 100%;" >
         <tr style="height: 70px;">
@@ -154,7 +147,8 @@
         <tbody>
           <tr style="height: 60px;">
             <td class="align-top"   colspan="10">
-            <p style="white-space: pre-wrap;margin:0">餐點備註：{{ $order['header']->extra_comment }}</p>
+            <p style="white-space: pre-wrap;margin:0">餐點備註：{{ $order['header']->extra_comment }} @if($order['header']->status_code != 'Confirmed' && $order['header']->status_code != 'CCP') {{ $order['header']->status_name }} @endif</p>
+            
               <div style="text-align: right;">
                 <input type="checkbox"> {{"小卡"}}
                 外送五步驟：清檢放統備 &nbsp;&nbsp;簽名：_______________
@@ -253,8 +247,7 @@
       <div class="fw-bold"  style="text-align: right;margin-right: 1.5em">{{'製單時間：'}}{{ now() }}</div>
     <!-- End 客戶簽收 -->
   
-  </div>
+  </section>
   @endforeach
-
 </body>
 </html>

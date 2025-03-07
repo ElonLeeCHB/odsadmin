@@ -3,7 +3,7 @@
         <table id="oilRiceBox" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
           <thead>
             <tr>
-              <td style="width:100px;" class="fw-bold">{{ $order['categories']['oilRiceBox']['name'] }}</td>
+              <td style="width:160px;" class="fw-bold">{{ $order['categories']['oilRiceBox']['name'] }}</td>
               <td style="width:24px;" class="fw-bold">小計
               @php $column_used_num = 2; @endphp
               @foreach($order['categories']['oilRiceBox']['Columns']['MainMeal'] as $option_value_id => $name)
@@ -20,7 +20,7 @@
                 @php $column_used_num++; @endphp
               @endforeach
 
-              @php $left = 24-$column_used_num; @endphp
+              @php $left = 22-$column_used_num; @endphp
               @for($i = 1; $i <= $left; $i++)
                 <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
               @endfor
@@ -57,7 +57,7 @@
                 @php $column_used_num++; @endphp
               @endforeach
 
-              @php $left = 24-$column_used_num; @endphp
+              @php $left = 22-$column_used_num; @endphp
               @for($i = 1; $i <= $left; $i++)
                 <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
               @endfor
@@ -81,7 +81,7 @@
       <table id="lumpiaBento" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
         <thead>
           <tr>
-            <td style="width:100px;" class="fw-bold">{{ $order['categories']['lumpiaBento']['name'] }}</td>
+            <td style="width:190px;" class="fw-bold">{{ $order['categories']['lumpiaBento']['name'] }}</td>
             <td style="width:24px;" class="fw-bold">小計</td>
             @php $column_used_num = 2; @endphp
             @foreach($columns['lumpiaBento']['MainMeal'] ?? [] as $item)
@@ -98,7 +98,7 @@
               @php $column_used_num++; @endphp
             @endforeach
 
-            @php $left = 24-$column_used_num; @endphp
+            @php $left = 21-$column_used_num; @endphp
             @for($i = 1; $i <= $left; $i++)
               <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
             @endfor
@@ -135,7 +135,7 @@
               @php $column_used_num++; @endphp
             @endforeach
 
-            @php $left = 24-$column_used_num; @endphp
+            @php $left = 21-$column_used_num; @endphp
             @for($i = 1; $i <= $left; $i++)
               <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
             @endfor
@@ -160,7 +160,7 @@
         <table id="guabaoBento" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
           <thead>
             <tr>
-              <td style="width:150px;" class="fw-bold">{{ $order['categories']['guabaoBento']['name'] }}</td>
+              <td style="width:160px;" class="fw-bold">{{ $order['categories']['guabaoBento']['name'] }}</td>
               <td style="width:24px;" class="fw-bold">小計</td>
               @php $column_used_num = 2; @endphp
               @foreach($columns['guabaoBento']['MainMeal'] ?? [] as $item)
@@ -177,7 +177,7 @@
                 @php $column_used_num++; @endphp
               @endforeach
 
-              @php $left = 23-$column_used_num; @endphp
+              @php $left = 22-$column_used_num; @endphp
               @for($i = 1; $i <= $left; $i++)
                 <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
               @endfor
@@ -215,7 +215,7 @@
                 @php $column_used_num++; @endphp
               @endforeach
 
-              @php $left = 23-$column_used_num; @endphp
+              @php $left = 22-$column_used_num; @endphp
               @for($i = 1; $i <= $left; $i++)
                 <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
               @endfor
@@ -239,7 +239,7 @@
       <table id="customBento" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
         <thead>
           <tr>
-            <td style="width:135px;" class="fw-bold">{{ $order['categories']['customBento']['name'] }}</td>
+            <td style="width:160px;" class="fw-bold">{{ $order['categories']['customBento']['name'] }}</td>
             <td style="width:24px;" class="fw-bold">小計</td>
             @php $column_used_num = 2; @endphp
             @foreach($columns['MainMeal'] ?? [] as $item)
@@ -263,7 +263,7 @@
               @php $column_used_num++; @endphp
             @endforeach
 
-            @php $left = 22-$column_used_num; @endphp
+            @php $left = 23-$column_used_num; @endphp
             @for($i = 1; $i <= $left; $i++)
               <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
             @endfor
@@ -311,7 +311,7 @@
               @php $column_used_num++; @endphp
             @endforeach
 
-            @php $left = 22-$column_used_num; @endphp
+            @php $left = 23-$column_used_num; @endphp
             @for($i = 1; $i <= $left; $i++)
               <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
             @endfor
@@ -336,7 +336,7 @@
       <table id="lumpiaLunchBox" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
         <thead>
           <tr>
-            <td style="width:100px;" class="fw-bold">{{ $order['categories']['lumpiaLunchBox']['name'] }}</td>
+            <td style="width:160px;" class="fw-bold">{{ $order['categories']['lumpiaLunchBox']['name'] }}</td>
             <td style="width:24px;" class="fw-bold">小計</td>
             @php $column_used_num = 2; @endphp
             @foreach($columns['lumpiaLunchBox']['MainMeal'] ?? [] as $item)
@@ -353,7 +353,7 @@
               @php $column_used_num++; @endphp
             @endforeach
 
-            @php $left = 24-$column_used_num; @endphp
+            @php $left = 22-$column_used_num; @endphp
             @for($i = 1; $i <= $left; $i++)
               <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
             @endfor
@@ -400,7 +400,7 @@
               @php $column_used_num++; @endphp
             @endforeach
 
-            @php $left = 24-$column_used_num; @endphp
+            @php $left = 22-$column_used_num; @endphp
             @for($i = 1; $i <= $left; $i++)
               <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
             @endfor
@@ -442,7 +442,7 @@
       <table id="guabaoLunchBox" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
         <thead>
           <tr>
-            <td style="width:100px;" class="fw-bold">{{ $order['categories']['guabaoLunchBox']['name'] }}</td>
+            <td style="width:160px;" class="fw-bold">{{ $order['categories']['guabaoLunchBox']['name'] }}</td>
             <td style="width:24px;" class="fw-bold">小計</td>
             @php $column_used_num = 2; @endphp
             @foreach($columns['guabaoLunchBox']['MainMeal'] ?? [] as $item)
@@ -459,7 +459,7 @@
               @php $column_used_num++; @endphp
             @endforeach
 
-            @php $left = 24-$column_used_num; @endphp
+            @php $left = 22-$column_used_num; @endphp
             @for($i = 1; $i <= $left; $i++)
               <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
             @endfor
@@ -497,7 +497,7 @@
               @php $column_used_num++; @endphp
             @endforeach
 
-            @php $left = 24-$column_used_num; @endphp
+            @php $left = 22-$column_used_num; @endphp
             @for($i = 1; $i <= $left; $i++)
               <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
             @endfor
@@ -539,7 +539,7 @@
       <table id="customLunchbox" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
         <thead>
           <tr>
-            <td style="width:136px;" class="fw-bold">{{ $order['categories']['customLunchbox']['name'] }}</td>
+            <td style="width:160px;" class="fw-bold">{{ $order['categories']['customLunchbox']['name'] }}</td>
             <td style="width:24px;" class="fw-bold">小計</td>
             @php $column_used_num = 2; @endphp
             @foreach($columns['MainMeal'] ?? [] as $item)
@@ -643,7 +643,7 @@
       <table id="sharingMeal" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
         <thead>
           <tr>
-            <td style="width:100px;" class="fw-bold">{{ $order['categories']['sharingMeal']['name'] }}</td>
+            <td style="width:160px;" class="fw-bold">{{ $order['categories']['sharingMeal']['name'] }}</td>
             <td style="width:24px;" class="fw-bold">小計</td>
             @php $column_used_num = 2; @endphp
             @foreach($columns['lumpiaSharing']['MainMeal'] ?? [] as $item)
@@ -653,7 +653,7 @@
               @php $column_used_num++; @endphp
             @endforeach
 
-            @php $left = 30-$column_used_num; @endphp
+            @php $left = 28-$column_used_num; @endphp
             @for($i = 1; $i <= $left; $i++)
               <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif" class="fw-bold"> </td>
             @endfor
@@ -674,7 +674,7 @@
               @php $column_used_num++; @endphp
             @endforeach
 
-            @php $left = 30-$column_used_num; @endphp
+            @php $left = 28-$column_used_num; @endphp
             @for($i = 1; $i <= $left; $i++)
               <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
             @endfor

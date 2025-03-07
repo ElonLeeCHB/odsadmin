@@ -231,6 +231,7 @@ class DataHelper
         public static function saveDataToStorage($path, $data, $seconds = 0, $type = 'serialize')
         {
             try{
+                
                 if (Storage::exists($path)) {
                     Storage::delete($path);
                 }
@@ -253,7 +254,7 @@ class DataHelper
                     $result = json_encode($result);
                 }
 
-                return Storage::put($path, $result);
+                $result = Storage::put($path, $result);
 
             } catch (\Exception $ex) {
                 throw $ex;
@@ -267,12 +268,12 @@ class DataHelper
                     
                     $expires_at = '';
 
-                    if($type == 'json' && !empty($result->expires_at)){
+                    if($type == 'json'){
                         $result = json_decode(Storage::get($path));
-                        $expires_at = $result->expires_at;
-                    }else if($type == 'serialize' && !empty($result['expires_at'])){
+                        $expires_at = $result->expires_at ?? null;
+                    }else if($type == 'serialize'){
                         $result = unserialize(Storage::get($path));
-                        $expires_at = $result['expires_at'];
+                        $expires_at = $result['expires_at'] ?? null;
                     }
 
                     // expires at future
@@ -292,6 +293,11 @@ class DataHelper
             } catch (\Exception $ex) {
                 throw $ex;
             }
+        }
+
+        public static function deleteDataFromStorage($path)
+        {
+            Storage::delete($path);
         }
     // End cache
 

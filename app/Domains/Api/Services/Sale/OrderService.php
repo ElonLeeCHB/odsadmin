@@ -383,23 +383,6 @@ class OrderService extends GlobalOrderService
                     if(!empty($update_order_product_options)){
                         OrderProductOption::upsert($update_order_product_options,['id']);
                         unset($update_order_product_options);
-
-                        $sql = "
-                            UPDATE order_product_options AS opo
-                            JOIN product_option_values AS pov ON opo.product_option_value_id = pov.id
-                            SET
-                                opo.option_id = pov.option_id,
-                                opo.option_value_id = pov.option_value_id
-                            WHERE opo.order_id=" . $order->id;
-                        DB::statement($sql);
-
-                        $sql = "
-                            UPDATE order_product_options AS opo
-                            JOIN option_values AS ov ON opo.option_value_id = ov.id
-                            SET opo.map_product_id = ov.product_id
-                            WHERE opo.order_id=" . $order->id;
-                        DB::statement($sql);
-
                     }
                 }
             //
@@ -430,6 +413,20 @@ class OrderService extends GlobalOrderService
 
             DB::commit();
             DB::commit();
+
+            // 更新 option_id, option_value_id, map_product_id
+            if(!empty($order->id)){
+                $sql = "
+                    UPDATE order_product_options AS opo
+                    JOIN product_option_values AS pov ON pov.id=opo.product_option_value_id
+                    JOIN option_values AS ov ON ov.id=pov.option_value_id
+                    SET
+                        opo.option_id = pov.option_id,
+                        opo.option_value_id = pov.option_value_id,
+                        opo.map_product_id = IFNULL(ov.product_id, opo.map_product_id)
+                    WHERE opo.order_id = " . $order->id;
+                DB::statement($sql);
+            }
 
             // Events
             event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order, old_order:$old_order));

@@ -438,7 +438,7 @@ class OrderService extends Service
             'limit' => 0,
             'sort' => 'sort_order',
             'order' => 'ASC',
-            'is_active' => 1,
+            'equal_is_active' => 1,
         ];
         $optionValues =(new OptionValueRepository)->getRows($filter_data);
         $optionValues = $optionValues->sortBy('sort_order');
