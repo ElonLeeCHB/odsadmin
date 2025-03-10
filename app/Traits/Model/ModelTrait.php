@@ -109,6 +109,13 @@ trait ModelTrait
         }
     }
 
+    public function getPrefix()
+    {
+        $connection = $this->getConnectionName();
+
+        return config("database.connections.{$connection}.prefix", '');
+    }
+
     public function getMetaModel()
     {
         if(!empty($this->meta_model)){

@@ -71,13 +71,12 @@ class ApiWwwV2Controller extends Controller
         
         // 有錯誤
         else{
-            if($status_code == 404){
-                $json['error'] = '找不到';
-            }
-
-            if(empty($status_code)){
-                $json['error'] = '請求錯誤';
+            if($status_code == 200){
                 $status_code = 400;
+                $json['error'] = $input['error'];
+            }
+            else if($status_code == 404){
+                $json['error'] = '找不到';
             }
         }
 

@@ -23,8 +23,8 @@ class Product extends Model
     use ModelTrait;
 
     protected $guarded = [];
-    protected $appends = ['code', 'name', 'web_name'];
-    public $translation_keys = ['name', 'short_name','web_name' , 'specification','meta_title','meta_description','meta_keyword',
+    protected $appends = ['code', 'name', 'web_name', 'short_description'];
+    public $translation_keys = ['name', 'short_name','web_name' , 'short_description', 'description', 'specification','meta_title','meta_description','meta_keyword',
                                 //以下待廢
                                 'full_name'
                                 ];
@@ -153,6 +153,13 @@ class Product extends Model
         );
     }
 
+    protected function shortDescription(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $this->translation->short_description ?? '',
+        );
+    }
+
     protected function mainCategoryCode(): Attribute
     {
         return Attribute::make(
@@ -163,7 +170,7 @@ class Product extends Model
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->name ?? '123',
+            get: fn () => $this->translation->name ?? '',
         );
     }
 

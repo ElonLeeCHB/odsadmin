@@ -84,6 +84,14 @@
                       </div>
                     </div>
                     <div class="row mb-3">
+                      <label for="input-short_description-{{ $language->code }}" class="col-sm-2 col-form-label">簡短說明</label>
+                      <div class="col-sm-10">
+                        <div class="input-group">
+                          <textarea id="input-short_description-{{ $language->code }}" name="translations[{{ $language->code }}][short_description]" rows="5" placeholder="簡短說明" class="form-control">{{ $translations[$language->code]['short_description'] ?? '' }}</textarea>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row mb-3">
                       <label for="input-meta-title-{{ $language->code }}" class="col-sm-2 col-form-label">{{ $lang->column_meta_title }}</label>
                       <div class="col-sm-10">
                         <div class="input-group">
@@ -97,7 +105,7 @@
                       <div class="col-sm-10">
                         <div class="input-group">
                           <textarea name="translations[{{ $language->code }}][meta_description]" rows="5" placeholder="{{ $lang->column_meta_description }}" id="input-meta-description-{{ $language->code }}" class="form-control">{{ $translations[$language->code]['meta_description'] ?? '' }}</textarea>
-                                                  </div>
+                        </div>
                       </div>
                     </div>
                     <div class="row mb-3">

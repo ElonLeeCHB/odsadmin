@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Domains\ApiWwwV2\Http\Controllers\ApiWwwV2Controller;
 use App\Domains\ApiWwwV2\Services\Catalog\ProductService;
 use App\Helpers\Classes\DataHelper;
+use App\Helpers\Classes\OrmHelper;
 
 class ProductController extends ApiWwwV2Controller
 {
@@ -29,7 +30,7 @@ class ProductController extends ApiWwwV2Controller
 
     
             $rows = $this->ProductService->getList($filter_data);
-    
+            // echo "<pre>",print_r(999,true),"</pre>\r\n";exit;
             foreach ($rows as $row) {
                 $row->web_name = $row->translation->web_name;
             }
@@ -41,29 +42,19 @@ class ProductController extends ApiWwwV2Controller
             return $this->sendResponse($json);
 
         } catch (\Throwable $th) {
-            return $this->sendResponse(['error' => $th->getMessage()], $th->getCode());
+            return $this->sendResponse(['error' => $th->getMessage()]);
         }
     }
     
     public function info($product_id)
     {
         try {
-            $filter_data = $this->url_data;
-        
-                
-            $filter_data['equal_id'] = $product_id;
-            $filter_data['select'] = ['id', 'code', 'name', 'price', 'quantity_for_control', 'is_options_controlled'];
-            $filter_data['with'] = ['product_options.translation',
-                                    'product_options.product_option_values.translation',
-                                    'product_options.product_option_values.option_value'
-                                  ];
-    
-            $result = $this->ProductService->getInfo($filter_data);
+            $product = $this->ProductService->getProductById($product_id);
 
-            return $this->sendResponse($result);
+            return $this->sendResponse($product);
 
         } catch (\Throwable $th) {
-            return $this->sendResponse(['error' => $th->getMessage()], $th->getCode());
+            return $this->sendResponse(['error' => $th->getMessage()]);
         }
     }
 }

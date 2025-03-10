@@ -9,6 +9,7 @@ use App\Traits\Model\Translatable;
 use App\Models\Catalog\Option;
 use App\Models\Catalog\OptionValue;
 use App\Models\Catalog\OptionValueTranslation;
+use App\Models\Material\Product;
 
 class ProductOptionValue extends Model
 {
@@ -55,8 +56,21 @@ class ProductOptionValue extends Model
         return $this->belongsTo(OptionValue::class);
     }
 
+    public function materialProduct()
+    {
+        return $this->hasOneThrough(
+            Product::class,   // 目標模型 (Product)
+            OptionValue::class, // 中介模型 (OptionValue)
+            'id',   // OptionValue 表的主鍵
+            'id',   // Product 表的主鍵
+            'option_value_id',   // ProductOptionValue 表關聯 OptionValue 的外鍵
+            'product_id' // OptionValue 表關聯 Product 的外鍵
+        );
+    }
+
 
     // Attribute
+    
     protected function productOptionValueId(): Attribute
     {
         return Attribute::make(
