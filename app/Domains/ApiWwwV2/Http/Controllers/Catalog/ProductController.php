@@ -26,6 +26,7 @@ class ProductController extends ApiWwwV2Controller
             $filter_data['select'] = ['id', 'code', 'name', 'price'];
     
             $filter_data['equal_is_on_web'] = 1;
+
     
             $rows = $this->ProductService->getList($filter_data);
     
@@ -51,7 +52,7 @@ class ProductController extends ApiWwwV2Controller
         
                 
             $filter_data['equal_id'] = $product_id;
-            $filter_data['select'] = ['id', 'code', 'name', 'price'];
+            $filter_data['select'] = ['id', 'code', 'name', 'price', 'quantity_for_control', 'is_options_controlled'];
             $filter_data['with'] = ['product_options.translation',
                                     'product_options.product_option_values.translation',
                                     'product_options.product_option_values.option_value'

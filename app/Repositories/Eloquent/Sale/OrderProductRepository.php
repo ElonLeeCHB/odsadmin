@@ -21,10 +21,10 @@ class OrderProductRepository extends Repository
 
             foreach ($arrOrderProducts as $row) {
 
-                //修正商品名稱
-                    $db_product = Product::where('id', $row['product_id'])->first();
-                    $row['name'] = $db_product['name'];
-                //
+                // //修正商品名稱 由 OrderService 處理
+                //     $db_product = Product::where('id', $row['product_id'])->first();
+                //     $row['name'] = $db_product['name'];
+                // //
 
                 $row = $this->normalizeData($row, $order_id);
 
@@ -96,6 +96,7 @@ class OrderProductRepository extends Repository
             'main_category_code' => $data['main_category_code'] ?? '',
             'price' => $data['price'] ?? 0,
             'quantity' => $data['quantity'] ?? 0,
+            'quantity_for_control' => $data['quantity_for_control'] ?? 0,
             'total' => $data['total'] ?? 0,
             'options_total' => $data['options_total'] ?? 0,
             'final_total' => $data['final_total'] ?? 0,

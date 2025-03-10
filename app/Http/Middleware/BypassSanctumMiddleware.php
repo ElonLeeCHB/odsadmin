@@ -23,8 +23,8 @@ class BypassSanctumMiddleware
         $api_ip = $request->ip();
 
         if(IpHelper::isPrivateIp($api_ip) && app()->environment('local', 'testing')){
-            // 允許透過 Header `X-User-ID` 直接模擬登入
-            if ($request->hasHeader('X-User-ID')) {
+            // 允許透過 Header 使用 `X-User-ID` 做登入
+            if ($request->hasHeader('X-User-ID') && $request->hasHeader('X-Developer-Key') && $request->header('X-Developer-Key') == env('ADMIN_DEVELOPER_KEY')) {
                 if (app()->environment('local', 'testing')) {
                     $userId = $request->header('X-User-ID');
             

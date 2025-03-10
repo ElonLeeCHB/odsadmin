@@ -265,15 +265,14 @@ class DataHelper
         {
             try{
                 if (Storage::exists($path)) {
-                    
                     $expires_at = '';
 
                     if($type == 'json'){
                         $result = json_decode(Storage::get($path));
-                        $expires_at = $result->expires_at ?? null;
+                        $expires_at = $result->expires_at;
                     }else if($type == 'serialize'){
                         $result = unserialize(Storage::get($path));
-                        $expires_at = $result['expires_at'] ?? null;
+                        $expires_at = $result['expires_at'];
                     }
 
                     // expires at future
@@ -411,7 +410,7 @@ class DataHelper
         return $result;
     }
 
-    public static function showSqlContent($builder, $exit = 0, $params = [])
+    public static function showSqlContent($builder, $exit = 1, $params = [])
     {
         $sqlstr = str_replace('?', "'?'", $builder->toSql());
 

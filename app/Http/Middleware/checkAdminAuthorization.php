@@ -36,7 +36,7 @@ class CheckAdminAuthorization
             if(IpHelper::isAllowedIps(client_ip:$apiRequesterIp, allowed_ips: config('settings.config_allowed_ip_addresses'))){
                 $is_ip_allowed = true;
             };
-        
+
         // 檢查 X-API-KEY'
             $api_key = request()->header('X-API-KEY') ?? request()->query('api-key');
 

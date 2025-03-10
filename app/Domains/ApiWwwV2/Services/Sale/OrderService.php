@@ -79,8 +79,48 @@ class OrderService extends Service
             // order
             $order = (new OrderRepository)->create($data);
 
+            // 抓取商品基本資料 $db_products, option_id: 1005=主餐, 1007=副主餐
+                foreach ($data['order_products'] ?? [] as $sort_order => $fm_order_product) {
+                    $product_ids[] = $fm_order_product['product_id'];
+                }
+
+                foreach ($product_ids as $product_id) {
+                    $cache_key = 'cache/ApiWwwV2/products/id-' . $product_id;
+
+                    if(!empty($data['no-cache'])){
+                        DataHelper::deleteDataFromStorage($cache_key);
+                    }
+
+                    $db_product = DataHelper::remember($cache_key, 60*60*48, 'serialize', function() use ($product_id) {
+                        return Product::select(['id','price','quantity_for_control' , 'is_options_controlled'])
+                                        ->where('id', $product_id)
+                                        ->with(['productOptions' => function($query) {
+                                            $query->where('is_active', 1)
+                                                ->with(['productOptionValues' => function($query) {
+                                                        $query->where('is_active', 1)
+                                                            ->with('optionValue')
+                                                            ->with('translation')
+                                                            ->with(['product:id,quantity_for_control,is_options_controlled']);
+                                                    }])
+                                                ->with('option');
+                                        }])
+                                        ->with('translation')
+                                        ->first();
+                    });
+
+                    $db_products[$db_product->id] = $db_product;
+                }
+
+                foreach ($db_products as $key => $db_product) {
+                    $db_products[$key] = $db_product->toArray();
+                }
+
+                $db_products = DataHelper::removeIndexesRecursive(['translation','option'], $db_products);
+            //
+
             // order_products
                 foreach ($data['order_products'] as &$order_product) {
+                    $order_product['name'] = $db_products[$product_id]['name'];
                     unset($order_product['id']);
                     unset($order_product['order_product_id']);
                 }
@@ -95,58 +135,6 @@ class OrderService extends Service
                 //重新讀取更新後的訂單商品
                 $order->load(['orderProducts:id,order_id,sort_order,product_id']);
                 $dbOrderProducts = $order->orderProducts->keyBy('sort_order');
-                
-                // 取得全部 $product_ids
-                foreach ($data['order_products'] ?? [] as $sort_order => $fm_order_product) {
-                    $product_ids[] = $fm_order_product['product_id'];
-                }
-
-                // 商品基本資料 $db_products, option_id: 1005=主餐, 1007=副主餐
-                    $db_products = Product::whereIn('id', $product_ids)
-                    ->whereHas('productOptions', function($query) {
-                        $query->whereIn('option_id', [1005,1007])->where('is_active', 1);
-                    })
-                    ->with(['productOptions' => function($query) {
-                        $query->whereIn('option_id', [1005,1007])
-                              ->where('is_active', 1)
-                              ->with(['productOptionValues' => function($query) {
-                                    $query->where('is_active', 1)->where('is_default', 1)
-                                          ->with('optionValue');
-                                }])
-                              ->with('option');
-                    }])
-                    ->get()
-                    ->keyBy('id');
-
-                    $db_products = DataHelper::removeIndexesRecursive(['translation','option'], $db_products->toArray());
-
-                    // $sql = "
-                    //     select p.id product_id, p.name product_name, pov.id product_option_value_id, 
-                    //     pov.option_id, ot.name option_name, pov.option_value_id, ovt.name option_value_name,
-                    //     pov.default_quantity, pov.is_default, pov.is_active, pov.price
-                    //     from products p
-                    //     left join product_option_values pov on pov.product_id=p.id
-                    //     left join option_translations ot on ot.option_id=pov.option_id and ot.locale='".app()->getLocale()."'
-                    //     left join option_value_translations ovt on ovt.locale='".app()->getLocale()."' and ovt.option_value_id=pov.option_value_id
-                    //     where p.id in (" . implode(',', array_fill(0, count($product_ids), '?')) . ") 
-                    //     and pov.is_active=1 and pov.is_default=1 
-                    // ";
-                    // $db_products = DB::select($sql, $product_ids);
-
-                    // $db_products = collect($db_products)->keyBy('product_id');
-
-
-                    // foreach ($db_products as $product_id => $db_product) {
-                    //     // $product['product_options'] = array_column($product['product_options'], null, 'option_id');
-                    //     foreach ($db_product['product_options'] as $db_product_option) {
-                    //         $option_id = $db_product_option['option_id'];
-                    //         foreach ($db_product_option['product_option_values'] as $key => $product_option_value) {
-                    //             $product['product_options'][$option_id]['product_option_values'][$key]['option_name'] = $product_option_value['option']['name'];
-                    //         }
-                    //     }
-                    // }
-                    // echo "<pre>",print_r($db_products,true),"</pre>";exit;
-                //
 
                 foreach ($data['order_products'] ?? [] as $sort_order => $fm_order_product) {
                     $product_id = $fm_order_product['product_id'];
@@ -186,6 +174,23 @@ class OrderService extends Service
                     (new OrderProductOptionRepository)->createMany($fm_order_product['order_product_options'], $order->id, $order_product_id);
                 }
 
+                // 處理控單數量
+                // foreach ($data['order_products'] ?? [] as $sort_order => $fm_order_product) {
+                //     $product_id = $fm_order_product['product_id'];
+                //     $order_product_id = $dbOrderProducts[$sort_order]->id;
+
+                //     // 沒有啟用選項控制，則使用商品表的控單數量柔位
+                //     if(empty($db_products[$product_id]['is_options_controlled'])){
+                //         $order_product['quantity_for_control'] = $db_products[$product_id]['quantity_for_control'] * $order_product['quantity'];
+                //     }
+                //     else {
+                //         foreach ($db_products[$product_id]['product_options'] as $db_product_option) {
+                //             // 好像很麻煩。要找出 product_options > option_values > products。請前端丟過來
+                //         }
+                //     }
+                // }
+
+                //
                 // 更新 option_id, option_value_id, map_product_id
                 if(!empty($order->id)){
                     $sql = "

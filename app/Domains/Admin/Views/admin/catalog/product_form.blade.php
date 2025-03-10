@@ -199,6 +199,14 @@
                 </div>
 
                 <div class="row mb-3">
+                  <label for="input-price" class="col-sm-2 col-form-label">{{ $lang->column_price}}</label>
+                  <div class="col-sm-10">
+                    <input type="text" name="price" value="{{ $product->price }}" placeholder="{{ $lang->column_price }}" id="input-price" class="form-control"/>
+                    <div id="error-price" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
                   <label for="input-quantity_for_control" class="col-sm-2 col-form-label">{{ $lang->column_quantity_for_control}}</label>
                   <div class="col-sm-10">
                     <input type="text" name="quantity_for_control" value="{{ $product->quantity_for_control }}" placeholder="{{ $lang->placeholder_quantity_for_control }}" id="input-quantity_for_control" class="form-control"/>
@@ -207,10 +215,15 @@
                 </div>
 
                 <div class="row mb-3">
-                  <label for="input-price" class="col-sm-2 col-form-label">{{ $lang->column_price}}</label>
+                  <label class="col-sm-2 col-form-label">啟用選項控單計量</label>
                   <div class="col-sm-10">
-                    <input type="text" name="price" value="{{ $product->price }}" placeholder="{{ $lang->column_price }}" id="input-price" class="form-control"/>
-                    <div id="error-price" class="invalid-feedback"></div>
+                    <div class="input-group">
+                      <div id="input-is_options_controlled" class="form-check form-switch form-switch-lg">
+                        <input type="hidden" name="is_options_controlled" value="0"/>
+                        <input type="checkbox" name="is_options_controlled" value="1" class="form-check-input" @if($product->is_options_controlled) checked @endif/>
+                      </div>
+                    </div>
+                    <div class="form-text">若啟用，訂單變更時會再去抓取選項所對應的料件，忽略這裡的控單計量。用於客製套餐</div>
                   </div>
                 </div>
 
