@@ -4,11 +4,11 @@ namespace App\Repositories\Eloquent\Catalog;
 
 use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
-use App\Models\Catalog\ProductUnit;
+use App\Models\Material\ProductUnit;
 
 class ProductUnitRepository extends Repository
 {
-    public $modelName = "\App\Models\Catalog\ProductUnit";
+    public $modelName = "\App\Models\Material\ProductUnit";
 
 
     public function getProductUnits($data = [], $debug = 0)

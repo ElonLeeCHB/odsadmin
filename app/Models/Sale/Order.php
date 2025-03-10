@@ -324,4 +324,55 @@ class Order extends Model
 
         return $data;
     }
+
+    /* 更新全部的控單數量
+-- 更新 order_product_options.quantity_for_control
+UPDATE order_product_options opo
+JOIN product_option_values pov ON opo.product_option_value_id = pov.id
+JOIN option_values ov ON pov.option_value_id = ov.id
+JOIN products p ON ov.product_id = p.id
+SET opo.quantity_for_control = 
+    CASE
+        WHEN p.quantity_for_control IS NOT NULL AND opo.quantity IS NOT NULL THEN p.quantity_for_control * opo.quantity
+        ELSE 0
+    END;
+
+
+-- 更新 order_products.quantity_for_control
+UPDATE order_products op
+JOIN (
+    SELECT opo.order_product_id, SUM(opo.quantity_for_control) AS total_quantity_for_control
+    FROM order_product_options opo
+    GROUP BY opo.order_product_id
+) AS sub ON op.id = sub.order_product_id
+SET op.quantity_for_control = 
+    CASE
+        WHEN sub.total_quantity_for_control IS NOT NULL THEN sub.total_quantity_for_control
+        ELSE 0
+    END;
+
+-- 更新 orders.quantity_for_control
+UPDATE orders o
+JOIN (
+    SELECT op.order_id, SUM(op.quantity_for_control) AS total_quantity_for_control
+    FROM order_products op
+    GROUP BY op.order_id
+) AS sub ON o.id = sub.order_id
+SET o.quantity_for_control = 
+    CASE
+        WHEN sub.total_quantity_for_control IS NOT NULL THEN sub.total_quantity_for_control
+        ELSE 0
+    END;
+
+-- 查 order_product_options
+select opo.name, opo.value, opo.quantity, opo.quantity_for_control
+from order_product_options opo
+where opo.order_id=9219 and opo.name='主餐' 
+    -- and opo.option_value_id=69062
+
+-- 查 order_products
+select id, name, quantity, quantity_for_control
+from order_products op
+where op.order_id=9219
+    */
 }

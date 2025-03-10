@@ -340,20 +340,6 @@ class ProductController extends BackendController
             }
         }
 
-        // 暫不使用
-        // if(empty($data['model']) || mb_strlen($data['model']) < 2){
-        //     $json['error']['model'] = $this->lang->error_model;
-        // }
-
-        // $validator = $this->ProductService->validator($this->request->post());
-
-        // if($validator->fails()){
-        //     $messages = $validator->errors()->toArray();
-        //     foreach ($messages as $key => $rows) {
-        //         $json['error'][$key] = $rows[0];
-        //     }
-        // }
-
         // Check product_options
         if (isset($data['product_options'])) {
 

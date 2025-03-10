@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use App\Helpers\Classes\UnitConverter;
 use App\Repositories\Eloquent\Repository;
 use App\Models\Common\Term;
-use App\Models\Catalog\Product;
+use App\Models\Material\Product;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
 use App\Repositories\Eloquent\Inventory\ReceivingOrderProductRepository;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
@@ -218,6 +218,12 @@ class ReceivingOrderRepository extends Repository
                         }
                     }
                     if(!empty($products)){
+
+                        // 其它沒處理到的資料
+                        foreach ($products as $key =>$product) {
+                            $products[$key] = (new Product)->prepareArrayData($product);
+                        }
+
                         Product::upsert($products, ['product_id']);
                     }
                 }

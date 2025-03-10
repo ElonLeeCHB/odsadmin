@@ -10,7 +10,7 @@ use App\Traits\Model\EloquentTrait;
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
-use App\Repositories\Eloquent\Material\ProductRepository;
+use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderTotal;
 use App\Models\Material\Product;
@@ -85,28 +85,7 @@ class OrderService extends Service
                 }
 
                 foreach ($product_ids as $product_id) {
-                    $cache_key = 'cache/ApiWwwV2/products/id-' . $product_id;
-
-                    if(!empty($data['no-cache'])){
-                        DataHelper::deleteDataFromStorage($cache_key);
-                    }
-
-                    $db_product = DataHelper::remember($cache_key, 60*60*48, 'serialize', function() use ($product_id) {
-                        return Product::select(['id','price','quantity_for_control' , 'is_options_controlled'])
-                                        ->where('id', $product_id)
-                                        ->with(['productOptions' => function($query) {
-                                            $query->where('is_active', 1)
-                                                ->with(['productOptionValues' => function($query) {
-                                                        $query->where('is_active', 1)
-                                                            ->with('optionValue')
-                                                            ->with('translation')
-                                                            ->with(['product:id,quantity_for_control,is_options_controlled']);
-                                                    }])
-                                                ->with('option');
-                                        }])
-                                        ->with('translation')
-                                        ->first();
-                    });
+                    $db_product = (new Product)->getLocaleProductByIdForSale($product_id);
 
                     $db_products[$db_product->id] = $db_product;
                 }

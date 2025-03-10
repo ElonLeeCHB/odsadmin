@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use App\Services\Service;
 use App\Repositories\Eloquent\Inventory\CountingRepository;
 use App\Repositories\Eloquent\Setting\SettingRepository;
-use App\Repositories\Eloquent\Material\ProductRepository;
+use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Models\Setting\Setting;
 use App\Models\Material\ProductMeta;
 

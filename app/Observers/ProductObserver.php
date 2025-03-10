@@ -9,16 +9,26 @@ use Illuminate\Support\Facades\Storage;
 class ProductObserver
 {
 
+    public function creating(Product $product)
+    {
+        return $product->prepareArrayData($product);
+    }
+
+    public function updating(Product $product)
+    {
+        return $product->prepareArrayData($product);
+    }
+
     // 在創建或更新後都會觸發此方法
     public function saved(Product $product)
     {
-        $this->deleteCache($product);
+        return $this->deleteCache($product);
     }
 
 
     public function deleted(Product $product)
     {
-        $this->deleteCache($product);
+        return $this->deleteCache($product);
     }
 
 
@@ -29,7 +39,7 @@ class ProductObserver
     
     private function deleteCache(Product $product)
     {
-        return $product->deleteCache($product->id);
+        return $product->deleteCacheByProductId($product->id);
     }
 }
 

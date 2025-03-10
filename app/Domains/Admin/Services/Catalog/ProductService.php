@@ -5,7 +5,7 @@ namespace App\Domains\Admin\Services\Catalog;
 use App\Helpers\Classes\DataHelper;
 use Illuminate\Support\Facades\DB;
 use App\Services\Service;
-use App\Repositories\Eloquent\Material\ProductRepository;
+use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Common\TermRelation;
 use App\Models\Material\Product;
@@ -194,7 +194,8 @@ class ProductService extends Service
 
             DB::commit();
 
-            $this->setJsonCache($product->id);
+            //刪除快取
+            $product->deleteCacheByProductId();
 
             $result['product_id'] = $product->id;
 

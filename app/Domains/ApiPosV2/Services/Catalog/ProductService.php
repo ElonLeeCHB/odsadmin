@@ -4,7 +4,7 @@ namespace App\Domains\ApiPosV2\Services\Catalog;
 
 use App\Helpers\Classes\DataHelper;
 use App\Services\Service;
-use App\Repositories\Eloquent\Material\ProductRepository;
+use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Traits\Model\EloquentTrait;
 use App\Models\Material\Product;
 use App\Models\Material\ProductTag;
@@ -18,9 +18,7 @@ class ProductService extends Service
 
     public function getInfo($product_id)
     {
-        $productModel = new Product;
-        
-        return $productModel->getCache($product_id);
+        return (new Product)->getLocaleProductByIdForSale($product_id);
     }
 
     /**

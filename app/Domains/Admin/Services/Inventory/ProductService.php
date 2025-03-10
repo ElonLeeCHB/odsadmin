@@ -8,8 +8,8 @@ use App\Services\Service;
 use App\Models\Common\TermRelation;
 use App\Models\Material\ProductOption;
 use App\Models\Material\ProductOptionValue;
-use App\Repositories\Eloquent\Material\ProductRepository;
-use App\Repositories\Eloquent\Material\ProductUnitRepository;
+use App\Repositories\Eloquent\Catalog\ProductRepository;
+use App\Repositories\Eloquent\Catalog\ProductUnitRepository;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
 use Carbon\Carbon;
 use App\Helpers\Classes\DataHelper;
@@ -123,9 +123,6 @@ class ProductService extends Service
 
             DB::commit();
             DB::commit();
-
-            // save to json cache
-            $this->repository->setJsonCache($product->id);
 
             return ['id' => $product->id];
 

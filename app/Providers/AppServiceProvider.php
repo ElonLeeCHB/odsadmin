@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Event;
 use App\Models\Sanctum\PersonalAccessToken;
 use Laravel\Sanctum\Sanctum;
 
+use App\Models\Material\Product;
+use App\Observers\ProductObserver;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**

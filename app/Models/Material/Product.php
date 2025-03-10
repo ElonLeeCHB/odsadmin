@@ -245,80 +245,90 @@ class Product extends Model
     /**
      * cache
      */
-    public function getCacheKey($product_id)
-    {
-        if(!empty($product_id)){
-            return 'cache/locales/' . app()->getLocale() . '/productsById/' . $product_id  . '.json';
-        }
+        public function getCacheKeysByProductId($product_id = null)
+        {
+            $product_id = $product_id ?? $this->id ?? null;
 
-        return '';
-    }
-
-    public function getCache($product_id)
-    {
-        $cache_key = $this->getCacheKey($product_id);
-
-        if(empty($cache_key)){
-            return [];
-        }
-        
-        $product =  DataHelper::remember($this->getCacheKey($product_id), 60*60, 'json', function() use ($product_id){
-
-            $product = self::with('translations')
-                ->with('productTags.translation')
-                ->with('product_options.translation')
-                ->with('product_options.product_option_values.translation')->find($product_id);
-
-            if(empty($product)){
-                return [];
+            if(empty($product_id)){
+                throw new \Exception('$product_id cannot be empty.');
             }
-                
-            // foreach ($product->translation_keys ?? [] as $translation_key) {
-            //     if(!empty($product->translation->{$translation_key})){
-            //         $product->{$translation_key} = $product->translation->{$translation_key};
-            //     }else{
-            //         $product->{$translation_key} = '';
-            //     }
-            // }
 
-            // 重構選項並合併到產品數據
-            $product = [
-                ...$product->toArray(),
-                'product_options' => $product->product_options
-                                        ->sortBy('sort_order')
-                                        ->keyBy('option_code')
-                                        ->toArray(),
-                'translation_keys' => $product->translation_keys,
+            return [
+                $this->getCacheKeyForSale($product_id),
+                // 舉例
+                // $this->getCacheKeyForPurchasing($product_id),
+                // $this->getCacheKeyForInventory($product_id),
             ];
+        }
 
-            return $product;
-        });
+        public function getCacheKeyForSale($product_id = null)
+        {
+            $product_id = $product_id ?? $this->id ?? null;
 
-        $locale = app()->getLocale();
+            // 如果還是沒有 $product_id, 回覆錯誤
+            if(empty($product_id)){// 直接拋出錯誤
+                throw new \Exception('$product_id cannot be empty.');
+            }
 
-        
-        $product['translations'] = collect($product['translations'])->keyBy('locale');
+            $locale = app()->getLocale();
+            $cache_key = 'cache/'.$locale.'/catalog/product/' . 'id-' . $product_id . '.txt';
 
-        foreach ($product['translations'][$locale] as $trans) {
-            foreach ($product->translation_keys ?? [] as $translation_key) {
-                if(!empty($trans[$translation_key])){
-                    $product[$translation_key] = $trans[$translation_key];
-                }else{
-                    $product[$translation_key] = '';
-                }
+            return $cache_key ?? '';
+        }
+
+        public function deleteCacheByProductId($product_id = null)
+        {
+            foreach ($this->getCacheKeysByProductId($product_id) as $cache_key) {
+                Storage::delete($this->getCacheKeyForSale($product_id));
             }
         }
 
-        unset($product['translation_keys']);
+        public function getLocaleProductByIdForSale($product_id)
+        {
+            $locale = app()->getLocale();
+            $cache_key = 'cache/'.$locale.'/catalog/product/' . 'id-' . $product_id . '.txt';
 
-        return DataHelper::unsetArrayIndexRecursively($product, ['translation', 'translations']);
-    }
+            if(request()->has('no-cache') && request()->query('no-cache') == 1){
+                DataHelper::deleteDataFromStorage($cache_key);
+            }
 
-    public function deleteCache($product_id)
-    {
-        if (Storage::exists($this->getCacheKey($product_id))) {
-            Storage::delete($this->getCacheKey($product_id));
+            return DataHelper::remember($cache_key, 60*60*24, 'serialize', function() use ($product_id) {
+                $builder = Product::query();
+                $builder->select(['id', 'code', 'name', 'price', 'quantity_for_control', 'is_options_controlled']);
+                $builder->where('id', $product_id)
+                    ->with(['productOptions' => function($query) {
+                        $query->where('is_active', 1)
+                            ->with(['productOptionValues' => function($query) {
+                                $query->where('is_active', 1)
+                                    ->with('optionValue')
+                                    ->with('translation')
+                                    ->with(['materialProduct' => function($query) {
+                                        $query->select('products.id as material_product_id', 'products.quantity_for_control', 'products.is_options_controlled')
+                                            ->from('products');  // 另外指定使用 products 表的 id 來避免歧義，跟一開始的主表 products 區隔
+                                    }]);
+                            }])
+                            ->with('option');
+                    }])
+                    ->with('translation');
+                // DataHelper::showSqlContent($builder);
+                return $builder->first();
+            });
         }
+    //
+
+    public function prepareArrayData($row)
+    {
+        if(is_array($row)){
+            $row['quantity_for_control'] = $row['quantity_for_control'] ?? 0;
+            $row['is_options_controlled'] = $row['is_options_controlled'] ?? 0;
+        }
+
+        else if(is_object($row)){
+            $row->quantity_for_control = $row->quantity_for_control ?? 0;
+            $row->is_options_controlled = $row->is_options_controlled ?? 0;
+        }
+
+        return $row;
     }
 
 }

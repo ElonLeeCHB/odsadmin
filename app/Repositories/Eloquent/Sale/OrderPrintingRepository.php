@@ -6,7 +6,7 @@ use App\Repositories\Eloquent\Repository;
 use App\Repositories\Eloquent\Catalog\OptionRepository;
 use App\Repositories\Eloquent\Catalog\OptionValueRepository;
 use App\Repositories\Eloquent\Sale\OrderTotalRepository;
-use App\Repositories\Eloquent\Material\ProductOptionValueRepository;
+use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderTag;

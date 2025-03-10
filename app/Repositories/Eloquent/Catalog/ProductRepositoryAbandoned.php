@@ -17,7 +17,8 @@ use App\Helpers\Classes\DataHelper;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
 
-class ProductRepository extends Repository
+//待廢
+class ProductRepositoryAbandoned extends Repository
 {
     public $modelName = "\App\Models\Catalog\Product";
 
@@ -191,12 +192,6 @@ class ProductRepository extends Repository
         $cache_name = 'cache/products/id_keyed/' . $id . '.json';
 
         return DataHelper::setJsonToStorage($cache_name, $product_array);
-    }
-
-    public function getJsonCache($id)
-    {
-        $cache_name = 'cache/products/id_keyed/' . $id . '.json';
-        return DataHelper::getJsonFromStoragNew($cache_name, true);
     }
 
 

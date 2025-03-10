@@ -8,7 +8,7 @@ use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderTotalRepository;
 use App\Repositories\Eloquent\Sale\OrderPrintingRepository;
-use App\Repositories\Eloquent\Material\ProductOptionValueRepository;
+use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
 use App\Repositories\Eloquent\Member\MemberRepository;
 use App\Repositories\Eloquent\Catalog\OptionValueRepository;
 use App\Models\Sale\OrderProductOption;
