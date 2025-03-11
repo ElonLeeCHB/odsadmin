@@ -22,9 +22,15 @@ class QuantityControlController extends ApiPosController
     // 預設時間段數量-獲取
     public function getTimeslots()
     {
-        $result = $this->QuantityControlService->getTimeslots();
+        try {
 
-        return $this->sendResponse($result);
+            $result = $this->QuantityControlService->getTimeslots();
+
+            return $this->sendJsonResponse($result);
+
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(['error' => $th->getMessage()]);
+        }
     }
     
     // 預設時間段數量-更新
@@ -32,7 +38,7 @@ class QuantityControlController extends ApiPosController
     {
         $result = $this->QuantityControlService->updateTimeslots(request()->post());
 
-        return $this->sendResponse($result);
+        return $this->sendJsonResponse($result);
     }
 
     // 某日數量資料-獲取
@@ -40,7 +46,7 @@ class QuantityControlController extends ApiPosController
     {
         $result = $this->QuantityControlService->getOrderDateLimitsByDate($date);
 
-        return $this->sendResponse($result);
+        return $this->sendJsonResponse($result);
     }
 
     // 某日數量資料-更新上限 注意傳入的網址參數是 $date, 不是 $data
@@ -48,7 +54,7 @@ class QuantityControlController extends ApiPosController
     {
         $result = $this->QuantityControlService->updateMaxQuantityByDate($date, request()->post());
 
-        return $this->sendResponse($result);
+        return $this->sendJsonResponse($result);
     }
 
     // 某日數量資料-恢復預設上限
@@ -56,7 +62,7 @@ class QuantityControlController extends ApiPosController
     {
         $result = $this->QuantityControlService->resetDefaultMaxQuantityByDate($date);
 
-        return $this->sendResponse($result);
+        return $this->sendJsonResponse($result);
     }
 
     // 某日數量資料-重算訂單
@@ -64,7 +70,7 @@ class QuantityControlController extends ApiPosController
     {
         $result = $this->QuantityControlService->refreshOrderedQuantityByDate($date);
 
-        return $this->sendResponse($result);
+        return $this->sendJsonResponse($result);
     }
 
     // 未來資料
@@ -74,7 +80,7 @@ class QuantityControlController extends ApiPosController
 
         $result = $this->QuantityControlService->getFutureDays($days);
 
-        return $this->sendResponse($result);
+        return $this->sendJsonResponse($result);
     }
 
     // 重算全部未來訂單
@@ -82,6 +88,6 @@ class QuantityControlController extends ApiPosController
     {
         $result = $this->QuantityControlService->resetFutureOrders();
 
-        return $this->sendResponse($result);
+        return $this->sendJsonResponse($result);
     }
 }
