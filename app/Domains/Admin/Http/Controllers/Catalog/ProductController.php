@@ -87,12 +87,14 @@ class ProductController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data = $this->url_data;
         
         // Rows, LengthAwarePaginator
         $query_data['select'] = ['id','code','main_category_id','sort_order','price','is_active','is_salable'];
-        $products = $this->ProductService->getList($query_data);
+        $query_data['equal_is_salable'] = 1;
         
+        $products = $this->ProductService->getList($query_data,1);
+
         if(!empty($products)){
             $products->load('main_category');
 
@@ -108,7 +110,7 @@ class ProductController extends BackendController
             $data['pagination'] = '';
         }
 
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         // Prepare links for list table's header
         if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
@@ -120,7 +122,7 @@ class ProductController extends BackendController
         $data['order'] = strtolower($order);
 
         if(isset($query_data['sort'])){
-            $data['sort'] = strtolower($query_data['sort']);
+            $data['sort'] = strtolower($query_data['sort'] ?? '');
         }else{
             $data['sort'] = '';
         }

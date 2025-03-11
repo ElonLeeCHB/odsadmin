@@ -107,7 +107,7 @@ class OrderController extends BackendController
 
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         // Extra
         //$query_data['equal_is_active'] = 1;
@@ -126,13 +126,13 @@ class OrderController extends BackendController
 
 
         // Prepare links for list table's header
-        if($query_data['order'] == 'ASC'){
+        if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
 
-        $data['sort'] = strtolower($query_data['sort']);
+        $data['sort'] = strtolower($query_data['sort'] ?? '');
         $data['order'] = strtolower($order);
 
         $query_data = $this->unsetUrlQueryData($query_data);

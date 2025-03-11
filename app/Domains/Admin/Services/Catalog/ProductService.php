@@ -15,6 +15,7 @@ use App\Models\Material\ProductOption;
 use App\Models\Material\ProductOptionValue;
 use App\Models\Material\ProductTag;
 use App\Models\Common\Term;
+use App\Helpers\Classes\OrmHelper;
 
 class ProductService extends Service
 {
@@ -216,19 +217,23 @@ class ProductService extends Service
     {
         $data['equal_is_salable'] = 1;
         
-        $builder = Product::applyFilters($data);
+        // $builder = Product::applyFilters($data);
+
+        $query = Product::query();
+        OrmHelper::applyFilters($query, $data);
+        // OrmHelper::showSqlContent($query);
 
         if (!empty($data['filter_product_tags'])) {
             $product_tags = explode(',', $data['filter_product_tags']);
 
             foreach ($product_tags as $term_id) {
-                $builder->whereHas('ProductTags', function ($builder) use ($term_id) {
-                    $builder->where('term_id', $term_id);
+                $query->whereHas('ProductTags', function ($qry) use ($term_id) {
+                    $qry->where('term_id', $term_id);
                 });
             }
         }
 
-        return $builder->getResult($data);
+        return $query->getResult($data);
     }
 
 }

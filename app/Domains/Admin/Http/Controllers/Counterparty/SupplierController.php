@@ -64,11 +64,11 @@ class SupplierController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         // Extra default
         $query_data['equal_is_supplier'] = 1;
@@ -85,13 +85,13 @@ class SupplierController extends BackendController
         $data['suppliers'] = $suppliers->withPath(route('lang.admin.counterparty.suppliers.list'))->appends($query_data);
 
         // Prepare links for list table's header
-        if($query_data['order'] == 'ASC'){
+        if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
 
-        $data['sort'] = strtolower($query_data['sort']);
+        $data['sort'] = strtolower($query_data['sort'] ?? '');
         $data['order'] = strtolower($order);
 
         unset($query_data['sort']);
@@ -345,7 +345,7 @@ class SupplierController extends BackendController
     {
         $json = [];
 
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         $filter_data = $query_data;
         $filter_data['with'] = ['payment_term', 'metas'];

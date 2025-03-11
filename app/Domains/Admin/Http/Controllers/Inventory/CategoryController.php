@@ -75,7 +75,7 @@ class CategoryController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         // Rows
         $categories = $this->CategoryService->getInventoryCategories($query_data);
@@ -87,13 +87,13 @@ class CategoryController extends BackendController
         $data['categories'] = $categories->withPath(route('lang.admin.inventory.categories.list'))->appends($query_data);
 
         // Prepare links for list table's header
-        if($query_data['order'] == 'ASC'){
+        if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($query_data['sort']);
+        $data['sort'] = strtolower($query_data['sort'] ?? '');
         $data['order'] = strtolower($order);
 
         unset($query_data['sort']);
@@ -153,7 +153,7 @@ class CategoryController extends BackendController
         $data['breadcumbs'] = (object)$breadcumbs;
 
         // Prepare link for save, back
-        $queries = $this->resetUrlData(request()->query());
+        $queries  = $this->url_data;
 
         $data['save_url'] = route('lang.admin.inventory.categories.save');
         $data['back_url'] = route('lang.admin.inventory.categories.index', $queries);   
@@ -293,7 +293,7 @@ class CategoryController extends BackendController
 
     public function autocomplete()
     {
-        $queries = $this->resetUrlData(request()->query());
+        $queries  = $this->url_data;
 
         $queries['whereIn'] = ['taxonomy_code' => ['product_inventory_category', 'product_accounting_category']];
 

@@ -60,6 +60,14 @@ class Controller extends BaseController
         else{
             app()->setLocale($this->url_data['equal_locale']);
         }
+
+        if(isset($data['equal_is_active'])){
+            if($data['equal_is_active'] == '*'){
+                unset($data['equal_is_active']);
+            }else{
+                $query_data['equal_is_active'] = $data['equal_is_active'];
+            }
+        }
     }
 
     public function logError($error)

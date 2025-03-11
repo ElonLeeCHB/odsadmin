@@ -9,28 +9,6 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class OrmHelper
 {
-    public static function findIdOrFailOrNew($id, $params = null, $debug = 0)
-    {
-        try{
-            //find
-            if(!empty(trim($id))){
-                $params['equal_id'] = $id;
-                $row = $this->getRow($params, $debug);
-                if(empty($row)){
-                    throw new \Exception ('Record not found!');
-                }
-            }
-            //new
-            else{
-                $row = $this->newModel();
-            }
-
-            return ['data' => $row]; // To make difference with 'error', 'data' is needed.
-
-        } catch (\Exception $e) {
-            return ['error' => 'findIdOrFailOrNew: ' . $e->getMessage()];
-        }
-    }
 
     // 取得資料集
     public static function getResult($query, $params, $debug = 0)
@@ -110,6 +88,257 @@ class OrmHelper
         }
     }
     
+    public function setTranslationsQuery($query, $data, $flag = 1)
+    {
+        $masterModel = $query->getModel();
+        $masterTable = $masterModel->getPrefix() . $masterModel->getTable();
+
+        if(empty($masterModel->translation_keys)){
+            return;
+        }
+
+        //判斷第一層 filter_column 是否存在
+        $basic_translation_filter_data = [];
+
+        foreach ($data ?? [] as $key => $value) {
+
+            if (str_starts_with($key, 'filter_')) {
+                $column = str_replace('filter_', '', $key);
+            }else if (str_starts_with($key, 'equal_')) {
+                $column = str_replace('equal_', '', $key);
+            }else{
+                $column = $key;
+            }
+
+            if(in_array($column, $masterModel->translation_keys)){
+                $basic_translation_filter_data[$key] = $value;
+            }
+        }
+
+        //判斷進階查詢是否存在
+        $advanced_translation_filter_data = [];
+
+        if(!empty($data['translation'])){
+            $advanced_translation_filter_data = $data['translation'];
+        }
+
+        //既無基本查詢，也無進階查詢
+        if(empty($basic_translation_filter_data) && empty($advanced_translation_filter_data)){
+            return;
+        }
+
+        //開始構建查詢
+        $query->whereHas('translation', function($qry) use ($basic_translation_filter_data, $advanced_translation_filter_data) {
+            $qry->where('locale', app()->getLocale());
+
+            //基本查詢
+            if(!empty($basic_translation_filter_data)){
+                foreach($basic_translation_filter_data as $column => $value){
+                    $this->setWhereQuery($qry, $column, $value, 'where');
+                }
+            }
+
+            //進階查詢 例如: $data['translation'] = ['name' => 'value1', 'short_name' => 'value2'];
+            if(!empty($advanced_translation_filter_data)){
+                foreach($advanced_translation_filter_data as $column => $value){
+                    $qry->where(function($qry) use ($column, $value){
+                        $qry->orWhere(function($qry) use ($column, $value){
+                            $this->setWhereQuery($qry, $column, $value, 'where');
+                        });
+                    });
+                }
+            }
+        });
+        
+        return $query;
+    }
+
+    // 處理欄位條件
+    public static function applyFilters(EloquentBuilder $query, &$params = [])
+    {
+        $model = $query->getModel();
+        $table = $model->getPrefix() . $model->getTable();
+        $table_columns = $model->getTableColumns();
+
+        // is_activ
+            // 沒設定 equal_is_active 的時候，預設=1
+            if(!isset($params['equal_is_active'])){
+                $params['equal_is_active'] = 1;
+            } else {
+                // 存在 equal_is_active, 但值 = '*'
+                if($params['equal_is_active'] == '*'){
+                    unset($params['equal_is_active']);
+                }
+            }
+        //
+
+        // 開始查詢欄位
+            foreach ($params ?? [] as $key => $value) {
+                $column = preg_replace('/^(filter_|equal_)/', '', $key);
+
+                // 翻譯欄位另外用 whereHas 
+                if(in_array($column, $model->translation_keys)){
+                    $params['whereHas']['translation'][$key] = $params[$key];
+                    unset($params[$key]);
+                    continue;
+                }
+
+                // 處理 filter_ 開頭的參數
+                if (str_starts_with($key, 'filter_')) {
+                    if(!in_array($column, $table_columns)){
+                        continue;
+                    }
+                    
+                    // 檢查是否包含範圍操作符 > 或 <
+                    if (str_starts_with($key, '>')) {
+                        $val = trim(substr($value, 1));
+                        $query->where($column, '>', $val);
+                    } else if (str_starts_with($key, '<')) {
+                        $val = trim(substr($value, 1));
+                        $query->where($column, '<', $val);
+                    } elseif (strpos($value, '*') !== false) {
+                        // 如果有 '*'，則使用模糊匹配處理
+                        if (str_starts_with($value, '*')) {
+                            $pattern = substr($value, 1);
+                            $query->whereRaw("{$column} REGEXP ?", ['.*' . preg_quote($pattern, '/') . '$']);
+                        } elseif (str_ends_with($value, '*')) {
+                            $pattern = substr($value, 0, -1);
+                            $query->whereRaw("{$column} REGEXP ?", ['^' . preg_quote($pattern, '/') . '.*']);
+                        } else {
+                            $pattern = str_replace('*', '.*', $value);
+                            $query->whereRaw("{$column} REGEXP ?", [$pattern]);
+                        }
+                    } else {
+                        // 沒有 '*' 或範圍符號時，執行模糊匹配
+                        $query->where($column, 'like', '%' . $value . '%');
+                    }
+                }
+                // 處理 equal_ 開頭的參數
+                elseif (str_starts_with($key, 'equal_')) {
+                    $column = substr($key, 6); // 去掉 'equal_'
+
+                    if(!in_array($column, $model->getTableColumns())){
+                        continue;
+                    }
+
+                    $query->where($column, '=', $value); // 精確匹配
+                }
+            }
+        //
+
+        // 查詢翻譯欄位
+            self::setWhereHas($query, $params);
+        //
+    }
+
+    public static function setWhereHas(EloquentBuilder $query, &$params = [])
+    {
+        if(!empty($params['whereHas'])){
+            foreach ($params['whereHas'] as $relation_name => $relation) {
+                $query->whereHas($relation_name, function($qry) use ($relation) {
+                    foreach ($relation as $column => $value) {
+                        self::filterColumn($qry, $column, $value);
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * 前身：setWhereQuery
+     */
+    public static function filterColumn($query, $column, $value)
+    {
+        $column = preg_replace('/^(filter_|equal_)/', '', $column);
+        $value = trim($value);
+
+        if(strlen($value) == 0){
+            return;
+        }
+
+        // escapes Ex. phone number (123)456789 => \(123\)456789
+        $arr = ['(', ')', '+'];
+        foreach ($arr as $symble) {
+            if(str_contains($value, $symble)){
+                $value = str_replace($symble, '\\'.$symble, $value);
+            }
+        }
+
+        $operators = ['=','<','>','*'];
+
+        // *foo woo* => foo woo
+        if(str_starts_with($value, '*')  && str_ends_with($value, '*') ){
+            $value = substr($value,1);
+            $value = substr($value,0,-1);
+        }
+
+        $has_operator = false;
+        foreach ($operators as $operator) {
+            if(str_starts_with($value, $operator) != false || str_ends_with($value,'*')){
+                $has_operator = true;
+                break;
+            }
+        }
+
+        // No operator
+        if($has_operator == false){
+            // 'foo woo' => 'foo*woo'
+            $value = str_replace(' ', '*', $value);
+            // 'foo*woo' => 'foo(.*)woo'
+            $value = str_replace('*', '(.*)', $value);
+            $query->where($column, 'REGEXP', $value);
+            return $query;
+        }
+
+        // '=' Empty or null
+        if($value === '='){
+            $query->$type(function ($query) use($column) {
+                $query->orWhereNull($column);
+                $query->orWhere($column, '=', '');
+            });
+        }
+        // '=foo woo' Completely Equal 'foo woo'
+        else if(str_starts_with($value, '=') && strlen($value) > 1){
+            $value = substr($value,1); // 'foo woo'
+            $query->where($column, '=', $value);
+        }
+        // '<>' Not empty or not null
+        else if($value === '<>'){
+            $query->where(function ($query) use($column) {
+                $query->orWhereNotNull($column);
+                $query->orWhere($column, '<>', '');
+            });
+        }
+        // '<>foo woo' Not equal 'foo woo'
+        else if(str_starts_with($value, '<>') && strlen($value) > 2){
+            $value = substr($value,2); // 'foo woo'
+            $query->where($column, '<>', $value);
+        }
+        // '<123' Smaller than 123
+        else if(str_starts_with($value, '<') && strlen($value) > 1){
+            $value = substr($value,1); // '123'
+            $query->where($column, '<', $value);
+        }
+        // '>123' bigger than 123
+        else if(str_starts_with($value, '>') && strlen($value) > 1){
+            $value = substr($value,1);
+            $query->where($column, '>', $value);
+        }
+        // '*foo woo'
+        else if(substr($value,0, 1) == '*' && substr($value,-1) != '*'){
+            $value = str_replace(' ', '(.*)', $value);
+            $value = "(.*)".substr($value,1).'$';
+            $query->where($column, 'REGEXP', "$value");
+        }
+        // 'foo woo*'
+        else if(substr($value,0, 1) != '*' && substr($value,-1) == '*'){
+            $value = substr($value,0,-1); // foo woo
+            $value = str_replace(' ', '(.*)', $value); //foo(.*)woo
+            $value = '^' . $value . '(.*)';
+            $query->where($column, 'REGEXP', "$value");
+        }
+    }
+
     public static function deleteKeys($rows, $deleteKeys)
     {
         // 定義刪除鍵的邏輯

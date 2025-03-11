@@ -60,7 +60,7 @@ class PaymentTermController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         // Rows
         $payment_terms = $this->PaymentTermService->getPaymentTerms($query_data);
@@ -86,13 +86,13 @@ class PaymentTermController extends BackendController
         $data['payment_terms'] = $payment_terms->withPath(route('lang.admin.common.payment_terms.list'))->appends($query_data);
 
         // Prepare links for list table's header
-        if($query_data['order'] == 'ASC'){
+        if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($query_data['sort']);
+        $data['sort'] = strtolower($query_data['sort'] ?? '');
         $data['order'] = strtolower($order);
 
         unset($query_data['sort']);
@@ -285,7 +285,7 @@ class PaymentTermController extends BackendController
 
     public function autocomplete()
     {
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
         
         $filter_data['equal_type'] = 2;
 

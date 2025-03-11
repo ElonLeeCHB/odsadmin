@@ -90,7 +90,7 @@ class MemberController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         
         // Rows
@@ -105,13 +105,13 @@ class MemberController extends BackendController
         $data['members'] = $members->withPath(route('lang.admin.member.members.list'))->appends($query_data);
 
         // Prepare links for list table's header
-        if($query_data['order'] == 'ASC'){
+        if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($query_data['sort']);
+        $data['sort'] = strtolower($query_data['sort'] ?? '');
         $data['order'] = strtolower($order);
 
         unset($query_data['sort']);
@@ -368,7 +368,7 @@ class MemberController extends BackendController
 
     public function autocomplete()
     {
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         $query_data['pagination'] = false;
         $query_data['limit'] = 10;

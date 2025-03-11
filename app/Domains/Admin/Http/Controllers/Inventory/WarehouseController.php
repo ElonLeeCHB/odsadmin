@@ -110,13 +110,13 @@ class WarehouseController extends BackendController
         $data['warehouses'] = $warehouses;
 
         // Prepare links for sort on list table's header
-        if($query_data['order'] == 'ASC'){
+        if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
             $query_data['order'] = 'DESC';
         }else{
             $query_data['order'] = 'ASC';
         }
         
-        $data['sort'] = strtolower($query_data['sort']);
+        $data['sort'] = strtolower($query_data['sort'] ?? '');
         $data['order'] = strtolower($query_data['order']);
 
         unset($query_data['sort']);

@@ -71,7 +71,7 @@ class BankController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare queries for records
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         // Rows
         $institutions = $this->BankService->getRows($query_data);
@@ -82,13 +82,13 @@ class BankController extends BackendController
         $data['institutions'] = $institutions->withPath(route('lang.admin.counterparty.banks.list'))->appends($query_data);
 
         // Prepare links for list table's header
-        if($query_data['order'] == 'ASC'){
+        if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($query_data['sort']);
+        $data['sort'] = strtolower($query_data['sort'] ?? '');
         $data['order'] = strtolower($order);
 
         unset($query_data['sort']);
@@ -145,7 +145,7 @@ class BankController extends BackendController
         $data['breadcumbs'] = (object)$breadcumbs;
 
         // Prepare link for save, back
-        $queries = $this->resetUrlData(request()->query());
+        $queries  = $this->url_data;
 
         $data['save_url'] = route('lang.admin.counterparty.banks.save');
         $data['back_url'] = route('lang.admin.counterparty.banks.index', $queries);   
@@ -248,7 +248,7 @@ class BankController extends BackendController
 
     public function autocomplete()
     {
-        $queries = $this->resetUrlData(request()->query());
+        $queries  = $this->url_data;
 
         // Rows
         $rows = $this->BankService->getRows($queries);

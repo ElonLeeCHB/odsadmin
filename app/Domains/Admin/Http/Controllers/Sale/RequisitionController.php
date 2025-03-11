@@ -85,7 +85,7 @@ class RequisitionController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         // Rows
         $query_data['with'] = DataHelper::addToArray('product', $query_data['with'] ?? []);
@@ -100,13 +100,13 @@ class RequisitionController extends BackendController
         $data['ingredients'] = $ingredients->withPath(route('lang.admin.sale.requisitions.list'))->appends($query_data);
 
         // Prepare links for list table's header
-        if($query_data['order'] == 'ASC'){
+        if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
 
-        $data['sort'] = strtolower($query_data['sort']);
+        $data['sort'] = strtolower($query_data['sort'] ?? '');
         $data['order'] = strtolower($order);
 
         $query_data = $this->unsetUrlQueryData($query_data);

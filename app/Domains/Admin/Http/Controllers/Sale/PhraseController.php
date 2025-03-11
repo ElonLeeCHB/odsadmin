@@ -73,7 +73,7 @@ class PhraseController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $queries = $this->resetUrlData(request()->query());
+        $queries  = $this->url_data;
 
         $queries['whereIn'] = ['taxonomy_code' => ['phrase_order_comment', 'phrase_order_extra_comment']];
 
@@ -153,7 +153,7 @@ class PhraseController extends BackendController
         $data['breadcumbs'] = (object)$breadcumbs;
 
         // Prepare link for save, back
-        $queries = $this->resetUrlData(request()->query());
+        $queries  = $this->url_data;
 
         $data['save_url'] = route('lang.admin.sale.phrases.save');
         $data['back_url'] = route('lang.admin.sale.phrases.index', $queries);
@@ -275,7 +275,7 @@ class PhraseController extends BackendController
 
     public function autocomplete()
     {
-        $queries = $this->resetUrlData(request()->query());
+        $queries  = $this->url_data;
 
         $queries['pagination'] = false;
         $queries['whereIn'] = ['taxonomy_code' => ['phrase_order_comment','phrase_order_extra_comment']];

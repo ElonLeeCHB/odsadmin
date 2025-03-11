@@ -25,7 +25,7 @@ class UserController extends BackendController
     {
         $data['lang'] = $this->lang;
         
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         // Breadcomb
         $breadcumbs[] = (object)[
@@ -81,7 +81,7 @@ class UserController extends BackendController
 
 
         // Prepare queries for records
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         // if(isset($query_data['equal_is_admin']) && $query_data['equal_is_admin'] == 0){
         //     $query_data['whereDoesntHave']['metas'] = ['is_admin' => 1];
@@ -102,13 +102,13 @@ class UserController extends BackendController
 
 
         // Prepare links for list table's header
-        if($query_data['order'] == 'ASC'){
+        if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($query_data['sort']);
+        $data['sort'] = strtolower($query_data['sort'] ?? '');
         $data['order'] = strtolower($order);
 
         unset($query_data['sort']);
@@ -164,7 +164,7 @@ class UserController extends BackendController
         $data['breadcumbs'] = (object)$breadcumbs;
 
         // Prepare link for save, back
-        $queries = $this->resetUrlData(request()->query());
+        $queries  = $this->url_data;
 
         $data['save_url'] = route('lang.admin.setting.user.users.save');
         $data['back_url'] = route('lang.admin.setting.user.users.index', $queries);

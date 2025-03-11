@@ -93,7 +93,7 @@ class ProductController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
 
         // Prepare query_data for records
@@ -185,7 +185,7 @@ class ProductController extends BackendController
 
 
         // Prepare link for save, back
-        $queries = $this->resetUrlData(request()->query());
+        $queries  = $this->url_data;
 
         $data['save_url'] = route('lang.admin.inventory.products.save');
         $data['back_url'] = route('lang.admin.inventory.products.index', $queries);
@@ -375,7 +375,7 @@ class ProductController extends BackendController
 
     public function autocomplete()
     {
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         $json = [];
 

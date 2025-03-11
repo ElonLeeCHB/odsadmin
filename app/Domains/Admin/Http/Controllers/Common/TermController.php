@@ -61,7 +61,7 @@ class TermController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         // Rows
         //$terms = $this->TermService->getRows($query_data);
@@ -74,13 +74,13 @@ class TermController extends BackendController
         $data['terms'] = $terms->withPath(route('lang.admin.common.terms.list'))->appends($query_data);
 
         // Prepare links for sort on list table's header
-        if($query_data['order'] == 'ASC'){
+        if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($query_data['sort']);
+        $data['sort'] = strtolower($query_data['sort'] ?? '');
         $data['order'] = strtolower($order);
 
         unset($query_data['sort']);
@@ -140,7 +140,7 @@ class TermController extends BackendController
         $data['breadcumbs'] = (object)$breadcumbs;
 
         // Prepare link for save, back
-        $queries = $this->resetUrlData(request()->query());
+        $queries  = $this->url_data;
 
         $data['save_url'] = route('lang.admin.common.terms.save');
         $data['back_url'] = route('lang.admin.common.terms.index', $queries);   
@@ -231,7 +231,7 @@ class TermController extends BackendController
 
     public function autocomplete()
     {
-        $queries = $this->resetUrlData(request()->query());
+        $queries  = $this->url_data;
 
         $rows = $this->TermService->getRows($queries);
 

@@ -72,7 +72,7 @@ class CountingController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
 
         // Prepare query_data for records

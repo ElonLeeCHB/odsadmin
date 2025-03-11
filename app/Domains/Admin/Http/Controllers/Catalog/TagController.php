@@ -62,7 +62,7 @@ class TagController extends BackendController
         $data['lang'] = $this->lang;
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         $query_data['equal_taxonomy_code'] = 'ProductTag';
 
@@ -78,13 +78,13 @@ class TagController extends BackendController
         $data['tags'] = $tags->withPath(route('lang.admin.catalog.tags.list'))->appends($query_data);
 
         // Prepare links for list table's header
-        if($query_data['order'] == 'ASC'){
+        if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($query_data['sort']);
+        $data['sort'] = strtolower($query_data['sort'] ?? '');
         $data['order'] = strtolower($order);
 
         unset($query_data['sort']);
@@ -145,7 +145,7 @@ class TagController extends BackendController
         $data['breadcumbs'] = (object)$breadcumbs;
 
         // Prepare link for save, back
-        $queries = $this->resetUrlData(request()->query());
+        $queries  = $this->url_data;
 
         $data['save_url'] = route('lang.admin.catalog.tags.save');
         $data['back_url'] = route('lang.admin.catalog.tags.index', $queries);   
@@ -258,7 +258,7 @@ class TagController extends BackendController
 
     public function autocomplete()
     {
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         $query_data['pagination'] = false;
 

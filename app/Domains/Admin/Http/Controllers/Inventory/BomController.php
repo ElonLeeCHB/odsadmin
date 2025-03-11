@@ -60,7 +60,7 @@ class BomController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         // Prepare query_data for records
         $filter_data = $query_data;
@@ -88,7 +88,7 @@ class BomController extends BackendController
             $order = 'ASC';
         }
 
-        $data['sort'] = strtolower($query_data['sort']);
+        $data['sort'] = strtolower($query_data['sort'] ?? '');
         $data['order'] = strtolower($order);
 
         $query_data = $this->unsetUrlQueryData($query_data);
@@ -139,7 +139,7 @@ class BomController extends BackendController
 
 
         // Prepare link for save, back
-        $queries = $this->resetUrlData(request()->query());
+        $queries  = $this->url_data;
 
         $data['save_url'] = route('lang.admin.inventory.boms.save');
         $data['back_url'] = route('lang.admin.inventory.boms.index', $this->request->getQueryString());

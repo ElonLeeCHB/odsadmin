@@ -74,7 +74,7 @@ class PurchasingController extends BackendController
 
 
         // Prepare query_data for records
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         // Rows
         $purchasing_orders = $this->PurchasingOrderService->getPurchasingOrders($query_data);
@@ -88,13 +88,13 @@ class PurchasingController extends BackendController
         $data['purchasing_orders'] = $purchasing_orders->withPath(route('lang.admin.inventory.purchasing.list'))->appends($query_data);
         
         // Prepare links for list table's header
-        if($query_data['order'] == 'ASC'){
+        if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
             $order = 'DESC';
         }else{
             $order = 'ASC';
         }
         
-        $data['sort'] = strtolower($query_data['sort']);
+        $data['sort'] = strtolower($query_data['sort'] ?? '');
         $data['order'] = strtolower($order);
 
         $query_data = $this->unsetUrlQueryData($query_data);
@@ -154,7 +154,7 @@ class PurchasingController extends BackendController
 
 
         // Prepare link for save, back
-        $query_data = $this->resetUrlData(request()->query());
+        $query_data  = $this->url_data;
 
         $data['save_url'] = route('lang.admin.inventory.purchasing.save');
         $data['back_url'] = route('lang.admin.inventory.purchasing.index', $query_data);
