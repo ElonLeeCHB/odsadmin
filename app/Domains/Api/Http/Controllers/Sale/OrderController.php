@@ -118,101 +118,78 @@ class OrderController extends ApiController
     }
 
 
-    public function save()
+    public function save($order_id = null)
     {
-        $post_data = $this->request->post();
-        $post_data['source'] = isset($post_data['source']) ? $post_data['source'] : null;//來源
-        
-        if(isset($postData['customer_id'])){
-            $customer_id = $postData['customer_id'];
-        }else if(isset($postData['member_id'])){
-            $customer_id = $postData['member_id'];
-        }else{
-            $customer_id = null;
-        }
+        try {
+            $post_data = $this->request->post();
 
-        if(!empty($this->request->query('getReturn'))){
-            return response(json_encode($post_data))->header('Content-Type','application/json');
-        }
-
-        $json = [];
-
-        if(empty($this->request->mobile) && empty($this->request->telephone)){
-            $json['error']['mobile'] = $this->lang->error_phone;
-            $json['error']['telephone'] = $this->lang->error_phone;
-        }
-
-        if(empty($this->request->location_id)){
-            $json['error']['location_id'] = '請指定門市代號';
-        }
-
-        //檢查姓名+手機不可重複
-        if(!empty($customer_id) && !empty($this->request->mobile) && !empty($this->request->personal_name)){
-            $filter_data = [
-                'equal_name' => $this->request->personal_name,
-                'equal_mobile' => preg_replace('/\D+/', '', $this->request->mobile),
-                'pagination' => false,
-                'select' => ['id', 'name', 'mobile'],
-            ];
-            $member = $this->UserRepository->getRow($filter_data);
-
-            if($member && $member->id != $customer_id){
-                $json['error']['personal_name'] = '此姓名+手機的客戶資料已存在！';
-                $json['error']['mobile'] = '此姓名+手機的客戶資料已存在！';
+            // 新增時不允許表單資料有 order_id
+            if(!empty($order_id)){
+                unset($post_data['order_id']);
             }
-        }
 
-        // Validate
-        //驗證表單內容
-        // $validator = $this->OrderService->validator($post_data);
-
-        // if($validator->fails()){
-        //     $messages = $validator->errors()->toArray();
-        //     foreach ($messages as $key => $rows) {
-        //         $json['error'][$key] = $rows[0];
-        //     }
-        // }
-        //表單驗證成功
-        if (!$json) {
-            //新會員才更新會員資料
-                $result = $this->OrderService->updateOrCreate($post_data);
-            if(empty($result['error'])){
-                $order = $result['data'];
-                //接單人員
-                if(isset($post_data['order_taker'])){
-                    $this->insertOrderTakerForAdd($post_data['order_taker'],$order->id);
-                }
-                $redirectUrl = route('api.sale.order.details', $order->id);
-
-                $json = [
-                    'success' => $this->lang->text_success,
-                    'order_id' => $order->id,
-                    'code' => $order->code,
-                    'customer_id' => $order->customer_id,
-                    'personal_name' => $order->personal_name,
-                    'customer' => $order->customer_id . '_' . $order->personal_name,
-                    'email' => $order->email,
-                    'mobile' => $order->mobile,
-                    'telephone' => $order->telephone,
-                    'redirectUrl' => $redirectUrl,
-                ];
-
+            $post_data['source'] = isset($post_data['source']) ? $post_data['source'] : null;//來源
+            
+            if(isset($postData['customer_id'])){
+                $customer_id = $postData['customer_id'];
+            }else if(isset($postData['member_id'])){
+                $customer_id = $postData['member_id'];
             }else{
-                //$user_id = auth()->user()->id ?? null;
-                //if($user_id == 1){
-                if(config('app.debug')){
-                    $json['error'] = 'Debug: '.$result['error'];
-
-                }else{
-                    $json['error'] = $this->lang->text_fail;
-                    $json['error'] = $result['error'];
-                }
-
+                $customer_id = null;
             }
+    
+            if(!empty($this->request->query('getReturn'))){
+                return response(json_encode($post_data))->header('Content-Type','application/json');
+            }
+    
+            $json = [];
+    
+            if(empty($this->request->mobile) && empty($this->request->telephone)){
+                $json['error']['mobile'] = $this->lang->error_phone;
+                $json['error']['telephone'] = $this->lang->error_phone;
+            }
+    
+            //檢查姓名+手機不可重複
+            if(!empty($customer_id) && !empty($this->request->mobile) && !empty($this->request->personal_name)){
+                $filter_data = [
+                    'equal_name' => $this->request->personal_name,
+                    'equal_mobile' => preg_replace('/\D+/', '', $this->request->mobile),
+                    'pagination' => false,
+                    'select' => ['id', 'name', 'mobile'],
+                ];
+                $member = $this->UserRepository->getRow($filter_data);
+    
+                if($member && $member->id != $customer_id){
+                    $json['error']['personal_name'] = '此姓名+手機的客戶資料已存在！';
+                    $json['error']['mobile'] = '此姓名+手機的客戶資料已存在！';
+                }
+            }
+    
+            // Validate
+            //驗證表單內容
+            //表單驗證成功
+            if (!$json) {
+                $order = $this->OrderService->updateOrCreate($order_id, $post_data);
+
+                if(empty($result['error'])){
+                    $redirectUrl = route('api.sale.order.details', $order->id);
+    
+                    $json = [
+                        'success' => $this->lang->text_success,
+                        'order_id' => $order->id,
+                        'code' => $order->code,
+                        'customer_id' => $order->customer_id,
+                        'personal_name' => $order->personal_name,
+                        'customer' => $order->customer_id . '_' . $order->personal_name,
+                        'redirectUrl' => $redirectUrl,
+                    ];
+                }
+            }
+    
+            return response(json_encode($json))->header('Content-Type','application/json');
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(['error' => $th->getMessage()]);
         }
-
-
-        return response(json_encode($json))->header('Content-Type','application/json');
     }
 
 
@@ -242,135 +219,34 @@ class OrderController extends ApiController
         return response(json_encode($rows))->header('Content-Type','application/json');
     }
 
-    public function updateOrder(){
-        $post_data = $this->request->post();
-        {
-            $data = $post_data;
-            DB::beginTransaction();
-            try {
-    
-                $order_id = $data['order_id'] ?? null;
-                $source = $data['source'] ?? null;//來源
-                if(isset($data['customer_id'])){
-                    $customer_id = $data['customer_id'];
-                }else if(isset($data['member_id'])){
-                    $customer_id = $data['member_id'];
-                }else{
-                    $customer_id = null;
-                }
-    
-                $mobile = '';
-                if(!empty($data['mobile'])){
-                    $mobile = preg_replace('/\D+/', '', $data['mobile']);
-                }
-    
-                $telephone = '';
-                if(!empty($data['telephone'])){
-                    $telephone = str_replace('-','',$data['telephone']);
-                }
-    
-                $shipping_personal_name = $data['shipping_personal_name'] ?? $data['personal_name'];
-    
-                $shipping_company = $data['shipping_company'] ?? $data['payment_company'] ?? '';
-    
-    
-                // if(!empty($customer)){
-                    $delivery_date = null;
-    
-                    if(empty($data['delivery_date_hi']) || $data['delivery_date_hi'] == '00:00'){
-                        $arr = explode('-',$data['delivery_time_range']);
-                        //$t1 = $arr[0];
-                        if(!empty($arr[1])){
-                            $t2 = substr($arr[1],0,2).':'.substr($arr[1],-2);
-                        }else if(!empty($arr[0])){
-                            $t2 = substr($arr[0],0,2).':'.substr($arr[0],-2);
-                        }
-    
-                        if(!empty($t2)){
-                            $delivery_date_hi = $t2;
-                        }else{
-                            $delivery_date_hi = '';
-                        }
-                    }else if(!empty($data['delivery_date_hi'])){
-                        //避免使用者只打數字，例如 1630
-                        $delivery_date_hi = substr($data['delivery_date_hi'],0,2).':'.substr($data['delivery_date_hi'],-2);
-                    }
-    
-                    if(!empty($data['delivery_date_ymd'])){
-                        if(!empty($delivery_date_hi)){
-                            $delivery_date = $data['delivery_date_ymd'] . ' ' . $delivery_date_hi;
-                        }else{
-                            $delivery_date = $data['delivery_date_ymd'];
-                        }
-                    }
-                    $result = $this->OrderRepository->findIdOrFailOrNew($order_id);
-                    if(!empty($result['data'])){
-                        $order = $result['data'];
-                    }else{
-                        return response(json_encode($result))->header('Content-Type','application/json');
-                    }
-                    $order->location_id = $data['location_id'];
-                    $order->source = $source;//來源
-                    $order->personal_name = $data['personal_name'];
-                    $order->customer_id = $customer->id ?? $data['customer_id'];
-                    $order->mobile = $mobile ?? '';
-                    $order->telephone_prefix = $data['telephone_prefix'] ?? '';
-                    $order->telephone = $telephone ?? '';
-                    $order->email = $data['email'] ?? '';
-                    $order->order_date = $data['order_date'] ?? null;
-                    $order->production_start_time = $data['production_start_time'] ?? '';
-                    $order->production_ready_time = $data['production_ready_time'] ?? '';
-                    $order->payment_company = $data['payment_company'] ?? '';
-                    $order->payment_department= $data['payment_department'] ?? '';
-                    $order->payment_tin = $data['payment_tin'] ?? '';
-                    $order->is_payment_tin = $data['is_payment_tin'] ?? 0;
-                    $order->payment_total = is_numeric($data['payment_total']) ? $data['payment_total'] : 0;
-                    $order->payment_paid = is_numeric($data['payment_paid']) ? $data['payment_paid'] : 0;
-                    if($order->payment_paid == 0){
-                        $order->payment_unpaid = $order->payment_total;
-                    }else{
-                        $order->payment_unpaid = is_numeric($data['payment_unpaid']) ? $data['payment_unpaid'] : 0;
-                    }
-                    //$order->payment_unpaid = is_numeric($data['payment_unpaid']) ? $data['payment_unpaid'] : 0;
-                    // $order->scheduled_payment_date = $data['scheduled_payment_date'] ?? null;
-                    $order->shipping_personal_name = $shipping_personal_name;
-                    $order->shipping_phone = $data['shipping_phone'] ?? '';
-                    $order->shipping_phone2 = $data['shipping_phone2'] ?? '';
-                    $order->shipping_company = $shipping_company;
-                    $order->shipping_country_code = $data['shipping_country_code'] ?? 'TW';
-                    $order->shipping_state_id = $data['shipping_state_id'] ?? 0;
-                    $order->shipping_state_id = $data['shipping_state_id'] ?? 0;
-                    $order->shipping_city_id = $data['shipping_city_id'] ?? 0;
-                    $order->shipping_road = $data['shipping_road'] ?? '';
-                    $order->shipping_address1 = $data['shipping_address1'] ?? '';
-                    $order->shipping_address2 = $data['shipping_address2'] ?? '';
-                    $order->shipping_road_abbr = $data['shipping_road_abbr'] ?? $data['shipping_road'];
-                    $order->shipping_personal_name2 = $data['shipping_personal_name2'] ?? '';
-                    $order->shipping_salutation_id = $data['shipping_salutation_id'] ?? 0;
-                    $order->shipping_salutation_id2 = $data['shipping_salutation_id2'] ?? 0;
-                    $order->shipping_phone2 = $data['shipping_phone2'] ?? '';
-                    $order->shipping_method = $data['shipping_method'] ?? '';
-                    $order->delivery_date = $delivery_date;
-                    $order->delivery_time_range = $data['delivery_time_range'] ?? '';
-                    $order->delivery_time_comment = $data['delivery_time_comment'] ?? '';
-                    //$order->status_id = $data['status_id'] ?? 0;
-                    $order->comment = $data['comment'] ?? '';
-                    $order->extra_comment = $data['extra_comment'] ?? '';
-                    $order->internal_comment = $data['internal_comment'] ?? '';
-                    $order->shipping_comment = $data['shipping_comment'] ?? '';
-                    $order->control_comment = $data['control_comment'] ?? '';
-                    $order->update();
-                    // 訂單單頭結束
-                // }
-                DB::commit();
-                return ['data' => $order];
-    
-            } catch (\Exception $ex) {
-                DB::rollback();
-                return ['error' => $ex->getMessage()];
+    // 2025-03-11 新改寫，但是可能用不上。
+    public function updateHeader($order_id)
+    {
+        try {
+            //驗證內容
+            $error = [];
+
+            if(empty($this->post_data['status_code'])){
+                $errors['status_code'] = '請設定訂單狀態';
             }
+
+            if(empty($this->post_data['is_payment_tin_required'])){
+                $errors['is_payment_tin_required'] = '請選擇是否需要統編';
+            }
+
+            if(!empty($this->post_data['is_payment_tin_required']) && empty($this->post_data['payment_tin'])){
+                $errors['payment_tin'] = '尚未輸入統編';
+            }
+
+            if(empty($error)){
+                $this->OrderService->updateHeader($order_id, $this->post_data);
+            }
+
+            return $this->sendJsonResponse([]);
+
+        } catch (\Exception $ex) {
+            return ['error' => $ex->getMessage()];
         }
-        return response()->json(array('status' => 'OK'));
     }
 
     public function getTimeQuantity(){
@@ -380,6 +256,7 @@ class OrderController extends ApiController
         ");
         return response()->json(array('status' => 'OK','data'=>$rs));
     }
+
     public function getControlOrders(Request $request){
         $date = $request->input('date');
         $start_date = $date . ' 00:00:00';
@@ -878,7 +755,8 @@ class OrderController extends ApiController
         }    
         return response()->json(array('status' => 'OK' ));
     }
-    //接單人員 新增訂單使用
+    //以後不再使用 2025-03-11 ron
+    //接單人員 新增訂單使用 
     public function insertOrderTakerForAdd($user, $code){
         $check = DB::select("
         SELECT order_taker 

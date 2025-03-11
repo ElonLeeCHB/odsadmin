@@ -273,7 +273,7 @@ class OrderDateLimitRepository extends Repository
 
         // 訂單資料
         $builder = DB::table('orders as o')
-                    ->select('o.id', 'o.delivery_date', 'op.id as order_product_id', 'op.order_id', 'op.product_id', 'op.name', 'op.quantity')
+                    ->select('o.id', 'o.delivery_date', 'op.id as order_product_id', 'op.order_id', 'op.product_id', 'op.name', 'op.quantity', 'o.quantity_for_control')
                     ->join('order_products as op', 'o.id', '=', 'op.order_id')
                     ->join('product_tags as pt', 'op.product_id', '=', 'pt.product_id')
                     ->where('pt.term_id', 1331)  //1331=套餐
@@ -464,7 +464,7 @@ class OrderDateLimitRepository extends Repository
 
         // 查詢所有 delivery_date 大於今天的訂單
         $builder = DB::table('orders as o')
-                    ->select('o.id', 'o.delivery_date', 'op.id as order_product_id', 'op.order_id', 'op.product_id', 'op.name', 'op.quantity')
+                    ->select('o.id', 'o.delivery_date', 'op.id as order_product_id', 'op.order_id', 'op.product_id', 'op.name', 'op.quantity', 'o.quantity_for_control')
                     ->join('order_products as op', 'o.id', '=', 'op.order_id')
                     ->join('product_tags as pt', 'op.product_id', '=', 'pt.product_id')
                     ->where('pt.term_id', 1331)  //1331=套餐
@@ -492,7 +492,7 @@ class OrderDateLimitRepository extends Repository
                 $all_formatted_data[$delivery_date] = $this->getDefaultFormattedDataByDate($delivery_date);
             }
 
-            $all_formatted_data[$delivery_date]['TimeSlots'][$time_slot_key]['OrderedQuantity'] += $order->quantity;
+            $all_formatted_data[$delivery_date]['TimeSlots'][$time_slot_key]['OrderedQuantity'] += $order->quantity_for_control;
         }
         //以上將所有訂單數量加總完成
 

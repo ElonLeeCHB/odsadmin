@@ -8,6 +8,7 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use App\Models\SysData\Log as CustomLog;
 use Carbon\Carbon;
+use App\Helpers\Classes\DataHelper;
 
 class Controller extends BaseController
 {
@@ -25,8 +26,40 @@ class Controller extends BaseController
             return null;
         }
 
-        $this->url_data = request()->query();
-        $this->post_data = request()->post();
+        $this->middleware(function ($request, $next) {
+            $this->resetUrlData(request()->query());
+            $this->resetPostData(request()->post());
+
+            return $next($request);
+        });
+    }
+
+    public function resetPostData()
+    {
+        $this->post_data = DataHelper::unsetNullUndefined(request()->post());
+    }
+
+    public function resetUrlData()
+    {
+        $this->url_data = DataHelper::unsetNullUndefined(request()->query());
+
+        // 如果有 locale
+        if(!empty($this->url_data['locale'])){
+            $this->url_data['equal_locale'] = $this->url_data['locale'];
+        }
+
+        // 起初使用 lang
+        else if(!empty($this->url_data['lang'])){
+            $this->url_data['equal_locale'] = $this->url_data['lang'];
+        }
+
+        // 設定 locale
+        if(empty($this->url_data['equal_locale'])){
+            app()->setLocale(config('app.locale'));
+        }
+        else{
+            app()->setLocale($this->url_data['equal_locale']);
+        }
     }
 
     public function logError($error)

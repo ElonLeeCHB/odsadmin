@@ -82,4 +82,67 @@ class Member extends User
         );
     }
 
+    /**
+     * $row: 傳入的資料，可以是array，或是 model
+     * 改寫傳入資料，或者設定預設值。
+     */
+    public function prepareData($row)
+    {
+        $data = []; //傳入資料轉換成陣列
+        
+        if (is_array($row)){
+            $data = $row;
+        }
+        else if(is_object($row)){
+            if(method_exists($row, 'toArray')){
+                $data = $row->toArray();
+            }
+            $data = (array) $row;
+        }
+
+        if (strlen($data['mobile']) != 10 || !is_numeric($data['mobile']) || substr($data['mobile'], 0, 2) != '09') {
+            return false;
+        }
+
+        $data['telephone_prefix'] = $data['telephone_prefix'] ?? null;
+        $data['shipping_personal_name'] = $data['shipping_personal_name'] ?? $data['personal_name'] ?? null;
+        $data['shipping_company'] = $data['shipping_company'] ?? $data['payment_company'] ?? null;
+        $data['shipping_country_code'] = $data['shipping_country_code'] ?? config('vars.default_country_code');
+        $data['shipping_road_abbr'] = $data['shipping_road_abbr'] ?? $data['shipping_road'] ?? null;
+        $data['shipping_road'] = $data['shipping_road'] ?? null;
+
+        $table_columns = $this->getTableColumns();
+        $input_keys = array_keys($data);
+        $delete_keys = array_diff($input_keys, $table_columns);
+
+        $data['telephone_prefix'] = $data['telephone_prefix'] ?? null;
+
+        foreach ($table_columns as $column) {
+            if(is_array($row)){
+                if(in_array($column, $delete_keys)){
+                    unset($row[$column]);
+                    continue;
+                }
+
+                // $data有值才改寫，沒有則略過
+                if(isset($data[$column])){
+                    $row[$column] = $data[$column];
+                }
+            }
+    
+            else if(is_object($row) && !isset($row->column) && isset($data[$column])){
+                if(in_array($column, $delete_keys)){
+                    unset($row->{$column});
+                    continue;
+                }
+
+                // $data有值才改寫，沒有則略過
+                if(isset($data[$column])){
+                    $row->{$column} = $data[$column];
+                }
+            }
+        }
+
+        return $row;
+    }
 }

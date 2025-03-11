@@ -59,10 +59,10 @@ class OrderDeliveryController extends ApiWwwV2Controller
                 $deliveries = $order->deliveries;
             }
     
-            return $this->sendResponse($deliveries);
+            return $this->sendJsonResponse($deliveries);
 
         } catch (\Throwable $th) {
-            return $this->sendResponse(['error' => $th->getMessage()], $th->getCode());
+            return $this->sendJsonResponse(['error' => $th->getMessage()], $th->getCode());
         }
         
     }

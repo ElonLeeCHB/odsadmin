@@ -33,6 +33,6 @@ class QuantityControlController extends ApiWwwV2Controller
             }
         }
 
-        return $this->sendResponse($rows);
+        return $this->sendJsonResponse($rows);
     }
 }

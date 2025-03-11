@@ -325,6 +325,90 @@ class Order extends Model
         return $data;
     }
 
+    /**
+     * $row: 傳入的資料，可以是array，或是 model
+     * 改寫傳入資料，或者設定預設值。
+     */
+    public function prepareData($row)
+    {
+        $data = []; //傳入資料轉換成陣列
+        
+        if (is_array($row)){
+            $data = $row;
+        }
+        else if(is_object($row)){
+            if(method_exists($row, 'toArray')){
+                $data = $row->toArray();
+            }
+            $data = (array) $row;
+        }
+        
+        $data['source'] = $data['source'] ?? null;
+        $data['location_id'] = $data['location_id'] ?? 0;
+        $data['customer_id'] = (isset($data['customer_id']) && is_numeric($data['customer_id'])) ? $data['customer_id'] : 0;
+        $data['quantity_for_control'] = $data['quantity_for_control'] ?? 0;
+        $data['is_options_controlled'] = $data['is_options_controlled'] ?? 0;
+        $data['mobile'] = preg_replace('/\D+/', '', $data['mobile'] ?? null);
+        
+        $data['payment_total'] = (isset($data['payment_total']) && is_numeric($data['payment_total'])) ? $data['payment_total'] : 0;
+        $data['payment_paid'] = (isset($data['payment_paid']) && is_numeric($data['payment_paid'])) ? $data['payment_paid'] : 0;
+        $data['payment_unpaid'] = (isset($data['payment_unpaid']) && is_numeric($data['payment_unpaid'])) ? $data['payment_unpaid'] : 0;
+        $data['payment_unpaid'] = empty($data['payment_paid']) ? $data['payment_total'] : $data['payment_unpaid'];
+
+        $data['shipping_personal_name'] = $data['shipping_personal_name'] ?? $data['personal_name'] ?? null;
+        $data['shipping_company'] = $data['shipping_company'] ?? $data['payment_company'] ?? null;
+        $data['shipping_country_code'] = $data['shipping_country_code'] ?? config('vars.default_country_code');
+        $data['shipping_road_abbr'] = $data['shipping_road_abbr'] ?? $data['shipping_road'] ?? null;
+        $data['shipping_road'] = $data['shipping_road'] ?? null;
+
+        //delivery_date 如果送達時間的 時:分 是00:00, 則取時間範圍的結束時間做為送達時間。例如 1100-1200, 取 12:00
+            if(empty($data['delivery_date_hi']) || $data['delivery_date_hi'] == '00:00'){
+                if(!empty($data['delivery_time_range'])){
+                    $arr = explode('-',$data['delivery_time_range']);
+    
+                    if(!empty($arr[1])){
+                        $t2 = substr($arr[1],0,2).':'.substr($arr[1],-2);
+                    }else if(!empty($arr[0])){
+                        $t2 = substr($arr[0],0,2).':'.substr($arr[0],-2);
+                    }
+    
+                    if(!empty($t2)){
+                        $delivery_date_hi = $t2;
+                    }else{
+                        $delivery_date_hi = '';
+                    }
+                }
+            }else if(!empty($data['delivery_date_hi'])){
+                //避免使用者只打數字，例如 1630所以取開頭、跟結尾，中間插入冒號 :
+                $delivery_date_hi = substr($data['delivery_date_hi'],0,2).':'.substr($data['delivery_date_hi'],-2);
+            }
+
+            if(!empty($data['delivery_date_ymd'])){
+                if(!empty($delivery_date_hi)){
+                    $delivery_date = $data['delivery_date_ymd'] . ' ' . $delivery_date_hi;
+                }else{
+                    $delivery_date = $data['delivery_date_ymd'];
+                }
+            }
+
+            $data['delivery_date'] = $delivery_date ?? null;
+        //
+
+        $table_columns = $this->getTableColumns();
+
+        foreach ($table_columns as $column) {
+            if(is_array($row) && !isset($row[$column]) && isset($data[$column])){
+                $row[$column] = $data[$column];
+            }
+    
+            else if(is_object($row) && !isset($row->column) && isset($data[$column])){
+                $row->{$column} = $data[$column];
+            }
+        }
+
+        return $row;
+    }
+
     /* 更新全部的控單數量
 -- 更新 order_product_options.quantity_for_control
 UPDATE order_product_options opo

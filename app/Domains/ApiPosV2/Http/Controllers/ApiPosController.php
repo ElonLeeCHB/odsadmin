@@ -16,40 +16,6 @@ class ApiPosController extends Controller
         if (method_exists(parent::class, '__construct')) {
             parent::__construct();
         }
-        
-        $this->middleware(function ($request, $next) {
-            $this->resetUrlData(request()->query());
-            $this->resetPostData(request()->post());
-
-            return $next($request);
-        });
-    }
-
-    public function resetPostData()
-    {
-        $this->post_data = DataHelper::unsetNullUndefined(request()->post());
-    }
-
-    public function resetUrlData()
-    {
-        $this->url_data = DataHelper::unsetNullUndefined(request()->query());
-
-        //起初使用 lang
-        if(!empty($this->url_data['lang'])){
-            $this->url_data['equal_locale'] = $this->url_data['lang'];
-            unset($data['lang']);
-        }
-
-        //如果有 locale
-        else if(!empty($this->url_data['locale'])){
-            $this->url_data['equal_locale'] = $this->url_data['locale'];
-            unset($this->url_data['locale']);
-        }
-
-        //設定 equal_locale 做為本次語言
-        if(!empty($this->url_data['equal_locale'])){
-            app()->setLocale($this->url_data['equal_locale']);
-        }
     }
 
     // $input['error'] 必須是執行過程的錯誤訊息。正常的資料欄位不可以包含 error。
@@ -102,13 +68,6 @@ class ApiPosController extends Controller
         }
 
         return response()->json($json, $status_code);
-    }
-
-    public function test()
-    {
-        (new \App\Repositories\Eloquent\Sale\OrderDateLimitRepository)->makeFuture30Days();
-
-        return response()->json(['data' => 123], 200);
     }
     
 }

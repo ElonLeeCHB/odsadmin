@@ -4,11 +4,11 @@ namespace App\Domains\Api\Http\Controllers\Localization;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Domains\Admin\Http\Controllers\BackendController;
+use App\Domains\Api\Http\Controllers\ApiController;
 use App\Domains\Api\Services\Localization\CountryService;
 use App\Domains\Api\Services\Localization\DivisionService;
 
-class DivisionController extends BackendController
+class DivisionController extends ApiController
 {
 
     public function __construct(protected Request $request

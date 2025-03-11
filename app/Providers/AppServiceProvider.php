@@ -31,5 +31,6 @@ class AppServiceProvider extends ServiceProvider
 
         // Events
         Event::listen(\App\Events\OrderSavedAfterCommit::class, \App\Listeners\SalesOrder\UpdateOrderQuantityControl::class);
+        Event::listen(\App\Events\OrderSavedAfterCommit::class, function ($event) {$event->logEvent();});
     }
 }

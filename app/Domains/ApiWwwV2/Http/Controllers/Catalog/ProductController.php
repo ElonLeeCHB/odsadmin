@@ -39,10 +39,10 @@ class ProductController extends ApiWwwV2Controller
     
             $json = DataHelper::unsetArrayIndexRecursively($rows->toArray(), ['translation', 'translations']);
     
-            return $this->sendResponse($json);
+            return $this->sendJsonResponse($json);
 
         } catch (\Throwable $th) {
-            return $this->sendResponse(['error' => $th->getMessage()]);
+            return $this->sendJsonResponse(['error' => $th->getMessage()]);
         }
     }
     
@@ -51,10 +51,10 @@ class ProductController extends ApiWwwV2Controller
         try {
             $product = $this->ProductService->getProductById($product_id);
 
-            return $this->sendResponse($product);
+            return $this->sendJsonResponse($product);
 
         } catch (\Throwable $th) {
-            return $this->sendResponse(['error' => $th->getMessage()]);
+            return $this->sendJsonResponse(['error' => $th->getMessage()]);
         }
     }
 }

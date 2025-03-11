@@ -9,6 +9,29 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class OrmHelper
 {
+    public static function findIdOrFailOrNew($id, $params = null, $debug = 0)
+    {
+        try{
+            //find
+            if(!empty(trim($id))){
+                $params['equal_id'] = $id;
+                $row = $this->getRow($params, $debug);
+                if(empty($row)){
+                    throw new \Exception ('Record not found!');
+                }
+            }
+            //new
+            else{
+                $row = $this->newModel();
+            }
+
+            return ['data' => $row]; // To make difference with 'error', 'data' is needed.
+
+        } catch (\Exception $e) {
+            return ['error' => 'findIdOrFailOrNew: ' . $e->getMessage()];
+        }
+    }
+
     // 取得資料集
     public static function getResult($query, $params, $debug = 0)
     {
