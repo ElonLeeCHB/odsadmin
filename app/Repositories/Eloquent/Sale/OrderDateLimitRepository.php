@@ -7,7 +7,7 @@ use App\Helpers\Classes\DataHelper;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderDateLimit;
 use App\Models\Sale\TimeSlotLimit;
-use App\Models\Material\ProductTag;
+use App\Models\Catalog\ProductTag;
 use App\Models\Setting\Setting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;

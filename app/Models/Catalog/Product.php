@@ -1,7 +1,5 @@
 <?php
-/**
- * 這裡的 Product 相關模型可能不再使用，改用 Material 資料夾裡面的。
- */
+
 namespace App\Models\Catalog;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -24,8 +22,10 @@ class Product extends Model
     use ModelTrait;
 
     protected $guarded = [];
-    protected $appends = ['code', 'name'];
-    public $translation_keys = ['name', 'full_name','short_name','specification','meta_title','meta_description','meta_keyword',];
+    protected $appends = ['code', 'name', 'web_name', 'short_description'];
+    public $translation_keys = ['name', 'short_name','web_name' , 'short_description', 'description', 'specification'
+                                ,'meta_title','meta_description','meta_keyword',
+                                ];
 
     public $meta_keys = [
         'supplier_own_product_code',
@@ -39,7 +39,7 @@ class Product extends Model
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
     
-    protected $with = ['translations'];
+    protected $with = ['translation'];
 
     protected static function booted()
     {
@@ -49,11 +49,16 @@ class Product extends Model
     }
 
 
+    //名稱太籠統，以後不用。
     public function main_category()
     {
         return $this->belongsTo(Term::class, 'main_category_id', 'id');
     }
 
+    public function ProductTags()
+    {
+        return $this->hasMany(ProductTag::class, 'product_id', 'id');
+    }
 
     public function bom()
     {
@@ -89,10 +94,15 @@ class Product extends Model
 
     public function product_options()
     {
+        return $this->productOptions();
+    }
+
+    public function productOptions()
+    {
         return $this->hasMany(ProductOption::class,'product_id', 'id')->orderBy('sort_order');
     }
 
-
+    //後台訂單，暫時沒用到
     public function cachedProductOptions()
     {
         $cacheName = app()->getLocale() . '_ProductId_' . $this->attributes['id'] . '_ProductOptions';
@@ -152,28 +162,42 @@ class Product extends Model
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->name ?? '',
+            get: fn () => optional($this->translation)->name ?? '',
         );
     }
 
     protected function shortName(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->short_name ?? '',
+            get: fn () => optional($this->translation)->short_name ?? '',
+        );
+    }
+
+    protected function webName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => optional($this->translation)->web_name ?? '',
         );
     }
 
     protected function description(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->description ?? '',
+            get: fn () => optional($this->translation)->description ?? '',
+        );
+    }
+
+    protected function shortDescription(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => optional($this->translation)->short_description ?? '',
         );
     }
 
     protected function specification(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->specification ?? '',
+            get: fn () => optional($this->translation)->specification ?? '',
         );
     }
 
@@ -206,9 +230,7 @@ class Product extends Model
 
     protected function quantity(): Attribute
     {
-        if(!empty($this->attributes['quantity'])){
-            return $this->setNumberAttribute($this->attributes['quantity'] ?? 0);
-        }
+        return $this->setNumberAttribute($this->attributes['quantity'] ?? null);
     }
 
     public function temperatureTypeName(): Attribute
@@ -221,57 +243,90 @@ class Product extends Model
 
     /**
      * cache
-     * 可能不實用。如果還要選擇欄位。
      */
-    public function getCacheKey()
-    {
-        return 'cache/locales/' + app()->getLocale() + '/productsById/' . $this->attributes['id']  . '.json';
-    }
+        public function getCacheKeysByProductId($product_id = null)
+        {
+            $product_id = $product_id ?? $this->id ?? null;
 
-    public function getCache($product_id)
-    {
-        $product = DataHelper::getDataFromStorage($this->getCacheKey($product_id));
-        
-
-        if(!empty($product)){
-            return $product;
-        }
-        
-        return DataHelper::remember($this->getCacheKey($product_id), 60*60, 'json', function() use ($product_id){
-            $product = self::with('translation')
-                ->with('product_options.translation')
-                ->with('product_options.product_option_values.translation')->find($product_id);
-            $product = self::find($product_id);
-
-            if(empty($product)){
-                return [];
-            }
-                
-            foreach ($product->translation_keys ?? [] as $translation_key) {
-                if(!empty($product->translation->{$translation_key})){
-                    $product->{$translation_key} = $product->translation->{$translation_key};
-                }else{
-                    $product->{$translation_key} = '';
-                }
+            if(empty($product_id)){
+                throw new \Exception('$product_id cannot be empty.');
             }
 
-            // 重構選項並合併到產品數據
-            $product = [
-                ...$product->toArray(),
-                'product_options' => $product->product_options
-                    ->sortBy('sort_order')
-                    ->keyBy('option_code')
-                    ->toArray(),
+            return [
+                $this->getCacheKeyForSale($product_id),
+                // 舉例
+                // $this->getCacheKeyForPurchasing($product_id),
+                // $this->getCacheKeyForInventory($product_id),
             ];
-
-            return DataHelper::unsetArrayIndexRecursively($product, ['translation', 'translations']);
-        });
-    }
-
-    public function deleteCache($product_id)
-    {
-        if (Storage::exists($this->getCacheKey($product_id))) {
-            Storage::delete($this->getCacheKey($product_id));
         }
+
+        public function getCacheKeyForSale($product_id = null)
+        {
+            $product_id = $product_id ?? $this->id ?? null;
+
+            // 如果還是沒有 $product_id, 回覆錯誤
+            if(empty($product_id)){// 直接拋出錯誤
+                throw new \Exception('$product_id cannot be empty.');
+            }
+
+            $locale = app()->getLocale();
+            $cache_key = 'cache/locales/'.$locale.'/catalog/product/' . 'id-' . $product_id . '.txt';
+
+            return $cache_key ?? '';
+        }
+
+        public function deleteCacheByProductId($product_id = null)
+        {
+            foreach ($this->getCacheKeysByProductId($product_id) as $cache_key) {
+                Storage::delete($this->getCacheKeyForSale($product_id));
+            }
+        }
+
+        public function getLocaleProductByIdForSale($product_id)
+        {
+            $locale = app()->getLocale();
+            $cache_key = $this->getCacheKeyForSale($product_id);
+
+            if(request()->has('no-cache') && request()->query('no-cache') == 1){
+                DataHelper::deleteDataFromStorage($cache_key);
+            }
+
+            return DataHelper::remember($cache_key, 60*60*24, 'serialize', function() use ($product_id) {
+                $builder = Product::query();
+                $builder->select(['id', 'code', 'name', 'price', 'quantity_for_control', 'is_options_controlled']);
+                $builder->where('id', $product_id)
+                    ->with(['productOptions' => function($query) {
+                        $query->where('is_active', 1)
+                            ->with(['productOptionValues' => function($query) {
+                                $query->where('is_active', 1)
+                                    ->with('optionValue')
+                                    ->with('translation')
+                                    ->with(['materialProduct' => function($query) {
+                                        $query->select('products.id as material_product_id', 'products.quantity_for_control', 'products.is_options_controlled')
+                                            ->from('products');  // 另外指定使用 products 表的 id 來避免歧義，跟一開始的主表 products 區隔
+                                    }]);
+                            }])
+                            ->with('option');
+                    }])
+                    ->with('translation');
+                // DataHelper::showSqlContent($builder);
+                return $builder->first();
+            });
+        }
+    //
+
+    public function prepareArrayData($row)
+    {
+        if(is_array($row)){
+            $row['quantity_for_control'] = $row['quantity_for_control'] ?? 0;
+            $row['is_options_controlled'] = $row['is_options_controlled'] ?? 0;
+        }
+
+        else if(is_object($row)){
+            $row->quantity_for_control = $row->quantity_for_control ?? 0;
+            $row->is_options_controlled = $row->is_options_controlled ?? 0;
+        }
+
+        return $row;
     }
 }

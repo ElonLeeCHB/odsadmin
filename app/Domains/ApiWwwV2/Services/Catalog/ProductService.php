@@ -8,14 +8,14 @@ use App\Services\Service;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Traits\Model\EloquentTrait;
 use App\Helpers\Classes\RowsArrayHelper;
-use App\Models\Material\ProductTag;
-use App\Models\Material\Product;
+use App\Models\Catalog\ProductTag;
+use App\Models\Catalog\Product;
 
 class ProductService extends Service
 {
     use EloquentTrait;
 
-    public $modelName = "\App\Models\Material\Product";
+    public $modelName = "\App\Models\Catalog\Product";
 
     public function getProductById($product_id)
     {

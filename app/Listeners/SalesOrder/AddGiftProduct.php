@@ -7,8 +7,8 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\Sale\OrderProduct;
-use App\Models\Material\Product;
-use App\Models\Material\ProductTranslation;
+use App\Models\Catalog\Product;
+use App\Models\Catalog\ProductTranslation;
 use App\Helpers\Classes\DataHelper;
 use App\Models\Sale\Order;
 use Carbon\Carbon;
@@ -34,7 +34,7 @@ class AddGiftProduct
             if($guabao_total >= 1500){
                 $gift_product_id = 1803; //1803 = 滷味盒
                 
-                $gift_product = \App\Models\Material\ProductTranslation::select(['name'])->where('product_id', $gift_product_id)->where('locale', 'zh_Hant')->first();
+                $gift_product = \App\Models\Catalog\ProductTranslation::select(['name'])->where('product_id', $gift_product_id)->where('locale', 'zh_Hant')->first();
                 $gift_product = DataHelper::toCleanObject($gift_product);
 
                 $maxSortOrder = \App\Models\Sale\OrderProduct::where('order_id', $order_id)->max('sort_order');

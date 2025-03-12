@@ -26,13 +26,13 @@ class ProductController extends ApiPosController
 
         $products = $this->ProductService->getList($filter_data);
 
-        return $this->sendResponse(['data' => $products]);
+        return $this->sendJsonResponse($products);
     }
 
     public function info($product_id)
     {
-        $info = $this->ProductService->getInfo($product_id);
+        $product = $this->ProductService->getProductById($product_id);
 
-        return $this->sendResponse(['data' => $info]);
+        return $this->sendJsonResponse($product);
     }
 }

@@ -100,7 +100,7 @@ class OrderRepository extends Repository
         return $data;
     }
 
-    public function getOrderStatuses($data = [])
+    public static function getOrderStatuses($data = [])
     {
         //Option
         $option = Option::where('code', 'order_status')->first();
@@ -627,36 +627,30 @@ class OrderRepository extends Repository
 
     public function update($data, $id)
     {
-        try {
+        $order = Order::find($id);
 
-            $order = Order::find($id);
+        if($order == null){
+            throw new \Exception('找不到此訂單序號！');
+        }
 
-            if($order == null){
-                throw new \Exception('找不到此訂單序號！');
+        $fillable = $this->model->getFillable();
+
+        $orderData = [];
+        
+        foreach ($fillable as $column) {
+            if($column != 'id' && isset($data[$column])){
+                $orderData[$column] = $data[$column];
             }
+        }
 
-            $fillable = $this->model->getFillable();
+        $orderData['id'] = $id;
 
-            $orderData = [];
-            
-            foreach ($fillable as $column) {
-                if($column != 'id' && isset($data[$column])){
-                    $orderData[$column] = $data[$column];
-                }
-            }
+        $orderData = $this->model->setDefaultData($data);
 
-            $orderData['id'] = $id;
+        if (!empty($orderData)) {
+            $order->update($orderData);
 
-            $orderData = $this->model->setDefaultData($data);
-
-            if (!empty($orderData)) {
-                $order->update($orderData);
-
-                return $order;
-            }
-
-        } catch (\Throwable $th) {
-            throw $th;
+            return $order;
         }
     }
 }

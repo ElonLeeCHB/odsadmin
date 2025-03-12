@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Event;
 use App\Models\Sanctum\PersonalAccessToken;
 use Laravel\Sanctum\Sanctum;
 
-use App\Models\Material\Product;
+use App\Models\Catalog\Product;
 use App\Observers\ProductObserver;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,7 +30,7 @@ class AppServiceProvider extends ServiceProvider
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
 
         // Events
-        Event::listen(\App\Events\OrderSavedAfterCommit::class, \App\Listeners\SalesOrder\UpdateOrderQuantityControl::class);
+        Event::listen(\App\Events\OrderSavedAfterCommit::class, \App\Listeners\SalesOrder\OrderSavedAfterCommitListener::class);
         Event::listen(\App\Events\OrderSavedAfterCommit::class, function ($event) {$event->logEvent();});
     }
 }

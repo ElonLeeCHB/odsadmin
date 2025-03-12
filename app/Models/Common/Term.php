@@ -39,7 +39,7 @@ class Term extends Model
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->name ?? '',
+            get: fn () => optional($this->translation)->name ?? '',
             //get: fn () => 123,
         );
     }
@@ -47,7 +47,7 @@ class Term extends Model
     protected function shortName(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->short_name ?? '',
+            get: fn () => optional($this->translation)->short_name ?? '',
             // get: fn () => 456,
         );
     }
@@ -55,7 +55,7 @@ class Term extends Model
     protected function content(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->content ?? '',
+            get: fn () => optional($this->translation)->content ?? '',
         );
     }
     

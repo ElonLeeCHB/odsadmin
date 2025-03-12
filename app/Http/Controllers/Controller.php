@@ -104,7 +104,7 @@ class Controller extends BaseController
             $log->api_ip = request()->ip();
 
             $log->note = $error;
-            $log->status = 'fail';
+            $log->status = 'error';
 
             $log->save();
         }
@@ -113,37 +113,44 @@ class Controller extends BaseController
 
     // $input['error'] 必須是執行過程的錯誤訊息。正常的資料欄位不可以包含 error。
     // 如果 $input['error'] 不存在，則 $input 本身就是資料內容，即 data 元素
-    public function sendJsonResponse($input, $status_code = 200, $message = '', )
+    public function sendJsonResponse($data, $status_code = 200, $message = '', )
     {
         $json = [];
 
-        $error = $input['error'] ?? $input['errors'] ?? $input['warning'] ?? $input['errorWarning'] ?? '';
+        $error = $data['error'] ?? $data['errors'] ?? $data['warning'] ?? $data['errorWarning'] ?? '';
+
+        // 有錯誤
+        if(!empty($error)){
+            if($status_code == 404){
+                $json['error'] = '找不到';
+            } else {
+                $status_code = ($status_code==200) ? 400 : $status_code;
+                
+                // 正式區，不顯示真正除錯訊息
+                if(config('app.env') == 'production'){
+                    $json['error'] = '系統發生問題，請洽管理員。 sendJsonResponse()';
+                }
+                // 非正式區，顯示除錯訊息
+                $json['error'] = $data['error'];
+            }
+            
+            $this->logError($data['error']);
+        }
 
         // 無任何錯誤
-        if(empty($error)){
+        else{
             $json['success'] = true;
 
-            if(!is_bool($input) && !is_null($input)){
-                $json['data'] = $input;
+            if(!is_bool($data) && !is_null($data)){
+                $json['data'] = $data;
             }
 
             $status_code = 200;
         }
-        
-        // 有錯誤
-        else{
-            if($status_code == 200){
-                $status_code = 400;
-                $json['error'] = $input['error'];
-            }
-            else if($status_code == 404){
-                $json['error'] = '找不到';
-            }
-        }
 
-        // 如果有 message。通常使用 error
+        // 如果有 message
         if(!empty($message)){
-            $json['message'] = $input['message'];
+            $json['message'] = $message;
         }
 
         return response()->json($json, $status_code, [], JSON_UNESCAPED_UNICODE); // JSON_UNESCAPED_UNICODE 使用原本的字串，不要轉成 unicode

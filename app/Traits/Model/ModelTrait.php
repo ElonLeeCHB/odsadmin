@@ -175,8 +175,9 @@ trait ModelTrait
     //public function setNumberAttribute($value, $to_fixed = 0, $keep_zero = 0)
     public function setNumberAttribute($value, $to_fixed = null, $keep_zero = null)
     {
+        // 取出時不可在此加上千分位符號。若被用來計算會出錯。
+
         return Attribute::make(
-            // 取出時不可在此加上千分位符號。若被用來計算會出錯。
             get: function ($value) use ($keep_zero, $to_fixed){
                 if(is_numeric($to_fixed)){
                     $value = round($value, 4);
@@ -604,22 +605,12 @@ trait ModelTrait
     // end scope
 
 
-
-    public static function getQueryHelper($model = null)
-    {
-        if (is_null($model)) {
-            $model = new static();
-        }
-
-        return new EloquentLibrary($model);
-    }
-
     public function getMetaModelName(): string
     {
-        $namespace = __NAMESPACE__; // 例如 App\Models\Material
+        $namespace = __NAMESPACE__;
 
         $className = class_basename(self::class); // Product
 
-        return $namespace . '\\' . $className . 'Meta'; // 例如 App\Models\Material\ProductMeta
+        return $namespace . '\\' . $className . 'Meta'; // 例如 App\Models\Catalog\ProductMeta
     }
 }

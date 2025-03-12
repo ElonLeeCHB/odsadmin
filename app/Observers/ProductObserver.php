@@ -2,7 +2,7 @@
 
 namespace App\Observers;
 
-use App\Models\Material\Product;
+use App\Models\Catalog\Product;
 use App\Helpers\Classes\DataHelper;
 use Illuminate\Support\Facades\Storage;
 

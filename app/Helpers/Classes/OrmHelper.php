@@ -177,7 +177,7 @@ class OrmHelper
                 $column = preg_replace('/^(filter_|equal_)/', '', $key);
 
                 // 翻譯欄位另外用 whereHas 
-                if(in_array($column, $model->translation_keys)){
+                if(in_array($column, $model->translation_keys ?? [])){
                     $params['whereHas']['translation'][$key] = $params[$key];
                     unset($params[$key]);
                     continue;
@@ -377,32 +377,33 @@ class OrmHelper
     // 排序。可以使用本表欄位、關聯欄位
     public static function sortOrder($query, $sort = '', $order = '')
     {
-        if(!empty($sort)){
-            if(!empty($order)){
-                $order = 'ASC';
+        if($query instanceof EloquentBuilder){
+            $masterModel = $query->getModel();
+            $mainTable = $masterModel->getPrefix() . $masterModel->getTable();
+
+            if(empty($sort) && in_array('id', $masterModel->getTableColumns())){
+                $sort = 'id';
             }
 
-            if($query instanceof EloquentBuilder){
-                $masterModel = $query->getModel();
+            if(empty($order)){
+                $order = 'DESC';
+            }
+
+            if(method_exists($masterModel, 'getMetaKeys') && in_array($sort, $masterModel->getMetaKeys())){
+                $metaModelName = get_class($masterModel) . 'Meta';
+                $metaModel = new $metaModelName;
+                $metaTable = $metaModel->getPrefix() . $metaModel->getTable();
+                $locale = request()->query('locale') ?? config('app.locale');
+    
+                $query->leftJoin("{$metaTable} as sort_meta", function ($join) use ($locale, $sort, $order, $mainTable) {
+                    $join->on("{$mainTable}.id", '=', 'sort_meta.product_id')
+                        ->where('sort_meta.meta_key', $sort)
+                        ->where('sort_meta.locale', $locale);
+                })->orderBy('sort_meta.meta_value', $order);
+
+            } else {
                 $mainTable = $masterModel->getPrefix() . $masterModel->getTable();
-
-                if(in_array($sort, $masterModel->getMetaKeys())){
-                    $metaModelName = get_class($masterModel) . 'Meta';
-                    $metaModel = new $metaModelName;
-                    $metaTable = $metaModel->getPrefix() . $metaModel->getTable();
-
-                    $locale = request()->query('locale') ?? config('app.locale');
-        
-                    $query->leftJoin("{$metaTable} as sort_meta", function ($join) use ($locale, $sort, $order, $mainTable) {
-                        $join->on("{$mainTable}.id", '=', 'sort_meta.product_id')
-                            ->where('sort_meta.meta_key', $sort)
-                            ->where('sort_meta.locale', $locale);
-                    })->orderBy('sort_meta.meta_value', $order);
-                } else {
-                    $mainTable = $masterModel->getPrefix() . $masterModel->getTable();
-
-                    $query->orderBy("{$mainTable}.{$sort}", $order);
-                }
+                $query->orderBy("{$mainTable}.{$sort}", $order);
             }
         }
     }

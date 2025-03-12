@@ -6,19 +6,16 @@ use Illuminate\Http\Request;
 use App\Domains\ApiWwwV2\Http\Controllers\ApiWwwV2Controller;
 use App\Domains\ApiWwwV2\Services\Sale\OrderService;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\Classes\DataHelper;
 
 class OrderController extends ApiWwwV2Controller
 {
-    private $status_code = 200;
-    private $default_error_status_code = 400;
-
     public function __construct(private Request $request,private OrderService $OrderService)
     {
         if (method_exists(parent::class, '__construct')) {
             parent::__construct();
         }
     }
-
 
     public function list()
     {
@@ -57,27 +54,12 @@ class OrderController extends ApiWwwV2Controller
                 }
             }
     
-            $result = $this->OrderService->getList($queries);
+            $listData = $this->OrderService->getList($queries);
 
-            if(empty($result['error'])){
-                $json = [
-                    'success' => 'ok',
-                    'data' => $result,
-                ];
-            }else{
-                $json = [
-                    'error' => $result['error'],
-                ];
-
-                $this->status_code = 400;
-
-                $this->logError($result['error']);
-            }
-
-            return response()->json($json, $this->status_code);
+            return $this->sendJsonResponse(data:$listData);
 
         } catch (\Throwable $th) {
-            return response()->json(['error' => $th->getMessage()], $th->getCode());
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
         }
     }
 
@@ -85,7 +67,7 @@ class OrderController extends ApiWwwV2Controller
     {
         try {
             if(empty(request()->query('personal_name'))){
-                throw new \Exception('姓名錯誤', 401);
+                throw new \Exception('姓名錯誤', 404);
             }
     
             $filter_data = [
@@ -94,27 +76,12 @@ class OrderController extends ApiWwwV2Controller
                 'first' => true,
             ];
     
-            $result = $this->OrderService->getInfo($filter_data, 'code');
-    
-            if(empty($result['error'])){
-                $json = [
-                    'success' => 'ok',
-                    'data' => $result,
-                ];
-            }else{
-                $json = [
-                    'error' => $result['error'],
-                ];
+            $data = $this->OrderService->getInfo($filter_data, 'code');
 
-                $this->status_code = 400;
-
-                $this->logError($result['error']);
-            }
-
-            return response()->json($json, $this->status_code);
+            return $this->sendJsonResponse(data:$data, status_code:200, message:'訂單新增成功');
 
         } catch (\Throwable $th) {
-            return response()->json(['error' => $th->getMessage()], $th->getCode());
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
         }
     }
 
@@ -125,30 +92,19 @@ class OrderController extends ApiWwwV2Controller
 
             $data['order_taker'] = 'web';
     
-            $result = $this->OrderService->store($data);
-    
-            if(empty($result['error'])){
-                $json = [
-                    'success' => 'ok',
-                    'message' => '新增成功！',
-                    'data' => $result,
-                ];
+            $order = $this->OrderService->store($data);
 
-            }else{
-                $json = [
-                    'error' => $result['error'],
-                    'message' => '新增失敗！',
-                ];
+            event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
 
-                $this->status_code = 400;
+            $data = [
+                'id' => $order->id,
+                'code' => $order->code,
+            ];
 
-                $this->logError($result['error']);
-            }
-            
-            return response()->json($json, $this->status_code);
+            return $this->sendJsonResponse(data:$data, status_code:200, message:'訂單新增成功');
 
         } catch (\Throwable $th) {
-            return response()->json(['error' => $th->getMessage()], $th->getCode());
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
         }
     }
 
@@ -172,28 +128,12 @@ class OrderController extends ApiWwwV2Controller
                 ->leftJoin('orders as o', 'o.code', '=', 'od.order_code')
                 ->where('o.code', $code);
                 
-            $result = $builder->get();
+            $data = $builder->get();
 
-            if(empty($result['error'])){
-                $json = [
-                    'success' => 'ok',
-                    'data' => $result,
-                ];
-
-            }else{
-                $json = [
-                    'error' => $result['error'],
-                ];
-
-                $this->status_code = 400;
-
-                $this->logError($result['error']);
-            }
-
-            return response()->json($json, $this->status_code);
+            return $this->sendJsonResponse(data:$data);
 
         } catch (\Throwable $th) {
-            return response()->json(['error' => $th->getMessage()], $th->getCode());
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
         }
     }
 

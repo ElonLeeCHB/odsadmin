@@ -11,19 +11,26 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\Sale\OrderProduct;
-use App\Models\Material\Product;
-use App\Models\Material\ProductTranslation;
+use App\Models\Catalog\Product;
+use App\Models\Catalog\ProductTranslation;
 use App\Helpers\Classes\DataHelper;
 use App\Models\Sale\Order;
 use Carbon\Carbon;
 use App\Events\OrderSavedAfterCommit;
 use App\Repositories\Eloquent\Sale\OrderDateLimitRepository;
 
-class UpdateOrderQuantityControl
+class OrderSavedAfterCommitListener
 {
     use InteractsWithQueue;
 
     public function handle(OrderSavedAfterCommit $event)
+    {
+        $this->updateQuantityForControl($event);
+        $this->deleteOrderCache($event);
+    }
+
+    // 更新數量控制
+    public function updateQuantityForControl($event)
     {
         $repository = new OrderDateLimitRepository;
 
@@ -48,4 +55,14 @@ class UpdateOrderQuantityControl
             }
         }
     }
+
+    // 更新訂單快取
+    public function deleteOrderCache($event)
+    {
+        $saved_order = $event->saved_order;
+
+        (new Order)->deleteCacheKeysByIdOrCode($saved_order->id, 'id');
+        (new Order)->deleteCacheKeysByIdOrCode($saved_order->code, 'code');
+    }
+
 }

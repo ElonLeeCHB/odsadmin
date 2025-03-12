@@ -10,7 +10,7 @@ class ProductService extends Service
 {
     use EloquentTrait;
 
-    public $modelName = "\App\Models\Material\Product";
+    public $modelName = "\App\Models\Catalog\Product";
 
 	public function __construct(protected ProductRepository $ProductRepository)
 	{

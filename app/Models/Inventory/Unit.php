@@ -30,7 +30,7 @@ class Unit extends Model
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->name ?? '',
+            get: fn () => optional($this->translation)->name ?? '',
         );
     }
     

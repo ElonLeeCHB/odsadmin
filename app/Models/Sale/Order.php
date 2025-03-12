@@ -17,7 +17,8 @@ use App\Models\Common\Term;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Traits\Model\ModelTrait;
 use DateTimeInterface;
-
+use App\Helpers\Classes\DataHelper;
+use Illuminate\Support\Facades\Storage;
 
 class Order extends Model
 {
@@ -26,7 +27,8 @@ class Order extends Model
     // 官網指示這樣寫
     use \Staudenmeir\EloquentHasManyDeep\HasRelationships;
 
-    protected $appends = ['order_date_ymd', 'delivery_date_ymd', 'delivery_date_hi', 'delivery_weekday','status_name'];
+    protected $appends = ['order_date_ymd', 'delivery_date_ymd', 'delivery_date_hi', 'delivery_weekday'
+                        ,'status_name', 'salutation_name'];
 
     protected $casts = [
         'is_closed' => 'boolean',
@@ -144,6 +146,11 @@ class Order extends Model
 
     
 
+
+    /**
+     * Attribute
+     */
+
     public function statusName(): Attribute
     {
         return Attribute::make(
@@ -151,13 +158,34 @@ class Order extends Model
         );
     }
 
-
-    // Attribute
-
-    public function id(): Attribute
+    protected function salutationName(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => !empty($value) ? $value : 0,
+            get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->salutation_code, 'Salutation') ?? '',
+            
+        );
+    }
+
+    protected function shippingSalutationName(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->shipping_salutation_code, 'Salutation') ?? '',
+            
+        );
+    }
+
+    protected function shippingSalutation2Name(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->shipping_salutation_code2, 'Salutation') ?? '',
+            
+        );
+    }
+    
+    public function CustomerComment(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => optional($this->customer)->comment ?? '',
         );
     }
 
@@ -329,7 +357,7 @@ class Order extends Model
      * $row: 傳入的資料，可以是array，或是 model
      * 改寫傳入資料，或者設定預設值。
      */
-    public function prepareData($row)
+    public function prepareData($row, $data)
     {
         $data = []; //傳入資料轉換成陣列
         
@@ -342,7 +370,7 @@ class Order extends Model
             }
             $data = (array) $row;
         }
-        
+        echo "<pre>",print_r('OrderModel prepareData 調整中！！',true),"</pre>\r\n";exit;
         $data['source'] = $data['source'] ?? null;
         $data['location_id'] = $data['location_id'] ?? 0;
         $data['customer_id'] = (isset($data['customer_id']) && is_numeric($data['customer_id'])) ? $data['customer_id'] : 0;
@@ -459,4 +487,76 @@ select id, name, quantity, quantity_for_control
 from order_products op
 where op.order_id=9219
     */
+
+    /**
+     * cache
+     */
+    public function getCacheKeyById($order_id)
+    {
+        return 'cache/sale/order/id-' . $order_id . '.json';
+    }
+
+    public function getCacheKeyByCode($order_code)
+    {
+        return 'cache/sale/order/code-'. $order_code . '.json';
+    }
+
+    public function deleteCacheKeysByIdOrCode($identifier, $type)
+    {
+        if($type == 'id'){
+            $cache_key = $this->getCacheKeyById($identifier);
+        } else if($type == 'code'){
+            $cache_key = $this->getCacheKeyByCode($identifier);
+        }
+
+        return DataHelper::deleteDataFromStorage($cache_key);
+    }
+
+    public function getOrderByIdOrCode($identifier, $type = 'id', $params = [])
+    {
+        if($type == 'id'){
+            $cache_key = $this->getCacheKeyById($identifier);
+        } else if($type == 'code'){
+            $cache_key = $this->getCacheKeyByCode($identifier);
+        }
+
+        if(request()->has('no-cache') && request()->query('no-cache') == 1){
+            DataHelper::deleteDataFromStorage($cache_key);
+        }
+
+        return DataHelper::remember($cache_key, 60*60*24, 'serialize', function() use ($identifier, $type) {
+            $builder = $this->query();
+            if($type == 'id'){
+                $builder->where('id', $identifier);
+            } else if($type == 'code'){
+                $builder->where('code', $identifier);
+            }
+
+            $builder->with(['orderProducts' => function($qry) {
+                        $qry->with('orderProductOptions');
+                    }]);
+
+            $builder->with('totals')
+                    ->with('tags')
+                    ->with('shippingState')
+                    ->with('shippingCity')
+                    ->with('customer:id,comment');
+
+            $order = $builder->first();
+            //salutation_name
+            $order->shipping_state_name = optional($order->shipping_state)->name ?? '';
+            $order->shipping_city_name = optional($order->shipping_city)->name ?? '';
+
+            return $order;
+        });
+    }
+
+    public static function getDefaultListColumns()
+    {
+        return [
+            'id', 'code', 'source', 'personal_name', 'mobile', 'telephone_prefix', 'telephone', 'payment_company', 'delivery_date', 'status_code'
+            , 'print_status', 'order_taker', 'salutation_code'
+        ];
+
+    }
 }

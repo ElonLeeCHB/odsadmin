@@ -8,7 +8,7 @@ use App\Models\Catalog\ProductTranslation;
 use App\Models\Catalog\ProductOption;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderProductOption;
-use App\Models\Material\ProductTag;
+use App\Models\Catalog\ProductTag;
 use App\Models\Catalog\Option;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Traits\Model\ModelTrait;

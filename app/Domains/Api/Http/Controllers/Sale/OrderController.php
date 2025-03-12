@@ -54,79 +54,50 @@ class OrderController extends ApiController
      */
     public function list()
     {
-        $query_data = $this->request->query();
-        $filter_data = $this->resetUrlData($query_data);
-        $orders = $this->OrderService->getOrders($filter_data);
-        //$orders = $this->OrderService->optimizeRows($orders);
+        try {
+            $orders = $this->OrderService->getOrders($this->url_data);
 
-        $this->OrderService->unsetRelations($orders, ['status']);
+            $orders = DataHelper::unsetArrayIndexRecursively($orders->toArray(), ['translation', 'status']);
+    
+            return $this->sendJsonResponse(data:$orders);
 
-        return response(json_encode($orders))->header('Content-Type','application/json');
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
+        }
     }
 
 
     // 包含訂單的單頭、單身
-    public function details($order_id = null)
+    public function info($order_id)
     {
-        $result = $this->OrderService->findIdOrFailOrNew($order_id);
+        try {
+            $order = $this->OrderService->getOrderByIdOrCode($order_id, 'id');
 
-        if(!empty($result['data'])){
-            $order = $result['data'];
-        }else{
-            return response(json_encode($result))->header('Content-Type','application/json');
+            return $this->sendJsonResponse(data:$order);
+
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
         }
-
-        $order->load('order_products.order_product_options');
-
-        $order->status_name = $order->status->name ?? '';
-
-        // Order Total
-        $order->totals = $this->OrderService->getOrderTotals($order_id);
-
-        //訂單標籤
-        $order->order_tags = $this->OrderService->getOrderTagsByOrderId($order->id);
-        
-        $result = $this->MemberService->findIdOrFailOrNew($order['customer_id']);
-        $order['salutation_id'] = $result['data']['salutation_id'];
-        // $order['shipping_salutation_id']  = $result['data']['shipping_salutation_id'];
-        // $order['shipping_salutation_id2'] = $result['data']['shipping_salutation_id2'];
-        // $order['shipping_phone2']         = $result['data']['shipping_phone2'];
-        // $order['shipping_personal_name2'] = $result['data']['shipping_personal_name2'];
-        $order['member_comment'] = $result['data']['comment'];
-        $data['order'] = $order;
-
-        //$data['salutations'] =
-
-        return response(json_encode($order))->header('Content-Type','application/json');
-    }
-
-
-    public function header($order_id)
-    {
-        $result = $this->OrderService->findIdOrFailOrNew($order_id);
-
-        if(!empty($result['data'])){
-            $order = $result['data'];
-        }else{
-            return response(json_encode($result))->header('Content-Type','application/json');
-        }
-
-        $order = $order->toCleanObject();
-
-        return response(json_encode($order))->header('Content-Type','application/json');
-
     }
 
 
     public function save($order_id = null)
     {
         try {
-            $post_data = $this->request->post();
+                
+            // old order
+            if (!empty($order_id)){
+                $old_order = (new Order)->getOrderByIdOrCode($order_id, 'id');
+                $old_order_id = $order_id;
+            }
+
+
+            $post_data = $this->post_data;
 
             // 新增時不允許表單資料有 order_id
-            if(!empty($order_id)){
-                unset($post_data['order_id']);
-            }
+            if(empty($order_id) && !empty($post_data['order_id'])){
+                throw new \Exception('新增表單不可以代 order_id');
+            }            
 
             $post_data['source'] = isset($post_data['source']) ? $post_data['source'] : null;//來源
             
@@ -164,31 +135,49 @@ class OrderController extends ApiController
                     $json['error']['mobile'] = '此姓名+手機的客戶資料已存在！';
                 }
             }
-    
+            
             // Validate
             //驗證表單內容
             //表單驗證成功
-            if (!$json) {
+            if (empty($json)) {
+
+                $data = [];
+
                 $order = $this->OrderService->updateOrCreate($order_id, $post_data);
 
-                if(empty($result['error'])){
-                    $redirectUrl = route('api.sale.order.details', $order->id);
-    
-                    $json = [
-                        'success' => $this->lang->text_success,
-                        'order_id' => $order->id,
-                        'code' => $order->code,
-                        'customer_id' => $order->customer_id,
-                        'personal_name' => $order->personal_name,
-                        'customer' => $order->customer_id . '_' . $order->personal_name,
-                        'redirectUrl' => $redirectUrl,
-                    ];
+            echo "<pre>",print_r(11,true),"</pre>\r\n";
+                if(empty($old_order_id) && !empty($order)){
+                    
+            echo "<pre>",print_r(22,true),"</pre>\r\n";exit;
+                    event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
+
+                    $message = '訂單新增成功';
+
+                } else if(!empty($old_order_id) && !empty($old_order)){
+                    
+            echo "<pre>",print_r(33,true),"</pre>\r\n";exit;
+                    event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order, old_order:$old_order));
+                    
+                    $message = '訂單修改成功';
                 }
-            }
+
+                $data = [
+                    'id' => $order->id,
+                    'code' => $order->code,
+                    'customer_id' => $order->customer_id,
+                    'redirectUrl' => route('api.sale.order.details', $order->id),
+                ];
     
-            return response(json_encode($json))->header('Content-Type','application/json');
+                return $this->sendJsonResponse(data:$data, status_code:200, message:$message);
+            } 
+            else {
+                return $this->sendJsonResponse(data:['error' => $json['error']]);
+            }
+
         } catch (\Throwable $th) {
-            return $this->sendJsonResponse(['error' => $th->getMessage()]);
+            
+            echo "<pre>",print_r(66,true),"</pre>\r\n";
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
         }
     }
 
@@ -223,29 +212,62 @@ class OrderController extends ApiController
     public function updateHeader($order_id)
     {
         try {
+            // old order
+            if (!empty($order_id)){
+                $old_order = (new Order)->getOrderByIdOrCode($order_id, 'id');
+                $old_order_id = $order_id;
+            }
+
             //驗證內容
-            $error = [];
+            $json = [];
 
             if(empty($this->post_data['status_code'])){
-                $errors['status_code'] = '請設定訂單狀態';
+                $json['errors']['status_code'] = '請設定訂單狀態';
+            }
+
+            if(empty($this->post_data['delivery_date'])){
+                $json['errors']['delivery_date'] = '請設定送達日期';
             }
 
             if(empty($this->post_data['is_payment_tin_required'])){
-                $errors['is_payment_tin_required'] = '請選擇是否需要統編';
+                $json['errors']['is_payment_tin_required'] = '請選擇是否需要統編';
             }
 
             if(!empty($this->post_data['is_payment_tin_required']) && empty($this->post_data['payment_tin'])){
-                $errors['payment_tin'] = '尚未輸入統編';
+                $json['errors']['payment_tin'] = '尚未輸入統編';
             }
 
-            if(empty($error)){
-                $this->OrderService->updateHeader($order_id, $this->post_data);
+            if(empty($json)){
+                $order = $this->OrderService->updateHeader($order_id, $this->post_data);
+
+                if(empty($old_order_id) && !empty($order)){
+                    event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
+
+                    $message = '訂單新增成功';
+
+                } else if(!empty($old_order_id) && !empty($old_order)){
+                    event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order, old_order:$old_order));
+                    
+                    $message = '訂單修改成功';
+                }
+
+                $data = [
+                    'id' => $order->id,
+                    'code' => $order->code,
+                    'customer_id' => $order->customer_id,
+                    'redirectUrl' => route('api.sale.order.details', $order->id),
+                    'message' => $message,
+                ];
+    
+                return $this->sendJsonResponse(data:$data, status_code:200, message:$message);
+
+            }
+            else {
+                return $this->sendJsonResponse(data:['error' => $json['error']]);
             }
 
-            return $this->sendJsonResponse([]);
-
-        } catch (\Exception $ex) {
-            return ['error' => $ex->getMessage()];
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
         }
     }
 
@@ -1087,5 +1109,30 @@ class OrderController extends ApiController
         DB::commit();
         return response()->json($result, 200);
     }
+
+
+    /**
+     * 下面應該用不到
+     */
+
+    // public function header($order_id)
+    // {
+    //     try {
+    //         $result = $this->OrderService->findIdOrFailOrNew($order_id);
+    
+    //         if(!empty($result['data'])){
+    //             $order = $result['data'];
+    //         }else{
+    //             return response(json_encode($result))->header('Content-Type','application/json');
+    //         }
+    
+    //         $order = $order->toCleanObject();
+    
+    //         return $this->sendJsonResponse(data:$order);
+
+    //     } catch (\Throwable $th) {
+    //         return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
+    //     }
+    // }
 
 }

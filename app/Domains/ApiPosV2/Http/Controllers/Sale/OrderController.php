@@ -5,6 +5,8 @@ namespace App\Domains\ApiPosV2\Http\Controllers\Sale;
 use Illuminate\Http\Request;
 use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
 use App\Domains\ApiPosV2\Services\Sale\OrderService;
+use App\Helpers\Classes\DataHelper;
+use App\Models\Sale\Order;
 
 class OrderController extends ApiPosController
 {
@@ -15,78 +17,92 @@ class OrderController extends ApiPosController
         }
     }
 
-
     public function list()
     {
-        if(!empty($this->url_data['simplelist'])){
-            $orders = $this->OrderService->getSimplelist($this->url_data);
-        }else{
-            $orders = $this->OrderService->getList($this->url_data);
-        }
+        try {
+            if(!empty($this->url_data['simplelist'])){
+                $orders = $this->OrderService->getSimplelist($this->url_data);
+            }else{
+                $orders = $this->OrderService->getList($this->url_data);
+            }
 
-        return response(json_encode($orders))->header('Content-Type','application/json');
+            $orders = DataHelper::unsetArrayIndexRecursively($orders->toArray(), ['translation', 'translations']);
+            
+            return $this->sendJsonResponse(data:$orders);
+
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
+        }
     }
 
     public function info($order_id)
     {
-        $order = $this->OrderService->getInfo($order_id, 'id');
+        try {
+            $order = $this->OrderService->getInfo($order_id, 'id');
 
-        return response(json_encode($order))->header('Content-Type','application/json');
+            return $this->sendJsonResponse(data:$order);
+            
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
+        }
     }
 
     public function infoByCode($code)
     {
-        $order = $this->OrderService->getInfo($code, 'code');
+        try {
+            $order = $this->OrderService->getInfo($code, 'code');
+    
+            $order = DataHelper::unsetArrayIndexRecursively($order->toArray(), ['translation', 'translations']);
 
-        return response(json_encode($order))->header('Content-Type','application/json');
+            return $this->sendJsonResponse(data:$order, status_code:200);
+            
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
+        }
     }
 
     public function store()
     {
-        $post_data = request()->post();
+        try {
+            $post_data = request()->post();
+    
+            $post_data['order_taker'] = auth()->user()->name;
+    
+            $order = $this->OrderService->store($post_data);
+    
+            event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
 
-        $post_data['order_taker'] = auth()->user()->name;
-
-        $result = $this->OrderService->store($post_data);
-
-        $json = [];
-
-        if(empty($result['error'])){
-            $json = [
-                'success' => true,
-                'message' => '新增成功！',
-                'data' => [
-                    'id' => $result->id,
-                    'code' => $result->code,
-                ],
+            $data = [
+                'id' => $order->id,
+                'code' => $order->code,
             ];
-        }else{
-            $json['error'] = $result['error'];
-        }
 
-        return $this->sendResponse($json);
+            return $this->sendJsonResponse(data:$data, status_code:200, message:'訂單新增成功');
+
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
+        }
     }
 
     public function update($order_id)
     {
-        $result = $this->OrderService->update(request()->post(), $order_id);
+        try {
+            // old order
+            $old_order = (new Order)->getOrderByIdOrCode($order_id, 'id');
 
-        $json = [];
+            $order = $this->OrderService->update($this->post_data, $order_id);
 
-        if(empty($result['error'])){
+            event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order, old_order:$old_order));
 
-            $json = [
-                'success' => true,
-                'message' => '更新成功！',
-                'data' => [
-                    'id' => $result->id,
-                    'code' => $result->code,
-                ],
+            $data = [
+                'id' => $order->id,
+                'code' => $order->code,
             ];
-        }else{
-            $json['error'] = $result['error'];
-        }
+    
+            return $this->sendJsonResponse(data:$data, status_code:200, message:'訂單更新成功');
 
-        return $this->sendResponse($json);
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
+        }
     }
 }

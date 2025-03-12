@@ -293,26 +293,6 @@
                         </div>
                       </div>
 
-                      <div class="row mb-3">
-                        <label for="input-is_fixed-{{ $option_row }}" class="col-sm-2 col-form-label">{{ $lang->column_is_fixed }}</label>
-                        <div class="col-sm-10">
-                          <select name="product_options[{{ $option_row }}][is_fixed]" id="input-is_fixed-{{ $option_row }}" class="form-select">
-                            <option value="1"@if($product_option->is_fixed ) selected="selected" @endif>{{ $lang->text_yes }}</option>
-                            <option value="0"@if(!$product_option->is_fixed ) selected="selected" @endif>{{ $lang->text_no }}</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div class="row mb-3">
-                        <label for="input-is_hidden-{{ $option_row }}" class="col-sm-2 col-form-label">{{ $lang->column_is_hidden }}</label>
-                        <div class="col-sm-10">
-                          <select name="product_options[{{ $option_row }}][is_hidden]" id="input-is_hidden-{{ $option_row }}" class="form-select">
-                            <option value="1"@if($product_option->is_hidden ) selected="selected" @endif>{{ $lang->text_yes }}</option>
-                            <option value="0"@if(!$product_option->is_hidden )selected="selected" @endif>{{ $lang->text_no }}</option>
-                          </select>
-                        </div>
-                      </div>
-
                       @if($product_option->type == 'text')
                         <div class="row mb-3">
                           <label for="input-option-{{ $option_row }}-value" class="col-sm-2 col-form-label">{{ $lang->column_option_value }}</label>

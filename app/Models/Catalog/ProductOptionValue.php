@@ -15,15 +15,14 @@ class ProductOptionValue extends Model
     use Translatable;
     
     protected $guarded = [];
-    protected $appends = ['name','short_name'];
-    public $translation_keys = ['name','short_name'];
-
+    protected $appends = ['name', 'short_name', 'web_name'];
+    public $translation_keys = ['name','short_name','web_name'];
     protected $casts = [
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
     
-    //由於參考上層 OptionValue, 並且需要指定 option_value_id, 所以必須在此指定translation(s)關聯，而非使用 Translatable
+    // 本表多語不是本表加 Translations 所以另外寫在這裡。
     public function translations()
     {
         return $this->hasMany(
@@ -33,16 +32,29 @@ class ProductOptionValue extends Model
 
     public function translation()
     {
-        return $this->hasOne(OptionValueTranslation::class, 'option_value_id', 'option_value_id')->ofMany([
-            'id' => 'max',
-        ], function ($query) {
-            $query->where('locale', app()->getLocale());
-        });
+        return $this->hasOne(OptionValueTranslation::class, 'option_value_id', 'option_value_id')->where('locale', app()->getLocale());
     }
 
     public function option_value()
     {
+        return $this->optionValue();
+    }
+
+    public function optionValue()
+    {
         return $this->belongsTo(OptionValue::class);
+    }
+
+    public function materialProduct()
+    {
+        return $this->hasOneThrough(
+            Product::class,   // 目標模型 (Product)
+            OptionValue::class, // 中介模型 (OptionValue)
+            'id',   // OptionValue 表的主鍵
+            'id',   // Product 表的主鍵
+            'option_value_id',   // ProductOptionValue 表關聯 OptionValue 的外鍵
+            'product_id' // OptionValue 表關聯 Product 的外鍵
+        );
     }
 
 
@@ -68,12 +80,16 @@ class ProductOptionValue extends Model
         );
     }
 
-    protected function quantity(): Attribute
+    protected function webName(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
-            set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
+            get: fn () => optional($this->translation)->web_name ?? '',
         );
+    }
+
+    protected function quantity(): Attribute
+    {
+        return $this->setNumberAttribute($this->attributes['quantity'] ?? null);
     }
 
     protected function price(): Attribute
@@ -81,6 +97,13 @@ class ProductOptionValue extends Model
         return Attribute::make(
             get: fn ($value) => rtrim(rtrim($value, '0'), '.'),
             set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
+        );
+    }
+
+    protected function mapProductId(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => optional($this->mapProduct)->id ?? '',
         );
     }
 }

@@ -81,10 +81,10 @@ Route::group([
         Route::get('order/statuses', 'Sale\OrderController@getActiveOrderStatuses')->name('order.getActiveOrderStatuses');
         Route::get('order/phrases/{taxonomy_code}', 'Sale\OrderController@getOrderPhrasesByTaxonomyCode')->name('order.getOrderPhrasesByTaxonomyCode');
 
-        Route::get('order', 'Sale\OrderController@list')->name('order.list');
+        Route::get('order/list', 'Sale\OrderController@list')->name('order.list');
         Route::post('order/save/{order_id?}', 'Sale\OrderController@save')->name('order.save');
         Route::post('order/updateHeader/{order_id}', 'Sale\OrderController@updateHeader')->name('order.updateHeader');
-        Route::get('order/{order_id?}', 'Sale\OrderController@details')->name('order.details');
+        Route::get('order/info/{order_id?}', 'Sale\OrderController@info')->name('order.info');
         Route::get('order/header/{order_id}', 'Sale\OrderController@header')->name('order.header');
 
         Route::post('order/schedule/save', 'Sale\OrderScheduleController@save')->name('order.schedule.save');

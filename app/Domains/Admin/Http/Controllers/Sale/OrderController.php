@@ -230,7 +230,7 @@ class OrderController extends BackendController
         }
         unset($result);
 
-        $order->load('order_products.product_options.active_product_option_values.translation');
+        $order->load('order_products.product_options.activeProductOptionValues.translation');
         $order->load('order_products.order_product_options');
         $order->load('order_products.product.main_category.translation');
 
@@ -503,7 +503,7 @@ class OrderController extends BackendController
             $product = $this->ProductService->getProduct($filter_data);
 
             $product->product_options->load('option.translation');
-            $product->product_options->load('active_product_option_values.translation');
+            $product->product_options->load('activeProductOptionValues.translation');
         }
 
         if(empty($product)){

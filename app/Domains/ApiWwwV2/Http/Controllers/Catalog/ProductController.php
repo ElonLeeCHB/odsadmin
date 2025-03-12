@@ -27,10 +27,9 @@ class ProductController extends ApiWwwV2Controller
             $filter_data['select'] = ['id', 'code', 'name', 'price'];
     
             $filter_data['equal_is_on_web'] = 1;
-
     
             $rows = $this->ProductService->getList($filter_data);
-            // echo "<pre>",print_r(999,true),"</pre>\r\n";exit;
+
             foreach ($rows as $row) {
                 $row->web_name = $row->translation->web_name;
             }

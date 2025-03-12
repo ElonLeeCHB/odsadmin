@@ -3,17 +3,16 @@
 namespace App\Models\Catalog;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\Model\Translatable;
-use App\Models\Catalog\OptionTranslation;
-use App\Models\Catalog\Option;
-use App\Models\Catalog\Sale\OrderProductOption;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Traits\Model\ModelTrait;
+use App\Models\Catalog\Option;
+use App\Models\Catalog\OptionTranslation;
+use App\Models\Catalog\OptionValue;
+use App\Models\Sale\OrderProductOption;
 
 class ProductOption extends Model
 {
     use ModelTrait;
-    use Translatable;
     
     protected $guarded = [];
     public $translation_keys = ['name','short_name'];
@@ -23,37 +22,33 @@ class ProductOption extends Model
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
-    
-    protected static function booted()
-    {
-        static::addGlobalScope(fn ($query) => $query->orderBy('sort_order'));
-    }
 
-    // 本處多語特殊，要另外寫在這裡。
+    // 本表多語不是本表加 Translations 所以另外寫在這裡。
     public function translations()
     {
         return $this->hasMany(
             OptionTranslation::class, 'option_id', 'option_id'
         );
     }
-
+    // 本表多語不是本表加 Translations 所以另外寫在這裡。
     public function translation()
     {
-        return $this->hasOne(OptionTranslation::class, 'option_id', 'option_id')->ofMany([
-            'id' => 'max',
-        ], function ($query) {
-            $query->where('locale', app()->getLocale());
-        });
+        return $this->hasOne(OptionTranslation::class, 'option_id', 'option_id')->where('locale', app()->getLocale());
     }
 
     
     public function product_option_values()
     {
+        return $this->productOptionValues();
+    }
+
+    public function productOptionValues()
+    {
         return $this->hasMany(ProductOptionValue::class)->orderBy('sort_order');
     }
 
-    
-    public function active_product_option_values()
+    // active_product_option_values
+    public function activeProductOptionValues()
     {
         return $this->hasMany(ProductOptionValue::class)->where('is_active', 1)->orderBy('sort_order');
     }
@@ -76,6 +71,8 @@ class ProductOption extends Model
     //     return $product_option_values;
     // }
 
+    // cached_product_option_values
+    // 後台訂單頁，暫時沒用到。
     public function cachedProductOptionValues()
     {
         $cacheName = 'ProductId_' . $this->attributes['product_id'] . '_ProductOptionId_' . $this->attributes['id'] . '_ ProductOptionValues';
@@ -111,12 +108,21 @@ class ProductOption extends Model
         return $option;
     }
 
+    public function optionValues()
+    {
+        return $this->hasManyThrough(OptionValue::class, Option::class, 'id', 'option_id', 'option_id', 'id');
+    }
+
     public function product()
     {
         return $this->belongsTo(Product::class);
     }
 
     public function order_product_options()
+    {
+        return $this->orderProductOptions();
+    }
+    public function orderProductOptions()
     {
         return $this->hasMany(OrderProductOption::class);
     }
@@ -133,7 +139,7 @@ class ProductOption extends Model
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->name ?? '',
+            get: fn () => optional($this->translation)->name ?? '',
         );
     }
 
@@ -141,7 +147,7 @@ class ProductOption extends Model
     protected function shortName(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->short_name ?? '',
+            get: fn () => optional($this->translation)->short_name ?? '',
         );
     }
 

@@ -9,9 +9,10 @@ use App\Traits\Model\EloquentTrait;
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
-use App\Models\Material\ProductTag;
+use App\Models\Catalog\ProductTag;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderTotal;
+use App\Helpers\Classes\OrmHelper;
 
 class OrderService extends Service
 {
@@ -22,17 +23,13 @@ class OrderService extends Service
 
     public function getSimplelist($filters)
     {
-       try {
+        $builder = Order::query();
+        $builder->select(Order::getDefaultListColumns());
+        OrmHelper::applyFilters($builder, $params);
+        OrmHelper::sortOrder($builder, $params['sort'] ?? null, $params['order'] ?? null);
+        $orders = OrmHelper::getResult($builder, $params);
 
-           $filters['with'] = [];
-
-           $filters['select'] = ['id', 'code', 'personal_name', 'delivery_date'];
-
-           return $this->getRows($filters);
-
-       } catch (\Exception $ex) {
-           return ['error' => $ex->getMessage()];
-       }
+        return $orders;
     }
 
 
@@ -41,36 +38,15 @@ class OrderService extends Service
         return $this->getRows($filters);
     }
 
-
-    //混和寫法
     public function getInfo($identifier, $type = 'id')
     {
-        $filter_data = [];
-
         if($type == 'id'){
-            $filter_data['equal_id'] = $identifier;
+            $order = (new Order)->getOrderByIdOrCode($identifier, 'id');
         }else if($type == 'code'){
-            $filter_data['equal_code'] = $identifier;
+            $order = (new Order)->getOrderByIdOrCode($identifier, 'code');
         }
 
-        $filter_data['with'] = ['orderProducts.orderProductOptions'
-                                , 'orderProducts.productTags'
-                                , 'totals', 'tags'];
-
-        $order = $this->getRow($filter_data);
-
-        $order->shipping_state_name = optional($order->shipping_state)->name;
-        $order->shipping_city_name = optional($order->shipping_city)->name;
-
-        $order = $order->toArray();
-
-        unset($order['shipping_state']);
-        unset($order['shipping_city']);
-
-        $order = DataHelper::unsetArrayIndexRecursively($order, ['translation', 'translations']);
-
         return $order;
-
     }
 
     public function store($data)
@@ -127,14 +103,12 @@ class OrderService extends Service
             //
 
             DB::commit();
-            
-            event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
 
             return $order;
 
         } catch (\Throwable $th) {
             DB::rollback();
-            return ['error' => $th->getMessage()];
+            throw $th;
         }
     }
 
@@ -144,20 +118,6 @@ class OrderService extends Service
             $data['id'] = $order_id;
 
             DB::beginTransaction();
-
-            // old order
-            $old_order = Order::select('id','status_code', 'delivery_date')->with([
-                'orderProducts' => function ($query) {
-                    $query->select('id', 'order_id', 'product_id', 'quantity') // 只能在這裡指定欄位
-                          ->with([
-                              'productTags' => function ($query) {
-                                  $query->select('term_id', 'product_id'); // 這裡也是用 select()
-                              }
-                          ]);
-                }
-            ])->findOrFail($order_id)->toArray();
-
-            $old_order = arrayToObject($old_order);
             
             // new order
             $order = (new OrderRepository)->update($data, $order_id);
@@ -211,14 +171,12 @@ class OrderService extends Service
             //
 
             DB::commit();
-            
-            event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order, old_order:$old_order));
 
             return $order;
 
         } catch (\Throwable $th) {
             DB::rollback();
-            return ['error' => $th->getMessage()];
+            throw $th;
         }
     }
 

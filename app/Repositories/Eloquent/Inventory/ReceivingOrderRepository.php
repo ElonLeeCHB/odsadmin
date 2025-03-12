@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use App\Helpers\Classes\UnitConverter;
 use App\Repositories\Eloquent\Repository;
 use App\Models\Common\Term;
-use App\Models\Material\Product;
+use App\Models\Catalog\Product;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
 use App\Repositories\Eloquent\Inventory\ReceivingOrderProductRepository;
 use App\Repositories\Eloquent\Catalog\ProductRepository;

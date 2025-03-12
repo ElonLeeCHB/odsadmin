@@ -13,7 +13,7 @@ use App\Models\Sale\OrderTag;
 use App\Models\Common\Term;
 use App\Models\Catalog\Option;
 use App\Models\Catalog\OptionValue;
-use App\Models\Material\ProductOptionValue;
+use App\Models\Catalog\ProductOptionValue;
 use Carbon\Carbon;
 
 use Maatwebsite\Excel\Facades\Excel;

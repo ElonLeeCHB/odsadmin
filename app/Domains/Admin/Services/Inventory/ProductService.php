@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\DB;
 use App\Helpers\Classes\UnitConverter;
 use App\Services\Service;
 use App\Models\Common\TermRelation;
-use App\Models\Material\ProductOption;
-use App\Models\Material\ProductOptionValue;
+use App\Models\Catalog\ProductOption;
+use App\Models\Catalog\ProductOptionValue;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Repositories\Eloquent\Catalog\ProductUnitRepository;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
@@ -16,7 +16,7 @@ use App\Helpers\Classes\DataHelper;
 
 class ProductService extends Service
 {
-    public $modelName = "\App\Models\Material\Product";
+    public $modelName = "\App\Models\Catalog\Product";
 
     public function __construct(ProductRepository $ProductRepository, private ProductUnitRepository $ProductUnitRepository, private UnitRepository $UnitRepository)
     {

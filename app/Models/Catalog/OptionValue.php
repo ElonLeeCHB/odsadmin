@@ -22,21 +22,11 @@ class OptionValue extends Model
 
     public $translation_keys = ['name','short_name','web_name'];
 
-    public function translation()
-    {
-        return $this->hasOne(OptionValueTranslation::class, 'option_value_id', 'option_value_id')->ofMany([
-            'id' => 'max',
-        ], function ($query) {
-            $query->where('locale', app()->getLocale());
-        });
-    }
-
     //選項值對應的商品代號
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class, 'product_id', 'id');
     }
-
 
     // Attribute
     protected function optionValueId(): Attribute
@@ -49,21 +39,21 @@ class OptionValue extends Model
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->name ?? '',
+            get: fn () => optional($this->translation)->name ?? '',
         );
     }
 
     protected function shortName(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->short_name ?? '',
+            get: fn () => optional($this->translation)->short_name ?? '',
         );
     }
 
     protected function webName(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->translation->web_name ?? '',
+            get: fn () => optional($this->translation)->web_name ?? '',
         );
     }
 }

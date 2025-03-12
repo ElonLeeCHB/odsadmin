@@ -6,10 +6,10 @@ use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
-use App\Models\Material\Product;
-use App\Models\Material\ProductTranslation;
-use App\Models\Material\ProductOption;
-use App\Models\Material\ProductOptionValue;
+use App\Models\Catalog\Product;
+use App\Models\Catalog\ProductTranslation;
+use App\Models\Catalog\ProductOption;
+use App\Models\Catalog\ProductOptionValue;
 use App\Models\Common\Term;
 use App\Models\Inventory\Bom;
 use App\Models\Inventory\BomProduct;
@@ -19,7 +19,7 @@ use App\Domains\Admin\ExportsLaravelExcel\CommonExport;
 
 class ProductRepository extends Repository
 {
-    public $modelName = "\App\Models\Material\Product";
+    public $modelName = "\App\Models\Catalog\Product";
 
     public function getProducts($data = [], $debug = 0)
     {

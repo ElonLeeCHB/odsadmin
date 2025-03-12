@@ -13,8 +13,8 @@ use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderTotal;
-use App\Models\Material\Product;
-use App\Models\Material\ProductOption;
+use App\Models\Catalog\Product;
+use App\Models\Catalog\ProductOption;
 use App\Events\OrderSaved;
 
 class OrderService extends Service
@@ -25,48 +25,33 @@ class OrderService extends Service
 
     public function getList($data)
     {
-        try {
-            $data['select'] = ['id', 'code', 'personal_name', 'delivery_time_range','status_code','order_date','delivery_date'];
+        $data['select'] = ['id', 'code', 'personal_name', 'delivery_time_range','status_code','order_date','delivery_date'];
             
-            $builder = Order::applyFilters($data);
-            
-            if(!empty($data['with'])){
-                if(is_string($data['with'])){
-                    $with = explode(',', $data['with']);
-                }
-                if(in_array('deliveries', $with)){
-                    $builder->with(['deliveries' => function($query) {
-                                    $query->select('id', 'name', 'order_code','phone','cartype');
-                                }]);
-                }
+        $builder = Order::applyFilters($data);
+        
+        if(!empty($data['with'])){
+            if(is_string($data['with'])){
+                $with = explode(',', $data['with']);
             }
-
-            return $builder->getResult($data);
-
-        } catch (\Exception $ex) {
-            return ['error' => $ex->getMessage()];
+            if(in_array('deliveries', $with)){
+                $builder->with(['deliveries' => function($query) {
+                                $query->select('id', 'name', 'order_code','phone','cartype');
+                            }]);
+            }
         }
+
+        return $builder->getResult($data);
     }
 
     public function getInfo($filter_data, $type= 'id')
     {
         if($type == 'id'){
-            $filter_data['equal_id'] = $filter_data['equal_id'];
+            $identifier = $filter_data['equal_id'];
         }else if($type == 'code'){
-            $filter_data['equal_code'] = $filter_data['equal_code'];
+            $identifier = $filter_data['equal_code'];
         }
 
-        $filter_data['with'] = ['order_products.order_product_options', 'totals', 'tags'];
-
-        $order = $this->getRow($filter_data);
-
-        $order->shipping_state_name = optional($order->shipping_state)->name;
-        $order->shipping_city_name = optional($order->shipping_city)->name;
-
-        $order = $order->toArray();
-
-        unset($order['shipping_state']);
-        unset($order['shipping_city']);
+        $order = (new Order)->getOrderByIdOrCode($identifier, $type);
 
         return $order;
     }
@@ -74,7 +59,7 @@ class OrderService extends Service
     public function store($data)
     {
         try {
-            DB::beginTransaction();
+            DB::beginTransaction(); //異動需要交易
 
             // order
             $order = (new OrderRepository)->create($data);
@@ -207,15 +192,12 @@ class OrderService extends Service
             //
 
             DB::commit();
-            
-            // Events
-            event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
 
-            return ['id' => $order->id, 'code' => $order->code];
+            return $order;
 
         } catch (\Throwable $th) {
             DB::rollback();
-            return ['error' => $th->getMessage()];
+            throw $th;
         }
     }
 }

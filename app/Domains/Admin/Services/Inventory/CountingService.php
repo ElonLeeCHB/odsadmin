@@ -8,7 +8,7 @@ use App\Repositories\Eloquent\Inventory\CountingRepository;
 use App\Repositories\Eloquent\Setting\SettingRepository;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Models\Setting\Setting;
-use App\Models\Material\ProductMeta;
+use App\Models\Catalog\ProductMeta;
 
 class CountingService extends Service
 {

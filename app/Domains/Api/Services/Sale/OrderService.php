@@ -16,37 +16,40 @@ use App\Events\OrderCreated;
 use Carbon\Carbon;
 use App\Helpers\Classes\OrmHelper;
 use App\Repositories\Eloquent\Sale\OrderRepository;
+use App\Repositories\Eloquent\Common\TermRepository;
 
 class OrderService extends GlobalOrderService
 {
     protected $modelName = "\App\Models\Sale\Order";
 
-    public function updateOrCreate($order_id, $data)
+    public function getOrders($params)
     {
+        $builder = Order::query();
+        $builder->select(Order::getDefaultListColumns());
+        OrmHelper::applyFilters($builder, $params);
+        OrmHelper::sortOrder($builder, $params['sort'] ?? null, $params['order'] ?? null);
+        $orders = OrmHelper::getResult($builder, $params);
         
+        return $orders;
+    }
+
+    public function getOrderByIdOrCode($identifier, $type= 'id')
+    {
+        $order = (new Order)->getOrderByIdOrCode($identifier, $type);
+
+        return $order;
+    }
+
+    public function updateOrCreate($order_id = null, $data)
+    {
         try {
+            DB::beginTransaction();
+
             foreach($data as $key => $value){
                 if($data[$key] === 'null' || $data[$key] === 'undefined'){
                     unset($data[$key]);
                 }
             }
-
-            DB::beginTransaction();
-
-            // old order
-            if(!empty($order_id)){
-                $old_order = Order::select('id','status_code', 'delivery_date')->with([
-                    'orderProducts' => function ($query) {
-                        $query->select('id', 'order_id', 'product_id', 'quantity') // 只能在這裡指定欄位
-                            ->with([
-                                'productTags' => function ($query) {
-                                    $query->select('term_id', 'product_id'); // 這裡也是用 select()
-                                }
-                            ]);
-                    }
-                ])->findOrFail($order_id);
-            }
-
 
             // members table
                 $customer_id = $data['customer_id'] ?? null;
@@ -66,8 +69,7 @@ class OrderService extends GlobalOrderService
 
             // Order
                 $order = (new OrderRepository)->findIdOrFailOrNew($order_id)['data'];
-                $order->id = $old_order->id;
-                $order = (new OrderRepository)->model->prepareData($order);
+                $order = $order->prepareData($order, $data);
                 $order->save();
             //
 
@@ -300,20 +302,30 @@ class OrderService extends GlobalOrderService
                     WHERE opo.order_id = " . $order->id;
                 DB::statement($sql);
             }
-
-            // Events
-            event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order, old_order:$old_order));
             
             return $order;
 
-        } catch (\Exception $ex) {
+        } catch (\Throwable $th) {
             DB::rollback();
-            return ['error' => $ex->getMessage()];
+            throw $th;
         }
     }
 
     public function updateHeader($order_id, $data)
     {
-        return (new OrderRepository)->update($data, $order_id);
+        try {
+            
+            DB::beginTransaction();
+
+            $order = (new OrderRepository)->update($data, $order_id);
+            
+            DB::commit();
+
+            return $order;
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+            throw $th;
+        }
     }
 }

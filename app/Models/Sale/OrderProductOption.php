@@ -4,10 +4,10 @@ namespace App\Models\Sale;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Sale\OrderProduct;
-use App\Models\Material\Product;
-use App\Models\Material\ProductOptionValue;
-use App\Models\Material\ProductOption;
-use App\Models\Material\ProductTag;
+use App\Models\Catalog\Product;
+use App\Models\Catalog\ProductOptionValue;
+use App\Models\Catalog\ProductOption;
+use App\Models\Catalog\ProductTag;
 use App\Models\Catalog\Option;
 use App\Models\Common\Term;
 use App\Models\Catalog\OptionValue;

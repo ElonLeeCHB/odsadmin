@@ -8,18 +8,17 @@ use App\Services\Service;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Common\TermRelation;
-use App\Models\Material\Product;
-use App\Models\Material\ProductMeta;
-use App\Models\Material\ProductTranslation;
-use App\Models\Material\ProductOption;
-use App\Models\Material\ProductOptionValue;
-use App\Models\Material\ProductTag;
+use App\Models\Catalog\Product;
+use App\Models\Catalog\ProductMeta;
+use App\Models\Catalog\ProductOption;
+use App\Models\Catalog\ProductOptionValue;
+use App\Models\Catalog\ProductTag;
 use App\Models\Common\Term;
 use App\Helpers\Classes\OrmHelper;
 
 class ProductService extends Service
 {
-    public $modelName = "\App\Models\Material\Product";
+    public $modelName = "\App\Models\Catalog\Product";
     protected $repository;
 
 	public function __construct(protected ProductRepository $ProductRepository)
