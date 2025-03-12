@@ -356,27 +356,21 @@ class Order extends Model
     /**
      * $row: 傳入的資料，可以是array，或是 model
      * 改寫傳入資料，或者設定預設值。
+     * 
+     * $type = updateOnlyInput, updateAll
+     *     updateOnlyInput: 不會動到輸入資料以外的資料。如果 $row 是一個已存在的記錄，包括 $row->is_admin，但是輸入的資料沒有，那就不會動到 is_admin。
+     *     updateAll: 如果輸入資料沒有，就清空。
+     * 
      */
-    public function prepareData($row, $data)
+    public function prepareData($row, $data, $type = 'updateOnlyInput')
     {
-        $data = []; //傳入資料轉換成陣列
-        
-        if (is_array($row)){
-            $data = $row;
-        }
-        else if(is_object($row)){
-            if(method_exists($row, 'toArray')){
-                $data = $row->toArray();
-            }
-            $data = (array) $row;
-        }
-        echo "<pre>",print_r('OrderModel prepareData 調整中！！',true),"</pre>\r\n";exit;
         $data['source'] = $data['source'] ?? null;
         $data['location_id'] = $data['location_id'] ?? 0;
         $data['customer_id'] = (isset($data['customer_id']) && is_numeric($data['customer_id'])) ? $data['customer_id'] : 0;
         $data['quantity_for_control'] = $data['quantity_for_control'] ?? 0;
         $data['is_options_controlled'] = $data['is_options_controlled'] ?? 0;
         $data['mobile'] = preg_replace('/\D+/', '', $data['mobile'] ?? null);
+        $data['salutation_code'] = $data['salutation_code'] ?? 0;
         
         $data['payment_total'] = (isset($data['payment_total']) && is_numeric($data['payment_total'])) ? $data['payment_total'] : 0;
         $data['payment_paid'] = (isset($data['payment_paid']) && is_numeric($data['payment_paid'])) ? $data['payment_paid'] : 0;
@@ -388,6 +382,8 @@ class Order extends Model
         $data['shipping_country_code'] = $data['shipping_country_code'] ?? config('vars.default_country_code');
         $data['shipping_road_abbr'] = $data['shipping_road_abbr'] ?? $data['shipping_road'] ?? null;
         $data['shipping_road'] = $data['shipping_road'] ?? null;
+        $data['shipping_salutation_code'] = $data['shipping_salutation_code'] ?? 0;
+        $data['shipping_salutation_code2'] = $data['shipping_salutation_code2'] ?? 0;
 
         //delivery_date 如果送達時間的 時:分 是00:00, 則取時間範圍的結束時間做為送達時間。例如 1100-1200, 取 12:00
             if(empty($data['delivery_date_hi']) || $data['delivery_date_hi'] == '00:00'){
@@ -422,19 +418,7 @@ class Order extends Model
             $data['delivery_date'] = $delivery_date ?? null;
         //
 
-        $table_columns = $this->getTableColumns();
-
-        foreach ($table_columns as $column) {
-            if(is_array($row) && !isset($row[$column]) && isset($data[$column])){
-                $row[$column] = $data[$column];
-            }
-    
-            else if(is_object($row) && !isset($row->column) && isset($data[$column])){
-                $row->{$column} = $data[$column];
-            }
-        }
-
-        return $row;
+        return $this->processPrepareData($row, $data, $type);
     }
 
     /* 更新全部的控單數量

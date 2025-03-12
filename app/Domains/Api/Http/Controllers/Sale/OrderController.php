@@ -93,7 +93,7 @@ class OrderController extends ApiController
 
 
             $post_data = $this->post_data;
-
+            
             // 新增時不允許表單資料有 order_id
             if(empty($order_id) && !empty($post_data['order_id'])){
                 throw new \Exception('新增表單不可以代 order_id');
@@ -119,23 +119,7 @@ class OrderController extends ApiController
                 $json['error']['mobile'] = $this->lang->error_phone;
                 $json['error']['telephone'] = $this->lang->error_phone;
             }
-    
-            //檢查姓名+手機不可重複
-            if(!empty($customer_id) && !empty($this->request->mobile) && !empty($this->request->personal_name)){
-                $filter_data = [
-                    'equal_name' => $this->request->personal_name,
-                    'equal_mobile' => preg_replace('/\D+/', '', $this->request->mobile),
-                    'pagination' => false,
-                    'select' => ['id', 'name', 'mobile'],
-                ];
-                $member = $this->UserRepository->getRow($filter_data);
-    
-                if($member && $member->id != $customer_id){
-                    $json['error']['personal_name'] = '此姓名+手機的客戶資料已存在！';
-                    $json['error']['mobile'] = '此姓名+手機的客戶資料已存在！';
-                }
-            }
-            
+
             // Validate
             //驗證表單內容
             //表單驗證成功
@@ -145,17 +129,12 @@ class OrderController extends ApiController
 
                 $order = $this->OrderService->updateOrCreate($order_id, $post_data);
 
-            echo "<pre>",print_r(11,true),"</pre>\r\n";
                 if(empty($old_order_id) && !empty($order)){
-                    
-            echo "<pre>",print_r(22,true),"</pre>\r\n";exit;
                     event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
 
                     $message = '訂單新增成功';
 
                 } else if(!empty($old_order_id) && !empty($old_order)){
-                    
-            echo "<pre>",print_r(33,true),"</pre>\r\n";exit;
                     event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order, old_order:$old_order));
                     
                     $message = '訂單修改成功';
@@ -165,7 +144,7 @@ class OrderController extends ApiController
                     'id' => $order->id,
                     'code' => $order->code,
                     'customer_id' => $order->customer_id,
-                    'redirectUrl' => route('api.sale.order.details', $order->id),
+                    'redirectUrl' => route('api.sale.order.info', $order->id),
                 ];
     
                 return $this->sendJsonResponse(data:$data, status_code:200, message:$message);
@@ -175,8 +154,6 @@ class OrderController extends ApiController
             }
 
         } catch (\Throwable $th) {
-            
-            echo "<pre>",print_r(66,true),"</pre>\r\n";
             return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
         }
     }

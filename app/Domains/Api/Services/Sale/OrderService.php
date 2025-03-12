@@ -12,6 +12,7 @@ use App\Models\Sale\OrderTag;
 use App\Models\Sale\OrderTotal;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Catalog\ProductTranslation;
+use App\Models\Member\Member;
 use App\Events\OrderCreated;
 use Carbon\Carbon;
 use App\Helpers\Classes\OrmHelper;
@@ -53,16 +54,42 @@ class OrderService extends GlobalOrderService
 
             // members table
                 $customer_id = $data['customer_id'] ?? null;
+                $toSave = false;
 
-                if(!empty($data['personal_name']) && !empty($data['mobile'])){
-                    $memberModel = $this->MemberRepository->newModel();
-                    
+                // 更新
+                if(!empty($customer_id) && !empty($data['mobile'])){
+                    $memberExist = Member::find($customer_id);
+
+                    if (!empty($memberExist->id)) {
+                        $existMobile = str_replace('-', '', $memberExist->mobile);
+                        $data['mobile'] = str_replace('-', '', $data['mobile']);
+                        if ($existMobile !== $data['mobile']) {
+                            throw new \Exception('手機號碼已有人使用');
+                        } else{
+                            $toSave = true;
+                        }
+                    } 
+                } 
+                // 新增
+                else if(empty($customer_id) && !empty($data['mobile'] && !empty($data['personal_name']))){
+                    $memberExist = Member::where('mobile', $data['mobile'])->first();
+
+                    if(!empty($memberExist->id)){
+                        throw new \Exception('手機號碼已有人使用');
+                    } else {
+                        $toSave = true;
+                    }
+                }
+
+                if ($toSave) {
+                    $member = Member::findOrNew($customer_id);
+
                     $memberData = $data;
-                    $memberData['id'] = $customer_id;
+                    $memberData['id'] = $customer_id ;
+                    $memberData['name'] = $data['personal_name'] ;
                     unset($memberData['code']);
-                    
-                    $memberData = $memberModel->prepareData($memberData);
-                    $customer = $this->MemberRepository->newModel()->updateOrCreate(['id' => $customer_id], $memberData,);
+                    $member = $member->prepareData($member, $memberData);
+                    $member->save();
                     unset($memberData);
                 }
             //

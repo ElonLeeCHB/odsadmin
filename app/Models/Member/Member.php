@@ -85,25 +85,19 @@ class Member extends User
     /**
      * $row: 傳入的資料，可以是array，或是 model
      * 改寫傳入資料，或者設定預設值。
+     * 
+     * $type = updateOnlyInput, updateAll
+     *     updateOnlyInput: 不會動到輸入資料以外的資料。如果 $row 是一個已存在的記錄，包括 $row->is_admin，但是輸入的資料沒有，那就不會動到 is_admin。
+     *     updateAll: 如果輸入資料沒有，就清空。
+     * 
      */
-    public function prepareData($row)
+    public function prepareData($row, $data, $type = 'updateOnlyInput')
     {
-        $data = []; //傳入資料轉換成陣列
-        
-        if (is_array($row)){
-            $data = $row;
-        }
-        else if(is_object($row)){
-            if(method_exists($row, 'toArray')){
-                $data = $row->toArray();
-            }
-            $data = (array) $row;
-        }
-
         if (strlen($data['mobile']) != 10 || !is_numeric($data['mobile']) || substr($data['mobile'], 0, 2) != '09') {
-            return false;
+            throw new \Exception('手機號碼錯誤！');
         }
 
+        $data['mobile'] = preg_replace('/\D+/', '', $data['mobile'] ?? null);
         $data['telephone_prefix'] = $data['telephone_prefix'] ?? null;
         $data['shipping_personal_name'] = $data['shipping_personal_name'] ?? $data['personal_name'] ?? null;
         $data['shipping_company'] = $data['shipping_company'] ?? $data['payment_company'] ?? null;
@@ -111,38 +105,6 @@ class Member extends User
         $data['shipping_road_abbr'] = $data['shipping_road_abbr'] ?? $data['shipping_road'] ?? null;
         $data['shipping_road'] = $data['shipping_road'] ?? null;
 
-        $table_columns = $this->getTableColumns();
-        $input_keys = array_keys($data);
-        $delete_keys = array_diff($input_keys, $table_columns);
-
-        $data['telephone_prefix'] = $data['telephone_prefix'] ?? null;
-
-        foreach ($table_columns as $column) {
-            if(is_array($row)){
-                if(in_array($column, $delete_keys)){
-                    unset($row[$column]);
-                    continue;
-                }
-
-                // $data有值才改寫，沒有則略過
-                if(isset($data[$column])){
-                    $row[$column] = $data[$column];
-                }
-            }
-    
-            else if(is_object($row) && !isset($row->column) && isset($data[$column])){
-                if(in_array($column, $delete_keys)){
-                    unset($row->{$column});
-                    continue;
-                }
-
-                // $data有值才改寫，沒有則略過
-                if(isset($data[$column])){
-                    $row->{$column} = $data[$column];
-                }
-            }
-        }
-
-        return $row;
+        return $this->processPrepareData($row, $data, $type);
     }
 }
