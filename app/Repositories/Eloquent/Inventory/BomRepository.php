@@ -58,7 +58,6 @@ class BomRepository extends Repository
     public function saveBom($post_data = [], $debug = 0)
     {
         try{
-            DB::beginTransaction();
 
             $bom_id = $post_data['bom_id'] ?? null;
             $result = parent::saveRow($bom_id, $post_data, 1);
@@ -94,9 +93,6 @@ class BomRepository extends Repository
                 $product->save();
             }
 
-
-            DB::commit();
-
             $bom->refresh();
             $bom->load('bom_products');
             DataHelper::setJsonToStorage('cache/inventory/BomId_' . $bom->id . '.json', $bom->toArray());
@@ -104,7 +100,6 @@ class BomRepository extends Repository
             return ['data' => ['id' => $bom->id]];
 
         } catch (\Exception $ex) {
-            DB::rollback();
             return ['error' => $ex->getMessage()];
         }
     }
@@ -113,8 +108,6 @@ class BomRepository extends Repository
     public function saveBomProducts($post_data)
     {
         $upsert_data = [];
-
-        DB::beginTransaction();
 
         try{
             $bom_id = $post_data['bom_id'];
@@ -134,17 +127,15 @@ class BomRepository extends Repository
             }
 
             if(!empty($upsert_data)){
-                BomProduct::where('bom_id', $bom_id)->delete();
-                BomProduct::upsert($upsert_data, ['id']);
+                $res1 = BomProduct::where('bom_id', $bom_id)->delete();
+                $res2 = BomProduct::upsert($upsert_data, ['id']);
             }
-
-            DB::commit();
 
             return true;
 
-        } catch (\Exception $ex) {
-            DB::rollback();
-            return ['error' => $ex->getMessage()];
+        } catch (\Throwable $th) {
+            echo "<pre>",print_r($th->getMessage(),true),"</pre>\r\n";exit;
+            throw $th;
         }
     }
 

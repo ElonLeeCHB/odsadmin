@@ -376,7 +376,7 @@ class DataHelper
     }
     
 
-    public function unsetRelations($rows, $relations)
+    public static function unsetRelations($rows, $relations)
     {
         // 如果 $rows 其實是單筆
         if ($rows instanceof \Illuminate\Database\Eloquent\Model) {
@@ -387,7 +387,7 @@ class DataHelper
         }
 
         // 如果 $rows 是多筆
-        else if(count($rows) > 0){
+        if ($rows instanceof \Illuminate\Support\Collection) {
             foreach ($rows as $row) {
                 foreach ($relations as $relation) {
                     $row->setRelation($relation, null);

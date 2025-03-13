@@ -5,6 +5,7 @@ namespace App\Domains\Admin\Http\Controllers\Inventory;
 use Illuminate\Http\Request;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Domains\Admin\Services\Inventory\BomService;
+use App\Helpers\Classes\DataHelper;
 
 class BomController extends BackendController
 {

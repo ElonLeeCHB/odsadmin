@@ -966,7 +966,6 @@ trait EloquentTrait
         $this->initialize();
 
         try{
-            DB::beginTransaction();
 
             // If $model->fillable exists, save() then return
             if(!empty($modelInstance->getFillable())){
@@ -989,12 +988,9 @@ trait EloquentTrait
 
             $modelInstance->save();
 
-            DB::commit();
-
             return $modelInstance->id;
 
         } catch (\Exception $ex) {
-            DB::rollback();
             return ['error' => 'Error code: ' . $ex->getCode() . ', Message: ' . $ex->getMessage()];
         }
     }
@@ -1029,12 +1025,9 @@ trait EloquentTrait
                 $arrs[] = $arr;
             }
 
-            DB::beginTransaction();
             $translation_model->upsert($arrs,['id', $master_key, 'locale']);
-            DB::commit();
 
         } catch (\Exception $ex) {
-            DB::rollback();
             throw $ex;
         }
     }
@@ -1077,12 +1070,9 @@ trait EloquentTrait
                 $arrs[] = $arr;
             }
 
-            DB::beginTransaction();
             $translationModel->upsert($arrs,['id', $foreigh_key, 'locale']);
-            DB::commit();
 
         } catch (\Exception $ex) {
-            DB::rollback();
             throw $ex;
         }
     }
@@ -1124,15 +1114,12 @@ trait EloquentTrait
             }
 
             if(!empty($upsert_data)){
-                DB::beginTransaction();
                 $result = $meta_model->upsert($upsert_data,['id']);
-                DB::commit();
             }
 
             return true;
 
         } catch (\Exception $ex) {
-            DB::rollback();
             throw $ex;
         }
     }
@@ -1229,7 +1216,6 @@ trait EloquentTrait
     public function destroyRows($data, $debug = 1)
     {
         try {
-            DB::beginTransaction();
 
             $query = $this->setQuery($data, $debug);
 
@@ -1239,12 +1225,9 @@ trait EloquentTrait
 
             $result = $query->delete();
 
-            DB::commit();
-
             return $result;
 
         } catch (\Exception $ex) {
-            DB::rollback();
             return ['error' => $ex->getMessage()];
         }
     }
@@ -1423,8 +1406,6 @@ trait EloquentTrait
 
     public function saveStatusCode($data)
     {
-        DB::beginTransaction();
-
         try {
             $params = [
                 'equal_id' => $data['id'],
@@ -1435,8 +1416,6 @@ trait EloquentTrait
             $row->status_code = $data['status_code'];
             $row->save();
 
-            DB::commit();
-
             $result['data'] = [
                 'id' => $row->id,
                 'code' => $row->code,
@@ -1446,7 +1425,6 @@ trait EloquentTrait
             return $result;
 
         } catch (\Exception $ex) {
-            DB::rollback();
             return ['error' => $ex->getMessage()];
         }
     }
