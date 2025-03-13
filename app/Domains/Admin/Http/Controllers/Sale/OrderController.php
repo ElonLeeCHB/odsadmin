@@ -813,7 +813,8 @@ class OrderController extends BackendController
         if(!empty($url_data['fresh'])){
             DataHelper::deleteDataFromStorage($cache_key);
         }
-        
+
+        DataHelper::deleteDataFromStorage($cache_key);
         $data = DataHelper::remember($cache_key, 60*10, 'serialize', function() use ($request_data){
             $result = $this->OrderService->getMultiOrdersForPrinting($request_data);
 

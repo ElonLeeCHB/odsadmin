@@ -184,7 +184,6 @@ class OrderService extends Service
     {
         try {
             
-            echo "<pre>",print_r(999,true),"</pre>\r\n";exit;
             DB::beginTransaction();
 
             unset($data['id']);

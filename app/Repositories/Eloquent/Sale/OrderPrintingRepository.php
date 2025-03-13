@@ -473,19 +473,19 @@ class OrderPrintingRepository extends Repository
                         foreach ($order_product->order_product_options as $order_product_option) {
                             $option_id = $order_product_option->option_id;
                             $option_value_id = $order_product_option->option_value_id;
-                            $product_option_value_id = $order_product_option->product_option_value_id;
         
                             // 執行上一層同樣的迴圈，但這次為了抓出下層飲料
                             foreach ($order_product->order_product_options as $drink) {
-                                $drink_parent_id        = $drink->parent_product_option_value_id;
                                 $drink_option_value_id  = $drink->option_value_id;
                                 
                                 if(!empty($drink->parent_product_option_value_id) && $drink->parent_product_option_value_id == $order_product_option->product_option_value_id){
-                                    $printingRowsByCategory[$identifier]['items'][$product_id]['product_options']['MainMeal'][$option_value_id]['SubDrinks'][] = [
-                                        'name' => $all_drinks[$drink_option_value_id]->name,
-                                        'short_name' => $all_drinks[$drink_option_value_id]->short_name,
-                                        'quantity' => $drink->quantity,
-                                    ];
+                                    if(!empty($all_drinks[$drink_option_value_id])){
+                                        $printingRowsByCategory[$identifier]['items'][$product_id]['product_options']['MainMeal'][$option_value_id]['SubDrinks'][] = [
+                                            'name' => $all_drinks[$drink_option_value_id]->name,
+                                            'short_name' => $all_drinks[$drink_option_value_id]->short_name,
+                                            'quantity' => $drink->quantity,
+                                        ];
+                                    }
                                 }
                             }
                         }
