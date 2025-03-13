@@ -218,8 +218,9 @@ class OrmHelper
 
     /**
      * 前身：setWhereQuery
+     * 不能使用 EloquentBuilder $builder，不然查詢語言的時候得到的是關聯，例如 hasOne 導致 class 不符合
      */
-    public static function filterColumn(EloquentBuilder $query, $key, $value)
+    public static function filterColumn($query, $key, $value)
     {
         if (str_starts_with($key, 'filter_')) {
             $column = preg_replace('/^(filter_|equal_)/', '', $key);

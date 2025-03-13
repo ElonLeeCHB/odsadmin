@@ -566,12 +566,10 @@ class OrderRepository extends Repository
                 }
             }
 
-            // $orderData = $this->model->setDefaultData($orderData);
             $order = new Order;
             $order = $order->prepareData($order, $orderData);
             $order->save();
-            // create() 回傳 Eloquent model, 必須。Service層可能後續會使用。例如 $order->load('orderProducts')
-            // return Order::create($orderData);
+
             return $order;
 
         } catch (\Throwable $th) {

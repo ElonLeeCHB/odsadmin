@@ -5,6 +5,8 @@ namespace App\Domains\Admin\Services\Inventory;
 use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Inventory\BomRepository;
 use App\Traits\Model\EloquentTrait;
+use App\Helpers\Classes\OrmHelper;
+use App\Models\Inventory\Bom;
 
 class BomService
 {
@@ -16,9 +18,28 @@ class BomService
     {}
 
 
-    public function getBoms($data=[], $debug = 0)
+    public function getBoms($params = [], $debug = 0)
     {
-        return $this->BomRepository->getBoms($data, $debug);
+        $builder = Bom::query();
+
+        $builder->withWhereHas('translation', function ($qry) use ($params) {
+            $qry->select(['product_id', 'name']);
+            if (!empty($params['filter_product_name'])) {
+                OrmHelper::filterColumn($qry, 'filter_name', $params['filter_product_name']);
+            }
+        });
+        unset($params['filter_product_name']);
+
+        if(!empty($params['filter_sub_product_name'])){
+            $builder->whereHas('bomProducts.translation', function ($qry) use ($params) {
+                OrmHelper::filterColumn($qry, 'filter_name', $params['filter_sub_product_name']);
+            });
+            unset($params['filter_sub_product_name']);
+        }
+
+        OrmHelper::prepare($builder, $params);
+
+        return OrmHelper::getResult($builder, $params);
     }
 
 

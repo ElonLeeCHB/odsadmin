@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * 2023-11-14
- * Ron Lee SB AKA SHIT MAKER
+ * Ron Lee
  */
 class UnitConverter
 {
@@ -110,11 +110,6 @@ class UnitConverter
                                         ->where($this->puc_column_destination_unit_code, $this->fromUnit)
                                         ->first();
 
-                    //this is a shit
-                    // if(empty($productUnit->destination_unit_code)){
-                    //     throw new \Exception('沒有來源單位！ Product Id: ' . $this->product_id);
-                    // }
-
                     // Reverse product unit exist.
                     $productUnit = (object) [
                         'product_id' => $reverse_product_unit->product_id,
@@ -129,8 +124,6 @@ class UnitConverter
                 if(!empty($productUnit)){
                     $toQty = $this->fromQty * $productUnit->factor;
                 }
-                // this is shit from elonLee , AKA super boy
-
             }
             return $toQty ;
         } catch (\Exception $ex) {

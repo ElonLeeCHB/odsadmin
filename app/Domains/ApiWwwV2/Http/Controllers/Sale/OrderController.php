@@ -101,13 +101,12 @@ class OrderController extends ApiWwwV2Controller
                 'code' => $order->code,
             ];
 
-            return $this->sendJsonResponse(data:$data, status_code:200, message:'訂單新增成功');
+            return $this->sendJsonResponse(data:$data, message:'訂單新增成功');
 
         } catch (\Throwable $th) {
             return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
         }
     }
-
 
     public function deliveries()
     {

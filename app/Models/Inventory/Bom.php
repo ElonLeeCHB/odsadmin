@@ -15,7 +15,7 @@ class Bom extends Model
     use ModelTrait;
     
     protected $guarded = [];
-    protected $appends = ['effective_date_ymd','expiry_date_ymd'];
+    protected $appends = ['product_name', 'effective_date_ymd','expiry_date_ymd'];
     public $translation_keys = ['product_name', 'sub_product_name'];
     protected $casts = [
         'created_at' => 'datetime:Y-m-d H:i:s',
@@ -32,6 +32,11 @@ class Bom extends Model
         return $this->hasMany(BomProduct::class, 'bom_id', 'id');
     }
 
+    public function bomProducts()
+    {
+        return $this->hasMany(BomProduct::class, 'bom_id', 'id');
+    }
+
     public function translation() {
         return $this->hasOne(ProductTranslation::class, 'product_id', 'product_id')->where('locale', app()->getLocale());
     }
@@ -41,6 +46,12 @@ class Bom extends Model
     {
         return Attribute::make(
             get: fn () => $this->translation->name ?? '',
+        );
+    }
+    protected function subProductName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->subProductTranslation->name ?? '',
         );
     }
 

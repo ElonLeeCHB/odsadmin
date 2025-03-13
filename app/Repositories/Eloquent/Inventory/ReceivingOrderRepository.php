@@ -7,12 +7,15 @@ use App\Helpers\Classes\UnitConverter;
 use App\Repositories\Eloquent\Repository;
 use App\Models\Common\Term;
 use App\Models\Catalog\Product;
-use App\Repositories\Eloquent\Inventory\UnitRepository;
+use App\Models\Inventory\BomProduct;
+;use App\Repositories\Eloquent\Inventory\UnitRepository;
 use App\Repositories\Eloquent\Inventory\ReceivingOrderProductRepository;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 
 use Maatwebsite\Excel\Facades\Excel;
 use App\Domains\Admin\Exports\InventoryReceivingReport;
+use App\Helpers\Classes\OrmHelper;
+use Carbon\Carbon;
 
 class ReceivingOrderRepository extends Repository
 {
@@ -41,8 +44,6 @@ class ReceivingOrderRepository extends Repository
     public function saveReceivingOrder($data)
     {
         try {
-            DB::beginTransaction();
-
             $receiving_order_id = $data['receiving_order_id'] ?? null;
 
             $result = $this->findIdOrFailOrNew($receiving_order_id);
@@ -56,7 +57,7 @@ class ReceivingOrderRepository extends Repository
 
             $receiving_order->form_type_code = $data['form_type_code'] ?? null;
             $receiving_order->location_id = $data['location_id'] ?? 0;
-            $receiving_order->receiving_date = $data['receiving_date'] ?? null;
+            $receiving_order->receiving_date = $data['receiving_date']; //不可以是空值
             $receiving_order->supplier_id = $data['supplier_id'] ?? 0;
             $receiving_order->supplier_name = $data['supplier_name'] ?? null;
             $receiving_order->tax_id_num = $data['tax_id_num'] ?? null;
@@ -196,36 +197,53 @@ class ReceivingOrderRepository extends Repository
                 }
                 //Upsert  receiving_order_products
                 if(!empty($update_receiving_products)){
-                   $upsert= $this->ReceivingOrderProductRepository->upsert($update_receiving_products,['id']);
+                   $this->ReceivingOrderProductRepository->upsert($update_receiving_products,['id']);
                 }
-                // 將進貨單價回寫料件資料表product
+
                 if($data['form_type_code'] != 'EXP'){ //費用類不回寫
                     $products = [];
                     foreach ($update_receiving_products ?? [] as $row) {
                         foreach ($now_receiving_order as $nowData){
-                            $product_id = $row['product_id'];
-                            //比對這筆進貨資料是否已經增加至product的數量 以product的receiving_product_id判斷   $nowData['stock_quantity'] == $row['stock_quantity'] 
-                            if($row['receiving_order_id']!=$db_coded_products[$product_id]['receiving_product_id']){
-                                $products[$product_id]['quantity'] = $row['stock_quantity'] + $db_coded_products[$product_id]['quantity'];
-                            }else{
-                                $products[$product_id]['quantity'] = $db_coded_products[$product_id]['quantity'];
+                            // 將進貨單價更新到料件資料表 product
+                                $product_id = $row['product_id'];
+                                //比對這筆進貨資料是否已經增加至product的數量 以product的receiving_product_id判斷   $nowData['stock_quantity'] == $row['stock_quantity'] 
+                                if($row['receiving_order_id']!=$db_coded_products[$product_id]['receiving_product_id']){
+                                    $products[$product_id]['quantity'] = $row['stock_quantity'] + $db_coded_products[$product_id]['quantity'];
+                                }else{
+                                    $products[$product_id]['quantity'] = $db_coded_products[$product_id]['quantity'];
+                                }
+                                $products[$product_id]['receiving_product_id'] = $row['receiving_order_id'];
+                                $products[$product_id]['id'] = $row['product_id'];
+                                // $products[$product_id]['quantity'] = $row['stock_quantity'];
+                                $products[$product_id]['stock_price'] = $row['stock_price'] ?? 0;
+                                $products[$product_id]['usage_price'] = $db_coded_products[$product_id]['usage_price'] ?? 0;
+                            // 
+                            
+                            // 將進貨單價更新到 bom 表 bom_products
+                            $query = BomProduct::query();
+                            $bomProducts =    $query->where('sub_product_id', $product_id)
+                                                    ->where(function($qry) use ($data) {
+                                                        $qry->whereDate('updated_at', '<', Carbon::parse($data['receiving_date'])->toDateString())
+                                                            ->orWhereNull('updated_at');
+                                                    })
+                                                    ->get();
+                            // OrmHelper::showSqlContent($bomProducts);
+
+                            foreach ($bomProducts as $bomProduct) {
+                                $bomProduct->price = $db_coded_products[$product_id]['usage_price'] ?? 0;
+                                $bomProduct->amount = $bomProduct->quantity * $bomProduct->price; //暫不考慮損耗
+                                $bomProduct->save();
                             }
-                            $products[$product_id]['receiving_product_id'] = $row['receiving_order_id'];
-                            $products[$product_id]['id'] = $row['product_id'];
-                            // $products[$product_id]['quantity'] = $row['stock_quantity'];
-                            $products[$product_id]['stock_price'] = $row['stock_price'] ?? 0;
-                            $products[$product_id]['usage_price'] = $db_coded_products[$product_id]['usage_price'] ?? 0;
                         }
                     }
+
                     if(!empty($products)){
-
-                        // 其它沒處理到的資料
-                        foreach ($products as $key =>$product) {
-                            $products[$key] = (new Product)->prepareArrayData($product);
-                        }
-
                         Product::upsert($products, ['product_id']);
                     }
+                }
+
+                // 將進貨單價更新到 bom 表 bom_products
+                if($data['form_type_code'] != 'EXP'){ //費用類不回寫
                 }
 
 
@@ -235,8 +253,6 @@ class ReceivingOrderRepository extends Repository
                 $this->ReceivingOrderProductRepository->deleteByReceivingOrderById($receiving_order->id);
             }
 
-            DB::commit();
-
             $result['data'] = [
                 'receiving_order_id' => $receiving_order->id,
                 'code' => $receiving_order->code
@@ -244,7 +260,6 @@ class ReceivingOrderRepository extends Repository
             return $result;
 
         } catch (\Exception $ex) {
-            DB::rollback();
             return ['error' => $ex->getMessage()];
         }
     }

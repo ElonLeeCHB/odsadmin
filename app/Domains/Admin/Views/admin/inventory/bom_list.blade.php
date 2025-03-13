@@ -13,19 +13,19 @@
         </tr>
       </thead>
       <tbody>
-        @foreach($boms as $term)
+        @foreach($boms as $row)
         <tr>
-          <td class="text-start">{{ $term->id }}</td>
-          <td class="text-start">{{ $term->product_name }}</td>
-          <td class="text-start">{{ $term->effective_date }}</td>
-          <td class="text-start">{{ $term->expiry_date }}</td>
-          <td class="text-start">{{ $term->total }}</td>
-          <td class="text-start">@if($term->is_active)
+          <td class="text-start">{{ $row->id }}</td>
+          <td class="text-start">{{ $row->product_name }}</td>
+          <td class="text-start">{{ $row->effective_date }}</td>
+          <td class="text-start">{{ $row->expiry_date }}</td>
+          <td class="text-start">{{ $row->total }}</td>
+          <td class="text-start">@if($row->is_active)
                                   {{ $lang->text_yes }}
                                 @else
                                   {{ $lang->text_no }}
                                 @endif</td>
-          <td class="text-end"><a href="{{ $term->edit_url }}" data-bs-toggle="tooltip" title="Edit" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></a></td>
+          <td class="text-end"><a href="{{ $row->edit_url }}" data-bs-toggle="tooltip" title="Edit" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></a></td>
         </tr>
         @endforeach
       </tbody>

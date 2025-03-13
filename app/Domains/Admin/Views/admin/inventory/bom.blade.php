@@ -28,12 +28,17 @@
             <div class="card-body">
 
               <div class="mb-3">
-                <label class="form-label">{{ $lang->column_product_name }}</label>
+                <label class="form-label">主件名稱</label>
                 <div class="input-group">
-                <input class="input-group-text d-none" type="text" id="input-filter_product_id" name="filter_product_id" value="{{ $filter_product_id ?? '' }}"  data-oc-target="autocomplete-product_id" autocomplete="off"/>
-                <input class="form-control" type="text" id="input-filter_product_name" name="filter_product_name" value="{{ $filter_product_name ?? '' }}"  data-oc-target="autocomplete-product_name" class="form-control" autocomplete="off"/>
+                  <input class="form-control" type="text" id="input-filter_product_name" name="filter_product_name" value="{{ $filter_product_name ?? '' }}"  class="form-control" autocomplete="off"/>
                 </div>
-                <ul id="autocomplete-product_name" class="dropdown-menu"></ul>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">下階物料</label>
+                <div class="input-group">
+                  <input class="form-control" type="text" id="input-filter_sub_product_name" name="filter_sub_product_name" value="{{ $filter_sub_product_name ?? '' }}" class="form-control" autocomplete="off"/>
+                </div>
               </div>
 
               <div class="mb-3">
@@ -77,13 +82,16 @@ $('#button-filter').on('click', function() {
 	url = '';
 
 	var filter_product_name = $('#input-filter_product_name').val();
-
 	if (filter_product_name) {
 		url += '&filter_product_name=' + encodeURIComponent(filter_product_name);
 	}
 
-  var equal_is_active = $('#input-equal_is_active').val();
+  var filter_sub_product_name = $('#input-filter_sub_product_name').val();
+	if (filter_sub_product_name) {
+		url += '&filter_sub_product_name=' + encodeURIComponent(filter_sub_product_name);
+	}
 
+  var equal_is_active = $('#input-equal_is_active').val();
   if (equal_is_active) {
     url += '&equal_is_active=' + encodeURIComponent(equal_is_active);
   }
@@ -91,26 +99,6 @@ $('#button-filter').on('click', function() {
 	url = "{{ $list_url }}?" + url;
 
 	$('#bom').load(url);
-});
-
-// 查單頭料件
-// http://ods.dtstw.test/backend/zh-Hant/inventory/boms/list?&filter_product_name=%E8%85%BF&equal_is_active=1
-// $('#input-filter_product_name').autocomplete({
-$('#input-xxx').autocomplete({
-  'source': function (request, response) {
-    $.ajax({
-      url: "{{ $product_autocomplete_url }}?filter_name=" + encodeURIComponent(request),
-      dataType: 'json',
-      success: function (json) {
-        response(json);
-      }
-    });
-  },
-  'select': function (item) {
-    $('#input-filter_product_id').val(item.product_id);
-    $('#input-filter_product_name').val(item.name);
-    // $('#input-product_edit_url').attr('href', item.product_edit_url);
-  }
 });
 
 </script>

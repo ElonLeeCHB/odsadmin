@@ -49,7 +49,7 @@ class BomController extends BackendController
         $data['add_url']    = route('lang.admin.inventory.boms.form');
         $data['delete_url'] = route('lang.admin.inventory.boms.delete');
         $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
-        
+
         return view('admin.inventory.bom', $data);
     }
 
@@ -72,7 +72,7 @@ class BomController extends BackendController
         $filter_data['extra_columns'][] = 'product_name';
         // Rows
         $boms = $this->BomService->getBoms($filter_data);
-
+        
         if(!empty($boms)){
             foreach ($boms as $row) {
                 $row->edit_url = route('lang.admin.inventory.boms.form', array_merge([$row->id], $query_data));
@@ -108,7 +108,6 @@ class BomController extends BackendController
         $route = route('lang.admin.inventory.boms.list');
 
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
-        $data['product_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_effective_date'] = $route . "?sort=model&order=$order" .$url;
         $data['sort_expiry_date'] = $route . "?sort=supplier_name&order=$order" .$url;
         $data['list_url']   = route('lang.admin.inventory.boms.list');
@@ -227,14 +226,4 @@ class BomController extends BackendController
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }
-
-
-
-
-
-
-
-
-
-
 }

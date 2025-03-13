@@ -361,7 +361,6 @@ $('#btn-status_save').on('click', function () {
         $('#input-update_status_code').val(status_code);
         $('#input-status_code').val(status_code);
         console.log(status_code)
-        // a lot of shit
       }else{
         $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + data['error'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
       }
