@@ -232,8 +232,6 @@ class OrderController extends ApiController
                     'id' => $order->id,
                     'code' => $order->code,
                     'customer_id' => $order->customer_id,
-                    'redirectUrl' => route('api.sale.order.details', $order->id),
-                    'message' => $message,
                 ];
     
                 return $this->sendJsonResponse(data:$data, status_code:200, message:$message);

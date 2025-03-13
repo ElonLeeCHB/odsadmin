@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Carbon;
 use App\Models\Catalog\Product;
 use App\Models\Inventory\BomProduct;
+use App\Models\Catalog\ProductTranslation;
 use App\Traits\Model\ModelTrait;
 
 class Bom extends Model
@@ -15,7 +16,7 @@ class Bom extends Model
     
     protected $guarded = [];
     protected $appends = ['effective_date_ymd','expiry_date_ymd'];
-
+    public $translation_keys = ['product_name', 'sub_product_name'];
     protected $casts = [
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',
@@ -31,8 +32,17 @@ class Bom extends Model
         return $this->hasMany(BomProduct::class, 'bom_id', 'id');
     }
 
+    public function translation() {
+        return $this->hasOne(ProductTranslation::class, 'product_id', 'product_id')->where('locale', app()->getLocale());
+    }
 
     // Attribute
+    protected function productName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->translation->name ?? '',
+        );
+    }
 
     public function total(): Attribute
     {

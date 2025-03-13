@@ -10,6 +10,13 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 class OrmHelper
 {
 
+    public static function prepare($query, &$params = [])
+    {
+        self::select($query, $params);
+        self::applyFilters($query, $params);
+
+    }
+
     // 取得資料集
     public static function getResult($query, $params, $debug = 0)
     {
@@ -73,9 +80,9 @@ class OrmHelper
     }
 
     // 選擇本表欄位。不包括關聯欄位。
-    public static function select(EloquentBuilder $query, $select = [], $table = '')
+    public static function select(EloquentBuilder $query, $params = [], $table = '')
     {
-        if (!empty($select)) {
+        if (!empty($params['select'])) {
             $model = $query->getModel();
             $table = $model->getPrefix() . $model->getTable();
 
@@ -172,56 +179,21 @@ class OrmHelper
             }
         //
 
-        // 開始查詢欄位
+        // 建構查詢
             foreach ($params ?? [] as $key => $value) {
                 $column = preg_replace('/^(filter_|equal_)/', '', $key);
+
+                // 查詢本表欄位
+                if(in_array($column, $table_columns)){
+                    self::filterColumn($query, $key, $value);
+                    self::equalColumn($query, $key, $value);
+                }
 
                 // 翻譯欄位另外用 whereHas 
                 if(in_array($column, $model->translation_keys ?? [])){
                     $params['whereHas']['translation'][$key] = $params[$key];
                     unset($params[$key]);
                     continue;
-                }
-
-                // 處理 filter_ 開頭的參數
-                if (str_starts_with($key, 'filter_')) {
-                    if(!in_array($column, $table_columns)){
-                        continue;
-                    }
-                    
-                    // 檢查是否包含範圍操作符 > 或 <
-                    if (str_starts_with($key, '>')) {
-                        $val = trim(substr($value, 1));
-                        $query->where($column, '>', $val);
-                    } else if (str_starts_with($key, '<')) {
-                        $val = trim(substr($value, 1));
-                        $query->where($column, '<', $val);
-                    } elseif (strpos($value, '*') !== false) {
-                        // 如果有 '*'，則使用模糊匹配處理
-                        if (str_starts_with($value, '*')) {
-                            $pattern = substr($value, 1);
-                            $query->whereRaw("{$column} REGEXP ?", ['.*' . preg_quote($pattern, '/') . '$']);
-                        } elseif (str_ends_with($value, '*')) {
-                            $pattern = substr($value, 0, -1);
-                            $query->whereRaw("{$column} REGEXP ?", ['^' . preg_quote($pattern, '/') . '.*']);
-                        } else {
-                            $pattern = str_replace('*', '.*', $value);
-                            $query->whereRaw("{$column} REGEXP ?", [$pattern]);
-                        }
-                    } else {
-                        // 沒有 '*' 或範圍符號時，執行模糊匹配
-                        $query->where($column, 'like', '%' . $value . '%');
-                    }
-                }
-                // 處理 equal_ 開頭的參數
-                elseif (str_starts_with($key, 'equal_')) {
-                    $column = substr($key, 6); // 去掉 'equal_'
-
-                    if(!in_array($column, $model->getTableColumns())){
-                        continue;
-                    }
-
-                    $query->where($column, '=', $value); // 精確匹配
                 }
             }
         //
@@ -247,95 +219,107 @@ class OrmHelper
     /**
      * 前身：setWhereQuery
      */
-    public static function filterColumn($query, $column, $value)
+    public static function filterColumn(EloquentBuilder $query, $key, $value)
     {
-        $column = preg_replace('/^(filter_|equal_)/', '', $column);
-        $value = trim($value);
-
-        if(strlen($value) == 0){
-            return;
-        }
-
-        // escapes Ex. phone number (123)456789 => \(123\)456789
-        $arr = ['(', ')', '+'];
-        foreach ($arr as $symble) {
-            if(str_contains($value, $symble)){
-                $value = str_replace($symble, '\\'.$symble, $value);
+        if (str_starts_with($key, 'filter_')) {
+            $column = preg_replace('/^(filter_|equal_)/', '', $key);
+            $value = trim($value);
+    
+            if(strlen($value) == 0){
+                return;
+            }
+    
+            // escapes Ex. phone number (123)456789 => \(123\)456789
+            $arr = ['(', ')', '+'];
+            foreach ($arr as $symble) {
+                if(str_contains($value, $symble)){
+                    $value = str_replace($symble, '\\'.$symble, $value);
+                }
+            }
+    
+            $operators = ['=','<','>','*'];
+    
+            // *foo woo* => foo woo
+            if(str_starts_with($value, '*')  && str_ends_with($value, '*') ){
+                $value = substr($value,1);
+                $value = substr($value,0,-1);
+            }
+    
+            $has_operator = false;
+            foreach ($operators as $operator) {
+                if(str_starts_with($value, $operator) != false || str_ends_with($value,'*')){
+                    $has_operator = true;
+                    break;
+                }
+            }
+    
+            // No operator
+            if($has_operator == false){
+                // 'foo woo' => 'foo*woo'
+                $value = str_replace(' ', '*', $value);
+                // 'foo*woo' => 'foo(.*)woo'
+                $value = str_replace('*', '(.*)', $value);
+                $query->where($column, 'REGEXP', $value);
+                return $query;
+            }
+    
+            // '=' Empty or null
+            if($value === '='){
+                $query->$type(function ($query) use($column) {
+                    $query->orWhereNull($column);
+                    $query->orWhere($column, '=', '');
+                });
+            }
+            // '=foo woo' Completely Equal 'foo woo'
+            else if(str_starts_with($value, '=') && strlen($value) > 1){
+                $value = substr($value,1); // 'foo woo'
+                $query->where($column, '=', $value);
+            }
+            // '<>' Not empty or not null
+            else if($value === '<>'){
+                $query->where(function ($query) use($column) {
+                    $query->orWhereNotNull($column);
+                    $query->orWhere($column, '<>', '');
+                });
+            }
+            // '<>foo woo' Not equal 'foo woo'
+            else if(str_starts_with($value, '<>') && strlen($value) > 2){
+                $value = substr($value,2); // 'foo woo'
+                $query->where($column, '<>', $value);
+            }
+            // '<123' Smaller than 123
+            else if(str_starts_with($value, '<') && strlen($value) > 1){
+                $value = substr($value,1); // '123'
+                $query->where($column, '<', $value);
+            }
+            // '>123' bigger than 123
+            else if(str_starts_with($value, '>') && strlen($value) > 1){
+                $value = substr($value,1);
+                $query->where($column, '>', $value);
+            }
+            // '*foo woo'
+            else if(substr($value,0, 1) == '*' && substr($value,-1) != '*'){
+                $value = str_replace(' ', '(.*)', $value);
+                $value = "(.*)".substr($value,1).'$';
+                $query->where($column, 'REGEXP', "$value");
+            }
+            // 'foo woo*'
+            else if(substr($value,0, 1) != '*' && substr($value,-1) == '*'){
+                $value = substr($value,0,-1); // foo woo
+                $value = str_replace(' ', '(.*)', $value); //foo(.*)woo
+                $value = '^' . $value . '(.*)';
+                $query->where($column, 'REGEXP', "$value");
             }
         }
+    }
 
-        $operators = ['=','<','>','*'];
+    public static function equalColumn(EloquentBuilder $query, $key, $value)
+    {
+        if (str_starts_with($key, 'equal_')) {
+            $column = preg_replace('/^(filter_|equal_)/', '', $key);
+            $value = trim($value);
 
-        // *foo woo* => foo woo
-        if(str_starts_with($value, '*')  && str_ends_with($value, '*') ){
-            $value = substr($value,1);
-            $value = substr($value,0,-1);
-        }
-
-        $has_operator = false;
-        foreach ($operators as $operator) {
-            if(str_starts_with($value, $operator) != false || str_ends_with($value,'*')){
-                $has_operator = true;
-                break;
-            }
-        }
-
-        // No operator
-        if($has_operator == false){
-            // 'foo woo' => 'foo*woo'
-            $value = str_replace(' ', '*', $value);
-            // 'foo*woo' => 'foo(.*)woo'
-            $value = str_replace('*', '(.*)', $value);
-            $query->where($column, 'REGEXP', $value);
-            return $query;
-        }
-
-        // '=' Empty or null
-        if($value === '='){
-            $query->$type(function ($query) use($column) {
-                $query->orWhereNull($column);
-                $query->orWhere($column, '=', '');
-            });
-        }
-        // '=foo woo' Completely Equal 'foo woo'
-        else if(str_starts_with($value, '=') && strlen($value) > 1){
-            $value = substr($value,1); // 'foo woo'
-            $query->where($column, '=', $value);
-        }
-        // '<>' Not empty or not null
-        else if($value === '<>'){
-            $query->where(function ($query) use($column) {
-                $query->orWhereNotNull($column);
-                $query->orWhere($column, '<>', '');
-            });
-        }
-        // '<>foo woo' Not equal 'foo woo'
-        else if(str_starts_with($value, '<>') && strlen($value) > 2){
-            $value = substr($value,2); // 'foo woo'
-            $query->where($column, '<>', $value);
-        }
-        // '<123' Smaller than 123
-        else if(str_starts_with($value, '<') && strlen($value) > 1){
-            $value = substr($value,1); // '123'
-            $query->where($column, '<', $value);
-        }
-        // '>123' bigger than 123
-        else if(str_starts_with($value, '>') && strlen($value) > 1){
-            $value = substr($value,1);
-            $query->where($column, '>', $value);
-        }
-        // '*foo woo'
-        else if(substr($value,0, 1) == '*' && substr($value,-1) != '*'){
-            $value = str_replace(' ', '(.*)', $value);
-            $value = "(.*)".substr($value,1).'$';
-            $query->where($column, 'REGEXP', "$value");
-        }
-        // 'foo woo*'
-        else if(substr($value,0, 1) != '*' && substr($value,-1) == '*'){
-            $value = substr($value,0,-1); // foo woo
-            $value = str_replace(' ', '(.*)', $value); //foo(.*)woo
-            $value = '^' . $value . '(.*)';
-            $query->where($column, 'REGEXP', "$value");
+            $query->where($column, $value);
         }
     }
 

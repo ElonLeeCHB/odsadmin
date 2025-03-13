@@ -49,6 +49,7 @@ class BomController extends BackendController
         $data['add_url']    = route('lang.admin.inventory.boms.form');
         $data['delete_url'] = route('lang.admin.inventory.boms.delete');
         $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
+        
         return view('admin.inventory.bom', $data);
     }
 

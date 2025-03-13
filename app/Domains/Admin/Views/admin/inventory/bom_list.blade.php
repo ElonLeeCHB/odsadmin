@@ -1,4 +1,4 @@
-<form id="form-term" method="post" data-oc-toggle="ajax" data-oc-load="{{ $list_url }}" data-oc-target="#term">
+<form id="form-term" method="post" data-oc-toggle="ajax" data-oc-load="{{ $list_url }}" data-oc-target="#bom">
   <div class="table-responsive">
     <table class="table table-bordered table-hover">
       <thead>

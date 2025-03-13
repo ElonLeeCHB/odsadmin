@@ -105,4 +105,66 @@ class OrderController extends ApiPosController
             return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
         }
     }
+
+    public function updateHeader($order_id)
+    {
+        try {
+            // old order
+            if (!empty($order_id)){
+                $old_order = (new Order)->getOrderByIdOrCode($order_id, 'id');
+                $old_order_id = $order_id;
+            }
+
+            //驗證內容
+            $json = [];
+
+            if(empty($this->post_data['status_code'])){
+                $json['errors']['status_code'] = '請設定訂單狀態';
+            }
+
+            if(empty($this->post_data['delivery_date'])){
+                $json['errors']['delivery_date'] = '請設定送達日期';
+            }
+
+            if(!isset($this->post_data['is_payment_tin_required'])){
+                $json['errors']['is_payment_tin_required'] = '請選擇是否需要統編';
+            }
+
+            if(!empty($this->post_data['is_payment_tin_required']) && empty($this->post_data['payment_tin'])){
+                $json['errors']['payment_tin'] = '尚未輸入統編';
+            }
+
+            if(empty($json)){
+                $order = $this->OrderService->updateHeader($order_id, $this->post_data);
+
+                if(empty($old_order_id) && !empty($order)){
+                    event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
+
+                    $message = '訂單新增成功';
+
+                } else if(!empty($old_order_id) && !empty($old_order)){
+                    event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order, old_order:$old_order));
+                    
+                    $message = '訂單修改成功';
+                }
+
+                $data = [
+                    'id' => $order->id,
+                    'code' => $order->code,
+                    'customer_id' => $order->customer_id,
+                ];
+    
+                return $this->sendJsonResponse(data:$data, status_code:200, message:$message);
+
+            }
+            else {
+                $json['error'] = '請檢查輸入內容';
+                return $this->sendJsonResponse(data:['error' => $json['error']]);
+            }
+
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
+        }
+    }
+
 }

@@ -56,6 +56,7 @@ Route::group([
             Route::get('orders/infoByCode/{code}', 'Sale\OrderController@infoByCode')->name('orders.infoByCode');
             Route::post('orders/store', 'Sale\OrderController@store')->name('orders.store');
             Route::post('orders/update/{id}', 'Sale\OrderController@update')->name('orders.update');
+            Route::post('orders/updateHeader/{id}', 'Sale\OrderController@updateHeader')->name('orders.updateHeader');
 
             Route::group([
                 'prefix' => 'orderlimit',

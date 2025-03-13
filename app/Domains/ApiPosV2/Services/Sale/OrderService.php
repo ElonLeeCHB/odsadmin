@@ -180,4 +180,28 @@ class OrderService extends Service
         }
     }
 
+    public function updateHeader($order_id, $data)
+    {
+        try {
+            
+            echo "<pre>",print_r(999,true),"</pre>\r\n";exit;
+            DB::beginTransaction();
+
+            unset($data['id']);
+            unset($data['code']);
+
+            // $order = (new OrderRepository)->update($data, $order_id);
+            $order = Order::find($order_id);
+            $order = (new Order)->prepareData($order, $data);
+            $order->save();
+            DB::commit();
+
+            return $order;
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+            throw $th;
+        }
+    }
+
 }

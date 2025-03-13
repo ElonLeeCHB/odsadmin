@@ -30,7 +30,6 @@
               <div class="mb-3">
                 <label class="form-label">{{ $lang->column_product_name }}</label>
                 <div class="input-group">
-    <!-- bull shit -->
                 <input class="input-group-text d-none" type="text" id="input-filter_product_id" name="filter_product_id" value="{{ $filter_product_id ?? '' }}"  data-oc-target="autocomplete-product_id" autocomplete="off"/>
                 <input class="form-control" type="text" id="input-filter_product_name" name="filter_product_name" value="{{ $filter_product_name ?? '' }}"  data-oc-target="autocomplete-product_name" class="form-control" autocomplete="off"/>
                 </div>
@@ -77,10 +76,10 @@ $('#bom').on('click', 'thead a, .pagination a', function(e) {
 $('#button-filter').on('click', function() {
 	url = '';
 
-	var filter_product_id = $('#input-filter_product_id').val();
+	var filter_product_name = $('#input-filter_product_name').val();
 
-	if (filter_product_id) {
-		url += '&filter_product_id=' + encodeURIComponent(filter_product_id);
+	if (filter_product_name) {
+		url += '&filter_product_name=' + encodeURIComponent(filter_product_name);
 	}
 
   var equal_is_active = $('#input-equal_is_active').val();
@@ -95,7 +94,9 @@ $('#button-filter').on('click', function() {
 });
 
 // 查單頭料件
-$('#input-filter_product_name').autocomplete({
+// http://ods.dtstw.test/backend/zh-Hant/inventory/boms/list?&filter_product_name=%E8%85%BF&equal_is_active=1
+// $('#input-filter_product_name').autocomplete({
+$('#input-xxx').autocomplete({
   'source': function (request, response) {
     $.ajax({
       url: "{{ $product_autocomplete_url }}?filter_name=" + encodeURIComponent(request),
