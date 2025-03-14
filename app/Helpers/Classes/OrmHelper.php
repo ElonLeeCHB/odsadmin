@@ -14,150 +14,36 @@ class OrmHelper
     {
         self::select($query, $params);
         self::applyFilters($query, $params);
+        self::sortOrder($query, $params);
 
-    }
-
-    // 取得資料集
-    public static function getResult($query, $params, $debug = 0)
-    {
-        if($debug){
-            self::showSqlContent($query);
-        }
-
-        $result = [];
-
-        if(isset($params['first']) && $params['first'] = true){
-            if(empty($params['pluck'])){
-                $result = $query->first();
-            }else{
-                $result = $query->pluck($params['pluck'])->first();
-            }
-        }else{
-
-            // Limit
-            if(isset($params['limit'])){
-                $limit = (int) $params['limit'];
-            }else{
-                $limit = (int) config('settings.config_admin_pagination_limit');
-
-                if(empty($limit)){
-                    $limit = 10;
-                }
-            }
-
-            // Pagination default to true
-            if(isset($params['pagination']) ){
-                $pagination = (boolean)$params['pagination'];
-            }else{
-                $pagination = true;
-            }
-
-            // Get result
-            if($pagination == true && $limit > 0){  // Get some result per page
-                $result = $query->paginate($limit);
-            }
-            else if($pagination == true && $limit == 0){  // get all but keep LengthAwarePaginator
-                $result = $query->paginate($query->count());
-            }
-            else if($pagination == false && $limit != 0){  // Get some result without pagination
-                $result = $query->limit($limit)->get();
-            }
-            else if($pagination == false && $limit == 0){  // Get all result
-                $result = $query->get();
-            }
-            
-            // Pluck
-            if(!empty($params['pluck'])){
-                $result = $result->pluck($params['pluck']);
-            }
-
-            if(!empty($params['keyBy'])){
-                $result = $result->keyBy($params['keyBy']);
-            }
-        }
-
-        return $result;
     }
 
     // 選擇本表欄位。不包括關聯欄位。
-    public static function select(EloquentBuilder $query, $params = [], $table = '')
+    public static function select($query, $params = [], $table = '')
     {
-        if (!empty($params['select'])) {
+        $select = $params['select'] ?? [];
+        
+        if ($query instanceof EloquentBuilder){
             $model = $query->getModel();
             $table = $model->getPrefix() . $model->getTable();
 
-            // 取交集
-            $select = array_intersect($select, $model->getTableColumns());
-
-            $query = $query->select(array_map(function($field) use ($table) {
-                return "{$table}.{$field}";
-            }, $select));
-        }
-    }
-    
-    public function setTranslationsQuery($query, $data, $flag = 1)
-    {
-        $masterModel = $query->getModel();
-        $masterTable = $masterModel->getPrefix() . $masterModel->getTable();
-
-        if(empty($masterModel->translation_keys)){
-            return;
-        }
-
-        //判斷第一層 filter_column 是否存在
-        $basic_translation_filter_data = [];
-
-        foreach ($data ?? [] as $key => $value) {
-
-            if (str_starts_with($key, 'filter_')) {
-                $column = str_replace('filter_', '', $key);
-            }else if (str_starts_with($key, 'equal_')) {
-                $column = str_replace('equal_', '', $key);
-            }else{
-                $column = $key;
-            }
-
-            if(in_array($column, $masterModel->translation_keys)){
-                $basic_translation_filter_data[$key] = $value;
-            }
-        }
-
-        //判斷進階查詢是否存在
-        $advanced_translation_filter_data = [];
-
-        if(!empty($data['translation'])){
-            $advanced_translation_filter_data = $data['translation'];
-        }
-
-        //既無基本查詢，也無進階查詢
-        if(empty($basic_translation_filter_data) && empty($advanced_translation_filter_data)){
-            return;
-        }
-
-        //開始構建查詢
-        $query->whereHas('translation', function($qry) use ($basic_translation_filter_data, $advanced_translation_filter_data) {
-            $qry->where('locale', app()->getLocale());
-
-            //基本查詢
-            if(!empty($basic_translation_filter_data)){
-                foreach($basic_translation_filter_data as $column => $value){
-                    $this->setWhereQuery($qry, $column, $value, 'where');
+            // 無指定 select, 使用預設的列表欄位。
+            if (empty($params['select'])) {
+                if(method_exists($model, 'getDefaultListColumns')){
+                    $query->select($model->getDefaultListColumns());
                 }
             }
+            // 有指定 select, 判斷是否本表欄位
+            else {
+                $select = array_intersect($select, $model->getTableColumns());
 
-            //進階查詢 例如: $data['translation'] = ['name' => 'value1', 'short_name' => 'value2'];
-            if(!empty($advanced_translation_filter_data)){
-                foreach($advanced_translation_filter_data as $column => $value){
-                    $qry->where(function($qry) use ($column, $value){
-                        $qry->orWhere(function($qry) use ($column, $value){
-                            $this->setWhereQuery($qry, $column, $value, 'where');
-                        });
-                    });
+                if (!empty($select)){
+                    $query->select(array_map(function($field) use ($table) {
+                        return "{$table}.{$field}"; //強制加上表名稱避免歧義
+                    }, $select));
                 }
             }
-        });
-        
-        return $query;
+        }
     }
 
     // 處理欄位條件
@@ -172,7 +58,7 @@ class OrmHelper
             if(!isset($params['equal_is_active'])){
                 $params['equal_is_active'] = 1;
             } else {
-                // 存在 equal_is_active, 但值 = '*'
+                // 存在 equal_is_active, 但值 = '*', 則取消檢查
                 if($params['equal_is_active'] == '*'){
                     unset($params['equal_is_active']);
                 }
@@ -203,13 +89,13 @@ class OrmHelper
         //
     }
 
-    public static function setWhereHas(EloquentBuilder $query, &$params = [])
+    public static function setWhereHas($query, &$params = [])
     {
         if(!empty($params['whereHas'])){
             foreach ($params['whereHas'] as $relation_name => $relation) {
                 $query->whereHas($relation_name, function($qry) use ($relation) {
-                    foreach ($relation as $column => $value) {
-                        self::filterColumn($qry, $column, $value);
+                    foreach ($relation as $key => $value) {
+                        self::filterColumn($qry, $key, $value);
                     }
                 });
             }
@@ -218,7 +104,7 @@ class OrmHelper
 
     /**
      * 前身：setWhereQuery
-     * 不能使用 EloquentBuilder $builder，不然查詢語言的時候得到的是關聯，例如 hasOne 導致 class 不符合
+     * 這裡的 $query 不能指定 EloquentBuilder $query ，不然查詢語言的時候得到的是關聯，例如 hasOne , 導致 class 不符合而錯誤
      */
     public static function filterColumn($query, $key, $value)
     {
@@ -359,12 +245,19 @@ class OrmHelper
         return $rows;
     }
     
-    // 排序。可以使用本表欄位、關聯欄位
-    public static function sortOrder($query, $sort = '', $order = '')
+    // 排序。可以使用本表欄位、翻譯欄位
+    public static function sortOrder($query, $params)
     {
+        $sort = $params['sort'] ?? null;
+        $order = $params['order'] ?? null;
+
         if($query instanceof EloquentBuilder){
             $masterModel = $query->getModel();
             $mainTable = $masterModel->getPrefix() . $masterModel->getTable();
+            $foreign_key = $masterModel->getForeignKey();
+
+            $translation_table = $masterModel->getTranslationTable() ?? '';
+            $translation_keys = $masterModel->getTranslationKeys() ?? [];
 
             if(empty($sort) && in_array('id', $masterModel->getTableColumns())){
                 $sort = 'id';
@@ -374,23 +267,80 @@ class OrmHelper
                 $order = 'DESC';
             }
 
-            if(method_exists($masterModel, 'getMetaKeys') && in_array($sort, $masterModel->getMetaKeys())){
-                $metaModelName = get_class($masterModel) . 'Meta';
-                $metaModel = new $metaModelName;
-                $metaTable = $metaModel->getPrefix() . $metaModel->getTable();
-                $locale = request()->query('locale') ?? config('app.locale');
-    
-                $query->leftJoin("{$metaTable} as sort_meta", function ($join) use ($locale, $sort, $order, $mainTable) {
-                    $join->on("{$mainTable}.id", '=', 'sort_meta.product_id')
-                        ->where('sort_meta.meta_key', $sort)
-                        ->where('sort_meta.locale', $locale);
-                })->orderBy('sort_meta.meta_value', $order);
-
-            } else {
-                $mainTable = $masterModel->getPrefix() . $masterModel->getTable();
+            // 本表欄位
+            if (in_array($sort, $masterModel->getTableColumns())) {
                 $query->orderBy("{$mainTable}.{$sort}", $order);
             }
+            // 翻譯欄位
+            else if (!empty($translation_table && !empty($translation_keys) )){
+                $query->orderByRaw("(SELECT {$sort} FROM {$translation_table} 
+                WHERE {$translation_table}.{$foreign_key} = {$mainTable}.id 
+                AND {$translation_table}.locale = ?) {$order}", 
+                [app()->getLocale()]);
+            }
         }
+    }
+
+    // 取得資料集
+    public static function getResult($query, $params, $debug = 0)
+    {
+        if($debug){
+            self::showSqlContent($query);
+        }
+
+        $result = [];
+
+        if(isset($params['first']) && $params['first'] = true){
+            if(empty($params['pluck'])){
+                $result = $query->first();
+            }else{
+                $result = $query->pluck($params['pluck'])->first();
+            }
+        }else{
+
+            // Limit
+            if(isset($params['limit'])){
+                $limit = (int) $params['limit'];
+            }else{
+                $limit = (int) config('settings.config_admin_pagination_limit');
+
+                if(empty($limit)){
+                    $limit = 10;
+                }
+            }
+
+            // Pagination default to true
+            if(isset($params['pagination']) ){
+                $pagination = (boolean)$params['pagination'];
+            }else{
+                $pagination = true;
+            }
+
+            // Get result
+            if($pagination == true && $limit > 0){  // Get some result per page
+                $result = $query->paginate($limit);
+            }
+            else if($pagination == true && $limit == 0){  // get all but keep LengthAwarePaginator
+                $result = $query->paginate($query->count());
+            }
+            else if($pagination == false && $limit != 0){  // Get some result without pagination
+                $result = $query->limit($limit)->get();
+            }
+            else if($pagination == false && $limit == 0){  // Get all result
+                $result = $query->get();
+            }
+            
+            // Pluck
+            if(!empty($params['pluck'])){
+                $result = $result->pluck($params['pluck']);
+            }
+
+            if(!empty($params['keyBy'])){
+                $result = $result->keyBy($params['keyBy']);
+            }
+        }
+
+        return $result;
     }
 
     // 顯示 sql 內容並中斷

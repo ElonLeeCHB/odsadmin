@@ -25,11 +25,10 @@ class OrderService extends GlobalOrderService
 
     public function getOrders($params)
     {
-        $builder = Order::query();
-        $builder->select(Order::getDefaultListColumns());
-        OrmHelper::applyFilters($builder, $params);
-        OrmHelper::sortOrder($builder, $params['sort'] ?? null, $params['order'] ?? null);
-        $orders = OrmHelper::getResult($builder, $params);
+        $query = Order::query();
+        $query->select(Order::getDefaultListColumns());
+        OrmHelper::prepare($query, $post_data);
+        $orders = OrmHelper::getResult($query, $params);
         
         return $orders;
     }

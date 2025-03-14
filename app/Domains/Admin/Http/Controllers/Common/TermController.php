@@ -64,7 +64,6 @@ class TermController extends BackendController
         $query_data  = $this->url_data;
 
         // Rows
-        //$terms = $this->TermService->getRows($query_data);
         $terms = $this->TermService->getTerms($this->url_data);
 
         foreach ($terms as $row) {

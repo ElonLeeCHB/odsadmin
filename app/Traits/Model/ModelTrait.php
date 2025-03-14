@@ -160,6 +160,11 @@ trait ModelTrait
         }
     }
 
+    public function getTranslationKeys()
+    {
+        return $this->translation_keys ?? [];
+    }
+
     // 目前用在自定義的 App\Providers\SettingServiceProvider，為了在沒有 settings 表存在的時候系統也能運行;
     public function tableExists()
     {
