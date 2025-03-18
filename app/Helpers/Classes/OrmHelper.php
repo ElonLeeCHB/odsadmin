@@ -69,17 +69,17 @@ class OrmHelper
             foreach ($params ?? [] as $key => $value) {
                 $column = preg_replace('/^(filter_|equal_)/', '', $key);
 
-                // 查詢本表欄位
-                if(in_array($column, $table_columns)){
-                    self::filterColumn($query, $key, $value);
-                    self::equalColumn($query, $key, $value);
-                }
-
                 // 翻譯欄位另外用 whereHas 
                 if(in_array($column, $model->translation_keys ?? [])){
                     $params['whereHas']['translation'][$key] = $params[$key];
                     unset($params[$key]);
                     continue;
+                }
+
+                // 查詢本表欄位
+                else if(in_array($column, $table_columns)){
+                    self::filterColumn($query, $key, $value);
+                    self::equalColumn($query, $key, $value);
                 }
             }
         //

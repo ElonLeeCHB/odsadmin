@@ -92,8 +92,8 @@ class ProductController extends BackendController
         // Rows, LengthAwarePaginator
         $query_data['select'] = ['id','code','main_category_id','sort_order','price','is_active','is_salable'];
         $query_data['equal_is_salable'] = 1;
-        
-        $products = $this->ProductService->getList($query_data,1);
+
+        $products = $this->ProductService->getList($query_data);
 
         if(!empty($products)){
             $products->load('main_category');

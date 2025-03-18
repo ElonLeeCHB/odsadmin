@@ -215,12 +215,9 @@ class ProductService extends Service
     public function getList($data)
     {
         $data['equal_is_salable'] = 1;
-        
-        // $builder = Product::applyFilters($data);
 
         $query = Product::query();
         OrmHelper::applyFilters($query, $data);
-        // OrmHelper::showSqlContent($query);
 
         if (!empty($data['filter_product_tags'])) {
             $product_tags = explode(',', $data['filter_product_tags']);

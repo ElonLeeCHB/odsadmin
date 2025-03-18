@@ -124,7 +124,8 @@ class Controller extends BaseController
             if($status_code == 404){
                 $json['error'] = '找不到';
             } else {
-                $status_code = ($status_code==200) ? 400 : $status_code;
+                // status_code 預設 200，所以不可能是空值，不使用空值判斷。如果有指定，則依指定。
+                $status_code = ($status_code==200) ? 400 : $status_code; 
                 
                 // 正式區，不顯示真正除錯訊息
                 if(config('app.env') == 'production'){
