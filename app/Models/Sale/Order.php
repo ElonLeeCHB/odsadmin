@@ -361,7 +361,7 @@ class Order extends Model
         $data['location_id'] = $data['location_id'] ?? 0;
         $data['customer_id'] = (isset($data['customer_id']) && is_numeric($data['customer_id'])) ? $data['customer_id'] : 0;
         $data['quantity_for_control'] = $data['quantity_for_control'] ?? 0;
-        $data['is_options_controlled'] = $data['is_options_controlled'] ?? 0;
+        $data['is_option_qty_controlled'] = $data['is_option_qty_controlled'] ?? 0;
         $data['mobile'] = preg_replace('/\D+/', '', $data['mobile'] ?? null);
         $data['salutation_code'] = $data['salutation_code'] ?? 0;
         
@@ -535,5 +535,15 @@ where op.order_id=9219
             , 'print_status', 'order_taker', 'salutation_code'
         ];
 
+    }
+
+    
+    // abandoned
+    public function setDefaultData($data)
+    {
+        $data['customer_id'] = !empty($data['customer_id']) ? $data['customer_id'] : 0;
+        $data['telephone_prefix'] = !empty($data['telephone_prefix']) ? $data['telephone_prefix'] : '';
+
+        return $data;
     }
 }

@@ -226,9 +226,9 @@
                   <label class="col-sm-2 col-form-label">啟用選項控單計量</label>
                   <div class="col-sm-10">
                     <div class="input-group">
-                      <div id="input-is_options_controlled" class="form-check form-switch form-switch-lg">
-                        <input type="hidden" name="is_options_controlled" value="0"/>
-                        <input type="checkbox" name="is_options_controlled" value="1" class="form-check-input" @if($product->is_options_controlled) checked @endif/>
+                      <div id="input-is_option_qty_controlled" class="form-check form-switch form-switch-lg">
+                        <input type="hidden" name="is_option_qty_controlled" value="0"/>
+                        <input type="checkbox" name="is_option_qty_controlled" value="1" class="form-check-input" @if($product->is_option_qty_controlled) checked @endif/>
                       </div>
                     </div>
                     <div class="form-text">若啟用，訂單變更時會再去抓取選項所對應的料件，忽略這裡的控單計量。用於客製套餐</div>

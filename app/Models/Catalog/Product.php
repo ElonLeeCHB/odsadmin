@@ -293,7 +293,7 @@ class Product extends Model
 
             return DataHelper::remember($cache_key, 60*60*24, 'serialize', function() use ($product_id) {
                 $builder = Product::query();
-                $builder->select(['id', 'code', 'name', 'price', 'quantity_for_control', 'is_options_controlled']);
+                $builder->select(['id', 'code', 'price', 'quantity_for_control', 'is_option_qty_controlled']);
                 $builder->where('id', $product_id)
                     ->with(['productOptions' => function($query) {
                         $query->where('is_active', 1)
@@ -302,7 +302,7 @@ class Product extends Model
                                     ->with('optionValue')
                                     ->with('translation')
                                     ->with(['materialProduct' => function($query) {
-                                        $query->select('products.id as material_product_id', 'products.quantity_for_control', 'products.is_options_controlled')
+                                        $query->select('products.id as material_product_id', 'products.quantity_for_control', 'products.is_option_qty_controlled')
                                             ->from('products');  // 另外指定使用 products 表的 id 來避免歧義，跟一開始的主表 products 區隔
                                     }]);
                             }])
@@ -319,12 +319,12 @@ class Product extends Model
     {
         if(is_array($row)){
             $row['quantity_for_control'] = $row['quantity_for_control'] ?? 0;
-            $row['is_options_controlled'] = $row['is_options_controlled'] ?? 0;
+            $row['is_option_qty_controlled'] = $row['is_option_qty_controlled'] ?? 0;
         }
 
         else if(is_object($row)){
             $row->quantity_for_control = $row->quantity_for_control ?? 0;
-            $row->is_options_controlled = $row->is_options_controlled ?? 0;
+            $row->is_option_qty_controlled = $row->is_option_qty_controlled ?? 0;
         }
 
         return $row;

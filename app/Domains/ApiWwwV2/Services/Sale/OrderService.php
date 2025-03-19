@@ -144,7 +144,7 @@ class OrderService extends Service
                 //     $order_product_id = $dbOrderProducts[$sort_order]->id;
 
                 //     // 沒有啟用選項控制，則使用商品表的控單數量柔位
-                //     if(empty($db_products[$product_id]['is_options_controlled'])){
+                //     if(empty($db_products[$product_id]['is_option_qty_controlled'])){
                 //         $order_product['quantity_for_control'] = $db_products[$product_id]['quantity_for_control'] * $order_product['quantity'];
                 //     }
                 //     else {

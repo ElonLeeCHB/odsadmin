@@ -280,7 +280,7 @@ class OrderDateLimitRepository extends Repository
                     ->whereDate('o.delivery_date', $date)
                     ->whereIn('o.status_code', $this->controlled_status_code)
                     ->orderBy('o.delivery_date');
-        // DataHelper::showSqlContent($builder);
+        DataHelper::showSqlContent($builder);
         
         $customOrders = $builder->get();
         
@@ -471,7 +471,7 @@ class OrderDateLimitRepository extends Repository
                     ->where('delivery_date', '>', $today)
                     ->whereIn('o.status_code', $this->controlled_status_code)
                     ->orderBy('o.delivery_date');
-
+                    echo "<pre>",print_r(999,true),"</pre>\r\n";exit;
         $customOrders = $builder->get();
 
         return $this->updateCustomOrders($customOrders);

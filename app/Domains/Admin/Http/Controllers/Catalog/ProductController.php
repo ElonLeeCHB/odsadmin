@@ -88,7 +88,7 @@ class ProductController extends BackendController
 
         // Prepare query_data for records
         $query_data = $this->url_data;
-        
+
         // Rows, LengthAwarePaginator
         $query_data['select'] = ['id','code','main_category_id','sort_order','price','is_active','is_salable'];
         $query_data['equal_is_salable'] = 1;
@@ -100,7 +100,7 @@ class ProductController extends BackendController
 
             foreach ($products as $row) {
                 $row->main_category_name = $row->main_category->name ?? '';
-                $row->edit_url = route('lang.admin.catalog.products.form', array_merge([$row->id], $query_data));
+                $row->edit_url = route('lang.admin.catalog.products.form', array_merge([$row->id], $this->url_data));
             }
             
             $data['products'] = $products;
