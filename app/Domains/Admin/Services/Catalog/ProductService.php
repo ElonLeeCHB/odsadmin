@@ -46,11 +46,11 @@ class ProductService extends Service
                 $product->price = $data['price'] ?? 0;
                 $product->quantity = $data['quantity'] ?? 0;
                 $product->quantity_for_control = $data['quantity_for_control'] ?? 0;
-                $product->is_option_qty_controlled = (int) $data['is_option_qty_controlled'] ?? 0;
+                $product->is_option_qty_controlled = $data['is_option_qty_controlled'] ?? 0;
                 $product->comment = $data['comment'] ?? '';
-                $product->is_active = (int) $data['is_active'] ?? 0;
-                $product->is_salable = (int) $data['is_salable'] ?? 0;
-                $product->is_on_web = (int) $data['is_on_web'] ?? 0;
+                $product->is_active = $data['is_active'] ?? 0;
+                $product->is_salable = $data['is_salable'] ?? 0;
+                $product->is_on_web = $data['is_on_web'] ?? 0;
                 $product->sort_order = $data['sort_order'] ?? 999;
                 $product->save();
             //

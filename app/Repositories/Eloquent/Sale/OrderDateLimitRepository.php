@@ -257,7 +257,56 @@ class OrderDateLimitRepository extends Repository
         OrderDateLimit::upsert($upsert_data, ['Date', 'TimeSlot'], ['MaxQuantity', 'OrderedQuantity', 'AcceptableQuantity']);
     }
 
-    // 計算指定日期的訂單數量並更新資料庫
+    // 更新訂單三表的控單數量 orders, order_products, order_product_options
+    public function updateOrderedQuantityForControlByOrderId($order_id)
+    {
+        // 更新訂單商品表：商品本身有控單數量
+            $query = DB::table('order_products as op')
+                    ->join('orders as o', 'o.id', '=', 'op.order_id')
+                    ->join('products as p', 'p.id', '=', 'op.product_id')
+                    ->where('p.is_option_qty_controlled', 0) // 不啟用選項控制
+                    ->where('p.quantity_for_control', '>', 0) // 商品權重大於0
+                    ->where('o.id', $order_id);
+
+            $query->update(['op.quantity_for_control' => DB::raw('op.quantity * p.quantity_for_control')]);
+        //
+
+        // 更新訂單商品表：商品本身沒有控單數量
+            // -- (1) 更新訂單商品選項表
+            $query = DB::table('order_product_options as opo')
+                        ->join('orders as o', 'o.id', '=', 'opo.order_id')
+                        ->join('products as p', 'p.id', '=', 'opo.product_id')
+                        ->leftJoin('option_values as ov', 'ov.id', '=', 'opo.option_value_id')
+                        ->leftJoin('products as mp', 'mp.id', '=', 'ov.product_id')
+                        ->leftJoin('orders as o', 'o.id', '=', 'opo.order_id')
+                        ->where('o.id', $order_id)
+                        ->where('p.is_option_qty_controlled', 1) // 啟用選項控制
+                        ->where('mp.quantity_for_control', '>', 0); // 材料權重大於0
+            
+            $query->update(['opo.quantity_for_control' => DB::raw('opo.quantity * mp.quantity_for_control')]);
+
+            // -- (2) 更新訂單商品表
+            $query = DB::table('order_products as op')
+                        ->join('orders as o', 'o.id', '=', 'op.order_id')
+                        ->join('products as p', 'p.id', '=', 'op.product_id')
+                        ->join('order_product_options as opo', 'opo.order_product_id', '=', 'op.id')
+                        ->where('o.id', $order_id)
+                        ->groupBy('op.id');
+
+            $query->update(['op.quantity_for_control' => DB::raw('SUM(opo.quantity_for_control)')]);
+        //
+
+        // 更新訂單表
+            $query = DB::table('orders as o')
+                        ->join('order_products as op', 'op.order_id', '=', 'o.id')
+                        ->where('o.id', $order_id)
+                        ->groupBy('o.id');
+
+            $query->update(['o.quantity_for_control' => DB::raw('SUM(op.quantity_for_control)')]);
+        //
+    }
+
+    // 更新訂單每日上限表 order_date_limits
     public function refreshOrderedQuantityByDate($date)
     {
         $date = Carbon::parse($date)->format('Y-m-d');
@@ -265,7 +314,7 @@ class OrderDateLimitRepository extends Repository
         // 獲取指定日期的資料
         $formatted_data =  $this->getDbDateLimitsByDate($date);
 
-        // 既然當日訂單要重算，所以先設歸零。
+        // 既然當日訂單要重算，所以先設零。
         foreach ($formatted_data['TimeSlots'] as $time_slot_key => $row) {
             $formatted_data['TimeSlots'][$time_slot_key]['OrderedQuantity'] = 0;
             $formatted_data['TimeSlots'][$time_slot_key]['AcceptableQuantity'] = $formatted_data['TimeSlots'][$time_slot_key]['MaxQuantity'];
@@ -280,11 +329,11 @@ class OrderDateLimitRepository extends Repository
                     ->whereDate('o.delivery_date', $date)
                     ->whereIn('o.status_code', $this->controlled_status_code)
                     ->orderBy('o.delivery_date');
-        DataHelper::showSqlContent($builder);
+        // DataHelper::showSqlContent($builder);
         
         $customOrders = $builder->get();
         
-        $this->updateCustomOrders($customOrders);
+        $this->updateDefinedOrders($customOrders);
 
         $formatted_data =  $this->getDbDateLimitsByDate($date); //抓 order_date_limits
 
@@ -471,14 +520,14 @@ class OrderDateLimitRepository extends Repository
                     ->where('delivery_date', '>', $today)
                     ->whereIn('o.status_code', $this->controlled_status_code)
                     ->orderBy('o.delivery_date');
-                    echo "<pre>",print_r(999,true),"</pre>\r\n";exit;
+
         $customOrders = $builder->get();
 
-        return $this->updateCustomOrders($customOrders);
+        return $this->updateDefinedOrders($customOrders);
     }
 
     // 更新特定格式的的訂單內容
-    public function updateCustomOrders($customOrders)
+    public function updateDefinedOrders($customOrders)
     {
         $all_formatted_data = [];
 

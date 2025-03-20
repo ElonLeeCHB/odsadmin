@@ -74,6 +74,12 @@ class LoginController extends ApiPosController
                         'name' => $user->name,
                         'message' => '登入成功',
                     ];
+
+                    //順便登入後台
+                        $credentials = $request->only('username', 'password');
+                        $field = filter_var($credentials['username'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+                        auth()->attempt([$field => $credentials['username'], 'password' => $credentials['password']]);
+                    //
                 }
 
                 return response()->json($json, 200);

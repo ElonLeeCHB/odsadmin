@@ -29,7 +29,12 @@ class OrderSavedAfterCommitListener
         $this->deleteOrderCache($event);
     }
 
-    // 更新數量控制
+
+    /** 更新數量控制
+     *      訂單更新時，先更新三表內容 orders, order_products, order_product_options
+     *      然後再更新權重
+     *      然後再將權重寫到 OrderDateLimits
+     */
     public function updateQuantityForControl($event)
     {
         $repository = new OrderDateLimitRepository;
@@ -42,15 +47,18 @@ class OrderSavedAfterCommitListener
 
         // 處理舊單數量
         if(!empty($old_order->id) && !empty($old_order->delivery_date)){
+            // 更新訂單三表的控單數量(權重)
+            $repository->updateOrderedQuantityForControlByOrderId($old_order->id);
+            // 更新 order_date_limits
             $repository->refreshOrderedQuantityByDate($old_order->delivery_date);
         }
 
-        // 處理新單訂單數量
+        // 處理新單的訂單數量
         $old_date = Carbon::parse($old_order->delivery_date)->format('Y-m-d');
         $new_date = Carbon::parse($saved_order->delivery_date)->format('Y-m-d');
         
         if(in_array($saved_order->status_code, $repository->controlled_status_code)){
-            if($old_date != $new_date){ //不同日期才執行新增。如果同日期，會在 refreshOrderedQuantityByDate 處理。
+            if($old_date != $new_date){ //不同日期才執行新增。如果同日期，會在上一步順便處理。
                 $repository->increaseByOrder($saved_order);
             }
         }
