@@ -102,7 +102,9 @@ class OrderDateLimitRepository extends Repository
     public function getDbDateLimitsByDate($date)
     {
         $date = Carbon::parse($date)->toDateString();
-        $rows = OrderDateLimit::whereDate('Date', $date)->get();
+        $query = OrderDateLimit::whereDate('Date', $date)->orderBy('TimeSlot');
+        // DataHelper::showSqlContent($query);
+        $rows = $query->get();
 
         if($rows->isEmpty()){
             $formatted_data = $this->getDefaultFormattedDataByDate($date); //從 settings 產生資料。但如果 settings 的時間段有缺？
@@ -278,31 +280,45 @@ class OrderDateLimitRepository extends Repository
                         ->join('products as p', 'p.id', '=', 'opo.product_id')
                         ->leftJoin('option_values as ov', 'ov.id', '=', 'opo.option_value_id')
                         ->leftJoin('products as mp', 'mp.id', '=', 'ov.product_id')
-                        ->leftJoin('orders as o', 'o.id', '=', 'opo.order_id')
-                        ->where('o.id', $order_id)
                         ->where('p.is_option_qty_controlled', 1) // 啟用選項控制
-                        ->where('mp.quantity_for_control', '>', 0); // 材料權重大於0
+                        ->where('mp.quantity_for_control', '>', 0) // 材料權重大於0
+                        ->where('o.id', $order_id);
             
             $query->update(['opo.quantity_for_control' => DB::raw('opo.quantity * mp.quantity_for_control')]);
 
             // -- (2) 更新訂單商品表
             $query = DB::table('order_products as op')
-                        ->join('orders as o', 'o.id', '=', 'op.order_id')
+                        ->join('orders as o', 'o.id', '=', 'op.order_id') // 修改這行
                         ->join('products as p', 'p.id', '=', 'op.product_id')
-                        ->join('order_product_options as opo', 'opo.order_product_id', '=', 'op.id')
-                        ->where('o.id', $order_id)
-                        ->groupBy('op.id');
-
-            $query->update(['op.quantity_for_control' => DB::raw('SUM(opo.quantity_for_control)')]);
+                        ->joinSub(
+                            DB::table('order_product_options as opo')
+                                ->select('opo.order_product_id', DB::raw('SUM(opo.quantity_for_control) as calculated_quantity_for_control'))
+                                ->groupBy('opo.order_product_id'),
+                            'src',
+                            'src.order_product_id',
+                            '=',
+                            'op.id'
+                        )
+                        ->where('p.is_option_qty_controlled', 1) // 啟用選項控制
+                        ->where('o.id', $order_id);
+                        
+            $query->update(['op.quantity_for_control' => DB::raw('src.calculated_quantity_for_control')]);
         //
 
         // 更新訂單表
             $query = DB::table('orders as o')
-                        ->join('order_products as op', 'op.order_id', '=', 'o.id')
-                        ->where('o.id', $order_id)
-                        ->groupBy('o.id');
+                        ->joinSub(
+                            DB::table('order_products as op')
+                                ->select('op.order_id', DB::raw('SUM(op.quantity_for_control) as caculated_quantity_for_control'))
+                                ->groupBy('op.order_id'),
+                            'src',
+                            'src.order_id',
+                            '=',
+                            'o.id'
+                        )
+                        ->where('o.id', $order_id);
 
-            $query->update(['o.quantity_for_control' => DB::raw('SUM(op.quantity_for_control)')]);
+            $query->update(['o.quantity_for_control' => DB::raw('src.caculated_quantity_for_control')]);
         //
     }
 
@@ -322,10 +338,7 @@ class OrderDateLimitRepository extends Repository
 
         // 訂單資料
         $builder = DB::table('orders as o')
-                    ->select('o.id', 'o.delivery_date', 'op.id as order_product_id', 'op.order_id', 'op.product_id', 'op.name', 'op.quantity', 'o.quantity_for_control')
-                    ->join('order_products as op', 'o.id', '=', 'op.order_id')
-                    ->join('product_tags as pt', 'op.product_id', '=', 'pt.product_id')
-                    ->where('pt.term_id', 1331)  //1331=套餐
+                    ->select('o.id', 'o.code', 'o.delivery_date', 'o.quantity_for_control')
                     ->whereDate('o.delivery_date', $date)
                     ->whereIn('o.status_code', $this->controlled_status_code)
                     ->orderBy('o.delivery_date');

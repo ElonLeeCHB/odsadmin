@@ -87,7 +87,7 @@ class OrderService extends GlobalOrderService
                     $memberData['id'] = $customer_id ;
                     $memberData['name'] = $data['personal_name'] ;
                     unset($memberData['code']);
-                    $member = $member->prepareData($member, $memberData);
+                    $member = $member->prepareData(data:$memberData, type:'updateOnlyInput', row:$member);
                     $member->save();
                     unset($memberData);
                 }
@@ -95,7 +95,7 @@ class OrderService extends GlobalOrderService
 
             // Order
                 $order = (new OrderRepository)->findIdOrFailOrNew($order_id)['data'];
-                $order = $order->prepareData($order, $data);
+                $order = $order->prepareData(data:$data, type:'updateOnlyInput', row:$order);
                 $order->save();
             //
 

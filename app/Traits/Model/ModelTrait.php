@@ -139,12 +139,16 @@ trait ModelTrait
             $translation_model_name = get_class($this) . 'Translation';
         }
 
-        return new $translation_model_name;
+        if (class_exists($translation_model_name)) {
+            return new $translation_model_name;
+        }
+
+        return null;
     }
 
     public function getTranslationTable()
     {
-        return $this->getTranslationModel()->getTable();
+        return optional($this->getTranslationModel())->getTable();
     }
 
     public function getTranslationMasterKey()

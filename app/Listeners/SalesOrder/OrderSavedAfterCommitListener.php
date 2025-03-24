@@ -45,10 +45,16 @@ class OrderSavedAfterCommitListener
         // 儲存後的訂單
         $saved_order = $event->saved_order;
 
+        // 更新訂單三表的控單數量(權重)
+        $repository->updateOrderedQuantityForControlByOrderId($saved_order->id);
+
         // 處理舊單數量
         if(!empty($old_order->id) && !empty($old_order->delivery_date)){
-            // 更新訂單三表的控單數量(權重)
-            $repository->updateOrderedQuantityForControlByOrderId($old_order->id);
+            // 通常不會需要執行這一段。通常 id 不能改，所以只要舊單存在，則其 id 等於新單 id
+            if($old_order->id != $saved_order->id){
+                $repository->updateOrderedQuantityForControlByOrderId($saved_order->id);
+            }
+            
             // 更新 order_date_limits
             $repository->refreshOrderedQuantityByDate($old_order->delivery_date);
         }

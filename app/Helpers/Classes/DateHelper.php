@@ -164,25 +164,23 @@ class DateHelper
      */
     public static function isValid($inputString)
     {
-        // 驗證開頭日期
-        if (preg_match('/^\d{4}-\d{2}-\d{2}/', $inputString)) {
-            $datePart = substr($inputString, 0, 10); // 取得 YYYY-MM-DD
-            $delivery_date_Ymd = \DateTime::createFromFormat('Y-m-d', $datePart);
-            if (!($delivery_date_Ymd && $delivery_date_Ymd->format('Y-m-d') === $datePart)) {
-                return false;
+        // 定義允許的格式
+        $formats = [
+            'Y-m-d',
+            'Y-m-d H:i',
+            'Y-m-d H:i:s'
+        ];
+    
+        foreach ($formats as $format) {
+            $dateTime = \DateTime::createFromFormat($format, $inputString);
+            if ($dateTime && $dateTime->format($format) === $inputString) {
+                return true;
             }
         }
-
-        if (strpos($inputString, ' ') !== false) {
-            $timePart = substr($inputString, 11); // 提取 時-分-秒
-            $delivery_date_His = \DateTime::createFromFormat('H:i:s', $timePart);
-            if (!($delivery_date_His && $delivery_date_His->format('H:i:s') === $timePart)) {
-                return false;
-            } 
-        }
-
-        return true;
+    
+        return false;
     }
+    
 
     /**
      * 2023-11-13
@@ -292,5 +290,38 @@ class DateHelper
         }
 
         return false;
+    }
+
+    public static function addColon($str)
+    {
+        // 移除空格，並將 ~ 轉換為 -
+        $str = str_replace([' ', '~'], '-', $str);
+    
+        // 分割起始和結束時間
+        $times = explode('-', $str);
+    
+        // 檢查格式是否正確
+        if (count($times) == 2) {
+            // 檢查每個時間字串的長度
+            $start_time = $times[0];
+            $end_time = $times[1];
+    
+            // 格式化時間
+            if (strlen($start_time) == 4 && strlen($end_time) == 4) {
+                // 若格式是 1100 - 1200，則轉換為 11:00 - 12:00
+                $start_time = substr($start_time, 0, 2) . ':' . substr($start_time, 2, 2);
+                $end_time = substr($end_time, 0, 2) . ':' . substr($end_time, 2, 2);
+            } elseif (strlen($start_time) == 6 && strlen($end_time) == 6) {
+                // 若格式是 110000 - 120000，則轉換為 11:00:00 - 12:00:00
+                $start_time = substr($start_time, 0, 2) . ':' . substr($start_time, 2, 2) . ':' . substr($start_time, 4, 2);
+                $end_time = substr($end_time, 0, 2) . ':' . substr($end_time, 2, 2) . ':' . substr($end_time, 4, 2);
+            }
+    
+            // 回傳格式化的時間範圍
+            return $start_time . '-' . $end_time;
+        }
+    
+        // 若時間格式不正確，回傳 null 或其他錯誤處理
+        return null;
     }
 }

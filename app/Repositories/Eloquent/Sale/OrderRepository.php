@@ -527,47 +527,8 @@ class OrderRepository extends Repository
     public function create($data)
     {
         try {
-            // delivery_date and delivery_time_range
-                // 說明：delivery_date 在資料庫是 datetime 欄位
-                // $delivery_date_Ymd = '0000-00-00'
-                // $delivery_date_His = '00:00:00'
-                if(empty($data['delivery_date'])){
-                    throw new \Exception('送達日期必須有值！');
-                }
-                // 提取日期
-                if (preg_match('/^\d{4}-\d{2}-\d{2}/', $data['delivery_date'])) {
-                    $delivery_date_Ymd = substr($data['delivery_date'], 0, 10); // 取得 YYYY-MM-DD
-                }
-                // 提取時間
-                if (strpos($data['delivery_date'], ' ') !== false) {
-                    $delivery_date_His = substr($data['delivery_date'], 11); // 提取 時-分-秒
-                }else{
-                    $delivery_date_His = '00:00:00';
-                }
-
-                //重新組合
-                if(!empty($delivery_date_Ymd) && !empty($delivery_date_His)){
-                    $data['delivery_date'] = $delivery_date_Ymd . ' ' . $delivery_date_His;
-                }
-
-                //驗證
-                if(!DateHelper::isValid($data['delivery_date'])){
-                    throw new \Exception('送達日期錯誤！' . $data['delivery_date']);
-                }
-            //
-
-            $orderData = [];
-
-            $fillable = $this->model->getFillable();
-
-            foreach ($fillable as $column) {
-                if($column != 'id' && isset($data[$column])){
-                    $orderData[$column] = $data[$column];
-                }
-            }
-
             $order = new Order;
-            $order = $order->prepareData($order, $orderData);
+            $order = $order->prepareData(data:$data, type:'updateOnlyInput', row:$order);
             $order->save();
 
             return $order;

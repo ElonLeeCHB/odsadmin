@@ -91,7 +91,7 @@ class Member extends User
      *     updateAll: 如果輸入資料沒有，就清空。
      * 
      */
-    public function prepareData($row, $data, $type = 'updateOnlyInput')
+    public function prepareData($data, $type = 'updateOnlyInput', $row)
     {
         if (strlen($data['mobile']) != 10 || !is_numeric($data['mobile']) || substr($data['mobile'], 0, 2) != '09') {
             throw new \Exception('手機號碼錯誤！');
@@ -105,6 +105,6 @@ class Member extends User
         $data['shipping_road_abbr'] = $data['shipping_road_abbr'] ?? $data['shipping_road'] ?? null;
         $data['shipping_road'] = $data['shipping_road'] ?? null;
 
-        return $this->processPrepareData($row, $data, $type);
+        return $this->processPrepareData(data:$data, type:$type, row:$row);
     }
 }
