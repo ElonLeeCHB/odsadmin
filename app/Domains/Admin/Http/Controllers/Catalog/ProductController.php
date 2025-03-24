@@ -325,6 +325,9 @@ class ProductController extends BackendController
             }
         }
 
+        // ProductPosCategory
+        $data['product_categories'] = $this->ProductService->getPosCategories($product_id);
+
         return view('admin.catalog.product_form', $data);
     }
 

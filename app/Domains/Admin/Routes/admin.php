@@ -62,7 +62,7 @@ Route::group(
                 'as' => 'catalog.',
             ], function ()
             {
-                //商品分類基本資料
+                //商品分類基本資料 廢棄
                 Route::get('categories', 'Catalog\CategoryController@index')->name('categories.index');
                 Route::get('categories/list', 'Catalog\CategoryController@list')->name('categories.list');
                 Route::get('categories/form/{category_id?}', 'Catalog\CategoryController@form')->name('categories.form');
@@ -70,8 +70,13 @@ Route::group(
                 Route::get('categories/autocomplete', 'Catalog\CategoryController@autocomplete')->name('categories.autocomplete');
                 Route::post('categories/destroy', 'Catalog\CategoryController@destroy')->name('categories.destroy');
 
-                //POS分類基本資料
+                //POS商品分類
+                Route::get('poscategories', 'Catalog\PosCategoryController@index')->name('poscategories.index');
+                Route::get('poscategories/list', 'Catalog\PosCategoryController@list')->name('poscategories.list');
+                Route::get('poscategories/form/{poscategory_id?}', 'Catalog\PosCategoryController@form')->name('poscategories.form');
+                Route::post('poscategories/save/{poscategory_id?}', 'Catalog\PosCategoryController@save')->name('poscategories.save');
                 Route::get('poscategories/autocomplete', 'Catalog\PosCategoryController@autocomplete')->name('poscategories.autocomplete');
+                Route::post('poscategories/destroy', 'Catalog\PosCategoryController@destroy')->name('poscategories.destroy');
 
                 //選項基本資料
                 Route::get('options', 'Catalog\OptionController@index')->name('options.index');

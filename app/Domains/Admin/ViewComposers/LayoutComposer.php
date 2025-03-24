@@ -79,9 +79,9 @@ class LayoutComposer
 
         if(1) {
             $Catalog[] = [
-                'name'	   => $this->lang->text_catalog_category,
+                'name'	   => 'POS商品分類',
                 'icon'	   => '',
-                'href'     => route('lang.admin.catalog.categories.index', ['equal_is_active' => 1]),
+                'href'     => route('lang.admin.catalog.poscategories.index', ['equal_is_active' => 1]),
                 'children' => []
             ];
         }

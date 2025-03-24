@@ -179,9 +179,10 @@ class OrmHelper
         }
     }
 
-    public static function setWhereHas($query, &$params = [])
+    public static function setWhereHas($query, $params = [])
     {
-        if(!empty($params['whereHas'])){
+        // 只有 EloquentBuilder 才能使用 whereHas
+        if($query instanceof EloquentBuilder && !empty($params['whereHas'])){
             foreach ($params['whereHas'] as $relation_name => $relation) {
                 $query->whereHas($relation_name, function($qry) use ($relation) {
                     foreach ($relation as $key => $value) {

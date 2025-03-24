@@ -65,11 +65,11 @@ class TermController extends BackendController
 
         // Rows
         $terms = $this->TermService->getList($this->url_data);
-
+        
         foreach ($terms as $row) {
             $row->edit_url = route('lang.admin.common.terms.form', array_merge([$row->id], $query_data));
-            $row->parent_name = optional($row->parent)->name;
         }
+
         $data['terms'] = $terms->withPath(route('lang.admin.common.terms.list'))->appends($query_data);
 
         // Prepare links for sort on list table's header

@@ -8,10 +8,12 @@ use App\Services\Service;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Models\Common\TermRelation;
+use App\Models\Common\Taxonomy;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductMeta;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
+use App\Models\Catalog\ProductTerm;
 use App\Models\Catalog\ProductTag;
 use App\Models\Common\Term;
 use App\Helpers\Classes\OrmHelper;
@@ -39,7 +41,6 @@ class ProductService extends Service
             }
 
             $product = $result['data'];
-
             // products
                 $product->model = $data['model'] ?? null;
                 $product->main_category_id = $data['main_category_id'] ?? null;
@@ -192,6 +193,29 @@ class ProductService extends Service
                 ProductTag::insert($insert_data);
             }
 
+            // ProductPosCategory
+                $taxonomy_id = Taxonomy::select('id')->where('code', 'ProductPosCategory')->value('id');
+                
+                if (!empty($taxonomy_id)) {
+
+                    ProductTerm::where('product_id', $product->id)->where('taxonomy_id', $taxonomy_id)->delete();
+    
+                    $insert_data = [];
+    
+                    foreach ($data['product_pos_category'] as $term_id) {
+                        $insert_data[] = [
+                            'product_id' => $product->id,
+                            'term_id' => $term_id,
+                            'taxonomy_id' => $taxonomy_id,
+                        ];
+                    }
+
+                    if(!empty($insert_data)){
+                        ProductTerm::insert($insert_data);
+                    }
+                }
+            //
+
             DB::commit();
 
             //刪除快取
@@ -231,5 +255,39 @@ class ProductService extends Service
 
         return $query->getResult($data);
     }
+
+    public function getPosCategories($product_id)
+    {
+        // $rows = ProductTerm::where('product_id', $product_id)
+        //                     ->with('term.translation')
+        //                     ->join('taxonomies', 'product_terms.taxonomy_id', '=', 'taxonomies.id')
+        //                     ->get();
+        $poscategory_ids = ProductTerm::select('term_id')->where('product_id', $product_id)
+                        ->join('taxonomies', 'product_terms.taxonomy_id', '=', 'taxonomies.id')
+                        ->pluck('term_id');
+        $result = [];
+
+        foreach ($poscategory_ids as $poscategory_id) {
+            // $query = $this->db->query("SELECT DISTINCT *, (SELECT GROUP_CONCAT(cd1.`name` ORDER BY `level` SEPARATOR ' > ') FROM `" . DB_PREFIX . "category_path` cp LEFT JOIN `" . DB_PREFIX . "category_description` cd1 ON (cp.`path_id` = cd1.`category_id` AND cp.`category_id` != cp.`path_id`) WHERE cp.`category_id` = c.`category_id` AND cd1.`language_id` = '" . (int)$this->config->get('config_language_id') . "' GROUP BY cp.`category_id`) AS `path` FROM `" . DB_PREFIX . "category` c LEFT JOIN `" . DB_PREFIX . "category_description` cd2 ON (c.`category_id` = cd2.`category_id`) WHERE c.`category_id` = '" . (int)$category_id . "' AND cd2.`language_id` = '" . (int)$this->config->get('config_language_id') . "'");
+            $category_info = Term::getTermWithPath($poscategory_id);
+
+			if ($category_info) {
+				$result[] = (object) [
+					'category_id' => $category_info->term_id,
+					'name'        => ($category_info->path) ? $category_info->path . ' &gt; ' . $category_info->name : $category_info->name
+				];
+			}
+        }
+
+        return $result;
+    }
+
+	public function getCategory(int $category_id): array {
+		$query = $this->db->query("SELECT DISTINCT *, (SELECT GROUP_CONCAT(cd1.`name` ORDER BY `level` SEPARATOR ' > ') FROM `" . DB_PREFIX . "category_path` cp LEFT JOIN `" . DB_PREFIX . "category_description` cd1 ON (cp.`path_id` = cd1.`category_id` AND cp.`category_id` != cp.`path_id`) WHERE cp.`category_id` = c.`category_id` AND cd1.`language_id` = '" . (int)$this->config->get('config_language_id') . "' GROUP BY cp.`category_id`) AS `path` FROM `" . DB_PREFIX . "category` c LEFT JOIN `" . DB_PREFIX . "category_description` cd2 ON (c.`category_id` = cd2.`category_id`) WHERE c.`category_id` = '" . (int)$category_id . "' AND cd2.`language_id` = '" . (int)$this->config->get('config_language_id') . "'");
+
+		return $query->row;
+	}
+
+
 
 }

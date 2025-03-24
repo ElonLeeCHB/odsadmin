@@ -29,6 +29,11 @@ class TermService extends Service
 
     public function getList($params = [])
     {
+        $params['sort'] = 'name';
+        $params['order'] = 'ASC';
+
+        // $rows = Term::getChainedList($params);
+
         $query = Term::query();
         Term::prepareQuery($query, $params);
 

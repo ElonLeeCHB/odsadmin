@@ -144,8 +144,6 @@ class TermRepository extends Repository
 
     public function saveTerm($data)
     {
-        // DB::beginTransaction();
-
         try {
             // 儲存主記錄
             $result = $this->findIdOrFailOrNew($data['term_id']);
@@ -158,10 +156,10 @@ class TermRepository extends Repository
             unset($result);
             
             $term->parent_id = $data['parent_id'] ?? 0;
-            $term->code = $data['code'] ?? time();
-            $term->slug = $data['slug'] ?? '';
+            $term->code = $data['code'] ?? null;
+            $term->slug = $data['slug'] ?? null;
             $term->comment = $data['comment'] ?? '';
-            $term->taxonomy_code = $data['taxonomy_code'] ?? '';
+            $term->taxonomy_code = $data['taxonomy_code'] ?? null;
             $term->sort_order = $data['sort_order'] ?? 100;
             $term->is_active = $data['is_active'] ?? 0;
 

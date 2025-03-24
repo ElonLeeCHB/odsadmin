@@ -5,9 +5,12 @@ namespace App\Models\Common;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Traits\Model\ModelTrait;
+use App\Models\Common\TermPath;
 use App\Models\Common\TermRelation;
+use App\Models\Common\Taxonomy;
 use Illuminate\Support\Facades\Cache;
 use App\Helpers\Classes\OrmHelper;
+use Illuminate\Support\Facades\DB;
 
 class Term extends Model
 {
@@ -111,6 +114,104 @@ class Term extends Model
         return $terms;
     }
 
+	public static function getChainedList(array $data = [])
+    {
+        $prefix = config('database.mysql.prefix');
+        $locale = app()->getLocale();
+
+        $query = DB::table("{$prefix}term_paths as cp")
+            ->selectRaw(
+                "cp.term_id AS id, 
+                GROUP_CONCAT(cd1.name ORDER BY cp.level SEPARATOR ' > ') AS name, 
+                c1.code AS code,
+                c1.parent_id, 
+                c1.sort_order,
+                ttr.name AS taxonomy_name,
+                c1.is_active",
+            )
+            ->join("{$prefix}terms as c1", 'cp.term_id', '=', 'c1.id')
+            ->join("{$prefix}taxonomies as txm", 'c1.taxonomy_code', '=', 'txm.code')
+            ->join("{$prefix}taxonomy_translations as ttr", 'txm.id', '=', 'ttr.taxonomy_id')->where('ttr.locale', $locale);
+
+            if(!empty($data['filter_taxonomy_name'])){
+                $tmpQuery = Taxonomy::query();
+    
+                $filter_data = [
+                    'filter_name' => $data['filter_taxonomy_name'],
+                    'limit' => 0,
+                    'pagination' => false,
+                ];
+    
+                OrmHelper::prepare($tmpQuery, $filter_data);
+                $tmpQuery->select(['id','code']);
+                $taxonomy_codes = OrmHelper::getResult($tmpQuery, $filter_data)->pluck('code');
+
+                if (!empty($taxonomy_codes)){
+                    $query->whereIn('c1.taxonomy_code', $taxonomy_codes);
+                } else {
+                    return null;
+                }
+            }
+
+            $query->leftJoin("{$prefix}terms as c2", 'cp.path_id', '=', 'c2.id')
+                    ->leftJoin("{$prefix}term_translations as cd1", 'cp.path_id', '=', 'cd1.term_id')
+                    ->leftJoin("{$prefix}term_translations as cd2", 'cp.term_id', '=', 'cd2.term_id')
+                    ->where('cd1.locale', $locale)
+                    ->where('cd2.locale', $locale);
+
+        if (!empty($data['filter_name'])) {
+            $query->where('cd2.name', 'LIKE', '%' . $data['filter_name'] . '%');
+        }
+
+        $query->groupBy('cp.term_id');
+
+		$sort_data = [
+			'name',
+			'sort_order'
+		];
+
+		if (isset($data['order']) && ($data['order'] == 'DESC')) {
+			$order = "desc";
+		} else {
+			$order = "asc";
+		}
+
+		if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
+            $query->orderBy($data['sort'], $order);
+		} else {
+            $query->orderBy('sort_order', $order);
+		}
+
+        return OrmHelper::getResult($query, $data);
+	}
+
+    // opencart getCategory
+    public static function getTermWithPath($term_id)
+    {
+
+        $locale = app()->getLocale();
+        $prefix = config('database.connections.mysql.prefix');
+
+        $sql = "
+            SELECT DISTINCT *
+            , (SELECT GROUP_CONCAT(cd1.name ORDER BY cp.level SEPARATOR ' > ') 
+                FROM `term_paths` cp 
+                LEFT JOIN `term_translations` cd1 
+                ON (cp.path_id = cd1.term_id AND cp.term_id != cp.path_id) 
+                WHERE cp.term_id = c.id AND cd1.locale = ? 
+                GROUP BY cp.term_id) AS path
+            FROM `terms` c
+            LEFT JOIN `term_translations` cd2 
+            ON (c.id = cd2.term_id) 
+            WHERE c.id = ? AND cd2.locale = ?
+        ";
+        
+        $result = DB::select($sql, [$locale, $term_id, $locale]);
+        
+        $category_info = !empty($result) ? $result[0] : null;
+
+        return $category_info;
+    }
 
     public static function prepareQuery($query, $params)
     {

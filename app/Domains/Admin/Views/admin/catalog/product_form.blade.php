@@ -156,15 +156,13 @@
                       <div class="form-control p-0" style="height: 150px; overflow: auto;">
                         <table id="product-pos_category" class="table m-0">
                           <tbody>
-                                                        <tr id="product-pos_category-20">
-                                <td>Desktops<input type="hidden" name="product_pos_category[]" value="20"></td>
+                            @foreach($product_categories as $product_category)
+                            <tr id="product-pos_category-{{ $product_category->category_id }}">
+                                <td>{!! $product_category->name !!}<input type="hidden" name="product_pos_category[]" value="{{ $product_category->category_id }}"></td>
                                 <td class="text-end"><button type="button" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button></td>
-                              </tr>
-                                                        <tr id="product-pos_category-28">
-                                <td>Components &gt; Monitors<input type="hidden" name="product_pos_category[]" value="28"></td>
-                                <td class="text-end"><button type="button" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button></td>
-                              </tr>
-                                                    </tbody>
+                            </tr>
+                            @endforeach
+                          </tbody>
                         </table>
                       </div>
                                         </div>
@@ -810,13 +808,14 @@
 $('#input-pos_category').autocomplete({
     'source': function (request, response) {
         $.ajax({
-            url: 'index.php?route=catalog/category.autocomplete&user_token=252e2bc741be968cd5009299ba713727&filter_name=' + encodeURIComponent(request),
+            url: "{{ route('lang.admin.catalog.poscategories.autocomplete') }}?filter_name=" + encodeURIComponent(request),
             dataType: 'json',
             success: function (json) {
                 response($.map(json, function (item) {
                     return {
-                        label: item['name'],
-                        value: item['category_id']
+                        label: item['_label'],
+                        value: item['_value'],
+                        name: item['name']
                     }
                 }));
             }
