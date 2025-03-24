@@ -147,6 +147,31 @@
                   </div>
                 </div>
 
+                <div class="row mb-3">
+                  <label class="col-sm-2 col-form-label">POS 分類</label>
+                  <div class="col-sm-10">
+                    <input type="text" name="pos_category" value="" placeholder="Categories" id="input-pos_category" data-oc-target="autocomplete-pos_category" class="form-control" autocomplete="off">
+                    <ul id="autocomplete-pos_category" class="dropdown-menu"></ul>
+                    <div class="input-group">
+                      <div class="form-control p-0" style="height: 150px; overflow: auto;">
+                        <table id="product-pos_category" class="table m-0">
+                          <tbody>
+                                                        <tr id="product-pos_category-20">
+                                <td>Desktops<input type="hidden" name="product_pos_category[]" value="20"></td>
+                                <td class="text-end"><button type="button" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button></td>
+                              </tr>
+                                                        <tr id="product-pos_category-28">
+                                <td>Components &gt; Monitors<input type="hidden" name="product_pos_category[]" value="28"></td>
+                                <td class="text-end"><button type="button" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button></td>
+                              </tr>
+                                                    </tbody>
+                        </table>
+                      </div>
+                                        </div>
+                    <div class="form-text">(Autocomplete)</div>
+                  </div>
+                </div>
+
                 {{-- model --}}
                 <div class="row mb-3">
                   <label for="input-model" class="col-sm-2 col-form-label">{{ $lang->column_model }}</label>
@@ -482,18 +507,18 @@
     'select': function (item) {
       $('#input-category').val('');
 
-      $('#product-category-' + item['value']).remove();
+      $('#product-pos_category-' + item['value']).remove();
 
-      html = '<tr id="product-category-' + item['value'] + '">';
+      html = '<tr id="product-pos_category-' + item['value'] + '">';
       html += '  <td>' + item['label'] + '<input type="hidden" name="product_categories[]" value="' + item['value'] + '"/></td>';
       html += '  <td class="text-end"><button type="button" class="btn btn-danger btn-sm"><i class="fa-solid fa-minus-circle"></i></button></td>';
       html += '</tr>';
 
-      $('#product-category tbody').append(html);
+      $('#product-pos_category tbody').append(html);
     }
   });
 
-  $('#product-category').on('click', '.btn', function () {
+  $('#product-pos_category').on('click', '.btn', function () {
       $(this).parent().parent().remove();
   });
 
@@ -779,5 +804,37 @@
   $('#input-product_tag').select2({
     width:'100%',
   });
+
+  
+// POS Category
+$('#input-pos_category').autocomplete({
+    'source': function (request, response) {
+        $.ajax({
+            url: 'index.php?route=catalog/category.autocomplete&user_token=252e2bc741be968cd5009299ba713727&filter_name=' + encodeURIComponent(request),
+            dataType: 'json',
+            success: function (json) {
+                response($.map(json, function (item) {
+                    return {
+                        label: item['name'],
+                        value: item['category_id']
+                    }
+                }));
+            }
+        });
+    },
+    'select': function (item) {
+        $('#input-category').val('');
+
+        $('#product-pos_category-' + item['value']).remove();
+
+        html = '<tr id="product-pos_category-' + item['value'] + '">';
+        html += '  <td>' + item['label'] + '<input type="hidden" name="product_pos_category[]" value="' + item['value'] + '"/></td>';
+        html += '  <td class="text-end"><button type="button" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button></td>';
+        html += '</tr>';
+
+        $('#product-pos_category tbody').append(html);
+    }
+});
+
 </script>
 @endsection

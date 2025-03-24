@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Traits\Model\ModelTrait;
 use App\Models\Common\TermRelation;
 use Illuminate\Support\Facades\Cache;
+use App\Helpers\Classes\OrmHelper;
 
 class Term extends Model
 {
@@ -21,6 +22,13 @@ class Term extends Model
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
     
+    protected static function booted()
+    {
+        parent::boot();
+
+        static::observe(\App\Observers\TermObserver::class);
+    }
+
     // Relationships
 
     public function parent()
@@ -102,4 +110,19 @@ class Term extends Model
 
         return $terms;
     }
+
+
+    public static function prepareQuery($query, $params)
+    {
+        if (!empty($params['filter_taxonomy_name'])) {
+            $query->whereHas('taxonomy', function ($qry) use ($params) {
+                $qry->whereHas('translation', function ($qry2) use ($params) {
+                    OrmHelper::filterOrEqualColumn($qry2, 'filter_name', $params['filter_taxonomy_name']);
+                });
+            });
+        }
+        
+        OrmHelper::prepare($query, $post_data);
+    }
+
 }

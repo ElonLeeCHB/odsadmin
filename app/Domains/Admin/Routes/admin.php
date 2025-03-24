@@ -70,6 +70,9 @@ Route::group(
                 Route::get('categories/autocomplete', 'Catalog\CategoryController@autocomplete')->name('categories.autocomplete');
                 Route::post('categories/destroy', 'Catalog\CategoryController@destroy')->name('categories.destroy');
 
+                //POS分類基本資料
+                Route::get('poscategories/autocomplete', 'Catalog\PosCategoryController@autocomplete')->name('poscategories.autocomplete');
+
                 //選項基本資料
                 Route::get('options', 'Catalog\OptionController@index')->name('options.index');
                 Route::get('options/form/{product_id?}', 'Catalog\OptionController@form')->name('options.form');

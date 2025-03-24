@@ -144,7 +144,7 @@ class TermRepository extends Repository
 
     public function saveTerm($data)
     {
-        DB::beginTransaction();
+        // DB::beginTransaction();
 
         try {
             // 儲存主記錄
@@ -156,23 +156,23 @@ class TermRepository extends Repository
                 throw new \Exception($result['error']);
             }
             unset($result);
-
+            
             $term->parent_id = $data['parent_id'] ?? 0;
-            $term->code = $data['code'] ?? '';
+            $term->code = $data['code'] ?? time();
             $term->slug = $data['slug'] ?? '';
             $term->comment = $data['comment'] ?? '';
             $term->taxonomy_code = $data['taxonomy_code'] ?? '';
             $term->sort_order = $data['sort_order'] ?? 100;
             $term->is_active = $data['is_active'] ?? 0;
 
-            $term->save();
+            $res = $term->save();
 
             // 儲存多語資料
             if(!empty($data['translations'])){
                 $this->saveRowTranslationData($term, $data['translations']);
             }
 
-            DB::commit();
+            // DB::commit();
 
             // 刪除自定義快取
             $taxonomy_code = $term->taxonomy_code;
@@ -188,12 +188,12 @@ class TermRepository extends Repository
             }
 
             $result['term_id'] = $term->id;
+            
             return $result;
 
         } catch (\Exception $ex) {
-            DB::rollback();
-            return ['error' => $ex->getMessage()];
-
+            // DB::rollback();
+            throw $ex;
         }
 
         return false;

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Helpers\Classes;
 
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -9,51 +10,21 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class OrmHelper
 {
-
     public static function prepare($query, &$params = [])
     {
         self::select($query, $params);
         self::applyFilters($query, $params);
         self::sortOrder($query, $params);
-
     }
-
-    // 選擇本表欄位。不包括關聯欄位。
-    public static function select($query, $params = [], $table = '')
-    {
-        $select = $params['select'] ?? [];
-        
-        if ($query instanceof EloquentBuilder){
-            $model = $query->getModel();
-            $table = $model->getPrefix() . $model->getTable();
-
-            // 無指定 select, 使用預設的列表欄位。
-            if (empty($params['select'])) {
-                if(method_exists($model, 'getDefaultListColumns')){
-                    $query->select($model->getDefaultListColumns());
-                }
-            }
-            // 有指定 select, 判斷是否本表欄位
-            else {
-                $select = array_intersect($select, $model->getTableColumns());
-
-                if (!empty($select)){
-                    $query->select(array_map(function($field) use ($table) {
-                        return "{$table}.{$field}"; //強制加上表名稱避免歧義
-                    }, $select));
-                }
-            }
-        }
-    }
-
-    // 處理欄位條件
+    
+    // 處理查詢欄位
     public static function applyFilters(EloquentBuilder $query, &$params = [])
     {
         $model = $query->getModel();
         $table = $model->getPrefix() . $model->getTable();
         $table_columns = $model->getTableColumns();
 
-        // is_activ
+        // is_active
             // 沒設定 equal_is_active 的時候，預設=1
             if(!isset($params['equal_is_active'])){
                 $params['equal_is_active'] = 1;
@@ -69,17 +40,16 @@ class OrmHelper
             foreach ($params ?? [] as $key => $value) {
                 $column = preg_replace('/^(filter_|equal_)/', '', $key);
 
+                // 查詢本表欄位
+                if (in_array($column, $table_columns) && !in_array($column, $model->translation_keys ?? [])){
+                    self::filterOrEqualColumn($query, $key, $value);
+                }
+
                 // 翻譯欄位另外用 whereHas 
-                if(in_array($column, $model->translation_keys ?? [])){
+                else if(in_array($column, $model->translation_keys ?? [])){
                     $params['whereHas']['translation'][$key] = $params[$key];
                     unset($params[$key]);
                     continue;
-                }
-
-                // 查詢本表欄位
-                else if(in_array($column, $table_columns)){
-                    self::filterColumn($query, $key, $value);
-                    self::equalColumn($query, $key, $value);
                 }
             }
         //
@@ -89,27 +59,32 @@ class OrmHelper
         //
     }
 
-    public static function setWhereHas($query, &$params = [])
+    // 選擇本表欄位。不包括關聯欄位。
+    public static function select($query, $select = [], $table = '')
     {
-        if(!empty($params['whereHas'])){
-            foreach ($params['whereHas'] as $relation_name => $relation) {
-                $query->whereHas($relation_name, function($qry) use ($relation) {
-                    foreach ($relation as $key => $value) {
-                        self::filterColumn($qry, $key, $value);
-                    }
-                });
-            }
+        if (!empty($select)) {
+            $model = $query->getModel();
+            $table = $model->getPrefix() . $model->getTable();
+
+            // 取交集
+            $select = array_intersect($select, $model->getTableColumns());
+
+            $query = $query->select(array_map(function($field) use ($table) {
+                return "{$table}.{$field}";
+            }, $select));
         }
     }
 
-    /**
-     * 前身：setWhereQuery
-     * 這裡的 $query 不能指定 EloquentBuilder $query ，不然查詢語言的時候得到的是關聯，例如 hasOne , 導致 class 不符合而錯誤
-     */
-    public static function filterColumn($query, $key, $value)
+    public static function filterOrEqualColumn($query, $key, $value)
     {
+        $column = preg_replace('/^(filter_|equal_)/', '', $key);
+
+        // 如果沒有指定開頭，一律加上 filter_
+        if (!str_starts_with($key, 'filter_') && !str_starts_with($key, 'equal_')) {
+            $key = 'filter_';
+        }
+
         if (str_starts_with($key, 'filter_')) {
-            $column = preg_replace('/^(filter_|equal_)/', '', $key);
             $value = trim($value);
     
             if(strlen($value) == 0){
@@ -198,54 +173,26 @@ class OrmHelper
                 $query->where($column, 'REGEXP', "$value");
             }
         }
-    }
-
-    public static function equalColumn(EloquentBuilder $query, $key, $value)
-    {
-        if (str_starts_with($key, 'equal_')) {
-            $column = preg_replace('/^(filter_|equal_)/', '', $key);
+        else if (str_starts_with($key, 'equal_')) {
             $value = trim($value);
-
             $query->where($column, $value);
         }
     }
 
-    public static function deleteKeys($rows, $deleteKeys)
+    public static function setWhereHas($query, &$params = [])
     {
-        // 定義刪除鍵的邏輯
-        $mapFunction = function ($row) use ($deleteKeys) {
-            foreach ($deleteKeys as $deleteKey) {
-                if (is_array($row) && array_key_exists($deleteKey, $row)) {
-                    unset($row[$deleteKey]);
-                } elseif (is_object($row) && isset($row->$deleteKey)) {
-                    unset($row->$deleteKey);
-                }
+        if(!empty($params['whereHas'])){
+            foreach ($params['whereHas'] as $relation_name => $relation) {
+                $query->whereHas($relation_name, function($qry) use ($relation) {
+                    foreach ($relation as $key => $value) {
+                        self::filterOrEqualColumn($qry, $key, $value);
+                    }
+                });
             }
-            return $row;
-        };
-    
-        // LengthAwarePaginator 結構
-        if(method_exists($rows, 'get') || !empty($rows->get('path'))){
-            $realRows = $rows->get('data');
-            return $realRows->map($mapFunction);
         }
-
-        // 如果 $rows 是 Collection 或 Eloquent\Collection，使用 map()
-        if ($rows instanceof \Illuminate\Support\Collection || $rows instanceof \Illuminate\Database\Eloquent\Collection) {
-            
-            return $rows->map($mapFunction);
-        }
-    
-        // 如果 $rows 是陣列，使用 array_map()
-        if (is_array($rows)) {
-            return array_map($mapFunction, $rows);
-        }
-    
-        // 如果 $rows 不是 Collection、陣列或 Paginator，直接回傳原值
-        return $rows;
     }
     
-    // 排序。可以使用本表欄位、翻譯欄位
+    // 排序。可以使用本表欄位、關聯欄位
     public static function sortOrder($query, $params)
     {
         $sort = $params['sort'] ?? null;
@@ -341,6 +288,41 @@ class OrmHelper
         }
 
         return $result;
+    }
+    
+    public static function deleteKeys($rows, $deleteKeys)
+    {
+        // 定義刪除鍵的邏輯
+        $mapFunction = function ($row) use ($deleteKeys) {
+            foreach ($deleteKeys as $deleteKey) {
+                if (is_array($row) && array_key_exists($deleteKey, $row)) {
+                    unset($row[$deleteKey]);
+                } elseif (is_object($row) && isset($row->$deleteKey)) {
+                    unset($row->$deleteKey);
+                }
+            }
+            return $row;
+        };
+    
+        // LengthAwarePaginator 結構
+        if(method_exists($rows, 'get') || !empty($rows->get('path'))){
+            $realRows = $rows->get('data');
+            return $realRows->map($mapFunction);
+        }
+
+        // 如果 $rows 是 Collection 或 Eloquent\Collection，使用 map()
+        if ($rows instanceof \Illuminate\Support\Collection || $rows instanceof \Illuminate\Database\Eloquent\Collection) {
+            
+            return $rows->map($mapFunction);
+        }
+    
+        // 如果 $rows 是陣列，使用 array_map()
+        if (is_array($rows)) {
+            return array_map($mapFunction, $rows);
+        }
+    
+        // 如果 $rows 不是 Collection、陣列或 Paginator，直接回傳原值
+        return $rows;
     }
 
     // 顯示 sql 內容並中斷

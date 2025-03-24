@@ -64,7 +64,7 @@ class TermController extends BackendController
         $query_data  = $this->url_data;
 
         // Rows
-        $terms = $this->TermService->getTerms($this->url_data);
+        $terms = $this->TermService->getList($this->url_data);
 
         foreach ($terms as $row) {
             $row->edit_url = route('lang.admin.common.terms.form', array_merge([$row->id], $query_data));

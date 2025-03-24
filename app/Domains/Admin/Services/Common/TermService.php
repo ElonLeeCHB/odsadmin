@@ -6,6 +6,8 @@ use App\Helpers\Classes\DataHelper;
 use App\Services\Service;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Helpers\Classes\OrmHelper;
+use App\Models\Common\Term;
+use App\Models\Common\Taxonomy;
 
 class TermService extends Service
 {
@@ -17,23 +19,20 @@ class TermService extends Service
     }
     
 
-    public function getTerm($data = [], $debug = 0)
+    public function getTerm($data = [])
     {
         $data['with'] = DataHelper::addToArray('parent', $data['with'] ?? []);
         
-        return $this->repository->getTerm($data, $debug);
+        return $this->repository->getTerm($data);
     }
 
 
-    /**
-     * 
-     */
-    public function getTerms($post_data = [], $debug = 0)
+    public function getList($params = [])
     {
-        $query = (new TermRepository)->newMOdel()->query();
-        OrmHelper::prepare($query, $post_data);
-        
-        return OrmHelper::getResult($query, $post_data);
+        $query = Term::query();
+        Term::prepareQuery($query, $params);
+
+        return OrmHelper::getResult($query, $params);
     }
 
 

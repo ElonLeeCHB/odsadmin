@@ -30,12 +30,11 @@ class DataHelper
     public static function unsetArrayIndexRecursively($array, $unset_keys): Array
     {
         foreach ($array as $key => &$value) {
-            if (is_array($value) || is_object($value)) {
-                if (in_array($key, $unset_keys)) {
-                    unset($array[$key]);
-                } else {
-                    $array[$key] = self::unsetArrayIndexRecursively($value, $unset_keys);
-                }
+            if (in_array($key, $unset_keys)){
+                unset($array[$key]);
+            }
+            else if (is_array($value) || is_object($value)) {
+                $array[$key] = self::unsetArrayIndexRecursively($value, $unset_keys);
             }
         }
 

@@ -613,7 +613,13 @@ trait ModelTrait
         }
     // end scope
 
+    public function getMetaKeys()
+    {
+        $array = $this->meta_keys ?? [];
 
+        return array_unique($array);
+    }
+    
     public function getMetaModelName(): string
     {
         $namespace = __NAMESPACE__;
