@@ -119,6 +119,8 @@ class Controller extends BaseController
 
         $error = $data['error'] ?? $data['errors'] ?? $data['warning'] ?? $data['errorWarning'] ?? '';
 
+        $default_error_message = '系統發生問題，請洽管理員。 sendJsonResponse()';
+
         // 有錯誤
         if(!empty($error)){
             if($status_code == 404){
@@ -129,10 +131,10 @@ class Controller extends BaseController
                 
                 // 正式區，不顯示真正除錯訊息
                 if(config('app.env') == 'production'){
-                    $json['error'] = '系統發生問題，請洽管理員。 sendJsonResponse()';
+                    $json['error'] = $default_error_message;
                 }
                 // 非正式區，顯示除錯訊息
-                $json['error'] = $data['error'];
+                $json['error'] = $data['error'] ?? $default_error_message;
             }
             
             $this->logError($data['error']);

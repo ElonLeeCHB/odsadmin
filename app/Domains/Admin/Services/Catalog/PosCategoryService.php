@@ -19,7 +19,15 @@ class PosCategoryService extends Service
     {
         $params['equal_taxonomy_code'] = 'ProductPosCategory';
 
-        return Term::getChainedList($params);
+        $params['pagination'] = false;
+        $params['limit'] = 0;
+        
+        $cache_key = 'cache/' . app()->getLocale() . '/terms/ProductPosCategoryChainedList_' . md5(json_encode($params)) . '.txt';
+
+        return DataHelper::remember($cache_key, 60*60*24, 'serialize', function() use ($params){
+            $rows = Term::getChainedList($params);
+            return DataHelper::toCleanCollection($rows);
+        });
     }
 
     public function getAutocomplete($params)

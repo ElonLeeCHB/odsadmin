@@ -6,6 +6,7 @@ use App\Models\Common\Term;
 use App\Models\Common\TermPath;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\Classes\OrmHelper;
+use App\Helpers\Classes\DataHelper;
 
 class TermObserver
 {
@@ -107,6 +108,10 @@ class TermObserver
                     ['level' => $level] 
                 );
             }
+
+            $cache_key = 'cache/' . app()->getLocale() . '/terms/ProductPosCategoryChainedList';
+
+            DataHelper::deleteDataFromStorage($cache_key);
         //
     }
 
@@ -125,7 +130,7 @@ class TermObserver
             // 複製上層的路徑
             foreach ($parents as $parent) {
                 $parentPaths[] = [
-                    'term_id' => $parent->id,
+                    'term_id' => $term->id,
                     'path_id' => $parent->path_id,
                     'level' => $level,
                 ];

@@ -25,5 +25,4 @@
       </tbody>
     </table>
   </div>
-  {!! $categories->links('admin.pagination.default', ['categories'=>$categories]) !!}
 </form>

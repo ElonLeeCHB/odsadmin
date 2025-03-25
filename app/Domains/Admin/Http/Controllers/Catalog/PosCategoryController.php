@@ -73,7 +73,7 @@ class PosCategoryController extends BackendController
             }
         }
 
-        $data['categories'] = $categories->withPath(route('lang.admin.catalog.poscategories.list'))->appends($query_data);
+        $data['categories'] = $categories;
 
         
         // Prepare links for list table's header

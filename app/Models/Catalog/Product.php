@@ -9,6 +9,7 @@ use App\Models\Common\Term;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductUnit;
 use App\Models\Catalog\ProductMeta;
+use App\Models\Catalog\ProductTerm;
 use App\Models\Inventory\Unit;
 use App\Models\Inventory\Bom;
 use App\Models\Inventory\BomProduct;
@@ -49,13 +50,23 @@ class Product extends Model
     }
 
 
-    //名稱太籠統，以後不用。
+    //主分類這個名稱太籠統，以後不用。
     public function main_category()
     {
         return $this->belongsTo(Term::class, 'main_category_id', 'id');
     }
 
-    public function ProductTags()
+    public function productTerms()
+    {
+        return $this->hasMany(ProductTerm::class, 'product_id', 'id');
+    }
+
+    public function terms()
+    {
+        return $this->belongsToMany(Term::class, 'product_terms', 'product_id', 'term_id');
+    }
+
+    public function productTags()
     {
         return $this->hasMany(ProductTerm::class, 'product_id', 'id')->where('taxonomy_id', 31);
     }

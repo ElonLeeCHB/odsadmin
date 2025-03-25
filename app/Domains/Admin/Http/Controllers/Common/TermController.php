@@ -185,47 +185,44 @@ class TermController extends BackendController
 
     public function save()
     {
-        $data = $this->request->all();
-
-        $json = [];
-
-        foreach ($data['translations'] as $locale => $translation) {
-            if(empty($translation['name']) || mb_strlen($translation['name']) < 2){
-                $json['error']['name-' . $locale] = '請輸入名稱 2-20 個字';
+        try {
+            $data = $this->request->all();
+    
+            $json = [];
+    
+            foreach ($data['translations'] as $locale => $translation) {
+                if(empty($translation['name']) || mb_strlen($translation['name']) < 2){
+                    $json['error']['name-' . $locale] = '請輸入名稱 2-20 個字';
+                }
+            }        
+    
+            if(empty($data['taxonomy_code']) || mb_strlen($data['taxonomy_code']) < 2){
+                $json['error']['taxonomy_name'] = '請輸入分類性質';
             }
-        }        
+    
+            // 檢查欄位
+            // do something        
+            if(isset($json['error']) && !isset($json['error']['warning'])) {
+                $json['error']['warning'] = $this->lang->error_warning;
+            }
+    
+            if(!$json) {
+                $result = $this->TermService->saveTerm($data);
 
-        if(empty($data['taxonomy_code']) || mb_strlen($data['taxonomy_code']) < 2){
-            $json['error']['taxonomy_name'] = '請輸入分類性質';
-        }
-
-        // 檢查欄位
-        // do something        
-        if(isset($json['error']) && !isset($json['error']['warning'])) {
-            $json['error']['warning'] = $this->lang->error_warning;
-        }
-
-        if(!$json) {
-            $result = $this->TermService->saveTerm($data);
-
-            if(empty($result['error']) && !empty($result['term_id'])){
                 $json = [
-                    'term_id' => $result['term_id'],
                     'success' => $this->lang->text_success,
+                    'term_id' => $result['term_id'],
                     'redirectUrl' => route('lang.admin.common.terms.form', $result['term_id']),
                 ];
-            }else{
-                if(config('app.debug')){
-                    $json['error'] = $result['error'];
-                }else{
-                    $json['error'] = $this->lang->text_fail;
-                }
+
+                return response()->json($json, 200);
             }
+
+            return response()->json($json, 400);
+
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
         }
-
-       return response(json_encode($json))->header('Content-Type','application/json');
-
-
     }
 
     public function autocomplete()

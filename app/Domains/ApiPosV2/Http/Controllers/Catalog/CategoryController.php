@@ -15,40 +15,17 @@ class CategoryController extends ApiPosController
 
     public function menu()
     {
-        $categories = $this->CategoryService->getCategories(0);
-
-        foreach ($categories as $category) {
-            // Level 2
-            $children_data = [];
-
-            $children = $this->CategoryService->getCategories($category->id);
-
-            foreach ($children as $child) {
-                $children_data[$child->id] = [
-                    'category_id'     => $child->id,
-                    'name'  => $child->name,
-                ];
-            }
-
-            // Level 1
-            $data['categories'][$category->id] = [
-                'category_id'     => $category->id,
-                'name'     => $category->name,
-                'children' => $children_data,
-            ];
+        try {
+            $result = $this->CategoryService->getMenu();
+    
+            $data['categories'] = $result['categories'];
+            $data['products'] = $result['products'];
+    
+            return $this->sendJsonResponse($data);
+            
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
         }
-
-        // product tags
-
-        // products
-        $products = $this->CategoryService->getAllSalableProducts();
-
-
-
-        echo "<pre>",print_r($products, true),"</pre>\r\n";exit;
-        $categories = $this->CategoryService->unsetRelations($categories, ['translation', 'taxonomy']);
-
-        return response(json_encode($categories))->header('Content-Type','application/json');
     }
 
 

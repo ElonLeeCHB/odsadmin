@@ -8,6 +8,7 @@ use App\Repositories\Eloquent\Common\TermRepository;
 use App\Helpers\Classes\OrmHelper;
 use App\Models\Common\Term;
 use App\Models\Common\Taxonomy;
+use Illuminate\Support\Facades\DB;
 
 class TermService extends Service
 {
@@ -15,7 +16,7 @@ class TermService extends Service
 
     public function __construct(TermRepository $TermRepository)
     {
-        $this->repository = $TermRepository;
+        // $this->repository = $TermRepository;
     }
     
 
@@ -23,7 +24,7 @@ class TermService extends Service
     {
         $data['with'] = DataHelper::addToArray('parent', $data['with'] ?? []);
         
-        return $this->repository->getTerm($data);
+        return (new TermRepository)->getTerm($data);
     }
 
 
@@ -43,12 +44,24 @@ class TermService extends Service
 
     public function saveTerm($data = [], $debug = 0)
     {
-        return $this->repository->saveTerm($data, $debug);
+        try {
+            DB::beginTransaction();
+
+            $result = (new TermRepository)->saveTerm($data, $debug);
+
+            DB::commit();
+
+            return $result;
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+            throw $th;
+        }
     }
 
     
     public function deleteTerm($term_id)
     {
-        return $this->repository->delete($term_id);
+        return (new TermRepository)->deleteTerm($term_id);
     }
 }

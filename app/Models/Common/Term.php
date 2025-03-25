@@ -179,7 +179,7 @@ class Term extends Model
 		if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
             $query->orderBy($data['sort'], $order);
 		} else {
-            $query->orderBy('sort_order', $order);
+            $query->orderBy('name', 'ASC');
 		}
 
         return OrmHelper::getResult($query, $data);

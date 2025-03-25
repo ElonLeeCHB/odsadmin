@@ -79,6 +79,4 @@ class BackendController extends Controller
 
         return response()->json($json, $status_code);
     }
-
-
 }
