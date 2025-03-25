@@ -5,10 +5,7 @@ namespace App\Domains\ApiWwwV2\Services\Catalog;
 use App\Helpers\Classes\DataHelper;
 use App\Helpers\Classes\OrmHelper;
 use App\Services\Service;
-use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Traits\Model\EloquentTrait;
-use App\Helpers\Classes\RowsArrayHelper;
-use App\Models\Catalog\ProductTag;
 use App\Models\Catalog\Product;
 
 class ProductService extends Service

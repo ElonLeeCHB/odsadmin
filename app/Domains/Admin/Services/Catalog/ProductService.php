@@ -14,7 +14,6 @@ use App\Models\Catalog\ProductMeta;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
 use App\Models\Catalog\ProductTerm;
-use App\Models\Catalog\ProductTag;
 use App\Models\Common\Term;
 use App\Helpers\Classes\OrmHelper;
 
@@ -180,7 +179,7 @@ class ProductService extends Service
 
             // ProductTag
             // taxonomy_id 31 = 餐點屬性
-            ProductTag::where('taxonomy_id', 31)->where('product_id', $product->id)->delete();
+            ProductTerm::where('taxonomy_id', 31)->where('product_id', $product->id)->delete();
 
             foreach ($data['product_tag'] ?? [] as $term_id) {
                 $insert_data[] = [
@@ -190,7 +189,7 @@ class ProductService extends Service
                 ];
             }
             if(!empty($insert_data)){
-                ProductTag::insert($insert_data);
+                ProductTerm::insert($insert_data);
             }
 
             // ProductPosCategory
@@ -282,13 +281,6 @@ class ProductService extends Service
 
         return $result;
     }
-
-	public function getCategory(int $category_id): array {
-		$query = $this->db->query("SELECT DISTINCT *, (SELECT GROUP_CONCAT(cd1.`name` ORDER BY `level` SEPARATOR ' > ') FROM `" . DB_PREFIX . "category_path` cp LEFT JOIN `" . DB_PREFIX . "category_description` cd1 ON (cp.`path_id` = cd1.`category_id` AND cp.`category_id` != cp.`path_id`) WHERE cp.`category_id` = c.`category_id` AND cd1.`language_id` = '" . (int)$this->config->get('config_language_id') . "' GROUP BY cp.`category_id`) AS `path` FROM `" . DB_PREFIX . "category` c LEFT JOIN `" . DB_PREFIX . "category_description` cd2 ON (c.`category_id` = cd2.`category_id`) WHERE c.`category_id` = '" . (int)$category_id . "' AND cd2.`language_id` = '" . (int)$this->config->get('config_language_id') . "'");
-
-		return $query->row;
-	}
-
 
 
 }

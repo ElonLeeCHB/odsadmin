@@ -7,7 +7,7 @@ use App\Helpers\Classes\DataHelper;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderDateLimit;
 use App\Models\Sale\TimeSlotLimit;
-use App\Models\Catalog\ProductTag;
+use App\Models\Catalog\ProductTerm;
 use App\Models\Setting\Setting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -377,7 +377,7 @@ class OrderDateLimitRepository extends Repository
 
         $product_ids = $order->orderProducts->pluck('product_id');
         
-        $product_ids_in_1331 = ProductTag::where('term_id', 1331)->whereIn('product_id', $product_ids)->pluck('product_id')->toArray();
+        $product_ids_in_1331 = ProductTerm::where('term_id', 1331)->whereIn('product_id', $product_ids)->pluck('product_id')->toArray();
 
         $quantity = 0;
 

@@ -7,7 +7,6 @@ use App\Services\Service;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Traits\Model\EloquentTrait;
 use App\Models\Catalog\Product;
-use App\Models\Catalog\ProductTag;
 use App\Models\Common\TermTranslation;
 
 class ProductService extends Service

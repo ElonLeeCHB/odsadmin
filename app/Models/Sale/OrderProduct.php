@@ -8,7 +8,7 @@ use App\Models\Catalog\ProductTranslation;
 use App\Models\Catalog\ProductOption;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderProductOption;
-use App\Models\Catalog\ProductTag;
+use App\Models\Catalog\ProductTerm;
 use App\Models\Catalog\Option;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Traits\Model\ModelTrait;
@@ -42,7 +42,7 @@ class OrderProduct extends Model
 
     public function productTags()
     {
-        return $this->hasMany(ProductTag::class, 'product_id', 'product_id');
+        return $this->hasMany(ProductTerm::class, 'product_id', 'product_id')->where('taxonomy_id', 31);
     }
 
     public function order_product_options()

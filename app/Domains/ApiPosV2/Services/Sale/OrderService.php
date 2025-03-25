@@ -9,7 +9,6 @@ use App\Traits\Model\EloquentTrait;
 use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
-use App\Models\Catalog\ProductTag;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderTotal;
 use App\Helpers\Classes\OrmHelper;

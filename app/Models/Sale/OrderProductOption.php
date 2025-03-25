@@ -7,7 +7,7 @@ use App\Models\Sale\OrderProduct;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductOptionValue;
 use App\Models\Catalog\ProductOption;
-use App\Models\Catalog\ProductTag;
+use App\Models\Catalog\ProductTerm;
 use App\Models\Catalog\Option;
 use App\Models\Common\Term;
 use App\Models\Catalog\OptionValue;
@@ -73,7 +73,7 @@ ProductOptionValue
     {
         return $this->hasManyThrough(
             Term::class,          // 最終目標模型（Term）
-            ProductTag::class,    // 中介模型（ProductTag）
+            ProductTerm::class,    // 中介模型（ProductTag）
             'product_id',         // ProductTag 表中的外鍵 (指向 map_product_id)
             'id',                 // Term 表中的本地鍵
             'map_product_id',     // OrderProductOption 表中的本地鍵 (指向 ProductTag 的 product_id)

@@ -57,7 +57,7 @@ class Product extends Model
 
     public function ProductTags()
     {
-        return $this->hasMany(ProductTag::class, 'product_id', 'id');
+        return $this->hasMany(ProductTerm::class, 'product_id', 'id')->where('taxonomy_id', 31);
     }
 
     public function bom()
