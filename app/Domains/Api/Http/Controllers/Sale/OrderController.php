@@ -119,7 +119,7 @@ class OrderController extends ApiController
                 $json['error']['mobile'] = $this->lang->error_phone;
                 $json['error']['telephone'] = $this->lang->error_phone;
             }
-
+            
             // Validate
             //驗證表單內容
             //表單驗證成功

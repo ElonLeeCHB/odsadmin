@@ -27,18 +27,22 @@ class DataHelper
     /**
      * 遞迴刪除陣列裡的指定元素
      */
-    public static function unsetArrayIndexRecursively($array, $unset_keys): Array
+    public static function unsetArrayIndexRecursively($input, $unset_keys)
     {
-        foreach ($array as $key => &$value) {
+        foreach ($input as $key => &$value) {
             if (in_array($key, $unset_keys)){
-                unset($array[$key]);
+                if(is_array($input)){
+                    unset($input[$key]);
+                } else if (is_object($input)){
+                    unset($input->{$key});
+                }
             }
             else if (is_array($value) || is_object($value)) {
-                $array[$key] = self::unsetArrayIndexRecursively($value, $unset_keys);
+                $input[$key] = self::unsetArrayIndexRecursively($value, $unset_keys);
             }
         }
 
-        return $array;
+        return $input;
     }
 
 
@@ -309,69 +313,6 @@ class DataHelper
         }
 
         return $data;
-    }
-
-
-    // public static function removeIndexesRecursive($indexes, $input)
-    // {
-    //     // 判断输入是数组还是对象
-    //     if (is_array($input)) {
-    //         foreach ($input as $key => &$value) {
-    //                 if (is_array($value) || is_object($value)) {
-    //                 $value = self::removeIndexesRecursive($indexes, $value);
-    //             }
-
-    //             if (in_array($key, $indexes)) {
-    //                 unset($input[$key]);
-    //             }
-    //         }
-    //     } elseif (is_object($input)) {
-    //         $properties = get_object_vars($input);
-    
-    //         foreach ($properties as $key => $value) {
-    
-    //             if (is_object($value)) {
-    //                 $input->$key = self::removeIndexesRecursive($indexes, $value);
-    //             }
-
-    //             if (in_array($key, $indexes)) {
-    //                 unset($input->$key);
-    //             }
-    //         }
-    //     }
-    
-    //     return $input;
-    // }
-
-    public static function removeIndexesRecursive($indexes, $input)
-    {
-        // 如果是陣列
-        if (is_array($input)) {
-            foreach ($input as $key => &$value) {
-                if (is_array($value) || is_object($value)) {
-                    $value = self::removeIndexesRecursive($indexes, $value);
-                }
-                if (in_array($key, $indexes, true)) {
-                    unset($input[$key]);
-                }
-            }
-        }
-        // 如果是物件
-        elseif (is_object($input)) {
-            foreach ($indexes as $index) {
-                if (property_exists($input, $index)) {
-                    unset($input->$index);
-                }
-            }
-    
-            foreach ($input as $key => &$value) {
-                if (is_array($value) || is_object($value)) {
-                    $value = self::removeIndexesRecursive($indexes, $value);
-                }
-            }
-        }
-    
-        return $input;
     }
     
 

@@ -84,6 +84,17 @@
                   </div>
                 </div>
                 
+                {{-- sort_order --}}
+                <div class="row mb-3">
+                  <label for="input-sort_order" class="col-sm-2 col-form-label">排序</label>
+                  <div class="col-sm-10">
+                    <div class="input-group">
+                      <input type="text" id="input-sort_order" name="sort_order" value="{{ $poscategory->sort_order }}" class="form-control">
+                    </div>
+                    <div id="error-sort_order" class="invalid-feedback"></div>
+                  </div>
+                </div>
+                
                 {{-- comment --}}
                 <div class="row mb-3">
                   <label for="input-comment" class="col-sm-2 col-form-label">備註</label>

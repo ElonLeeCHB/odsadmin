@@ -195,23 +195,24 @@ class ProductService extends Service
 
             // ProductPosCategory
                 $taxonomy_id = Taxonomy::select('id')->where('code', 'ProductPosCategory')->value('id');
-                
-                if (!empty($taxonomy_id)) {
+                ProductTerm::where('product_id', $product->id)->where('taxonomy_id', $taxonomy_id)->delete();
 
-                    ProductTerm::where('product_id', $product->id)->where('taxonomy_id', $taxonomy_id)->delete();
+                if(!empty($data['product_pos_category'])){
+                    if (!empty($taxonomy_id)) {
+        
+                        $insert_data = [];
+        
+                        foreach ($data['product_pos_category'] as $term_id) {
+                            $insert_data[] = [
+                                'product_id' => $product->id,
+                                'term_id' => $term_id,
+                                'taxonomy_id' => $taxonomy_id,
+                            ];
+                        }
     
-                    $insert_data = [];
-    
-                    foreach ($data['product_pos_category'] as $term_id) {
-                        $insert_data[] = [
-                            'product_id' => $product->id,
-                            'term_id' => $term_id,
-                            'taxonomy_id' => $taxonomy_id,
-                        ];
-                    }
-
-                    if(!empty($insert_data)){
-                        ProductTerm::insert($insert_data);
+                        if(!empty($insert_data)){
+                            ProductTerm::insert($insert_data);
+                        }
                     }
                 }
             //

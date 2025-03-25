@@ -39,7 +39,7 @@ Route::group([
             'as' => 'catalog.',
         ], function ()
         {
-            // Route::get('category/list', 'Catalog\CategoryController@list')->name('category.list');
+            Route::get('categories/menu', 'Catalog\CategoryController@menu')->name('category.menu');
             // Route::get('category/info/{category_id}', 'Catalog\CategoryController@info')->name('category.info');
     
             Route::get('products/list', 'Catalog\ProductController@list')->name('product.list');

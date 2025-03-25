@@ -134,19 +134,6 @@
                   </div>
                 </div>
 
-                {{-- main_category --}}
-                <div class="row mb-3">
-                  <label class="col-sm-2 col-form-label">{{ $lang->column_main_category }}</label>
-                  <div class="col-sm-10">
-                    <div class="input-group">
-                      <input type="text" name="main_category" value="{{ $product->main_category->translation->name ?? ''}}" placeholder="{{ $lang->column_main_category }}" id="input-main_category" data-oc-target="autocomplete-main_category_id" class="form-control" autocomplete="off"/>
-                    </div>
-                    <input type="hidden" name="main_category_id" value="{{ $product->main_category_id }}" id="input-main_category_id"/>
-                    <ul id="autocomplete-main_category_id" class="dropdown-menu"></ul>
-                    <div class="form-text">{{ $lang->help_main_category }}</div>
-                  </div>
-                </div>
-
                 <div class="row mb-3">
                   <label class="col-sm-2 col-form-label">POS 分類</label>
                   <div class="col-sm-10">

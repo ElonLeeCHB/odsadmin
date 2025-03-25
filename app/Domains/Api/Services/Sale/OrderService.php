@@ -171,22 +171,15 @@ class OrderService extends GlobalOrderService
                 foreach ($data['order_products'] as $key => $fm_order_product) {
                     $product_id = $fm_order_product['product_id'];
 
-                    $options_total = 0;
-                    if(!empty($fm_order_product['options_total'])){
-                        $options_total = str_replace(',', '', $fm_order_product['options_total']);
-                    }
+                    $quantity = str_replace(',', '', $fm_order_product['quantity']);
+                    $options_total = str_replace(',', '', $fm_order_product['options_total']) ?? 0;
+                    $final_total = str_replace(',', '', $fm_order_product['final_total']) ?? 0;
 
-                    $final_total = 0;
-                    if(!empty($fm_order_product['final_total'])){
-                        $final_total = str_replace(',', '', $fm_order_product['final_total']);
+                    $price = (float) str_replace(',', '', $fm_order_product['price']) ?? 0;
+                    if(empty($price)){
+                        $price = $final_total / $quantity;
                     }
-
-                    //riceBox 已在後台改為 oilRiceBox，但是儲存後仍然是 riceBox， 前端可能寫死 riceBox。重新強制改寫
-                    if($fm_order_product['main_category_code']  == 'riceBox'){
-                        $fm_order_product['main_category_code'] = 'oilRiceBox';
-                    }
-                    //
-
+                    
                     $update_order_product = [
                         'id' => $fm_order_product['order_product_id'] ?? null,
                         'order_id' => $order->id,
@@ -195,13 +188,12 @@ class OrderService extends GlobalOrderService
                         'name' => $product_translations[$product_id],
                         'model' => $fm_order_product['model'] ?? '',
                         'quantity' => str_replace(',', '', $fm_order_product['quantity']),
-                        'price' => str_replace(',', '', $fm_order_product['price']),
+                        'price' => $price,
                         'total' => str_replace(',', '', $fm_order_product['total']),
                         'options_total' => $options_total,
                         'final_total' => $final_total,
                         'comment' => $fm_order_product['comment'] ?? '',
-                        'sort_order' => $fm_order_product['sort_order'], //此時 sort_order 必定是從1遞增
-                        //'sort_order' => $sort_order,
+                        'sort_order' => $fm_order_product['sort_order'], //此時 sort_order 已處理過，必定是從1遞增
                     ];
 
                     if(!empty($order_product['order_product_id'])){
