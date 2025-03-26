@@ -59,7 +59,7 @@ class OrderService extends Service
     public function store($data)
     {
         try {
-            DB::beginTransaction(); //異動需要交易
+            // DB::beginTransaction(); //異動需要交易
 
             // order
             $order = (new OrderRepository)->create($data);
@@ -79,14 +79,14 @@ class OrderService extends Service
                     $db_products[$key] = $db_product->toArray();
                 }
 
-                $db_products = DataHelper::removeIndexesRecursive(['translation','option'], $db_products);
+                $db_products = DataHelper::unsetArrayIndexRecursively($db_products, ['translation','option']);
             //
 
             // order_products
-                foreach ($data['order_products'] as &$order_product) {
+                foreach ($data['order_products'] as $key => $order_product) {
                     $order_product['name'] = $db_products[$product_id]['name'];
-                    unset($order_product['id']);
-                    unset($order_product['order_product_id']);
+                    unset($data['order_products']['id']);
+                    unset($data['order_products']['order_product_id']);
                 }
 
                 // 強制以 sort_order 排序並做為索引。執行後必定是不重複的自然數。
@@ -95,18 +95,20 @@ class OrderService extends Service
                 (new OrderProductRepository)->createMany($data['order_products'], $order->id);
             // end order_products
 
-            // order_product_optionss
+            // order_product_options
+                $refill_option_ids = [1005,1007];
+
                 //重新讀取更新後的訂單商品
-                $order->load(['orderProducts:id,order_id,sort_order,product_id']);
+                $order->load(['orderProducts:id,order_id,sort_order,product_id,name']);
                 $dbOrderProducts = $order->orderProducts->keyBy('sort_order');
 
                 foreach ($data['order_products'] ?? [] as $sort_order => $fm_order_product) {
                     $product_id = $fm_order_product['product_id'];
                     $order_product_id = $dbOrderProducts[$sort_order]->id;
 
-                    // 刪除所有配菜 option_id=1005
+                    // 刪除所有配菜 option_id 1005=配菜, 1007=副主餐
                     foreach ($fm_order_product['order_product_options'] as $key => $fm_order_product_option) {
-                        if(isset($fm_order_product_option['option_id']) && ($fm_order_product_option['option_id'] == 1005 || $fm_order_product_option['option_id'] == 1007)){
+                        if(isset($fm_order_product_option['option_id']) && in_array($fm_order_product_option['option_id'], $refill_option_ids)){
                             unset($fm_order_product['order_product_options'][$key]);
                         }
                     }
@@ -114,17 +116,20 @@ class OrderService extends Service
                     // 將當前商品基本資料的選項加進去
                     if(!empty($db_products[$product_id]['product_options'])){
                         foreach ($db_products[$product_id]['product_options'] as $db_product_option) {
-                            foreach ($db_product_option['product_option_values'] as $db_product_option_value) {
-                                $fm_order_product['order_product_options'][] = [
-                                    'product_option_id' => $db_product_option_value['product_option_id'],
-                                    'product_option_value_id' => $db_product_option_value['id'],
-                                    'option_value_id' => $db_product_option_value['option_value_id'],
-                                    'name' => $db_product_option['name'],
-                                    'value' => $db_product_option_value['name'],
-                                    'quantity' => $fm_order_product['quantity']*$db_product_option_value['default_quantity'],
-                                    'map_product_id' => $db_product_option_value['option_value']['product_id'],
-                                    'type' => $db_product_option['type'],
-                                ];
+                            if (in_array($db_product_option['option_id'],$refill_option_ids)){
+                                foreach ($db_product_option['product_option_values'] as $db_product_option_value) {
+                                    $fm_order_product['order_product_options'][] = [
+                                        'product_option_id' => $db_product_option_value['product_option_id'],
+                                        'product_option_value_id' => $db_product_option_value['id'],
+                                        'option_id' => $db_product_option['option_id'],
+                                        'option_value_id' => $db_product_option_value['option_value_id'],
+                                        'name' => $db_product_option['name'],
+                                        'value' => $db_product_option_value['name'],
+                                        'quantity' => $fm_order_product['quantity']*$db_product_option_value['default_quantity'],
+                                        'map_product_id' => $db_product_option_value['option_value']['product_id'],
+                                        'type' => $db_product_option['type'],
+                                    ];
+                                }
                             }
                         }
                     }
@@ -191,12 +196,12 @@ class OrderService extends Service
                 }
             //
 
-            DB::commit();
+            // DB::commit();
 
             return $order;
 
         } catch (\Throwable $th) {
-            DB::rollback();
+            // DB::rollback();
             throw $th;
         }
     }

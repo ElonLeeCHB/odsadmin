@@ -15,7 +15,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('schedule:backup-database')->at('23:30');
+        $schedule->command('clear:cache')->monthlyOn(1, '00:30');
     }
 
     /**
@@ -24,7 +24,5 @@ class Kernel extends ConsoleKernel
     protected function commands(): void
     {
         $this->load(__DIR__.'/Commands');
-
-        // require base_path('routes/console.php');
     }
 }

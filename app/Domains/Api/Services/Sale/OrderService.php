@@ -190,7 +190,7 @@ class OrderService extends GlobalOrderService
                         'quantity' => str_replace(',', '', $fm_order_product['quantity']),
                         'price' => $price,
                         'total' => str_replace(',', '', $fm_order_product['total']),
-                        'options_total' => $options_total,
+                        'options_total' => $options_total ?? 0,
                         'final_total' => $final_total,
                         'comment' => $fm_order_product['comment'] ?? '',
                         'sort_order' => $fm_order_product['sort_order'], //此時 sort_order 已處理過，必定是從1遞增

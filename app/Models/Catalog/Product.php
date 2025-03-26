@@ -320,8 +320,8 @@ class Product extends Model
                             ->with('option');
                     }])
                     ->with('translation');
-                // DataHelper::showSqlContent($builder);
-                return $builder->first();
+
+                    return $builder->first();
             });
         }
     //

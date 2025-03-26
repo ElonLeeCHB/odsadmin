@@ -41,8 +41,13 @@
 }
 </style>
 
-
-
+套餐數:{{ $statics['info']['total_package'] ?? 0 }}; &nbsp;
+盒餐:{{ $statics['info']['total_lunchbox'] ?? 0 }}; &nbsp;
+便當:{{ $statics['info']['total_bento'] ?? 0 }}; &nbsp;
+油飯盒:{{ $statics['info']['total_oilRiceBox'] ?? 0 }}; &nbsp; 
+3吋潤餅:{{ $statics['info']['total_3inlumpia'] ?? 0 }}; &nbsp;
+小刈包:{{ $statics['info']['total_small_guabao'] ?? 0 }}; &nbsp;
+大刈包:{{ $statics['info']['total_big_guabao'] ?? 0 }};  
 <div class="table-responsive text-end mx-auto" >
   <table class="table table-bordered table-hover mx-auto">
     <tbody id="tbody_body_records">
@@ -50,8 +55,8 @@
         <td colspan="2">全日</td>
         @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
         <td style="width:31px;">
-          @if(!empty($requisitions['allDay']))
-          @foreach($requisitions['allDay'] as $material_product_id => $record)
+          @if(!empty($statics['allDay']))
+          @foreach($statics['allDay'] as $material_product_id => $record)
             @if($saleable_product_material_id == $material_product_id)
               {{ $record['quantity'] }}
             @endif
@@ -64,8 +69,8 @@
         <td colspan="2">上午</td>
         @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
         <td>
-          @if(!empty($requisitions['am']))
-          @foreach($requisitions['am'] as $material_product_id => $record)
+          @if(!empty($statics['am']))
+          @foreach($statics['am'] as $material_product_id => $record)
             @if($saleable_product_material_id == $material_product_id)
               {{ $record['quantity'] }}
             @endif
@@ -78,8 +83,8 @@
         <td colspan="2">下午</td>
         @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
         <td>
-          @if(!empty($requisitions['pm']))
-          @foreach($requisitions['pm'] as $material_product_id => $record)
+          @if(!empty($statics['pm']))
+          @foreach($statics['pm'] as $material_product_id => $record)
             @if($saleable_product_material_id == $material_product_id)
               {{ $record['quantity'] }}
             @endif
@@ -89,8 +94,7 @@
         @endforeach
       </tr>
       <tr style="border-bottom: 2px solid black;">
-        <td class="text-start">時間</td>
-        <td class="text-start">訂單編號<BR>末4碼</td>
+        <td class="text-start" colspan="2">時間</td>
         @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
           <?php
           $characters = mb_str_split($saleable_product_material_name);
@@ -102,9 +106,9 @@
         @endforeach
       </tr>
 
-      @if(!empty($requisitions['orders']))
+      @if(!empty($statics['orders']))
         <?php $flag = 0; ?>
-        @foreach($requisitions['orders'] as $details_key => $order)
+        @foreach($statics['orders'] as $details_key => $order)
 
           @php
             $required_date_hi = \Carbon\Carbon::parse($order['required_date'])->format('H:i');

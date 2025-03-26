@@ -65,7 +65,7 @@ class RequisitionController extends BackendController
         $data['list_url'] = route('lang.admin.sale.requisitions.list');
 
         $required_date_2ymd = parseDateStringTo6d(date('Y-m-d'));
-        $data['add_url'] = route('lang.admin.sale.requisitions.form', $required_date_2ymd);
+        $data['add_url'] = route('lang.admin.sale.requisitions.form');
 
         $data['export_daily_list_url'] = route('lang.admin.sale.requisitions.exportDailyList');
         $data['export_matrix_list_url'] = route('lang.admin.sale.requisitions.exportMatrixList');
@@ -137,82 +137,70 @@ class RequisitionController extends BackendController
 
     public function form($required_date_string = null)
     {
-        // parseDate
-        if(!empty($required_date_string)){
-            $required_date = parseDate($required_date_string);
+        try {
+            $this->lang->text_form = empty($required_date) ? $this->lang->text_add : $this->lang->text_edit;
+            $data['lang'] = $this->lang;
 
-            if($required_date == false){
-                return redirect(route('lang.admin.sale.requisitions.form'))->with("warning", "日期格式錯誤");
+            // Breadcomb
+                $breadcumbs[] = (object)[
+                    'text' => $this->lang->text_home,
+                    'href' => route('lang.admin.dashboard'),
+                ];
+    
+                $breadcumbs[] = (object)[
+                    'text' => $this->lang->text_sale,
+                    'href' => 'javascript:void(0)',
+                    'cursor' => 'default',
+                ];
+    
+                $breadcumbs[] = (object)[
+                    'text' => $this->lang->heading_title,
+                    'href' => route('lang.admin.member.members.index'),
+                ];
+    
+                $data['breadcumbs'] = (object)$breadcumbs;
+    
+            // End Breadcomb
+
+            // Prepare links
+            $data['back_url'] = route('lang.admin.sale.requisitions.index');
+            $data['calc_url'] = '';
+            $data['load_url'] = '';
+            
+            // parseDate
+            if(!empty($required_date_string)){
+                $required_date = parseDate($required_date_string);
+
+                if(empty($required_date)){
+                    return $this->sendJsonResponse([], 400, '日期格式錯誤');
+                }
+
+                $required_date_2ymd = parseDateStringTo6d($required_date);
+                
+                $data['required_date'] = $required_date;
+                
+                $data['statics'] = $this->RequisitionService->getOrderIngredients($required_date, request()->force);
+
+                $data['statics']['required_date'] = $required_date;
+        
+                $data['calc_url'] = route('lang.admin.sale.requisitions.calcRequisitionsByDate',['required_date' => $required_date_2ymd]);
+                $data['printForm'] = route('lang.admin.sale.requisitions.printForm',$required_date);
+        
+                $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
+            } else {
+                $data['statics'] = [];
             }
+
+            $data['printForm'] = route('lang.admin.sale.requisitions.printForm', $required_date ?? '');
+
+            
+            return view('admin.sale.requisition_form', $data);
+
+
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
         }
 
-        if(empty($required_date)){
-            $required_date = date('Y-m-d');
-        }
-
-        $required_date_2ymd = parseDateStringTo6d($required_date);
-
-        $data['required_date'] = $required_date;
-
-        $data['lang'] = $this->lang;
-
-        $this->lang->text_form = empty($required_date) ? $this->lang->text_add : $this->lang->text_edit;
-
-        // Breadcomb
-            $breadcumbs[] = (object)[
-                'text' => $this->lang->text_home,
-                'href' => route('lang.admin.dashboard'),
-            ];
-
-            $breadcumbs[] = (object)[
-                'text' => $this->lang->text_sale,
-                'href' => 'javascript:void(0)',
-                'cursor' => 'default',
-            ];
-
-            $breadcumbs[] = (object)[
-                'text' => $this->lang->heading_title,
-                'href' => route('lang.admin.member.members.index'),
-            ];
-
-            $data['breadcumbs'] = (object)$breadcumbs;
-
-        // End Breadcomb
-
-
-        // Prepare link for save, back
-        $data['save_url'] = route('lang.admin.sale.requisitions.save');
-        $data['back_url'] = route('lang.admin.sale.requisitions.index');
-        $data['calc_url'] = '';
-
-        $data['statics'] = $this->RequisitionService->getOrderIngredients($required_date, request()->force);
-
-        if(!empty($data['statics']['error'])){
-            $data['error']['warning'] = $data['statics']['error'];
-
-        }
-
-        $data['statics']['required_date'] = $required_date;
-
-        $data['calc_url'] = route('lang.admin.sale.requisitions.calcRequisitionsByDate',['required_date' => $required_date_2ymd]);
-        $data['printForm'] = route('lang.admin.sale.requisitions.printForm',$required_date);
-
-        $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
-
-
-
-        // $Burrito = $this->getRequisitionBurrito($required_date);
-        // $Burrito['morning_total'] = intval($Burrito['morning_total']);
-        // $Burrito['afternoon_total'] = intval($Burrito['afternoon_total']);
-        // $Burrito['total'] = intval($Burrito['total']);
-
-        // $data['total'] = $Burrito;
-        $data['printForm'] = route('lang.admin.sale.requisitions.printForm');
-        // $data['requisitions']  = $requisitions ?? [];
-        // $data['sales_saleable_product_ingredients'] = '';
-        // $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
-
-        return view('admin.sale.requisition_form', $data);
     }
 
     public function getRequisitionBurrito($date){
@@ -260,35 +248,40 @@ class RequisitionController extends BackendController
      */
     public function calcRequisitionsByDate($required_date)
     {
-        $diff_days = DateHelper::parseDiffDays($required_date, date('Y-m-d H:i:s'));
-
-        //再重新整理。因故不執行的時候，用彈出式提醒，不要影響當前畫面。
-        // $n = -30; //負數表示過去
-
-        // if(is_numeric($diff_days) && $diff_days < $n){
-        //     if(auth()->user()->username !== 'admin'){
-        //         $msg = ['error' => '超過'.abs($n).'天，禁止執行！'];
-        //         return response(json_encode($msg))->header('Content-Type','application/json');
-        //     }
-        // }
-
-        $this->RequisitionService->getOrderIngredients($required_date);
-        $this->setCacheFromIngredientTable($required_date);
-
-        /**
-         * 2024-10-30 Elon: 下面這個可能是？我2023年用於給上暉看的料件需求？
-         */
-        //根據BOM表計算真實料件需求
-        $result = $this->RequisitionService->calcRequirementsForDate($required_date);
-
-        if(!empty($result['error'])){
-            return $result;
+        try {
+            $diff_days = DateHelper::parseDiffDays($required_date, date('Y-m-d H:i:s'));
+    
+            //再重新整理。因故不執行的時候，用彈出式提醒，不要影響當前畫面。
+            // $n = -30; //負數表示過去
+    
+            // if(is_numeric($diff_days) && $diff_days < $n){
+            //     if(auth()->user()->username !== 'admin'){
+            //         $msg = ['error' => '超過'.abs($n).'天，禁止執行！'];
+            //         return response(json_encode($msg))->header('Content-Type','application/json');
+            //     }
+            // }
+    
+            $this->RequisitionService->getOrderIngredients($required_date);
+            $this->setCacheFromIngredientTable($required_date);
+    
+            /**
+             * 2024-10-30 Elon: 下面這個可能是？我2023年用於給上暉看的料件需求？
+             */
+            //根據BOM表計算真實料件需求
+            $result = $this->RequisitionService->calcRequirementsForDate($required_date);
+    
+            if(!empty($result['error'])){
+                return $result;
+            }
+            //End
+    
+            $required_date_2ymd = parseDateStringTo6d($required_date);
+    
+            return ['required_date_2ymd' => $required_date_2ymd];
+            
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
         }
-        //End
-
-        $required_date_2ymd = parseDateStringTo6d($required_date);
-
-        return ['required_date_2ymd' => $required_date_2ymd];
     }
 
     /**
@@ -516,14 +509,11 @@ class RequisitionController extends BackendController
         }
 
         if(!empty($updateData)){
-
             $json = [];
 
             try {
-
                 Setting::upsert($updateData, ['location_id', 'setting_key']);
                 $json['success'] = $this->lang->text_success;
-
             } catch (QueryException $e) {
                 $json['error'] = $e->getCode();
             }
@@ -557,7 +547,7 @@ class RequisitionController extends BackendController
             return redirect(route('lang.admin.sale.requisitions.form'))->with("warning", "$required_date_string 無資料");
         }
 
-        $data['requisitions'] = $statics;
+        $data['statics'] = $statics;
 
         $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
 

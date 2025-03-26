@@ -90,21 +90,30 @@ class OrderController extends ApiWwwV2Controller
         try {
             $data = request()->all();
 
-            $data['order_taker'] = 'web';
+            if (empty($data)){
+                $json['error'] = '資料錯誤';
+            }
+
+            if (empty($json)){
+
+                $data['order_taker'] = 'web';
+                
+                $order = $this->OrderService->store($data);
     
-            $order = $this->OrderService->store($data);
+                event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
+    
+                $data = [
+                    'id' => $order->id,
+                    'code' => $order->code,
+                ];
+    
+                return $this->sendJsonResponse(data:$data, message:'訂單新增成功');
+            }
 
-            event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
-
-            $data = [
-                'id' => $order->id,
-                'code' => $order->code,
-            ];
-
-            return $this->sendJsonResponse(data:$data, message:'訂單新增成功');
+            return $this->sendJsonResponse(data:$json, status_code:400);
 
         } catch (\Throwable $th) {
-            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()], status_code:500);
         }
     }
 

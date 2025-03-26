@@ -213,6 +213,8 @@
                       @endforeach
                     </select>
                     <div id="error-product_tag" class="invalid-feedback"></div>
+                    
+                    <div class="form-text">會用在備料表的判斷。請小心設定。</div>
                   </div>
                 </div>
 

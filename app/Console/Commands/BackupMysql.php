@@ -5,9 +5,6 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
-/**
- * 暫時用不到。在訂單新增的時候自動處理。
- */
 class BackupMysql extends Command
 {
     protected $signature = 'schedule:backup-database';

@@ -10,7 +10,6 @@
           <td class="text-start"><a href="{{ $sort_name }}" @if($sort=='name') class="{{ $order }}" @endif>{{ $lang->column_name }}</a></td>
           <td class="text-start"><a href="{{ $sort_web_name }}" @if($sort=='web_name') class="{{ $order }}" @endif>{{ $lang->column_web_name }}</a></td>
           <td class="text-start"><a href="{{ $sort_price }}" @if($sort=='price') class="{{ $order }}" @endif>{{ $lang->column_price }}</a></td>
-          <td class="text-start"><a href="{{ $sort_main_category_id }}" @if($sort=='main_category_id') class="{{ $order }}" @endif>{{ $lang->column_main_category }}</a></td>
           <td class="text-start">{{ $lang->column_is_salable }}</td>
           <td class="text-start">{{ $lang->column_is_active }}</td>
           <td class="text-end">{{ $lang->column_action }}</td>
@@ -24,7 +23,6 @@
           <td class="text-start">{{ $row->name }}</td>
           <td class="text-start">{{ $row->web_name }}</td>
           <td class="text-start">{{ $row->price }}</td>
-          <td class="text-start">{{ $row->main_category_name }}</td>
           <td class="text-start">@if($row->is_salable)
                                       {{ $lang->text_yes }}
                                     @else
