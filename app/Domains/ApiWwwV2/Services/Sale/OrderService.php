@@ -56,6 +56,10 @@ class OrderService extends Service
         return $order;
     }
 
+    /**
+     * 注意：官網不提供配菜選擇。並且前人將資料寫死。導致後台的配菜有異動時，前端要即時調整每一個商品，非常麻煩。
+     * 所以這裡的訂單儲存，會將前端傳來的所有配菜都刪除。從資料庫抓取當前的預設。
+     */
     public function store($data)
     {
         try {
@@ -118,17 +122,21 @@ class OrderService extends Service
                         foreach ($db_products[$product_id]['product_options'] as $db_product_option) {
                             if (in_array($db_product_option['option_id'],$refill_option_ids)){
                                 foreach ($db_product_option['product_option_values'] as $db_product_option_value) {
-                                    $fm_order_product['order_product_options'][] = [
-                                        'product_option_id' => $db_product_option_value['product_option_id'],
-                                        'product_option_value_id' => $db_product_option_value['id'],
-                                        'option_id' => $db_product_option['option_id'],
-                                        'option_value_id' => $db_product_option_value['option_value_id'],
-                                        'name' => $db_product_option['name'],
-                                        'value' => $db_product_option_value['name'],
-                                        'quantity' => $fm_order_product['quantity']*$db_product_option_value['default_quantity'],
-                                        'map_product_id' => $db_product_option_value['option_value']['product_id'],
-                                        'type' => $db_product_option['type'],
-                                    ];
+                                    // 有預設的才加！！
+                                    if($db_product_option_value['is_default'] == 1){
+                                        $fm_order_product['order_product_options'][] = [
+                                            'product_option_id' => $db_product_option_value['product_option_id'],
+                                            'product_option_value_id' => $db_product_option_value['id'],
+                                            'option_id' => $db_product_option['option_id'],
+                                            'option_value_id' => $db_product_option_value['option_value_id'],
+                                            'name' => $db_product_option['name'],
+                                            'value' => $db_product_option_value['name'],
+                                            'quantity' => $fm_order_product['quantity']*$db_product_option_value['default_quantity'],
+                                            'map_product_id' => $db_product_option_value['option_value']['product_id'],
+                                            'type' => $db_product_option['type'],
+                                        ];
+                                    }
+
                                 }
                             }
                         }
@@ -169,7 +177,7 @@ class OrderService extends Service
                         SET
                             opo.option_id = pov.option_id,
                             opo.option_value_id = pov.option_value_id,
-                            opo.map_product_id = IFNULL(ov.product_id, opo.map_product_id)
+                            opo.map_product_id = opo.map_product_id
                             WHERE opo.order_id = " . $order->id;
                     DB::statement($sql);
                 }

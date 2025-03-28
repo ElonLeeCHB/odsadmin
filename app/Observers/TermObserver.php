@@ -19,6 +19,9 @@ class TermObserver
         // 更新
         else if (!$term->wasRecentlyCreated) {
             $this->updated($term);
+
+            //刪除快取
+            (new Term)->deleteCacheByTaxonomyCode($term->taxonomy_code);
         }
     }
     

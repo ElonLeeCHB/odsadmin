@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Traits\Model\EloquentTrait;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Helpers\Classes\DataHelper;
+use App\Helpers\Classes\OrmHelper;
+use App\Models\Common\Term;
+use App\Models\Common\Taxonomy;
+
 
 class Service
 {
@@ -83,8 +87,14 @@ class Service
         return TermRepository::getCodeKeyedTermsByTaxonomyCode($taxonomy_code, $toArray, $params, $debug);
     }
 
-    public function getTermsByTaxonomyCode($taxonomy_code, $toArray = true, $params = null, $debug = 0): array
+    // public function getTermsByTaxonomyCode($taxonomy_code, $toArray = true, $params = null, $debug = 0): array
+    // {
+    //     return TermRepository::getTermsByTaxonomyCode($taxonomy_code, $toArray, $params, $debug);
+    // }
+
+    public function getTermsByTaxonomyCode($taxonomy_code): array
     {
-        return TermRepository::getTermsByTaxonomyCode($taxonomy_code, $toArray, $params, $debug);
+        return (new Term)->generateCacheByTaxonomyCode($taxonomy_code, 1);
     }
+
 }

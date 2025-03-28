@@ -226,4 +226,29 @@ class Term extends Model
         OrmHelper::prepare($query, $post_data);
     }
 
+    public function getCacheKeysByTaxonomyCode($term)
+    {
+        $taxonomies = Taxonomy::select(['id', 'code'])->all();
+
+        foreach ($taxonomies as $taxonomy) {
+            $arr[] = 'term_of_taxonomy_code_' . $taxonomy->code . app()->getLocale();
+        }
+
+        return $arr;
+    }
+
+
+    //內建 cache
+    public function deleteCacheByTaxonomyCode($taxonomy_code)
+    {
+        $cache_key = 'term_of_taxonomy_code_' . $taxonomy_code . app()->getLocale();
+
+        return cache()->forget($cache_key);
+    }
+
+    public function generateCacheByTaxonomyCode($taxonomy_code, $forceUpdate = 0)
+    {
+        return (new Taxonomy)->generateCacheByTaxonomyCode($taxonomy_code, $forceUpdate);
+    }
+
 }

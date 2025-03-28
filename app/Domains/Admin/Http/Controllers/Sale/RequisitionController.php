@@ -16,12 +16,30 @@ use App\Domains\Admin\Services\Sale\RequisitionService;
 use App\Helpers\Classes\DataHelper;
 use App\Helpers\Classes\DateHelper;
 use App\Domains\Admin\Services\Sale\OrderService;
+use App\Helpers\Classes\OrmHelper;
+use App\Models\Sale\Order;
 
 class RequisitionController extends BackendController
 {
     private $required_date;
     private $required_date_2ymd;
     private $today_2ymd;
+
+    public function getForm()
+    {
+        try {
+            if(empty(request()->required_date )){
+                return response()->json(['error' => '日期錯誤'], 400);
+            }
+
+            $data = $this->RequisitionService->getForm(request()->required_date, request()->forceUpdate);
+            // echo "<pre>",print_r($data,true),"</pre>\r\n";exit;
+            return view('admin.sale.requisition_form_data', $data);
+
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
+        }
+    }
 
     public function __construct(
         private Request $request,
@@ -195,7 +213,6 @@ class RequisitionController extends BackendController
 
             
             return view('admin.sale.requisition_form', $data);
-
 
         } catch (\Throwable $th) {
             return $this->sendJsonResponse(data:['error' => $th->getMessage()]);

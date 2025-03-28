@@ -60,9 +60,10 @@ class OrmHelper
     }
 
     // 選擇本表欄位。不包括關聯欄位。
-    public static function select($query, $select = [], $table = '')
+    public static function select($query, &$params, $table = '')
     {
-        if (!empty($select)) {
+        if (!empty($params['select'])) {
+            $select = $params['select'];
             $model = $query->getModel();
             $table = $model->getPrefix() . $model->getTable();
 
@@ -351,6 +352,14 @@ class OrmHelper
         }
     }
 
+    // public static function arrayToStdObjects($data)
+    // {
+    //     if (is_array($data)) {
+    //         return (object) array_map([self::class, 'arrayToStdObjects'], $data);
+    //     }
+    //     return $data;
+    // }
+
     // 自訂轉換資料的方法
     public static function toCleanCollection($data)
     {
@@ -384,9 +393,11 @@ class OrmHelper
         }
 
         // 如果資料是集合類型（Collection），則逐一處理
-        return $data->map(function ($item) {
-            return self::toCleanObject($item);
-        });
+        else if (is_object($data) && method_exists($data, 'map')){
+            return $data->map(function ($item) {
+                return self::toCleanObject($item);
+            });
+        }
     }
 
     // 將單一模型轉換為清潔版物件

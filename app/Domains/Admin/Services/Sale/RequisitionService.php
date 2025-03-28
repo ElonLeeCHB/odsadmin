@@ -45,6 +45,269 @@ class RequisitionService extends Service
         $this->repository = $OrderIngredientRepository;
     }
 
+    public function getForm($required_date_ymd, $forceUpdate = 0)
+    {
+
+            DB::beginTransaction();
+
+            $required_date_ymd = parseDate($required_date_ymd);
+            $required_date_2ymd = parseDateStringTo6d($required_date_ymd);
+
+            $cache_key = 'sale_order_requirements' . $required_date_ymd;
+
+            $cache_minutes = 60;
+
+            if ($forceUpdate){
+                cache()->forget($cache_key);
+            }
+
+            $statics = cache()->remember($cache_key, 60 * $cache_minutes, function () use ($required_date_ymd) {
+                return $this->calculateOrderIngredients($required_date_ymd);
+            });
+    
+            $requiredDateRawSql = DateHelper::parseDateToSqlWhere('delivery_date', $required_date_ymd);
+    
+            if(empty($requiredDateRawSql)){
+                return false;
+            }
+    
+            // 資料庫 訂單
+                //需要備料的訂單狀態代號
+                $temp_row = (new SettingRepository)->getRow(['equal_setting_key' => 'sales_orders_to_be_prepared_status']);
+                $sales_orders_to_be_prepared_status = $temp_row->setting_value; // 必須是陣列
+    
+                $query = Order::query();
+        
+                $query->select(['id', 'code', 'location_id', 'delivery_date', 'delivery_time_range', 'personal_name'
+                                , 'shipping_road', 'shipping_road_abbr', 'shipping_method'
+                                , 'status_code'
+                            ]);
+                $query->whereIn('status_code', $sales_orders_to_be_prepared_status);
+                $query->whereRaw($requiredDateRawSql);
+                
+                $query->with(['orderProducts' => function ($query) {
+                    $query->select(['id', 'order_id', 'product_id', 'name', 'quantity'])
+                        ->with([
+                            'orderProductOptions' => function ($query) {
+                                $query->select([
+                                    'id', 'order_id', 'order_product_id', 'name', 'value',
+                                    'quantity', 'option_id', 'option_value_id', 'map_product_id'
+                                ]);
+                            },
+                            'productTags' => function ($query) {
+                                $query->select(['product_id', 'term_id']);
+                            }]);
+                        }
+                ]);
+        
+                $orders = $query->get();
+        
+                if ($orders->isEmpty()) {
+                    return [];
+                }
+            // end 訂單
+    
+            //3吋潤餅、6吋潤餅的對應
+            $sales_wrap_map = Setting::where('setting_key','sales_wrap_map')->first()->setting_value;
+            $wrap_ids_needing_halving = array_keys($sales_wrap_map); //3吋潤餅的 id
+            //6吋潤餅
+    
+            // 各訂單個別加總
+                $order_list = [];
+    
+                foreach ($orders ?? [] as $key1 => $order) {
+                    $delivery_time_ranges = explode('-', $order->delivery_time_range);
+    
+                    $order_list[$order->id]['order_id'] = $order->id;
+                    $order_list[$order->id]['order_code'] = substr($order->code,4,4);
+                    $order_list[$order->id]['required_datetime'] = $order->delivery_date;
+                    $order_list[$order->id]['required_date_ymd'] = $required_date_ymd;
+                    $order_list[$order->id]['delivery_time_range'] = $order->delivery_time_range;
+                    $order_list[$order->id]['delivery_time_range_start'] = substr($delivery_time_ranges[0],0,2) . ':' . substr($delivery_time_ranges[0],-2) ;
+                    $order_list[$order->id]['delivery_time_range_end']   = substr($delivery_time_ranges[1],0,2) . ':' . substr($delivery_time_ranges[1],-2) ;
+                    $order_list[$order->id]['shipping_road_abbr'] = $order->shipping_road_abbr;
+                    $order_list[$order->id]['shipping_road_abbr'] = $order->shipping_road_abbr;
+                    $order_list[$order->id]['order_url'] = route('lang.admin.sale.orders.form', [$order->order_id]);
+                    
+                    foreach ($order->orderProducts as $key2 => $orderOroduct) {
+                        foreach ($orderOroduct->orderProductOptions as $key3 => $orderProductOption) {
+    
+                            // 選項本身所對應的料件
+                            $map_product_id = $orderProductOption->map_product_id ?? 0;
+                            $opo_value = $orderProductOption->value ?? '';
+    
+                            // 數量加工 例如 3吋潤餅轉6吋
+                                $quantity  = $orderProductOption->quantity;
+    
+                                // 3吋潤餅/2 = 6吋潤餅
+                                if(in_array($map_product_id, $wrap_ids_needing_halving)){
+    
+                                    $inch_6_product_id = $sales_wrap_map[$map_product_id]['new_product_id'];
+                                    $inch_6_product_name = $sales_wrap_map[$map_product_id]['new_product_name'];
+                                    
+                                    $order_list[$order->id]['items'][$inch_6_product_id]['product_id'] = $orderOroduct->product_id;
+                                    $order_list[$order->id]['items'][$inch_6_product_id]['product_name'] = $orderOroduct->name;
+                                    $order_list[$order->id]['items'][$inch_6_product_id]['ingredient_product_id'] = $inch_6_product_id;
+                                    $order_list[$order->id]['items'][$inch_6_product_id]['ingredient_product_name'] = $inch_6_product_name;
+    
+                                    if(empty($order_list[$order->id]['items'][$inch_6_product_id]['quantity'])){
+                                        $order_list[$order->id]['items'][$inch_6_product_id]['quantity'] = 0;
+                                    }
+                                    $order_list[$order->id]['items'][$inch_6_product_id]['quantity'] += ceil(($quantity/2));
+    
+                                    continue;
+                                }
+    
+                                // 極品油飯 = 廚娘油飯*2
+                                else if($map_product_id == 1737){ //極品油飯 1737
+                                    $map_product_id = 1036; //廚娘油飯 1036
+                                    $map_product_name = '廚娘油飯';
+                                    $order_list[$order->id]['items'][$map_product_id]['required_datetime'] = $order->delivery_date;
+                                    $order_list[$order->id]['items'][$map_product_id]['delivery_time_range'] = $order->delivery_time_range;
+                                    $order_list[$order->id]['items'][$map_product_id]['product_id'] = $orderOroduct->product_id;
+                                    $order_list[$order->id]['items'][$map_product_id]['product_name'] = $orderOroduct->name;
+                                    $order_list[$order->id]['items'][$map_product_id]['ingredient_product_id'] = $map_product_id;
+                                    $order_list[$order->id]['items'][$map_product_id]['ingredient_product_name'] = $map_product_name;
+    
+                                    if(empty($order_list[$order->id][$map_product_id]['quantity'])){
+                                        $order_list[$order->id]['items'][$map_product_id]['quantity'] = 0;
+                                    }
+                                    $order_list[$order->id]['items'][$map_product_id]['quantity'] += ($quantity * 2);
+                                    continue;
+                                }
+                            //
+    
+                            if(empty($order_list[$order->id]['items'][$map_product_id]['required_datetime'])){
+                                $order_list[$order->id]['items'][$map_product_id]['required_datetime'] = $order->delivery_date;
+                                $order_list[$order->id]['items'][$map_product_id]['delivery_time_range'] = $order->delivery_time_range;
+                                $order_list[$order->id]['items'][$map_product_id]['product_id'] = $orderOroduct->product_id;
+                                $order_list[$order->id]['items'][$map_product_id]['product_name'] = $orderOroduct->name;
+                                $order_list[$order->id]['items'][$map_product_id]['map_product_id'] = $map_product_id;
+                                $order_list[$order->id]['items'][$map_product_id]['opo_value'] = $opo_value;
+                            }
+    
+                            //如果 null 則 0
+                            $order_list[$order->id]['items'][$map_product_id]['quantity'] = ($order_list[$order->id]['items'][$map_product_id]['quantity'] ?? 0) + $orderProductOption->quantity;
+                        }
+                    }
+                }
+            //
+            $statics['order_list'] = $order_list;
+    
+            // 統計全日、上午、下午
+                foreach ($order_list as $order_id => $order) {
+                    foreach ($order['items'] as $map_product_id => $item) {
+    
+                        //allDay
+                        if(empty($statics['allDay'][$map_product_id]['quantity'])){
+                            $statics['allDay'][$map_product_id]['quantity'] = 0;
+                        }
+                        $statics['allDay'][$map_product_id]['quantity'] += $item['quantity'];
+    
+                        //am
+                        if($order['delivery_time_range_start'] <= '1300') {
+                            $statics['am'][$map_product_id]['quantity'] = ($statics['am'][$map_product_id]['quantity'] ?? 0) + $item['quantity'];
+                        }
+                        //pm
+                        else{
+                            $statics['pm'][$map_product_id]['quantity'] = ($statics['pm'][$map_product_id]['quantity'] ?? 0) + $item['quantity'];
+                        }
+                    }
+                }
+            //
+    
+    
+            // 全日加總
+                $total_package = 0; //套餐
+                $total_bento = 0; //便當
+                $total_lunchbox = 0; //盒餐
+                $total_oil_rice_box = 0; //油飯盒
+                $total_3inlumpia = 0; //3吋潤餅
+                $total_6inlumpia = 0; //6吋潤餅
+                $total_small_guabao = 0; //小刈包
+                $total_big_guabao = 0; //大刈包
+    
+                foreach($orders as $order_id => $order){
+    
+                    foreach ($order->orderProducts as $order_product_id => $orderProduct) {
+                        if(!empty($orderProduct->productTags)){
+                            $product_tag_ids = optional($orderProduct->productTags)->pluck('term_id')->toArray() ?? [];
+                        }
+    
+                        //1331 套餐, 1330 盒餐, 1329 便當, 1437 素食, 1440 刈包, 1441 潤餅, 1443 油飯盒, 1461 美味單點
+    
+                        $product_tag_ids = $product_tag_ids ?? [];
+                        
+                        // 套餐
+                        if(in_array(1331, $product_tag_ids)){ // 1331 套餐
+    
+                            if(in_array(1329, $product_tag_ids)){ // 1329 便當
+                                $total_bento += $orderProduct->quantity;
+    
+                                if(in_array(1441, $product_tag_ids)){ // 1441 潤餅
+                                    $total_3inlumpia += $orderProduct->quantity;
+                                }
+                                else if(in_array(1440, $product_tag_ids)){ // 1440 刈包
+                                    $total_small_guabao += $orderProduct->quantity;
+                                }
+                            }
+                            else if(in_array(1330, $product_tag_ids)){ // 1330 盒餐
+                                $total_lunchbox += $orderProduct->quantity;
+    
+                                if(in_array(1441, $product_tag_ids)){ // 1441 潤餅
+                                    $total_3inlumpia += $orderProduct->quantity;
+                                }
+                                else if(in_array(1440, $product_tag_ids)){ // 1440 刈包
+                                    $total_small_guabao += $orderProduct->quantity;
+                                }
+                            }
+                            else if(in_array(1443, $product_tag_ids)){ // 1443 油飯盒
+                                $total_oil_rice_box += $orderProduct->quantity;
+                            }
+                        }
+                        // 單點
+                        else if(in_array(1461, $product_tag_ids)){ // 1461 美味單點
+                            if(in_array(1461, $product_tag_ids)){ // 1440 刈包
+                                $total_big_guabao += $orderProduct->quantity;
+                            } else if(in_array(1441, $product_tag_ids)){ // 1441 潤餅
+                                $total_3inlumpia += $orderProduct->quantity * 2;
+                            }
+                        }
+                        //單點 其它商品組
+                        else if ($orderProduct->product_id == 1062){
+                            foreach ($orderProduct->orderProductOptions as $orderProductOption) {
+                                if ($orderProductOption->option_id == 1017){ //1017 = 大刈包
+                                    $total_big_guabao += $orderProductOption->quantity;
+                                } else if ($orderProductOption->option_id == 1009){ //1009 = 6吋潤餅
+                                    $total_3inlumpia += $orderProductOption->quantity * 2;
+                                }
+                            }
+                        }
+                    }
+                }
+    
+                $statics['info'] = [];
+                $statics['info']['total_bento']         = $total_bento;
+                $statics['info']['total_lunchbox']      = $total_lunchbox;
+                $statics['info']['total_oil_rice_box']  = $total_oil_rice_box;
+                $statics['info']['total_3inlumpia']     = $total_3inlumpia;
+                $statics['info']['total_6inlumpia']     = $total_3inlumpia/2;
+                $statics['info']['total_small_guabao']  = $total_small_guabao;
+                $statics['info']['total_big_guabao']  = $total_big_guabao;
+                $statics['info']['total_oil_rice_box']  = $total_oil_rice_box;
+                $statics['info']['total_package']       = $total_bento + $total_lunchbox + $total_oil_rice_box;
+            //
+    
+            
+            $statics['cache_created_at'] = now();
+
+            $data['statics'] = $statics;
+
+            DB::commit();
+    
+            return $statics;
+    }
+
     /**
      * 2024-11-04
      * 抓取訂單資料，然後寫入資料表 order_ingredients
@@ -52,10 +315,11 @@ class RequisitionService extends Service
      */
     public function getOrderIngredients($required_date, $force = 0)
     {
-        $required_date = DateHelper::parse($required_date);
         try {
-            $cache_key = 'sale_material_' . $required_date;
-            $cache_minutes = 60;// 緩存分鐘數
+            $cache_key = 
+        $required_date = DateHelper::parse($required_date);'sale_material_' . $required_date;
+
+            $cache_minutes = 60;
 
             if ($force){
                 cache()->forget($cache_key);
@@ -81,438 +345,259 @@ class RequisitionService extends Service
     public function calculateOrderIngredients($required_date)
     {
         try {
-            //獲取訂單
-            $required_date = parseDate($required_date);
-            $required_date_2ymd = parseDateStringTo6d($required_date);
-
-            $requiredDateRawSql = DateHelper::parseDateToSqlWhere('delivery_date', $required_date);
-
+            $required_date_ymd = parseDate($required_date);
+            $required_date_2ymd = parseDateStringTo6d($required_date_ymd);
+    
+            $requiredDateRawSql = DateHelper::parseDateToSqlWhere('delivery_date', $required_date_ymd);
+    
             if(empty($requiredDateRawSql)){
                 return false;
             }
-
-            //需要備料的訂單狀態代號
-            $temp_row = (new SettingRepository)->getRow(['equal_setting_key' => 'sales_orders_to_be_prepared_status']);
-            $sales_orders_to_be_prepared_status = $temp_row->setting_value; // 必須是陣列
-            
-            //訂單
-            // $filter_data = [
-            //     'with' => [ 'order_products.productTags',
-            //                 'order_products.order_product_options.mapProductTags',
-            //                 'order_products.order_product_options.mapProduct'],
-            //     'whereRawSqls' => [$requiredDateRawSql],
-            //     'whereIn' => ['status_code' => $sales_orders_to_be_prepared_status],
-            //     'pagination' => false,
-            //     'limit' => 0,
-            //     'keyBy' => 'id'
-            // ];
-            // $orders = $this->OrderRepository->getRows($filter_data);
-            $query = Order::query();
-            $query->select(['id', 'code', 'location_id', 'delivery_date', 'delivery_time_range', 'personal_name'
-                            , 'shipping_road', 'shipping_road_abbr', 'shipping_method'
-                            , 'status_code'
-                        ]);
-            $query->whereIn('status_code', $sales_orders_to_be_prepared_status);
-            $query->whereRaw($requiredDateRawSql);
-
-            $query->with(['orderProducts' => function ($query) {
-                $query->select(['id', 'order_id', 'product_id', 'name', 'quantity']);
-
-                $query->with(['orderProductOptions' => function ($query) {
-                    $query->select(['id', 'order_id', 'order_product_id', 'name', 'value', 'quantity', 'option_id', 'option_value_id', 'map_product_id']);
-                }]);
-
-                $query->with(['productTags' => function ($query) {
-                    $query->select(['product_id', 'term_id']);
-                }]);
+    
+            // 訂單
+                //需要備料的訂單狀態代號
+                $temp_row = (new SettingRepository)->getRow(['equal_setting_key' => 'sales_orders_to_be_prepared_status']);
+                $sales_orders_to_be_prepared_status = $temp_row->setting_value; // 必須是陣列
+    
+                $query = Order::query();
+        
+                $query->select(['id', 'code', 'location_id', 'delivery_date', 'delivery_time_range', 'personal_name'
+                                , 'shipping_road', 'shipping_road_abbr', 'shipping_method'
+                                , 'status_code'
+                            ]);
+                $query->whereIn('status_code', $sales_orders_to_be_prepared_status);
+                $query->whereRaw($requiredDateRawSql);
+                
+                $query->with(['orderProducts' => function ($query) {
+                    $query->select(['id', 'order_id', 'product_id', 'name', 'quantity'])
+                        ->with([
+                            'orderProductOptions' => function ($query) {
+                                $query->select([
+                                    'id', 'order_id', 'order_product_id', 'name', 'value',
+                                    'quantity', 'option_id', 'option_value_id', 'map_product_id'
+                                ]);
+                            },
+                            'productTags' => function ($query) {
+                                $query->select(['product_id', 'term_id']);
+                            }]);
+                        }
+                ]);
+        
+                $orders = $query->get();
+        
+                if ($orders->isEmpty()) {
+                    return [];
                 }
-            ]);
-
-            $orders = $query->get()->keyBy('id');
-
-            if ($orders->isEmpty()) {
-                return [];
-            }
-            
-            $total_package = 0; //套餐
-            $total_bento = 0; //便當
-            $total_lunchbox = 0; //盒餐
-            $total_oil_rice_box = 0; //油飯盒
-            $total_big_guabao = 0; //大刈包
-            $total_small_guabao = 0; //小刈包
-            $total_3inlumpia = 0; //3吋潤餅
-            $total_6inlumpia = 0; //6吋潤餅
-
-            foreach($orders as $order_id => $order){
-                $order['order_products'] = $order['order_products']->keyBy('id');
-
-                foreach ($order['order_products'] as $order_product_id => $order_product) {
-                    $product_tag_ids = $order_product->productTags->pluck('term_id')->toArray();
-                    //1331 套餐, 1330 盒餐, 1329 便當, 1437 素食, 1440 刈包, 1441 潤餅, 1443 油飯盒, 1461 美味單點
-                    
-                    // 套餐
-                    if(in_array(1331, $product_tag_ids)){ // 1331 套餐
-
-                        if(in_array(1329, $product_tag_ids)){ // 1329 便當
-                            $total_bento += $order_product->quantity;
-
-                            if(in_array(1441, $product_tag_ids)){ // 1441 潤餅
-                                $total_3inlumpia += $order_product->quantity;
-                            }
-                            else if(in_array(1440, $product_tag_ids)){ // 1440 刈包
-                                $total_small_guabao += $order_product->quantity;
-                            }
-                        }
-                        else if(in_array(1330, $product_tag_ids)){ // 1330 盒餐
-                            $total_lunchbox += $order_product->quantity;
-
-                            if(in_array(1441, $product_tag_ids)){ // 1441 潤餅
-                                $total_3inlumpia += $order_product->quantity;
-                            }
-                            else if(in_array(1440, $product_tag_ids)){ // 1440 刈包
-                                $total_small_guabao += $order_product->quantity;
-                            }
-                        }
-                        else if(in_array(1443, $product_tag_ids)){ // 1443 油飯盒
-                            $total_oil_rice_box += $order_product->quantity;
-                        }
-                    }
-                    // 單點
-                    else if(in_array(1461, $product_tag_ids)){ // 1461 美味單點
-                        if(in_array(1461, $product_tag_ids)){ // 1440 刈包
-                            $total_big_guabao += $order_product->quantity;
-                        } else if(in_array(1441, $product_tag_ids)){ // 1441 潤餅
-                            $total_3inlumpia += $order_product->quantity * 2;
-                        }
-                    }
-                    //單點 其它商品組
-                    else if ($order_product->product_id == 1062){
-                        foreach ($order_product['order_product_options'] as $order_product_option) {
-                            if ($order_product_option->option_id == 1017){ //1017 = 大刈包
-                                $total_big_guabao += $order_product_option->quantity;
-                            } else if ($order_product_option->option_id == 1009){ //1009 = 6吋潤餅
-                                $total_3inlumpia += $order_product_option->quantity * 2;
-                            }
-                        }
-                    }
-                }
-            }
-
-            $statics['info'] = [];
-            $statics['info']['total_bento']         = $total_bento;
-            $statics['info']['total_lunchbox']      = $total_lunchbox;
-            $statics['info']['total_oil_rice_box']  = $total_oil_rice_box;
-            $statics['info']['total_3inlumpia']     = $total_3inlumpia;
-            $statics['info']['total_small_guabao']  = $total_small_guabao;
-            $statics['info']['total_oil_rice_box']  = $total_oil_rice_box;
-            $statics['info']['total_package'] = $total_bento + $total_lunchbox + $total_oil_rice_box;
-
-            // //其它資料
-            // $statics['info']['ingredient_products'] = [];
-            // $statics['info']['ingredient_products'][1734]['ingredient_product_id'] = 1734;
-            // $statics['info']['ingredient_products'][1734]['ingredient_product_name'] = '蔬菜杯';
-            // $statics['info']['ingredient_products'][1734]['quantity'] = 0;
-
+            // end 訂單
+    
             //3吋潤餅、6吋潤餅的對應
             $sales_wrap_map = Setting::where('setting_key','sales_wrap_map')->first()->setting_value;
             $wrap_ids_needing_halving = array_keys($sales_wrap_map); //3吋潤餅的 id
             //6吋潤餅
-
+    
             $filter_data = [
                 'filter_setting_key' => 'sales_6inch_lumpia',
                 'filter_location_id' => '0',
                 'type' => 'CommaSeparated'
             ];
             $sales_6inch_lumpia = (new SettingRepository)->getSettingValue($filter_data);
-
-            //計算並寫入資料庫
-
-                //今天以後的資料，寫入資料庫。昨天以前的資料，禁止改寫。
-                $arr = [];
-
-                //跑迴圈以完成加總
+    
+            // 各訂單個別加總
+                $order_list = [];
+    
                 foreach ($orders ?? [] as $key1 => $order) {
-
-                    foreach ($order->order_products as $key2 => $order_product) {
-                        foreach ($order_product->order_product_options as $key3 => $order_product_option) {
-                            //如果已不存在 product_option_value 則略過。這原因是商品基本資料已刪除某選項。但對舊訂單來說這會有問題。先略過。
-                            if(empty($order_product_option->product_option_value)){
-                                continue;
-                            }
-
-                            // 選項沒有對應的商品代號，略過
-                            if(empty($order_product_option->product_option_value->option_value)){
-                                continue;
-                            }
-
+                    $delivery_time_ranges = explode('-', $order->delivery_time_range);
+    
+                    $order_list[$order->id]['order_id'] = $order->id;
+                    $order_list[$order->id]['order_code'] = substr($order->code,4,4);
+                    $order_list[$order->id]['required_datetime'] = $order->delivery_date;
+                    $order_list[$order->id]['required_date_ymd'] = $required_date_ymd;
+                    $order_list[$order->id]['delivery_time_range'] = $order->delivery_time_range;
+                    $order_list[$order->id]['delivery_time_range_start'] = substr($delivery_time_ranges[0],0,2) . ':' . substr($delivery_time_ranges[0],-2) ;
+                    $order_list[$order->id]['delivery_time_range_end']   = substr($delivery_time_ranges[1],0,2) . ':' . substr($delivery_time_ranges[1],-2) ;
+                    $order_list[$order->id]['shipping_road_abbr'] = $order->shipping_road_abbr;
+                    $order_list[$order->id]['shipping_road_abbr'] = $order->shipping_road_abbr;
+                    $order_list[$order->id]['order_url'] = route('lang.admin.sale.orders.form', [$order->order_id]);
+                    
+                    foreach ($order->orderProducts as $key2 => $orderOroduct) {
+                        foreach ($orderOroduct->orderProductOptions as $key3 => $orderProductOption) {
+    
                             // 選項本身所對應的料件
-                            $ingredient_product_id = $order_product_option->map_product_id ?? 0;
-                            $ingredient_product_name = $order_product_option->mapProduct->name ?? '';
-
-                            if(empty($ingredient_product_name)){
-                                continue;
-                            }
-
+                            $map_product_id = $orderProductOption->map_product_id ?? 0;
+                            $opo_value = $orderProductOption->value ?? '';
+    
                             //quantity
-
-                                $quantity  = $order_product_option->quantity;
-
+                                $quantity  = $orderProductOption->quantity;
+    
                                 // 3吋潤餅/2 = 6吋潤餅
-                                if(in_array($ingredient_product_id, $wrap_ids_needing_halving)){
-
-                                    $inch_6_product_id = $sales_wrap_map[$ingredient_product_id]['new_product_id'];
-                                    $inch_6_product_name = $sales_wrap_map[$ingredient_product_id]['new_product_name'];
-
-                                    $arr[$required_date][$order->id][$inch_6_product_id]['required_date'] = $order->delivery_date;
-                                    $arr[$required_date][$order->id][$inch_6_product_id]['delivery_time_range'] = $order->delivery_time_range;
-                                    $arr[$required_date][$order->id][$inch_6_product_id]['product_id'] = $order_product->product_id;
-                                    $arr[$required_date][$order->id][$inch_6_product_id]['product_name'] = $order_product->name;
-                                    $arr[$required_date][$order->id][$inch_6_product_id]['ingredient_product_id'] = $inch_6_product_id;
-                                    $arr[$required_date][$order->id][$inch_6_product_id]['ingredient_product_name'] = $inch_6_product_name;
-
-                                    if(empty($arr[$required_date][$order->id][$inch_6_product_id]['quantity'])){
-                                        $arr[$required_date][$order->id][$inch_6_product_id]['quantity'] = 0;
-                                    }
-                                    $arr[$required_date][$order->id][$inch_6_product_id]['quantity'] += ceil(($quantity/2));
-
-                                    continue;
-                                }
-
-                                // 極品油飯 = 廚娘油飯*2
-                                else if($ingredient_product_id == 1737){ //極品油飯 1737
-                                    $ingredient_product_id = 1036; //廚娘油飯 1036
-                                    $ingredient_product_name = '廚娘油飯';
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['required_date'] = $order->delivery_date;
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['delivery_time_range'] = $order->delivery_time_range;
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['product_id'] = $order_product->product_id;
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['product_name'] = $order_product->name;
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_id'] = $ingredient_product_id;
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_name'] = $ingredient_product_name;
-
-                                    if(empty($arr[$required_date][$order->id][$ingredient_product_id]['quantity'])){
-                                        $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] = 0;
-                                    }
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] += ($quantity * 2);
-                                    continue;
-                                }
-
-                                else if($ingredient_product_id == 1734 || $ingredient_product_id == 1033){ //蔬菜杯 1734 時疏 1033
-
-                                    //注意，這是另外的統計 $statics
-                                    $statics['info']['ingredient_products'][1734]['quantity'] += $quantity;
-
+                                if(in_array($map_product_id, $wrap_ids_needing_halving)){
+    
+                                    $inch_6_product_id = $sales_wrap_map[$map_product_id]['new_product_id'];
+                                    $inch_6_product_name = $sales_wrap_map[$map_product_id]['new_product_name'];
                                     
-
-                                    //鹽水煮蛋 1032
-                                        //前端傳來的東西，已知滷牛潤餅便當，有蔬菜杯，並且有蛋。可能有些其它商品丟過來 蔬菜杯但沒有另外的蛋。
-                                        //所以拆解時，如果已經有蛋，則蔬菜杯不再拆出蛋。如果沒有蛋，則蔬菜杯要拆出蛋。
-
-                                        $already_has_egg = false;
-                                        foreach ($order_product->order_product_options as $key3 => $order_product_option) {
-                                            if (str_contains($order_product_option->value, '蛋')) {
-                                                $already_has_egg = true;
-                                            }
-                                        }
-
-                                        if($already_has_egg == false){
-                                            $ingredient_product_id = 1032;
-                                            $ingredient_product_name = '鹽水煮蛋';
-                                            $arr[$required_date][$order->id][$ingredient_product_id]['required_date'] = $order->delivery_date;
-                                            $arr[$required_date][$order->id][$ingredient_product_id]['delivery_time_range'] = $order->delivery_time_range;
-                                            $arr[$required_date][$order->id][$ingredient_product_id]['product_id'] = $order_product->product_id;
-                                            $arr[$required_date][$order->id][$ingredient_product_id]['product_name'] = $order_product->name;
-                                            $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_id'] = $ingredient_product_id;
-                                            $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_name'] = $ingredient_product_name;
-        
-                                            if(empty($arr[$required_date][$order->id][$ingredient_product_id]['quantity'])){
-                                                $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] = 0;
-                                            }
-                                            $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] += $quantity;
-                                        }
-                                    //
-
-                                    //玉米筍 1785
-                                    $ingredient_product_id = 1785;
-                                    $ingredient_product_name = '玉米筍';
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['required_date'] = $order->delivery_date;
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['delivery_time_range'] = $order->delivery_time_range;
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['product_id'] = $order_product->product_id;
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['product_name'] = $order_product->name;
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_id'] = $ingredient_product_id;
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_name'] = $ingredient_product_name;
-
-                                    if(empty($arr[$required_date][$order->id][$ingredient_product_id]['quantity'])){
-                                        $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] = 0;
+                                    $order_list[$order->id]['items'][$inch_6_product_id]['product_id'] = $orderOroduct->product_id;
+                                    $order_list[$order->id]['items'][$inch_6_product_id]['product_name'] = $orderOroduct->name;
+                                    $order_list[$order->id]['items'][$inch_6_product_id]['ingredient_product_id'] = $inch_6_product_id;
+                                    $order_list[$order->id]['items'][$inch_6_product_id]['ingredient_product_name'] = $inch_6_product_name;
+    
+                                    if(empty($order_list[$order->id]['items'][$inch_6_product_id]['quantity'])){
+                                        $order_list[$order->id]['items'][$inch_6_product_id]['quantity'] = 0;
                                     }
-                                    $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] += $quantity;
-
+                                    $order_list[$order->id]['items'][$inch_6_product_id]['quantity'] += ceil(($quantity/2));
+    
                                     continue;
                                 }
-                            //End quantity
-
-                            if(empty($arr[$required_date][$order->id][$ingredient_product_id]['required_date'])){
-                                $arr[$required_date][$order->id][$ingredient_product_id]['required_date'] = $order->delivery_date;
-                                $arr[$required_date][$order->id][$ingredient_product_id]['delivery_time_range'] = $order->delivery_time_range;
-                                $arr[$required_date][$order->id][$ingredient_product_id]['product_id'] = $order_product->product_id;
-                                $arr[$required_date][$order->id][$ingredient_product_id]['product_name'] = $order_product->name;
-                                $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_id'] = $ingredient_product_id;
-                                $arr[$required_date][$order->id][$ingredient_product_id]['ingredient_product_name'] = $ingredient_product_name;
+    
+                                // 極品油飯 = 廚娘油飯*2
+                                else if($map_product_id == 1737){ //極品油飯 1737
+                                    $map_product_id = 1036; //廚娘油飯 1036
+                                    $map_product_name = '廚娘油飯';
+                                    $order_list[$order->id]['items'][$map_product_id]['required_datetime'] = $order->delivery_date;
+                                    $order_list[$order->id]['items'][$map_product_id]['delivery_time_range'] = $order->delivery_time_range;
+                                    $order_list[$order->id]['items'][$map_product_id]['product_id'] = $orderOroduct->product_id;
+                                    $order_list[$order->id]['items'][$map_product_id]['product_name'] = $orderOroduct->name;
+                                    $order_list[$order->id]['items'][$map_product_id]['ingredient_product_id'] = $map_product_id;
+                                    $order_list[$order->id]['items'][$map_product_id]['ingredient_product_name'] = $map_product_name;
+    
+                                    if(empty($order_list[$order->id][$map_product_id]['quantity'])){
+                                        $order_list[$order->id]['items'][$map_product_id]['quantity'] = 0;
+                                    }
+                                    $order_list[$order->id]['items'][$map_product_id]['quantity'] += ($quantity * 2);
+                                    continue;
+                                }
+                            // End quantity
+    
+                            if(empty($order_list[$order->id]['items'][$map_product_id]['required_datetime'])){
+                                $order_list[$order->id]['items'][$map_product_id]['required_datetime'] = $order->delivery_date;
+                                $order_list[$order->id]['items'][$map_product_id]['delivery_time_range'] = $order->delivery_time_range;
+                                $order_list[$order->id]['items'][$map_product_id]['product_id'] = $orderOroduct->product_id;
+                                $order_list[$order->id]['items'][$map_product_id]['product_name'] = $orderOroduct->name;
+                                $order_list[$order->id]['items'][$map_product_id]['map_product_id'] = $map_product_id;
+                                $order_list[$order->id]['items'][$map_product_id]['opo_value'] = $opo_value;
                             }
-
+    
                             //如果 null 則 0
-                            if(empty($arr[$required_date][$order->id][$ingredient_product_id]['quantity'])){
-                                $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] = 0;
+                            if(empty($order_list[$order->id]['items'][$map_product_id]['quantity'])){
+                                $order_list[$order->id]['items'][$map_product_id]['quantity'] = 0;
                             }
-
-                            $arr[$required_date][$order->id][$ingredient_product_id]['quantity'] += $order_product_option->quantity;
+    
+                            $order_list[$order->id]['items'][$map_product_id]['quantity'] += $orderProductOption->quantity;
                         }
                     }
                 }
-
-                $order_ingredient_upsert_data = [];
-
-                //重新整理加總完成的資料 (必須經過上面加總完成，才能產出下列陣列，用於資料庫)
-                foreach ($arr as $required_date => $rows1) {
-                    foreach ($rows1 as $order_id => $rows2) {
-                        foreach ($rows2 as $ingredient_product_id => $row) {
-                            $order_ingredient_upsert_data[] = [
-                                'required_date' => $row['required_date'] ?? '2099-01-01',
-                                'delivery_time_range' => $row['delivery_time_range'],
-                                'order_id' => $order_id,
-                                'ingredient_product_id' => $row['ingredient_product_id'],
-                                'ingredient_product_name' => $row['ingredient_product_name'],
-                                'quantity' => ceil($row['quantity']),
-                                'created_at' => now(),
-                                'updated_at' => now(),
-                            ];
+            //
+            $statics['order_list'] = $order_list;
+    
+            // 統計全日、上午、下午
+                foreach ($order_list as $order_id => $order) {
+                    foreach ($order['items'] as $map_product_id => $item) {
+    
+                        //allDay
+                        if(empty($statics['allDay'][$map_product_id]['quantity'])){
+                            $statics['allDay'][$map_product_id]['quantity'] = 0;
+                        }
+                        $statics['allDay'][$map_product_id]['quantity'] += $item['quantity'];
+    
+                        //am
+                        if($order['delivery_time_range_start'] <= '1300') {
+                            $statics['am'][$map_product_id]['quantity'] = ($statics['am'][$map_product_id]['quantity'] ?? 0) + $item['quantity'];
+                        }
+                        //pm
+                        else{
+                            $statics['pm'][$map_product_id]['quantity'] = ($statics['pm'][$map_product_id]['quantity'] ?? 0) + $item['quantity'];
                         }
                     }
                 }
-
-                // OrderIngredient::where('required_date', 'like', "$required_date%")->delete();
-                // OrderIngredient::insert($order_ingredient_upsert_data);
-
-                // //寫入 DailyIngredient
-                // $daily_upsert_data = [];
-                // foreach ($order_ingredient_upsert_data as $row) {
-                //     $ingredient_product_id = $row['ingredient_product_id'];
-
-                //     $daily_upsert_data[$ingredient_product_id]['required_date'] = $row['required_date'];
-                //     $daily_upsert_data[$ingredient_product_id]['ingredient_product_id'] = $row['ingredient_product_id'];
-                //     $daily_upsert_data[$ingredient_product_id]['ingredient_product_name'] = $row['ingredient_product_name'];
-                //     $daily_upsert_data[$ingredient_product_id]['created_at'] = now();
-                //     $daily_upsert_data[$ingredient_product_id]['updated_at'] = now();
-
-                //     if(empty($daily_upsert_data[$ingredient_product_id]['quantity'] )){
-                //         $daily_upsert_data[$ingredient_product_id]['quantity']  = 0;
-                //     }
-                //     $daily_upsert_data[$ingredient_product_id]['quantity'] += $row['quantity'];
-                // }
-
-                // if(!empty($daily_upsert_data)){
-                //     DailyIngredient::where('required_date', 'like', "$required_date%")->delete();
-                //     DailyIngredient::insert($daily_upsert_data, ['required_date','ingredient_product_id']);
-                //     DB::commit();
-                // }
-
-            //End
-
-            //重新整理陣列 $statics['orders'][$order_id]['items'] 的形式
-            $ingredients = &$order_ingredient_upsert_data;
-
-            $statics['allDay']['total'] = 0;
-            $statics['am']['total'] = 0;
-            $statics['pm']['total'] = 0;
-
-            $statics['allDay']['total_6inch_lumpia'] = 0;
-            $statics['am']['total_6inch_lumpia'] = 0;
-            $statics['pm']['total_6inch_lumpia'] = 0;
-
-            foreach($ingredients ?? [] as $ingredient){
-                $ingredient = (object) $ingredient;
-
-                if(empty($statics['orders'][$ingredient->order_id])){
-                    $pattern = '/(\d{2}[:\d{2}]+)-(\d{2}[:\d{2}]+)/';
-                    preg_match($pattern, $ingredient->delivery_time_range, $matches);
-                    $delivery_time_range_end = $matches[2];
-
-                    // $delivery_time_range_start = str_replace([' ', ':'], '', $ingredient->delivery_time_range);
-
-                    $statics['orders'][$ingredient->order_id] = [
-                        // 'delivery_time_range_start' => substr($delivery_time_range_start,0,4),
-                        'delivery_time_range_end' => substr($delivery_time_range_end,0,4),
-                        'required_date' => $ingredient->required_date,
-                        'require_date_ymd' => $ingredient->required_date,
-                        'delivery_time_range' => $ingredient->delivery_time_range,
-                        'source_id' => $ingredient->order_id,
-                        'source_id_url' => route('lang.admin.sale.orders.form', [$ingredient->order_id]),
-                        'order_code' => substr($orders[$ingredient->order_id]->code,4,4),
-                        'shipping_road_abbr' => $orders[$ingredient->order_id]->shipping_road_abbr,
-                    ];
-                }
-
-                if(empty($statics['orders'][$ingredient->order_id]['items'][$ingredient->ingredient_product_id]['ingredient_product_name'])){
-                    $statics['orders'][$ingredient->order_id]['items'][$ingredient->ingredient_product_id]['ingredient_product_name'] = $ingredient->ingredient_product_name;
-                }
-
-                if(empty($statics['orders'][$ingredient->order_id]['items'][$ingredient->ingredient_product_id]['quantity'])){
-                    $statics['orders'][$ingredient->order_id]['items'][$ingredient->ingredient_product_id]['quantity'] = 0;
-                }
-
-                $statics['orders'][$ingredient->order_id]['items'][$ingredient->ingredient_product_id]['quantity'] += $ingredient->quantity;
-            }
-
-            // 排序
-            if(!empty($statics['orders'] )){
-                $statics['orders'] = collect($statics['orders'])->sortBy('delivery_time_range_end')->values()->all();
-            }
-
-            //統計
-
-            foreach ($statics['orders'] as $order_id => $order) {
-                foreach ($order['items'] as $ingredient_product_id => $item) {
-
-                    //allDay
-                    if(empty($statics['allDay'][$ingredient_product_id]['quantity'])){
-                        $statics['allDay'][$ingredient_product_id]['quantity'] = 0;
-                    }
-                    $statics['allDay'][$ingredient_product_id]['quantity'] += $item['quantity'];
-
-                    if(in_array($ingredient_product_id, $sales_6inch_lumpia)){
-                        $statics['allDay']['total_6inch_lumpia'] += $item['quantity'];
-                    }
-
-                    //am
-                    if($order['delivery_time_range_end'] <= '1300') {
-                        if(empty($statics['am'][$ingredient_product_id]['quantity'])){
-                            $statics['am'][$ingredient_product_id]['quantity'] = 0;
+            //
+        
+            // 全日加總
+                $total_package = 0; //套餐
+                $total_bento = 0; //便當
+                $total_lunchbox = 0; //盒餐
+                $total_oil_rice_box = 0; //油飯盒
+                $total_big_guabao = 0; //大刈包
+                $total_small_guabao = 0; //小刈包
+                $total_3inlumpia = 0; //3吋潤餅
+                $total_6inlumpia = 0; //6吋潤餅
+    
+                foreach($orders as $order_id => $order){
+    
+                    foreach ($order->orderProducts as $order_product_id => $orderProduct) {
+                        if(!empty($orderProduct->productTags)){
+                            $product_tag_ids = optional($orderProduct->productTags)->pluck('term_id')->toArray() ?? [];
                         }
-                        $statics['am'][$ingredient_product_id]['quantity'] += $item['quantity'];
-
-                        if(in_array($ingredient_product_id, $sales_6inch_lumpia)){
-                            $statics['am']['total_6inch_lumpia'] += $item['quantity'];
+    
+                        //1331 套餐, 1330 盒餐, 1329 便當, 1437 素食, 1440 刈包, 1441 潤餅, 1443 油飯盒, 1461 美味單點
+    
+                        $product_tag_ids = $product_tag_ids ?? [];
+                        
+                        // 套餐
+                        if(in_array(1331, $product_tag_ids)){ // 1331 套餐
+    
+                            if(in_array(1329, $product_tag_ids)){ // 1329 便當
+                                $total_bento += $orderProduct->quantity;
+    
+                                if(in_array(1441, $product_tag_ids)){ // 1441 潤餅
+                                    $total_3inlumpia += $orderProduct->quantity;
+                                }
+                                else if(in_array(1440, $product_tag_ids)){ // 1440 刈包
+                                    $total_small_guabao += $orderProduct->quantity;
+                                }
+                            }
+                            else if(in_array(1330, $product_tag_ids)){ // 1330 盒餐
+                                $total_lunchbox += $orderProduct->quantity;
+    
+                                if(in_array(1441, $product_tag_ids)){ // 1441 潤餅
+                                    $total_3inlumpia += $orderProduct->quantity;
+                                }
+                                else if(in_array(1440, $product_tag_ids)){ // 1440 刈包
+                                    $total_small_guabao += $orderProduct->quantity;
+                                }
+                            }
+                            else if(in_array(1443, $product_tag_ids)){ // 1443 油飯盒
+                                $total_oil_rice_box += $orderProduct->quantity;
+                            }
                         }
-                    }
-                    //pm
-                    else{
-                        if(empty($statics['pm'][$ingredient_product_id]['quantity'])){
-                            $statics['pm'][$ingredient_product_id]['quantity'] = 0;
+                        // 美味單點
+                        else if(in_array(1461, $product_tag_ids)){ // 1461 美味單點
+                            if(in_array(1461, $product_tag_ids)){ // 1440 刈包
+                                $total_big_guabao += $orderProduct->quantity;
+                            } else if(in_array(1441, $product_tag_ids)){ // 1441 潤餅
+                                $total_3inlumpia += ($orderProduct->quantity*2);
+                            }
                         }
-                        $statics['pm'][$ingredient_product_id]['quantity'] += $item['quantity'];
-
-                        if(in_array($ingredient_product_id, $sales_6inch_lumpia)){
-                            $statics['pm']['total_6inch_lumpia'] += $item['quantity'];
+                        //單點 其它商品組
+                        else if ($orderProduct->product_id == 1062){
+                            foreach ($orderProduct->orderProductOptions as $orderProductOption) {
+                                if ($orderProductOption->option_id == 1017){ //1017 = 大刈包
+                                    $total_big_guabao += $orderProductOption->quantity;
+                                } else if ($orderProductOption->option_id == 1009){ //1009 = 6吋潤餅
+                                    $total_3inlumpia += $orderProductOption->quantity * 2;
+                                }
+                            }
                         }
                     }
                 }
-            }
+    
+                $statics['info'] = [];
+                $statics['info']['total_bento']         = $total_bento;
+                $statics['info']['total_lunchbox']      = $total_lunchbox;
+                $statics['info']['total_oil_rice_box']  = $total_oil_rice_box;
+                $statics['info']['total_3inlumpia']     = $total_3inlumpia;
+                $statics['info']['total_6inlumpia']     = $total_3inlumpia/2;
+                $statics['info']['total_small_guabao']  = $total_small_guabao;
+                $statics['info']['total_oil_rice_box']  = $total_oil_rice_box;
+                $statics['info']['total_package']       = $total_bento + $total_lunchbox + $total_oil_rice_box;
+            //
 
             $statics['cache_created_at'] = now();
 
+            DB::commit();
+
             return $statics;
+
         } catch (\Exception $ex) {
             DB::rollback();
-            echo "<pre>",print_r($ex->getMessage(),true),"</pre>";exit;
             return ['error' => $ex->getMessage()];
         }
     }

@@ -59,6 +59,16 @@ ProductOptionValue
         return $this->hasOne(ProductOptionValue::class, 'id', 'product_option_value_id');
     }
 
+    public function productOption()
+    {
+        return $this->hasOne(ProductOption::class, 'id', 'product_option_id');
+    }
+
+    public function productOptionValue()
+    {
+        return $this->hasOne(ProductOptionValue::class, 'id', 'product_option_value_id');
+    }
+
     public function optionValue()
     {
         return $this->belongsTo(OptionValue::class, 'option_value_id');

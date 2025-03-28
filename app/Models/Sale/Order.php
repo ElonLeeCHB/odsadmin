@@ -62,10 +62,10 @@ class Order extends Model
                             option_values
     */
 
-    //這應該不是慣例命名
+    //待廢
     public function order_products()
     {
-        return $this->orderProducts();
+        return $this->hasMany(OrderProduct::class, 'order_id', 'id');
     }
     
     //這才是慣例命名
@@ -74,7 +74,13 @@ class Order extends Model
         return $this->hasMany(OrderProduct::class, 'order_id', 'id');
     }
 
+    //待廢
     public function order_product_options()
+    {
+        return $this->hasManyThrough(OrderProductOption::class, OrderProduct::class);
+    }
+
+    public function orderProductOptions()
     {
         return $this->hasManyThrough(OrderProductOption::class, OrderProduct::class);
     }
