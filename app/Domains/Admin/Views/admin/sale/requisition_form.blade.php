@@ -14,7 +14,7 @@
       <div class="float-end">
 
         @if(!empty($calc_url))
-        <a data-href="{{ $printForm }}" id="href-printForm"  target="_blank" data-bs-toggle="tooltip" title="列印" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
+        <a data-href="{{ $print_form_url }}" id="href-printForm"  target="_blank" data-bs-toggle="tooltip" title="列印" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
         @endif
         <a href="{{ $back_url }}" data-bs-toggle="tooltip" title="Back" class="btn btn-light"><i class="fas fa-reply"></i></a>
 

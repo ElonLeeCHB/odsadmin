@@ -27,18 +27,15 @@ class RequisitionController extends BackendController
 
     public function getForm()
     {
-        try {
-            if(empty(request()->required_date )){
-                return response()->json(['error' => '日期錯誤'], 400);
-            }
-
-            $data = $this->RequisitionService->getForm(request()->required_date, request()->forceUpdate);
-            // echo "<pre>",print_r($data,true),"</pre>\r\n";exit;
-            return view('admin.sale.requisition_form_data', $data);
-
-        } catch (\Throwable $th) {
-            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
+        if(empty(request()->required_date )){
+            return response()->json(['error' => '日期錯誤'], 400);
         }
+
+        $data['statistics'] = $this->RequisitionService->getStaticsByRequiredDate(request()->required_date, request()->forceUpdate);
+        // echo "<pre>", print_r($data['statistics'], true), "</pre>";exit;
+        
+
+        return view('admin.sale.requisition_form_data', $data);
     }
 
     public function __construct(
@@ -54,7 +51,7 @@ class RequisitionController extends BackendController
         $this->getLang(['admin/common/common','admin/sale/requisition']);
     }
 
-
+    // 用於查昨天以前的舊資料。新資料使用快取。
     public function index()
     {
         $data['lang'] = $this->lang;
@@ -91,12 +88,10 @@ class RequisitionController extends BackendController
         return view('admin.sale.requisition', $data);
     }
 
-
     public function list()
     {
         return $this->getList();
     }
-
 
     private function getList()
     {
@@ -184,33 +179,7 @@ class RequisitionController extends BackendController
             $data['back_url'] = route('lang.admin.sale.requisitions.index');
             $data['calc_url'] = '';
             $data['load_url'] = '';
-            
-            // parseDate
-            if(!empty($required_date_string)){
-                $required_date = parseDate($required_date_string);
-
-                if(empty($required_date)){
-                    return $this->sendJsonResponse([], 400, '日期格式錯誤');
-                }
-
-                $required_date_2ymd = parseDateStringTo6d($required_date);
-                
-                $data['required_date'] = $required_date;
-                
-                $data['statics'] = $this->RequisitionService->getOrderIngredients($required_date, request()->force);
-
-                $data['statics']['required_date'] = $required_date;
-        
-                $data['calc_url'] = route('lang.admin.sale.requisitions.calcRequisitionsByDate',['required_date' => $required_date_2ymd]);
-                $data['printForm'] = route('lang.admin.sale.requisitions.printForm',$required_date);
-        
-                $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
-            } else {
-                $data['statics'] = [];
-            }
-
-            $data['printForm'] = route('lang.admin.sale.requisitions.printForm', $required_date ?? '');
-
+            $data['print_form_url'] = route('lang.admin.sale.requisitions.printForm', $required_date ?? '');
             
             return view('admin.sale.requisition_form', $data);
 
