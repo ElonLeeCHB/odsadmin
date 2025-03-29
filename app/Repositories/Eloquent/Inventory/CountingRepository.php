@@ -383,6 +383,7 @@ class CountingRepository
     public function exportCountingProductList($post_data = [], $debug = 0)
     {
         $filename = '盤點表_'.date('Y-m-d_H-i-s').'.xlsx';
+        
         return Excel::download(new InventoryCountingListExport($post_data, $this->ProductRepository), $filename);
     }
 }

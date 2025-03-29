@@ -23,7 +23,7 @@ class Product extends Model
     use ModelTrait;
 
     protected $guarded = [];
-    protected $appends = ['code', 'name', 'web_name', 'short_description'];
+    protected $appends = ['name'];
     public $translation_keys = ['name', 'short_name','web_name' , 'short_description', 'description', 'specification'
                                 ,'meta_title','meta_description','meta_keyword',
                                 ];

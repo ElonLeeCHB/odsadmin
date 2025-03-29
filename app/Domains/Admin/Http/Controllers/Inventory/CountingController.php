@@ -382,6 +382,7 @@ class CountingController extends BackendController
     public function exportCountingProductList()
     {
         $post_data = request()->post();
+
         return $this->CountingService->exportCountingProductList($post_data); 
     }
 

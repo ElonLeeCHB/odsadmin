@@ -363,40 +363,20 @@ class OrmHelper
     // 自訂轉換資料的方法
     public static function toCleanCollection($data)
     {
-        // 如果資料是 LengthAwarePaginator 實例，處理分頁資料
         if ($data instanceof LengthAwarePaginator) {
-
-            // 先取得分頁資料集合並過濾不必要的欄位
-            $rows = $data->getCollection();
-            
-            // 清理資料集合
-            $cleanData = $rows->map(function ($item) {
-                return self::toCleanObject($item);
-            });
-
-            // 返回包含分頁資訊的結果
-            return collect([
-                'current_page' => $data->currentPage(),
-                'first_page_url' => $data->url(1),  // 第一頁 URL
-                'from' => $data->firstItem(),  // 目前顯示資料的起始項目
-                'last_page' => $data->lastPage(),  // 最後一頁頁碼
-                'last_page_url' => $data->url($data->lastPage()),  // 最後一頁 URL
-                // 'links' => $data->links(),  // 分頁的超連結 html 內容，不必要，而且無法用 toArray()展開，會有記憶體耗盡的問題
-                'next_page_url' => $data->nextPageUrl(),  // 下一頁 URL
-                'path' => $data->path(),  // 基礎 URL
-                'per_page' => $data->perPage(),  // 每頁顯示資料數量
-                'prev_page_url' => $data->previousPageUrl(),  // 上一頁 URL
-                'to' => $data->lastItem(),  // 目前顯示資料的結束項目
-                'total' => $data->total(),  // 總資料數量
-                'data' => $cleanData  // 返回清理後的資料
-            ]);
+            return $data->setCollection(
+                $data->getCollection()->map(fn($item) => self::toCleanObject($item))
+            );
         }
 
-        // 如果資料是集合類型（Collection），則逐一處理
-        else if (is_object($data) && method_exists($data, 'map')){
-            return $data->map(function ($item) {
-                return self::toCleanObject($item);
-            });
+        else if (is_object($data)){
+            $object = [];
+
+            foreach ($data as $row) {
+                $object[] = self::toCleanObject($row);
+            }
+
+            return $object;
         }
     }
 
@@ -407,11 +387,10 @@ class OrmHelper
             return $input; // 如果是字串，直接返回
         }
 
+        $object = new \stdClass();
+
         // 先將模型轉換為陣列
         $data = is_object($input) && method_exists($input, 'toArray') ? $input->toArray() : (array) $input;
-
-        // 使用 stdClass 來保存每一筆資料
-        $object = new \stdClass();
 
         // 將陣列轉換為 stdClass 並過濾不必要的欄位
         foreach ($data as $key => $value) {
@@ -420,23 +399,65 @@ class OrmHelper
                 continue;
             }
 
-            if ($key === 'translation') {
-                continue;  // 排除 translation 欄位
-            }
-
             // 處理關聯資料（遞回處理）
-            if (is_array($value) || is_object($value)) {
-                $object->{$key} = is_array($value)
-                    ? self::toCleanCollection(collect($value))  // 如果是陣列，遞回清理
-                    : self::toCleanObject($value);  // 如果是物件，遞回清理
+            if (is_array($value)) {
+                $object->{$key} = self::toCleanCollection(collect($value));
+            } 
+            else if (is_object($value)) {
+                $object->{$key} = self::toCleanObject($value);
             } else {
-                // 其他資料，直接賦值
                 $object->{$key} = $value;
             }
         }
 
+        unset($object->translation);
+        unset($object->metas);
+
         return $object;
     }
+    public static function setTranslationToRow($row)
+    {
+        if ($row->relationLoaded('translation')) {
+            foreach ($row->translation as $column => $value) {
+                if (in_array($column, $row->translation_keys)){
+                    $row->{$column} = $value;
+                }
+            }
+        }
+    }
 
+    public static function setTranslationToRows($rows)
+    {
+        foreach ($rows as $row) {
+            self::setTranslationToRow($row);
+        }
 
+        return $rows;
+    }
+
+    public static function setMetasToRow($row)
+    {
+        if ($row->relationLoaded('metas')) {
+            foreach ($row->metas as $meta) {
+                if (in_array($meta->meta_key, $row->meta_keys)){
+                    $row->{$meta->meta_key} = $meta->meta_value;
+                }
+            }
+        }
+    }
+
+    public static function setMetasToRows($rows)
+    {
+        foreach ($rows as $row) {
+            self::setMetasToRow($row);
+        }
+
+        return $rows;
+    }
+
+    public static function setTranslationAndMetasToRows($rows)
+    {
+        self::setTranslationToRows($rows);
+        self::setMetasToRows($rows);
+    }
 }
