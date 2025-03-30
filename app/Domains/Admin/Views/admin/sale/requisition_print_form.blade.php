@@ -25,7 +25,7 @@
     margin: 0px;
   }
   body{
-    font-size: 0.8em;
+    font-size: 0.7em;
     padding:15px;
   }
   table {
@@ -41,104 +41,87 @@
 }
 </style>
 
-套餐數:{{ $statics['info']['total_package'] ?? 0 }}; &nbsp;
-盒餐:{{ $statics['info']['total_lunchbox'] ?? 0 }}; &nbsp;
-便當:{{ $statics['info']['total_bento'] ?? 0 }}; &nbsp;
-油飯盒:{{ $statics['info']['total_oilRiceBox'] ?? 0 }}; &nbsp; 
-3吋潤餅:{{ $statics['info']['total_3inlumpia'] ?? 0 }}; &nbsp;
-小刈包:{{ $statics['info']['total_small_guabao'] ?? 0 }}; &nbsp;
-大刈包:{{ $statics['info']['total_big_guabao'] ?? 0 }};  
-<div class="table-responsive text-end mx-auto" >
+
+
+<div class="table-responsive text-start mx-auto" >
+  需求日期： {{ $statistics['info']['required_date_ymd'] ?? ''}} &nbsp;
+  套餐數(盒餐、便當、油飯盒):{{ $statistics['info']['total_package'] ?? 0 }}, &nbsp;
+  盒餐:{{ $statistics['info']['total_lunchbox'] ?? 0 }}, &nbsp;
+  便當:{{ $statistics['info']['total_bento'] ?? 0 }}, &nbsp;
+  油飯盒:{{ $statistics['info']['total_oil_rice_box'] ?? 0 }}, &nbsp;
   <table class="table table-bordered table-hover mx-auto">
+    <thead>
+      <tr>
+        <td class="text-start"> </td>
+        <td class="text-start">時間</td>
+        <td class="text-start" style="width:40px;">訂單編號<br>(末4碼)</td>
+        @foreach($statistics['sales_ingredients_table_items'] as $map_product_id => $name)
+          <?php
+          $characters = mb_str_split($name);
+          $new_name = implode('<BR>', $characters);
+          ?>
+          <td style="width:30px;">{!! $new_name !!}</td>
+        @endforeach
+      </tr>
+    </thead>
     <tbody id="tbody_body_records">
       <tr id="option-value-row-0">
-        <td colspan="2">全日</td>
-        @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
-        <td style="width:31px;">
-          @if(!empty($statics['allDay']))
-          @foreach($statics['allDay'] as $material_product_id => $record)
-            @if($saleable_product_material_id == $material_product_id)
-              {{ $record['quantity'] }}
-            @endif
-          @endforeach
-          @endif
+        <td colspan="3" class="text-start"><span style="font-size: 10px">6吋{{ $statistics['allDay_6in'] ?? 0}}, 大{{ $statistics['allDay_bgb'] ?? 0}}, 小{{ $statistics['allDay_sgb'] ?? 0}}, 春{{ $statistics['allDay_sr'] ?? 0}}</span></td>
+        @foreach($statistics['sales_ingredients_table_items'] as $th_product_id => $saleable_product_material_name)
+        <td>
+          {{ $statistics['allDay'][$th_product_id] ?? 0 }}
         </td>
         @endforeach
       </tr>
       <tr id="option-value-row-0">
-        <td colspan="2">上午</td>
-        @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
-        <td>
-          @if(!empty($statics['am']))
-          @foreach($statics['am'] as $material_product_id => $record)
-            @if($saleable_product_material_id == $material_product_id)
-              {{ $record['quantity'] }}
-            @endif
-          @endforeach
-          @endif
-        </td>
-        @endforeach
-      </tr>
-      <tr id="option-value-row-0" style="border-bottom: 2px solid black;">
-        <td colspan="2">下午</td>
-        @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
-        <td>
-          @if(!empty($statics['pm']))
-          @foreach($statics['pm'] as $material_product_id => $record)
-            @if($saleable_product_material_id == $material_product_id)
-              {{ $record['quantity'] }}
-            @endif
-          @endforeach
-          @endif
-        </td>
-        @endforeach
-      </tr>
-      <tr style="border-bottom: 2px solid black;">
-        <td class="text-start" colspan="2">時間</td>
-        @foreach($sales_ingredients_table_items as $saleable_product_material_id => $saleable_product_material_name)
-          <?php
-          $characters = mb_str_split($saleable_product_material_name);
-          $saleable_product_material_name = implode('<BR>', $characters);
-          ?>
-          <td class="text-align: center;">
-            {!! $saleable_product_material_name !!}
+        <td colspan="3" class="text-start"><span style="font-size: 10px">6吋{{ $statistics['am_6in'] ?? 0}}, 大{{ $statistics['am_bgb'] ?? 0}}, 小{{ $statistics['am_sgb'] ?? 0}}, 春{{ $statistics['am_sr'] ?? 0}}</span></td>
+        @foreach($statistics['sales_ingredients_table_items'] as $th_product_id => $saleable_product_material_name)
+          <td>
+            {{ $statistics['am'][$th_product_id] ?? 0 }}
           </td>
         @endforeach
       </tr>
-
-      @if(!empty($statics['orders']))
-        <?php $flag = 0; ?>
-        @foreach($statics['orders'] as $details_key => $order)
-
-          @php
-            $required_date_hi = \Carbon\Carbon::parse($order['required_date'])->format('H:i');
-            $required_date_hi_num = \Carbon\Carbon::parse($order['required_date'])->format('Hi');
-          @endphp
-
-          @if($required_date_hi_num > 1300 && $flag == 0)
-          <tr style="border-bottom: 2px solid black;">
-            <td colspan="34"></td>
-          </tr>
-          <?php $flag = 1; ?>
-          @endif
-
-          <tr class="bordered">
-            <td class="text-end">{{ $required_date_hi ?? ''}}</td>
-            <td class="text-end">{{ $order['order_code'] ?? $order['source_id'] }}</td>
-            @foreach($sales_ingredients_table_items as $product_id => $product_name)
-            <td rowspan=2>
-            {{ $order['items'][$product_id]['quantity'] ?? ''}}
-            </td>
-            @endforeach
-          </tr>
-
-          <tr>
-            <td class="text-start" colspan=2>{{ $order['shipping_road_abbr'] }}</td>
-          </tr>
+      <tr>
+        <td colspan="3" class="text-start"><span style="font-size: 10px">6吋{{ $statistics['pm_6in'] ?? 0}}, 大{{ $statistics['pm_bgb'] ?? 0}}, 小{{ $statistics['pm_sgb'] ?? 0}}, 春{{ $statistics['pm_sr'] ?? 0}}</span></td>
+        @foreach($statistics['sales_ingredients_table_items'] as $th_product_id => $saleable_product_material_name)
+          <td>
+            {{ $statistics['pm'][$th_product_id] ?? 0 }}
+          </td>
         @endforeach
-      @endif
+      </tr>
+      
+      @php $count = 0; @endphp;
+      @foreach($statistics['order_list'] ?? [] as $key => $order)
+      <tr>
+        <td class="text-end" rowspan="2">{{ $key+1 }}</td>
+        <td class="text-end">{{ $order['delivery_time_range'] ?? '' }}</td>
+        <td data-bs-toggle="tooltip" data-bs-html="true" title="
+        <div class='text-start'>
+            {{ $order['tooltip'] ?? '' }}
+        </div>">
+          @if(isset($order['order_id']))
+              <a href="{{env('APP_URL')}}/#/ordered/{{ $order['order_id'] }}"
+                data-bs-toggle="tooltip"
+                target="_blank">
+                {{ $order['order_code']}}
+              </a>
+          @else
+              ''
+          @endif
+        </td>
 
-      </tbody>
+        @foreach($statistics['sales_ingredients_table_items'] as $map_product_id => $saleable_product_material_name)
+        <td rowspan="2">
+            {{ $order['items'][$map_product_id]['quantity'] ?? ''}}
+        </td>
+        @endforeach
+      </tr>
+      <tr>
+        <td class="text-start" colspan=2>{{ $order['shipping_road_abbr'] }}</td>
+      </tr>
+      @php $count++; @endphp
+      @endforeach
+    </tbody>
   </table>
 </div>
   </body>

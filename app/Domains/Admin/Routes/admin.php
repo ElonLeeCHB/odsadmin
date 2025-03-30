@@ -134,12 +134,12 @@ Route::group(
                 Route::post('phrases/destroy', 'Sale\PhraseController@destroy')->name('phrases.destroy');
                 Route::get('phrases/autocomplete', 'Sale\PhraseController@autocomplete')->name('phrases.autocomplete');
 
-
                 Route::get('requisitions', 'Sale\RequisitionController@index')->name('requisitions.index');
-                Route::get('requisitions/list', 'Sale\RequisitionController@list')->name('requisitions.list');
+                // Route::get('requisitions/list', 'Sale\RequisitionController@list')->name('requisitions.list');
                 Route::get('requisitions/form/{required_date?}', 'Sale\RequisitionController@form')->name('requisitions.form');
+                // Route::get('requisitions/getRequiredDataTable', 'Sale\RequisitionController@getRequiredDataTable')->name('requisitions.getRequiredDataTable');
                 Route::get('requisitions/getForm', 'Sale\RequisitionController@getForm')->name('requisitions.getForm');
-
+                
                 Route::post('requisitions/save', 'Sale\RequisitionController@save')->name('requisitions.save');
                 Route::get('requisitions/calcRequisitionsByDate/{required_date?}', 'Sale\RequisitionController@calcRequisitionsByDate')->name('requisitions.calcRequisitionsByDate');
                 Route::get('requisitions/printForm/{required_date?}', 'Sale\RequisitionController@printForm')->name('requisitions.printForm');

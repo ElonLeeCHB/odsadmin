@@ -14,6 +14,8 @@ use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use App\Repositories\Eloquent\Sale\DailyIngredientRepository;
 use App\Helpers\Classes\DataHelper;
 use App\Models\Setting\Setting;
+use Carbon\Carbon;
+use Artisan;
 
 class SaleDailyRequisitionMatrixListExport implements FromArray, WithHeadings, WithEvents, WithCustomStartCell
 {
@@ -23,10 +25,14 @@ class SaleDailyRequisitionMatrixListExport implements FromArray, WithHeadings, W
     private $collection;
     private $headings;
     private $product_names;
+    private $start_date;
+    private $end_date;
 
 
     public function __construct(private $params, private $DailyIngredientRepository )
     {
+        $this->start_date = Carbon::parse($params['start_date']);
+        $this->end_date = Carbon::parse($params['end_date']);
         $this->product_names = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
     }
 
@@ -42,76 +48,64 @@ class SaleDailyRequisitionMatrixListExport implements FromArray, WithHeadings, W
         return $column_names;
     }
 
-    public function array(): array
+    public function getPeriodStatistics()
     {
-        $this->params['pagination'] = false;
-        $this->params['limit'] = 1000;
-        $this->params['sort'] = 'required_date';
-        $this->params['order'] = 'DESC';
+        $data = [];
 
-        $rows = $this->DailyIngredientRepository->getRecords($this->params);
+        while ($this->start_date <= $this->end_date) {
+            $required_date_ymd = $this->start_date->toDateString();
 
-        // 各欄的 product_id。第一欄是 required_date, 第二欄之後是 product_id
-        $row_product_ids = [];
-        $row_product_ids['required_date'] = '';
+            // 執行 artisan 命令
+            $result = Artisan::call('sale:get-order-ingredient-cache', [
+                'required_date' => $this->start_date->toDateString(),
+                '--force_update' => 0,
+            ]);
 
-        foreach ($this->product_names as $product_id => $value) {
-            $row_product_ids["$product_id"] = '';
-        }
+            if ($result){
+                $cache_key = 'sale_order_ingredients_' . $this->start_date->toDateString();
+                $statistics = cache()->get($cache_key);
 
-        // 以日期為索引重新整理
-        $result = [];
-        foreach ($rows as $row) {
-            if(empty($row->quantity)){
-                continue;
+                foreach ($statistics['order_list'] as $order) {
+                    foreach ($order['items'] as $ingredient_product_id => $item) {
+                        if (empty($data['products']['name'])){
+                            $data['products'][$ingredient_product_id] = $item['map_product_name'];
+                        }
+                        $data['dates'][$required_date_ymd][$ingredient_product_id] = ($data[$required_date_ymd][$ingredient_product_id] ?? 0) + $item['quantity'];
+                    }
+                }
             }
 
-            $required_date = \Carbon\Carbon::parse($row->required_date)->format('Y-m-d');
-
-            $new_row[$row->ingredient_product_id] = [
-                'required_date' => $required_date,
-                'ingredient_product_id' => $row->ingredient_product_id,
-                'ingredient_product_name' => $row->ingredient_product_name,
-                'quantity' => $row->quantity,
-            ];
-           $result[$required_date] = $new_row;
+            $this->start_date->addDay();
         }
+
+        return $data;
+    }
+
+    public function array(): array
+    {
+        $statistics = $this->getPeriodStatistics();
 
         $final = [];
 
-        foreach ($result as $required_date => $products) {
-            foreach ($row_product_ids as $key => $value) {
-                if($key == 'required_date'){
-                    $final[$required_date][] = $required_date;
-                }else{
-                    $ingredient_product_id = $key;
-                    if(isset($products[$ingredient_product_id]) && $products[$ingredient_product_id]['required_date'] == $required_date){
-                        $final[$required_date][] = $products[$ingredient_product_id]['quantity'] ?? 0;
-                    }else {
-                        $final[$required_date][] = 0 ;
-                    }
-                }
+        foreach ($statistics['dates'] as $required_date => $row) {
+            $final[$required_date][] = $required_date;
+            foreach ($this->product_names as $product_id => $product_name) {
+                $final[$required_date][] = $row[$product_id] ?? 0;
             }
         }
 
         return $final;
     }
 
-
-
-
     public function startCell(): string
     {
         return 'A1';
     }
 
-
     public function chunkSize(): int
     {
         return 100;
     }
-
-
 
     public function registerEvents(): array
     {
@@ -122,8 +116,6 @@ class SaleDailyRequisitionMatrixListExport implements FromArray, WithHeadings, W
                 $highest_row = $workSheet->getHighestRow();
 
                 $workSheet->freezePane('A2'); // freezing here
-
-
             },
         ];
     }

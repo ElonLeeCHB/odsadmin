@@ -25,19 +25,6 @@ class RequisitionController extends BackendController
     private $required_date_2ymd;
     private $today_2ymd;
 
-    public function getForm()
-    {
-        if(empty(request()->required_date )){
-            return response()->json(['error' => '日期錯誤'], 400);
-        }
-
-        $data['statistics'] = $this->RequisitionService->getStaticsByRequiredDate(request()->required_date, request()->forceUpdate);
-        // echo "<pre>", print_r($data['statistics'], true), "</pre>";exit;
-        
-
-        return view('admin.sale.requisition_form_data', $data);
-    }
-
     public function __construct(
         private Request $request,
         private RequisitionService $RequisitionService,
@@ -51,104 +38,8 @@ class RequisitionController extends BackendController
         $this->getLang(['admin/common/common','admin/sale/requisition']);
     }
 
-    // 用於查昨天以前的舊資料。新資料使用快取。
-    public function index()
-    {
-        $data['lang'] = $this->lang;
-
-        // Breadcomb
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_home,
-            'href' => route('lang.admin.dashboard'),
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_sale,
-            'href' => 'javascript:void(0)',
-            'cursor' => 'default',
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.sale.requisitions.index'),
-        ];
-
-        $data['breadcumbs'] = (object)$breadcumbs;
-
-        $data['list'] = $this->getList();
-
-        $data['list_url'] = route('lang.admin.sale.requisitions.list');
-
-        $required_date_2ymd = parseDateStringTo6d(date('Y-m-d'));
-        $data['add_url'] = route('lang.admin.sale.requisitions.form');
-
-        $data['export_daily_list_url'] = route('lang.admin.sale.requisitions.exportDailyList');
-        $data['export_matrix_list_url'] = route('lang.admin.sale.requisitions.exportMatrixList');
-
-        return view('admin.sale.requisition', $data);
-    }
-
-    public function list()
-    {
-        return $this->getList();
-    }
-
-    private function getList()
-    {
-        $data['lang'] = $this->lang;
-
-        // Prepare query_data for records
-        $query_data  = $this->url_data;
-
-        // Rows
-        $query_data['with'] = DataHelper::addToArray('product', $query_data['with'] ?? []);
-
-        $ingredients = $this->RequisitionService->getDailyIngredients($query_data);
-
-        foreach ($ingredients ?? [] as $row) {
-            $row->edit_url = route('lang.admin.sale.requisitions.form', array_merge([$row->required_date], $query_data));
-            $row->is_active_name = ($row->is_active==1) ? $this->lang->text_enabled :$this->lang->text_disabled;
-        }
-
-        $data['ingredients'] = $ingredients->withPath(route('lang.admin.sale.requisitions.list'))->appends($query_data);
-
-        // Prepare links for list table's header
-        if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
-            $order = 'DESC';
-        }else{
-            $order = 'ASC';
-        }
-
-        $data['sort'] = strtolower($query_data['sort'] ?? '');
-        $data['order'] = strtolower($order);
-
-        $query_data = $this->unsetUrlQueryData($query_data);
-
-
-        // link of table header for sorting
-        $url = '';
-
-        foreach($query_data as $key => $value){
-            if(is_string($value)){
-                $url .= "&$key=$value";
-            }
-        }
-
-        $route = route('lang.admin.sale.requisitions.list');
-
-        $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
-        $data['sort_required_date'] = $route . "?sort=required_date&order=$order" .$url;
-        $data['sort_product_id'] = $route . "?sort=product_id&order=$order" .$url;
-        $data['sort_product_name'] = $route . "?sort=product_name&order=$order" .$url;
-        $data['sort_supplier_product_code'] = $route . "?sort=supplier_product_code&order=$order" .$url;
-        $data['sort_supplier_short_name'] = $route . "?sort=supplier_short_name&order=$order" .$url;
-
-        $data['list_url'] = route('lang.admin.sale.requisitions.list');
-        return view('admin.sale.requisition_list', $data);
-    }
-
-
-    public function form($required_date_string = null)
+    // 呈現全頁框架，但初始不包含備料表格。提供查詢欄位
+    public function form()
     {
         try {
             $this->lang->text_form = empty($required_date) ? $this->lang->text_add : $this->lang->text_edit;
@@ -176,10 +67,13 @@ class RequisitionController extends BackendController
             // End Breadcomb
 
             // Prepare links
-            $data['back_url'] = route('lang.admin.sale.requisitions.index');
-            $data['calc_url'] = '';
-            $data['load_url'] = '';
+            $data['back_url'] = route('lang.admin.sale.requisitions.form');
             $data['print_form_url'] = route('lang.admin.sale.requisitions.printForm', $required_date ?? '');
+            $data['export_matrix_list_url'] = route('lang.admin.sale.requisitions.exportMatrixList');
+
+            if(!empty(request()->query('required_date'))){
+                $data['requiredDataTable'] = $this->getForm();
+            }
             
             return view('admin.sale.requisition_form', $data);
 
@@ -189,6 +83,307 @@ class RequisitionController extends BackendController
 
     }
 
+    // 產生包含 html 的備料表格 相當於 opencart getList()
+    public function getForm()
+    {
+        if(empty(request()->required_date)){
+            return response()->json(['error' => '日期錯誤', 'errorWarning' => '日期錯誤'], 400);
+        }
+
+        $data['statistics'] = $this->RequisitionService->getStaticsByRequiredDate(request()->required_date, request()->force_update);
+        
+        return view('admin.sale.requisition_form_data', $data);
+    }
+
+    // 請求包含 html 的備料表格。平時用不到。相當於 opencart list()
+    public function getRequiredDataTable()
+    {
+        if(empty(request()->query('required_date') )){
+            return response()->json(['error' => '日期錯誤'], 400);
+        }
+        
+        return $this->getForm(request()->query('required_date'));
+    }
+
+    // 列印格式
+    public function printForm($required_date = null)
+    {
+        $data['lang'] = $this->lang;
+        $data['base'] = config('app.admin_url');
+
+        // parseDate
+        if(!empty($required_date_string)){
+            //$required_date = parseDate($required_date_string);
+            $required_date_2ymd = parseDateStringTo6d($required_date_string);
+
+            if(empty($required_date_2ymd)){
+                return redirect(route('lang.admin.sale.requisitions.form'))->with("warning", "日期格式錯誤");
+            }
+        }
+
+        if(!empty($required_date)){            
+            $data['statistics'] = $this->RequisitionService->getStaticsByRequiredDate($required_date, request()->forceUpdate);
+        }
+
+        return view('admin.sale.requisition_print_form', $data);
+    }
+
+    // 下載多日 excel 檔
+    public function exportMatrixList()
+    {
+        $params = request()->all();
+
+        if(empty(request()->start_start) || empty(request()->end_start)){
+            return response()->json(['error' => '日期錯誤'], 400);
+        }
+        
+        return $this->RequisitionService->exportMatrixList($params);
+    }
+
+    // 傳統的列表。用不到
+    // public function exportDailyList()
+    // {
+    //     $params = request()->all();
+    //     return $this->RequisitionService->exportDailyList($params);
+    // }
+
+    /**
+     * 設定哪些商品是一級材料
+     */
+    public function settingForm()
+    {
+        $data['lang'] = $this->lang;
+
+        // Breadcomb
+        $breadcumbs[] = (object)[
+            'text' => $this->lang->text_home,
+            'href' => route('lang.admin.dashboard'),
+        ];
+
+        $breadcumbs[] = (object)[
+            'text' => $this->lang->text_sale,
+            'href' => 'javascript:void(0)',
+            'cursor' => 'default',
+        ];
+
+        $breadcumbs[] = (object)[
+            'text' => $this->lang->text_material_requisition_setting,
+            'href' => route('lang.admin.sale.requisitions.index'),
+        ];
+
+        $data['breadcumbs'] = (object)$breadcumbs;
+
+        $this->lang->text_form = $this->lang->text_material_requisition_setting;
+
+
+        //需要除2的潤餅
+        $sales_wrap_map = Setting::where('setting_key','sales_wrap_map')->first()->setting_value;
+        $lines = [];
+        foreach ($sales_wrap_map as $key => $row) {
+            $lines[] = $row['product_id'] . ',"' . trim($row['product_name']) .'",' . $row['new_product_id'] . ',"' . trim($row['new_product_name']) . '"';
+        }
+        $data['sales_wrap_map'] = implode("\n", $lines);
+
+        //顯示項目
+        $sales_ingredients_table_items = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
+        $lines = [];
+        foreach ($sales_ingredients_table_items as $product_id => $product_name) {
+            $lines[] = $product_id . ',"' . trim($product_name).'"';
+        }
+        $data['sales_ingredients_table_items'] = implode("\n", $lines);
+
+
+        //連結
+        $data['save_url'] = route('lang.admin.sale.requisitions.settingSave');
+        $data['back_url'] = route('lang.admin.sale.requisitions.form');
+        $data['list_url'] = route('lang.admin.sale.requisitions.list');
+
+
+        return view('admin.sale.material_requisition_setting_form', $data);
+    }
+
+    public function settingSave()
+    {
+
+        $location_id = $this->request->post('location_id') ?? 0;
+
+        $updateData = [];
+
+        //需要除2的潤餅 sales_wrap_map
+        $sales_wrap_map = $this->request->post('sales_wrap_map') ?? '';
+
+        if(!empty($sales_wrap_map)){
+            $lines = explode("\n", $sales_wrap_map);  // 將多行文字拆成陣列
+            $lines = array_map('trim', $lines);      // 去除每行文字的首尾空白
+
+            foreach ($lines as $key => $line) {
+                $line = str_replace(["\r", "\n"], '', $line);
+                $csvData[] = str_getcsv($line);
+            }
+
+            $arr = [];
+            foreach ($csvData as $row) {
+                $key1 = $row[0];
+                $arr[$key1] = [
+                    'product_id'   => $row[0],
+                    'product_name' => $row[1],
+                    'new_product_id' => $row[2],
+                    'new_product_name' => $row[3],
+                ];
+            }
+
+            //upsert
+            $updateData[] = [
+                'location_id' => $location_id,
+                'group' => 'sales',
+                'setting_key' => 'sales_wrap_map',
+                'setting_value' => json_encode($arr),
+            ];
+        }
+
+        //顯示項目 sales_ingredients_table_items
+        $sales_ingredients_table_items = $this->request->post('sales_ingredients_table_items') ?? '';
+
+        if(!empty($sales_ingredients_table_items)){
+            $lines = explode("\n", $sales_ingredients_table_items);  // 將多行文字拆成陣列
+            $lines = array_map('trim', $lines);      // 去除每行文字的首尾空白
+
+            $tempDate = [];
+            $csvData = [];
+            foreach ($lines as $key => $line) {
+                $line = str_replace(["\r", "\n"], '', $line);
+                $csvData[] = str_getcsv($line);
+            }
+
+            $arr = [];
+            foreach ($csvData as $row) {
+                $key1 = $row[0];
+                $arr[$key1] = $row[1];
+            }
+
+            //upsert
+            $updateData[] = [
+                'location_id' => $location_id,
+                'group' => 'sales',
+                'setting_key' => 'sales_ingredients_table_items',
+                'setting_value' => json_encode($arr),
+            ];
+        }
+
+        if(!empty($updateData)){
+            $json = [];
+
+            try {
+                Setting::upsert($updateData, ['location_id', 'setting_key']);
+                $json['success'] = $this->lang->text_success;
+            } catch (QueryException $e) {
+                $json['error'] = $e->getCode();
+            }
+
+            return response(json_encode($json))->header('Content-Type','application/json');
+        }
+    }
+
+
+
+
+    // // 用於查昨天以前的舊資料。新資料使用快取。
+    // public function index()
+    // {
+    //     $data['lang'] = $this->lang;
+
+    //     // Breadcomb
+    //     $breadcumbs[] = (object)[
+    //         'text' => $this->lang->text_home,
+    //         'href' => route('lang.admin.dashboard'),
+    //     ];
+
+    //     $breadcumbs[] = (object)[
+    //         'text' => $this->lang->text_sale,
+    //         'href' => 'javascript:void(0)',
+    //         'cursor' => 'default',
+    //     ];
+
+    //     $breadcumbs[] = (object)[
+    //         'text' => $this->lang->heading_title,
+    //         'href' => route('lang.admin.sale.requisitions.index'),
+    //     ];
+
+    //     $data['breadcumbs'] = (object)$breadcumbs;
+
+    //     $data['list'] = $this->getList();
+
+    //     $data['list_url'] = route('lang.admin.sale.requisitions.list');
+
+    //     $required_date_2ymd = parseDateStringTo6d(date('Y-m-d'));
+    //     $data['add_url'] = route('lang.admin.sale.requisitions.form');
+
+    //     $data['export_daily_list_url'] = route('lang.admin.sale.requisitions.exportDailyList');
+    //     $data['export_matrix_list_url'] = route('lang.admin.sale.requisitions.exportMatrixList');
+
+    //     return view('admin.sale.requisition', $data);
+    // }
+
+    // public function list()
+    // {
+    //     return $this->getList();
+    // }
+
+    // private function getList()
+    // {
+    //     $data['lang'] = $this->lang;
+
+    //     // Prepare query_data for records
+    //     $query_data  = $this->url_data;
+
+    //     // Rows
+    //     $query_data['with'] = DataHelper::addToArray('product', $query_data['with'] ?? []);
+
+    //     $ingredients = $this->RequisitionService->getDailyIngredients($query_data);
+
+    //     foreach ($ingredients ?? [] as $row) {
+    //         $row->edit_url = route('lang.admin.sale.requisitions.form', array_merge([$row->required_date], $query_data));
+    //         $row->is_active_name = ($row->is_active==1) ? $this->lang->text_enabled :$this->lang->text_disabled;
+    //     }
+
+    //     $data['ingredients'] = $ingredients->withPath(route('lang.admin.sale.requisitions.list'))->appends($query_data);
+
+    //     // Prepare links for list table's header
+    //     if(isset($query_data['order']) && $query_data['order'] == 'ASC'){
+    //         $order = 'DESC';
+    //     }else{
+    //         $order = 'ASC';
+    //     }
+
+    //     $data['sort'] = strtolower($query_data['sort'] ?? '');
+    //     $data['order'] = strtolower($order);
+
+    //     $query_data = $this->unsetUrlQueryData($query_data);
+
+
+    //     // link of table header for sorting
+    //     $url = '';
+
+    //     foreach($query_data as $key => $value){
+    //         if(is_string($value)){
+    //             $url .= "&$key=$value";
+    //         }
+    //     }
+
+    //     $route = route('lang.admin.sale.requisitions.list');
+
+    //     $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
+    //     $data['sort_required_date'] = $route . "?sort=required_date&order=$order" .$url;
+    //     $data['sort_product_id'] = $route . "?sort=product_id&order=$order" .$url;
+    //     $data['sort_product_name'] = $route . "?sort=product_name&order=$order" .$url;
+    //     $data['sort_supplier_product_code'] = $route . "?sort=supplier_product_code&order=$order" .$url;
+    //     $data['sort_supplier_short_name'] = $route . "?sort=supplier_short_name&order=$order" .$url;
+
+    //     $data['list_url'] = route('lang.admin.sale.requisitions.list');
+    //     return view('admin.sale.requisition_list', $data);
+    // }
+
+    //前人寫的，可能提供給 hrc 或是 dts 站台，用途不明。暫時不動。
     public function getRequisitionBurrito($date){
         $start_date = $date . ' 00:00:00';
         $end_date = $date . ' 23:59:59';
@@ -368,190 +563,6 @@ class RequisitionController extends BackendController
         cache()->put($cacheName, $result, 60*60*24*30);
 
         return $result;
-    }
-
-
-    /**
-     * 設定哪些商品是一級材料
-     */
-    public function settingForm()
-    {
-        $data['lang'] = $this->lang;
-
-        // Breadcomb
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_home,
-            'href' => route('lang.admin.dashboard'),
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_sale,
-            'href' => 'javascript:void(0)',
-            'cursor' => 'default',
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_material_requisition_setting,
-            'href' => route('lang.admin.sale.requisitions.index'),
-        ];
-
-        $data['breadcumbs'] = (object)$breadcumbs;
-
-        $this->lang->text_form = $this->lang->text_material_requisition_setting;
-
-
-        //需要除2的潤餅
-        $sales_wrap_map = Setting::where('setting_key','sales_wrap_map')->first()->setting_value;
-        $lines = [];
-        foreach ($sales_wrap_map as $key => $row) {
-            $lines[] = $row['product_id'] . ',"' . trim($row['product_name']) .'",' . $row['new_product_id'] . ',"' . trim($row['new_product_name']) . '"';
-        }
-        $data['sales_wrap_map'] = implode("\n", $lines);
-
-        //顯示項目
-        $sales_ingredients_table_items = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
-        $lines = [];
-        foreach ($sales_ingredients_table_items as $product_id => $product_name) {
-            $lines[] = $product_id . ',"' . trim($product_name).'"';
-        }
-        $data['sales_ingredients_table_items'] = implode("\n", $lines);
-
-
-        //連結
-        $data['save_url'] = route('lang.admin.sale.requisitions.settingSave');
-        $data['back_url'] = route('lang.admin.sale.requisitions.index');
-        $data['list_url'] = route('lang.admin.sale.requisitions.list');
-
-
-        return view('admin.sale.material_requisition_setting_form', $data);
-    }
-
-    public function settingSave()
-    {
-
-        $location_id = $this->request->post('location_id') ?? 0;
-
-        $updateData = [];
-
-        //需要除2的潤餅 sales_wrap_map
-        $sales_wrap_map = $this->request->post('sales_wrap_map') ?? '';
-
-        if(!empty($sales_wrap_map)){
-            $lines = explode("\n", $sales_wrap_map);  // 將多行文字拆成陣列
-            $lines = array_map('trim', $lines);      // 去除每行文字的首尾空白
-
-            foreach ($lines as $key => $line) {
-                $line = str_replace(["\r", "\n"], '', $line);
-                $csvData[] = str_getcsv($line);
-            }
-
-            $arr = [];
-            foreach ($csvData as $row) {
-                $key1 = $row[0];
-                $arr[$key1] = [
-                    'product_id'   => $row[0],
-                    'product_name' => $row[1],
-                    'new_product_id' => $row[2],
-                    'new_product_name' => $row[3],
-                ];
-            }
-
-            //upsert
-            $updateData[] = [
-                'location_id' => $location_id,
-                'group' => 'sales',
-                'setting_key' => 'sales_wrap_map',
-                'setting_value' => json_encode($arr),
-            ];
-        }
-
-        //顯示項目 sales_ingredients_table_items
-        $sales_ingredients_table_items = $this->request->post('sales_ingredients_table_items') ?? '';
-
-        if(!empty($sales_ingredients_table_items)){
-            $lines = explode("\n", $sales_ingredients_table_items);  // 將多行文字拆成陣列
-            $lines = array_map('trim', $lines);      // 去除每行文字的首尾空白
-
-            $tempDate = [];
-            $csvData = [];
-            foreach ($lines as $key => $line) {
-                $line = str_replace(["\r", "\n"], '', $line);
-                $csvData[] = str_getcsv($line);
-            }
-
-            $arr = [];
-            foreach ($csvData as $row) {
-                $key1 = $row[0];
-                $arr[$key1] = $row[1];
-            }
-
-            //upsert
-            $updateData[] = [
-                'location_id' => $location_id,
-                'group' => 'sales',
-                'setting_key' => 'sales_ingredients_table_items',
-                'setting_value' => json_encode($arr),
-            ];
-        }
-
-        if(!empty($updateData)){
-            $json = [];
-
-            try {
-                Setting::upsert($updateData, ['location_id', 'setting_key']);
-                $json['success'] = $this->lang->text_success;
-            } catch (QueryException $e) {
-                $json['error'] = $e->getCode();
-            }
-
-            return response(json_encode($json))->header('Content-Type','application/json');
-        }
-    }
-
-
-    public function printForm($required_date_string = null)
-    {
-        $data['lang'] = $this->lang;
-        $data['base'] = config('app.admin_url');
-        
-        // parseDate
-        if(!empty($required_date_string)){
-            //$required_date = parseDate($required_date_string);
-            $required_date_2ymd = parseDateStringTo6d($required_date_string);
-
-            if(empty($required_date_2ymd)){
-                return redirect(route('lang.admin.sale.requisitions.form'))->with("warning", "日期格式錯誤");
-            }
-        }
-
-        if(!empty($required_date_2ymd)){
-            $statics = $this->RequisitionService->getOrderIngredients($required_date_2ymd);
-        }
-
-        // 使用 allDay 來判斷有無資料
-        if(empty($statics['allDay'])){
-            return redirect(route('lang.admin.sale.requisitions.form'))->with("warning", "$required_date_string 無資料");
-        }
-
-        $data['statics'] = $statics;
-
-        $data['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
-
-        return view('admin.sale.requisition_print_form', $data);
-    }
-
-
-    public function exportDailyList()
-    {
-        $params = request()->all();
-        return $this->RequisitionService->exportDailyList($params);
-    }
-
-    public function exportMatrixList()
-    {
-        $params = request()->all();
-        // dd($params);
-        return $this->RequisitionService->exportMatrixList($params);
     }
 
 }

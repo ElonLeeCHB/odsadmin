@@ -1,14 +1,17 @@
 
 <strong>需求日期： {{ $statistics['info']['required_date_ymd'] ?? ''}}</strong> <BR>
-  更新時間： {{ $statistics['info']['cache_created_at'] ?? '' }} &nbsp; 上下午分界點：13:00 開始算下午<BR>
-  套餐數:{{ $statistics['info']['total_package'] ?? 0 }}, &nbsp;
-  盒餐:{{ $statistics['info']['total_lunchbox'] ?? 0 }}, &nbsp;
-  便當：{{ $statistics['info']['total_bento'] ?? 0 }}, &nbsp;
-  油飯盒:{{ $statistics['info']['total_oilRiceBox'] ?? 0 }}, &nbsp;
+更新時間： {{ $statistics['info']['cache_created_at'] ?? '' }} &nbsp; (更新時間間隔1小時)<BR>
+套餐數(盒餐、便當、油飯盒):{{ $statistics['info']['total_package'] ?? 0 }}, &nbsp;
+盒餐:{{ $statistics['info']['total_lunchbox'] ?? 0 }}, &nbsp;
+便當:{{ $statistics['info']['total_bento'] ?? 0 }}, &nbsp;
+油飯盒:{{ $statistics['info']['total_oil_rice_box'] ?? 0 }}, &nbsp;
+  {{-- 
   3吋潤餅:{{ $statistics['info']['total_3inlumpia'] ?? 0 }}, &nbsp;
-  6吋潤餅:{{ ceil($statistics['info']['total_6inlumpia']) ?? 0 }}({{ $info['total_3inlumpia'] ?? 0 }}/2), &nbsp;
+  6吋潤餅:{{ ceil($statistics['info']['total_6inlumpia']) ?? 0 }}({{ $statistics['info']['total_3inlumpia'] ?? 0 }}/2), &nbsp;
+  春捲:{{ $statistics['info']['total_spring_roll'] ?? 0 }}, &nbsp;
   小刈包:{{ $statistics['info']['total_small_guabao'] ?? 0 }}, &nbsp;
-  大刈包:{{ $statistics['info']['total_big_guabao'] ?? 0 }}, &nbsp;
+  大刈包:{{ $statistics['info']['total_big_guabao'] ?? 0 }}, &nbsp;<BR>
+    --}}
 
 
 <div class="table-responsive text-end mx-auto" id="tableContainer">
@@ -43,7 +46,7 @@
     </thead>
     <tbody id="tbody_body_records">
       <tr id="option-value-row-0">
-        <td colspan="3" class="text-start">全日6吋潤餅: 307</td>
+        <td colspan="3" class="text-start"><span style="font-size: 10px">6吋{{ $statistics['allDay_6in'] ?? 0}}, 大{{ $statistics['allDay_bgb'] ?? 0}}, 小{{ $statistics['allDay_sgb'] ?? 0}}, 春{{ $statistics['allDay_sr'] ?? 0}}</span></td>
         @foreach($statistics['sales_ingredients_table_items'] as $th_product_id => $saleable_product_material_name)
         <td>
           {{ $statistics['allDay'][$th_product_id] ?? 0 }}
@@ -51,7 +54,7 @@
         @endforeach
       </tr>
       <tr id="option-value-row-0">
-        <td colspan="3" class="text-start">上午6吋潤餅: 213</td>
+        <td colspan="3" class="text-start"><span style="font-size: 10px">6吋{{ $statistics['am_6in'] ?? 0}}, 大{{ $statistics['am_bgb'] ?? 0}}, 小{{ $statistics['am_sgb'] ?? 0}}, 春{{ $statistics['am_sr'] ?? 0}}</span></td>
         @foreach($statistics['sales_ingredients_table_items'] as $th_product_id => $saleable_product_material_name)
           <td>
             {{ $statistics['am'][$th_product_id] ?? 0 }}
@@ -59,7 +62,7 @@
         @endforeach
       </tr>
       <tr>
-        <td colspan="3" class="text-start">下午6吋潤餅: 94</td>
+        <td colspan="3" class="text-start"><span style="font-size: 10px">6吋{{ $statistics['pm_6in'] ?? 0}}, 大{{ $statistics['pm_bgb'] ?? 0}}, 小{{ $statistics['pm_sgb'] ?? 0}}, 春{{ $statistics['pm_sr'] ?? 0}}</span></td>
         @foreach($statistics['sales_ingredients_table_items'] as $th_product_id => $saleable_product_material_name)
           <td>
             {{ $statistics['pm'][$th_product_id] ?? 0 }}
@@ -72,11 +75,13 @@
       <tr>
         <td class="text-end" rowspan="2">{{ $key+1 }}</td>
         <td class="text-end">{{ $order['delivery_time_range'] ?? '' }}</td>
-        <td class="text-end">
+        <td data-bs-toggle="tooltip" data-bs-html="true" title="
+        <div class='text-start'>
+            {{ $order['tooltip'] ?? '' }}
+        </div>">
           @if(isset($order['order_id']))
               <a href="{{env('APP_URL')}}/#/ordered/{{ $order['order_id'] }}"
                 data-bs-toggle="tooltip"
-                title="訂單連結"
                 target="_blank">
                 {{ $order['order_code']}}
               </a>
@@ -96,8 +101,13 @@
       </tr>
       @php $count++; @endphp
       @endforeach
-
       
+      @php $columns = 3 + count($statistics['sales_ingredients_table_items']); @endphp
+      @for($i=0; $i<15; $i++)
+      <tr>
+        <td colspan="{{ $columns }}">&nbsp;&nbsp;</td>
+      </tr>
+      @endfor
     </tbody>
   </table>
 </div>

@@ -191,7 +191,7 @@ class LayoutComposer
             $sale[] = [
                 'name'	   => $this->lang->text_menu_sale_requisition,
                 'icon'	   => '',
-                'href'     => route('lang.admin.sale.requisitions.index'),
+                'href'     => route('lang.admin.sale.requisitions.form'),
                 'children' => []
             ];
         }
