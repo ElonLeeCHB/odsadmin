@@ -12,92 +12,193 @@ use App\Models\Sale\OrderTag;
 use App\Models\Sale\OrderTotal;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Catalog\ProductTranslation;
-use App\Models\Member\Member;
 use App\Events\OrderCreated;
 use Carbon\Carbon;
-use App\Helpers\Classes\OrmHelper;
-use App\Repositories\Eloquent\Sale\OrderRepository;
-use App\Repositories\Eloquent\Common\TermRepository;
 
 class OrderService extends GlobalOrderService
 {
     protected $modelName = "\App\Models\Sale\Order";
 
-    public function getOrders($params)
+    public function updateOrCreate($order_id, $data)
     {
-        $query = Order::query();
-        $query->select(Order::getDefaultListColumns());
-        OrmHelper::prepare($query, $post_data);
-        $orders = OrmHelper::getResult($query, $params);
+        foreach($data as $key => $value){
+            if($data[$key] === 'null' || $data[$key] === 'undefined'){
+                unset($data[$key]);
+            }
+        }
         
-        return $orders;
-    }
-
-    public function getOrderByIdOrCode($identifier, $type= 'id')
-    {
-        $order = (new Order)->getOrderByIdOrCode($identifier, $type);
-
-        return $order;
-    }
-
-    public function updateOrCreate($order_id = null, $data)
-    {
         try {
             DB::beginTransaction();
 
-            foreach($data as $key => $value){
-                if($data[$key] === 'null' || $data[$key] === 'undefined'){
-                    unset($data[$key]);
-                }
+            $order_id = $data['order_id'] ?? null;
+
+            // old order
+            if(!empty($order_id)){
+                $old_order = Order::select('id','status_code', 'delivery_date')->with([
+                    'orderProducts' => function ($query) {
+                        $query->select('id', 'order_id', 'product_id', 'quantity') // 只能在這裡指定欄位
+                            ->with([
+                                'productTags' => function ($query) {
+                                    $query->select('term_id', 'product_id'); // 這裡也是用 select()
+                                }
+                            ]);
+                    }
+                ])->findOrFail($order_id)->toArray();
+
+                $old_order = arrayToObject($old_order);
+            }else{
+                $old_order = null;
             }
 
+            //新增或是修改。最後會使用在 OrderCreated 事件
+
+            $source = $data['source'] ?? null;//來源
+
+            if(isset($data['customer_id'])){
+                $customer_id = $data['customer_id'];
+            }else{
+                $customer_id = null;
+            }
+
+            $mobile = '';
+            if(!empty($data['mobile'])){
+                $mobile = preg_replace('/\D+/', '', $data['mobile']);
+            }
+
+            $telephone = '';
+            if(!empty($data['telephone'])){
+                $telephone = str_replace('-','',$data['telephone']);
+            }
+
+            $shipping_personal_name = $data['shipping_personal_name'] ?? $data['personal_name'];
+
+            $shipping_company = $data['shipping_company'] ?? $data['payment_company'] ?? '';
+
             // members table
-                $customer_id = $data['customer_id'] ?? null;
-                $toSave = false;
+            if(!empty($data['personal_name']) && !empty($data['mobile'])){
+                $update_member_data = [
+                    'name' => $data['personal_name'],
+                    'salutation_code' => $data['salutation_code'] ?? 0,
+                    'salutation_id' => $data['salutation_id'] ?? 0,
+                    'mobile' => $mobile,
+                    'telephone_prefix' => $data['telephone_prefix'] ?? '',
+                    'telephone' => $telephone,
+                    'payment_tin' => $data['payment_tin'] ?? '',
+                    'payment_company' => $data['payment_company'] ?? '',
+                    'shipping_personal_name' => $data['shipping_personal_name'] ?? $data['personal_name'],
+                    'shipping_company' => $shipping_company,
+                    'shipping_phone' => $data['shipping_phone'] ?? '',
+                    'shipping_phone2' => $data['shipping_phone2'] ?? '',
+                    'shipping_state_id' => $data['shipping_state_id'] ?? 0,
+                    'shipping_city_id' => $data['shipping_city_id'] ?? 0,
+                    'shipping_road' => $data['shipping_road'] ?? '',
+                    'shipping_address1' => $data['shipping_address1'] ?? '',
+                    'shipping_address2' => $data['shipping_address2'] ?? '',
+                    'shipping_salutation_id' => $data['salutation_id'] ?? '',
+                    'shipping_personal_name2' => $data['shipping_personal_name2'] ?? '',
+                    'comment' => $data['customer_comment'] ?? '',
+                ];
 
-                // 更新
-                if(!empty($customer_id) && !empty($data['mobile'])){
-                    $memberExist = Member::find($customer_id);
+                $where_data = ['mobile' => $mobile];
 
-                    if (!empty($memberExist->id)) {
-                        $existMobile = str_replace('-', '', $memberExist->mobile);
-                        $data['mobile'] = str_replace('-', '', $data['mobile']);
-                        if ($existMobile !== $data['mobile']) {
-                            throw new \Exception('手機號碼已有人使用');
-                        } else{
-                            $toSave = true;
-                        }
-                    } 
-                } 
-                // 新增
-                else if(empty($customer_id) && !empty($data['mobile'] && !empty($data['personal_name']))){
-                    $memberExist = Member::where('mobile', $data['mobile'])->first();
-
-                    if(!empty($memberExist->id)){
-                        throw new \Exception('手機號碼已有人使用');
-                    } else {
-                        $toSave = true;
-                    }
-                }
-
-                if ($toSave) {
-                    $member = Member::findOrNew($customer_id);
-
-                    $memberData = $data;
-                    $memberData['id'] = $customer_id ;
-                    $memberData['name'] = $data['personal_name'] ;
-                    unset($memberData['code']);
-                    $member = $member->prepareData(data:$memberData, type:'updateOnlyInput', row:$member);
-                    $member->save();
-                    unset($memberData);
-                }
-            //
+                $customer = $this->MemberRepository->newModel()->updateOrCreate($where_data, $update_member_data,);
+            }
 
             // Order
-                $order = (new OrderRepository)->findIdOrFailOrNew($order_id)['data'];
-                $order = $order->prepareData(data:$data, type:'updateOnlyInput', row:$order);
+                // delivery_date
+                    //沒傳入指定時間
+                    if(empty($data['delivery_date_hi'])){
+                        if(!empty($data['delivery_time_range'])){ 
+                            $arr = explode('-',$data['delivery_time_range']); // 必須以橫線做分隔
+                            $t1 = substr($arr[0],0,2).':'.substr($arr[0],-2);
+                            if(!empty($arr[1])){
+                                $t2 = substr($arr[1],0,2).':'.substr($arr[1],-2);
+                            }else{
+                                $t2 = $t1;
+                            }
+
+                            $delivery_date_hi = Carbon::parse($t2)->subMinutes(5)->format('H:i'); //送達時間預設取前5分鐘
+                        }
+                    }
+                    //有傳入指定時間
+                    else{
+                        //避免使用者只打數字，例如 1630，所以抓頭尾的數字
+                        $delivery_date_hi = substr($data['delivery_date_hi'],0,2).':'.substr($data['delivery_date_hi'],-2);
+                    }
+
+                    if(empty($delivery_date_hi) || $delivery_date_hi == ':'){
+                        $delivery_date_hi = '00:00';
+                    }
+
+                    $delivery_date = $data['delivery_date_ymd'] . ' ' . $delivery_date_hi . ':00';
+                //
+
+                $result = $this->OrderRepository->findIdOrFailOrNew($order_id);
+
+                if(!empty($result['data'])){
+                    $order = $result['data'];
+                }else{
+                    return response(json_encode($result))->header('Content-Type','application/json');
+                }
+
+                $data['payment_total'] = $data['payment_total'] ?? 0;
+                $data['payment_paid'] = $data['payment_paid'] ?? 0;
+                
+                $order->location_id = $data['location_id'] ?? 0;
+                $order->source = $source;//來源
+                $order->personal_name = $data['personal_name'];
+                $order->customer_id = $customer->id ?? $data['customer_id'] ?? 0;
+                $order->mobile = $mobile ?? '';
+                $order->telephone_prefix = $data['telephone_prefix'] ?? '';
+                $order->telephone = $telephone ?? '';
+                $order->email = $data['email'] ?? '';
+                $order->order_date = $data['order_date'] ?? null;
+                $order->production_start_time = $data['production_start_time'] ?? '';
+                $order->production_ready_time = $data['production_ready_time'] ?? '';
+                $order->payment_company = $data['payment_company'] ?? '';
+                $order->payment_department= $data['payment_department'] ?? '';
+                $order->payment_tin = $data['payment_tin'] ?? '';
+                $order->is_payment_tin = $data['is_payment_tin'] ?? 0;
+                $order->payment_total = is_numeric($data['payment_total']) ? $data['payment_total'] : 0;
+                $order->payment_paid = is_numeric($data['payment_paid']) ? $data['payment_paid'] : 0;
+                if($order->payment_paid == 0){
+                    $order->payment_unpaid = $order->payment_total;
+                }else{
+                    $order->payment_unpaid = is_numeric($data['payment_unpaid']) ? $data['payment_unpaid'] : 0;
+                }
+                //$order->payment_unpaid = is_numeric($data['payment_unpaid']) ? $data['payment_unpaid'] : 0;
+                $order->payment_method = $data['payment_method'] ?? '';
+                $order->scheduled_payment_date = $data['scheduled_payment_date'] ?? null;
+                $order->shipping_personal_name = $shipping_personal_name;
+                $order->shipping_personal_name2 = $data['shipping_personal_name2'] ?? '';
+                $order->shipping_salutation_id = $data['shipping_salutation_id'] ?? 0;
+                $order->shipping_salutation_id2 = $data['shipping_salutation_id2'] ?? 0;
+                $order->shipping_phone = $data['shipping_phone'] ?? '';
+                $order->shipping_phone2 = $data['shipping_phone2'] ?? '';
+                $order->shipping_company = $shipping_company;
+                $order->shipping_country_code = $data['shipping_country_code'] ?? 'TW';
+                $order->shipping_state_id = $data['shipping_state_id'] ?? 0;
+                $order->shipping_state_id = $data['shipping_state_id'] ?? 0;
+                $order->shipping_city_id = $data['shipping_city_id'] ?? 0;
+                $order->shipping_road = $data['shipping_road'] ?? '';
+                $order->shipping_address1 = $data['shipping_address1'] ?? '';
+                $order->shipping_address2 = $data['shipping_address2'] ?? '';
+                $order->shipping_road_abbr = $data['shipping_road_abbr'] ?? $data['shipping_road'] ?? '';
+                $order->shipping_method = $data['shipping_method'] ?? '';
+                $order->delivery_date = $delivery_date;
+                $order->delivery_time_range = $data['delivery_time_range'] ?? '';
+                $order->delivery_time_comment = $data['delivery_time_comment'] ?? '';
+                //$order->status_id = $data['status_id'] ?? 0;
+                $order->status_code = $data['status_code'] ?? 0;
+                $order->multiple_order = $data['multiple_order'] ?? '';
+                $order->comment = $data['comment'] ?? '';
+                $order->extra_comment = $data['extra_comment'] ?? '';
+                $order->internal_comment = $data['internal_comment'] ?? '';
+                $order->shipping_comment = $data['shipping_comment'] ?? '';
+                $order->control_comment = $data['control_comment'] ?? '';
                 $order->save();
-            //
+                // 訂單單頭結束
+            // }
 
             // 訂單標籤
                 OrderTag::where('order_id', $order->id)->delete();
@@ -172,7 +273,9 @@ class OrderService extends GlobalOrderService
                     $product_id = $fm_order_product['product_id'];
 
                     $quantity = str_replace(',', '', $fm_order_product['quantity']);
-                    $options_total = str_replace(',', '', $fm_order_product['options_total']) ?? 0;
+
+                    $options_total = $fm_order_product['options_total'] ?? 0;
+                    $options_total = str_replace(',', '', $options_total);
                     $final_total = str_replace(',', '', $fm_order_product['final_total']) ?? 0;
 
                     $price = (float) str_replace(',', '', $fm_order_product['price']) ?? 0;
@@ -189,7 +292,7 @@ class OrderService extends GlobalOrderService
                         'model' => $fm_order_product['model'] ?? '',
                         'quantity' => str_replace(',', '', $fm_order_product['quantity']),
                         'price' => $price,
-                        'total' => str_replace(',', '', $fm_order_product['total']),
+                        'total' => str_replace(',', '', $fm_order_product['total'] ?? 0),
                         'options_total' => $options_total ?? 0,
                         'final_total' => $final_total,
                         'comment' => $fm_order_product['comment'] ?? '',
@@ -320,30 +423,15 @@ class OrderService extends GlobalOrderService
                     WHERE opo.order_id = " . $order->id;
                 DB::statement($sql);
             }
+
+            // Events
+            event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order, old_order:$old_order));
             
             return $order;
 
-        } catch (\Throwable $th) {
+        } catch (\Exception $ex) {
             DB::rollback();
-            throw $th;
-        }
-    }
-
-    public function updateHeader($order_id, $data)
-    {
-        try {
-            
-            DB::beginTransaction();
-
-            $order = (new OrderRepository)->update($data, $order_id);
-            
-            DB::commit();
-
-            return $order;
-
-        } catch (\Throwable $th) {
-            DB::rollback();
-            throw $th;
+            throw $ex;
         }
     }
 }

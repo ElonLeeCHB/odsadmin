@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Sale\OrderProduct;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductTranslation;
+use App\Models\Setting\Setting;
 use App\Helpers\Classes\DataHelper;
 use App\Models\Sale\Order;
 use Carbon\Carbon;
@@ -26,6 +27,9 @@ class OrderSavedAfterCommitListener
     public function handle(OrderSavedAfterCommit $event)
     {
         $this->updateQuantityForControl($event);
+
+        $this->updateQueuedOrderDateSettingKey($event);
+
         $this->deleteOrderCache($event);
     }
 
@@ -68,6 +72,42 @@ class OrderSavedAfterCommitListener
                 $repository->increaseByOrder($saved_order);
             }
         }
+    }
+
+    /**
+     * 訂單異動後，將送達日期寫入設定資料表， orders.delivery_date, 。讓系統知道這個日期需要處理。例如轉備料表
+     */
+    public function updateQueuedOrderDateSettingKey($event)
+    {
+        // 舊訂單。如果是新增訂單，則 $old_order = 空的新模型
+        $old_order = $event->old_order ?? new Order;
+
+        // 儲存後的訂單
+        $saved_order = $event->saved_order;
+
+        $dates = Setting::where('setting_key','sale_order_dates_for_queued_job')->first();
+
+        $dates = $dates->setting_value ?? [];
+
+        $dates[] = Carbon::parse($old_order->delivery_date)->toDateString();
+        $dates[] = Carbon::parse($saved_order->delivery_date)->toDateString();
+        
+        // 使用 array_unique 去除重複的日期
+        $dates = array_unique($dates);
+        $dates = json_encode(array_values($dates));
+
+        Setting::updateOrCreate(
+            ['setting_key' => 'sale_order_dates_for_queued_job'],  // 查找條件
+            [
+                'group' => 'sale',
+                'location_id' => 0,
+                'setting_key' => 'sale_order_dates_for_queued_job',
+                'setting_value' => $dates,
+                'is_autoload' => 0,
+                'is_json' => 1,
+                'comment' => ' 訂單異動後，將送達日期寫入設定資料表， orders.delivery_date, 以逗號隔開。讓系統知道這個日期需要處理。例如轉備料表'
+            ]
+        );
     }
 
     // 更新訂單快取

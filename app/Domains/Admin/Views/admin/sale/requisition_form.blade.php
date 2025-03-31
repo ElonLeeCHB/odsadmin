@@ -47,7 +47,8 @@
       <div class="input-group">
         <input type="text" id="input-required_date" name="required_date" value="{{ $required_date ?? \Carbon\Carbon::today()->toDateString() }}" placeholder="{{ $lang->column_required_date }}" class="form-control date"/>
         <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
-        <button type="button" id="btn-redirectToRequiredDate" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" title="查詢">查詢</button>
+        <button type="button" id="btn-redirectToRequiredDate" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" title="每小時自動更新">查詢</button>
+        <button type="button" id="btn-redirectToRequiredDateUpdate" class="btn btn-primary btn-sm float-end" data-bs-toggle="tooltip" title="立刻更新">更新</button>
       </div>
 
       <!-- 第二組：需求期間 -->
@@ -209,10 +210,26 @@ function loadData(forceUpdate = false) {
 $('#btn-redirectToRequiredDate').on('click', function() {
     loadData();
 });
+$("#btn-redirectToRequiredDateUpdate").on('click', function(){
+  loadData(true);
+});
 
 $(document).ready(function() {
     $('[data-bs-toggle="tooltip"]').tooltip();
 });
+
+$(function(){
+  //列印按鈕
+  $('#href-printForm').on('click',function(e){
+    e.preventDefault();
+    var currentUrl = window.location.href;
+    var required_date = $('#input-required_date').val();
+    var url = "{{ route('lang.admin.sale.requisitions.printForm') }}?required_date=" + required_date;
+
+    window.open(url);
+  });
+})
+
 </script>
 
 <style>

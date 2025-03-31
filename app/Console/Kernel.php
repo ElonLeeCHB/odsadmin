@@ -4,6 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Carbon\Carbon;
 
 class Kernel extends ConsoleKernel
 {
@@ -16,6 +17,10 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command('clear:cache')->monthlyOn(1, '00:30');
+        // $schedule->command("sale:get-order-ingredient-cache " . Carbon::now()->format('Y-m-d') . " --force_update=1")->hourly()->withoutOverlapping();
+        
+        // 每小時更新備料表
+        $schedule->job(new \App\Jobs\Sale\OrderCalcIngredient)->hourly();
     }
 
     /**

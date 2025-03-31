@@ -16,6 +16,7 @@ use App\Helpers\Classes\DataHelper;
 use App\Models\Setting\Setting;
 use Carbon\Carbon;
 use Artisan;
+use App\Jobs\Sale\OrderCalcIngredient;
 
 class SaleDailyRequisitionMatrixListExport implements FromArray, WithHeadings, WithEvents, WithCustomStartCell
 {
@@ -27,12 +28,13 @@ class SaleDailyRequisitionMatrixListExport implements FromArray, WithHeadings, W
     private $product_names;
     private $start_date;
     private $end_date;
-
+    private $force_update;
 
     public function __construct(private $params, private $DailyIngredientRepository )
     {
         $this->start_date = Carbon::parse($params['start_date']);
         $this->end_date = Carbon::parse($params['end_date']);
+        $this->force_update = $params['force_update'] ?? 0;
         $this->product_names = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
     }
 
@@ -56,21 +58,16 @@ class SaleDailyRequisitionMatrixListExport implements FromArray, WithHeadings, W
             $required_date_ymd = $this->start_date->toDateString();
 
             // 執行 artisan 命令
-            $result = Artisan::call('sale:get-order-ingredient-cache', [
-                'required_date' => $this->start_date->toDateString(),
-                '--force_update' => 0,
-            ]);
+            $job = new OrderCalcIngredient($required_date_ymd, $this->force_update);
+            $statistics = $job->handle();
 
-            if ($result){
-                $cache_key = 'sale_order_ingredients_' . $this->start_date->toDateString();
-                $statistics = cache()->get($cache_key);
-
+            if (!empty($statistics)){
                 foreach ($statistics['order_list'] as $order) {
                     foreach ($order['items'] as $ingredient_product_id => $item) {
                         if (empty($data['products']['name'])){
                             $data['products'][$ingredient_product_id] = $item['map_product_name'];
                         }
-                        $data['dates'][$required_date_ymd][$ingredient_product_id] = ($data[$required_date_ymd][$ingredient_product_id] ?? 0) + $item['quantity'];
+                        $data['dates'][$required_date_ymd][$ingredient_product_id] = $statistics['allDay'][$ingredient_product_id];
                     }
                 }
             }

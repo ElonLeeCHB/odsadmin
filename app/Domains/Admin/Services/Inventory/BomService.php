@@ -57,15 +57,34 @@ class BomService
 
     public function saveBom($post_data)
     {
-        return $this->BomRepository->saveBom($post_data);
+        try {
+            DB::beginTransaction();
+
+            $result = $this->BomRepository->saveBom($post_data);
+
+            DB::commit();
+
+            return $result;
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
     }
 
 
     public function saveBomProducts($data)
     {
-        return $this->BomRepository->saveBomProducts($data);
+        try {
+            DB::beginTransaction();
+
+            return $this->BomRepository->saveBomProducts($data);
+
+            DB::commit();
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
     }
-
-
-
 }

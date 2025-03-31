@@ -6,10 +6,11 @@ namespace App\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Contracts\Queue\ShouldQueue; 
 use App\Models\SysData\Log;
 use Carbon\Carbon;
 
-class OrderSavedAfterCommit
+class OrderSavedAfterCommit implements ShouldQueue
 {
     use Dispatchable, SerializesModels;
 

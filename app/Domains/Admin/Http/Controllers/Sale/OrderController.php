@@ -620,7 +620,7 @@ class OrderController extends BackendController
     }
 
 
-    public function save()
+    public function save($order_id = null)
     {
         $postData = $this->request->post();
 
@@ -704,7 +704,7 @@ class OrderController extends BackendController
         }
         //表單驗證成功
         if (!$json) {
-            $result = $this->OrderService->updateOrCreate($postData); //更新成功
+            $result = $this->OrderService->updateOrCreate($order_id, $postData); //更新成功
 
             if(empty($result['error']) && !empty($result['data'])){
                 $order = $result['data'];

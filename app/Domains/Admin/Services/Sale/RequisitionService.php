@@ -23,7 +23,7 @@ use Carbon\Carbon;
 use App\Models\Setting\Setting;
 use App\Helpers\Classes\CacheSerializeHelper;
 use App\Helpers\Classes\OrmHelper;
-use Artisan;
+use App\Jobs\Sale\OrderCalcIngredient;
 
 /**
  * 名稱解釋：
@@ -51,16 +51,8 @@ class RequisitionService extends Service
         $required_date_ymd = parseDate($required_date_ymd);
         $required_date_2ymd = parseDateStringTo6d($required_date_ymd);
 
-        $result = Artisan::call('sale:get-order-ingredient-cache', [
-            'required_date' => $required_date_ymd,
-            '--force_update' => 0,
-        ]);
-
-        if ($result){
-            $cache_key = 'sale_order_ingredients_' . $required_date_ymd;
-            $statistics = cache()->get($cache_key);
-
-        }
+        $job = new OrderCalcIngredient($required_date_ymd, $forceUpdate);
+        $statistics = $job->handle();
 
         return $statistics;
     }

@@ -32,9 +32,9 @@
   <table class="table table-bordered table-hover mx-auto">
     <thead>
       <tr>
-        <td class="text-start"> </td>
-        <td class="text-start">時間</td>
-        <td class="text-start">訂單編號<br>(末4碼)</td>
+        <td class="text-start"> . </td>
+        <td class="text-start" style="width:120px;">時間</td>
+        <td class="text-start" style="width:120px;">訂單編號<br>(末4碼)</td>
         @foreach($statistics['sales_ingredients_table_items'] as $map_product_id => $name)
           <?php
           $characters = mb_str_split($name);
@@ -46,7 +46,7 @@
     </thead>
     <tbody id="tbody_body_records">
       <tr id="option-value-row-0">
-        <td colspan="3" class="text-start"><span style="font-size: 10px">6吋{{ $statistics['allDay_6in'] ?? 0}}, 大{{ $statistics['allDay_bgb'] ?? 0}}, 小{{ $statistics['allDay_sgb'] ?? 0}}, 春{{ $statistics['allDay_sr'] ?? 0}}</span></td>
+        <td colspan="3" class="text-start"><span style="font-size: 12px">6吋{{ $statistics['allDay_6in'] ?? 0}}, 大{{ $statistics['allDay_bgb'] ?? 0}}, 小{{ $statistics['allDay_sgb'] ?? 0}}, 春{{ $statistics['allDay_sr'] ?? 0}}</span></td>
         @foreach($statistics['sales_ingredients_table_items'] as $th_product_id => $saleable_product_material_name)
         <td>
           {{ $statistics['allDay'][$th_product_id] ?? 0 }}
@@ -54,7 +54,7 @@
         @endforeach
       </tr>
       <tr id="option-value-row-0">
-        <td colspan="3" class="text-start"><span style="font-size: 10px">6吋{{ $statistics['am_6in'] ?? 0}}, 大{{ $statistics['am_bgb'] ?? 0}}, 小{{ $statistics['am_sgb'] ?? 0}}, 春{{ $statistics['am_sr'] ?? 0}}</span></td>
+        <td colspan="3" class="text-start"><span style="font-size: 12px">6吋{{ $statistics['am_6in'] ?? 0}}, 大{{ $statistics['am_bgb'] ?? 0}}, 小{{ $statistics['am_sgb'] ?? 0}}, 春{{ $statistics['am_sr'] ?? 0}}</span></td>
         @foreach($statistics['sales_ingredients_table_items'] as $th_product_id => $saleable_product_material_name)
           <td>
             {{ $statistics['am'][$th_product_id] ?? 0 }}
@@ -62,7 +62,7 @@
         @endforeach
       </tr>
       <tr>
-        <td colspan="3" class="text-start"><span style="font-size: 10px">6吋{{ $statistics['pm_6in'] ?? 0}}, 大{{ $statistics['pm_bgb'] ?? 0}}, 小{{ $statistics['pm_sgb'] ?? 0}}, 春{{ $statistics['pm_sr'] ?? 0}}</span></td>
+        <td colspan="3" class="text-start"><span style="font-size: 12px">6吋{{ $statistics['pm_6in'] ?? 0}}, 大{{ $statistics['pm_bgb'] ?? 0}}, 小{{ $statistics['pm_sgb'] ?? 0}}, 春{{ $statistics['pm_sr'] ?? 0}}</span></td>
         @foreach($statistics['sales_ingredients_table_items'] as $th_product_id => $saleable_product_material_name)
           <td>
             {{ $statistics['pm'][$th_product_id] ?? 0 }}

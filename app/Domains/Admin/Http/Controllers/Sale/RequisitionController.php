@@ -91,7 +91,7 @@ class RequisitionController extends BackendController
         }
 
         $data['statistics'] = $this->RequisitionService->getStaticsByRequiredDate(request()->required_date, request()->force_update);
-        
+
         return view('admin.sale.requisition_form_data', $data);
     }
 
@@ -106,17 +106,18 @@ class RequisitionController extends BackendController
     }
 
     // 列印格式
-    public function printForm($required_date = null)
+    public function printForm()
     {
+        $required_date = request()->required_date;
+
         $data['lang'] = $this->lang;
         $data['base'] = config('app.admin_url');
 
         // parseDate
-        if(!empty($required_date_string)){
-            //$required_date = parseDate($required_date_string);
-            $required_date_2ymd = parseDateStringTo6d($required_date_string);
+        if(!empty($required_date)){
+            $required_date = parseDateStringTo6d($required_date);
 
-            if(empty($required_date_2ymd)){
+            if(empty($required_date)){
                 return redirect(route('lang.admin.sale.requisitions.form'))->with("warning", "日期格式錯誤");
             }
         }
@@ -133,7 +134,7 @@ class RequisitionController extends BackendController
     {
         $params = request()->all();
 
-        if(empty(request()->start_start) || empty(request()->end_start)){
+        if(empty($params['start_date']) || empty($params['end_date'])){
             return response()->json(['error' => '日期錯誤'], 400);
         }
         

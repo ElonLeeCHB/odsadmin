@@ -11,6 +11,7 @@ use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderTotal;
+use App\Models\User\User;
 use App\Helpers\Classes\OrmHelper;
 
 class OrderService extends Service
@@ -52,6 +53,57 @@ class OrderService extends Service
     {
         try {
             DB::beginTransaction();
+
+            // members table
+                if(isset($data['customer_id'])){
+                    $customer_id = $data['customer_id'];
+                }else{
+                    $customer_id = null;
+                }
+
+                $mobile = '';
+                if(!empty($data['mobile'])){
+                    $mobile = preg_replace('/\D+/', '', $data['mobile']);
+                }
+
+                $telephone = '';
+                if(!empty($data['telephone'])){
+                    $telephone = str_replace('-','',$data['telephone']);
+                }
+
+                $shipping_company = $data['shipping_company'] ?? $data['payment_company'] ?? '';
+
+                if(!empty($data['personal_name']) && !empty($data['mobile'])){
+                    $update_member_data = [
+                        'name' => $data['personal_name'],
+                        'salutation_code' => $data['salutation_code'] ?? 0,
+                        'salutation_id' => $data['salutation_id'] ?? 0,
+                        'mobile' => $mobile,
+                        'telephone_prefix' => $data['telephone_prefix'] ?? '',
+                        'telephone' => $telephone,
+                        'payment_tin' => $data['payment_tin'] ?? '',
+                        'payment_company' => $data['payment_company'] ?? '',
+                        'shipping_personal_name' => $data['shipping_personal_name'] ?? $data['personal_name'],
+                        'shipping_company' => $shipping_company,
+                        'shipping_phone' => $data['shipping_phone'] ?? '',
+                        'shipping_phone2' => $data['shipping_phone2'] ?? '',
+                        'shipping_state_id' => $data['shipping_state_id'] ?? 0,
+                        'shipping_city_id' => $data['shipping_city_id'] ?? 0,
+                        'shipping_road' => $data['shipping_road'] ?? '',
+                        'shipping_address1' => $data['shipping_address1'] ?? '',
+                        'shipping_address2' => $data['shipping_address2'] ?? '',
+                        'shipping_salutation_id' => $data['salutation_id'] ?? '',
+                        'shipping_personal_name2' => $data['shipping_personal_name2'] ?? '',
+                        'comment' => $data['customer_comment'] ?? '',
+                    ];
+
+                    $where_data = ['mobile' => $mobile];
+
+                    $customer = (new User)->updateOrCreate($where_data, $update_member_data,);
+
+                    $data['customer_id'] = $customer->id;
+                }
+            //
 
             // order
             $order = (new OrderRepository)->create($data);
@@ -118,6 +170,57 @@ class OrderService extends Service
 
             DB::beginTransaction();
             
+            // members table
+                if(isset($data['customer_id'])){
+                    $customer_id = $data['customer_id'];
+                }else{
+                    $customer_id = null;
+                }
+
+                $mobile = '';
+                if(!empty($data['mobile'])){
+                    $mobile = preg_replace('/\D+/', '', $data['mobile']);
+                }
+
+                $telephone = '';
+                if(!empty($data['telephone'])){
+                    $telephone = str_replace('-','',$data['telephone']);
+                }
+
+                $shipping_company = $data['shipping_company'] ?? $data['payment_company'] ?? '';
+
+                if(!empty($data['personal_name']) && !empty($data['mobile'])){
+                    $update_member_data = [
+                        'name' => $data['personal_name'],
+                        'salutation_code' => $data['salutation_code'] ?? 0,
+                        'salutation_id' => $data['salutation_id'] ?? 0,
+                        'mobile' => $mobile,
+                        'telephone_prefix' => $data['telephone_prefix'] ?? '',
+                        'telephone' => $telephone,
+                        'payment_tin' => $data['payment_tin'] ?? '',
+                        'payment_company' => $data['payment_company'] ?? '',
+                        'shipping_personal_name' => $data['shipping_personal_name'] ?? $data['personal_name'],
+                        'shipping_company' => $shipping_company,
+                        'shipping_phone' => $data['shipping_phone'] ?? '',
+                        'shipping_phone2' => $data['shipping_phone2'] ?? '',
+                        'shipping_state_id' => $data['shipping_state_id'] ?? 0,
+                        'shipping_city_id' => $data['shipping_city_id'] ?? 0,
+                        'shipping_road' => $data['shipping_road'] ?? '',
+                        'shipping_address1' => $data['shipping_address1'] ?? '',
+                        'shipping_address2' => $data['shipping_address2'] ?? '',
+                        'shipping_salutation_id' => $data['salutation_id'] ?? '',
+                        'shipping_personal_name2' => $data['shipping_personal_name2'] ?? '',
+                        'comment' => $data['customer_comment'] ?? '',
+                    ];
+
+                    $where_data = ['mobile' => $mobile];
+
+                    $customer = (new User)->updateOrCreate($where_data, $update_member_data,);
+
+                    $data['customer_id'] = $customer->id;
+                }
+            //
+
             // new order
             $order = (new OrderRepository)->update($data, $order_id);
 

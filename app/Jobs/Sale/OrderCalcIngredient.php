@@ -1,39 +1,49 @@
 <?php
 
-namespace App\Console\Commands\Sale;
+namespace App\Jobs\Sale;
 
-use Illuminate\Console\Command;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use App\Models\Setting\Setting;
 use App\Models\Sale\Order;
 use App\Helpers\Classes\DateHelper;
 
-class GetOrderIngredientCache extends Command
+class OrderCalcIngredient implements ShouldQueue
 {
-    protected $signature = 'sale:get-order-ingredient-cache {required_date} {--force_update=0}';
-    protected $description = '根據 required_date 獲取並處理相關資料';
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * Create a new job instance.
+     */
+    public function __construct(private $required_date, private $force_update = 0)
+    {
+        $this->required_date = $required_date;
+        $this->force_update = $force_update;
+    }
+
+    /**
+     * Execute the job.
+     */
     public function handle()
     {
-        $required_date = $this->argument('required_date');
-        $force_update = $this->option('force_update');
-
-        $required_date_ymd = parseDate($required_date);
-        $cache_key = 'sale_order_ingredients_' . $required_date;
+        $required_date_ymd = parseDate($this->required_date);
+        $cache_key = 'sale_order_ingredients_' . $required_date_ymd;
         
         // 每次執行至少間隔60分鐘
         $cache_minutes = 60;
 
-        if ($force_update){
+        if ($this->force_update){
             cache()->forget($cache_key);
         }
 
-        $statistics = cache()->remember($cache_key, 60 * $cache_minutes, function () use ($required_date_ymd, $force_update) {
+        $statistics = cache()->remember($cache_key, 60 * $cache_minutes, function () use ($required_date_ymd) {
             return $this->calculateRequisitionsByDate($required_date_ymd);
         });
 
-        if (!empty($statistics)){
-            return true;
-        }
+        return $statistics ?? [];
     }
 
     public function calculateRequisitionsByDate($required_date_ymd)

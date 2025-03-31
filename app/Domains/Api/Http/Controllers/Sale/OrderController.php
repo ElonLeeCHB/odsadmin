@@ -91,7 +91,6 @@ class OrderController extends ApiController
                 $old_order_id = $order_id;
             }
 
-
             $post_data = $this->post_data;
             
             // 新增時不允許表單資料有 order_id
