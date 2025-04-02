@@ -37,6 +37,8 @@ class Controller extends BaseController
     public function resetPostData()
     {
         $this->post_data = DataHelper::unsetNullUndefined(request()->post());
+
+        return $this->post_data;
     }
 
     public function resetUrlData()
@@ -61,13 +63,13 @@ class Controller extends BaseController
             app()->setLocale($this->url_data['equal_locale']);
         }
 
-        if(isset($data['equal_is_active'])){
-            if($data['equal_is_active'] == '*'){
-                unset($data['equal_is_active']);
-            }else{
-                $query_data['equal_is_active'] = $data['equal_is_active'];
+        if(isset($this->url_data['equal_is_active'])){
+            if($this->url_data['equal_is_active'] == '*'){
+                unset($this->url_data['equal_is_active']);
             }
         }
+
+        return $this->url_data;
     }
 
     public function logError($error)

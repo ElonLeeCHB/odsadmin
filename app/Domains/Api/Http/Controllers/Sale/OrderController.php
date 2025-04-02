@@ -54,16 +54,14 @@ class OrderController extends ApiController
      */
     public function list()
     {
-        try {
-            $orders = $this->OrderService->getOrders($this->url_data);
+        $query_data = $this->request->query();
+        $filter_data = $this->resetUrlData($query_data);
+        $orders = $this->OrderService->getOrders($filter_data);
+        //$orders = $this->OrderService->optimizeRows($orders);
 
-            $orders = DataHelper::unsetArrayIndexRecursively($orders->toArray(), ['translation', 'status']);
-    
-            return $this->sendJsonResponse(data:$orders);
+        $this->OrderService->unsetRelations($orders, ['status']);
 
-        } catch (\Throwable $th) {
-            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
-        }
+        return response(json_encode($orders))->header('Content-Type','application/json');
     }
 
 
@@ -1028,8 +1026,6 @@ class OrderController extends ApiController
     public function createOrderPaymentByCode($order_code)
     {
         $post_data = request()->post();
-        // echo "<pre>",print_r($post_data,true),"</pre>";exit;
-
 
         DB::beginTransaction();
 

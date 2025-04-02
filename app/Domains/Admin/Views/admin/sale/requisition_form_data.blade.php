@@ -75,7 +75,7 @@
       <tr>
         <td class="text-end" rowspan="2">{{ $key+1 }}</td>
         <td class="text-end">{{ $order['delivery_time_range'] ?? '' }}</td>
-        <td data-bs-toggle="tooltip" data-bs-html="true" title="
+        <td data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="
         <div class='text-start'>
             {{ $order['tooltip'] ?? '' }}
         </div>">

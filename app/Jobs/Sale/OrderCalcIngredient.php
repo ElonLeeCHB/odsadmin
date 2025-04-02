@@ -59,6 +59,7 @@ class OrderCalcIngredient implements ShouldQueue
             $sales_orders_to_be_prepared_status = Setting::where('setting_key', 'sales_orders_to_be_prepared_status')->first()->setting_value;
 
             $query = Order::query();
+            // $query->where('orders.id',10272);
     
             $query->select(['id', 'code', 'location_id', 'delivery_date', 'delivery_time_range', 'personal_name'
                             , 'shipping_road', 'shipping_road_abbr', 'shipping_method'
@@ -103,7 +104,7 @@ class OrderCalcIngredient implements ShouldQueue
 
         // 訂單個別加總
             $order_list = [];
-
+            
             foreach ($orders ?? [] as $key1 => $order) {
                 $delivery_time_ranges = explode('-', $order->delivery_time_range);
 
@@ -161,7 +162,7 @@ class OrderCalcIngredient implements ShouldQueue
                                 $order_list[$order->id]['items'][$map_product_id]['map_product_id'] = $map_product_id;
                                 $order_list[$order->id]['items'][$map_product_id]['map_product_name'] = $map_product_name;
 
-                                if(empty($order_list[$order->id][$map_product_id]['quantity'])){
+                                if(empty($order_list[$order->id]['items'][$map_product_id]['quantity'])){
                                     $order_list[$order->id]['items'][$map_product_id]['quantity'] = 0;
                                 }
                                 $order_list[$order->id]['items'][$map_product_id]['quantity'] += ($quantity * 2);
@@ -207,6 +208,7 @@ class OrderCalcIngredient implements ShouldQueue
             $statistics['order_list'] = $order_list;
         //
 
+        // echo "<pre>",print_r($order_list,true),"</pre>\r\n";exit;
         // 統計全日、上午、下午
 
             foreach ($order_list as $order_id => $order) {
@@ -360,6 +362,7 @@ class OrderCalcIngredient implements ShouldQueue
 
         $statistics['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
 
+        // echo "<pre>",print_r($statistics,true),"</pre>\r\n";exit;
         return $statistics;
     }
 }

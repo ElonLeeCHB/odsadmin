@@ -100,7 +100,7 @@ class CategoryService extends Service
                 }
             }
         }
-        
+
         return ['categories' => $categories, 'products' => $arr_products];
     }
 

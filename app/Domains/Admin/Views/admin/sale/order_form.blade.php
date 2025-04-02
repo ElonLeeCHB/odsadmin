@@ -13,470 +13,469 @@
 @endsection
 
 @section('content')
-<div id="content">
-  <div class="page-header">
-    <div class="container-fluid">
-      <div class="float-end">
-        <a data-href="{{ $printReceiveFormA4 }}" id="href-printReceiveFormA4"  target="_blank" data-bs-toggle="tooltip" title="列印訂單A4" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
-        <a data-href="{{ $printReceiveForm }}" id="href-printReceiveForm"  target="_blank" data-bs-toggle="tooltip" title="列印訂單" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
-        <button type="submit" id="btn-save-order_form" form="form-order" data-bs-toggle="tooltip" title="{{ $lang->button_save }}" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
-        <a href="{{ $back_url }}" id="href-save" data-bs-toggle="tooltip" title="{{ $lang->button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+  <div id="content">
+    <div class="page-header">
+      <div class="container-fluid">
+        <div class="float-end">
+          <a data-href="{{ $printReceiveFormA4 }}" id="href-printReceiveFormA4"  target="_blank" data-bs-toggle="tooltip" title="列印訂單A4" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
+          <a data-href="{{ $printReceiveForm }}" id="href-printReceiveForm"  target="_blank" data-bs-toggle="tooltip" title="列印訂單" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
+          <button type="submit" id="btn-save-order_form" form="form-order" data-bs-toggle="tooltip" title="{{ $lang->button_save }}" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
+          <a href="{{ $back_url }}" id="href-save" data-bs-toggle="tooltip" title="{{ $lang->button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+        </div>
+        @include('admin.common.breadcumb')
       </div>
-      @include('admin.common.breadcumb')
     </div>
-  </div>
-  <div class="container-fluid">
-    <div class="card">
-      <div class="card-body">
-        <form id="form-order" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
-          @csrf
-          @method('POST')
-          <input type="hidden" id="input-location_id" name="location_id" value="{{ $order->location_id }}" >
-          <input type="hidden" id="input-order_id" name="order_id" value="{{ $order->id }}" >
-          <ul class="nav nav-tabs">
-            <li class="nav-item"><a href="#tab-general" data-bs-toggle="tab" class="nav-link active">訂單資料</a></li>
-            <li class="nav-item"><a href="#tab-products" data-bs-toggle="tab" class="nav-link">商品與備註</a></li>
-          </ul>
-          <div class="tab-content">
-            <div id="tab-general" class="tab-pane active">
-              <fieldset>
-                <div>
-                  <table class="table table-bordered table-hover" id="table-order-header">
-                    <tbody>                      
-                      <tr>
-                        <td class="col-md-1 text-end colname-font">訂購日期</td>
-                        <td class="col-md-2">
-                          <div class="input-group" style="display: flex;margin-right: 5px;width:100%;">
-                            <input type="text" id="input-order_date" name="order_date" value="{{ $order->order_date }}" class="form-control date" style="width:100px;"/>
-                            <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
-                          </div>
-                        </td>
-                        <td class="col-md-1 text-end colname-font">狀態</td>
-                        <td class="col-md-2">
-                          <select id="input-status_code" name="status_code" class="form-select">
-                            <option value="">--</option>
-                              @foreach($order_statuses as $status)
-                              <option value="{{ $status->code }}" @if($status->code == $order->status_code) selected @endif>{{ $status->name }}</option>
-                              @endforeach
-                          </select>
-                        </td>
-                        <td class="col-md-1 text-end colname-font">取貨方式</td>
-                        <td class="col-md-2">
-                          <select id="input-shipping_method" name="shipping_method" class="form-select">
-                            <option value="">--</option>
-                            <option value="shipping_pickup" @if($shipping_method == 'shipping_pickup' ) selected="selected" @endif>自取</option>
-                            <option value="shipping_delivery" @if($shipping_method == 'shipping_delivery' )selected="selected" @endif>外送</option>
-                          </select>
-                        </td>
-                        <td class="col-md-1 text-end colname-font">訂單編號</td>
-                        <td class="col-md-2">{{ $order->code }}</td>
-                      </tr>
-                      <tr>
-                        <td class="col-md-1 text-end colname-font">送達日期</td>
-                        <td class="col-md-2">
-                          <div class="input-group" style="display: flex;margin-right: 5px;width:100%;">
-                            <input type="text" id="input-delivery_date_ymd" name="delivery_date_ymd" value="{{ $order->delivery_date_ymd }}" placeholder="日期" class="form-control date" style="width:100px;"/>
-                            <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
-                          </div>
-                        </td>
-                        <td class="col-md-1 text-end colname-font">星期</td>
-                        <td class="col-md-2">
-                          <input type="text" id="input-delivery_day_of_week" name="delivery_day_of_week" value="{{ $order->delivery_weekday }}" class="form-control" readonly>
-                        </td>
-                        <td class="col-md-1 text-end colname-font">時間範圍</td>
-                        <td class="col-md-2">
-                        <input type="text" id="input-delivery_time_range" name="delivery_time_range" value="{{ $order->delivery_time_range }}" placeholder="例如 1130-1230" class="form-control">
-                        </td>
-                        <td class="col-md-1 text-end colname-font">地址簡稱</td>
-                        <td class="col-md-2"><input type="text" id="input-shipping_road_abbr" name="shipping_road_abbr" value="{{ $order->shipping_road_abbr }}" class="form-control"></td>
-                      </tr>
-                      
-                      <tr>
-                        <td class="col-md-1 text-end colname-font">訂購人</td>
-                        <td class="col-md-2">
-                          <input  type="hidden" id="input-customer_id" name="customer_id" value="{{ $order->customer_id }}" >
-                          <div class="input-group">
-                            <input type="text" id="input-personal_name" name="personal_name" class="form-control" aria-label="personal_name" value="{{ $order->personal_name }}" data-oc-target="autocomplete-personal_name">
-                            <div class="input-group-append">
-                              <a class="input-group-text" target="_self" id="a-order_list" href="sale/orders?filter_customer_id={{ $order->customer_id }}"><i class="fa-solid fa-list"></i></a>
-                            </div>
-                            <ul id="autocomplete-personal_name" class="dropdown-menu" style="margin-top:30px;"></ul>
-                            <div id="error-personal_name" class="invalid-feedback"></div>
-                          </div>
-
-                          <div style="display: flex;flex-direction: row;justify-content: space-between;">
-                            <div class="text-start">
-                              <input id="input-customer" name="customer" value="({{ $order->customer }})" class="form-control" disabled>
-                            </div>
-                            <div class="text-end">
-                              <i class="fa fa-times-circle" data-bs-toggle="tooltip" title="清空訂購人" style="color:grey;" onclick="clearCustomer();"></i>
-                            </div>
-                          </div>
-                        </td>
-                        <td class="col-md-1 text-end colname-font">稱謂</td>
-                        <td class="col-md-2">
-                          <select name="salutation_code" id="input-salutation_code" class="form-select">
-                            <option value="">--</option>
-                            @foreach($salutations as $code => $salutation)
-                              <option value="{{ $code }}" @if($member->salutation_code == $code ) selected @endif>{{ $salutation->name }}</option>
-                            @endforeach
-                          </select>
-                        </td>
-                        <td class="col-md-1 text-end colname-font">
-                          <label target="_blank" data-bs-toggle="tooltip" title="儲存時系統會自動刪除橫線" class="colname-font"><i class="fa fa-question-circle" aria-hidden="true"></i> {{ $lang->column_mobile }}</label><BR>
-                          <label target="_blank" data-bs-toggle="tooltip" title="儲存時系統會自動刪除橫線" class="colname-font"><i class="fa fa-question-circle" aria-hidden="true"></i> {{ $lang->column_telephone }}</label>
-                        </td>
-                        <td class="col-md-2">
-                          <input type="text" id="input-mobile" name="mobile" aria-label="mobile" class="form-control" value="{{ $order->mobile }}" placeholder="查詢時請輸入至少3個數字" data-oc-target="autocomplete-mobile"/>
-                          <ul id="autocomplete-mobile" class="dropdown-menu"></ul>
-                          <div id="error-mobile" class="invalid-feedback"></div>
-
-                          <div class="input-group" style="display: flex;margin-right: 5px;width:100%;">
-                            <input type="text" id="input-telephone_prefix" name="telephone_prefix" value="{{ $order->telephone_prefix }}" placeholder="區碼" style="width:40px"/>
-                            <input type="text" id="input-telephone" name="telephone" value="{{ $order->telephone }}" placeholder="查詢時請輸入至少3個數字" data-oc-target="autocomplete-telephone" class="form-control"/>
-                            <div id="error-telephone" class="invalid-feedback"></div>
-                            <span id="span-hasOrder" style="color:red"></span>
-                          </div>
-                          <ul id="autocomplete-telephone" class="dropdown-menu"></ul>
-                        </td>
-                        <td class="col-md-1 text-end colname-font">公司分類</td>
-                        <td class="col-md-2">
-                          <select id="input-order_tags" name="order_tags[]" class="select2-multiple form-control" multiple="multiple">
-                            @foreach($order_tags as $order_tag)
-                            <option value="{{ $order_tag->term_id }}" selected>{{ $order_tag->name }}</option>
-                            @endforeach
-                          </select>
-                        </td>
-                      </tr>
-
-                      <tr>
-                        <td class="col-md-1 text-end colname-font">訂餐公司</td>
-                        <td colspan="3">
-                          <div class="input-group mb-3">
-                            <input type="text" id="input-payment_company" name="payment_company" class="form-control" aria-label="payment_company" value="{{ $order->payment_company }}" data-oc-target="autocomplete-payment_company">
-                            <div class="input-group-append">
-                              <a class="input-group-text" target="_self" id="a-payment_company"><i class="fa-solid fa-eraser"></i></a>
-                            </div>
-                          </div>
-
-
-                            <div class="input-group">
-
-                              <input type="text" id="input-payment_company_shortname" name="payment_company_shortname" value="" placeholder="公司簡稱" class="form-control w-50">
-                              <input type="text" id="input-payment_department" name="payment_department" value="{{ $order->payment_department }}" placeholder="部門" class="form-control w-50">
-
-                            </div>
-                        </td>
-                        <td class="col-md-1 text-end colname-font">統編</td>
-                        <td class="col-md-2">
-                          <select id="input-is_payment_tin" name="is_payment_tin">
-                            <option value="">請選擇</option>
-                            <option value="0" @if($order->is_payment_tin === 0) selected @endif>不需要</option>
-                            <option value="1" @if($order->is_payment_tin === 1) selected @endif>需要</option>
-                          </select>
-                          <div id="error-is_payment_tin" class="invalid-feedback"></div>
-
-
-                          <input type="text" id="input-payment_tin" name="payment_tin" value="{{ $order->payment_tin }}" placeholder="統一編號" data-oc-target="autocomplete-payment_tin" class="form-control" autocomplete="off">
-                          <ul id="autocomplete-payment_tin" class="dropdown-menu"></ul>
-                        </td>
-                        <td class="col-md-1 text-end colname-font">控單表備註</td>
-                        <td class="col-md-2">
-                          <input type="text" id="input-delivery_time_comment" name="delivery_time_comment" value="{{ $order->delivery_time_comment }}" placeholder="a 或 b 或 a,b" class="form-control">
-                        </td>
-                      </tr>
-
-                      <tr>
-                        <td class="col-md-1 text-end colname-font">送達公司</td>
-                        <td colspan="3">
-                          <input type="text" id="input-shipping_company" name="shipping_company" value="{{ $order->shipping_company }}" class="form-control">
-                          <div class="form-check" style="font-size: 0.8em;">
-                            <input type="checkbox" name="same_as_order_company" id="input-same_as_order_company" class="form-check-input">
-                            <label for="input-same_as_order_company" class="form-check-label">同訂餐公司</label>
-                          </div>
-                        </td>
-                        <td class="col-md-1 text-end colname-font">收件人</td>
-                        <td class="col-md-2">
-                          <input type="text" id="input-shipping_personal_name" name="shipping_personal_name" value="{{ $order->shipping_personal_name }}" class="form-control">
-                          <div id="error-shipping_personal_name" class="invalid-feedback"></div>
-
-                          <div class="form-check" style="font-size: 0.8em;">
-                            <input type="checkbox" name="same_order_customer" id="input-same_order_customer" class="form-check-input">
-                            <label for="input-same_order_customer" class="form-check-label">同訂購人</label>
-                          </div>
-                        </td>
-                        <td class="col-md-1 text-end colname-font">出餐時間<BR>製餐時間</td>
-                        <td class="col-md-2">
-                          <input type="text" id="input-production_ready_time" name="production_ready_time"value="{{ $order->production_ready_time }}" class="width4char" placeholder="例如 11:30" > (完成製作的時間)<BR>
-                          <input type="text" id="input-production_start_time" name="production_start_time"value="{{ $order->production_start_time }}" class="width4char" placeholder="例如 11:30" > (開始製作的時間)
-                        </td>
-                      </tr>
-
-                      <tr>
-                        <td class="col-md-1 text-end colname-font">地址</td>
-                        <td colspan="3">
-                          <div class="col-sm-12">
-                            <div class="input-group shipping">
-                              <select id="input-shipping_state_id" name="shipping_state_id">
-                                <option value="">--</option>
-                                @foreach($states as $state)
-                                <option value="{{ $state->id }}" @if($state->id == $order->shipping_state_id) selected @endif>{{ $state->name }}</option>
-                                @endforeach
-                              </select>
-                              <select id="input-shipping_city_id" name="shipping_city_id">
-                                @foreach($shipping_cities as $city)
-                                <option value="{{ $city->id }}" @if($city->id == $order->shipping_city_id) selected @endif>{{ $city->name }}</option>
-                                @endforeach
-                              </select>
-                              <input type="text" id="input-shipping_road" name="shipping_road" value="{{ $order->shipping_road }}" data-oc-target="autocomplete-shipping_road" style="width:120px;">
-                                <ul id="autocomplete-shipping_road" class="dropdown-menu" style="margin-left: 90px;margin-top: 30px;"></ul>
-                                <div id="error-shipping_road" class="invalid-feedback"></div>
-                              <input type="text" id="input-shipping_address1" name="shipping_address1" value="{{ $order->shipping_address1 }}" placeholder="路段後面的地址" class="form-control">
-                            </div>
-                          </div>
-
-                          <div class="addAddrPartName">
-                            <button type="button">巷</button> <button type="button">弄</button> <button type="button">衖</button> <button type="button">號</button>
-                            <button type="button">棟</button> <button type="button">大樓</button> <button type="button">樓</button> <button type="button">房</button>
-                            <button type="button">室</button>
-                            <BR><input type="text" id="input-original_address" name="original_address" placeholder="統編登記地址" value="" readonly style="width:200px;">
-                          </div>
-                        </td>
-                        <td class="col-md-1 text-end colname-font">收件電話</td>
-                        <td class="col-md-2"><input type="text" id="input-shipping_phone" name="shipping_phone" value="{{ $order->shipping_phone }}" class="form-control"></td>
-                        <td class="col-md-1 text-end colname-font"></td>
-                        <td class="col-md-2"></td>
-                      </tr>
-
-                      <tr style="display: none;">
-                        <td class="col-md-1 text-end colname-font">xxx</td>
-                        <td class="col-md-2"></td>
-                        <td class="col-md-1 text-end colname-font">xxx</td>
-                        <td class="col-md-2"></td>
-                        <td class="col-md-1 text-end colname-font">xxx</td>
-                        <td class="col-md-2"></td>
-                        <td class="col-md-1 text-end colname-font">xxx</td>
-                        <td class="col-md-2"></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </fieldset>
-
-              <fieldset>
+    <div class="container-fluid">
+      <div class="card">
+        <div class="card-body">
+          <form id="form-order" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
+            @csrf
+            @method('POST')
+            <input type="hidden" id="input-location_id" name="location_id" value="{{ $order->location_id }}" >
+            <input type="hidden" id="input-order_id" name="order_id" value="{{ $order->id }}" >
+            <ul class="nav nav-tabs">
+              <li class="nav-item"><a href="#tab-general" data-bs-toggle="tab" class="nav-link active">訂單資料</a></li>
+              <li class="nav-item"><a href="#tab-products" data-bs-toggle="tab" class="nav-link">商品與備註</a></li>
+            </ul>
+            <div class="tab-content">
+              <div id="tab-general" class="tab-pane active">
+                <fieldset>
                   <div>
                     <table class="table table-bordered table-hover" id="table-order-header">
                       <tbody>                      
                         <tr>
-                          <td class="col-md-1 text-end colname-font">付款方式</td>
-                          <td colspan="3">
-                            <input type="radio" id="input-payment_method-cash" name="payment_method" value="cash" @if($order->payment_method=='cash') checked @endif>
-                            <label for="input-payment_method-cash">現金</label>&nbsp;
-
-                            <input type="radio" id="input-payment_method-debt" name="payment_method" value="debt" @if($order->payment_method=='debt') checked @endif>
-                            <label for="input-payment_method-debt">記帳</label>&nbsp;
-
-                            <input type="radio" id="input-payment_method-uber" name="payment_method" value="debt" @if($order->payment_method=='debt') checked @endif>
-                            <label for="input-payment_method-uber">Uber</label>&nbsp;
-
-                          </td>
-                          <td class="col-md-1 text-end colname-font">預計付款日</td>
+                          <td class="col-md-1 text-end colname-font">訂購日期</td>
                           <td class="col-md-2">
                             <div class="input-group" style="display: flex;margin-right: 5px;width:100%;">
-                              <input type="text" id="input-scheduled_payment_date" name="scheduled_payment_date" value="{{ $order->scheduled_payment_date }}" class="form-control date" style="width:100px;"/>
+                              <input type="text" id="input-order_date" name="order_date" value="{{ $order->order_date }}" class="form-control date" style="width:100px;"/>
                               <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
                             </div>
                           </td>
+                          <td class="col-md-1 text-end colname-font">狀態</td>
+                          <td class="col-md-2">
+                            <select id="input-status_code" name="status_code" class="form-select">
+                              <option value="">--</option>
+                                @foreach($order_statuses as $status)
+                                <option value="{{ $status->code }}" @if($status->code == $order->status_code) selected @endif>{{ $status->name }}</option>
+                                @endforeach
+                            </select>
                           </td>
+                          <td class="col-md-1 text-end colname-font">取貨方式</td>
+                          <td class="col-md-2">
+                            <select id="input-shipping_method" name="shipping_method" class="form-select">
+                              <option value="">--</option>
+                              <option value="shipping_pickup" @if($shipping_method == 'shipping_pickup' ) selected="selected" @endif>自取</option>
+                              <option value="shipping_delivery" @if($shipping_method == 'shipping_delivery' )selected="selected" @endif>外送</option>
+                            </select>
+                          </td>
+                          <td class="col-md-1 text-end colname-font">訂單編號</td>
+                          <td class="col-md-2">{{ $order->code }}</td>
+                        </tr>
+                        <tr>
+                          <td class="col-md-1 text-end colname-font">送達日期</td>
+                          <td class="col-md-2">
+                            <div class="input-group" style="display: flex;margin-right: 5px;width:100%;">
+                              <input type="text" id="input-delivery_date_ymd" name="delivery_date_ymd" value="{{ $order->delivery_date_ymd }}" placeholder="日期" class="form-control date" style="width:100px;"/>
+                              <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
+                            </div>
+                          </td>
+                          <td class="col-md-1 text-end colname-font">星期</td>
+                          <td class="col-md-2">
+                            <input type="text" id="input-delivery_day_of_week" name="delivery_day_of_week" value="{{ $order->delivery_weekday }}" class="form-control" readonly>
+                          </td>
+                          <td class="col-md-1 text-end colname-font">時間範圍</td>
+                          <td class="col-md-2">
+                          <input type="text" id="input-delivery_time_range" name="delivery_time_range" value="{{ $order->delivery_time_range }}" placeholder="例如 1130-1230" class="form-control">
+                          </td>
+                          <td class="col-md-1 text-end colname-font">地址簡稱</td>
+                          <td class="col-md-2"><input type="text" id="input-shipping_road_abbr" name="shipping_road_abbr" value="{{ $order->shipping_road_abbr }}" class="form-control"></td>
+                        </tr>
+                        
+                        <tr>
+                          <td class="col-md-1 text-end colname-font">訂購人</td>
+                          <td class="col-md-2">
+                            <input  type="hidden" id="input-customer_id" name="customer_id" value="{{ $order->customer_id }}" >
+                            <div class="input-group">
+                              <input type="text" id="input-personal_name" name="personal_name" class="form-control" aria-label="personal_name" value="{{ $order->personal_name }}" data-oc-target="autocomplete-personal_name">
+                              <div class="input-group-append">
+                                <a class="input-group-text" target="_self" id="a-order_list" href="sale/orders?filter_customer_id={{ $order->customer_id }}"><i class="fa-solid fa-list"></i></a>
+                              </div>
+                              <ul id="autocomplete-personal_name" class="dropdown-menu" style="margin-top:30px;"></ul>
+                              <div id="error-personal_name" class="invalid-feedback"></div>
+                            </div>
+
+                            <div style="display: flex;flex-direction: row;justify-content: space-between;">
+                              <div class="text-start">
+                                <input id="input-customer" name="customer" value="({{ $order->customer }})" class="form-control" disabled>
+                              </div>
+                              <div class="text-end">
+                                <i class="fa fa-times-circle" data-bs-toggle="tooltip" title="清空訂購人" style="color:grey;" onclick="clearCustomer();"></i>
+                              </div>
+                            </div>
+                          </td>
+                          <td class="col-md-1 text-end colname-font">稱謂</td>
+                          <td class="col-md-2">
+                            <select name="salutation_code" id="input-salutation_code" class="form-select">
+                              <option value="">--</option>
+                              @foreach($salutations as $code => $salutation)
+                                <option value="{{ $code }}" @if($member->salutation_code == $code ) selected @endif>{{ $salutation->name }}</option>
+                              @endforeach
+                            </select>
+                          </td>
+                          <td class="col-md-1 text-end colname-font">
+                            <label target="_blank" data-bs-toggle="tooltip" title="儲存時系統會自動刪除橫線" class="colname-font"><i class="fa fa-question-circle" aria-hidden="true"></i> {{ $lang->column_mobile }}</label><BR>
+                            <label target="_blank" data-bs-toggle="tooltip" title="儲存時系統會自動刪除橫線" class="colname-font"><i class="fa fa-question-circle" aria-hidden="true"></i> {{ $lang->column_telephone }}</label>
+                          </td>
+                          <td class="col-md-2">
+                            <input type="text" id="input-mobile" name="mobile" aria-label="mobile" class="form-control" value="{{ $order->mobile }}" placeholder="查詢時請輸入至少3個數字" data-oc-target="autocomplete-mobile"/>
+                            <ul id="autocomplete-mobile" class="dropdown-menu"></ul>
+                            <div id="error-mobile" class="invalid-feedback"></div>
+
+                            <div class="input-group" style="display: flex;margin-right: 5px;width:100%;">
+                              <input type="text" id="input-telephone_prefix" name="telephone_prefix" value="{{ $order->telephone_prefix }}" placeholder="區碼" style="width:40px"/>
+                              <input type="text" id="input-telephone" name="telephone" value="{{ $order->telephone }}" placeholder="查詢時請輸入至少3個數字" data-oc-target="autocomplete-telephone" class="form-control"/>
+                              <div id="error-telephone" class="invalid-feedback"></div>
+                              <span id="span-hasOrder" style="color:red"></span>
+                            </div>
+                            <ul id="autocomplete-telephone" class="dropdown-menu"></ul>
+                          </td>
+                          <td class="col-md-1 text-end colname-font">公司分類</td>
+                          <td class="col-md-2">
+                            <select id="input-order_tags" name="order_tags[]" class="select2-multiple form-control" multiple="multiple">
+                              @foreach($order_tags as $order_tag)
+                              <option value="{{ $order_tag->term_id }}" selected>{{ $order_tag->name }}</option>
+                              @endforeach
+                            </select>
+                          </td>
+                        </tr>
+
+                        <tr>
+                          <td class="col-md-1 text-end colname-font">訂餐公司</td>
+                          <td colspan="3">
+                            <div class="input-group mb-3">
+                              <input type="text" id="input-payment_company" name="payment_company" class="form-control" aria-label="payment_company" value="{{ $order->payment_company }}" data-oc-target="autocomplete-payment_company">
+                              <div class="input-group-append">
+                                <a class="input-group-text" target="_self" id="a-payment_company"><i class="fa-solid fa-eraser"></i></a>
+                              </div>
+                            </div>
+
+
+                              <div class="input-group">
+
+                                <input type="text" id="input-payment_company_shortname" name="payment_company_shortname" value="" placeholder="公司簡稱" class="form-control w-50">
+                                <input type="text" id="input-payment_department" name="payment_department" value="{{ $order->payment_department }}" placeholder="部門" class="form-control w-50">
+
+                              </div>
+                          </td>
+                          <td class="col-md-1 text-end colname-font">統編</td>
+                          <td class="col-md-2">
+                            <select id="input-is_payment_tin" name="is_payment_tin">
+                              <option value="">請選擇</option>
+                              <option value="0" @if($order->is_payment_tin === 0) selected @endif>不需要</option>
+                              <option value="1" @if($order->is_payment_tin === 1) selected @endif>需要</option>
+                            </select>
+                            <div id="error-is_payment_tin" class="invalid-feedback"></div>
+
+
+                            <input type="text" id="input-payment_tin" name="payment_tin" value="{{ $order->payment_tin }}" placeholder="統一編號" data-oc-target="autocomplete-payment_tin" class="form-control" autocomplete="off">
+                            <ul id="autocomplete-payment_tin" class="dropdown-menu"></ul>
+                          </td>
+                          <td class="col-md-1 text-end colname-font">控單表備註</td>
+                          <td class="col-md-2">
+                            <input type="text" id="input-delivery_time_comment" name="delivery_time_comment" value="{{ $order->delivery_time_comment }}" placeholder="a 或 b 或 a,b" class="form-control">
+                          </td>
+                        </tr>
+
+                        <tr>
+                          <td class="col-md-1 text-end colname-font">送達公司</td>
+                          <td colspan="3">
+                            <input type="text" id="input-shipping_company" name="shipping_company" value="{{ $order->shipping_company }}" class="form-control">
+                            <div class="form-check" style="font-size: 0.8em;">
+                              <input type="checkbox" name="same_as_order_company" id="input-same_as_order_company" class="form-check-input">
+                              <label for="input-same_as_order_company" class="form-check-label">同訂餐公司</label>
+                            </div>
+                          </td>
+                          <td class="col-md-1 text-end colname-font">收件人</td>
+                          <td class="col-md-2">
+                            <input type="text" id="input-shipping_personal_name" name="shipping_personal_name" value="{{ $order->shipping_personal_name }}" class="form-control">
+                            <div id="error-shipping_personal_name" class="invalid-feedback"></div>
+
+                            <div class="form-check" style="font-size: 0.8em;">
+                              <input type="checkbox" name="same_order_customer" id="input-same_order_customer" class="form-check-input">
+                              <label for="input-same_order_customer" class="form-check-label">同訂購人</label>
+                            </div>
+                          </td>
+                          <td class="col-md-1 text-end colname-font">出餐時間<BR>製餐時間</td>
+                          <td class="col-md-2">
+                            <input type="text" id="input-production_ready_time" name="production_ready_time"value="{{ $order->production_ready_time }}" class="width4char" placeholder="例如 11:30" > (完成製作的時間)<BR>
+                            <input type="text" id="input-production_start_time" name="production_start_time"value="{{ $order->production_start_time }}" class="width4char" placeholder="例如 11:30" > (開始製作的時間)
+                          </td>
+                        </tr>
+
+                        <tr>
+                          <td class="col-md-1 text-end colname-font">地址</td>
+                          <td colspan="3">
+                            <div class="col-sm-12">
+                              <div class="input-group shipping">
+                                <select id="input-shipping_state_id" name="shipping_state_id">
+                                  <option value="">--</option>
+                                  @foreach($states as $state)
+                                  <option value="{{ $state->id }}" @if($state->id == $order->shipping_state_id) selected @endif>{{ $state->name }}</option>
+                                  @endforeach
+                                </select>
+                                <select id="input-shipping_city_id" name="shipping_city_id">
+                                  @foreach($shipping_cities as $city)
+                                  <option value="{{ $city->id }}" @if($city->id == $order->shipping_city_id) selected @endif>{{ $city->name }}</option>
+                                  @endforeach
+                                </select>
+                                <input type="text" id="input-shipping_road" name="shipping_road" value="{{ $order->shipping_road }}" data-oc-target="autocomplete-shipping_road" style="width:120px;">
+                                  <ul id="autocomplete-shipping_road" class="dropdown-menu" style="margin-left: 90px;margin-top: 30px;"></ul>
+                                  <div id="error-shipping_road" class="invalid-feedback"></div>
+                                <input type="text" id="input-shipping_address1" name="shipping_address1" value="{{ $order->shipping_address1 }}" placeholder="路段後面的地址" class="form-control">
+                              </div>
+                            </div>
+
+                            <div class="addAddrPartName">
+                              <button type="button">巷</button> <button type="button">弄</button> <button type="button">衖</button> <button type="button">號</button>
+                              <button type="button">棟</button> <button type="button">大樓</button> <button type="button">樓</button> <button type="button">房</button>
+                              <button type="button">室</button>
+                              <BR><input type="text" id="input-original_address" name="original_address" placeholder="統編登記地址" value="" readonly style="width:200px;">
+                            </div>
+                          </td>
+                          <td class="col-md-1 text-end colname-font">收件電話</td>
+                          <td class="col-md-2"><input type="text" id="input-shipping_phone" name="shipping_phone" value="{{ $order->shipping_phone }}" class="form-control"></td>
                           <td class="col-md-1 text-end colname-font"></td>
                           <td class="col-md-2"></td>
                         </tr>
-                        <tr>
-                          <td class="col-md-1 text-end colname-font">付款狀況</td>
-                          <td colspan="3">
-                            總金額：<input type="text" id="input-payment_total" name="payment_total" value="{{ number_format($order->payment_total ) }}" style="width:70px" readonly>&nbsp;&nbsp; &nbsp;&nbsp;
-                            已付金額： <input type="text" id="input-payment_paid" name="payment_paid" value="{{ number_format($order->payment_paid) }}" style="width:70px">&nbsp;&nbsp;
-                            未付餘額： <input type="text" id="input-payment_unpaid" name="payment_unpaid" value="{{ number_format($order->payment_unpaid) }}" style="width:70px" readonly >&nbsp;&nbsp;
-                          </td>
+
+                        <tr style="display: none;">
+                          <td class="col-md-1 text-end colname-font">xxx</td>
+                          <td class="col-md-2"></td>
+                          <td class="col-md-1 text-end colname-font">xxx</td>
+                          <td class="col-md-2"></td>
+                          <td class="col-md-1 text-end colname-font">xxx</td>
+                          <td class="col-md-2"></td>
+                          <td class="col-md-1 text-end colname-font">xxx</td>
+                          <td class="col-md-2"></td>
                         </tr>
                       </tbody>
                     </table>
                   </div>
-              </fieldset>
+                </fieldset>
 
-              <label for="input-old_code" class="form-check-label">紙本訂單編號</label>
-              <input type="text" id="input-old_code" name="old_code" value="{{ $order->old_code }}"><BR>
-              建單時間：{{ $order->created_at }}<BR>
-              修改時間：{{ $order->updated_at }}
+                <fieldset>
+                    <div>
+                      <table class="table table-bordered table-hover" id="table-order-header">
+                        <tbody>                      
+                          <tr>
+                            <td class="col-md-1 text-end colname-font">付款方式</td>
+                            <td colspan="3">
+                              <input type="radio" id="input-payment_method-cash" name="payment_method" value="cash" @if($order->payment_method=='cash') checked @endif>
+                              <label for="input-payment_method-cash">現金</label>&nbsp;
 
-            </div>
-            <div id="tab-products" class="tab-pane">
-              <fieldset>
-                <div class="row mb-3">
-                  <label for="input-comment" class="col-sm-1 col-form-label" style="height:20px;">{{ $lang->column_comment }}</label>
-                  <div class="col-sm-10">
-                    <div class="input-group">
-                      <input id="input-comment" name="comment" value="{{ $order->comment }}" class="form-control">
-                      <div class="input-group-append">
-                        <a class="input-group-text" target="_self" id="a-order_comment" href="javascript:void(0)" style="height:40px;"><i class="fa-solid fa-list"></i></a>
-                      </div>
+                              <input type="radio" id="input-payment_method-debt" name="payment_method" value="debt" @if($order->payment_method=='debt') checked @endif>
+                              <label for="input-payment_method-debt">記帳</label>&nbsp;
+
+                              <input type="radio" id="input-payment_method-uber" name="payment_method" value="debt" @if($order->payment_method=='debt') checked @endif>
+                              <label for="input-payment_method-uber">Uber</label>&nbsp;
+
+                            </td>
+                            <td class="col-md-1 text-end colname-font">預計付款日</td>
+                            <td class="col-md-2">
+                              <div class="input-group" style="display: flex;margin-right: 5px;width:100%;">
+                                <input type="text" id="input-scheduled_payment_date" name="scheduled_payment_date" value="{{ $order->scheduled_payment_date }}" class="form-control date" style="width:100px;"/>
+                                <div class="input-group-text"><i class="fa-regular fa-calendar"></i></div>
+                              </div>
+                            </td>
+                            </td>
+                            <td class="col-md-1 text-end colname-font"></td>
+                            <td class="col-md-2"></td>
+                          </tr>
+                          <tr>
+                            <td class="col-md-1 text-end colname-font">付款狀況</td>
+                            <td colspan="3">
+                              總金額：<input type="text" id="input-payment_total" name="payment_total" value="{{ number_format($order->payment_total ) }}" style="width:70px" readonly>&nbsp;&nbsp; &nbsp;&nbsp;
+                              已付金額： <input type="text" id="input-payment_paid" name="payment_paid" value="{{ number_format($order->payment_paid) }}" style="width:70px">&nbsp;&nbsp;
+                              未付餘額： <input type="text" id="input-payment_unpaid" name="payment_unpaid" value="{{ number_format($order->payment_unpaid) }}" style="width:70px" readonly >&nbsp;&nbsp;
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
-                    <div id="error-comment" class="invalid-feedback"></div>
-                  </div>
-                </div>
-                <div class="row mb-3">
-                  <label for="input-extra_comment" class="col-sm-1 col-form-label" style="height:20px;">{{ $lang->column_extra_comment }}</label>
-                  <div class="col-sm-10">
-                    <div class="input-group">
-                      <input id="input-extra_comment" name="extra_comment" value="{{ $order->extra_comment }}" class="form-control">
-                      <div class="input-group-append">
-                        <a class="input-group-text" target="_self" id="a-order_extra_comment" href="javascript:void(0)" style="height:40px;"><i class="fa-solid fa-list"></i></a>
+                </fieldset>
+
+                <label for="input-old_code" class="form-check-label">紙本訂單編號</label>
+                <input type="text" id="input-old_code" name="old_code" value="{{ $order->old_code }}"><BR>
+                建單時間：{{ $order->created_at }}<BR>
+                修改時間：{{ $order->updated_at }}
+
+              </div>
+              <div id="tab-products" class="tab-pane">
+                <fieldset>
+                  <div class="row mb-3">
+                    <label for="input-comment" class="col-sm-1 col-form-label" style="height:20px;">{{ $lang->column_comment }}</label>
+                    <div class="col-sm-10">
+                      <div class="input-group">
+                        <input id="input-comment" name="comment" value="{{ $order->comment }}" class="form-control">
+                        <div class="input-group-append">
+                          <a class="input-group-text" target="_self" id="a-order_comment" href="javascript:void(0)" style="height:40px;"><i class="fa-solid fa-list"></i></a>
+                        </div>
                       </div>
+                      <div id="error-comment" class="invalid-feedback"></div>
                     </div>
-                    <div id="error-extra_comment" class="invalid-feedback"></div>
                   </div>
-                </div>
+                  <div class="row mb-3">
+                    <label for="input-extra_comment" class="col-sm-1 col-form-label" style="height:20px;">{{ $lang->column_extra_comment }}</label>
+                    <div class="col-sm-10">
+                      <div class="input-group">
+                        <input id="input-extra_comment" name="extra_comment" value="{{ $order->extra_comment }}" class="form-control">
+                        <div class="input-group-append">
+                          <a class="input-group-text" target="_self" id="a-order_extra_comment" href="javascript:void(0)" style="height:40px;"><i class="fa-solid fa-list"></i></a>
+                        </div>
+                      </div>
+                      <div id="error-extra_comment" class="invalid-feedback"></div>
+                    </div>
+                  </div>
 
-                <div class="table-responsive">
-                  <span style="color:red">* 請注意配菜數量</span>
+                  <div class="table-responsive">
+                    <span style="color:red">* 請注意配菜數量</span>
 
-                  <table id="order_products" class="table table-bordered table-hover">
-                    <tbody id="tbody_order_products">
+                    <table id="order_products" class="table table-bordered table-hover">
+                      <tbody id="tbody_order_products">
 
-                    @foreach($html_order_products as $html_order_product )
-                      {!! $html_order_product !!}
+                      @foreach($html_order_products as $html_order_product )
+                        {!! $html_order_product !!}
+                      @endforeach
+
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td class="text-end" colspan="12">
+                            <button type="button" id="button-refresh" data-bs-toggle="tooltip" title="重新計算" class="btn btn-outline-primary" ><i class="fa-solid fa-rotate"></i></button>
+                            <button type="button" onclick="addProduct();" data-bs-toggle="tooltip" title="{{ $lang->button_add_product }}" class="btn btn-primary"><i class="fa-solid fa-plus-circle"></i></button>
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </fieldset>
+                <table class="table table-bordered">
+                  <tbody id="order-totals">
+                    @foreach($order_totals as $code => $order_total)
+                    <tr>
+                      <td class="text-end col-sm-10"><strong>{{ $order_total->title }}</strong></td>
+                      <td class="text-end">
+                        <input type="hidden" name="order_totals[{{ $code }}][title]" value="{{ $order_total->title }}">
+                        <input type="text" id="input-total-{{ $code }}" name="order_totals[{{ $code }}][value]" value="{{ $order_total->value }}" class="form-control" onchange="calcTotal()">
+                      </td>
+                    </tr>
                     @endforeach
-
-                    </tbody>
-                    <tfoot>
-                      <tr>
-                        <td class="text-end" colspan="12">
-                          <button type="button" id="button-refresh" data-bs-toggle="tooltip" title="重新計算" class="btn btn-outline-primary" ><i class="fa-solid fa-rotate"></i></button>
-                          <button type="button" onclick="addProduct();" data-bs-toggle="tooltip" title="{{ $lang->button_add_product }}" class="btn btn-primary"><i class="fa-solid fa-plus-circle"></i></button>
-                        </td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              </fieldset>
-              <table class="table table-bordered">
-                <tbody id="order-totals">
-                  @foreach($order_totals as $code => $order_total)
-                  <tr>
-                    <td class="text-end col-sm-10"><strong>{{ $order_total->title }}</strong></td>
-                    <td class="text-end">
-                      <input type="hidden" name="order_totals[{{ $code }}][title]" value="{{ $order_total->title }}">
-                      <input type="text" id="input-total-{{ $code }}" name="order_totals[{{ $code }}][value]" value="{{ $order_total->value }}" class="form-control" onchange="calcTotal()">
-                    </td>
-                  </tr>
-                  @endforeach
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-          </form>
+            </form>
+        </div>
+      </div>
+    </div>
+  </div>{{-- End of content--}}
+
+  <div id="modal-phrases-product_comment" class="modal fade show" aria-modal="true" role="dialog" style="display: none; padding-left: 0px;">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fa-solid fa-pencil"></i> 商品備註 常用片語</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <table id="table-phrase-product_comment" class="table table-striped dataTable">
+            <thead>
+              <tr>
+                <th class="sorting sorting_asc" tabindex="0" aria-controls="table-phrase-product_comment" aria-sort="ascending" >排序</th>
+                <th class="sorting" tabindex="0" aria-controls="table-phrase-product_comment" aria-sort="ascending" >常用片語</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach($order_extra_comment_phrases as $phrase)
+              <tr>
+                <td class="phrase sorting_1">{{ $phrase->sort_order }}</td>
+                <td class="phrase sorting_2" data-phrase-column="product_comment">{{ $phrase->name }}</td>
+              </tr>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" data-option-row="0" data-option-value-row="0" class="btn btn-primary">確定</button> <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
+        </div>
+      </div>
+    </div>
+    <input type="hidden" id="product_comment_caller" value="">
+  </div>
+
+  <div id="modal-phrases-comment" class="modal fade show" aria-modal="true" role="dialog" style="display: none; padding-left: 0px;">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fa-solid fa-pencil"></i> 客戶備註 常用片語</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <table id="table-phrase-comment" class="table table-striped dataTable">
+            <thead>
+              <tr>
+                <th class="sorting sorting_asc" tabindex="0" aria-controls="table-phrase-comment" aria-sort="ascending" >排序</th>
+                <th class="sorting" tabindex="0" aria-controls="table-phrase-comment" aria-sort="ascending" >常用片語</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach($order_comment_phrases as $phrase)
+              <tr>
+                <td class="phrase sorting_1">{{ $phrase->sort_order }}</td>
+                <td class="phrase sorting_2" data-phrase-column="comment">{{ $phrase->name }}</td>
+              </tr>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" data-option-row="0" data-option-value-row="0" class="btn btn-primary">儲存</button> <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
+        </div>
       </div>
     </div>
   </div>
-</div>{{-- End of content--}}
 
-<div id="modal-phrases-product_comment" class="modal fade show" aria-modal="true" role="dialog" style="display: none; padding-left: 0px;">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="fa-solid fa-pencil"></i> 商品備註 常用片語</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <table id="table-phrase-product_comment" class="table table-striped dataTable">
-          <thead>
-            <tr>
-              <th class="sorting sorting_asc" tabindex="0" aria-controls="table-phrase-product_comment" aria-sort="ascending" >排序</th>
-              <th class="sorting" tabindex="0" aria-controls="table-phrase-product_comment" aria-sort="ascending" >常用片語</th>
-            </tr>
-          </thead>
-          <tbody>
-            @foreach($order_extra_comment_phrases as $phrase)
-            <tr>
-              <td class="phrase sorting_1">{{ $phrase->sort_order }}</td>
-              <td class="phrase sorting_2" data-phrase-column="product_comment">{{ $phrase->name }}</td>
-            </tr>
-            @endforeach
-          </tbody>
-        </table>
-      </div>
-      <div class="modal-footer">
-        <button type="button" data-option-row="0" data-option-value-row="0" class="btn btn-primary">確定</button> <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
+  <div id="modal-phrases-extra_comment" class="modal fade show" aria-modal="true" role="dialog" style="display: none; padding-left: 0px;">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fa-solid fa-pencil"></i> 餐點備註 常用片語</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <table id="table-phrase-extra_comment" class="table table-striped dataTable">
+            <thead>
+              <tr>
+                <th class="sorting sorting_asc" tabindex="0" aria-controls="table-phrase-comment" aria-sort="ascending" >排序</th>
+                <th class="sorting" tabindex="0" aria-controls="table-phrase-extra_comment" aria-sort="ascending" >常用片語</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach($order_extra_comment_phrases as $phrase)
+              <tr>
+                <td class="phrase sorting_1">{{ $phrase->sort_order }}</td>
+                <td class="phrase sorting_2" data-phrase-column="extra_comment">{{ $phrase->name }}</td>
+              </tr>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" data-option-row="0" data-option-value-row="0" class="btn btn-primary">儲存</button> <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
+        </div>
       </div>
     </div>
   </div>
-  <input type="hidden" id="product_comment_caller" value="">
-</div>
-
-<div id="modal-phrases-comment" class="modal fade show" aria-modal="true" role="dialog" style="display: none; padding-left: 0px;">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="fa-solid fa-pencil"></i> 客戶備註 常用片語</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <table id="table-phrase-comment" class="table table-striped dataTable">
-          <thead>
-            <tr>
-              <th class="sorting sorting_asc" tabindex="0" aria-controls="table-phrase-comment" aria-sort="ascending" >排序</th>
-              <th class="sorting" tabindex="0" aria-controls="table-phrase-comment" aria-sort="ascending" >常用片語</th>
-            </tr>
-          </thead>
-          <tbody>
-            @foreach($order_comment_phrases as $phrase)
-            <tr>
-              <td class="phrase sorting_1">{{ $phrase->sort_order }}</td>
-              <td class="phrase sorting_2" data-phrase-column="comment">{{ $phrase->name }}</td>
-            </tr>
-            @endforeach
-          </tbody>
-        </table>
-      </div>
-      <div class="modal-footer">
-        <button type="button" data-option-row="0" data-option-value-row="0" class="btn btn-primary">儲存</button> <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="modal-phrases-extra_comment" class="modal fade show" aria-modal="true" role="dialog" style="display: none; padding-left: 0px;">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="fa-solid fa-pencil"></i> 餐點備註 常用片語</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <table id="table-phrase-extra_comment" class="table table-striped dataTable">
-          <thead>
-            <tr>
-              <th class="sorting sorting_asc" tabindex="0" aria-controls="table-phrase-comment" aria-sort="ascending" >排序</th>
-              <th class="sorting" tabindex="0" aria-controls="table-phrase-extra_comment" aria-sort="ascending" >常用片語</th>
-            </tr>
-          </thead>
-          <tbody>
-            @foreach($order_extra_comment_phrases as $phrase)
-            <tr>
-              <td class="phrase sorting_1">{{ $phrase->sort_order }}</td>
-              <td class="phrase sorting_2" data-phrase-column="extra_comment">{{ $phrase->name }}</td>
-            </tr>
-            @endforeach
-          </tbody>
-        </table>
-      </div>
-      <div class="modal-footer">
-        <button type="button" data-option-row="0" data-option-value-row="0" class="btn btn-primary">儲存</button> <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 @endsection
 
 @section('buttom')

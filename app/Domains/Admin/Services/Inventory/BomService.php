@@ -25,14 +25,14 @@ class BomService
         $builder->withWhereHas('translation', function ($qry) use ($params) {
             $qry->select(['product_id', 'name']);
             if (!empty($params['filter_product_name'])) {
-                OrmHelper::filterColumn($qry, 'filter_name', $params['filter_product_name']);
+                OrmHelper::filterOrEqualColumn($qry, 'filter_name', $params['filter_product_name']);
             }
         });
         unset($params['filter_product_name']);
 
         if(!empty($params['filter_sub_product_name'])){
             $builder->whereHas('bomProducts.translation', function ($qry) use ($params) {
-                OrmHelper::filterColumn($qry, 'filter_name', $params['filter_sub_product_name']);
+                OrmHelper::filterOrEqualColumn($qry, 'filter_name', $params['filter_sub_product_name']);
             });
             unset($params['filter_sub_product_name']);
         }

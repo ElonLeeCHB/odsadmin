@@ -12,10 +12,15 @@ class MemberRepository extends UserRepository
 {
     public $modelName = "\App\Models\Member\Member";
 
-    public function getMembers($input, $debug = 0)
+    public function getMembers($filter_data = [], $debug = 0)
     {
-        return parent::getUsers($input, $debug);
+        foreach ($filter_data as $key => $value) {
+            if (substr($key, -8) === '_is_admin') {
+                unset($filter_data[$key]);
+            }
+        }
 
+        return parent::getUsers($filter_data, $debug);
     }
 
     public function saveMember($input)

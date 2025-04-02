@@ -48,12 +48,23 @@ class ProductController extends ApiWwwV2Controller
     public function info($product_id)
     {
         try {
-            $product = $this->ProductService->getProductById($product_id);
+            $filter_data = $this->url_data;
+        
+                
+            $filter_data['equal_id'] = $product_id;
+            $filter_data['select'] = ['id', 'code', 'name', 'price'];
+            $filter_data['with'] = ['product_options.translation',
+                                    'product_options.product_option_values.translation',
+                                    'product_options.product_option_values.option_value'
+                                  ];
 
-            return $this->sendJsonResponse($product);
+    
+            $result = $this->ProductService->getInfo($filter_data);
+
+            return $this->sendJsonResponse($result);
 
         } catch (\Throwable $th) {
-            return $this->sendJsonResponse(['error' => $th->getMessage()]);
+            return $this->sendJsonResponse(['error' => $th->getMessage()], $th->getCode());
         }
     }
 }

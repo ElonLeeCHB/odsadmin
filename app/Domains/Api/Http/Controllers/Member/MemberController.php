@@ -23,19 +23,18 @@ class MemberController extends ApiController
         , private OptionService $OptionService
         )
     {
+        parent::__construct();
+
         $this->getLang(['admin/common/common','admin/member/member']);
     }
 
 
     public function list()
     {
-        $query_data = $this->request->query();
-        $filter_data = $this->resetUrlData($query_data);
+        $members = $this->MemberService->getMembers(request()->query());
+        $members = (new MemberCollection($members))->toArray();
 
-        $members = $this->MemberService->getMembers($filter_data);
-        $newmembers = (new MemberCollection($members))->toArray();
-
-        return response(json_encode($newmembers))->header('Content-Type','application/json');
+        return response(json_encode($members))->header('Content-Type','application/json');
     }
 
 

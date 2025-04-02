@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Member;
  
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Models\User\User;
 
 class MemberResource extends JsonResource
 {
@@ -14,6 +15,10 @@ class MemberResource extends JsonResource
 
         foreach ($arr as $key => $value) {
             if(is_array($value) && !in_array($key, $keep_array)){
+                unset($arr[$key]);
+            }
+
+            if (in_array($key, (new User)->getHidden())){
                 unset($arr[$key]);
             }
         }

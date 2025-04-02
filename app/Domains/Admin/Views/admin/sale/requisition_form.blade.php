@@ -237,6 +237,7 @@ $(function(){
   max-width: 500px; /* 調整 Tooltip 最大寬度 */
   text-align: left; /* 讓文字靠左 */
   white-space: pre-line; /* 讓 <br> 換行 */
+  font-size:16px;
 }
 </style>
 
