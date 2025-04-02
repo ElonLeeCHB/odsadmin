@@ -6,8 +6,7 @@ use Illuminate\Http\Middleware\TrustProxies as Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
-use App\Models\SysData\Log;
+use App\Jobs\LogJob;
 
 class LogRequest extends Middleware
 {
@@ -31,38 +30,19 @@ class LogRequest extends Middleware
         //     ");
         // }
 
-        if($request->method() == 'POST'){
+        $uniqueid = time() . '-' . uniqid();
+        $request->attributes->set('uniqueid', $uniqueid);
 
-            $log = new Log;
+        // 讓請求先繼續執行
+        $response = $next($request);
 
-            $log->area = config('app.env');
-            $log->url = $request->fullUrl();
-            $log->method = $request->method();
-            $log->created_at = Carbon::now('Asia/Taipei');
-
-            //data
-            if ($request->isJson()) {
-                $json = json_decode($request->getContent()); //為確保拿到的是一行 json 字串，先 json_decode 再 json_encode。
-                $log->data = json_encode($json);
-            }else{
-                $log->data = json_encode($request->all());
-            }
-
-            //client_ip
-            if ($request->hasHeader('X-CLIENT-IPV4')) {
-                $log->client_ip = $request->header('X-CLIENT-IPV4');
-            }
-            else if ($request->has('X-CLIENT-IPV4')) {
-                $log->client_ip = $request->input('X-CLIENT-IPV4');
-            }
-
-            //api_ip
-            $log->api_ip = $request->ip();
-
-            $log->save();
+        if ($request->method() == 'POST'){
+            // LogJob::dispatch(['uniqueid' => $uniqueid, 'status' => 'ok']);
+            
+            LogJob::dispatch(['uniqueid' => $uniqueid, 'data' => '', 'status' => 'ok']);
         }
 
-        return $next($request);
+        return $response;
     }
 
 }

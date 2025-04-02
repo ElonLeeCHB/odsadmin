@@ -84,6 +84,7 @@ Route::group([
         Route::get('order', 'Sale\OrderController@list')->name('order.list');
         Route::get('order/list', 'Sale\OrderController@list')->name('order.list');
         Route::post('order/save/{order_id?}', 'Sale\OrderController@save')->name('order.save');
+        Route::post('order/updateOrder', 'Sale\OrderController@updateOrder')->name('order.updateOrder');
         Route::post('order/updateHeader/{order_id}', 'Sale\OrderController@updateHeader')->name('order.updateHeader');
         Route::get('order/info/{order_id?}', 'Sale\OrderController@info')->name('order.info');
         Route::get('order/header/{order_id}', 'Sale\OrderController@header')->name('order.header');
@@ -95,6 +96,7 @@ Route::group([
         Route::post('order/getControlBurrito', 'Sale\OrderController@getControlBurrito')->name('order.getControlBurrito');
         Route::get('order/getRevenue/{date}', 'Sale\OrderController@getRevenue')->name('order.getRevenue');
         Route::get('order/getBurrito/{date}', 'Sale\OrderController@getBurrito')->name('order.getBurrito');
+        Route::get('order/{order_id?}', 'Sale\OrderController@details')->name('order.details');
     });
 
     Route::group([

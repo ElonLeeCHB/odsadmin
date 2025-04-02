@@ -24,6 +24,7 @@ use App\Helpers\Classes\DataHelper;
 use App\Models\Setting\Setting;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderPayment;
+use App\Models\User\User;
 
 class OrderController extends ApiController
 {
@@ -64,6 +65,40 @@ class OrderController extends ApiController
         return response(json_encode($orders))->header('Content-Type','application/json');
     }
 
+    public function details($order_id = null)
+    {
+        $result = $this->OrderService->findIdOrFailOrNew($order_id);
+
+        if(!empty($result['data'])){
+            $order = $result['data'];
+        }else{
+            return response(json_encode($result))->header('Content-Type','application/json');
+        }
+
+        $order->load('order_products.order_product_options', 'customer:id,comment');
+
+        $order->status_name = $order->status->name ?? '';
+
+        // Order Total
+        $order->totals = $this->OrderService->getOrderTotals($order_id);
+
+        //訂單標籤
+        $order->order_tags = $this->OrderService->getOrderTagsByOrderId($order->id);
+        
+        $result = $this->MemberService->findIdOrFailOrNew($order['customer_id']);
+        
+        $order['salutation_id'] = $result['data']['salutation_id'];
+        // $order['shipping_salutation_id']  = $result['data']['shipping_salutation_id'];
+        // $order['shipping_salutation_id2'] = $result['data']['shipping_salutation_id2'];
+        // $order['shipping_phone2']         = $result['data']['shipping_phone2'];
+        // $order['shipping_personal_name2'] = $result['data']['shipping_personal_name2'];
+        $order['member_comment'] = $result['data']['comment'];
+        $data['order'] = $order;
+
+        //$data['salutations'] =
+
+        return response(json_encode($order))->header('Content-Type','application/json');
+    }
 
     // 包含訂單的單頭、單身
     public function info($order_id)
@@ -180,6 +215,148 @@ class OrderController extends ApiController
         $rows['data'] = $this->TermRepository->unsetArrayRelations($rows['data'], ['translation', 'taxonomy']);
 
         return response(json_encode($rows))->header('Content-Type','application/json');
+    }
+
+
+    public function updateOrder(){
+        $post_data = $this->request->post();
+        {
+            $data = $post_data;
+            DB::beginTransaction();
+
+            try {
+    
+                $order_id = $data['order_id'] ?? null;
+                $source = $data['source'] ?? null;//來源
+                if(isset($data['customer_id'])){
+                    $customer_id = $data['customer_id'];
+                }else if(isset($data['member_id'])){
+                    $customer_id = $data['member_id'];
+                }else{
+                    $customer_id = null;
+                }
+    
+                $mobile = '';
+                if(!empty($data['mobile'])){
+                    $mobile = preg_replace('/\D+/', '', $data['mobile']);
+                }
+    
+                $telephone = '';
+                if(!empty($data['telephone'])){
+                    $telephone = str_replace('-','',$data['telephone']);
+                }
+    
+                $shipping_personal_name = $data['shipping_personal_name'] ?? $data['personal_name'];
+    
+                $shipping_company = $data['shipping_company'] ?? $data['payment_company'] ?? '';
+    
+    
+                // if(!empty($customer)){
+                    $delivery_date = null;
+    
+                    if(empty($data['delivery_date_hi']) || $data['delivery_date_hi'] == '00:00'){
+                        $arr = explode('-',$data['delivery_time_range']);
+                        //$t1 = $arr[0];
+                        if(!empty($arr[1])){
+                            $t2 = substr($arr[1],0,2).':'.substr($arr[1],-2);
+                        }else if(!empty($arr[0])){
+                            $t2 = substr($arr[0],0,2).':'.substr($arr[0],-2);
+                        }
+    
+                        if(!empty($t2)){
+                            $delivery_date_hi = $t2;
+                        }else{
+                            $delivery_date_hi = '';
+                        }
+                    }else if(!empty($data['delivery_date_hi'])){
+                        //避免使用者只打數字，例如 1630
+                        $delivery_date_hi = substr($data['delivery_date_hi'],0,2).':'.substr($data['delivery_date_hi'],-2);
+                    }
+    
+                    if(!empty($data['delivery_date_ymd'])){
+                        if(!empty($delivery_date_hi)){
+                            $delivery_date = $data['delivery_date_ymd'] . ' ' . $delivery_date_hi;
+                        }else{
+                            $delivery_date = $data['delivery_date_ymd'];
+                        }
+                    }
+                    $result = $this->OrderRepository->findIdOrFailOrNew($order_id);
+                    if(!empty($result['data'])){
+                        $order = $result['data'];
+                    }else{
+                        return response(json_encode($result))->header('Content-Type','application/json');
+                    }
+                    $order->location_id = $data['location_id'];
+                    $order->source = $source;//來源
+                    $order->personal_name = $data['personal_name'];
+                    $order->customer_id = $customer->id ?? $data['customer_id'];
+                    $order->mobile = $mobile ?? '';
+                    $order->telephone_prefix = $data['telephone_prefix'] ?? '';
+                    $order->telephone = $telephone ?? '';
+                    $order->email = $data['email'] ?? '';
+                    $order->order_date = $data['order_date'] ?? null;
+                    $order->production_start_time = $data['production_start_time'] ?? '';
+                    $order->production_ready_time = $data['production_ready_time'] ?? '';
+                    $order->payment_company = $data['payment_company'] ?? '';
+                    $order->payment_department= $data['payment_department'] ?? '';
+                    $order->payment_tin = $data['payment_tin'] ?? '';
+                    $order->is_payment_tin = $data['is_payment_tin'] ?? 0;
+                    $order->payment_total = is_numeric($data['payment_total']) ? $data['payment_total'] : 0;
+                    $order->payment_paid = is_numeric($data['payment_paid']) ? $data['payment_paid'] : 0;
+                    if($order->payment_paid == 0){
+                        $order->payment_unpaid = $order->payment_total;
+                    }else{
+                        $order->payment_unpaid = is_numeric($data['payment_unpaid']) ? $data['payment_unpaid'] : 0;
+                    }
+                    //$order->payment_unpaid = is_numeric($data['payment_unpaid']) ? $data['payment_unpaid'] : 0;
+                    // $order->scheduled_payment_date = $data['scheduled_payment_date'] ?? null;
+                    $order->shipping_personal_name = $shipping_personal_name;
+                    $order->shipping_phone = $data['shipping_phone'] ?? '';
+                    $order->shipping_phone2 = $data['shipping_phone2'] ?? '';
+                    $order->shipping_company = $shipping_company;
+                    $order->shipping_country_code = $data['shipping_country_code'] ?? 'TW';
+                    $order->shipping_state_id = $data['shipping_state_id'] ?? 0;
+                    $order->shipping_state_id = $data['shipping_state_id'] ?? 0;
+                    $order->shipping_city_id = $data['shipping_city_id'] ?? 0;
+                    $order->shipping_road = $data['shipping_road'] ?? '';
+                    $order->shipping_address1 = $data['shipping_address1'] ?? '';
+                    $order->shipping_address2 = $data['shipping_address2'] ?? '';
+                    $order->shipping_road_abbr = $data['shipping_road_abbr'] ?? $data['shipping_road'];
+                    $order->shipping_personal_name2 = $data['shipping_personal_name2'] ?? '';
+                    $order->shipping_salutation_id = $data['shipping_salutation_id'] ?? 0;
+                    $order->shipping_salutation_id2 = $data['shipping_salutation_id2'] ?? 0;
+                    $order->shipping_phone2 = $data['shipping_phone2'] ?? '';
+                    $order->shipping_method = $data['shipping_method'] ?? '';
+                    $order->delivery_date = $delivery_date;
+                    $order->delivery_time_range = $data['delivery_time_range'] ?? '';
+                    $order->delivery_time_comment = $data['delivery_time_comment'] ?? '';
+                    //$order->status_id = $data['status_id'] ?? 0;
+                    $order->comment = $data['comment'] ?? '';
+                    $order->extra_comment = $data['extra_comment'] ?? '';
+                    $order->internal_comment = $data['internal_comment'] ?? '';
+                    $order->shipping_comment = $data['shipping_comment'] ?? '';
+                    $order->control_comment = $data['control_comment'] ?? '';
+                    $order->update();
+                    // 訂單單頭結束
+                // }
+
+                
+                $memberData['comment'] = $data['customer_comment'] ?? '';
+                
+                if (!empty($data['customer_id'])){
+                    $member = User::where('id', $data['customer_id'])->first();
+                    $member->comment = $data['customer_comment'] ?? '';
+                }
+
+                DB::commit();
+                return ['data' => $order];
+    
+            } catch (\Exception $ex) {
+                DB::rollback();
+                return ['error' => $ex->getMessage()];
+            }
+        }
+        return response()->json(array('status' => 'OK'));
     }
 
     // 2025-03-11 新改寫，但是可能用不上。

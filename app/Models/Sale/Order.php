@@ -19,6 +19,7 @@ use App\Traits\Model\ModelTrait;
 use DateTimeInterface;
 use App\Helpers\Classes\DataHelper;
 use App\Helpers\Classes\DateHelper;
+use App\Helpers\Classes\OrmHelper;
 use Illuminate\Support\Facades\Storage;
 
 class Order extends Model
@@ -538,12 +539,15 @@ where op.order_id=9219
                     ->with('shippingCity')
                     ->with('customer:id,comment');
 
+            // OrmHelper::showSqlContent($builder);
             $order = $builder->first();
-            //salutation_name
-            $order->shipping_state_name = optional($order->shipping_state)->name ?? '';
-            $order->shipping_city_name = optional($order->shipping_city)->name ?? '';
 
-            return $order;
+            if ($order){
+                $order->shipping_state_name = optional($order->shipping_state)->name ?? '';
+                $order->shipping_city_name = optional($order->shipping_city)->name ?? '';
+            }
+
+            return $order ?? [];
         });
     }
 

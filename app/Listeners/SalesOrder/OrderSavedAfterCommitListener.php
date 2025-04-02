@@ -20,6 +20,11 @@ use Carbon\Carbon;
 use App\Events\OrderSavedAfterCommit;
 use App\Repositories\Eloquent\Sale\OrderDateLimitRepository;
 
+/**
+ * 數量控制：訂單異動之後，將異動前、異動後的日期南寫到設定檔 settings setting_key=sale_order_queued_dates, 每小時執行一次。
+ * 備料表：同上
+ * 需求表：同上
+ */
 class OrderSavedAfterCommitListener
 {
     use InteractsWithQueue;

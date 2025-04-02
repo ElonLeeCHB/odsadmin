@@ -434,4 +434,9 @@ class OrderService extends GlobalOrderService
             throw $ex;
         }
     }
+
+    public function getOrderByIdOrCode($identifier, $type)
+    {
+        return (new Order)->getOrderByIdOrCode($identifier, $type);
+    }
 }
