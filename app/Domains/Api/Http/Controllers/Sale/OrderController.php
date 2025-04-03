@@ -162,12 +162,12 @@ class OrderController extends ApiController
                 $order = $this->OrderService->updateOrCreate($order_id, $post_data);
 
                 if(empty($old_order_id) && !empty($order)){
-                    event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
+                    event(new \App\Events\SaleOrderSavedEvent(saved_order:$order));
 
                     $message = '訂單新增成功';
 
                 } else if(!empty($old_order_id) && !empty($old_order)){
-                    event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order, old_order:$old_order));
+                    event(new \App\Events\SaleOrderSavedEvent(saved_order:$order, old_order:$old_order));
                     
                     $message = '訂單修改成功';
                 }
@@ -349,6 +349,9 @@ class OrderController extends ApiController
                 }
 
                 DB::commit();
+                
+                event(new \App\Events\SaleOrderSavedEvent(saved_order:$order));
+
                 return ['data' => $order];
     
             } catch (\Exception $ex) {
@@ -392,14 +395,17 @@ class OrderController extends ApiController
                 $order = $this->OrderService->updateHeader($order_id, $this->post_data);
 
                 if(empty($old_order_id) && !empty($order)){
-                    event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
+                    event(new \App\Events\SaleOrderSavedEvent(saved_order:$order));
 
                     $message = '訂單新增成功';
 
                 } else if(!empty($old_order_id) && !empty($old_order)){
-                    event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order, old_order:$old_order));
+                    event(new \App\Events\SaleOrderSavedEvent(saved_order:$order, old_order:$old_order));
                     
                     $message = '訂單修改成功';
+
+                } else {
+                    $message = '訂單未修改';
                 }
 
                 $data = [

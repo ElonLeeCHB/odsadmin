@@ -5,7 +5,7 @@ namespace App\Console\Commands\Sale;
 use Illuminate\Console\Command;
 use App\Jobs\Sale\OrderCalcIngredient;
 
-class RunOrderCalcIngredient extends Command
+class BakRunOrderCalcIngredient extends Command
 {
     protected $signature = 'sale:order-calc-ingredient {required_date} {force_update}';
     protected $description = '根據 required_date 獲取並處理相關資料';

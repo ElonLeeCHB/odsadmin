@@ -10,7 +10,6 @@ use App\Helpers\Classes\OrmHelper;
 use App\Models\Common\Term;
 use App\Models\Common\Taxonomy;
 
-
 class Service
 {
     use EloquentTrait;

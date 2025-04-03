@@ -5,7 +5,6 @@ namespace App\Observers;
 use App\Models\Common\Term;
 use App\Models\Common\TermPath;
 use Illuminate\Support\Facades\DB;
-use App\Helpers\Classes\OrmHelper;
 use App\Helpers\Classes\DataHelper;
 
 class TermObserver
@@ -19,10 +18,10 @@ class TermObserver
         // 更新
         else if (!$term->wasRecentlyCreated) {
             $this->updated($term);
-
-            //刪除快取
-            (new Term)->deleteCacheByTaxonomyCode($term->taxonomy_code);
         }
+
+        //刪除快取
+        (new Term)->deleteCacheByTaxonomyCode($term->taxonomy_code);
     }
     
 
@@ -111,10 +110,6 @@ class TermObserver
                     ['level' => $level] 
                 );
             }
-
-            $cache_key = 'cache/' . app()->getLocale() . '/terms/ProductPosCategoryChainedList';
-
-            DataHelper::deleteDataFromStorage($cache_key);
         //
     }
 

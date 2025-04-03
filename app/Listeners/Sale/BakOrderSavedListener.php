@@ -25,7 +25,7 @@ use App\Repositories\Eloquent\Sale\OrderDateLimitRepository;
  * 備料表：同上
  * 需求表：同上
  */
-class OrderSavedAfterCommitListener
+class BakOrderSavedListener
 {
     use InteractsWithQueue;
 

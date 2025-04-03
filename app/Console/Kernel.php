@@ -16,11 +16,12 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('clear:cache')->monthlyOn(1, '00:30');
-        // $schedule->command("sale:get-order-ingredient-cache " . Carbon::now()->format('Y-m-d') . " --force_update=1")->hourly()->withoutOverlapping();
+        // 定期清除laravel舊快取
+        $schedule->command('clear:cache')->daily();
         
-        // 每小時更新備料表
-        $schedule->job(new \App\Jobs\Sale\OrderCalcIngredient)->hourly();
+        // 定期更新訂單統計
+        // $schedule->job(new \App\Jobs\Sale\UpdateOrderByDates)->cron('*/20 * * * *');
+        $schedule->job(new \App\Jobs\Sale\UpdateOrderByDatesJob)->hourly();
     }
 
     /**

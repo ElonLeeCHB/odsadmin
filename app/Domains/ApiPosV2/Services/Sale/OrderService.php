@@ -38,7 +38,8 @@ class OrderService extends Service
         return $this->getRows($filters);
     }
 
-    public function getInfo($identifier, $type = 'id')
+    //getInfo
+    public function getOrderByIdOrCode($identifier, $type = 'id')
     {
         if($type == 'id'){
             $order = (new Order)->getOrderByIdOrCode($identifier, 'id');

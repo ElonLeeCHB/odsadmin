@@ -3,12 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Event;
 use App\Models\Sanctum\PersonalAccessToken;
 use Laravel\Sanctum\Sanctum;
-
-use App\Models\Catalog\Product;
-use App\Observers\ProductObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,8 +24,5 @@ class AppServiceProvider extends ServiceProvider
         app()->useLangPath(base_path('lang'));
 
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
-
-        // Events
-        Event::listen(\App\Events\OrderSavedAfterCommit::class, \App\Listeners\SalesOrder\OrderSavedAfterCommitListener::class);
     }
 }

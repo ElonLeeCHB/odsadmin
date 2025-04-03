@@ -1,52 +1,55 @@
 <?php
 
-namespace App\Jobs\Sale;
+namespace App\Repositories\Eloquent\Sale;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
-use App\Models\Setting\Setting;
-use App\Models\Sale\Order;
+use App\Repositories\Eloquent\Repository;
 use App\Helpers\Classes\DateHelper;
+use App\Models\Sale\Order;
+use App\Models\Sale\OrderProduct;
+use App\Models\Sale\OrderProductOption;
+use App\Models\Setting\Setting;
+use Carbon\Carbon;
 
-class OrderCalcIngredient implements ShouldQueue
+/**
+ * 訂單轉備料
+ * 訂單異動後，將送達日期 delivery_date 寫入 settings 資料表 setting_key='sale_order_queued_delivery_date
+ * 預設行為：每20分鐘執行一次排程。讀取 sale_order_queued_delivery_date，逐一執行每一天。寫入內建快取。內含創建時間的欄位。
+ * 如果20分鐘之內有執行過，則跳過，等待下一輪執行。
+ * 
+ * 後台備料表頁，查詢日期時，由 RequisitionService 抓取快取。如果沒有快取就不顯示資料。因為排程本就應該執行，本就應該有快取。不管是每20分鐘或是每小時。
+ * 但是可以使用"更新"按鈕做即時更新，立刻更新快取。
+ * 
+ * 區間查詢的時候，由 RequisitionService 抓取各日快取。如果沒有快取就不顯示資料。因為排程本就應該執行，本就應該有快取。不管是每20分鐘或是每小時。
+ * 
+ */
+
+class OrderDailyRequisitionRepository
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    /**
-     * Create a new job instance.
-     */
-    public function __construct(private $required_date, private $force_update = 0)
+    public function handleByDate($required_date, $force_update = 0, $is_return = false)
     {
-        $this->required_date = $required_date;
-        $this->force_update = $force_update;
-    }
+        $required_date = Carbon::parse($required_date)->format('Y-m-d');
 
-    /**
-     * Execute the job.
-     */
-    public function handle()
-    {
-        $required_date_ymd = parseDate($this->required_date);
-        $cache_key = 'sale_order_ingredients_' . $required_date_ymd;
-        
-        // 每次執行至少間隔60分鐘
-        $cache_minutes = 60;
+        $cache_key = 'sale_order_requisition_date_' . $required_date;
+                
+        $statistics = cache()->get($cache_key);
 
-        if ($this->force_update){
-            cache()->forget($cache_key);
+        // 如果快取不存在或快取中的 cache_created_at 超過指定期限
+        if ($force_update || !$statistics || !isset($statistics['cache_created_at']) || Carbon::parse($statistics['cache_created_at'])->diffInMinutes(now()) > 60) {
+            $statistics = $this->calculateByDate($required_date);
+            cache()->put($cache_key, $statistics, 60*24*180);
         }
 
-        $statistics = cache()->remember($cache_key, 60 * $cache_minutes, function () use ($required_date_ymd) {
-            return $this->calculateRequisitionsByDate($required_date_ymd);
-        });
-
-        return $statistics ?? [];
+        if ($is_return == true){
+            return $statistics;
+        }
     }
 
-    public function calculateRequisitionsByDate($required_date_ymd)
+    public function getStatisticsByDate($required_date, $force_update)
+    {
+        return $this->handleByDate($required_date, $force_update, false);
+    }
+
+    public function calculateByDate($required_date_ymd)
     {
         $requiredDateRawSql = DateHelper::parseDateToSqlWhere('delivery_date', $required_date_ymd);
 
@@ -59,7 +62,6 @@ class OrderCalcIngredient implements ShouldQueue
             $sales_orders_to_be_prepared_status = Setting::where('setting_key', 'sales_orders_to_be_prepared_status')->first()->setting_value;
 
             $query = Order::query();
-            // $query->where('orders.id',10272);
     
             $query->select(['id', 'code', 'location_id', 'delivery_date', 'delivery_time_range', 'personal_name'
                             , 'shipping_road', 'shipping_road_abbr', 'shipping_method'
@@ -98,7 +100,6 @@ class OrderCalcIngredient implements ShouldQueue
         // 商品代號
         $big_guabao_ids = [1809,1810,1811,1812,1813,1814,1838,1839,1840];
         $small_guabao_ids = [1664,1665,1666,1667,1668,1669,1672,1688,1689];
-        $lumpia3in_ids = [1010,1011,1012,1013,1014,1015,1056,1058,1663];
         $lumpia6in_ids = [1010,1011,1012,1013,1014,1015,1056,1058,1663];
         $spring_roll_id = 1661;
 
@@ -208,7 +209,6 @@ class OrderCalcIngredient implements ShouldQueue
             $statistics['order_list'] = $order_list;
         //
 
-        // echo "<pre>",print_r($order_list,true),"</pre>\r\n";exit;
         // 統計全日、上午、下午
 
             foreach ($order_list as $order_id => $order) {
@@ -356,13 +356,13 @@ class OrderCalcIngredient implements ShouldQueue
             $statistics['info']['total_package']       = $total_bento + $total_lunchbox + $total_oil_rice_box;
             
             $statistics['info']['required_date_ymd']  = $required_date_ymd;
-            $statistics['info']['cache_created_at']  = now();
         //
 
-
         $statistics['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
+        
+        $statistics['cache_created_at']  = now();
 
-        // echo "<pre>",print_r($statistics,true),"</pre>\r\n";exit;
         return $statistics;
     }
 }
+

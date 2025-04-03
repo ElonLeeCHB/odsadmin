@@ -425,7 +425,7 @@ class OrderService extends GlobalOrderService
             }
 
             // Events
-            event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order, old_order:$old_order));
+            event(new \App\Events\SaleOrderSavedEvent(saved_order:$order, old_order:$old_order));
             
             return $order;
 

@@ -18,11 +18,10 @@ class PosCategoryService extends Service
     public function getList($params)
     {
         $params['equal_taxonomy_code'] = 'ProductPosCategory';
-
         $params['pagination'] = false;
         $params['limit'] = 0;
         
-        $cache_key = 'cache/' . app()->getLocale() . '/terms/ProductPosCategoryChainedList_' . md5(json_encode($params)) . '.txt';
+        $cache_key = 'cache/' . app()->getLocale() . '/terms/ChainedList-ProductPosCategory';
 
         return DataHelper::remember($cache_key, 60*60*24, 'serialize', function() use ($params){
             $rows = Term::getChainedList($params);

@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
 use App\Domains\ApiPosV2\Services\Sale\OrderService;
 use App\Helpers\Classes\DataHelper;
-use App\Models\Sale\Order;
 
 class OrderController extends ApiPosController
 {
@@ -38,7 +37,7 @@ class OrderController extends ApiPosController
     public function info($order_id)
     {
         try {
-            $order = $this->OrderService->getInfo($order_id, 'id');
+            $order = $this->OrderService->getOrderByIdOrCode($order_id, 'id');
 
             return $this->sendJsonResponse(data:$order);
             
@@ -50,7 +49,7 @@ class OrderController extends ApiPosController
     public function infoByCode($code)
     {
         try {
-            $order = $this->OrderService->getInfo($code, 'code');
+            $order = $this->OrderService->getOrderByIdOrCode($code, 'code');
     
             $order = DataHelper::unsetArrayIndexRecursively($order->toArray(), ['translation', 'translations']);
 
@@ -70,7 +69,7 @@ class OrderController extends ApiPosController
     
             $order = $this->OrderService->store($post_data);
     
-            event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
+            event(new \App\Events\SaleOrderSavedEvent(saved_order:$order));
 
             $data = [
                 'id' => $order->id,
@@ -88,11 +87,11 @@ class OrderController extends ApiPosController
     {
         try {
             // old order
-            $old_order = (new Order)->getOrderByIdOrCode($order_id, 'id');
+            $old_order = $this->OrderService->getOrderByIdOrCode($order_id, 'id');
 
             $order = $this->OrderService->update($this->post_data, $order_id);
 
-            event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order, old_order:$old_order));
+            event(new \App\Events\SaleOrderSavedEvent(saved_order:$order, old_order:$old_order));
 
             $data = [
                 'id' => $order->id,
@@ -111,7 +110,7 @@ class OrderController extends ApiPosController
         try {
             // old order
             if (!empty($order_id)){
-                $old_order = (new Order)->getOrderByIdOrCode($order_id, 'id');
+                $old_order = $this->OrderService->getOrderByIdOrCode($order_id, 'id');
                 $old_order_id = $order_id;
             }
 
@@ -138,12 +137,12 @@ class OrderController extends ApiPosController
                 $order = $this->OrderService->updateHeader($order_id, $this->post_data);
 
                 if(empty($old_order_id) && !empty($order)){
-                    event(new \App\Events\OrderSavedAfterCommit(action:'insert', saved_order:$order));
+                    event(new \App\Events\SaleOrderSavedEvent(saved_order:$order));
 
                     $message = '訂單新增成功';
 
                 } else if(!empty($old_order_id) && !empty($old_order)){
-                    event(new \App\Events\OrderSavedAfterCommit(action:'update', saved_order:$order, old_order:$old_order));
+                    event(new \App\Events\SaleOrderSavedEvent(saved_order:$order, old_order:$old_order));
                     
                     $message = '訂單修改成功';
                 }

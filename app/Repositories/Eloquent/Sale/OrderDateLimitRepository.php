@@ -322,7 +322,7 @@ class OrderDateLimitRepository extends Repository
         //
     }
 
-    // 更新訂單每日上限表 order_date_limits
+    // 重新計算某日訂單
     public function refreshOrderedQuantityByDate($date)
     {
         $date = Carbon::parse($date)->format('Y-m-d');

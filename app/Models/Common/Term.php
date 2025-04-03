@@ -11,6 +11,7 @@ use App\Models\Common\Taxonomy;
 use Illuminate\Support\Facades\Cache;
 use App\Helpers\Classes\OrmHelper;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\Classes\DataHelper;
 
 class Term extends Model
 {
@@ -153,6 +154,10 @@ class Term extends Model
                 }
             }
 
+            if (!empty($data['equal_taxonomy_code'])){
+                $query->where('c1.taxonomy_code', $data['equal_taxonomy_code']);
+            }
+
             $query->leftJoin("{$prefix}terms as c2", 'cp.path_id', '=', 'c2.id')
                     ->leftJoin("{$prefix}term_translations as cd1", 'cp.path_id', '=', 'cd1.term_id')
                     ->leftJoin("{$prefix}term_translations as cd2", 'cp.term_id', '=', 'cd2.term_id')
@@ -238,12 +243,16 @@ class Term extends Model
     }
 
 
-    //內建 cache
+    //刪除快取
     public function deleteCacheByTaxonomyCode($taxonomy_code)
     {
+        // 清單式
         $cache_key = 'term_of_taxonomy_code_' . $taxonomy_code . app()->getLocale();
+        cache()->forget($cache_key);
 
-        return cache()->forget($cache_key);
+        // 串連式
+        $cache_key = 'cache/' . app()->getLocale() . '/terms/ChainedList-' . $taxonomy_code;
+        DataHelper::deleteDataFromStorage($cache_key);
     }
 
     public function generateCacheByTaxonomyCode($taxonomy_code, $forceUpdate = 0)
