@@ -177,10 +177,6 @@ function loadData(forceUpdate = false) {
 
     $('#btn-redirectToRequiredDate, #btn-redirectToRequiredDateUpdate').prop('disabled', true);
 
-    // $('#requiredDataTable').load(url, function() {
-    //     $('#loadingSpinner').hide();
-    //     $('#btn-redirectToRequiredDate, #btn-redirectToRequiredDateUpdate').prop('disabled', false);
-    // });
     $.ajax({
       url: url,
       type: 'GET',

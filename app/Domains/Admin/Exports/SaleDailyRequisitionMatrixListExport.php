@@ -17,6 +17,7 @@ use App\Models\Setting\Setting;
 use Carbon\Carbon;
 use Artisan;
 use App\Jobs\Sale\OrderCalcIngredient;
+use App\Repositories\Eloquent\Sale\OrderDailyRequisitionRepository;
 
 class SaleDailyRequisitionMatrixListExport implements FromArray, WithHeadings, WithEvents, WithCustomStartCell
 {
@@ -58,8 +59,9 @@ class SaleDailyRequisitionMatrixListExport implements FromArray, WithHeadings, W
             $required_date_ymd = $this->start_date->toDateString();
 
             // 執行 artisan 命令
-            $job = new OrderCalcIngredient($required_date_ymd, $this->force_update);
-            $statistics = $job->handle();
+            // $job = new OrderCalcIngredient($required_date_ymd, $this->force_update);
+            // $statistics = $job->handle();
+            $statistics = (new OrderDailyRequisitionRepository)->getStatisticsByDate(required_date:$required_date_ymd, force_update:0);
 
             if (!empty($statistics)){
                 foreach ($statistics['order_list'] as $order) {

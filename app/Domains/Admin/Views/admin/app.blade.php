@@ -104,6 +104,11 @@
     <script src="{{ asset('assets-admin/javascript/bootstrap/js/bootstrap.bundle.min.js') }}" type="text/javascript"></script>
     <script type="text/javascript">
       $.ajaxSetup({
+        statusCode: {
+            401: function() {
+                window.location.href = '{{ route('lang.admin.login') }}';
+            }
+        },
         headers: {
           'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
         }

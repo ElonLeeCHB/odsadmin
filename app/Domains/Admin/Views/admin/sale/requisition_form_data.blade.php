@@ -1,6 +1,6 @@
 
 <strong>需求日期： {{ $statistics['info']['required_date_ymd'] ?? ''}}</strong> <BR>
-更新時間： {{ $statistics['info']['cache_created_at'] ?? '' }} &nbsp; (更新時間間隔1小時)<BR>
+更新時間： {{ $statistics['cache_created_at'] ?? '' }}<BR>
 套餐數(盒餐、便當、油飯盒):{{ $statistics['info']['total_package'] ?? 0 }}, &nbsp;
 盒餐:{{ $statistics['info']['total_lunchbox'] ?? 0 }}, &nbsp;
 便當:{{ $statistics['info']['total_bento'] ?? 0 }}, &nbsp;

@@ -37,7 +37,11 @@ class Handler extends ExceptionHandler
     protected function unauthenticated($request, AuthenticationException $exception)
     {
         if(CheckAreaHelper::isAdminArea($request)){
-            redirect()->guest($exception->redirectTo() ?? route('lang.admin.login'));
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401); // 對於 AJAX 請求，返回 401
+            }
+
+            return redirect()->guest($exception->redirectTo() ?? route('lang.admin.login'));
         }
 
         else if(CheckAreaHelper::isPublicArea($request)){

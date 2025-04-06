@@ -44,9 +44,9 @@ class OrderDailyRequisitionRepository
         }
     }
 
-    public function getStatisticsByDate($required_date, $force_update)
+    public function getStatisticsByDate($required_date, $force_update = 0)
     {
-        return $this->handleByDate($required_date, $force_update, false);
+        return $this->handleByDate($required_date, $force_update, true);
     }
 
     public function calculateByDate($required_date_ymd)
@@ -360,7 +360,7 @@ class OrderDailyRequisitionRepository
 
         $statistics['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
         
-        $statistics['cache_created_at']  = now();
+        $statistics['cache_created_at'] = now()->format('Y-m-d H:i:s');
 
         return $statistics;
     }

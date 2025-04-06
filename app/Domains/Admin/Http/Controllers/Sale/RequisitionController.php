@@ -115,7 +115,7 @@ class RequisitionController extends BackendController
 
         // parseDate
         if(!empty($required_date)){
-            $required_date = parseDateStringTo6d($required_date);
+            $required_date = parseDate($required_date);
 
             if(empty($required_date)){
                 return redirect(route('lang.admin.sale.requisitions.form'))->with("warning", "日期格式錯誤");

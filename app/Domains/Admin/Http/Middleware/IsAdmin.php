@@ -25,6 +25,10 @@ class IsAdmin
         }else{
             auth()->logout();
 
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+
             $url = route('lang.admin.login') . '?prev_url=' . url()->current();
             
             return redirect($url)->with('error_warning',"您沒有後台權限");
