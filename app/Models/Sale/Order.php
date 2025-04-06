@@ -355,16 +355,16 @@ class Order extends Model
     // Functoins
 
     /**
-     * $row: 傳入的資料，當前資料庫記錄
-     * $data 傳入的新資料
+     * $row: 當前資料庫記錄
+     * $data 新資料
      * 改寫傳入資料，或者設定預設值。
      * 
      * $type = updateOnlyInput, updateAll
-     *     updateOnlyInput: 不會動到輸入資料以外的資料。如果 $row 是一個已存在的記錄，包括 $row->is_admin，但是輸入的資料沒有，那就不會動到 is_admin。
+     *     updateOnlyInput: 不會動到輸入資料以外的資料。如果 $row 是已存在的內容，包括 $row->is_admin=1，但是輸入的資料沒有，那就不會動到 is_admin，仍然保持1。
      *     updateAll: 如果輸入資料沒有，就清空。
      * 
      */
-    public function prepareData($data, $type = 'updateOnlyInput', $row)
+    public function prepareData($data)
     {
         $data['source'] = $data['source'] ?? null;
         $data['location_id'] = $data['location_id'] ?? 0;
@@ -400,9 +400,11 @@ class Order extends Model
             if (!empty($data['delivery_date_hi'])) {
                 //避免使用者只打數字，例如 1630所以取開頭、跟結尾，中間插入冒號 :
                 $delivery_date_hi = substr($data['delivery_date_hi'],0,2).':'.substr($data['delivery_date_hi'],-2);
-            } else {
+            } else if (!empty($data['delivery_date'])) {
                 $time = substr($data['delivery_date'], 11, 5);
                 $delivery_date_hi = !empty($time) ? $time : '00:00';
+            } else {
+                $delivery_date_hi = '00:00';
             }
 
             $delivery_date = $delivery_date_ymd . ' ' . $delivery_date_hi . ':00';
@@ -431,7 +433,7 @@ class Order extends Model
 
         $data['delivery_date'] = $delivery_date;
 
-        return $this->processPrepareData(data:$data, type:$type, row:$row);
+        return $this->processPrepareData($data);
     }
 
     /* 更新全部的控單數量

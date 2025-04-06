@@ -10,18 +10,19 @@ class Kernel extends ConsoleKernel
 {
     /**
      * Define the application's command schedule.
-     * everyMinute, daily
+     * everyMinute, hourly,daily, weekly, monthly
      * C:\Servers\php\php83\php.exe artisan schedule:run
      * C:\Servers\php\php83\php.exe artisan schedule:work
      */
+    // cron('*/20 * * * *');
     protected function schedule(Schedule $schedule): void
     {
         // 定期清除laravel舊快取
         $schedule->command('clear:cache')->daily();
         
         // 定期更新訂單統計
-        // $schedule->job(new \App\Jobs\Sale\UpdateOrderByDates)->cron('*/20 * * * *');
-        $schedule->job(new \App\Jobs\Sale\UpdateOrderByDatesJob)->hourly();
+        $schedule->job(new \App\Jobs\Sale\UpdateOrderByDatesJob)->cron('*/20 * * * *');
+        // $schedule->job(new \App\Jobs\Sale\UpdateOrderByDatesJob)->hourly();
     }
 
     /**

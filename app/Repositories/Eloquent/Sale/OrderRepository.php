@@ -528,7 +528,7 @@ class OrderRepository extends Repository
     {
         try {
             $order = new Order;
-            $order = $order->prepareData(data:$data, type:'updateOnlyInput', row:$order);
+            $order = $order->prepareData(data:$data);
             $order->save();
 
             return $order;
@@ -599,7 +599,9 @@ class OrderRepository extends Repository
         $fillable = $this->model->getFillable();
 
         $orderData = [];
-        
+
+        $orderData = (new Order)->prepareData(data:$data);
+
         foreach ($fillable as $column) {
             if($column != 'id' && isset($data[$column])){
                 $orderData[$column] = $data[$column];

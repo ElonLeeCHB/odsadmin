@@ -1,12 +1,15 @@
 <?php
 
-namespace App\Libraries;
+namespace App\Repositories\Eloquent\SysData;
 
+use App\Repositories\Eloquent\Repository;
 use App\Models\SysData\Log;
 use Carbon\Carbon;
 
-class LogLibrary
+class LogRepository extends Repository
 {
+    public $modelName = "\App\Models\SysData\Log";
+
     public function logRequest($uniqueid, $note = '')
     {
         $log = new Log;
@@ -36,11 +39,12 @@ class LogLibrary
         else if (request()->has('X-CLIENT-IPV4')) {
             $log->client_ip = request()->input('X-CLIENT-IPV4');
         }
+        
 
         //api_ip
         $log->api_ip = request()->ip();
 
-        $log->save();
+        return $log->save();
     }
 
 
@@ -62,3 +66,4 @@ class LogLibrary
         $log->save();
     }
 }
+

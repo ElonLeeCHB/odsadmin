@@ -9,15 +9,12 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Carbon\Carbon;
 use App\Models\Setting\Setting;
-use App\Jobs\Sale\UpdateOrderQuantityControlJob;
-use App\Jobs\Sale\UpdateDailyRequisitionJob;
-use App\Jobs\Sale\UpdateDailyReuirementJob;
 use Illuminate\Support\Facades\DB;
 
 /**
  * 訂單送達日期 delivery_date
+ * 定期執行，例如每20分鐘或是每小時。
  */
 
 class UpdateOrderByDatesJob implements ShouldQueue
@@ -26,6 +23,7 @@ class UpdateOrderByDatesJob implements ShouldQueue
 
     public function handle(): void
     {
+        // 執行時鎖定本任務
         $lock = cache()->lock('sale-order-update-daily-requisition-job', 60);
 
         if ($lock->get()) {
@@ -41,7 +39,7 @@ class UpdateOrderByDatesJob implements ShouldQueue
                     foreach ($updated_dates ?? [] as $updated_date) {
                         (new \App\Repositories\Eloquent\Sale\OrderDateLimitRepository)->refreshOrderedQuantityByDate($updated_date);
                         (new \App\Repositories\Eloquent\Sale\OrderDailyRequisitionRepository)->handleByDate(required_date:$updated_date, force_update:false, is_return:false);
-                        (new \App\Repositories\Eloquent\Sale\OrderDailyRequirementRepository)->handleByDate(required_date:$updated_date, force_update:false, is_return:false);
+                        // (new \App\Repositories\Eloquent\Sale\OrderDailyRequirementRepository)->handleByDate(required_date:$updated_date, force_update:false, is_return:false);
                     }
         
                     $setting = Setting::where('store_id', $store_id)->where('setting_key', $setting_key)->first();
@@ -54,12 +52,11 @@ class UpdateOrderByDatesJob implements ShouldQueue
 
                     $setting->setting_value = '';
                     $setting->save();
-
                 });
 
             } catch (\Throwable $th) {
                 DB::rollBack();
-                (new \App\Libraries\LogLibrary)->logErrorNotRequest(['data' => $th->getMessage(), 'note' => 'App\Jobs\Sale\UpdateOrderByDates->handle()']);
+                (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorNotRequest(['data' => $th->getMessage(), 'note' => 'App\Jobs\Sale\UpdateOrderByDates->handle()']);
             } finally {
                 $lock->release();
             }

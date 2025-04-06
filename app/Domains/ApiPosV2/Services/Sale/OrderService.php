@@ -294,8 +294,9 @@ class OrderService extends Service
 
             // $order = (new OrderRepository)->update($data, $order_id);
             $order = Order::find($order_id);
-            $order = (new Order)->prepareData(data:$data, type:'updateOnlyInput', row:$order);
+            $order = (new Order)->prepareData(data:$data);
             $order->save();
+
             DB::commit();
 
             return $order;

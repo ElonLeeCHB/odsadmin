@@ -6,15 +6,21 @@ use Illuminate\Http\Middleware\TrustProxies as Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Jobs\LogRequestJob;
 
-/**
- * 要使用排程。所以先定義此 middleware, 然後使用 LogRequestJob，再去呼叫 LogLibrary.php 的 logRequest()
- */
 class LogRequest extends Middleware
 {
+    private $uniqueid;
+
     public function handle(Request $request, Closure $next)
     {
+        $this->uniqueid = time() . '-' . uniqid();
+        $request->attributes->set('uniqueid', $this->uniqueid);
+
+        (new \App\Repositories\Eloquent\SysData\LogRepository)->logRequest($this->uniqueid);
+
+        return $next($request);
+
+        // 舊資料表
         // if($request->method()=='POST'){
         //     $authorization = $request->header('Authorization');
         //     if ($authorization && strpos($authorization, 'Bearer ') === 0) {
@@ -32,15 +38,6 @@ class LogRequest extends Middleware
         //     set user_id  = '$authorization', url = '$url',path='$path', method = '$method', ip='$ip', data = '$data',created_at = '$taiwanTime'
         //     ");
         // }
-
-        $uniqueid = time() . '-' . uniqid();
-        $request->attributes->set('uniqueid', $uniqueid);
-
-        if ($request->method() == 'POST'){
-            LogRequestJob::dispatch($uniqueid);
-        }
-
-        return $next($request);
     }
 
 }

@@ -163,4 +163,21 @@ class User extends Authenticatable
 
         return $token;
     }
+
+    public function prepareData($data)
+    {
+        if (strlen($data['mobile']) != 10 || !is_numeric($data['mobile']) || substr($data['mobile'], 0, 2) != '09') {
+            throw new \Exception('手機號碼錯誤！');
+        }
+
+        $data['mobile'] = preg_replace('/\D+/', '', $data['mobile'] ?? null);
+        $data['telephone_prefix'] = $data['telephone_prefix'] ?? null;
+        $data['shipping_personal_name'] = $data['shipping_personal_name'] ?? $data['personal_name'] ?? null;
+        $data['shipping_company'] = $data['shipping_company'] ?? $data['payment_company'] ?? null;
+        $data['shipping_country_code'] = $data['shipping_country_code'] ?? config('vars.default_country_code');
+        $data['shipping_road_abbr'] = $data['shipping_road_abbr'] ?? $data['shipping_road'] ?? null;
+        $data['shipping_road'] = $data['shipping_road'] ?? null;
+
+        return $this->processPrepareData($data);
+    }
 }

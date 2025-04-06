@@ -5,6 +5,7 @@ namespace App\Listeners;
 use Illuminate\Support\Facades\Log;
 use App\Events\SaleOrderSavedEvent;
 use App\Jobs\Sale\SendOrderEmailJob;
+use App\Jobs\Sale\UpdateOrderQuantityControlJob;
 use App\Models\Setting\Setting;
 use Carbon\Carbon;
 
@@ -12,12 +13,17 @@ class SaleOrderSavedListener
 {
     public function handle(SaleOrderSavedEvent $event)
     {
+        dispatch(new UpdateOrderQuantityControlJob($event->saved_order->id));
         // Log::info('SaleOrderSavedListener', ['order_id' => $event->saved_order->order_id]);
 
         // 寄信 立刻排入佇列執行
         // if ($event->new_order->status === 'completed') {
         //     dispatch(new SendOrderEmailJob($event->new_order));
         // }
+
+        // 計算當前訂單的控單數量
+        dispatch(new UpdateOrderQuantityControlJob($event->saved_order->id));
+
 
         // 更新有異動的日期 delivery_date
             // 由 Job 根據 setting_key = sale_order_queued_delivery_date 再加上排程，執行真正的任務。

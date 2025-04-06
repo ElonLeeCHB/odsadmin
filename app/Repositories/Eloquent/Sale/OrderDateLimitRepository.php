@@ -274,7 +274,7 @@ class OrderDateLimitRepository extends Repository
         //
 
         // 更新訂單商品表：商品本身沒有控單數量
-            // -- (1) 更新訂單商品選項表
+            // -- (1) 先更新訂單商品選項表
             $query = DB::table('order_product_options as opo')
                         ->join('orders as o', 'o.id', '=', 'opo.order_id')
                         ->join('products as p', 'p.id', '=', 'opo.product_id')

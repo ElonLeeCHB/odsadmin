@@ -629,23 +629,11 @@ trait ModelTrait
         return $namespace . '\\' . $className . 'Meta'; // 例如 App\Models\Catalog\ProductMeta
     }
 
-    /**
-     * $type = updateOnlyInput, updateAll
-     *     updateOnlyInput: 不會動到輸入資料以外的資料。如果 $row 是一個已存在的記錄，包括 $row->is_admin，但是輸入的資料沒有，那就不會動到 is_admin。
-     *     updateAll: 如果輸入資料沒有，就清空。
-     */
-    public function processPrepareData($row, $data, $type = 'updateOnlyInput')
+    public function processPrepareData($data)
     {
+        $columns = array_keys($data);
+
         $table_columns = $this->getTableColumns();
-
-        $delete_columns = [];
-
-        if ($type == 'updateOnlyInput') {
-            $columns = array_keys($data);
-        } else if ($type == 'updateAll') {
-            $columns = array_keys($table_columns);
-            $delete_columns = array_diff($table_columns, array_keys($data));
-        }
 
         // 禁止修改的欄位
         unset($columns['created_at']);
@@ -654,28 +642,11 @@ trait ModelTrait
         unset($columns['updater_id']);
 
         foreach ($columns as $column) {
-            // 清空欄位值 
-            if (in_array($column, $delete_columns)) {
-                if(is_array($row)){
-                    $row[$column] = null;
-                }
-                else if(is_object($row)){
-                    $row->{$column} = null;
-                }
-            } 
-            // 賦值
-            else if(in_array($column, $table_columns)){
-                if (isset($data[$column])) {
-                    if(is_array($row)){
-                        $row[$column] = $data[$column];
-                    }
-                    else if(is_object($row)){
-                        $row->{$column} = $data[$column];
-                    }
-                }
+            if (!in_array($column, $table_columns)) {
+                unset($data[$column]);
             }
         }
 
-        return $row;
+        return $data;
     }
 }

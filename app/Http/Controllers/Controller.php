@@ -7,7 +7,6 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use App\Helpers\Classes\DataHelper;
-use App\Jobs\LogJob;
 
 class Controller extends BaseController
 {
@@ -73,9 +72,7 @@ class Controller extends BaseController
 
     public function logError($error)
     {
-        $uniqueid = request()->attributes->get('uniqueid');
-
-        LogJob::dispatch(['uniqueid' => $uniqueid, 'data' => $error.'', 'status' => 'error']);
+        (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorNotRequest(['data' => $error.'', 'status' => 'error']);
     }
 
 
