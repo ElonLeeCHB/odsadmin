@@ -20,7 +20,7 @@ class PosCategoryService extends Service
         $params['equal_taxonomy_code'] = 'ProductPosCategory';
         $params['pagination'] = false;
         $params['limit'] = 0;
-        
+
         $cache_key = 'cache/' . app()->getLocale() . '/terms/ChainedList-ProductPosCategory';
 
         return DataHelper::remember($cache_key, 60*60*24, 'serialize', function() use ($params){
@@ -45,12 +45,12 @@ class PosCategoryService extends Service
             DB::beginTransaction();
 
             $data['taxonomy_code'] = 'ProductPosCategory';
+            $data['term_id'] = $poscategory_id;
             
+            // 去掉其它同體異名的 id
             if(!empty($poscategory_id)){
-                $data['term_id'] = $poscategory_id;
                 unset($data['id']); // 防呆
                 unset($data['category_id;']); // 防呆
-
             }
             
             $row = (new TermRepository)->saveTerm($data);
@@ -61,7 +61,7 @@ class PosCategoryService extends Service
 
         } catch (\Exception $ex) {
             DB::rollback();
-            return ['error' => $ex->getMessage()];
+            throw $th;
         }
     }
 }

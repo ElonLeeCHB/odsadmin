@@ -197,7 +197,7 @@ class RequisitionController extends BackendController
         //連結
         $data['save_url'] = route('lang.admin.sale.requisitions.settingSave');
         $data['back_url'] = route('lang.admin.sale.requisitions.form');
-        $data['list_url'] = route('lang.admin.sale.requisitions.list');
+        // $data['list_url'] = route('lang.admin.sale.requisitions.list');
 
 
         return view('admin.sale.material_requisition_setting_form', $data);

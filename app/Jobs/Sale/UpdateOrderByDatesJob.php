@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * 訂單送達日期 delivery_date
- * 定期執行，例如每20分鐘或是每小時。
+ * 可以定期執行，例如每20分鐘或是每小時。
  */
 
 class UpdateOrderByDatesJob implements ShouldQueue
@@ -56,7 +56,7 @@ class UpdateOrderByDatesJob implements ShouldQueue
 
             } catch (\Throwable $th) {
                 DB::rollBack();
-                (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorNotRequest(['data' => $th->getMessage(), 'note' => 'App\Jobs\Sale\UpdateOrderByDates->handle()']);
+                (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorNotRequest(['data' => $th->getMessage(), 'note' => get_class($this) . ' handle()']);
             } finally {
                 $lock->release();
             }

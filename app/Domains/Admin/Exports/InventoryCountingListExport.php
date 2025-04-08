@@ -15,8 +15,6 @@ use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Helpers\Classes\DataHelper;
 use App\Helpers\Classes\UnitConverter;
-use App\Models\Setting\Setting;
-use App\Repositories\Eloquent\Setting\SettingRepository;
 
 class InventoryCountingListExport implements FromCollection, WithHeadings, WithEvents, WithMapping, WithCustomStartCell
 {

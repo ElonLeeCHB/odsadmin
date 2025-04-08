@@ -38,7 +38,7 @@ class UpdateOrderQuantityControlJob implements ShouldQueue
                 });
             } catch (\Throwable $th) {
                 DB::rollBack();
-                (new \App\Libraries\LogLibrary)->logErrorNotRequest(['data' => $th->getMessage(), 'note' => get_class($this).'handle()']);
+                (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorNotRequest(['data' => $th->getMessage(), 'note' => get_class($this) . ' handle()']);
             } finally {
                 $lock->release();
             }

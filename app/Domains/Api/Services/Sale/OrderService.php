@@ -19,8 +19,9 @@ class OrderService extends GlobalOrderService
 {
     protected $modelName = "\App\Models\Sale\Order";
 
-    public function updateOrCreate($order_id, $data)
+    public function updateOrCreate($order_id = null, $data)
     {
+        echo "<pre>",print_r(999,true),"</pre>\r\n";exit;
         foreach($data as $key => $value){
             if($data[$key] === 'null' || $data[$key] === 'undefined'){
                 unset($data[$key]);
@@ -29,8 +30,6 @@ class OrderService extends GlobalOrderService
         
         try {
             DB::beginTransaction();
-
-            $order_id = $data['order_id'] ?? null;
 
             // old order
             if(!empty($order_id)){
@@ -43,9 +42,9 @@ class OrderService extends GlobalOrderService
                                 }
                             ]);
                     }
-                ])->findOrFail($order_id)->toArray();
+                ])->findOrFail($order_id);
 
-                $old_order = arrayToObject($old_order);
+                // $old_order = arrayToObject($old_order);
             }else{
                 $old_order = null;
             }
@@ -143,11 +142,12 @@ class OrderService extends GlobalOrderService
 
                 $data['payment_total'] = $data['payment_total'] ?? 0;
                 $data['payment_paid'] = $data['payment_paid'] ?? 0;
-                
+                echo "<pre>",print_r(999,true),"</pre>\r\n";exit;
                 $order->location_id = $data['location_id'] ?? 0;
                 $order->source = $source;//來源
                 $order->personal_name = $data['personal_name'];
-                $order->customer_id = $customer->id ?? $data['customer_id'] ?? 0;
+                $order->salutation_code = $data['salutation_code'] ?? 0;
+                $order->customer_id = $customer->id ?? $data['customer_id'];
                 $order->mobile = $mobile ?? '';
                 $order->telephone_prefix = $data['telephone_prefix'] ?? '';
                 $order->telephone = $telephone ?? '';
@@ -166,11 +166,12 @@ class OrderService extends GlobalOrderService
                 }else{
                     $order->payment_unpaid = is_numeric($data['payment_unpaid']) ? $data['payment_unpaid'] : 0;
                 }
-                //$order->payment_unpaid = is_numeric($data['payment_unpaid']) ? $data['payment_unpaid'] : 0;
                 $order->payment_method = $data['payment_method'] ?? '';
                 $order->scheduled_payment_date = $data['scheduled_payment_date'] ?? null;
                 $order->shipping_personal_name = $shipping_personal_name;
                 $order->shipping_personal_name2 = $data['shipping_personal_name2'] ?? '';
+                $order->shipping_salutation_code = $data['shipping_salutation_code'] ?? 0;
+                $order->shipping_salutation_code2 = $data['shipping_salutation_code2'] ?? 0;
                 $order->shipping_salutation_id = $data['shipping_salutation_id'] ?? 0;
                 $order->shipping_salutation_id2 = $data['shipping_salutation_id2'] ?? 0;
                 $order->shipping_phone = $data['shipping_phone'] ?? '';
@@ -188,7 +189,6 @@ class OrderService extends GlobalOrderService
                 $order->delivery_date = $delivery_date;
                 $order->delivery_time_range = $data['delivery_time_range'] ?? '';
                 $order->delivery_time_comment = $data['delivery_time_comment'] ?? '';
-                //$order->status_id = $data['status_id'] ?? 0;
                 $order->status_code = $data['status_code'] ?? 0;
                 $order->multiple_order = $data['multiple_order'] ?? '';
                 $order->comment = $data['comment'] ?? '';
@@ -199,7 +199,7 @@ class OrderService extends GlobalOrderService
                 $order->save();
                 // 訂單單頭結束
             // }
-
+            // echo "<pre>",print_r($order->toArray(),true),"</pre>\r\n";exit;
             // 訂單標籤
                 OrderTag::where('order_id', $order->id)->delete();
 

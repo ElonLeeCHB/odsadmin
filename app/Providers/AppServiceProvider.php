@@ -24,5 +24,9 @@ class AppServiceProvider extends ServiceProvider
         app()->useLangPath(base_path('lang'));
 
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+
+        // store_id
+        $store_id = request('store_id') ?? 0;
+        session(['store_id' => $store_id]);
     }
 }
