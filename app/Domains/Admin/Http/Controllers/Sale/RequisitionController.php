@@ -179,6 +179,7 @@ class RequisitionController extends BackendController
 
         //需要除2的潤餅
         $sales_wrap_map = Setting::where('setting_key','sales_wrap_map')->first()->setting_value;
+        
         $lines = [];
         foreach ($sales_wrap_map as $key => $row) {
             $lines[] = $row['product_id'] . ',"' . trim($row['product_name']) .'",' . $row['new_product_id'] . ',"' . trim($row['new_product_name']) . '"';

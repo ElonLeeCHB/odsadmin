@@ -21,7 +21,6 @@ class OrderService extends GlobalOrderService
 
     public function updateOrCreate($order_id = null, $data)
     {
-        echo "<pre>",print_r(999,true),"</pre>\r\n";exit;
         foreach($data as $key => $value){
             if($data[$key] === 'null' || $data[$key] === 'undefined'){
                 unset($data[$key]);
@@ -142,7 +141,7 @@ class OrderService extends GlobalOrderService
 
                 $data['payment_total'] = $data['payment_total'] ?? 0;
                 $data['payment_paid'] = $data['payment_paid'] ?? 0;
-                echo "<pre>",print_r(999,true),"</pre>\r\n";exit;
+
                 $order->location_id = $data['location_id'] ?? 0;
                 $order->source = $source;//來源
                 $order->personal_name = $data['personal_name'];
@@ -159,8 +158,9 @@ class OrderService extends GlobalOrderService
                 $order->payment_department= $data['payment_department'] ?? '';
                 $order->payment_tin = $data['payment_tin'] ?? '';
                 $order->is_payment_tin = $data['is_payment_tin'] ?? 0;
-                $order->payment_total = is_numeric($data['payment_total']) ? $data['payment_total'] : 0;
-                $order->payment_paid = is_numeric($data['payment_paid']) ? $data['payment_paid'] : 0;
+                $order->payment_total = $data['payment_total'];
+                $order->payment_paid = $data['payment_paid'];
+
                 if($order->payment_paid == 0){
                     $order->payment_unpaid = $order->payment_total;
                 }else{

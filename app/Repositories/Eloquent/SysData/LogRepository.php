@@ -10,6 +10,32 @@ class LogRepository extends Repository
 {
     public $modelName = "\App\Models\SysData\Log";
 
+
+    public function log($params)
+    {
+        $log = new Log;
+
+        $log->uniqueid = app('unique_id');
+        $log->area = config('app.env');
+        $log->url = $params['url'] ?? '';
+        $log->method = $params['method'] ?? '';
+        $log->data = json_encode($params['data']);
+        $log->status = $params['status'] ?? '';
+        $log->note = $params['note'] ?? '';
+
+        //client_ip
+        if (request()->hasHeader('X-CLIENT-IPV4')) {
+            $log->client_ip = request()->header('X-CLIENT-IPV4');
+        }
+
+        //api_ip
+        $log->api_ip = request()->ip();
+
+        $log->created_at = Carbon::now();
+        
+        $log->save();
+    }
+
     public function logRequest($uniqueid, $note = '')
     {
         $log = new Log;
@@ -36,10 +62,6 @@ class LogRepository extends Repository
         if (request()->hasHeader('X-CLIENT-IPV4')) {
             $log->client_ip = request()->header('X-CLIENT-IPV4');
         }
-        else if (request()->has('X-CLIENT-IPV4')) {
-            $log->client_ip = request()->input('X-CLIENT-IPV4');
-        }
-        
 
         //api_ip
         $log->api_ip = request()->ip();

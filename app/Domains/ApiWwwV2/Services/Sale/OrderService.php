@@ -177,7 +177,7 @@ class OrderService extends Service
                         SET
                             opo.option_id = pov.option_id,
                             opo.option_value_id = pov.option_value_id,
-                            opo.map_product_id = opo.map_product_id
+                            opo.map_product_id = IFNULL(ov.product_id, opo.map_product_id)
                             WHERE opo.order_id = " . $order->id;
                     DB::statement($sql);
                 }

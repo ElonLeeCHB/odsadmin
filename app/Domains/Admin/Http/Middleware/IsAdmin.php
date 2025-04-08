@@ -21,11 +21,6 @@ class IsAdmin
         app()->instance('acting_user', $acting_user);
         
         if(!empty($acting_user) && $acting_user->is_admin){
-
-            // 設定 store_id
-            $store_id = request()->store_id ?? 1;
-            $request->attributes->set('store_id', $store_id);
-
             return $next($request);
         }else{
             auth()->logout();

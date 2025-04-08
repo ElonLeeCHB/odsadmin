@@ -367,7 +367,7 @@ class Order extends Model
     public function prepareData($data)
     {
         $data['source'] = $data['source'] ?? null;
-        $data['location_id'] = $data['location_id'] ?? 0;
+        $data['store_id'] = $data['store_id'] ?? 0;
         $data['customer_id'] = (isset($data['customer_id']) && is_numeric($data['customer_id'])) ? $data['customer_id'] : 0;
         $data['quantity_for_control'] = $data['quantity_for_control'] ?? 0;
         $data['is_option_qty_controlled'] = $data['is_option_qty_controlled'] ?? 0;

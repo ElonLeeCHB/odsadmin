@@ -128,7 +128,7 @@ class OrderController extends ApiController
             
             // 新增時不允許表單資料有 order_id
             if(empty($order_id) && !empty($post_data['order_id'])){
-                throw new \Exception('新增表單不可以代 order_id');
+                $order_id = $post_data['order_id'];
             }            
 
             $post_data['source'] = isset($post_data['source']) ? $post_data['source'] : null;//來源

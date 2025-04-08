@@ -528,7 +528,15 @@ class OrderRepository extends Repository
     {
         try {
             $order = new Order;
-            $order = $order->prepareData(data:$data);
+
+            $data = $order->prepareData(data:$data);
+
+            unset($data['id']);
+
+            foreach ($$data as $key => $value) {
+                $order->{$key} = $value;
+            }
+            
             $order->save();
 
             return $order;

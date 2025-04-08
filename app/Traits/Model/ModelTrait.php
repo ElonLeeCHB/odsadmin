@@ -631,19 +631,15 @@ trait ModelTrait
 
     public function processPrepareData($data)
     {
-        $columns = array_keys($data);
-
-        $table_columns = $this->getTableColumns();
-
         // 禁止修改的欄位
-        unset($columns['created_at']);
-        unset($columns['updated_at']);
-        unset($columns['creator_id']);
-        unset($columns['updater_id']);
+        unset($data['created_at']);
+        unset($data['updated_at']);
+        unset($data['creator_id']);
+        unset($data['updater_id']);
 
-        foreach ($columns as $column) {
-            if (!in_array($column, $table_columns)) {
-                unset($data[$column]);
+        foreach ($data as $key => $value) {
+            if (!in_array($key, $this->getTableColumns())){
+                unset($data[$key]);
             }
         }
 

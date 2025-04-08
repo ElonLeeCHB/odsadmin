@@ -27,7 +27,7 @@ class SaleOrderSavedListener
             // 由 Job 根據 setting_key = sale_order_queued_delivery_date 再加上排程，執行真正的任務。
             $store_id = session('store_id', 1);
             $setting_key = 'sale_order_queued_delivery_dates';
-            $setting = Setting::where('store_id', $store_id)->where('setting_key', $setting_key)->first();
+            $setting = Setting::where('store_id', $store_id)->where('group', 'sale')->where('setting_key', $setting_key)->first();
             $updated_dates = $setting->setting_value ?? [];
 
             if (!empty($event->old_order->delivery_date ?? null)) {
@@ -39,8 +39,6 @@ class SaleOrderSavedListener
             }
 
             $updated_dates = json_encode(array_unique($updated_dates));
-            
-            $setting = Setting::where('store_id', $store_id)->where('setting_key', $setting_key)->first();
 
             if ($setting) {
                 // 如果資料已存在，只更新 setting_value
