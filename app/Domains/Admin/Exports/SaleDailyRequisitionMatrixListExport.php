@@ -57,10 +57,7 @@ class SaleDailyRequisitionMatrixListExport implements FromArray, WithHeadings, W
 
         while ($this->start_date <= $this->end_date) {
             $required_date_ymd = $this->start_date->toDateString();
-
-            // 執行 artisan 命令
-            // $job = new OrderCalcIngredient($required_date_ymd, $this->force_update);
-            // $statistics = $job->handle();
+            
             $statistics = (new OrderDailyRequisitionRepository)->getStatisticsByDate(required_date:$required_date_ymd, force_update:0);
 
             if (!empty($statistics)){

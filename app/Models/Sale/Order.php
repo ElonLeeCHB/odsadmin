@@ -500,7 +500,21 @@ where op.order_id=9219
         return 'cache/sale/order/code-'. $order_code . '.json';
     }
 
-    public function deleteCacheKeysByIdOrCode($identifier, $type)
+    public function deleteCacheById($id, $order = null)
+    {
+        $cache_key = $this->getCacheKeyById($id);
+        DataHelper::deleteDataFromStorage($cache_key);
+
+        $code = $order->code ?? $order['code'] ?? null;
+        if (!empty($code)){
+            $cache_key = $this->getCacheKeyByCode($code);
+            DataHelper::deleteDataFromStorage($cache_key);
+        }
+
+        return DataHelper::deleteDataFromStorage($cache_key);
+    }
+
+    public function deleteCacheByIdOrCode($identifier, $type)
     {
         if($type == 'id'){
             $cache_key = $this->getCacheKeyById($identifier);

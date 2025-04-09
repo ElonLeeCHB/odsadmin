@@ -50,60 +50,52 @@ class OrderService extends Service
         return $order;
     }
 
+    // 主要更新送達地址。姓名不更新。
+    public function updateOrCreateCustomer($data)
+    {
+        $id = $data['customer_id'] ?? null;
+
+        // 手機只使用純數字
+        $data['mobile'] = preg_replace('/\D+/', '', $data['mobile']);
+
+        if (!empty($id)){
+            $member = User::find($id);
+        } else if (!empty($data['mobile'])){
+            $member = User::where('mobile', $data['mobile'])->orderBy('id', 'desc')->first();
+        }
+
+        if (!empty($member)){
+            $member = new User;
+        }
+
+        $member->telephone = !empty($data['telephone_prefix']) ? str_replace('-', '', $data['telephone_prefix']) : $member->telephone_prefix;
+        $member->telephone = !empty($data['telephone']) ? str_replace('-', '', $data['telephone']) : $member->telephone;
+
+        $member->payment_tin = $data['payment_tin'] ?? $member->payment_tin;
+        $member->payment_company = $data['payment_company'] ?? $member->payment_company;
+
+        $member->shipping_personal_name = $data['shipping_personal_name'] ?? $member->shipping_personal_name;
+        $member->shipping_salutation_code = $data['shipping_salutation_code'] ?? $member->shipping_salutation_code;
+        $member->shipping_phone = $data['shipping_phone'] ?? $member->shipping_phone;
+        $member->shipping_state_id = $data['shipping_state_id'] ?? $member->shipping_state_id;
+        $member->shipping_city_id = $data['shipping_city_id'] ?? $member->shipping_city_id;
+        $member->shipping_address1 = $data['shipping_address1'] ?? $member->shipping_address1;
+        $member->shipping_address2 = $data['shipping_address2'] ?? $member->shipping_address2;
+        $member->shipping_road = $data['shipping_road'] ?? $member->shipping_road;
+        $member->comment = $data['customer_comment'] ?? $member->comment;
+
+        $member->save();
+
+        return $member->id;
+    }
+
     public function store($data)
     {
         try {
             DB::beginTransaction();
 
             // members table
-                if(isset($data['customer_id'])){
-                    $customer_id = $data['customer_id'];
-                }else{
-                    $customer_id = null;
-                }
-
-                $mobile = '';
-                if(!empty($data['mobile'])){
-                    $mobile = preg_replace('/\D+/', '', $data['mobile']);
-                }
-
-                $telephone = '';
-                if(!empty($data['telephone'])){
-                    $telephone = str_replace('-','',$data['telephone']);
-                }
-
-                $shipping_company = $data['shipping_company'] ?? $data['payment_company'] ?? '';
-
-                if(!empty($data['personal_name']) && !empty($data['mobile'])){
-                    $update_member_data = [
-                        'name' => $data['personal_name'],
-                        'salutation_code' => $data['salutation_code'] ?? 0,
-                        'salutation_id' => $data['salutation_id'] ?? 0,
-                        'mobile' => $mobile,
-                        'telephone_prefix' => $data['telephone_prefix'] ?? '',
-                        'telephone' => $telephone,
-                        'payment_tin' => $data['payment_tin'] ?? '',
-                        'payment_company' => $data['payment_company'] ?? '',
-                        'shipping_personal_name' => $data['shipping_personal_name'] ?? $data['personal_name'],
-                        'shipping_company' => $shipping_company,
-                        'shipping_phone' => $data['shipping_phone'] ?? '',
-                        'shipping_phone2' => $data['shipping_phone2'] ?? '',
-                        'shipping_state_id' => $data['shipping_state_id'] ?? 0,
-                        'shipping_city_id' => $data['shipping_city_id'] ?? 0,
-                        'shipping_road' => $data['shipping_road'] ?? '',
-                        'shipping_address1' => $data['shipping_address1'] ?? '',
-                        'shipping_address2' => $data['shipping_address2'] ?? '',
-                        'shipping_salutation_id' => $data['salutation_id'] ?? '',
-                        'shipping_personal_name2' => $data['shipping_personal_name2'] ?? '',
-                        'comment' => $data['customer_comment'] ?? '',
-                    ];
-
-                    $where_data = ['mobile' => $mobile];
-
-                    $customer = (new User)->updateOrCreate($where_data, $update_member_data,);
-
-                    $data['customer_id'] = $customer->id;
-                }
+                $data['customer_id'] = $this->updateOrCreateCustomer($data);
             //
 
             // order
@@ -172,54 +164,7 @@ class OrderService extends Service
             DB::beginTransaction();
             
             // members table
-                if(isset($data['customer_id'])){
-                    $customer_id = $data['customer_id'];
-                }else{
-                    $customer_id = null;
-                }
-
-                $mobile = '';
-                if(!empty($data['mobile'])){
-                    $mobile = preg_replace('/\D+/', '', $data['mobile']);
-                }
-
-                $telephone = '';
-                if(!empty($data['telephone'])){
-                    $telephone = str_replace('-','',$data['telephone']);
-                }
-
-                $shipping_company = $data['shipping_company'] ?? $data['payment_company'] ?? '';
-
-                if(!empty($data['personal_name']) && !empty($data['mobile'])){
-                    $update_member_data = [
-                        'name' => $data['personal_name'],
-                        'salutation_code' => $data['salutation_code'] ?? 0,
-                        'salutation_id' => $data['salutation_id'] ?? 0,
-                        'mobile' => $mobile,
-                        'telephone_prefix' => $data['telephone_prefix'] ?? '',
-                        'telephone' => $telephone,
-                        'payment_tin' => $data['payment_tin'] ?? '',
-                        'payment_company' => $data['payment_company'] ?? '',
-                        'shipping_personal_name' => $data['shipping_personal_name'] ?? $data['personal_name'],
-                        'shipping_company' => $shipping_company,
-                        'shipping_phone' => $data['shipping_phone'] ?? '',
-                        'shipping_phone2' => $data['shipping_phone2'] ?? '',
-                        'shipping_state_id' => $data['shipping_state_id'] ?? 0,
-                        'shipping_city_id' => $data['shipping_city_id'] ?? 0,
-                        'shipping_road' => $data['shipping_road'] ?? '',
-                        'shipping_address1' => $data['shipping_address1'] ?? '',
-                        'shipping_address2' => $data['shipping_address2'] ?? '',
-                        'shipping_salutation_id' => $data['salutation_id'] ?? '',
-                        'shipping_personal_name2' => $data['shipping_personal_name2'] ?? '',
-                        'comment' => $data['customer_comment'] ?? '',
-                    ];
-
-                    $where_data = ['mobile' => $mobile];
-
-                    $customer = (new User)->updateOrCreate($where_data, $update_member_data,);
-
-                    $data['customer_id'] = $customer->id;
-                }
+                $data['customer_id'] = $this->updateOrCreateCustomer($data);
             //
 
             // new order
@@ -274,6 +219,8 @@ class OrderService extends Service
             //
 
             DB::commit();
+
+            (new OrderRepository)->newModel()->deleteCacheById($order->id);
 
             return $order;
 
