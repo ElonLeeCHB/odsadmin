@@ -15,7 +15,7 @@ class LogRepository extends Repository
     {
         $log = new Log;
 
-        $log->uniqueid = app('unique_id');
+        $log->uniqueid = app('unique_id') ?? '';
         $log->area = config('app.env');
         $log->url = $params['url'] ?? '';
         $log->method = $params['method'] ?? '';

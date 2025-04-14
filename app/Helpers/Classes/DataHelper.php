@@ -108,6 +108,12 @@ class DataHelper
     }
 
 
+    // 將資料集 rows 轉為標準物件的資料集
+    // $products = Product::where()->get() 可以使用 $products->toArray()，但這樣整串都是陣列。
+    // 使用本函數 $products = DataHelper::toCleanCollection($products) 每一筆資料會是標準物件。
+    // 原因：
+    // 1.echo "<pre>",print_r($products,true),"</pre>";exit; 如果是Eloquent Collection有很多不需要知道的東西。
+    // 2.不想用陣列是因為它會有方括號跟單引號覺得麻煩。$product['price'] <=> $product->price
     public static function toCleanCollection($collection, $keep_array = [])
     {
         $result = [];

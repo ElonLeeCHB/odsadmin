@@ -3,11 +3,16 @@
 namespace App\Domains\ApiPosV2\Services\Catalog;
 
 use App\Helpers\Classes\DataHelper;
+use App\Helpers\Classes\OrmHelper;
 use App\Services\Service;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Traits\Model\EloquentTrait;
+use App\Models\Catalog\Option;
 use App\Models\Catalog\Product;
+use App\Models\Catalog\ProductOption;
+use App\Models\Catalog\ProductOptionValue;
 use App\Models\Common\TermTranslation;
+use Illuminate\Support\Facades\DB;
 
 class ProductService extends Service
 {

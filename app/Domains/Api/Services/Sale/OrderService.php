@@ -7,6 +7,7 @@ use App\Services\Sale\OrderService as GlobalOrderService;
 use App\Models\Common\Term;
 use App\Models\Common\TermTranslation;
 use App\Models\Common\TermRelation;
+use App\Models\User\User;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderTag;
 use App\Models\Sale\OrderTotal;
@@ -72,34 +73,32 @@ class OrderService extends GlobalOrderService
 
             $shipping_company = $data['shipping_company'] ?? $data['payment_company'] ?? '';
 
-            // members table
-            if(!empty($data['personal_name']) && !empty($data['mobile'])){
-                $update_member_data = [
-                    'name' => $data['personal_name'],
-                    'salutation_code' => $data['salutation_code'] ?? 0,
-                    'salutation_id' => $data['salutation_id'] ?? 0,
-                    'mobile' => $mobile,
-                    'telephone_prefix' => $data['telephone_prefix'] ?? '',
-                    'telephone' => $telephone,
-                    'payment_tin' => $data['payment_tin'] ?? '',
-                    'payment_company' => $data['payment_company'] ?? '',
-                    'shipping_personal_name' => $data['shipping_personal_name'] ?? $data['personal_name'],
-                    'shipping_company' => $shipping_company,
-                    'shipping_phone' => $data['shipping_phone'] ?? '',
-                    'shipping_phone2' => $data['shipping_phone2'] ?? '',
-                    'shipping_state_id' => $data['shipping_state_id'] ?? 0,
-                    'shipping_city_id' => $data['shipping_city_id'] ?? 0,
-                    'shipping_road' => $data['shipping_road'] ?? '',
-                    'shipping_address1' => $data['shipping_address1'] ?? '',
-                    'shipping_address2' => $data['shipping_address2'] ?? '',
-                    'shipping_salutation_id' => $data['salutation_id'] ?? '',
-                    'shipping_personal_name2' => $data['shipping_personal_name2'] ?? '',
-                    'comment' => $data['customer_comment'] ?? '',
-                ];
+            // member
+            if(!empty($mobile)){
+                $query = User::where('mobile', $mobile)->where('is_active', 1)->orderBy('id', 'desc');
+                // OrmHelper::showSqlContent($query);
+                $customer = $query->first();
 
-                $where_data = ['mobile' => $mobile];
+                if (empty($customer)){
+                    $customer = new User;
 
-                $customer = $this->MemberRepository->newModel()->updateOrCreate($where_data, $update_member_data,);
+                    // 只有新增的時候才處理
+                    $customer->name = $data['personal_name'] ?? '';
+                    $customer->email = $data['email'] ?? '';
+                }
+
+                $customer->salutation_code = $data['salutation_code'] ?? 0;
+                $customer->telephone_prefix = $data['telephone_prefix'] ?? 0;
+                $customer->telephone = $data['telephone'] ?? 0;
+                $customer->shipping_state_id = $data['shipping_state_id'] ?? '';
+                $customer->shipping_city_id = $data['shipping_city_id'] ?? '';
+                $customer->shipping_road_abbr = $data['shipping_road_abbr'] ?? '';
+                $customer->shipping_road = $data['shipping_road'] ?? '';
+                $customer->shipping_address1 = $data['shipping_address1'] ?? '';
+                $customer->shipping_address2 = $data['shipping_address2'] ?? '';
+                $customer->comment = $data['customer_comment'] ?? '';
+
+                $customer->save();
             }
 
             // Order

@@ -11,7 +11,7 @@ use Auth;
 
 class OrganizationController extends Controller
 {
-    private $lang;
+    protected $lang;
 
     public function __construct(private Request $request
         , private MemberService $MemberService

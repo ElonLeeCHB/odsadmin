@@ -10,7 +10,7 @@ class Kernel extends ConsoleKernel
 {
     /**
      * Define the application's command schedule.
-     * everyMinute, hourly,daily, weekly, monthly
+     * everyMinute, everyFiveMinutes, hourly,daily, weekly, monthly
      * C:\Servers\php\php83\php.exe artisan schedule:run
      * C:\Servers\php\php83\php.exe artisan schedule:work
      */
@@ -21,8 +21,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('clear:cache')->daily();
         
         // 定期更新訂單統計
-        $schedule->job(new \App\Jobs\Sale\UpdateOrderByDatesJob)->cron('*/20 * * * *');
-        // $schedule->job(new \App\Jobs\Sale\UpdateOrderByDatesJob)->hourly();
+        $schedule->job(new \App\Jobs\Sale\UpdateOrderByDatesJob)->everyMinute();
     }
 
     /**

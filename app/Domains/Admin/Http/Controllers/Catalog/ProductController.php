@@ -409,6 +409,13 @@ class ProductController extends BackendController
             return $this->getErrorResponse($result['error'], $this->lang->text_fail, 200);
         }
 
+        // 順便更新選項(例如配菜)
+            if ($data['product_id'] == 1001){ // 招牌潤餅便當
+                $product_ids = [1002,1003,1004,1080,1670,1808,1671,1674,1816,1673,1675];
+                $this->copyProductOption(1001, 1005, $product_ids);
+            }
+        //
+
         // 執行成功 200
         $json = [
             'success' => $this->lang->text_success,
@@ -509,5 +516,20 @@ class ProductController extends BackendController
                 'name.*' => $this->lang->error_name,
                 'short_name.*' => $this->lang->error_short_name,
         ]);
+    }
+
+    // 如果是招便潤餅便當 1001，順便更新其它便當的配菜
+    public function copyProductOption($product_id, $option_id, $product_ids = [])
+    {
+        if (empty($product_ids)){
+            $product_ids = $this->post_data['product_ids'] ?? [];
+        }
+        if (empty($product_ids)){
+            return false;
+        }
+
+        $result = $this->ProductService->copyProductOption($product_id, $option_id, $product_ids);
+
+        return response()->json(['success' => true, 'message' => "更新成功"], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

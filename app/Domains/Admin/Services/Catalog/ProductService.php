@@ -283,4 +283,110 @@ class ProductService extends Service
     }
 
 
+    /**
+     * 複製參考商品的選項值：
+     *   以配菜為例。參考商品的配菜有蕃茄顆，目標商品的配菜選項沒有，則新增。product_option_values.id 自動遞增。
+     *   以上處理完。再使目標商品的選項配菜各選項值欄位，等於參考商品的選項值欄位
+     */
+    public function copyProductOption($product_id, $option_id, $product_ids)
+    {
+        try {
+            DB::beginTransaction();
+        
+            $query = ProductOption::select(['id', 'is_active'])
+                        ->with(['productOptionValues' => function ($q) {
+                            $q->where('is_active', 1);
+                        }])
+                        ->where('product_id', $product_id)
+                        ->where('option_id', $option_id);
+            
+            $srcProductOption = $query->first();
+
+            $srcProductOption->setRelation('productOptionValues', $srcProductOption->productOptionValues->keyBy('option_value_id'));
+
+            $src_option_value_ids = $srcProductOption->productOptionValues->pluck('option_value_id')->toArray();
+
+            if (in_array($product_id, $product_ids)){
+                $product_ids = array_diff($product_ids, [$product_id]);
+            }
+
+            // products
+            $query = Product::select(['id', 'is_active'])->with(['productOptions' => function ($query) {
+                $query->where('option_id', 1005)
+                    ->with('productOptionValues'); // 這裡不判斷 product_option_values.is_active, 要全抓。
+            }])->whereIn('id', $product_ids);
+
+            $products = $query->get();
+
+            foreach ($products as $product) {
+
+                $productOption = $product->productOptions[0];
+
+                $dst_option_value_ids = $productOption->productOptionValues->pluck('option_value_id')->toArray();
+
+                $add_option_value_ids = array_diff($src_option_value_ids, $dst_option_value_ids); // src 有， dst 沒有，要新增
+                $del_option_value_ids = array_diff($dst_option_value_ids, $src_option_value_ids); // src 沒有， dst 有，要刪除
+                $coexist_option_value_ids = array_intersect($dst_option_value_ids, $src_option_value_ids); // 都有
+                
+                if (!empty($add_option_value_ids)){
+                    $insertProductOptionValue = [];
+
+                    foreach ($add_option_value_ids as $option_value_id) {
+                        $insertProductOptionValue[] = [
+                            'product_option_id' => $productOption->id,
+                            'product_id' => $product->id,
+                            'option_id' => $productOption->option_id,
+                            'option_value_id' => $option_value_id,
+                            'default_quantity' => $srcProductOption->productOptionValues[$option_value_id]->default_quantity, // 預設使用多少量
+                            'quantity' => 0, //庫存，預設0，不複製。
+                            'is_default' => $srcProductOption->productOptionValues[$option_value_id]->is_default, 
+                            'is_active' => $srcProductOption->productOptionValues[$option_value_id]->is_active, 
+                            'subtract' => $srcProductOption->productOptionValues[$option_value_id]->subtract, 
+                            'price' => $srcProductOption->productOptionValues[$option_value_id]->price, 
+                            'price_prefix' => $srcProductOption->productOptionValues[$option_value_id]->price_prefix, 
+                            'required' => $srcProductOption->productOptionValues[$option_value_id]->required, 
+                            'sort_order' => $srcProductOption->productOptionValues[$option_value_id]->sort_order, 
+                            'created_at' => date('Y-m-d H:i:s'),
+                            'updated_at' => date('Y-m-d H:i:s'),
+                        ];
+                    }
+            
+                    ProductOptionValue::insert($insertProductOptionValue);
+                }
+
+                if (!empty($coexist_option_value_ids)) {
+                    foreach ($coexist_option_value_ids as $option_value_id) {
+                        $srcValue = $srcProductOption->productOptionValues[$option_value_id];
+                
+                        ProductOptionValue::query()
+                            ->where('product_id', $product->id)
+                            ->where('product_option_id', $productOption->id)
+                            ->where('option_id', $productOption->option_id)
+                            ->where('option_value_id', $option_value_id)
+                            ->update([
+                                'is_default' => $srcValue->is_default,
+                                'is_active' => $srcValue->is_active,
+                                'default_quantity' => $srcValue->default_quantity,
+                                'quantity' => 0,
+                                'subtract' => $srcValue->subtract,
+                                'price' => $srcValue->price,
+                                'price_prefix' => $srcValue->price_prefix,
+                                'required' => $srcValue->required,
+                                'sort_order' => $srcValue->sort_order,
+                                'updated_at' => now(),
+                            ]);
+                    }
+                }
+            }
+            
+            DB::commit();
+
+            return true;
+            
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
+    }
+    
 }

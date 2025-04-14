@@ -533,7 +533,7 @@ class OrderRepository extends Repository
 
             unset($data['id']);
 
-            foreach ($$data as $key => $value) {
+            foreach ($data as $key => $value) {
                 $order->{$key} = $value;
             }
             

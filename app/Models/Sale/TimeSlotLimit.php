@@ -16,16 +16,22 @@ class TimeSlotLimit extends Model
         if (strtotime($datetime)) {
             $time = Carbon::parse($datetime);
         } else if (strlen($datetime) == 4 && ctype_digit($datetime)) {
-            $time = substr($datetime, 0, 2) . ':' . substr($datetime, 2, 2);
+            $time = Carbon::createFromFormat('H:i', substr($datetime, 0, 2) . ':' . substr($datetime, 2, 2));
         } else if (Carbon::createFromFormat('H:i', $datetime)) {
             $time = Carbon::createFromFormat('H:i', $datetime);
-        }else{
-            $time = '00:00';
+        } else {
+            $time = Carbon::createFromTime(0, 0);
         }
     
         $hour = (int)$time->format('H');
-        
-        $start_hour = floor($hour / 1) * 1; 
+        $minute = (int)$time->format('i');
+    
+        // 如果是整點，往前推一小時
+        if ($minute == 0) {
+            $hour = max(0, $hour - 1); // 防止小於 0
+        }
+    
+        $start_hour = $hour;
         $start_minute = 0;
         $end_minute = 59;
     

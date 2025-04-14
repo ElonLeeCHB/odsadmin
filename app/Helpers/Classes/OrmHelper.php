@@ -360,7 +360,12 @@ class OrmHelper
     //     return $data;
     // }
 
-    // 自訂轉換資料的方法
+    // 將資料集 rows 轉為標準物件的資料集
+    // $products = Product::where()->get() 可以使用 $products->toArray()，但這樣整串都是陣列。
+    // 使用本函數 $products = DataHelper::toCleanCollection($products) 每一筆資料會是標準物件。
+    // 原因：
+    // 1.echo "<pre>",print_r($products,true),"</pre>";exit; 如果是Eloquent Collection有很多不需要知道的東西。
+    // 2.不想用陣列是因為它會有方括號跟單引號覺得麻煩。$product['price'] <=> $product->price
     public static function toCleanCollection($data)
     {
         if ($data instanceof LengthAwarePaginator) {
@@ -391,7 +396,7 @@ class OrmHelper
 
         // 先將模型轉換為陣列
         $data = is_object($input) && method_exists($input, 'toArray') ? $input->toArray() : (array) $input;
-
+        
         // 將陣列轉換為 stdClass 並過濾不必要的欄位
         foreach ($data as $key => $value) {
             // 排除不必要的欄位（例如 Eloquent 模型的元資料欄位）
@@ -399,15 +404,17 @@ class OrmHelper
                 continue;
             }
 
-            // 處理關聯資料（遞回處理）
-            if (is_array($value)) {
-                $object->{$key} = self::toCleanCollection(collect($value));
-            } 
-            else if (is_object($value)) {
-                $object->{$key} = self::toCleanObject($value);
-            } else {
-                $object->{$key} = $value;
-            }
+            $object->{$key} = $value;
+
+            // // 處理關聯資料（遞回處理）
+            // if (is_array($value)) {
+            //     $object->{$key} = self::toCleanCollection(collect($value));
+            // } 
+            // else if (is_object($value)) {
+            //     $object->{$key} = self::toCleanObject($value);
+            // } else {
+            //     $object->{$key} = $value;
+            // }
         }
 
         unset($object->translation);
@@ -459,5 +466,18 @@ class OrmHelper
     {
         self::setTranslationToRows($rows);
         self::setMetasToRows($rows);
+    }
+
+    // $rows
+    public static function unsetArrayOfRowsArray($rows)
+    {
+        foreach ($rows as $row) {
+            foreach ($row as $key => $value) {
+                if(is_array($value)){
+                    unset($rows);
+                }
+            }
+        }
+
     }
 }

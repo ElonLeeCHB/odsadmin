@@ -36,6 +36,9 @@ class UpdateOrderQuantityControlJob implements ShouldQueue
                 DB::transaction(function () {
                     (new OrderDateLimitRepository)->updateOrderedQuantityForControlByOrderId($this->order_id);
                 });
+
+                (new \App\Repositories\Eloquent\SysData\LogRepository)->log(['data'=>'','note'=>'UpdateOrderQuantityControlJob 執行成功']);
+                
             } catch (\Throwable $th) {
                 DB::rollBack();
                 $logData = [

@@ -2,9 +2,12 @@
 
 namespace App\Domains\ApiPosV2\Services\Sale;
 
+use App\Helpers\Classes\DataHelper;
+use App\Helpers\Classes\OrmHelper;
 use App\Services\Service;
 use App\Models\Setting\Setting;
 use App\Models\Sale\OrderDateLimit;
+use App\Models\Sale\Order;
 use App\Repositories\Eloquent\Sale\OrderDateLimitRepository;
 
 class QuantityControlService extends Service
@@ -123,5 +126,27 @@ class QuantityControlService extends Service
     public function resetFutureOrders()
     {
         return (new OrderDateLimitRepository)->resetFutureOrders();
+    }
+
+    public function orderList($delivery_date_ymd)
+    {
+        $start = $delivery_date_ymd . ' 00:00:00';
+        $end = $delivery_date_ymd . ' 23:59:59';
+    
+        $orders = Order::select(['id', 'code', 'delivery_time_range', 'shipping_state_id', 'shipping_city_id', 'shipping_road', 'delivery_date', 'quantity_for_control', ])
+                    ->with('shippingState')
+                    ->with('shippingCity')
+                    ->whereBetween('delivery_date', [$start, $end])
+                    ->whereIn('status_code', ['Confirmed', 'CCP'])
+                    ->get();
+
+        $orders = $orders->toArray();
+
+        foreach ($orders as $key => $order) {
+            unset($orders[$key]['shipping_state']);
+            unset($orders[$key]['shipping_city']);
+        }
+        
+        return $orders;
     }
 }

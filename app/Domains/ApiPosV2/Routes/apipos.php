@@ -44,6 +44,9 @@ Route::group([
     
             Route::get('products/list', 'Catalog\ProductController@list')->name('product.list');
             Route::get('products/info/{product_id}', 'Catalog\ProductController@info')->name('product.info')->middleware(['auth:sanctum']);
+
+            //應該給後台backend使用，暫時放這裡
+            Route::post('products/copyProductOption/{product_id}/{option_id}', 'Catalog\ProductController@copyProductOption')->name('products.copyProductOption');
         });
     
         Route::group([
@@ -81,6 +84,9 @@ Route::group([
 
                 // 重算全部未來訂單
                 Route::get('resetFutureOrders', 'Sale\QuantityControlController@resetFutureOrders')->name('resetFutureOrders');
+
+                // 某日訂單列表
+                Route::get('order-list/{delivery_date}', 'Sale\QuantityControlController@orderList')->name('orderList');
             });
 
             

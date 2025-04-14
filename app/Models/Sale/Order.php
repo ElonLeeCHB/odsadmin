@@ -22,6 +22,12 @@ use App\Helpers\Classes\DateHelper;
 use App\Helpers\Classes\OrmHelper;
 use Illuminate\Support\Facades\Storage;
 
+/*
+delivery_date 應該改為 date 格式，不要有時分秒。因為已經有了 delivery_time_range。
+先前花很多心力拆解 delivery_date, 不值得。
+就算按通則來說，delivery_date 有可能仍然需要表達時間，幾點幾分送達。但本系統已經有使用 delivery_time_range，會混亂。
+*/
+
 class Order extends Model
 {
     use ModelTrait;
@@ -187,6 +193,20 @@ class Order extends Model
         return Attribute::make(
             get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->shipping_salutation_code2, 'Salutation') ?? '',
             
+        );
+    }
+
+    protected function shippingStateName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->shippingState?->name,
+        );
+    }
+
+    protected function shippingCityName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->shippingCity?->name,
         );
     }
     

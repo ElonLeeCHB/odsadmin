@@ -90,4 +90,12 @@ class QuantityControlController extends ApiPosController
 
         return $this->sendJsonResponse($result);
     }
+
+    // 某日訂單列表
+    public function orderList($delivery_date)
+    {
+        $result = $this->QuantityControlService->orderList($delivery_date);
+
+        return $this->sendJsonResponse($result);
+    }
 }
