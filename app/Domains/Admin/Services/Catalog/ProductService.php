@@ -92,26 +92,6 @@ class ProductService extends Service
                 }
             //
 
-            // Product Categories - many to many
-            if(!empty($data['product_categories'])){
-                // Delete all
-                TermRelation::where('object_id',$product->id)
-                            ->join('terms', function($join){
-                                $join->on('term_id', '=', 'terms.id');
-                                $join->where('terms.taxonomy','=','product_category');
-                            })
-                            ->delete();
-
-                // Add new
-                foreach ($data['product_categories'] as $category_id) {
-                    $insert_data[] = [
-                        'object_id' => $product->id,
-                        'term_id' => $category_id,
-                    ];
-                }
-                TermRelation::insert($insert_data);
-            }
-
             // Product Options
                 // Delete all
                 ProductOption::where('product_id', $product->id)->delete();
@@ -176,6 +156,26 @@ class ProductService extends Service
                     }
                 }
             //
+
+            // // Product Categories - many to many
+            // if(!empty($data['product_categories'])){
+            //     // Delete all
+            //     TermRelation::where('object_id',$product->id)
+            //                 ->join('terms', function($join){
+            //                     $join->on('term_id', '=', 'terms.id');
+            //                     $join->where('terms.taxonomy','=','product_category');
+            //                 })
+            //                 ->delete();
+
+            //     // Add new
+            //     foreach ($data['product_categories'] as $category_id) {
+            //         $insert_data[] = [
+            //             'object_id' => $product->id,
+            //             'term_id' => $category_id,
+            //         ];
+            //     }
+            //     TermRelation::insert($insert_data);
+            // }
 
             // ProductTag
             // taxonomy_id 31 = 餐點屬性
@@ -293,10 +293,8 @@ class ProductService extends Service
         try {
             DB::beginTransaction();
         
-            $query = ProductOption::select(['id', 'is_active'])
-                        ->with(['productOptionValues' => function ($q) {
-                            $q->where('is_active', 1);
-                        }])
+            $query = ProductOption::select(['id'])
+                        ->with(['productOptionValues'])
                         ->where('product_id', $product_id)
                         ->where('option_id', $option_id);
             
@@ -319,7 +317,6 @@ class ProductService extends Service
             $products = $query->get();
 
             foreach ($products as $product) {
-
                 $productOption = $product->productOptions[0];
 
                 $dst_option_value_ids = $productOption->productOptionValues->pluck('option_value_id')->toArray();
@@ -357,13 +354,14 @@ class ProductService extends Service
                 if (!empty($coexist_option_value_ids)) {
                     foreach ($coexist_option_value_ids as $option_value_id) {
                         $srcValue = $srcProductOption->productOptionValues[$option_value_id];
-                
-                        ProductOptionValue::query()
+                        
+                        $query = ProductOptionValue::query()
                             ->where('product_id', $product->id)
                             ->where('product_option_id', $productOption->id)
                             ->where('option_id', $productOption->option_id)
-                            ->where('option_value_id', $option_value_id)
-                            ->update([
+                            ->where('option_value_id', $option_value_id);
+
+                        $query->update([
                                 'is_default' => $srcValue->is_default,
                                 'is_active' => $srcValue->is_active,
                                 'default_quantity' => $srcValue->default_quantity,
@@ -377,6 +375,9 @@ class ProductService extends Service
                             ]);
                     }
                 }
+
+                //刪除快取
+                $product->deleteCacheByProductId();
             }
             
             DB::commit();

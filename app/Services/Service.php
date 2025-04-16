@@ -93,7 +93,7 @@ class Service
 
     public function getTermsByTaxonomyCode($taxonomy_code): array
     {
-        return (new Term)->generateCacheByTaxonomyCode($taxonomy_code, 1);
+        return (new Term)->generateCacheByTaxonomyCode($taxonomy_code);
     }
 
 }
