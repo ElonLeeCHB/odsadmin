@@ -20,6 +20,15 @@ class SaleOrderSavedListener
         //     dispatch(new SendOrderEmailJob($event->new_order));
         // }
 
+        // 補充 log 記錄
+        if (!empty($event->action)  && $event->action == 'created'){
+            $data = [
+                'orddr_id' => $event->saved_order->id,
+                'orddr_code' => $event->saved_order->code,
+            ];
+            (new \App\Repositories\Eloquent\SysData\LogRepository)->log(['data'=>$data,'note'=>'新增訂單回填id']);
+        }
+
         // 計算當前訂單的控單數量
         dispatch(new UpdateOrderQuantityControlJob($event->saved_order->id));
 

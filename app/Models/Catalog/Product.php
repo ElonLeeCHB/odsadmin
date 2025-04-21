@@ -304,7 +304,7 @@ class Product extends Model
 
             return DataHelper::remember($cache_key, 60*60*24, 'serialize', function() use ($product_id) {
                 $builder = Product::query();
-                $builder->select(['id', 'code', 'price', 'quantity_for_control', 'is_option_qty_controlled']);
+                $builder->select(['id', 'code', 'price', 'quantity_of_flavor', 'quantity_for_control', 'is_option_qty_controlled']);
                 $builder->where('id', $product_id)
                     ->with(['productOptions' => function($query) {
                         $query->where('is_active', 1)

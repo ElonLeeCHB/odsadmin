@@ -50,7 +50,7 @@ class OrderService extends Service
         return $order;
     }
 
-    // 主要更新送達地址。姓名不更新。
+    // 更新送達地址相關資料。手機、姓名不更新。
     public function updateOrCreateCustomer($data)
     {
         $id = $data['customer_id'] ?? null;

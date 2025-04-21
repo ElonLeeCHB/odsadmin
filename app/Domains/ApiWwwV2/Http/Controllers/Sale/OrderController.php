@@ -99,7 +99,7 @@ class OrderController extends ApiWwwV2Controller
             
             $order = $this->OrderService->store($data);
 
-            event(new \App\Events\SaleOrderSavedEvent(saved_order:$order));
+            event(new \App\Events\SaleOrderSavedEvent(saved_order:$order, action:'created'));
 
             $data = [
                 'id' => $order->id,
