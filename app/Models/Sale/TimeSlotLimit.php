@@ -11,6 +11,7 @@ class TimeSlotLimit extends Model
     protected $guarded = [];
     public $timestamps = false;
 
+    // 00 - 59 分
     public function getTimeSlotKey($datetime)
     {
         if (strtotime($datetime)) {
@@ -25,11 +26,6 @@ class TimeSlotLimit extends Model
     
         $hour = (int)$time->format('H');
         $minute = (int)$time->format('i');
-    
-        // 如果是整點，往前推一小時
-        if ($minute == 0) {
-            $hour = max(0, $hour - 1); // 防止小於 0
-        }
     
         $start_hour = $hour;
         $start_minute = 0;
