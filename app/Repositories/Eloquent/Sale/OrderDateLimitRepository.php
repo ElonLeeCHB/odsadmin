@@ -559,14 +559,15 @@ class OrderDateLimitRepository extends Repository
         //以上將所有訂單數量加總完成
 
         // 資料庫現有的資料
-        $order_date_limits = $this->getFormattedDataInMultiDates($delivery_dates);
+        $db_order_date_limits = $this->getFormattedDataInMultiDates($delivery_dates);
 
         foreach ($all_formatted_data as $delivery_date => $formatted_data) {
             foreach ($formatted_data['TimeSlots'] as $time_slot_key => $row) {
-                $max = $order_date_limits[$delivery_date]['TimeSlots'][$time_slot_key]['MaxQuantity']; // 取資料庫原本的值。本方法不變更此欄
+                $max = $db_order_date_limits[$delivery_date]['TimeSlots'][$time_slot_key]['MaxQuantity']; // 取資料庫原本的值。本方法不變更此欄
 
-                $all_formatted_data[$delivery_date]['TimeSlots'][$time_slot_key]['MaxQuantity'] = $max;
-                $all_formatted_data[$delivery_date]['TimeSlots'][$time_slot_key]['AcceptableQuantity'] = $max - $row['OrderedQuantity'];
+                $formatted_data['TimeSlots'][$time_slot_key]['MaxQuantity'] = $max;
+                // $formatted_data['TimeSlots'][$time_slot_key]['OrderedQuantity'] = 維持不變
+                $formatted_data['TimeSlots'][$time_slot_key]['AcceptableQuantity'] = $max - $row['OrderedQuantity'];
             }
             $this->adjustFormattedData($formatted_data);
 
