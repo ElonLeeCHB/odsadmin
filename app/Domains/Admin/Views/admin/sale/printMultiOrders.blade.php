@@ -220,7 +220,7 @@
           </td>
           <td class="" style="padding: 0px;border-left:3px solid black">
             <table  class="table  border no-border border-left:3px solid black" style="width: 100%;">
-              @foreach($order['totals'] as $code => $order_total)
+              @foreach($order['order_totals'] as $code => $order_total)
               <tr  >
                 <td class="text-end">{{ $order_total->title }}: </td>
                 <td class="text-end">{{ $order_total->value }}</td>

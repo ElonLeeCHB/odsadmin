@@ -22,7 +22,7 @@ class PosCategoryService extends Service
         $params['limit'] = 0;
 
         $cache_key = 'cache/' . app()->getLocale() . '/terms/ChainedList-ProductPosCategory';
-
+        
         return DataHelper::remember($cache_key, 60*60*24, 'serialize', function() use ($params){
             $rows = Term::getChainedList($params);
             return DataHelper::toCleanCollection($rows);

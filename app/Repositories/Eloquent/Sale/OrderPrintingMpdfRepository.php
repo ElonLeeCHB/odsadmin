@@ -193,7 +193,7 @@ class OrderPrintingMpdfRepository extends Repository
                     $builder = Order::query();
                     $builder->with('orderProducts.orderProductOptions');
                     $builder->with('orderProducts.productTags.translation');
-                    $builder->with('totals');
+                    $builder->with('orderTotals');
                     $builder->with('shippingState','shippingCity');
                     $builder->with(['customer:id,name,salutation_id']);
                     $order = $builder->find($order_id);
@@ -408,7 +408,7 @@ class OrderPrintingMpdfRepository extends Repository
         
                 //下面中文要改寫
                 // order_totals
-                    $order_totals = $order->totals;
+                    $order_totals = $order->orderTotals;
         
                     if(isset($order_totals) && !empty($order_totals)){
                         foreach ($order_totals as $key => $order_total) {
@@ -458,12 +458,12 @@ class OrderPrintingMpdfRepository extends Repository
                 // end statics
         
                 // order_totals
-                    if(!$order->totals->isEmpty()){
-                        foreach ($order->totals as $order_total) {
-                            $totals[$order_total->code] = $order_total->toCleanObject();
+                    if(!$order->orderTotals->isEmpty()){
+                        foreach ($order->orderTotals as $orderTotal) {
+                            $order_totals[$orderTotal->code] = $orderTotal->toCleanObject();
                         }
                     }else{
-                        $totals = [
+                        $order_totals = [
                             'sub_total' => (object)['title' => '商品合計', 'value' => 0, 'sort_order' => 1],
                             'discount' => (object)['title' => '優惠折扣', 'value' => 0, 'sort_order' => 2],
                             'shipping_fee' => (object)['title' => '運費', 'value' => 0, 'sort_order' => 3],
@@ -476,7 +476,7 @@ class OrderPrintingMpdfRepository extends Repository
                     'header' => DataHelper::toCleanObject($order),
                     'categories' => $printingRowsByCategory, //product_data
                     'statistics' => $statistics,
-                    'totals' => $totals,
+                    'totals' => $order_totals,
                 ];
             }
 

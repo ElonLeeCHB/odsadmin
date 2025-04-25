@@ -1,6 +1,13 @@
 @extends('admin.app')
 
 @section('pageJsCss')
+  <style>
+    #products .row1 {
+      border: 1px solid #ccc;
+      padding: 2px;
+      margin-bottom: 2px;
+    }
+  </style>
 @endsection
 
 @section('columnLeft')
@@ -8,18 +15,19 @@
 @endsection
 
 @section('content')
-<div id="content">
-  <div class="page-header">
-    <div class="container-fluid">
-      <div class="float-end">
-        <button type="button" id="btn-status" data-bs-toggle="tooltip" data-loading-text="Loading..." title="變更狀態" class="btn btn-info" aria-label="變更狀態"><i class="fas fa-check-circle"></i></button>
-        <button type="submit" form="form-member" data-bs-toggle="tooltip" title="{{ $lang->save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
-        <a href="{{ $back_url }}" data-bs-toggle="tooltip" title="Back" class="btn btn-light"><i class="fas fa-reply"></i></a>
+  <div id="content">
+    <div class="page-header">
+      <div class="container-fluid">
+        <div class="float-end">
+          <button type="button" id="btn-status" data-bs-toggle="tooltip" data-loading-text="Loading..." title="變更狀態" class="btn btn-info" aria-label="變更狀態"><i class="fas fa-check-circle"></i></button>
+          <button type="submit" form="form-member" data-bs-toggle="tooltip" title="{{ $lang->save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
+          <a href="{{ $back_url }}" data-bs-toggle="tooltip" title="Back" class="btn btn-light"><i class="fas fa-reply"></i></a>
+        </div>
+        <h1>{{ $lang->heading_title }}</h1>
+        @include('admin.common.breadcumb')
       </div>
-      <h1>{{ $lang->heading_title }}</h1>
-      @include('admin.common.breadcumb')
     </div>
-  </div>
+
     <div class="container-fluid">
       <div class="card">
         <div class="card-body">
@@ -99,13 +107,13 @@
                       </div>
                     </div>
                   </div>
+                  
                   <div class="row mb-3 required">
                     <label for="input-invoice_type" class="col-sm-2 col-form-label">{{ "單據"}}</label>
                     <div class="col-sm-10">
                       <div class="input-group">
                         <div class="col-sm-3">
-                          
-                        <select id="input-invoice_type" name="invoice_type" class="form-select" readonly>
+                          <select id="input-invoice_type" name="invoice_type" class="form-select" readonly>
                             <option value="">--</option>
                             @foreach($invoice_types as $code => $invoice_type)  
                             <option value="{{ $invoice_type['code'] }}" @if($invoice_type['code'] == $receiving_order->invoice_type) selected @endif>{{ $invoice_type['name'] }}</option>
@@ -117,12 +125,10 @@
                           <div class="form-text">單據號碼</div>
                           <ul id="autocomplete-invoice_num" class="dropdown-menu"></ul>
                         </div>
-                        </div>
                       </div>
                     </div>
                   </div>
-
-
+                    
                   <div class="row mb-3 required">
                     <label for="input-tax_type_code" class="col-sm-2 col-form-label">{{ $lang->column_tax_type }}</label>
                     <div class="col-sm-10">
@@ -140,9 +146,7 @@
                           <input type="text" id="input-formatted_tax_rate" name="formatted_tax_rate" value="{{ $receiving_order->formatted_tax_rate }}" placeholder="{{ $lang->column_tax_rate }}" class="form-control" readonly/>
                         </div>
                         <div class="col-sm-1" style="font-size: 1.3rem;">%</div>
-
                       </div>
-
                     </div>
                   </div>
 
@@ -166,14 +170,13 @@
                     </div>
                   </div>
 
+
                 </fieldset>
               </div>
 
-
-
               <div id="tab-products" class="tab-pane">
                 <table class="table table-bordered">
-                  <tbody id="order-totals">
+                  <tbody>
                     <tr>
                       <td class="text-end col-sm-2"><strong>{{ $lang->column_before_tax }}</strong></td>
                       <td class="text-end">
@@ -195,183 +198,169 @@
                   </tbody>
                 </table>
 
-
-                <style>
-                    #products .row1 {
-                      border: 1px solid #ccc;
-                      padding: 2px;
-                      margin-bottom: 2px;
-                    }
-                </style>
-
-              @php $product_row = 1; @endphp
-              <div class="table-responsive">
-                <table id="products" class="table table-striped table-bordered table-hover">
-                  <thead>
-                    <tr>
-                      <td class="text-left"></td>
-                      <td class="text-right"></td>
-                      <td class="text-left">品名</td>
-                      <td class="text-left">規格</td>
-                      <td class="text-left" style="width:80px;"><label data-bs-toggle="tooltip" title="若要選擇不同單位，請先重新選擇料件" style="font-weight: bolder;" >進貨<BR>單位 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
-                      <td class="text-left" style="width:100px;">進貨<BR>數量</td>
-                      <td class="text-left" style="width:100px;">進貨<BR>單價</td>
-                      <td class="text-left" style="width:100px;">進貨<BR>金額</td>
-                      <td class="text-left" style="width:80px;">庫存<BR>單位</td>
-                      <td class="text-left" style="width:100px;">庫存<BR>單價</td>
-                      <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="轉入庫存數量" style="font-weight: bolder;" >入庫<BR>數量 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @php $product_i = 1; @endphp
-                    @foreach($receiving_products as $receiving_product)
-                    <tr id="product-row{{ $product_row }}" data-rownum="{{ $product_row }}">
-                      <td class="text-start">
-                        <button type="button" data-toggle="tooltip" title="" class="btn btn-danger btn-delete-row" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>
-                      </td>
-                      <td><span class="rowInd">{{ $product_i }}</span></td>
-                      <td class="text-start" style="padding-left: 1px;">
-                        <div class="container input-group col-sm-12" style="padding-left: 1px;">
-                          <div class="col-sm-3">
-                            <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $receiving_product->product_id ?? '' }}" class="form-control" readonly>
-                          </div>
-                          <div class="col-sm-8">
-                            <input type="text" id="input-products-name-{{ $product_row }}" name="products[{{ $product_row }}][name]" value="{{ $receiving_product->product_name ?? '' }}" data-rownum="{{ $product_row }}" class="form-control schProductName" data-oc-target="autocomplete-product_name-{{ $product_row }}" autocomplete="off">
-                            <ul id="autocomplete-product_name-{{ $product_row }}" class="dropdown-menu"></ul>
-                          </div>
-                          <div class="col-sm-1">
-                            <div class="input-group-append">
-                              <a href="{{ $receiving_product->product_edit_url ?? '' }}" class="btn btn-outline-secondary" target="_blank"><i class="fas fa-external-link-alt"></i></a>
+                @php $product_row = 1; @endphp
+                <div class="table-responsive">
+                  <table id="products" class="table table-striped table-bordered table-hover">
+                    <thead>
+                      <tr>
+                        <td class="text-left"></td>
+                        <td class="text-right"></td>
+                        <td class="text-left">品名</td>
+                        <td class="text-left">規格</td>
+                        <td class="text-left" style="width:80px;"><label data-bs-toggle="tooltip" title="若要選擇不同單位，請先重新選擇料件" style="font-weight: bolder;" >進貨<BR>單位 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
+                        <td class="text-left" style="width:100px;">進貨<BR>數量</td>
+                        <td class="text-left" style="width:100px;">進貨<BR>單價</td>
+                        <td class="text-left" style="width:100px;">進貨<BR>金額</td>
+                        <td class="text-left" style="width:80px;">庫存<BR>單位</td>
+                        <td class="text-left" style="width:100px;">庫存<BR>單價</td>
+                        <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="轉入庫存數量" style="font-weight: bolder;" >入庫<BR>數量 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @php $product_i = 1; @endphp
+                      @foreach($receiving_products as $receiving_product)
+                      <tr id="product-row{{ $product_row }}" data-rownum="{{ $product_row }}">
+                        <td class="text-start">
+                          <button type="button" data-toggle="tooltip" title="" class="btn btn-danger btn-delete-row" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>
+                        </td>
+                        <td><span class="rowInd">{{ $product_i }}</span></td>
+                        <td class="text-start" style="padding-left: 1px;">
+                          <div class="container input-group col-sm-12" style="padding-left: 1px;">
+                            <div class="col-sm-3">
+                              <input type="text" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $receiving_product->product_id ?? '' }}" class="form-control" readonly>
+                            </div>
+                            <div class="col-sm-8">
+                              <input type="text" id="input-products-name-{{ $product_row }}" name="products[{{ $product_row }}][name]" value="{{ $receiving_product->product_name ?? '' }}" data-rownum="{{ $product_row }}" class="form-control schProductName" data-oc-target="autocomplete-product_name-{{ $product_row }}" autocomplete="off">
+                              <ul id="autocomplete-product_name-{{ $product_row }}" class="dropdown-menu"></ul>
+                            </div>
+                            <div class="col-sm-1">
+                              <div class="input-group-append">
+                                <a href="{{ $receiving_product->product_edit_url ?? '' }}" class="btn btn-outline-secondary" target="_blank"><i class="fas fa-external-link-alt"></i></a>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td class="text-start">
-                        <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $receiving_product->product_specification ?? '' }}" class="form-control" readonly>
-                      </td>
-                      <td class="text-start">
-                        <select id="input-products-receiving_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][receiving_unit_code]" class="form-control" >
-                          <option value="{{ $receiving_product->receiving_unit_code ?? '' }}_{{ $receiving_product->receiving_unit_name ?? '' }}" data-factor="{{ $receiving_product->factor }}" selected>{{ $receiving_product->receiving_unit_name ?? '' }}</option>
-                        </select>
-                      </td>
-                      <td class="text-start">
-                        <input type="text" id="input-products-receiving_quantity-{{ $product_row }}" name="products[{{ $product_row }}][receiving_quantity]" value="{{ $receiving_product->receiving_quantity }}" class="form-control text-end productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
-                      </td>
-                      <td class="text-start">
-                        <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $receiving_product->price ?? 0 }}" class="form-control text-end productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
-                      </td>
-                      <td class="text-start">
-                        <input type="text" id="input-products-amount-{{ $product_row }}" name="products[{{ $product_row }}][amount]" value="{{ $receiving_product->amount ?? 0 }}" class="form-control text-end productAmountInputs clcProduct" data-rownum="{{ $product_row }}" readonly>
-                      </td>
-                      <td class="text-start">
-                        <input type="text" id="input-products-stock_unit_name-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_name]" value="{{ $receiving_product->stock_unit_name ?? '' }}" class="form-control" readonly>
-                        <input type="hidden" id="input-products-stock_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_code]" value="{{ $receiving_product->stock_unit_code ?? '' }}">
-                      </td>
-                      <td class="text-start">
-                        <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? 0 }}" class="form-control" readonly>
-                      </td>
-                      <td class="text-start">
-                        <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">
-                      </td>
-                    </tr>
-                    @php $product_i++; @endphp
-                    @php $product_row++; @endphp
-                    @endforeach
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colspan="11" class="text-left">
-                        <button type="button" onclick="addReceivingProduct()" data-toggle="tooltip" title="" class="btn btn-primary" data-original-title=""><i class="fa fa-plus-circle"></i></button>
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
+                        </td>
+                        <td class="text-start">
+                          <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $receiving_product->product_specification ?? '' }}" class="form-control" readonly>
+                        </td>
+                        <td class="text-start">
+                          <select id="input-products-receiving_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][receiving_unit_code]" class="form-control" >
+                            <option value="{{ $receiving_product->receiving_unit_code ?? '' }}_{{ $receiving_product->receiving_unit_name ?? '' }}" data-factor="{{ $receiving_product->factor }}" selected>{{ $receiving_product->receiving_unit_name ?? '' }}</option>
+                          </select>
+                        </td>
+                        <td class="text-start">
+                          <input type="text" id="input-products-receiving_quantity-{{ $product_row }}" name="products[{{ $product_row }}][receiving_quantity]" value="{{ $receiving_product->receiving_quantity }}" class="form-control text-end productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
+                        </td>
+                        <td class="text-start">
+                          <input type="text" id="input-products-price-{{ $product_row }}" name="products[{{ $product_row }}][price]" value="{{ $receiving_product->price ?? 0 }}" class="form-control text-end productPriceInputs clcProduct" data-rownum="{{ $product_row }}">
+                        </td>
+                        <td class="text-start">
+                          <input type="text" id="input-products-amount-{{ $product_row }}" name="products[{{ $product_row }}][amount]" value="{{ $receiving_product->amount ?? 0 }}" class="form-control text-end productAmountInputs clcProduct" data-rownum="{{ $product_row }}" readonly>
+                        </td>
+                        <td class="text-start">
+                          <input type="text" id="input-products-stock_unit_name-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_name]" value="{{ $receiving_product->stock_unit_name ?? '' }}" class="form-control" readonly>
+                          <input type="hidden" id="input-products-stock_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_code]" value="{{ $receiving_product->stock_unit_code ?? '' }}">
+                        </td>
+                        <td class="text-start">
+                          <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? 0 }}" class="form-control" readonly>
+                        </td>
+                        <td class="text-start">
+                          <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">
+                        </td>
+                      </tr>
+                      @php $product_i++; @endphp
+                      @php $product_row++; @endphp
+                      @endforeach
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td colspan="11" class="text-left">
+                          <button type="button" onclick="addReceivingProduct()" data-toggle="tooltip" title="" class="btn btn-primary" data-original-title=""><i class="fa fa-plus-circle"></i></button>
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
               </div>
-
-
-
-
-
-              </div>
-            </form>
             </div>
-            </div>
+          </form>
         </div>
-    </div>
-</div>
-
-{{-- 變更狀態 --}}
-<div id="modal-status" class="modal fade" style="">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-file-excel"></i> 變更狀態</h5> <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form id="form-status" method="post" data-oc-toggle="ajax">
-          @csrf
-          @method('POST')
-          <input type="hidden" name="update_status[id]" value="{{ $receiving_order->id }}">
-          <div class="row mb-3">
-            <label for="input-update_status_code" class="col-sm-2 col-form-label">狀態</label>
-            <div class="col-sm-10">
-              <select id="input-update_status_code" name="update_status[status_code]"  class="form-control">
-                <option value="" selected> -- </option>
-                @foreach($statuses as $status)
-                <option value="{{ $status->code }}">{{ $status->name }}</option>
-                @endforeach
-              </select>
-              <div id="error-update_status_code" class="invalid-feedback"></div>
-            </div>
-          </div>
-
-          <div class="row mb-3 justify-content-end">
-            <div class="col-sm-10">
-              <button type="button" id="btn-status_save" data-bs-toggle="tooltip" data-loading-text="Loading..." title="確定" class="btn btn-info" aria-label="確定">確定</button>
-            </div>
-          </div>
-        </form>
-
-        <div class="loadingdiv" id="loading" style="display: none;">
-          <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>
-        </div>
-
-
       </div>
     </div>
   </div>
-</div>
-<script type="text/javascript">
-//顯示變更狀態彈窗
-$('#btn-status').on('click', function () {
-  $('#modal-status').modal('show');
-});
-//在變更狀態彈窗裡按下確定
-$('#btn-status_save').on('click', function () {
-  $.ajax({
-    url: "{{ $status_save_url }}",
-    method: 'POST',
-    data: $('#form-status').serialize(),
-    dataType: 'json',
-    success: function(data) {
-      if(data.success){
-        $('#alert').prepend('<div class="alert alert-success alert-dismissible"><i class="fa-solid fa-circle-check"></i> ' + data['success'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
-        let status_code = data.data.status_code;
-        let status_name = data.data.status_name;
-        $('#input-update_status_code').val(status_code);
-        $('#input-status_code').val(status_code);
-        console.log(status_code)
-      }else{
-        $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + data['error'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
-      }
-    },
-    complete: function () {
-      console.log('complete');
-      $('#modal-status').modal('hide');
-    },
+
+  {{-- 變更狀態 --}}
+  <div id="modal-status" class="modal fade" style="">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fas fa-file-excel"></i> 變更狀態</h5> <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="form-status" method="post" data-oc-toggle="ajax">
+            @csrf
+            @method('POST')
+            <input type="hidden" name="update_status[id]" value="{{ $receiving_order->id }}">
+            <div class="row mb-3">
+              <label for="input-update_status_code" class="col-sm-2 col-form-label">狀態</label>
+              <div class="col-sm-10">
+                <select id="input-update_status_code" name="update_status[status_code]"  class="form-control">
+                  <option value="" selected> -- </option>
+                  @foreach($statuses as $status)
+                  <option value="{{ $status->code }}">{{ $status->name }}</option>
+                  @endforeach
+                </select>
+                <div id="error-update_status_code" class="invalid-feedback"></div>
+              </div>
+            </div>
+
+            <div class="row mb-3 justify-content-end">
+              <div class="col-sm-10">
+                <button type="button" id="btn-status_save" data-bs-toggle="tooltip" data-loading-text="Loading..." title="確定" class="btn btn-info" aria-label="確定">確定</button>
+              </div>
+            </div>
+          </form>
+
+          <div class="loadingdiv" id="loading" style="display: none;">
+            <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>
+          </div>
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript">
+  //顯示變更狀態彈窗
+  $('#btn-status').on('click', function () {
+    $('#modal-status').modal('show');
   });
-});
-</script>
+  //在變更狀態彈窗裡按下確定
+  $('#btn-status_save').on('click', function () {
+    $.ajax({
+      url: "{{ $status_save_url }}",
+      method: 'POST',
+      data: $('#form-status').serialize(),
+      dataType: 'json',
+      success: function(data) {
+        if(data.success){
+          $('#alert').prepend('<div class="alert alert-success alert-dismissible"><i class="fa-solid fa-circle-check"></i> ' + data['success'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
+          let status_code = data.data.status_code;
+          let status_name = data.data.status_name;
+          $('#input-update_status_code').val(status_code);
+          $('#input-status_code').val(status_code);
+          console.log(status_code)
+        }else{
+          $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + data['error'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
+        }
+      },
+      complete: function () {
+        console.log('complete');
+        $('#modal-status').modal('hide');
+      },
+    });
+  });
+  </script>
 @endsection
 
 @section('buttom')
@@ -607,7 +596,7 @@ function calcTotals(){
   $('#input-total').val(total);
 }
 
-var product_row = {{ $product_row }};
+var product_row = {{ $product_row ?? 0 }};
 
 function addReceivingProduct(){
 

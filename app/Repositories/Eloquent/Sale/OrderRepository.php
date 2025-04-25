@@ -165,9 +165,9 @@ class OrderRepository extends Repository
             'limit' => 0,
             'pagination' => false,
         ];
-        $totals = (new OrderTotalRepository)->getRows($filter_data, $debug);
+        $order_totals = (new OrderTotalRepository)->getRows($filter_data, $debug);
 
-        return $this->rowsToStdObj($totals);
+        return $this->rowsToStdObj($order_totals);
     }
 
 

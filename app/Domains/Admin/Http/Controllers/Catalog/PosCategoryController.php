@@ -65,9 +65,21 @@ class PosCategoryController extends BackendController
         $query_data  = $this->url_data;
 
         // Rows
-        $categories = $this->PosCategoryService->getList($query_data);
+        $categories = $this->PosCategoryService->getList($this->url_data);
 
         if(!empty($categories)){
+            //排序
+            if (isset($this->url_data['sort']) && $this->url_data['sort'] === 'sort_order') {
+                $order = strtoupper($this->url_data['order'] ?? 'ASC');
+            
+                usort($categories, function ($a, $b) use ($order) {
+                    if ($order === 'DESC') {
+                        return $b->sort_order <=> $a->sort_order;
+                    }
+                    return $a->sort_order <=> $b->sort_order;
+                });
+            }
+
             foreach ($categories as $row) {
                 $row->edit_url = route('lang.admin.catalog.poscategories.form', array_merge([$row->id], $query_data));
             }
@@ -103,7 +115,7 @@ class PosCategoryController extends BackendController
         $data['sort_id'] = $route . "?sort=id&order=$order" .$url;
         $data['sort_code'] = $route . "?sort=code&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
-        $data['sort_short_name'] = $route . "?sort=name&order=$order" .$url;
+        $data['sort_sort_order'] = $route . "?sort=sort_order&order=$order" .$url;
         $data['sort_taxonomy_name'] = $route . "?sort=taxonomy_name&order=$order" .$url;
         $data['sort_is_active'] = $route . "?sort=is_active&order=$order" .$url;
         $data['sort_date_added'] = $route . "?sort=created_at&order=$order" .$url;

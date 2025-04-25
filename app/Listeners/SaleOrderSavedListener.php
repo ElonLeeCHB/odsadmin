@@ -29,6 +29,9 @@ class SaleOrderSavedListener
             (new \App\Repositories\Eloquent\SysData\LogRepository)->log(['data'=>$data,'note'=>'新增訂單回填id']);
         }
 
+        // 刪除快取
+        $event->saved_order->deleteCacheById();
+
         // 計算當前訂單的控單數量
         dispatch(new UpdateOrderQuantityControlJob($event->saved_order->id));
 

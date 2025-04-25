@@ -92,7 +92,7 @@ class Order extends Model
         return $this->hasManyThrough(OrderProductOption::class, OrderProduct::class);
     }
 
-    public function totals()
+    public function orderTotals()
     {
         return $this->hasMany(OrderTotal::class, 'order_id', 'id');
     }
@@ -510,6 +510,8 @@ where op.order_id=9219
     /**
      * cache
      */
+
+    // 不使用。但先留著。
     public function getCacheKeyById($order_id)
     {
         return 'cache/sale/order/id-' . $order_id . '.json';
@@ -520,29 +522,30 @@ where op.order_id=9219
         return 'cache/sale/order/code-'. $order_code . '.json';
     }
 
-    public function deleteCacheById($id, $order = null)
+    // 最好用實例呼叫，速度比較快
+    public function deleteCacheById($id = null, $order = null)
     {
+        $id = '';
+        $code = '';
+
+        if (!empty($this->id)){
+            $id = $this->id;
+        }
+
+        if (!empty($this->code)){
+            $code = $this->code;
+        }
+
+        if (empty($code) && !empty($id)){
+            $order = self::select('code')->find($id);
+            $code = $order?->code;
+        }
+
         $cache_key = $this->getCacheKeyById($id);
         DataHelper::deleteDataFromStorage($cache_key);
 
-        $code = $order->code ?? $order['code'] ?? null;
-        if (!empty($code)){
-            $cache_key = $this->getCacheKeyByCode($code);
-            DataHelper::deleteDataFromStorage($cache_key);
-        }
-
-        return DataHelper::deleteDataFromStorage($cache_key);
-    }
-
-    public function deleteCacheByIdOrCode($identifier, $type)
-    {
-        if($type == 'id'){
-            $cache_key = $this->getCacheKeyById($identifier);
-        } else if($type == 'code'){
-            $cache_key = $this->getCacheKeyByCode($identifier);
-        }
-
-        return DataHelper::deleteDataFromStorage($cache_key);
+        $cache_key = $this->getCacheKeyByCode($code);
+        DataHelper::deleteDataFromStorage($cache_key);
     }
 
     public function getOrderByIdOrCode($identifier, $type = 'id', $params = [])
@@ -569,7 +572,7 @@ where op.order_id=9219
                         $qry->with('orderProductOptions');
                     }]);
 
-            $builder->with('totals')
+            $builder->with('orderTotals')
                     ->with('tags')
                     ->with('shippingState')
                     ->with('shippingCity')

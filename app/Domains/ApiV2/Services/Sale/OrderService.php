@@ -40,30 +40,4 @@ class OrderService extends GlobalOrderService
     {
         return $this->getRows($filters);
     }
-
-
-    public function getInfo($identifier, $type = 'id')
-    {
-        if($type == 'id'){
-            $cache_key = 'cache/orders/orderID-' . $identifier;
-        }else if($type == 'code'){
-            $cache_key = 'cache/orders/orderCode-' . $identifier;
-        }
-
-        return DataHelper::remember($cache_key, 60*60, function() use ($identifier, $type){
-            if($type == 'id'){
-                $filter_data['equal_id'] = $identifier;
-            }else if($type == 'code'){
-                $filter_data['equal_code'] = $identifier;
-            }
-
-            $filter_data['with'] = ['order_products.order_product_options', 'totals', 'tags'];
-
-            $order = $this->getRow($filter_data);
-
-            return $order;
-        });
-
-
-    }
 }

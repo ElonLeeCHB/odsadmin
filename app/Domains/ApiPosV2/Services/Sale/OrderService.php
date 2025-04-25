@@ -220,8 +220,6 @@ class OrderService extends Service
 
             DB::commit();
 
-            (new OrderRepository)->newModel()->deleteCacheById($order->id);
-
             return $order;
 
         } catch (\Throwable $th) {

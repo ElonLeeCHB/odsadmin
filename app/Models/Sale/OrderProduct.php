@@ -40,6 +40,11 @@ class OrderProduct extends Model
         return $this->belongsTo(Product::class, 'product_id', 'id');
     }
 
+    public function productPosCategories()
+    {
+        return $this->hasMany(ProductTerm::class, 'product_id', 'product_id')->where('taxonomy_id', 32);
+    }
+
     public function productTags()
     {
         return $this->hasMany(ProductTerm::class, 'product_id', 'product_id')->where('taxonomy_id', 31);

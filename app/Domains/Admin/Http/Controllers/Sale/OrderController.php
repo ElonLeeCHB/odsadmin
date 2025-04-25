@@ -840,7 +840,7 @@ class OrderController extends BackendController
                 $data['columns']['guabaoLunchBox']['SideDish'] = $this->OrderService->getOptionValuesByProductOption(product_id:1680, option_id:1005);
 
                 //分享餐的主餐 使用潤餅便當
-                $data['columns']['lumpiaSharing']['MainMeal'] = $data['columns']['lumpiaBento']['MainMeal'];
+                $data['columns']['otherFlavors']['MainMeal'] = $data['columns']['lumpiaBento']['MainMeal'];
 
                 //飲料 抓選項
                 $data['columns']['Drink'] = $this->OrderService->getDrinks();
@@ -848,7 +848,7 @@ class OrderController extends BackendController
                 //新方案 for template=V03 
                 $data['columns']['MainMeal'] = [
                     (object) ['short_name' => '主廚', 'option_value_ids' => [1083, 1102,]],
-                    (object) ['short_name' => '全素', 'option_value_ids' => [1046, 1104,]],
+                    // (object) ['short_name' => '全素', 'option_value_ids' => [1046, 1104,]],
                     (object) ['short_name' => '奶素', 'option_value_ids' => [1047, 1105,]],
                     (object) ['short_name' => '鮮蔬', 'option_value_ids' => [1017, 1096,]],
                     (object) ['short_name' => '炸蝦', 'option_value_ids' => [1018, 1097,]],

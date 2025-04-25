@@ -206,8 +206,7 @@ class RequisitionController extends BackendController
 
     public function settingSave()
     {
-
-        $location_id = $this->request->post('location_id') ?? 0;
+        $store_id = $this->request->post('store_id') ?? 0;
 
         $updateData = [];
 
@@ -236,7 +235,7 @@ class RequisitionController extends BackendController
 
             //upsert
             $updateData[] = [
-                'location_id' => $location_id,
+                'store_id' => $store_id,
                 'group' => 'sales',
                 'setting_key' => 'sales_wrap_map',
                 'setting_value' => json_encode($arr),
@@ -265,10 +264,10 @@ class RequisitionController extends BackendController
 
             //upsert
             $updateData[] = [
-                'location_id' => $location_id,
+                'store_id' => $store_id,
                 'group' => 'sales',
                 'setting_key' => 'sales_ingredients_table_items',
-                'setting_value' => json_encode($arr),
+                'setting_value' => json_encode($arr, JSON_UNESCAPED_UNICODE),
             ];
         }
 
@@ -276,7 +275,7 @@ class RequisitionController extends BackendController
             $json = [];
 
             try {
-                Setting::upsert($updateData, ['location_id', 'setting_key']);
+                Setting::upsert($updateData, ['store_id', 'group', 'setting_key']);
                 $json['success'] = $this->lang->text_success;
             } catch (QueryException $e) {
                 $json['error'] = $e->getCode();

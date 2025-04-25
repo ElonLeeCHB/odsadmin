@@ -71,6 +71,11 @@ class Product extends Model
         return $this->hasMany(ProductTerm::class, 'product_id', 'id')->where('taxonomy_id', 31);
     }
 
+    public function productPosCategories()
+    {
+        return $this->hasMany(ProductTerm::class, 'product_id', 'id')->where('taxonomy_id', 32);
+    }
+
     public function bom()
     {
         return $this->hasMany(Bom::class, 'product_id', 'id');

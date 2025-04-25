@@ -75,7 +75,7 @@
                   <label class="col-sm-2 col-form-label">上層分類</label>
                   <div class="col-sm-10">
                     <div class="input-group">
-                      <input type="text" id="input-parent_name" name="parent_name" value="{{ $poscategory->parent->name ?? ''}}" data-oc-target="autocomplete-parent_name" class="form-control" />
+                      <input type="text" id="input-parent_name" name="parent_name" value="{{ $poscategory->parent->name ?? ''}}" data-oc-target="autocomplete-parent_name" class="form-control" autocomplete="off" />
                     </div>
                     <div id="error-parent_name" class="invalid-feedback"></div>
                     <input type="hidden" id="input-parent_id" name="parent_id" value="{{ $poscategory->parent_id }}" />
@@ -141,14 +141,14 @@ $('#input-parent_name').autocomplete({
       dataType: 'json',
       success: function (json) {
         json.unshift({
-            category_id: '',
-            name: '-- 無 --'
+            _value: '',
+            _label: '-- 無 --'
         });
 
         response($.map(json, function (item) {
           return {
-            value: item['category_id'],
-            label: item['name']
+            value: item['_value'],
+            label: item['_label']
           }
         }));
       }

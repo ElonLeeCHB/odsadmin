@@ -424,8 +424,6 @@ class OrderService extends GlobalOrderService
                 DB::statement($sql);
             }
 
-            (new Order)->deleteCacheById($order->id);
-
             // Events
             event(new \App\Events\SaleOrderSavedEvent(saved_order:$order, old_order:$old_order));
             

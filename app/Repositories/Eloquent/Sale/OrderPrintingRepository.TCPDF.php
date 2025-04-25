@@ -198,13 +198,20 @@ class OrderPrintingRepository extends Repository
                     throw new \Error('id 格式錯誤');
                 }
     
-                $builder = Order::query();
-                $builder->with('orderProducts.orderProductOptions');
-                $builder->with('orderProducts.productTags.translation');
-                $builder->with('totals');
-                $builder->with('shippingState','shippingCity');
-                $builder->with(['customer:id,name,salutation_id']);
-                $order = $builder->find($order_id);
+                $order = Order::with([
+                    'orderProducts' => function ($query) {
+                        $query->with([
+                            'orderProductOptions',
+                            'productTags' => function ($q) {
+                                $q->with('translation');
+                            }
+                        ]);
+                    },
+                    'orderTotals',
+                    'shippingState',
+                    'shippingCity',
+                    'customer:id,name,salutation_id',
+                ])->find($order_id);
     
                 if(empty($order)){
                     throw new \Error('找不到訂單');
@@ -423,11 +430,9 @@ class OrderPrintingRepository extends Repository
     
             //下面中文要改寫
             // order_totals
-                $order_totals = $order->totals;
-    
-                if(isset($order_totals) && !empty($order_totals)){
-                    foreach ($order_totals as $key => $order_total) {
-                        $newOrder['order_totals'][$order_total->code] = $order_total->toCleanObject();
+                if($order->orderTotals->isNotEmpty()){
+                    foreach ($order->orderTotals as $orderTotal) {
+                        $newOrder['order_totals'][$orderTotal->code] = $orderTotal->toCleanObject();
                     }
                 }else{
                     $newOrder['order_totals'] = [
@@ -473,12 +478,12 @@ class OrderPrintingRepository extends Repository
             // end statics
     
             // order_totals
-                if(!$order->totals->isEmpty()){
-                    foreach ($order->totals as $order_total) {
-                        $totals[$order_total->code] = $order_total->toCleanObject();
+                if(!$order->orderTotals->isEmpty()){
+                    foreach ($order->orderTotals as $orderTotal) {
+                        $order_total[$orderTotal->code] = $orderTotal->toCleanObject();
                     }
                 }else{
-                    $totals = [
+                    $order_total = [
                         'sub_total' => (object)['title' => '商品合計', 'value' => 0, 'sort_order' => 1],
                         'discount' => (object)['title' => '優惠折扣', 'value' => 0, 'sort_order' => 2],
                         'shipping_fee' => (object)['title' => '運費', 'value' => 0, 'sort_order' => 3],
@@ -491,7 +496,7 @@ class OrderPrintingRepository extends Repository
                 'header' => DataHelper::toCleanObject($order),
                 'categories' => $printingRowsByCategory, //product_data
                 'statistics' => $statistics,
-                'totals' => $totals,
+                'totals' => $order_total,
             ];
 
         } catch (\Throwable $e) {

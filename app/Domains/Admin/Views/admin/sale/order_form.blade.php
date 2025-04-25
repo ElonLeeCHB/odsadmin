@@ -360,7 +360,7 @@
                   </div>
                 </fieldset>
                 <table class="table table-bordered">
-                  <tbody id="order-totals">
+                  <tbody>
                     @foreach($order_totals as $code => $order_total)
                     <tr>
                       <td class="text-end col-sm-10"><strong>{{ $order_total->title }}</strong></td>

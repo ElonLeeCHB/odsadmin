@@ -80,7 +80,7 @@ class OrderController extends ApiController
         $order->status_name = $order->status->name ?? '';
 
         // Order Total
-        $order->totals = $this->OrderService->getOrderTotals($order_id);
+        $order->order_totals = $this->OrderService->getOrderTotals($order_id);
 
         //訂單標籤
         $order->order_tags = $this->OrderService->getOrderTagsByOrderId($order->id);
@@ -475,8 +475,8 @@ class OrderController extends ApiController
             "17:00-18:00"
         ];
         $groupedData = [];
-        $totals = array_fill_keys($timeLimits, 0);
-        // dd(isset($data[0]));
+        $new_timeLimits = array_fill_keys($timeLimits, 0);
+        
         if(isset($data[0])){
             foreach ($data as &$item) {
                 $timeRange = $item->delivery_time_range;
@@ -490,7 +490,7 @@ class OrderController extends ApiController
                         if ($startTime < $limitEnd) {
                             $item->timeSlot = $timeLimit;
                             $groupedData[] = $item;
-                            $totals[$timeLimit] += $item->amount;
+                            $new_timeLimits[$timeLimit] += $item->amount;
                             break;
                         }
                         //時間點外 處理
@@ -512,7 +512,7 @@ class OrderController extends ApiController
         }else{
             $groupedData = [];
         }
-        return response()->json(array('status' => 'OK','data'=>$groupedData,'total'=>$totals));
+        return response()->json(array('status' => 'OK','data'=>$groupedData,'total'=> $new_timeLimits));
     }
 
     public function updateControlComment(Request $request){

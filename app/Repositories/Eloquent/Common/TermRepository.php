@@ -190,14 +190,50 @@ class TermRepository extends Repository
             return $result;
 
         } catch (\Exception $ex) {
-            // DB::rollback();
             throw $ex;
         }
 
         return false;
     }
 
+    // ChatGPT
+    public function rebuildTermPaths(Term $term)
+    {
+        // 刪除自己的 paths
+        DB::table('term_paths')->where('term_id', $term->id)->delete();
 
+        $level = 0;
+
+        if ($term->parent_id) {
+            // 繼承 parent 的所有 path
+            $parentPaths = DB::table('term_paths')
+                ->where('term_id', $term->parent_id)
+                ->orderBy('level')
+                ->get();
+
+            foreach ($parentPaths as $parentPath) {
+                DB::table('term_paths')->insert([
+                    'term_id' => $term->id,
+                    'path_id' => $parentPath->path_id,
+                    'level'   => $level++,
+                ]);
+            }
+        }
+
+        // 自己指向自己
+        DB::table('term_paths')->insert([
+            'term_id' => $term->id,
+            'path_id' => $term->id,
+            'level'   => $level,
+        ]);
+
+        // 找出所有直接子節點，遞迴處理
+        $children = Term::where('parent_id', $term->id)->get();
+
+        foreach ($children as $child) {
+            $this->rebuildTermPaths($child);  // 遞迴修正子樹
+        }
+    }
 
 
     // Static
