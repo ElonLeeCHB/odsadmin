@@ -95,7 +95,9 @@ class OrderService extends Service
             DB::beginTransaction();
 
             // members table
-                $data['customer_id'] = $this->updateOrCreateCustomer($data);
+                if (!empty($data['mobile'])){
+                    $data['customer_id'] = $this->updateOrCreateCustomer($data);
+                }
             //
 
             // order
@@ -128,14 +130,13 @@ class OrderService extends Service
             // OrderTotal
                 if(!empty($data['order_totals'])){
                     $update_order_totals = [];
-                    $sort_order = 1;
-                    foreach($data['order_totals'] as $code => $order_total){
+                    foreach($data['order_totals'] as $order_total){
                         $update_order_totals[] = [
                             'order_id'  => $order->id,
-                            'code'      => trim($code),
+                            'code'      => trim($order_total['code']),
                             'title'     => trim($order_total['title']),
                             'value'     => str_replace(',', '', $order_total['value']),
-                            'sort_order' => $sort_order,
+                            'sort_order' => $order_total['sort_order'],
                         ];
                         $sort_order++;
                     }
@@ -164,7 +165,9 @@ class OrderService extends Service
             DB::beginTransaction();
             
             // members table
-                $data['customer_id'] = $this->updateOrCreateCustomer($data);
+                if (!empty($data['mobile'])){
+                    $data['customer_id'] = $this->updateOrCreateCustomer($data);
+                }
             //
 
             // new order
@@ -200,14 +203,13 @@ class OrderService extends Service
             // OrderTotal
                 if(!empty($data['order_totals'])){
                     $update_order_totals = [];
-                    $sort_order = 1;
-                    foreach($data['order_totals'] as $code => $order_total){
+                    foreach($data['order_totals'] as $order_total){
                         $update_order_totals[] = [
                             'order_id'  => $order->id,
-                            'code'      => trim($code),
+                            'code'      => trim($order_total['code']),
                             'title'     => trim($order_total['title']),
                             'value'     => str_replace(',', '', $order_total['value']),
-                            'sort_order' => $sort_order,
+                            'sort_order' => $order_total['sort_order'],
                         ];
                         $sort_order++;
                     }

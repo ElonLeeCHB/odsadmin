@@ -22,6 +22,7 @@ Route::group([
         //密碼
         Route::post('passwordReset/{id}', 'Auth\ResetPasswordController@passwordReset')->name('passwordReset');
 
+        //管理員 (非會員！)
         Route::group([
             'prefix' => 'user',
             'as' => 'user.',
@@ -32,6 +33,16 @@ Route::group([
     
             Route::get('permissions/list', 'User\PermissionController@list')->name('permission.list');
             Route::get('permissions/info/{id}', 'User\PermissionController@info')->name('permission.info');
+        });
+
+        //管理員 (非會員！)
+        Route::group([
+            'prefix' => 'members',
+            'as' => 'members.',
+        ], function ()
+        {
+            Route::get('list', 'Member\MemberController@list')->name('members.list');
+            Route::get('info/{id?}', 'Member\MemberController@info')->name('members.info');
         });
     
         Route::group([

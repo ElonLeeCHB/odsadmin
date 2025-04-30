@@ -10,6 +10,9 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Sale\Order;
 use App\Models\Catalog\OptionValueTranslation;
+use App\Models\Common\Term;
+use App\Models\SysData\Division;
+use App\Repositories\Eloquent\Common\TermRepository;
 use App\Traits\Model\ModelTrait;
 
 use Spatie\Permission\Traits\HasRoles;
@@ -23,6 +26,7 @@ class User extends Authenticatable
     
 
     protected $guarded = [];
+    public $salutations;
 
     /**
      * The attributes that are mass assignable.
@@ -57,8 +61,6 @@ class User extends Authenticatable
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
 
-    protected $appends = [];
-
     public $meta_keys = [
     ];
 
@@ -77,16 +79,7 @@ class User extends Authenticatable
         if(empty($locale)){
             $locale = app()->getLocale();
         }
-        return $this->belongsTo(OptionValueTranslation::class, 'salutation_id', 'option_value_id')
-                    ->where('locale', $locale);
-    }
-
-    protected function personalName(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => $this->name,
-            set: fn ($value) => $this->name,
-        );
+        return $this->belongsTo(Term::class, 'salutation_code', 'option_value_id');
     }
 
     //Attribute
@@ -101,6 +94,65 @@ class User extends Authenticatable
     {
         return Attribute::make(
             get: fn ($value) => $this->parsePhone($value),
+        );
+    }
+
+    protected function personalName(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $this->name,
+            set: fn ($value) => $this->name,
+        );
+    }
+
+    protected function salutationName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => TermRepository::getCodeKeyedTermsByTaxonomyCode('Salutation')[$this->salutation_code]['name'] ?? '',
+        );
+    }
+
+    protected function shippingSalutationName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => TermRepository::getCodeKeyedTermsByTaxonomyCode('Salutation')[$this->shipping_salutation_code]['name'] ?? '',
+        );
+    }
+
+    protected function shippingSalutationName2(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => TermRepository::getCodeKeyedTermsByTaxonomyCode('Salutation')[$this->shipping_salutation_code2]['name'] ?? '',
+        );
+    }
+
+    protected function shippingStateName(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                static $cities = null;
+    
+                if ($cities === null) {
+                    $cities = Division::where('level', 1)->get()->keyBy('id');
+                }
+    
+                return $cities[$this->shipping_state_id]->name ?? '';
+            }
+        );
+    }
+
+    protected function shippingCityName(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                static $cities = null;
+    
+                if ($cities === null) {
+                    $cities = Division::where('level', 2)->get()->keyBy('id');
+                }
+    
+                return $cities[$this->shipping_city_id]->name ?? '';
+            }
         );
     }
 

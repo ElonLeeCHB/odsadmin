@@ -578,8 +578,10 @@ where op.order_id=9219
                     ->with('shippingCity')
                     ->with('customer:id,comment');
 
-            // OrmHelper::showSqlContent($builder);
+
             $order = $builder->first();
+
+            $order->setRelation('orderTotals', $order->orderTotals->keyBy('code'));
 
             if ($order){
                 $order->shipping_state_name = optional($order->shipping_state)->name ?? '';

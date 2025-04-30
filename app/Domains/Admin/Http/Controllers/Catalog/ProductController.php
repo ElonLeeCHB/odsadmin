@@ -10,9 +10,11 @@ use App\Repositories\Eloquent\Localization\LanguageRepository;
 use App\Domains\Admin\Services\Catalog\ProductService;
 use App\Domains\Admin\Services\Catalog\OptionService;
 use App\Domains\Admin\Services\Catalog\CategoryService;
+use App\Helpers\Classes\OrmHelper;
 use App\Services\Sale\OrderProductOptionService;
 use App\Repositories\Eloquent\Catalog\ProductOptionValueRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends BackendController
 {
@@ -411,7 +413,20 @@ class ProductController extends BackendController
 
         // 順便更新選項(例如配菜)
             if ($data['product_id'] == 1001){ // 招牌潤餅便當
-                $product_ids = [1002,1003,1004,1080,1670,1808,1671,1674,1816,1673,1675];
+                //POS分類包括 潤餅便當 1453，刈包便當 1454，不含素食 1464, 不含客製 1459
+                $product_ids = DB::table('product_terms')
+                    ->select('product_id')
+                    ->where('taxonomy_id', 32)
+                    ->whereIn('term_id', [1453, 1454, 1464, 1459])
+                    ->groupBy('product_id')
+                    ->havingRaw('
+                        (SUM(CASE WHEN term_id = 1453 THEN 1 ELSE 0 END) > 0 OR
+                        SUM(CASE WHEN term_id = 1454 THEN 1 ELSE 0 END) > 0)
+                        AND SUM(CASE WHEN term_id = 1464 THEN 1 ELSE 0 END) = 0
+                        AND SUM(CASE WHEN term_id = 1459 THEN 1 ELSE 0 END) = 0
+                    ')
+                    ->pluck('product_id')->toArray();
+
                 $this->copyProductOption(1001, 1005, $product_ids);
             }
         //

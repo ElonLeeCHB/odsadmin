@@ -88,8 +88,10 @@ class Controller extends BaseController
 
         // 有錯誤
         if(!empty($error)){
+            $json['success'] = false;
+            
             if($status_code == 404){
-                $json['error'] = '找不到';
+                $json['error'] = (is_string($error) && $error !== '') ? $error : '無此資源';
             } else {
                 // status_code 預設 200，所以不可能是空值，不使用空值判斷。如果有指定，則依指定。
                 $status_code = ($status_code==200) ? 400 : $status_code; 
