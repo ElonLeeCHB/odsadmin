@@ -21,6 +21,7 @@ use Carbon\Carbon;
 use App\Helpers\Classes\DataHelper;
 use App\Http\Resources\Sale\OrderProductResource;
 use Elibyy\TCPDF\Facades\TCPDF;
+use Illuminate\Support\Facades\File;
 
 class OrderController extends BackendController
 {
@@ -76,14 +77,27 @@ class OrderController extends BackendController
 
         $data['list'] = $this->getList();
 
-        // Rows
+
         $data['export_order_products_url'] = route('lang.admin.sale.orders.product_reports');
-        $data['batch_print_url'] = route('lang.admin.sale.orders.batch_print');
+        // $data['batch_print_url'] = route('lang.admin.sale.orders.batch_print');
 
 
         //$data['copy'] = route('lang.admin.sale.orders.copy');
 
         return view('admin.sale.order', $data);
+    }
+
+    public function deleteAllCache()
+    {
+        $cachePath = storage_path('app/cache/sale/order');
+
+        // 檢查資料夾是否存在
+        if (File::exists($cachePath)) {
+            // 刪除資料夾底下所有檔案（保留資料夾本身）
+            File::cleanDirectory($cachePath);
+        }
+    
+        return response()->json(['success' => true]);
     }
 
     public function list()

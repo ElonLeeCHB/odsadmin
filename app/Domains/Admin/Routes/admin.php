@@ -107,7 +107,8 @@ Route::group(
                 Route::get('orders/autocomplete', 'Sale\OrderController@autocomplete')->name('orders.autocomplete');
                 Route::get('orders/autocompleteOrderTags', 'Sale\OrderController@autocompleteOrderTags')->name('orders.autocompleteOrderTags');
                 Route::post('orders/save', 'Sale\OrderController@save')->name('orders.save');
-
+                Route::post('orders/deleteAllCache', 'Sale\OrderController@deleteAllCache')->name('orders.deleteAllCache');
+                
                 Route::get('orders/printOrderProducts/{order_id}', 'Sale\OrderController@printOrderProducts')->name('orders.printOrderProducts');
                 Route::get('orders/printReceiveForm/{order_id}', 'Sale\OrderController@printReceiveForm')->name('orders.printReceiveForm');
                 Route::get('orders/printReceiveFormA4/{orderIds}/{print_status}', 'Sale\OrderController@printReceiveFormA4')->name('orders.printReceiveFormA4');
