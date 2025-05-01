@@ -173,14 +173,7 @@ class ReceivingOrderController extends BackendController
         
 
         // Get Record
-        $result = $this->ReceivingOrderService->findIdOrFailOrNew($receiving_order_id);
-
-        if(!empty($result['data'])){
-            $receiving_order = $result['data'];
-        }else if(!empty($result['error'])){
-            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
-        }
-        unset($result);
+        $receiving_order = $this->ReceivingOrderService->findIdOrFailOrNew($receiving_order_id);
 
         if(empty($receiving_order->receiving_date)){
             $receiving_order->receiving_date = date('Y-m-d');
@@ -264,69 +257,64 @@ class ReceivingOrderController extends BackendController
     }
 
 
-    public function save($id = null)
+    public function save()
     {
-        $post_data = $this->request->post();
-
-        $json = [];
-        // * 檢查欄位
-
-        $params = [
-            'equal_id' => $id,
-            'select' => ['id', 'status_code'],
-        ];
-        $result = $this->ReceivingOrderService->findIdOrFailOrNew($id, $params);
-
-        if(!empty($result['data'])){
-            $receiving = $result['data'];
-        }else if(!empty($result['error'])){
-            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
-        }
-        unset($result);
-
-
-        if(! (empty($receiving->status_code) || $receiving->status_code == 'P') ){
-            $json['error']['status_code'] = '單據未確認才可修改。現在是 "' . $receiving->status_code. '-' . $receiving->status_name . '"';
-            $json['error']['warning'] = '單據未確認才可修改。現在是 ' . $receiving->status_code. '-' . $receiving->status_name . '"';
-        }
-
-        if(empty($post_data['supplier_id'])){
-            $json['error']['supplier_id'] = '請選擇廠商';
-        }
-
-        if(empty($post_data['form_type_code'])){
-            $json['error']['form_type_code'] = '請選擇單別';
-        }
-        
-        if(empty($post_data['tax_type_code'])){
-            $json['error']['tax_type_code'] = '請選擇課稅別';
-        }
-
-        if(isset($json['error']) && !isset($json['error']['warning'])) {
-            $json['error']['warning'] = '請再檢查紅框欄位資料！';
-        }
-        // end
-        
-        if(!$json) {
-            $result = $this->ReceivingOrderService->saveReceivingOrder($post_data);
-
-            if(empty($result['error'])){
-                $json = [
-                    'receiving_order_id' => $result['data']['receiving_order_id'],
-                    'code' => $result['data']['code'],
-                    'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.inventory.receivings.form', $result['data']['receiving_order_id']),
-                ];
-            }else{
-                if(config('app.debug')){
-                    $json['error'] = $result['error'];
-                }else{
-                    $json['error'] = $this->lang->text_fail;
+        try {
+            $old_receiving_order = null;
+    
+            if (!$this->post_data['receiving_order_id']) {
+                $old_receiving_order = $this->ReceivingOrderService->findOrFail($this->post_data['receiving_order_id']);
+            }
+    
+            $json = [];
+    
+            // 檢查表單
+                if(! (empty($old_receiving_order->status_code) || $old_receiving_order->status_code == 'P') ){
+                    $json['errors']['status_code'] = '單據未確認才可修改。現在是 "' . $old_receiving_order->status_code. '-' . $old_receiving_order->status_name . '"';
                 }
+    
+                if(empty($this->post_data['supplier_id'])){
+                    $json['errors']['supplier_id'] = '請選擇廠商';
+                }
+    
+                if(empty($this->post_data['form_type_code'])){
+                    $json['errors']['form_type_code'] = '請選擇單別';
+                }
+                
+                if(empty($this->post_data['tax_type_code'])){
+                    $json['errors']['tax_type_code'] = '請選擇課稅別';
+                }
+    
+                if(isset($json['errors']) && !isset($json['errors']['warning'])) {
+                    $json['errors']['warning'] = '請再檢查資料！';
+                }
+            //
+    
+            if (empty($json)){
+                if (!$this->post_data['receiving_order_id']) {
+                    $receiving_order = $this->ReceivingOrderService->addReceivingOrder($this->post_data);
+                } else {
+                    $receiving_order = $this->ReceivingOrderService->editReceivingOrder($this->post_data['receiving_order_id'], $this->post_data);
+                }
+
+                $json = [
+                    'receiving_order_id' => $receiving_order->id,
+                    'success' => $this->lang->text_success,
+                    'redirectUrl' => $this->lang->text_success,
+                ];
+
+                event(new \App\Events\InventoryReceivingOrderSavedEvent(saved_order:$receiving_order, old_order:$old_receiving_order));
+            }
+
+            return response(json_encode($json))->header('Content-Type','application/json');
+
+        } catch (\Throwable $th) {
+            if(config('app.debug')){
+                $json['error'] = $th->getMessage();
+            }else{
+                $json['error'] = $this->lang->text_fail;
             }
         }
-
-       return response(json_encode($json))->header('Content-Type','application/json');
     }
 
 

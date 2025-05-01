@@ -135,6 +135,7 @@ Route::group(
                 Route::post('phrases/destroy', 'Sale\PhraseController@destroy')->name('phrases.destroy');
                 Route::get('phrases/autocomplete', 'Sale\PhraseController@autocomplete')->name('phrases.autocomplete');
 
+                // 備料表
                 Route::get('requisitions', 'Sale\RequisitionController@index')->name('requisitions.index');
                 // Route::get('requisitions/list', 'Sale\RequisitionController@list')->name('requisitions.list');
                 Route::get('requisitions/form/{required_date?}', 'Sale\RequisitionController@form')->name('requisitions.form');
@@ -235,7 +236,7 @@ Route::group(
                 Route::get('receivings', 'Inventory\ReceivingOrderController@index')->name('receivings.index');
                 Route::get('receivings/list', 'Inventory\ReceivingOrderController@list')->name('receivings.list');
                 Route::get('receivings/form/{id?}', 'Inventory\ReceivingOrderController@form')->name('receivings.form');
-                Route::post('receivings/save/{id?}', 'Inventory\ReceivingOrderController@save')->name('receivings.save');
+                Route::post('receivings/save', 'Inventory\ReceivingOrderController@save')->name('receivings.save');
                 Route::post('receivings/delete', 'Inventory\ReceivingOrderController@delete')->name('receivings.delete');
                 Route::get('receivings/autocomplete', 'Inventory\ReceivingOrderController@autocomplete')->name('receivings.autocomplete');
                // Route::get('receivings/export01', 'Inventory\ReceivingOrderController@export01')->name('receivings.export01'); //測試使用

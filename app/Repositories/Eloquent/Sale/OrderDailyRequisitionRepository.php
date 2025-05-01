@@ -4,11 +4,15 @@ namespace App\Repositories\Eloquent\Sale;
 
 use App\Repositories\Eloquent\Repository;
 use App\Helpers\Classes\DateHelper;
+use App\Helpers\Classes\OrmHelper;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderProduct;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Setting\Setting;
+use App\Models\Inventory\Bom;
+use App\Models\Inventory\BomProduct;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB; 
 
 /**
  * 訂單轉備料
@@ -25,7 +29,26 @@ use Carbon\Carbon;
 
 class OrderDailyRequisitionRepository
 {
-    public function handleByDate($required_date, $force_update = 0, $is_return = false)
+    // public function handleByDate($required_date, $force_update = 0, $is_return = false)
+    // {
+    //     $required_date = Carbon::parse($required_date)->format('Y-m-d');
+
+    //     $cache_key = 'sale_order_requisition_date_' . $required_date;
+                
+    //     $statistics = cache()->get($cache_key);
+
+    //     // 如果快取不存在或快取中的 cache_created_at 超過指定期限
+    //     if ($force_update || !$statistics || !isset($statistics['cache_created_at']) || Carbon::parse($statistics['cache_created_at'])->diffInMinutes(now()) > 60) {
+    //         $statistics = $this->calculateByDate($required_date);
+    //         cache()->put($cache_key, $statistics, 60*24*180);
+    //     }
+
+    //     if ($is_return == true){
+    //         return $statistics;
+    //     }
+    // }
+
+    public function getStatisticsByDate($required_date, $force_update = 0, $is_return = true)
     {
         $required_date = Carbon::parse($required_date)->format('Y-m-d');
 
@@ -44,11 +67,6 @@ class OrderDailyRequisitionRepository
         }
     }
 
-    public function getStatisticsByDate($required_date, $force_update = 0)
-    {
-        return $this->handleByDate($required_date, $force_update, true);
-    }
-
     public function calculateByDate($required_date_ymd)
     {
         $requiredDateRawSql = DateHelper::parseDateToSqlWhere('delivery_date', $required_date_ymd);
@@ -56,6 +74,9 @@ class OrderDailyRequisitionRepository
         if(empty($requiredDateRawSql)){
             return false;
         }
+
+        // 這是材料的 product_id，即 order_product_options.map_product_id
+        $sales_ingredients_table_items = $statistics['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
 
         // 資料庫 訂單
             //需要備料的訂單狀態代號
@@ -97,7 +118,7 @@ class OrderDailyRequisitionRepository
         $wrap_ids_needing_halving = array_keys($sales_wrap_map); //3吋潤餅的 id
         //6吋潤餅
 
-        // 商品代號
+        // 材料代號(product_id)
         $big_guabao_ids = [1809,1810,1811,1812,1813,1814,1838,1839,1840];
         $small_guabao_ids = [1664,1665,1666,1667,1668,1669,1672,1688,1689];
         $lumpia6in_ids = [1010,1011,1012,1013,1014,1015,1056,1058,1663];
@@ -120,18 +141,45 @@ class OrderDailyRequisitionRepository
                 $order_list[$order->id]['order_url'] = route('lang.admin.sale.orders.form', [$order->order_id]);
 
                 $order_list[$order->id]['tooltip'] = '';
+
+                $braisedfood_option_value_ids = [1202,1203,1204];
                 
                 foreach ($order->orderProducts as $key2 => $orderOroduct) {
                     foreach ($orderOroduct->orderProductOptions as $key3 => $orderProductOption) {
-
-                        // 選項本身所對應的料件
                         $map_product_id = $orderProductOption->map_product_id ?? 0;
                         $map_product_name = $orderProductOption->value ?? '';
-                        $map_product_name = $orderProductOption->value ?? '';
+                        $quantity  = $orderProductOption->quantity;
+
+                        // 滷味小、中、大
+                            if (in_array($orderProductOption->option_value_id, $braisedfood_option_value_ids)){
+                                $map_product_id = 1804;
+                                $map_product_name = '滷味個';
+
+                                if ($orderProductOption->option_value_id == 1202){
+                                    $quantity = $orderProductOption->quantity*6;
+                                } else if ($orderProductOption->option_value_id == 1203){
+                                    $quantity = $orderProductOption->quantity*9;
+                                } else if ($orderProductOption->option_value_id == 1204){
+                                    $quantity = $orderProductOption->quantity*12;
+                                }
+
+                                $order_list[$order->id]['items'][$map_product_id]['required_datetime'] = $order->delivery_date;
+                                $order_list[$order->id]['items'][$map_product_id]['delivery_time_range'] = $order->delivery_time_range;
+                                $order_list[$order->id]['items'][$map_product_id]['product_id'] = $orderOroduct->product_id;
+                                $order_list[$order->id]['items'][$map_product_id]['product_name'] = $orderOroduct->name;
+                                $order_list[$order->id]['items'][$map_product_id]['map_product_id'] = $map_product_id;
+                                $order_list[$order->id]['items'][$map_product_id]['map_product_name'] = $map_product_name;
+    
+                                if(empty($order_list[$order->id]['items'][$map_product_id]['quantity'])){ //若無值預設 = 0
+                                    $order_list[$order->id]['items'][$map_product_id]['quantity'] = 0;
+                                }
+                                
+                                $order_list[$order->id]['items'][$map_product_id]['quantity'] += $quantity;
+                                continue;
+                            }
+                        //
 
                         // 數量加工 
-                            //例如 3吋潤餅轉6吋
-                            $quantity  = $orderProductOption->quantity;
 
                             // 3吋潤餅/2 = 6吋潤餅
                             if(in_array($map_product_id, $wrap_ids_needing_halving)){
@@ -358,11 +406,26 @@ class OrderDailyRequisitionRepository
             $statistics['info']['required_date_ymd']  = $required_date_ymd;
         //
 
-        $statistics['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
+        // $statistics['sales_ingredients_table_items'] = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
+        $statistics['sales_ingredients_table_items'] = $sales_ingredients_table_items;
         
         $statistics['cache_created_at'] = now()->format('Y-m-d H:i:s');
 
         return $statistics;
+    }
+
+
+    public function getBomItemsByProductId($product_id)
+    {
+        $product_id = 1848;
+        $bom = Bom::query()->where('product_id', $product_id)->where('is_active', 1)->whereDate('effective_date', '<', DB::raw('CURDATE()'))->first();
+
+        if ($bom){
+            $bom->load('bomProducts.translation');
+            return $bom->bomProducts ?? [];
+        }
+
+        return [];
     }
 }
 

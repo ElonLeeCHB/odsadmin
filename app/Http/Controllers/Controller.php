@@ -17,6 +17,7 @@ class Controller extends BaseController
     protected $acting_username;
     protected $url_data;
     protected $post_data;
+    protected $all_data;
 
     public function __construct()
     {
@@ -27,9 +28,25 @@ class Controller extends BaseController
         $this->middleware(function ($request, $next) {
             $this->resetUrlData(request()->query());
             $this->resetPostData(request()->post());
-
+            $this->resetAllData(request()->post());
             return $next($request);
         });
+    }
+
+    protected function cleanValue($value)
+    {
+        if (is_array($value)) {
+            return collect($value)->map(fn($v) => $this->cleanValue($v))->toArray();
+        }
+
+        return in_array($value, ['null', 'undefined', '', null], true) ? null : $value;
+    }
+
+    public function resetAllData($data = null)
+    {
+        $data = $data ?? request()->all();
+
+        $this->all_data = collect($data)->map(fn($value) => $this->cleanValue($value))->toArray();
     }
 
     public function resetPostData()

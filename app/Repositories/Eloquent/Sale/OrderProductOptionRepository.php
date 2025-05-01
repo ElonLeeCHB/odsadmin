@@ -56,12 +56,12 @@ class OrderProductOptionRepository extends Repository
                 unset($row['order_product_option_id']);
 
                 $row['created_at'] = now();
-                $row['updated_at'] = now();
             }
             //新增
             else{
                 unset($row['id']);
                 $row['created_at'] = now();
+                $row['updated_at'] = now();
             }
 
             $row['order_id'] = $order_id;
