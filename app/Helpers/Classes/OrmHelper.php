@@ -480,4 +480,24 @@ class OrmHelper
         }
 
     }
+
+    public static function prepareColumnWithoutGuarded($model, array $data)
+    {
+        $fillable = $model->getFillable();
+
+        if (empty($fillable)) {
+            $fillable = array_keys($model->getAttributes());
+        }
+        
+        $guarded = $model->getGuarded();
+        
+        foreach ($data as $column => $value) {
+            // 先確認欄位是 fillable（白名單允許），再確認欄位不是 guarded（黑名單禁止）
+            if (in_array($column, $fillable) && !in_array($column, $guarded)) {
+                $model->$column = $value;
+            }
+        }
+
+        return $model;
+    }
 }

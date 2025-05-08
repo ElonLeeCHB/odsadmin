@@ -21,7 +21,7 @@ class OrderService extends Service
     protected $modelName = "\App\Models\Sale\Order";
 
 
-    public function getSimplelist($filters)
+    public function getSimplelist($params)
     {
         $builder = Order::query();
         $builder->select(Order::getDefaultListColumns());
@@ -53,6 +53,8 @@ class OrderService extends Service
     // 更新送達地址相關資料。手機、姓名不更新。
     public function updateOrCreateCustomer($data)
     {
+        $action = 'update';
+
         $id = $data['customer_id'] ?? null;
 
         // 手機只使用純數字
@@ -64,29 +66,64 @@ class OrderService extends Service
             $member = User::where('mobile', $data['mobile'])->orderBy('id', 'desc')->first();
         }
 
-        if (!empty($member)){
+        if (!empty($data['mobile'] ) && empty($member)){
             $member = new User;
+            $action = 'insert';
         }
 
-        $member->telephone = !empty($data['telephone_prefix']) ? str_replace('-', '', $data['telephone_prefix']) : $member->telephone_prefix;
-        $member->telephone = !empty($data['telephone']) ? str_replace('-', '', $data['telephone']) : $member->telephone;
+        if (!empty($member)){
+            // 新增
+            if ($action == 'insert' ){
+    
+                if (!empty($data['personal_name'])){
+                    $member->name = $data['personal_name'];
+                }
+        
+                if (!empty($data['salutation_code'])){
+                    $member->salutation_code = $data['salutation_code'];
+                }
+        
+                if (!empty($data['email'])){
+                    $member->email = $data['email'];
+                }
+        
+                if (!empty($data['mobile'])){
+                    $member->mobile = $data['mobile'];
+                }
+        
+                if (!empty($data['telephone_prefix'])){
+                    $member->telephone_prefix = $data['telephone_prefix'];
+                }
+    
+                if (!empty($data['telephone'])){
+                    $member->telephone = str_replace('-', '', $data['telephone']);
+                }
+            } 
 
-        $member->payment_tin = $data['payment_tin'] ?? $member->payment_tin;
-        $member->payment_company = $data['payment_company'] ?? $member->payment_company;
+            //新增或修改共用
+            if (!empty($data['payment_tin'])){
+                $member->payment_tin = preg_replace('/\D/', '', $data['payment_tin']);
+            }
 
-        $member->shipping_personal_name = $data['shipping_personal_name'] ?? $member->shipping_personal_name;
-        $member->shipping_salutation_code = $data['shipping_salutation_code'] ?? $member->shipping_salutation_code;
-        $member->shipping_phone = $data['shipping_phone'] ?? $member->shipping_phone;
-        $member->shipping_state_id = $data['shipping_state_id'] ?? $member->shipping_state_id;
-        $member->shipping_city_id = $data['shipping_city_id'] ?? $member->shipping_city_id;
-        $member->shipping_address1 = $data['shipping_address1'] ?? $member->shipping_address1;
-        $member->shipping_address2 = $data['shipping_address2'] ?? $member->shipping_address2;
-        $member->shipping_road = $data['shipping_road'] ?? $member->shipping_road;
-        $member->comment = $data['customer_comment'] ?? $member->comment;
+            $member->payment_company = $data['payment_company'] ?? $member->payment_company;
+            $member->shipping_personal_name = $data['shipping_personal_name'] ?? $member->shipping_personal_name;
+            $member->shipping_salutation_code = $data['shipping_salutation_code'] ?? $member->shipping_salutation_code;
+            $member->shipping_salutation_code2 = $data['shipping_salutation_code2'] ?? $member->shipping_salutation_code2;
+            $member->shipping_phone = $data['shipping_phone'] ?? $member->shipping_phone;
+            $member->shipping_state_id = $data['shipping_state_id'] ?? $member->shipping_state_id;
+            $member->shipping_city_id = $data['shipping_city_id'] ?? $member->shipping_city_id;
+            $member->shipping_address1 = $data['shipping_address1'] ?? $member->shipping_address1;
+            $member->shipping_address2 = $data['shipping_address2'] ?? $member->shipping_address2;
+            $member->shipping_road = $data['shipping_road'] ?? $member->shipping_road;
+            $member->shipping_road_abbr = $data['shipping_road_abbr'] ?? $member->shipping_road_abbr;
+            $member->comment = $data['customer_comment'] ?? $member->comment;
+    
+            $member->save();
 
-        $member->save();
+            return $member->id;
+        }
 
-        return $member->id;
+        return 0;
     }
 
     public function store($data)
@@ -163,13 +200,13 @@ class OrderService extends Service
             $data['id'] = $order_id;
 
             DB::beginTransaction();
-            
+
             // members table
                 if (!empty($data['mobile'])){
                     $data['customer_id'] = $this->updateOrCreateCustomer($data);
                 }
             //
-
+            
             // new order
             $order = (new OrderRepository)->update($data, $order_id);
 

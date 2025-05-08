@@ -57,7 +57,14 @@ class ReceivingOrder extends Model
         return $this->belongsTo(Location::class, 'location_id', 'id');
     }
     
-    public function receiving_products()
+    // 原本想短一點
+    public function receivingProducts()
+    {
+        return $this->hasMany(ReceivingOrderProduct::class, 'receiving_order_id', 'id');
+    }
+    
+    // 後來覺得還是正式一點
+    public function receivingOrderProducts()
     {
         return $this->hasMany(ReceivingOrderProduct::class, 'receiving_order_id', 'id');
     }

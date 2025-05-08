@@ -24,20 +24,24 @@ class User extends Authenticatable
     use HasRoles;
     use ModelTrait;
     
-
-    protected $guarded = [];
     public $salutations;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     // protected $fillable = [
     //     'name',
     //     'email',
     //     'password',
     // ];
+
+    protected $guarded = [
+        'id',
+        'mobile',
+        'password',
+        'email',
+        'email_verified_at',
+        'is_admin',
+        'created_at',
+        'updated_at',
+    ];
 
     /**
      * The attributes that should be hidden for serialization.
