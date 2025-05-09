@@ -40,9 +40,11 @@ class ProductService extends Service
             }
 
             $product = $result['data'];
+
             // products
                 $product->model = $data['model'] ?? null;
-                $product->main_category_id = $data['main_category_id'] ?? null;
+                $product->pringting_category_id = $data['pringting_category_id'] ?? null;
+                $product->comment = $data['comment'] ?? '';
                 $product->price = $data['price'] ?? 0;
                 $product->quantity = $data['quantity'] ?? 0;
                 $product->quantity_for_control = $data['quantity_for_control'] ?? 0;
@@ -229,11 +231,6 @@ class ProductService extends Service
             DB::rollback();
             return ['error' => $ex->getMessage()];
         }
-    }
-
-    public function getProductTags()
-    {
-        return (new ProductRepository)->getProductTags();
     }
 
     public function getList($data)

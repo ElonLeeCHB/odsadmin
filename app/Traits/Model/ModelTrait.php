@@ -180,10 +180,10 @@ trait ModelTrait
     }
 
 
-
-    //public function setNumberAttribute($value, $to_fixed = 0, $keep_zero = 0)
     public function setNumberAttribute($value, $to_fixed = null, $keep_zero = null)
     {
+        // 取出時不可在此加上千分位符號。若被用來計算會出錯。
+
         return Attribute::make(
             get: function ($value) use ($keep_zero, $to_fixed){
                 if(is_numeric($to_fixed)){

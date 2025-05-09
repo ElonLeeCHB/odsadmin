@@ -206,7 +206,6 @@ class OrderService extends Service
                     $data['customer_id'] = $this->updateOrCreateCustomer($data);
                 }
             //
-            
             // new order
             $order = (new OrderRepository)->update($data, $order_id);
 

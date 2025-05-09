@@ -13,6 +13,7 @@ class CalculateRecentAveragePrice extends Command
      * @var string
      */
     protected $signature = 'app:inventory-calculate-average {--days=90 : Days to look back}';
+    // php artisan app:inventory-calculate-average --days=90
 
     /**
      * The console command description.

@@ -66,6 +66,7 @@ class Product extends Model
         return $this->belongsToMany(Term::class, 'product_terms', 'product_id', 'term_id');
     }
 
+    // 暫時不用
     public function productTags()
     {
         return $this->hasMany(ProductTerm::class, 'product_id', 'id')->where('taxonomy_id', 31);

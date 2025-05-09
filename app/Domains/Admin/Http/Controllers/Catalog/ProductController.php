@@ -72,7 +72,8 @@ class ProductController extends BackendController
         $data['add_url']    = route('lang.admin.catalog.products.form');
         $data['delete_url'] = route('lang.admin.catalog.products.destroy');
 
-        $data['product_tags'] = $this->ProductService->getProductTags();
+        // $data['order_printing_product_tags'] = $this->ProductService->getProductTags();
+        $data['pringting_categories'] = $this->ProductService->getTermsByTaxonomyCode(taxonomy_code:'OrderPrintingProductCategory');
 
         return view('admin.catalog.product', $data);
     }
@@ -241,9 +242,10 @@ class ProductController extends BackendController
             'pagination' => false,
             'limit' => 0,
         ];
-        $data['product_tags'] = $this->ProductService->getTermsByTaxonomyCode(taxonomy_code:'ProductTag');
+        $data['pringting_categories'] = $this->ProductService->getTermsByTaxonomyCode(taxonomy_code:'OrderPrintingProductCategory');
 
-        $data['exist_product_tag_ids'] = optional($product->productTags)->pluck('term_id')->toArray();
+        // $data['exist_product_tag_ids'] = optional($product->productTags)->pluck('term_id')->toArray();
+        $data['exist_order_printing_product_category_ids'] = optional($product->productTags)->pluck('term_id')->toArray();
 
         $data['bom_products'] = $product->bom_products;
 

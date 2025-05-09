@@ -78,6 +78,14 @@ Route::group(
                 Route::get('poscategories/autocomplete', 'Catalog\PosCategoryController@autocomplete')->name('poscategories.autocomplete');
                 Route::post('poscategories/destroy', 'Catalog\PosCategoryController@destroy')->name('poscategories.destroy');
 
+                //訂單列印
+                Route::get('poscategories', 'Catalog\PosCategoryController@index')->name('poscategories.index');
+                Route::get('poscategories/list', 'Catalog\PosCategoryController@list')->name('poscategories.list');
+                Route::get('poscategories/form/{poscategory_id?}', 'Catalog\PosCategoryController@form')->name('poscategories.form');
+                Route::post('poscategories/save/{poscategory_id?}', 'Catalog\PosCategoryController@save')->name('poscategories.save');
+                Route::get('poscategories/autocomplete', 'Catalog\PosCategoryController@autocomplete')->name('poscategories.autocomplete');
+                Route::post('poscategories/destroy', 'Catalog\PosCategoryController@destroy')->name('poscategories.destroy');
+
                 //選項基本資料
                 Route::get('options', 'Catalog\OptionController@index')->name('options.index');
                 Route::get('options/form/{product_id?}', 'Catalog\OptionController@form')->name('options.form');

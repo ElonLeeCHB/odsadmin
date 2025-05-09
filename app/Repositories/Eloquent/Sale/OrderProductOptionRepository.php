@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent\Sale;
 
 use App\Repositories\Eloquent\Repository;
 use App\Models\Sale\OrderProductOption;
+use App\Models\Catalog\ProductOptionValue;
 
 class OrderProductOptionRepository extends Repository
 {
@@ -74,7 +75,16 @@ class OrderProductOptionRepository extends Repository
 
     public function normalizeData(array $data, $order_id, $order_product_id)
     {
-        return [
+        if (empty($data['product_option_value_id'])){
+            echo "<pre>",print_r($data,true),"</pre>\r\n";exit;
+            $data['product_option_value_id'] = ProductOptionValue::where('product_option_id', $data['product_option_id'])
+                ->where('option_id', $data['option_id'])
+                ->where('option_value_id', $data['option_value_id'])
+                ->value('id');
+                echo "<pre>",print_r($data['product_option_value_id'] ,true),"</pre>\r\n";exit;
+        }
+
+        $array = [
             'order_id' => $order_id,
             'order_product_id' => $order_product_id,
             'product_id' => $data['product_id'] ?? 0,
@@ -89,6 +99,8 @@ class OrderProductOptionRepository extends Repository
             'option_value_id' => $data['option_value_id'] ?? 0,
             'map_product_id' => $data['map_product_id'] ?? 0,
         ];
+
+
     }
 }
 
