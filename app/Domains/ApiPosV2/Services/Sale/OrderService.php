@@ -11,7 +11,10 @@ use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderTotal;
+use App\Models\Sale\OrderProduct;
+use App\Models\Sale\OrderProductOption;
 use App\Models\User\User;
+use App\Models\Common\Term;
 use App\Helpers\Classes\OrmHelper;
 
 class OrderService extends Service
@@ -20,32 +23,54 @@ class OrderService extends Service
 
     protected $modelName = "\App\Models\Sale\Order";
 
+    public function __construct(public OrderRepository $OrderRepository)
+    {}
 
-    public function getSimplelist($params)
+    public function resetQueryBuilder($builder, $filter_data)
     {
-        $builder = Order::query();
-        $builder->select(Order::getDefaultListColumns());
-        OrmHelper::applyFilters($builder, $params);
-        OrmHelper::sortOrder($builder, $params['sort'] ?? null, $params['order'] ?? null);
-        $orders = OrmHelper::getResult($builder, $params);
+        if (!empty($filter_data['filter_phone'])) {
+            $builder->where(function ($query) use ($filter_data) {
+                $query->orWhere('mobile', 'like', '%' . $filter_data['filter_phone'] . '%');
+                $query->orWhere('telephone', 'like', '%' . $filter_data['filter_phone'] . '%');
+            });
+            
+            unset($filter_data['filter_phone']);
+        }
 
-        return $orders;
+        if (!empty($data['equal_delivery_date'])) {
+            $builder->whereDate('ddelivery_date', $filter_data['equal_delivery_date']);
+            
+            unset($filter_data['equal_delivery_date']);
+        }
     }
 
 
-    public function getList($filters)
+    public function getList($filter_data)
     {
-        return $this->getRows($filters);
+        $builder = Order::query();
+
+        if (!empty($filter_data['simplelist'])){
+            $builder->select(Order::getDefaultListColumns());
+        }
+
+        $this->resetQueryBuilder($builder, $filter_data);
+
+        OrmHelper::applyFilters($builder, $filter_data);
+        OrmHelper::sortOrder($builder, $filter_data['sort'] ?? null, $filter_data['order'] ?? null);
+
+        return OrmHelper::getResult($builder, $filter_data);
     }
 
     //getInfo
-    public function getOrderByIdOrCode($identifier, $type = 'id')
+    public function getOrderByIdOrCode($value, $type = 'id')
     {
-        if($type == 'id'){
-            $order = (new Order)->getOrderByIdOrCode($identifier, 'id');
-        }else if($type == 'code'){
-            $order = (new Order)->getOrderByIdOrCode($identifier, 'code');
+        if($type == 'code'){
+            $order_id = Order::where('code', $value)->value('id');
+        } else if($type == 'id'){
+            $order_id = $value;
         }
+
+        $order = (new Order)->getOrderByIdOrCode($order_id, 'id');
 
         return $order;
     }
@@ -126,7 +151,7 @@ class OrderService extends Service
         return 0;
     }
 
-    public function store($data)
+    public function save($data, $order_id = null)
     {
         try {
             DB::beginTransaction();
@@ -138,35 +163,46 @@ class OrderService extends Service
             //
 
             // order
-            $order = (new OrderRepository)->create($data);
+                // 新增
+                if (empty($order_id)){
+                    $old_order = null;
+                    $order = (new OrderRepository)->create($data);
+                } 
+                // 修改
+                else {
+                    $data['id'] = $order_id;
+                    $old_order = Order::with('orderProducts.orderProductOptions')->find($order_id);
+                    $order = (new OrderRepository)->update($data, $order_id);
+                }
+            //
 
             // order_products
-                foreach ($data['order_products'] as &$order_product) {
-                    unset($order_product['id']);
-                    unset($order_product['order_product_id']);
-                }
-
+                // 這一行很重要！後面有用處！對於資料集，使各筆的 sort_order 欄位從 1 遞增，並且讓各筆的索引 =  sort_order
                 $data['order_products'] = DataHelper::resetSortOrder($data['order_products']);
-                
-                (new OrderProductRepository)->createMany($data['order_products'], $order->id);
+
+                // 會先刪除再新增。會利用原本的 order_products.id，舊的 id 會沿用, 所以是 upsert()
+                (new OrderProductRepository)->upsertManyByOrderId($data['order_products'], $order->id);
             // end order_products
 
-            // order_product_optionss
+            // order_product_options
+                // 重新載入訂單內容
                 $order->load(['orderProducts:id,order_id,sort_order,product_id']);
-                $orderProducts = $order->orderProducts->keyBy('sort_order');
+                $db_order_products = $order->orderProducts->keyBy('sort_order')->toArray();
 
-                foreach ($data['order_products'] ?? [] as $sort_order => $arrOrderProduct) {
-                    $order_product_id = $orderProducts[$sort_order]->id;
-                    foreach ($arrOrderProduct['order_product_options'] as &$order_product_option) {
-                        $order_product_option['product_id'] = $orderProducts[$sort_order]->product_id;
-                    }
-                    (new OrderProductOptionRepository)->createMany($arrOrderProduct['order_product_options'], $order->id, $order_product_id);
+                foreach ($data['order_products'] ?? [] as $sort_order => $form_order_product) {
+                    // 利用 sort_order 結合表單 $form_order_product 與資料庫 $dbOrderProducts
+                    $order_product_id = $db_order_products[$sort_order]['id'];
+
+                    // 前面 OrderProductRepository 的 upsertManyByOrderId() 裡面已烴順便刪除了選項，所以這裡用新增
+                    // 一律用新增是因為，選項所依附的 order_products ，前面的動作包括更新與新增， 是不確定的存在。所以選項一律用新增。
+                    (new OrderProductOptionRepository)->createMany($form_order_product['order_product_options'], $order->id, $order_product_id);
                 }
             // end order_product_options
 
             // OrderTotal
                 if(!empty($data['order_totals'])){
                     $update_order_totals = [];
+
                     foreach($data['order_totals'] as $order_total){
                         $update_order_totals[] = [
                             'order_id'  => $order->id,
@@ -175,7 +211,6 @@ class OrderService extends Service
                             'value'     => str_replace(',', '', $order_total['value']),
                             'sort_order' => $order_total['sort_order'],
                         ];
-                        $sort_order++;
                     }
 
                     if(!empty($update_order_totals)){
@@ -184,79 +219,14 @@ class OrderService extends Service
                 }
             //
 
-            DB::commit();
-
-            return $order;
-
-        } catch (\Throwable $th) {
-            DB::rollback();
-            throw $th;
-        }
-    }
-
-    public function update($data, $order_id)
-    {
-        try {
-            $data['id'] = $order_id;
-
-            DB::beginTransaction();
-
-            // members table
-                if (!empty($data['mobile'])){
-                    $data['customer_id'] = $this->updateOrCreateCustomer($data);
-                }
-            //
-            // new order
-            $order = (new OrderRepository)->update($data, $order_id);
-
-            // order_products
-                foreach ($data['order_products'] as $key => $order_product) {
-                    $data['order_products'][$key]['id'] = $order_product['id'] ?? $order_product['order_product_id'] ?? null;
-                    unset($data['order_products'][$key]['order_product_id'] );
-
-                    $product_ids[] = $order_product['product_id']; //為了取得商品標籤
-                }
-
-                $data['order_products'] = DataHelper::resetSortOrder($data['order_products']);
-                
-                (new OrderProductRepository)->upsertMany($data['order_products'], $order->id);
-            // end order_products
-
-            // order_product_optionss
-                $order->load(['orderProducts:id,order_id,sort_order,product_id']);
-                $orderProducts = $order->orderProducts->keyBy('sort_order');
-
-                foreach ($data['order_products'] ?? [] as $sort_order => $arrOrderProduct) {
-                    $order_product_id = $orderProducts[$sort_order]->id;
-                    foreach ($arrOrderProduct['order_product_options'] as &$order_product_option) {
-                        $order_product_option['product_id'] = $orderProducts[$sort_order]->product_id;
-                    }
-                    // OrderProductOption 跟 OrderProduct 會有對應，會有變化。所以一律用新增。
-                    (new OrderProductOptionRepository)->createMany($arrOrderProduct['order_product_options'], $order->id, $order_product_id);
-                }
-            // end order_product_options
-
-            // OrderTotal
-                if(!empty($data['order_totals'])){
-                    $update_order_totals = [];
-                    foreach($data['order_totals'] as $order_total){
-                        $update_order_totals[] = [
-                            'order_id'  => $order->id,
-                            'code'      => trim($order_total['code']),
-                            'title'     => trim($order_total['title']),
-                            'value'     => str_replace(',', '', $order_total['value']),
-                            'sort_order' => $order_total['sort_order'],
-                        ];
-                        $sort_order++;
-                    }
-
-                    if(!empty($update_order_totals)){
-                        OrderTotal::upsert($update_order_totals, ['order_id', 'code']);
-                    }
-                }
-            //
+            // OrderTags
+            if (isset($data['order_tags'])) {
+                $order->orderTags()->sync($data['order_tags']);
+            }
 
             DB::commit();
+
+            event(new \App\Events\SaleOrderSavedEvent(saved_order:$order, old_order:$old_order));
 
             return $order;
 
@@ -288,6 +258,20 @@ class OrderService extends Service
             DB::rollback();
             throw $th;
         }
+    }
+
+    public function getOrderTagsList()
+    {
+        $orderTags =  Term::where('taxonomy_code', 'OrderTag')->get();
+
+        foreach ($orderTags as $orderTag){
+            $data[] = [
+                'term_id' => $orderTag->id,
+                'name' => $orderTag->name,
+            ];
+        }
+
+        return $data;
     }
 
 }

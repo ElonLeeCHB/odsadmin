@@ -105,7 +105,13 @@ class Order extends Model
         return $this->hasMany(OrderPayment::class, 'order_code', 'code');
     }
 
-    public function tags()
+    // 廢棄，改用 orderTags()
+    // public function tags()
+    // {
+    //     return $this->belongsToMany(Term::class, 'order_tags');
+    // }
+
+    public function orderTags()
     {
         return $this->belongsToMany(Term::class, 'order_tags');
     }
@@ -514,9 +520,10 @@ where op.order_id=9219
     // 不使用。但先留著。
     public function getCacheKeyById($order_id)
     {
-        return 'cache/sale/order/id-' . $order_id . '.json';
+        return 'cache/sale/order/id-' . $order_id . '.serialized.txt';
     }
 
+    // 廢棄
     public function getCacheKeyByCode($order_code)
     {
         return 'cache/sale/order/code-'. $order_code . '.json';
@@ -543,37 +550,33 @@ where op.order_id=9219
 
         $cache_key = $this->getCacheKeyById($id);
         DataHelper::deleteDataFromStorage($cache_key);
-
-        $cache_key = $this->getCacheKeyByCode($code);
-        DataHelper::deleteDataFromStorage($cache_key);
     }
 
-    public function getOrderByIdOrCode($identifier, $type = 'id', $params = [])
+    // getOrderByIdOrCode
+    public function getOrderByIdOrCode($value, $type, $params = [])
     {
-        if($type == 'id'){
-            $cache_key = $this->getCacheKeyById($identifier);
-        } else if($type == 'code'){
-            $cache_key = $this->getCacheKeyByCode($identifier);
+        if ($type == 'code'){
+            $order_id = self::where('code', $value)->value('id');
+        } else {
+            $order_id = $value;
         }
+
+        $cache_key = $this->getCacheKeyById($order_id);
 
         if(request()->has('no-cache') && request()->query('no-cache') == 1){
             DataHelper::deleteDataFromStorage($cache_key);
         }
 
-        return DataHelper::remember($cache_key, 60*60*24, 'serialize', function() use ($identifier, $type) {
+        return DataHelper::remember($cache_key, 60*60*24, 'serialize', function() use ($order_id) {
             $builder = $this->query();
-            if($type == 'id'){
-                $builder->where('id', $identifier);
-            } else if($type == 'code'){
-                $builder->where('code', $identifier);
-            }
+            $builder->where('id', $order_id);
 
             $builder->with(['orderProducts' => function($qry) {
                         $qry->with('orderProductOptions');
                     }]);
 
             $builder->with('orderTotals')
-                    ->with('tags')
+                    ->with('OrderTags')
                     ->with('shippingState')
                     ->with('shippingCity')
                     ->with('customer:id,comment');

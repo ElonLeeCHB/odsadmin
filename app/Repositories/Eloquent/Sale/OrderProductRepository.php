@@ -26,7 +26,7 @@ class OrderProductRepository extends Repository
                 //     $row['name'] = $db_product['name'];
                 // //
 
-                $row = $this->normalizeData($row, $order_id);
+                $row = $this->prepareData($row, $order_id);
 
                 unset($row['id']);
                 unset($row['order_product_id']);
@@ -45,7 +45,7 @@ class OrderProductRepository extends Repository
         }
     }
 
-    public function upsertMany($arrOrderProducts, $order_id)
+    public function upsertManyByOrderId($input_order_products, $order_id)
     {
         $rows = [];
 
@@ -53,28 +53,27 @@ class OrderProductRepository extends Repository
         OrderProductOption::where('order_id', $order_id)->delete();
         OrderProduct::where('order_id', $order_id)->delete();
 
-        foreach ($arrOrderProducts as $row) {
-            $row = $this->normalizeData($row, $order_id);
-
-            // 要求 id 必須存在。如果前端用了 order_product_id，改為 id
+        foreach ($input_order_products as $row) {
             $row['id'] = $row['id'] ?? $row['order_product_id'] ?? null;
             unset($row['order_product_id']);
 
-            // 如果記錄已存在，需要更新的欄位
+            $row = $this->prepareData($row, $order_id);
+
+            // 如果記錄已存在，需要更新的欄位。一開始是空陣列，執行一次之後就不是空陣列。
             if(empty($updateColumns)){
                 $updateColumns = array_keys($row);
                 unset($updateColumns['id']);
                 unset($updateColumns['created_at']);
             }
 
-            //更新
-            if(!empty($row['id'])){
-                $row['created_at'] = now();
-                $row['updated_at'] = now();
+            // 新增
+            if(empty($row['id'])){
+                $row['created_at'] = date('Y-m-d H:i:s');
+                $row['updated_at'] = date('Y-m-d H:i:s');
             }
-            //新增
+            // 更新
             else{
-                $row['created_at'] = now();
+                $row['updated_at'] = date('Y-m-d H:i:s');
             }
 
             $row['order_id'] = $order_id;
@@ -85,9 +84,10 @@ class OrderProductRepository extends Repository
         return OrderProduct::upsert($rows, ['id'], $updateColumns);
     }
 
-    public function normalizeData(array $data, $order_id)
+    public function prepareData(array $data, $order_id)
     {
         return [
+            'id' => $data['id'] ?? null,
             'order_id' => $order_id,
             'sort_order' => $data['sort_order'] ?? 0,
             'product_id' => $data['product_id'],

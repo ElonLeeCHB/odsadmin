@@ -97,16 +97,19 @@ $('#button-filter').on('click', function() {
   url = '?';
 
   var filter_name = $('#input-filter_name').val();
+
   if (filter_name) {
     url += '&filter_name=' + encodeURIComponent(filter_name);
   }
 
   var filter_product_tags = $('#input-filter_product_tags').val();
+
   if (filter_product_tags && filter_product_tags.length > 0) {
     url += '&filter_product_tags=' + encodeURIComponent(filter_product_tags);
   }
 
   var equal_is_active = $('#input-equal_is_active').val();
+  
   if (equal_is_active) {
     url += '&equal_is_active=' + encodeURIComponent(equal_is_active);
   }

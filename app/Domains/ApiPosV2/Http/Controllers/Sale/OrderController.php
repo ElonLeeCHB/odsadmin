@@ -19,11 +19,7 @@ class OrderController extends ApiPosController
     public function list()
     {
         try {
-            if(!empty($this->url_data['simplelist'])){
-                $orders = $this->OrderService->getSimplelist($this->url_data);
-            }else{
-                $orders = $this->OrderService->getList($this->url_data);
-            }
+            $orders = $this->OrderService->getList($this->url_data);
 
             $orders = DataHelper::unsetArrayIndexRecursively($orders->toArray(), ['translation', 'translations']);
             
@@ -67,7 +63,7 @@ class OrderController extends ApiPosController
     
             $post_data['order_taker'] = auth()->user()->name;
     
-            $order = $this->OrderService->store($post_data);
+            $order = $this->OrderService->save($this->post_data);
     
             event(new \App\Events\SaleOrderSavedEvent(saved_order:$order));
 
@@ -86,12 +82,7 @@ class OrderController extends ApiPosController
     public function update($order_id)
     {
         try {
-            // old order
-            $old_order = $this->OrderService->getOrderByIdOrCode($order_id, 'id');
-
-            $order = $this->OrderService->update($this->post_data, $order_id);
-
-            event(new \App\Events\SaleOrderSavedEvent(saved_order:$order, old_order:$old_order));
+            $order = $this->OrderService->save($this->post_data, $order_id);
 
             $data = [
                 'id' => $order->id,
@@ -164,6 +155,13 @@ class OrderController extends ApiPosController
         } catch (\Throwable $th) {
             return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
         }
+    }
+
+    public function orderTagsList()
+    {
+        $data = $this->OrderService->getOrderTagsList();
+
+        return $this->sendJsonResponse(data:$data, status_code:200);
     }
 
 }
