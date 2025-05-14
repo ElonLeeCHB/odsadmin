@@ -511,11 +511,10 @@ where op.order_id=9219
      * cache
      */
 
-    // 不使用。但先留著。
-    public function getCacheKeyById($order_id)
-    {
-        return 'cache/sale/order/id-' . $order_id . '.json';
-    }
+     public function getCacheKeyById($order_id)
+     {
+         return 'cache/sale/order/id-' . $order_id . '.serialized.txt';
+     }
 
     public function getCacheKeyByCode($order_code)
     {

@@ -157,6 +157,21 @@
                   </div>
                 </div>
 
+                <div class="row mb-3">
+                  <label for="input-pringting_category_id" class="col-sm-2 col-form-label">訂單商品列印分類</label>
+                  <div class="col-sm-10">
+                    <select id="input-pringting_category_id" name="pringting_category_id" class="form-control">
+                      <option> -- </option>
+                      @foreach($pringting_categories ?? [] as $pringting_category)
+                      <option value="{{ $pringting_category->id }}" @if($pringting_category->id == $product->pringting_category_id) selected @endif>{{ $pringting_category->name }}</option>
+                      @endforeach
+                    </select>
+                    <div id="error-pringting_category_id" class="invalid-feedback"></div>
+                    
+                    <div class="form-text">會用在備料表的判斷。請小心設定。</div>
+                  </div>
+                </div>
+
                 {{-- model --}}
                 <div class="row mb-3">
                   <label for="input-model" class="col-sm-2 col-form-label">{{ $lang->column_model }}</label>
@@ -201,20 +216,6 @@
                       </div>
                     </div>
                     <div class="form-text">可以用於官網銷售。如果本欄未開，則官網不出現。官網要能下訂，必須【可否銷售】、【官網銷售】、【是否啟用】三欄同時開啟。 </div>
-                  </div>
-                </div>
-
-                <div class="row mb-3">
-                  <label for="input-product_tag" class="col-sm-2 col-form-label">{{ $lang->column_product_tag }}</label>
-                  <div class="col-sm-10">
-                    <select id="input-product_tag" name="product_tag[]" class="select2-multiple form-control" multiple="multiple">
-                      @foreach($product_tags ?? [] as $product_tag)
-                      <option value="{{ $product_tag->id }}" @if(in_array($product_tag->id, $exist_product_tag_ids)) selected @endif>{{ $product_tag->name }}</option>
-                      @endforeach
-                    </select>
-                    <div id="error-product_tag" class="invalid-feedback"></div>
-                    
-                    <div class="form-text">會用在備料表的判斷。請小心設定。</div>
                   </div>
                 </div>
 
@@ -788,11 +789,7 @@
   });
   <?php } ?>
 
-  $('#input-product_tag').select2({
-    width:'100%',
-  });
-
-  
+ 
 // POS Category
 $('#input-pos_category').autocomplete({
     'source': function (request, response) {

@@ -49,11 +49,13 @@ class OrderService extends Service
     //getInfo
     public function getOrderByIdOrCode($identifier, $type = 'id')
     {
-        if($type == 'id'){
-            $order = (new Order)->getOrderByIdOrCode($identifier, 'id');
-        }else if($type == 'code'){
-            $order = (new Order)->getOrderByIdOrCode($identifier, 'code');
+        if($type == 'code'){
+            $order_id = Order::where('code', $identifier)->value('id');
+        } else if($type == 'id'){
+            $order_id = $identifier;
         }
+
+        $order = (new Order)->getOrderByIdOrCode($order_id, 'id');
 
         return $order;
     }
