@@ -366,7 +366,7 @@ class OrderDateLimitRepository extends Repository
 
         // 訂單資料
         $builder = DB::table('orders as o')
-                    ->select('o.id', 'o.code', 'o.delivery_date', 'o.quantity_for_control')
+                    ->select('o.id', 'o.code', 'o.delivery_date', 'o.delivery_time_range', 'o.quantity_for_control')
                     ->whereDate('o.delivery_date', $date)
                     ->whereIn('o.status_code', $this->controlled_status_code)
                     ->orderBy('o.delivery_date');
@@ -525,7 +525,7 @@ class OrderDateLimitRepository extends Repository
 
         // 查詢所有 delivery_date 大於今天的訂單
         $builder = DB::table('orders as o')
-                    ->select('o.id', 'o.delivery_date', 'op.id as order_product_id', 'op.order_id', 'op.product_id', 'op.name', 'op.quantity', 'o.quantity_for_control')
+                    ->select('o.id', 'o.delivery_date', 'o.delivery_time_range', 'op.id as order_product_id', 'op.order_id', 'op.product_id', 'op.name', 'op.quantity', 'o.quantity_for_control')
                     ->join('order_products as op', 'o.id', '=', 'op.order_id')
                     ->where('delivery_date', '>', $today)
                     ->whereIn('o.status_code', $this->controlled_status_code)
@@ -536,6 +536,21 @@ class OrderDateLimitRepository extends Repository
         return $this->updateDefinedOrders($orders);
     }
 
+    // 這裡決定使用送達時間範圍的開頭或結束
+    public function getTimeSlotKeyByDeliveryTimeRange($time_range)
+    {
+        $arr = explode(',', $time_range);
+        
+        // $arr[0] = 開頭 $arr[1] = 結束
+        if (!empty($arr[0])) {
+            $time = str_pad($arr[0], 4, '0', STR_PAD_LEFT); // 確保是4位數（如0850）
+            $hour = substr($time, 0, 2);
+            return "{$hour}:00-{$hour}:59";
+        }
+
+        // 避免傳進來的 $time_range 是 9:30，所以不能單純用 $hour = substr($time, 0, 2); 要在之前先確定是 hh:mm，所以用 str_pad()。
+    }
+
     // 更新特定格式的的訂單內容
     public function updateDefinedOrders($orders)
     {
@@ -543,17 +558,17 @@ class OrderDateLimitRepository extends Repository
 
         //計算 $order->delivery_date 必須是 datetime 並且有時間。預設取 delivery_time_range 的結束時間
         foreach ($orders ?? [] as $order) {
-            $delivery_date = Carbon::parse($order->delivery_date)->format('Y-m-d');
+            $time_slot_key = $this->getTimeSlotKeyByDeliveryTimeRange($order->delivery_time_range);
 
-            $time_slot_key = (new TimeSlotLimit)->getTimeSlotKey($order->delivery_date);
+            $delivery_date_ymd = Carbon::parse($order->delivery_date)->format('Y-m-d');
 
-            if(empty($all_formatted_data[$delivery_date])){
-                $all_formatted_data[$delivery_date] = $this->getDefaultFormattedDataByDate($delivery_date);
+            if(empty($all_formatted_data[$delivery_date_ymd])){
+                $all_formatted_data[$delivery_date_ymd] = $this->getDefaultFormattedDataByDate($delivery_date_ymd);
             }
 
-            $all_formatted_data[$delivery_date]['TimeSlots'][$time_slot_key]['OrderedQuantity'] += $order->quantity_for_control;
+            $all_formatted_data[$delivery_date_ymd]['TimeSlots'][$time_slot_key]['OrderedQuantity'] += $order->quantity_for_control;
 
-            $delivery_dates[] = \Carbon\Carbon::parse($order->delivery_date)->toDateString();
+            $delivery_dates[] = $delivery_date_ymd;
         }
         $delivery_dates = array_unique($delivery_dates); // 移除重複
         //以上將所有訂單數量加總完成
@@ -561,26 +576,28 @@ class OrderDateLimitRepository extends Repository
         // 資料庫現有的資料
         $db_order_date_limits = $this->getFormattedDataInMultiDates($delivery_dates);
 
-        foreach ($all_formatted_data as $delivery_date => $formatted_data) {
+        foreach ($all_formatted_data as $delivery_date_ymd => $formatted_data) {
             foreach ($formatted_data['TimeSlots'] as $time_slot_key => $row) {
-                $max = $db_order_date_limits[$delivery_date]['TimeSlots'][$time_slot_key]['MaxQuantity']; // 取資料庫原本的值。本方法不變更此欄
+                if (!empty($db_order_date_limits[$delivery_date_ymd])){
+                    $max = $db_order_date_limits[$delivery_date_ymd]['TimeSlots'][$time_slot_key]['MaxQuantity']; // 取資料庫原本的值。本方法不變更此欄
 
-                $formatted_data['TimeSlots'][$time_slot_key]['MaxQuantity'] = $max;
-                // $formatted_data['TimeSlots'][$time_slot_key]['OrderedQuantity'] = 維持不變
-                $formatted_data['TimeSlots'][$time_slot_key]['AcceptableQuantity'] = $max - $row['OrderedQuantity'];
+                    $formatted_data['TimeSlots'][$time_slot_key]['MaxQuantity'] = $max;
+                    // $formatted_data['TimeSlots'][$time_slot_key]['OrderedQuantity'] = 維持不變
+                    $formatted_data['TimeSlots'][$time_slot_key]['AcceptableQuantity'] = $max - $row['OrderedQuantity'];
+                }
             }
             $this->adjustFormattedData($formatted_data);
 
-            $all_formatted_data[$delivery_date] = $formatted_data;
+            $all_formatted_data[$delivery_date_ymd] = $formatted_data;
         }
 
         //以下計算 formatted_data 的可訂量。
         $upsert_data = [];
 
-        foreach ($all_formatted_data as $delivery_date => $formatted_data) {
+        foreach ($all_formatted_data as $delivery_date_ymd => $formatted_data) {
             foreach ($formatted_data['TimeSlots'] as $time_slot_key => $row) {
                 $upsert_data[] = [
-                    'Date' => $delivery_date,
+                    'Date' => $delivery_date_ymd,
                     'TimeSlot' => $time_slot_key,
                     'MaxQuantity' => $row['MaxQuantity'],
                     'OrderedQuantity' => $row['OrderedQuantity'],

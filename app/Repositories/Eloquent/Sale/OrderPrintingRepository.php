@@ -310,7 +310,7 @@ class OrderPrintingRepository extends Repository
                 }
                 //
             //
-    
+
             //order_products
                 foreach ($order->order_products as $order_product) {
                     $product_id = $order_product->product_id;
@@ -386,8 +386,7 @@ class OrderPrintingRepository extends Repository
                     }
                 }
             //end order_products
-            
-    
+                
             //order_product_options
                 //處理全部選項
                     foreach ($order->order_products as $order_product) {

@@ -6,9 +6,10 @@
           <td style="width:230px;" class="fw-bold">{{ $order['categories']['oilRiceBox']['name'] }}</td>
           <td style="width:24px;" class="fw-bold">小計
           @php $column_used_num = 2; @endphp
-          @foreach($order['categories']['oilRiceBox']['Columns']['MainMeal'] as $option_value_id => $name)
+
+          @foreach($columns['MainMeal'] ?? [] as $item)
             <td style="width:24px; @if ($loop->last) border-right:3px solid black @endif" class="fw-bold">
-              {{ $name }}
+              {{ $item->short_name }}
             </td>
             @php $column_used_num++; @endphp
           @endforeach
@@ -39,11 +40,14 @@
           <td>{{ $product['name'] }} ${{ $product['price'] }}</td>
           <td>{{ $product['quantity'] }}</td>
           @php $column_used_num = 2; @endphp
-          @foreach($order['categories']['oilRiceBox']['Columns']['MainMeal'] as $option_value_id => $name)
+
+          @foreach($columns['MainMeal'] ?? [] as $item)
             <td style="@if ($loop->last) border-right:3px solid black @endif">
-              @if(!empty($product['product_options']['MainMeal'][$option_value_id]['quantity']))
-                {{ $product['product_options']['MainMeal'][$option_value_id]['quantity'] }}
-              @endif
+              @foreach($item->option_value_ids as $option_value_id)
+                @if(!empty($product['product_options']['MainMeal'][$option_value_id]['quantity']))
+                  {{ $product['product_options']['MainMeal'][$option_value_id]['quantity'] }}
+                @endif
+              @endforeach
             </td>
             @php $column_used_num++; @endphp
           @endforeach
