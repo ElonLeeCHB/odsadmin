@@ -201,6 +201,10 @@ class OrderController extends ApiController
 
     public function getOrderPhrasesByTaxonomyCode($taxonomy_code)
     {
+        if ($taxonomy_code == 'order_tag'){
+            $taxonomy_code = 'OrderTag';
+        }
+        
         $query_data = $this->request->query();
 
         if(!isset($query_data['equal_is_active'])){

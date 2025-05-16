@@ -465,10 +465,8 @@ class OrderPrintingRepository extends Repository
                     }
                     $identifier = $order_product->identifier;
     
-                    // 判斷商品標籤是否有 盒餐(term_id=1330)
-                    $product_tag_ids = $order_product->productTags->pluck('term_id')->toArray();
-    
-                    if(!in_array(1330, $product_tag_ids)){
+                    // 判斷商品標籤是否有盒餐：1473, 1474，不是則略過。
+                    if (!in_array($printing_category_id, [1473, 1474])){
                         continue;
                     }
     
