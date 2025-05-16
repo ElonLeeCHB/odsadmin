@@ -21,7 +21,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('clear:cache')->daily();
         
         // 定期更新訂單統計
-        $schedule->job(new \App\Jobs\Sale\UpdateOrderByDatesJob)->everyFifteenMinutes();
+        $schedule->job(new \App\Jobs\Sale\UpdateOrderByDatesJob)->hourly();
+        
+        // 計算近三個月進貨均價
+        $schedule->job(new \App\Jobs\Inventory\CalculateRecentMaterialAveragePriceJob)->daily();
     }
 
     /**

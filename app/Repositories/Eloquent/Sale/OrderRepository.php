@@ -91,6 +91,7 @@ class OrderRepository extends Repository
                 'source'=>$data['source']
             ];
         }
+
         // 狀態
         if(!empty($data['filter_status_code']) && $data['filter_status_code'] == 'withoutV'){
             $data['filter_status_code'] = '<>Void';
@@ -526,12 +527,13 @@ class OrderRepository extends Repository
 
     public function create($data)
     {
+        unset($data['id']);
+        unset($data['order_id']);
+
         try {
             $order = new Order;
 
             $data = $order->prepareData(data:$data);
-
-            unset($data['id']);
 
             foreach ($data as $key => $value) {
                 $order->{$key} = $value;

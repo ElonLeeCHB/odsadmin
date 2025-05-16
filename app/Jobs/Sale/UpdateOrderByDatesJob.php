@@ -38,7 +38,7 @@ class UpdateOrderByDatesJob implements ShouldQueue
             
                     foreach ($updated_dates ?? [] as $updated_date) {
                         (new \App\Repositories\Eloquent\Sale\OrderDateLimitRepository)->refreshOrderedQuantityByDate($updated_date);
-                        (new \App\Repositories\Eloquent\Sale\OrderDailyRequisitionRepository)->handleByDate(required_date:$updated_date, force_update:false, is_return:false);
+                        (new \App\Repositories\Eloquent\Sale\OrderDailyRequisitionRepository)->getStatisticsByDate(required_date:$updated_date, force_update:false, is_return:false);
                         // (new \App\Repositories\Eloquent\Sale\OrderDailyRequirementRepository)->handleByDate(required_date:$updated_date, force_update:false, is_return:false);
                     }
         

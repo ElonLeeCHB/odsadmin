@@ -4,6 +4,7 @@ namespace App\Services\Sale;
 
 use Carbon\Carbon;
 
+// 物料需求，未完成
 class UpdateOrderDailyRequirementService
 {
     public function handleByDate($required_date, $return = false)

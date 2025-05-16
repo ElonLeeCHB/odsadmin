@@ -465,8 +465,8 @@ class OrderPrintingRepository extends Repository
                     }
                     $identifier = $order_product->identifier;
     
-                    // 判斷商品標籤是否有盒餐：1473, 1474，不是則略過。
-                    if (!in_array($printing_category_id, [1473, 1474])){
+                    // 判斷商品標籤是否有盒餐：1473(潤餅盒餐), 1474(刈包盒餐), 1478(客製盒餐)，不是則略過。
+                    if (!in_array($printing_category_id, [1473, 1474, 1478])){
                         continue;
                     }
     

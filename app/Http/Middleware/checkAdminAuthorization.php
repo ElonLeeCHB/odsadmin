@@ -33,9 +33,7 @@ class CheckAdminAuthorization
             }
 
             // 允許設定檔允許的 ip
-            $allowed_ips = config('settings.config_allowed_ip_addresses');
-            // echo "<pre>",print_r($allowed_ips,true),"</pre>";exit;
-            if(IpHelper::isAllowedIps(client_ip:$apiRequesterIp, allowed_ips: $allowed_ips)){
+            if(IpHelper::isAllowedIps(client_ip:$apiRequesterIp, allowed_ips: config('settings.config_allowed_ip_addresses'))){
                 $is_ip_allowed = true;
             };
 

@@ -20,30 +20,24 @@ class OrderService extends GlobalOrderService
     protected $modelName = "\App\Models\Sale\Order";
 
 
-    public function getSimplelist($filter_data)
+    public function getSimplelist($filters)
     {
-        // $builder = Order::query();
-        // $builder->select(Order::getDefaultListColumns());
-        
-        // if (!empty($filter_data['filter_phone'])) {
-        //     $builder->where(function ($query) use ($filter_data) {
-        //         $query->orWhere('mobile', 'like', '%' . $filter_data['filter_phone'] . '%');
-        //         $query->orWhere('telephone', 'like', '%' . $filter_data['filter_phone'] . '%');
-        //     });
-        // }
+       try {
 
-        // OrmHelper::applyFilters($builder, $filter_data);
-        // OrmHelper::sortOrder($builder, $filter_data['sort'] ?? null, $filter_data['order'] ?? null);
-        // $orders = OrmHelper::getResult($builder, $filter_data);
+           $filters['with'] = [];
 
-        // return $orders;
-        return $this->OrderRepository->getOrders($filter_data);
+           $filters['select'] = ['id', 'code', 'personal_name', 'delivery_date'];
+
+           return $this->getRows($filters);
+
+       } catch (\Exception $ex) {
+           return ['error' => $ex->getMessage()];
+       }
     }
 
 
-    public function getList($filter_data)
+    public function getList($filters)
     {
-        // return $this->getRows($filters);
-        return $this->OrderRepository->getOrders($filter_data);
+        return $this->getRows($filters);
     }
 }

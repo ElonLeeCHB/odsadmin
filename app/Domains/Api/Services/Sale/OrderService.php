@@ -198,27 +198,10 @@ class OrderService extends GlobalOrderService
                 $order->save();
                 // 訂單單頭結束
             // }
-            // echo "<pre>",print_r($order->toArray(),true),"</pre>\r\n";exit;
+
             // 訂單標籤
-                OrderTag::where('order_id', $order->id)->delete();
-
-                if(!empty($data['order_tags'])){
-                    if(is_array($data['order_tags'])){
-                        $tags = $data['order_tags'];
-                    }else{
-                        $tags = explode(',', $data['order_tags']);
-                    }
-
-                    foreach ($tags as $tag_id) {
-                        $upsert_data[] = [
-                            'order_id' => $order->id,
-                            'term_id' => $tag_id,
-                        ];
-                    }
-
-                    if(!empty($upsert_data)){
-                        OrderTag::upsert($upsert_data, ['id']);
-                    }
+                if (isset($data['order_tags'])) {
+                    $order->orderTags()->sync($data['order_tags']);
                 }
             //
 

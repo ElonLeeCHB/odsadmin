@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent\Sale;
 
 use App\Repositories\Eloquent\Repository;
 use App\Models\Sale\OrderProductOption;
+use App\Models\Catalog\ProductOptionValue;
 
 class OrderProductOptionRepository extends Repository
 {
@@ -15,10 +16,13 @@ class OrderProductOptionRepository extends Repository
             $rows = [];
 
             foreach ($arrOrderProductOptions ?? [] as $row) {
-                $row = $this->normalizeData($row, $order_id, $order_product_id);
+                unset($row['id']);
+                unset($row['order_product_option_id']);
+                
+                $row = $this->prepareData($row, $order_id, $order_product_id);
 
-                $row['created_at'] = now();
-                $row['updated_at'] = now();
+                $row['created_at'] = date('Y-m-d H:i:s');
+                $row['updated_at'] = date('Y-m-d H:i:s');
 
                 $rows[] = $row;
             }
@@ -42,7 +46,7 @@ class OrderProductOptionRepository extends Repository
         $rows = [];
 
         foreach ($arrOrderProductOptions as $row) {
-            $row = $this->normalizeData($row, $order_id, $order_product_id);
+            $row = $this->prepareData($row, $order_id, $order_product_id);
 
             if(empty($updateColumns)){
                 $updateColumns = array_keys($row);
@@ -56,12 +60,12 @@ class OrderProductOptionRepository extends Repository
                 unset($row['order_product_option_id']);
 
                 $row['created_at'] = now();
-                $row['updated_at'] = now();
             }
             //新增
             else{
                 unset($row['id']);
                 $row['created_at'] = now();
+                $row['updated_at'] = now();
             }
 
             $row['order_id'] = $order_id;
@@ -72,23 +76,24 @@ class OrderProductOptionRepository extends Repository
         return OrderProductOption::upsert($rows, ['id'], $updateColumns);
     }
 
-    public function normalizeData(array $data, $order_id, $order_product_id)
+    public function prepareData(array $data, $order_id, $order_product_id)
     {
-        return [
-            'order_id' => $order_id,
-            'order_product_id' => $order_product_id,
-            'product_id' => $data['product_id'] ?? 0,
-            'product_option_id' => $data['product_option_id'],
-            'product_option_value_id' => $data['product_option_value_id'],
-            'parent_product_option_value_id' => $data['parent_product_option_value_id'] ?? 0,
-            'name' => $data['name'],
-            'value' => $data['value'],
-            'type' => $data['type'],
-            'quantity' => $data['quantity'] ?? 0,
-            'option_id' => $data['option_id'] ?? 0,
-            'option_value_id' => $data['option_value_id'] ?? 0,
-            'map_product_id' => $data['map_product_id'] ?? 0,
-        ];
+        
+        $data['product_option_id'] = $data['product_option_id'] ?? 0;
+
+        if (empty($data['product_option_value_id']) && !empty($option_id) && !empty($option_value_id)){
+            $data['product_option_value_id'] = ProductOptionValue::where('product_option_id', $data['product_option_id'])
+                ->where('option_id', $data['option_id'])
+                ->where('option_value_id', $data['option_value_id'])
+                ->value('id');
+        }
+
+        $data['parent_product_option_value_id'] = $data['parent_product_option_value_id'] ?? 0;
+        $data['option_id'] = $data['option_id'] ?? 0;
+        $data['option_value_id'] = $data['option_value_id'] ?? 0;
+        $data['map_product_id'] = $data['map_product_id'] ?? 0;
+
+        return $data;
     }
 }
 

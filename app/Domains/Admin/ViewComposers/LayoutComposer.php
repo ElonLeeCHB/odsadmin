@@ -77,14 +77,23 @@ class LayoutComposer
         }
         */
 
-        if(1) {
-            $Catalog[] = [
-                'name'	   => 'POS商品分類',
-                'icon'	   => '',
-                'href'     => route('lang.admin.catalog.poscategories.index', ['equal_is_active' => 1]),
-                'children' => []
-            ];
-        }
+        // if(1) {
+        //     $Catalog[] = [
+        //         'name'	   => 'POS商品分類',
+        //         'icon'	   => '',
+        //         'href'     => route('lang.admin.catalog.poscategories.index', ['equal_is_active' => 1]),
+        //         'children' => []
+        //     ];
+        // }
+
+        // if(1) {
+        //     $Catalog[] = [
+        //         'name'	   => '訂單列印分類',
+        //         'icon'	   => '',
+        //         'href'     => route('lang.admin.catalog.order-printing-categories.index', ['equal_is_active' => 1]),
+        //         'children' => []
+        //     ];
+        // }
 
         if(1) {
             $Catalog[] = [

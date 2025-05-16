@@ -213,7 +213,9 @@
                         <td class="text-left" style="width:100px;">進貨<BR>金額</td>
                         <td class="text-left" style="width:80px;">庫存<BR>單位</td>
                         <td class="text-left" style="width:100px;">庫存<BR>單價</td>
+                        <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="最近三個月進貨單價平均" style="font-weight: bolder;" >近期<BR>均價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
                         <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="轉入庫存數量" style="font-weight: bolder;" >入庫<BR>數量 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
+
                       </tr>
                     </thead>
                     <tbody>
@@ -263,6 +265,9 @@
                         </td>
                         <td class="text-start">
                           <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? 0 }}" class="form-control" readonly>
+                        </td>
+                        <td class="text-start">
+                          <input type="text" id="input-products-average_stock_price-{{ $product_row }}" name="products[{{ $product_row }}][average_stock_price]" value="{{ $receiving_product->average_stock_price }}" class="form-control" readonly>
                         </td>
                         <td class="text-start">
                           <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">

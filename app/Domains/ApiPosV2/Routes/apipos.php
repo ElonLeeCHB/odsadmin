@@ -72,6 +72,9 @@ Route::group([
             Route::post('orders/update/{id}', 'Sale\OrderController@update')->name('orders.update');
             Route::post('orders/updateHeader/{id}', 'Sale\OrderController@updateHeader')->name('orders.updateHeader');
 
+            // 訂單標籤基本資料
+            Route::get('order-tags/list', 'Sale\OrderController@orderTagsList')->name('orderTags.list');
+
             Route::group([
                 'prefix' => 'orderlimit',
                 'as' => 'orderlimit.',

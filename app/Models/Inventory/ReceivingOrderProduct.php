@@ -33,7 +33,7 @@ class ReceivingOrderProduct extends Model
         return $this->belongsTo(Product::class, 'product_id', 'id');
     }
 
-    public function product_units()
+    public function productUnits()
     {
         return $this->hasMany(ProductUnit::class,'product_id', 'product_id');
     }
@@ -44,27 +44,27 @@ class ReceivingOrderProduct extends Model
 
     public function price(): Attribute
     {
-        return $this->setNumberAttribute($this->attributes['price'],2);
+        return $this->setNumberAttribute($this->attributes['price'] ?? 0,2);
     }
 
     public function amount(): Attribute
     {
-        return $this->setNumberAttribute($this->attributes['amount'],2);
+        return $this->setNumberAttribute($this->attributes['amount'] ?? 0,2);
     }
 
     public function receivingQuantity(): Attribute
     {
-        return $this->setNumberAttribute($this->attributes['receiving_quantity'],4); //必須4位。曾有某菜商先用兩計算，然後給15兩，進貨單上寫 0.9375台斤。
+        return $this->setNumberAttribute($this->attributes['receiving_quantity'] ?? 0,4); //必須4位。曾有某菜商先用兩計算，然後給15兩，進貨單上寫 0.9375台斤。
     }
 
     public function stockPrice(): Attribute
     {
-        return $this->setNumberAttribute($this->attributes['stock_price'],2);
+        return $this->setNumberAttribute($this->attributes['stock_price'] ?? 0,2);
     }
 
     public function stockQuantity(): Attribute
     {
-        return $this->setNumberAttribute($this->attributes['stock_quantity'],4);
+        return $this->setNumberAttribute($this->attributes['stock_quantity'] ?? 0,4);
     }
 
     

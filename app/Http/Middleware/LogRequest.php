@@ -19,7 +19,7 @@ class LogRequest extends Middleware
     
             (new \App\Repositories\Eloquent\SysData\LogRepository)->logRequest($this->uniqueid);
         }
-
+    
         return $next($request);
 
         // 舊資料表

@@ -380,41 +380,46 @@ class DataHelper
         }
     }
 
+    // 對於資料集，使各筆的 sort_order 欄位從 1 遞增，並且讓各筆的索引 =  sort_order
     public static function resetSortOrder($collection)
     {
-        //整理排序
+        // 將所有空或未設定的 sort_order 設為 0
         foreach ($collection as &$row) {
             if (empty($row['sort_order'])) {
                 $row['sort_order'] = 0;
             }
         }
 
+        // 將 collection 按照 sort_order 排序（0 排在後面）
         usort($collection, function ($a, $b) {
             if ($a['sort_order'] == 0 && $b['sort_order'] == 0) {
-                return 0; // 若兩者都是 0，保持原順序
+                return 0;
             }
             if ($a['sort_order'] == 0) {
-                return 1; // $a 的 sort_order 為 0，應排在後面
+                return 1;
             }
             if ($b['sort_order'] == 0) {
-                return -1; // $b 的 sort_order 為 0，應排在後面
+                return -1;
             }
-            return $a['sort_order'] <=> $b['sort_order']; // 非 0 的情況下升冪排序
+            return $a['sort_order'] <=> $b['sort_order'];
         });
 
-        // 給所有 sort_order 為 0 的項目重新編號，從最大的 non-zero sort_order 開始遞增
-        $sortOrderCounter = count(array_filter($collection, function ($row) {
-            return $row['sort_order'] !== 0; // 計算非 0 的項目數量
-        })) + 1; // 確保從最大的 non-zero sort_order 開始編號
+        // 找出目前最大的非 0 sort_order，如果都沒有就從 1 開始
+        $maxSortOrder = max(array_map(function ($row) {
+            return $row['sort_order'];
+        }, $collection));
 
-        // 重新編號所有 sort_order 為 0 的項目
+        $sortOrderCounter = ($maxSortOrder > 0) ? $maxSortOrder + 1 : 1;
+
+        // 將 sort_order = 0 的項目重新編號
         foreach ($collection as &$row) {
             if ($row['sort_order'] == 0) {
-                $row['sort_order'] = $sortOrderCounter++; // 重新編號
+                $row['sort_order'] = $sortOrderCounter++;
             }
         }
 
-        // 最後重新索引，讓陣列的索引等於 sort_order
+        // 重新依照 sort_order 編為 key 回傳
         return array_column($collection, null, 'sort_order');
     }
+
 }

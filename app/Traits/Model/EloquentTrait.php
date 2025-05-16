@@ -77,6 +77,11 @@ trait EloquentTrait
         return $row;
     }
 
+    public function findOrFail($id)
+    {
+        return $this->newModel()->findOrFail($id);
+    }
+
     public function findIdOrNew($id, $params = null, $debug = 0)
     {
         //find
