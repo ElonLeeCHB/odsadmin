@@ -311,7 +311,7 @@ class OrderDailyRequisitionRepository
         //
 
         // 全日加總
-            $total_package = 0; //套餐
+            // $total_package = 0; //套餐
             $total_bento = 0; //便當
             $total_lunchbox = 0; //盒餐
             $total_oil_rice_box = 0; //油飯盒
@@ -327,66 +327,29 @@ class OrderDailyRequisitionRepository
                     if(!empty($orderProduct->productTags)){
                         $product_tag_ids = optional($orderProduct->productTags)->pluck('term_id')->toArray() ?? [];
                     }
-
                     //1331 套餐, 1330 盒餐, 1329 便當, 1437 素食, 1440 刈包, 1441 潤餅, 1443 油飯盒, 1461 美味單點
 
-                    $product_tag_ids = $product_tag_ids ?? [];
-                    
+                    $printing_category_id = $orderProduct->product->pringting_category_id;      
+
+                    // $product_tag_ids = $product_tag_ids ?? [];
+                    //1471=潤餅便當 1472=刈包便當 1473=潤餅盒餐 1474=刈包盒餐 1475=油飯盒 1477=客製便當 1478=客製盒餐
+                    $set_meal_printing_category_ids = [1471, 1472, 1473, 1474, 1475, 1477, 1478];
+
                     // 套餐
-                    if(in_array(1331, $product_tag_ids)){ // 1331 套餐
-
-                        if(in_array(1329, $product_tag_ids)){ // 1329 便當
+                    if (in_array($printing_category_id, $set_meal_printing_category_ids)) {
+                        // 便當 1471=潤餅便當 1472=刈包便當 1477=客製便當
+                        if (in_array($printing_category_id, [1471, 1472, 1477])) {
                             $total_bento += $orderProduct->quantity;
-
-                            if(in_array(1441, $product_tag_ids)){ // 1441 潤餅
-                                $total_3inlumpia += $orderProduct->quantity;
-                                $statistics['test']['3inlumpia'][] = [
-                                    'order_id' => $orderProduct->order_id,
-                                    'order_product_id' => $orderProduct->id,
-                                    'order_product_name' => $orderProduct->name,
-                                    'quantity' => $orderProduct->quantity,
-                                ];
-                            }
-                            else if(in_array(1440, $product_tag_ids)){ // 1440 刈包
-                                $total_small_guabao += $orderProduct->quantity;
-                            }
                         }
-                        else if(in_array(1330, $product_tag_ids)){ // 1330 盒餐
+
+                        // 盒餐 1473=潤餅盒餐 1474=刈包盒餐 1478=客製盒餐
+                        if (in_array($printing_category_id, [1473, 1474, 1478])) {
                             $total_lunchbox += $orderProduct->quantity;
+                        }
 
-                            if(in_array(1441, $product_tag_ids)){ // 1441 潤餅
-                                $total_3inlumpia += $orderProduct->quantity;
-                                $statistics['test']['3inlumpia'][] = [
-                                    'order_id' => $orderProduct->order_id,
-                                    'order_product_id' => $orderProduct->id,
-                                    'order_product_name' => $orderProduct->name,
-                                    'quantity' => $orderProduct->quantity,
-                                ];
-                            }
-                            else if(in_array(1440, $product_tag_ids)){ // 1440 刈包
-                                $total_small_guabao += $orderProduct->quantity;
-                            }
-                        }
-                        else if(in_array(1443, $product_tag_ids)){ // 1443 油飯盒
+                        // 油飯盒 1475=油飯盒
+                        if (in_array($printing_category_id, [1475])) {
                             $total_oil_rice_box += $orderProduct->quantity;
-                        }
-                    }
-                    // 單點
-                    else if(in_array(1461, $product_tag_ids)){ // 1461 美味單點
-                        if(in_array(1461, $product_tag_ids)){ // 1440 刈包
-                            $total_big_guabao += $orderProduct->quantity;
-                        } else if(in_array(1441, $product_tag_ids)){ // 1441 潤餅
-                            $total_3inlumpia += $orderProduct->quantity * 2;
-                        }
-                    }
-                    //單點 其它商品組
-                    else if ($orderProduct->product_id == 1062){
-                        foreach ($orderProduct->orderProductOptions as $orderProductOption) {
-                            if ($orderProductOption->option_id == 1017){ //1017 = 大刈包
-                                $total_big_guabao += $orderProductOption->quantity;
-                            } else if ($orderProductOption->option_id == 1009){ //1009 = 6吋潤餅
-                                $total_3inlumpia += $orderProductOption->quantity * 2;
-                            }
                         }
                     }
                 }
@@ -396,12 +359,14 @@ class OrderDailyRequisitionRepository
             $statistics['info']['total_bento']         = $total_bento;
             $statistics['info']['total_lunchbox']      = $total_lunchbox;
             $statistics['info']['total_oil_rice_box']  = $total_oil_rice_box;
-            $statistics['info']['total_3inlumpia']     = $total_3inlumpia; //含春捲
-            $statistics['info']['total_6inlumpia']     = $total_3inlumpia/2; //不含春捲，要再改
-            $statistics['info']['total_small_guabao']  = $total_small_guabao;
-            $statistics['info']['total_big_guabao']    = $total_big_guabao;
-            $statistics['info']['total_oil_rice_box']  = $total_oil_rice_box;
-            $statistics['info']['total_package']       = $total_bento + $total_lunchbox + $total_oil_rice_box;
+            $statistics['info']['total_set']            = $total_bento + $total_lunchbox + $total_oil_rice_box;
+
+            // $statistics['info']['total_3inlumpia']     = $total_3inlumpia; //含春捲
+            // $statistics['info']['total_6inlumpia']     = $total_3inlumpia/2; //不含春捲，要再改
+            // $statistics['info']['total_small_guabao']  = $total_small_guabao;
+            // $statistics['info']['total_big_guabao']    = $total_big_guabao;
+            // $statistics['info']['total_oil_rice_box']  = $total_oil_rice_box;
+            // $statistics['info']['total_package']       = $total_bento + $total_lunchbox + $total_oil_rice_box;
             
             $statistics['info']['required_date_ymd']  = $required_date_ymd;
         //

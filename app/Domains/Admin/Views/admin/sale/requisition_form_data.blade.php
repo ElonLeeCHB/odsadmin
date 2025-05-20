@@ -1,18 +1,10 @@
 
 <strong>需求日期： {{ $statistics['info']['required_date_ymd'] ?? ''}}</strong> <BR>
 更新時間： {{ $statistics['cache_created_at'] ?? '' }}<BR>
-套餐數(盒餐、便當、油飯盒):{{ $statistics['info']['total_package'] ?? 0 }}, &nbsp;
+套餐數(盒餐、便當、油飯盒):{{ $statistics['info']['total_set'] ?? 0 }}, &nbsp;
 盒餐:{{ $statistics['info']['total_lunchbox'] ?? 0 }}, &nbsp;
 便當:{{ $statistics['info']['total_bento'] ?? 0 }}, &nbsp;
 油飯盒:{{ $statistics['info']['total_oil_rice_box'] ?? 0 }}, &nbsp;
-  {{-- 
-  3吋潤餅:{{ $statistics['info']['total_3inlumpia'] ?? 0 }}, &nbsp;
-  6吋潤餅:{{ ceil($statistics['info']['total_6inlumpia']) ?? 0 }}({{ $statistics['info']['total_3inlumpia'] ?? 0 }}/2), &nbsp;
-  春捲:{{ $statistics['info']['total_spring_roll'] ?? 0 }}, &nbsp;
-  小刈包:{{ $statistics['info']['total_small_guabao'] ?? 0 }}, &nbsp;
-  大刈包:{{ $statistics['info']['total_big_guabao'] ?? 0 }}, &nbsp;<BR>
-    --}}
-
 
 <div class="table-responsive text-end mx-auto" id="tableContainer">
   <style>
