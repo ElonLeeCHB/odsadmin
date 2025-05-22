@@ -98,4 +98,28 @@ class QuantityControlController extends ApiPosController
 
         return $this->sendJsonResponse($result);
     }
+
+    public function quickSaveOrder()
+    {
+        try {
+
+            if (empty($this->post_data['order_id'])){
+                $json['errors']['order_id'] = '訂單ID錯誤';
+            }
+
+            if(empty($json)){
+                $order = $this->QuantityControlService->quickSaveOrder($this->post_data);
+
+                $json = [
+                    'id' => $order->id,
+                    'code' => $order->code,
+                    'comment' => $order->comment,
+                ];
+    
+                return $this->sendJsonResponse(data:$json, status_code:200, message:'更新成功');
+            }
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
+        }
+    }
 }

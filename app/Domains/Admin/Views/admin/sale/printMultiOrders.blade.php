@@ -166,6 +166,16 @@
         <tr>
         <td style="width:100px;" >統計</td>
         <td>
+            @if(!empty($order['statistics']['oilRiceBox']['name']))
+              {{ $order['statistics']['oilRiceBox']['name'] }}*{{ $order['statistics']['oilRiceBox']['quantity'] }}, 
+            @endif
+            @if(!empty($order['statistics']['bento']['name']))
+              {{ $order['statistics']['bento']['name'] }}*{{ $order['statistics']['bento']['quantity'] }}, 
+            @endif
+            @if(!empty($order['statistics']['lunchbox']['name']))
+              {{ $order['statistics']['lunchbox']['name'] }}*{{ $order['statistics']['lunchbox']['quantity'] }}, 
+            @endif
+            
             @foreach($order['statistics']['drinks'] ?? [] as $drink)
             {{ $drink['value'] }}:{{ $drink['quantity'] }}, 
             @endforeach

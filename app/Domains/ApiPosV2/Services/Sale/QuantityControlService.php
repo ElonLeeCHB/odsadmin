@@ -149,4 +149,15 @@ class QuantityControlService extends Service
         
         return $orders;
     }
+
+    public function quickSaveOrder($post_data)
+    {
+        $order_id = $post_data['order_id'];
+
+        $order = Order::select(['id','code','comment'])->find($order_id);
+        $order->comment = $post_data['comment'];
+        $order->save();
+
+        return $order;
+    }
 }

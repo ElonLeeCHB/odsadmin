@@ -101,6 +101,9 @@ Route::group([
 
                 // 某日訂單列表
                 Route::get('order-list/{delivery_date}', 'Sale\QuantityControlController@orderList')->name('orderList');
+
+                // 儲存訂單快速編輯
+                Route::post('orders/save', 'Sale\QuantityControlController@quickSaveOrder')->name('quickSaveOrder');
             });
 
             

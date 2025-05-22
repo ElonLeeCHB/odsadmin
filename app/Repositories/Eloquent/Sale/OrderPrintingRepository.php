@@ -315,111 +315,111 @@ class OrderPrintingRepository extends Repository
             //
 
             //order_products
-                foreach ($order->order_products as $order_product) {
-                    $product_id = $order_product->product_id;
-                    $printing_category_id = $order_product->product->pringting_category_id;
+                foreach ($order->orderProducts as $orderProduct) {
+                    $product_id = $orderProduct->product_id;
+                    $printing_category_id = $orderProduct->product->pringting_category_id;
 
                     //product_id
                         // 注意！ 客製餐點不合併，所以將 product_id 加再上 sort_order 做為新的 product_id
-                        // 後面必須使用 $product_id, 不能再使用 $order_product->product_id
+                        // 後面必須使用 $product_id, 不能再使用 $orderProduct->product_id
                         if ($printing_category_id != 1478){ // 不是客製
-                            $product_id = $order_product->product_id;
+                            $product_id = $orderProduct->product_id;
                         }else{
-                            $product_id = $order_product->product_id . '-' . $product_id = $order_product->sort_order;
+                            $product_id = $orderProduct->product_id . '-' . $product_id = $orderProduct->sort_order;
                         }
                     //
 
                     // 設定分類
                         if ($printing_category_id == 1475){
-                            $order_product->identifier = 'oilRiceBox';
-                            $printingRowsByCategory[$order_product->identifier]['name'] = '油飯盒';
+                            $orderProduct->identifier = 'oilRiceBox';
+                            $printingRowsByCategory[$orderProduct->identifier]['name'] = '油飯盒';
                         }
                         else if ($printing_category_id == 1471){
-                            $order_product->identifier = 'lumpiaBento';
-                            $printingRowsByCategory[$order_product->identifier]['name'] = '潤餅便當';
+                            $orderProduct->identifier = 'lumpiaBento';
+                            $printingRowsByCategory[$orderProduct->identifier]['name'] = '潤餅便當';
                         }
                         else if ($printing_category_id == 1472){
-                            $order_product->identifier = 'guabaoBento';
-                            $printingRowsByCategory[$order_product->identifier]['name'] = '刈包便當';
+                            $orderProduct->identifier = 'guabaoBento';
+                            $printingRowsByCategory[$orderProduct->identifier]['name'] = '刈包便當';
                         }
                         else if ($printing_category_id == 1473){
-                            $order_product->identifier = 'lumpiaLunchBox';
-                            $printingRowsByCategory[$order_product->identifier]['name'] = '潤餅盒餐';
+                            $orderProduct->identifier = 'lumpiaLunchBox';
+                            $printingRowsByCategory[$orderProduct->identifier]['name'] = '潤餅盒餐';
                         }
                         else if ($printing_category_id == 1474){
-                            $order_product->identifier = 'guabaoLunchBox';
-                            $printingRowsByCategory[$order_product->identifier]['name'] = '刈包盒餐';
+                            $orderProduct->identifier = 'guabaoLunchBox';
+                            $printingRowsByCategory[$orderProduct->identifier]['name'] = '刈包盒餐';
                         }
                         else if ($printing_category_id == 1477){
-                            $order_product->identifier = 'customBento';
-                            $printingRowsByCategory[$order_product->identifier]['name'] = '客製便當';
+                            $orderProduct->identifier = 'customBento';
+                            $printingRowsByCategory[$orderProduct->identifier]['name'] = '客製便當';
                         }
                         else if ($printing_category_id == 1478){
-                            $order_product->identifier = 'customLunchbox';
-                            $printingRowsByCategory[$order_product->identifier]['name'] = '客製盒餐';
+                            $orderProduct->identifier = 'customLunchbox';
+                            $printingRowsByCategory[$orderProduct->identifier]['name'] = '客製盒餐';
                         }
                         else if ($printing_category_id == 1476){
-                            $order_product->identifier = 'otherFlavors';
-                            $printingRowsByCategory[$order_product->identifier]['name'] = '其它口味餐點';
+                            $orderProduct->identifier = 'otherFlavors';
+                            $printingRowsByCategory[$orderProduct->identifier]['name'] = '其它口味餐點';
                         }
                         else {
-                            $order_product->identifier = 'otherCategory';
-                            $printingRowsByCategory[$order_product->identifier]['name'] = '其它';
+                            $orderProduct->identifier = 'otherCategory';
+                            $printingRowsByCategory[$orderProduct->identifier]['name'] = '其它';
                         }
     
-                        $identifier = $order_product->identifier;
+                        $identifier = $orderProduct->identifier;
                     //
 
                     // 設定新的訂單商品集合 $printingRowsByCategory
                         if(!isset($printingRowsByCategory[$identifier]['items'][$product_id])){
-                            $printingRowsByCategory[$identifier]['items'][$product_id]['product_id'] = $product_id; //$product_id 有變化過，不能使用 $order_product->product_id
-                            $printingRowsByCategory[$identifier]['items'][$product_id]['identifier'] = $order_product->identifier;
-                            $printingRowsByCategory[$identifier]['items'][$product_id]['name'] = $order_product->name;
-                            $printingRowsByCategory[$identifier]['items'][$product_id]['price'] = (int)$order_product->price;
-                            $printingRowsByCategory[$identifier]['items'][$product_id]['final_total'] = (int)$order_product->final_total;
+                            $printingRowsByCategory[$identifier]['items'][$product_id]['product_id'] = $product_id; //$product_id 有變化過，不能使用 $orderProduct->product_id
+                            $printingRowsByCategory[$identifier]['items'][$product_id]['identifier'] = $orderProduct->identifier;
+                            $printingRowsByCategory[$identifier]['items'][$product_id]['name'] = $orderProduct->name;
+                            $printingRowsByCategory[$identifier]['items'][$product_id]['price'] = (int)$orderProduct->price;
+                            $printingRowsByCategory[$identifier]['items'][$product_id]['final_total'] = (int)$orderProduct->final_total;
                             $printingRowsByCategory[$identifier]['items'][$product_id]['quantity'] = 0;
                         }
     
-                        $printingRowsByCategory[$identifier]['items'][$product_id]['quantity'] += $order_product->quantity;
+                        $printingRowsByCategory[$identifier]['items'][$product_id]['quantity'] += $orderProduct->quantity;
                     //
 
 
                     // //商品標籤
-                    // if(!empty($order_product->productTags)){
+                    // if(!empty($orderProduct->productTags)){
                     //     $printingRowsByCategory[$identifier]['items'][$product_id]['product_tag_ids'] = array_map(function($tag) {
                     //         return $tag['term_id'];
-                    //     }, $order_product->productTags->toArray());
+                    //     }, $orderProduct->productTags->toArray());
                     // }
                     
                     //商品POS分類
-                    if(!empty($order_product->productPosCategories)){
+                    if(!empty($orderProduct->productPosCategories)){
                         $printingRowsByCategory[$identifier]['items'][$product_id]['product_pos_category_ids'] = array_map(function($category) {
                             return $category['term_id'];
-                        }, $order_product->productPosCategories->toArray());
+                        }, $orderProduct->productPosCategories->toArray());
                     }
                 }
             //end order_products
                 
             //order_product_options
                 //處理全部選項
-                    foreach ($order->order_products as $order_product) {
-                        $printing_category_id = $order_product->product->pringting_category_id;
+                    foreach ($order->orderProducts as $orderProduct) {
+                        $printing_category_id = $orderProduct->product->pringting_category_id;
 
                         //product_id
                             // 注意！ 客製餐點不合併，所以將 product_id 加再上 sort_order 做為新的 product_id
-                            // 後面必須使用 $product_id, 不能再使用 $order_product->product_id
+                            // 後面必須使用 $product_id, 不能再使用 $orderProduct->product_id
                             if ($printing_category_id != 1478){ // 不是客製
-                                $product_id = $order_product->product_id;
+                                $product_id = $orderProduct->product_id;
                             }else{
-                                $product_id = $order_product->product_id . '-' . $product_id = $order_product->sort_order;
+                                $product_id = $orderProduct->product_id . '-' . $product_id = $orderProduct->sort_order;
                             }
                         //                        
 
-                        $identifier = $order_product->identifier;
+                        $identifier = $orderProduct->identifier;
     
-                        foreach ($order_product->order_product_options as $order_product_option) {
-                            $option_id = $order_product_option->option_id;
-                            $option_value_id = $order_product_option->option_value_id;
+                        foreach ($orderProduct->order_product_options as $orderProduct_option) {
+                            $option_id = $orderProduct_option->option_id;
+                            $option_value_id = $orderProduct_option->option_value_id;
     
                             if($option_id == 1003){ //主餐 1003
                                 $tmp_option_type = 'MainMeal';
@@ -442,21 +442,21 @@ class OrderPrintingRepository extends Repository
                                 $printingRowsByCategory[$identifier]['Columns'][$tmp_option_type] = [];
                             }
     
-                            if(empty($printingRowsByCategory[$identifier]['Columns'][$tmp_option_type][$option_value_id]) && !empty($order_product_option->optionValue->translation->short_name)){
-                                $printingRowsByCategory[$identifier]['Columns'][$tmp_option_type][$option_value_id] = $order_product_option->optionValue->translation->short_name;
+                            if(empty($printingRowsByCategory[$identifier]['Columns'][$tmp_option_type][$option_value_id]) && !empty($orderProduct_option->optionValue->translation->short_name)){
+                                $printingRowsByCategory[$identifier]['Columns'][$tmp_option_type][$option_value_id] = $orderProduct_option->optionValue->translation->short_name;
     
                             }
     
                             //設定各筆商品
                             if(!isset($printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id])){
                                 
-                                $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['parent_product_option_value_id'] = $order_product_option->parent_product_option_value_id;
-                                $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['map_product_id'] = $order_product_option->map_product_id;
-                                $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['value'] = $order_product_option->value;
+                                $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['parent_product_option_value_id'] = $orderProduct_option->parent_product_option_value_id;
+                                $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['map_product_id'] = $orderProduct_option->map_product_id;
+                                $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['value'] = $orderProduct_option->value;
                                 $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['quantity'] = 0;
                             }
     
-                            $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['quantity'] += $order_product_option->quantity;
+                            $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['quantity'] += $orderProduct_option->quantity;
                         }
                     }
                 //             
@@ -575,7 +575,51 @@ class OrderPrintingRepository extends Repository
 
             //statistics
                 $statistics = [];
-    
+
+                //便當系列
+                    $tmp_array = [1471, 1472];
+                    foreach ($order->orderProducts as $orderProduct) {
+                        $printing_category_id = $orderProduct->product->pringting_category_id;
+
+                        if ($printing_category_id == 1475){
+                            $orderProduct->identifier = 'oilRiceBox';
+
+                            if (!isset($statistics[$orderProduct->identifier])) {
+                                $statistics[$orderProduct->identifier] = [
+                                    'name' => '油飯盒',
+                                    'quantity' => 0,
+                                ];
+                            }
+
+                            $statistics[$orderProduct->identifier]['quantity'] += $orderProduct->quantity;
+                        }
+                        else if (in_array($printing_category_id, [1471, 1472])){ //潤餅便當,刈包便當
+                            $orderProduct->identifier = 'bento';
+
+                            if (!isset($statistics[$orderProduct->identifier])) {
+                                $statistics[$orderProduct->identifier] = [
+                                    'name' => '便當',
+                                    'quantity' => 0,
+                                ];
+                            }
+
+                            $statistics[$orderProduct->identifier]['quantity'] += $orderProduct->quantity;
+                        }
+                        else if (in_array($printing_category_id, [1473, 1474])){ //潤餅盒餐,刈包盒餐
+                            $orderProduct->identifier = 'lunchbox';
+
+                            if (!isset($statistics[$orderProduct->identifier])) {
+                                $statistics[$orderProduct->identifier] = [
+                                    'name' => '盒餐',
+                                    'quantity' => 0,
+                                ];
+                            }
+
+                            $statistics[$orderProduct->identifier]['quantity'] += $orderProduct->quantity;
+                        }
+                    }
+                //
+                
                 $tmpRows = [];
                 foreach ($printingRowsByCategory as $identifier => $category) {
                     foreach ($category['items'] ?? [] as $product_id => $product) {

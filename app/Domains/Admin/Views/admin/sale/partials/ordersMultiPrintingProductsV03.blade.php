@@ -759,18 +759,17 @@
       <td style="width:100px;" >單點(B)</td>
       <td>
         @foreach($order['categories']['solo1062']['items']['product_options']['Lumpia6inch'] ?? [] as $option_value_id => $row)
-          {{ $row['value'] }}*{{ $row['quantity'] }}, 
+          {{ $row['value'] }}*{{ $row['quantity'] }}, <BR>
         @endforeach
         
         @if(!empty($order['categories']['solo1062']['items']['product_options']['BigGuabao'] ))
-          <BR>
           @foreach($order['categories']['solo1062']['items']['product_options']['BigGuabao'] ?? [] as $option_value_id => $row)
-            {{ $row['value'] }}*{{ $row['quantity'] }}, 
+            {{ $row['value'] }}*{{ $row['quantity'] }}, <BR>
           @endforeach
         @endif
 
         @if(!empty($order['categories']['solo1062']['items']['product_options']['Other']))
-          <BR>
+          
           @foreach($order['categories']['solo1062']['items']['product_options']['Other'] ?? [] as $option_value_id => $row)
             {{ $row['value'] }}*{{ $row['quantity'] }}, 
           @endforeach
