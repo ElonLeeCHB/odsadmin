@@ -133,7 +133,7 @@ class QuantityControlService extends Service
         $start = $delivery_date_ymd . ' 00:00:00';
         $end = $delivery_date_ymd . ' 23:59:59';
     
-        $orders = Order::select(['id', 'code', 'delivery_time_range', 'shipping_state_id', 'shipping_city_id', 'shipping_road', 'delivery_date', 'quantity_for_control', ])
+        $orders = Order::select(['id', 'code', 'delivery_time_range', 'shipping_state_id', 'shipping_city_id', 'shipping_road', 'delivery_date', 'quantity_for_control', 'comment', 'extra_comment'])
                     ->with('shippingState')
                     ->with('shippingCity')
                     ->whereBetween('delivery_date', [$start, $end])

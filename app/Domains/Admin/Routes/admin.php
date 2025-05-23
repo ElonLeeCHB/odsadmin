@@ -250,6 +250,7 @@ Route::group(
                // Route::get('receivings/export01', 'Inventory\ReceivingOrderController@export01')->name('receivings.export01'); //測試使用
                 Route::post('receivings/export01', 'Inventory\ReceivingOrderController@export01')->name('receivings.export01');
                 Route::post('receivings/saveStatusCode', 'Inventory\ReceivingOrderController@saveStatusCode')->name('receivings.saveStatusCode');
+                Route::get('receivings/searchProduct', 'Inventory\ReceivingOrderController@searchProduct')->name('receivings.searchProduct');
 
                 Route::get('countings', 'Inventory\CountingController@index')->name('countings.index');
                 Route::get('countings/form/{id?}', 'Inventory\CountingController@form')->name('countings.form');

@@ -147,6 +147,11 @@ class Product extends Model
         return $this->hasMany(ProductUnit::class,'product_id', 'id');
     }
 
+    public function productUnits()
+    {
+        return $this->hasMany(ProductUnit::class,'product_id', 'id');
+    }
+
 
     public function supplier()
     {

@@ -98,7 +98,6 @@ class ProductController extends BackendController
 
         $products = $this->ProductService->getList($query_data);
 
-echo "<pre>", print_r($products, true), "</pre>";exit;
         if(!empty($products)){
             $products->load('main_category');
 
