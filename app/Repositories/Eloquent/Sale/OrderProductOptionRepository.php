@@ -78,22 +78,23 @@ class OrderProductOptionRepository extends Repository
 
     public function prepareData(array $data, $order_id, $order_product_id)
     {
-        
-        $data['product_option_id'] = $data['product_option_id'] ?? 0;
+        $array = [
+            'order_id' => $order_id,
+            'order_product_id' => $order_product_id,
+            'product_id' => $data['product_id'] ?? 0,
+            'product_option_id' => $data['product_option_id'] ?? 0,
+            'product_option_value_id' => $data['product_option_value_id'],
+            'parent_product_option_value_id' => $data['parent_product_option_value_id'] ?? 0,
+            'name' => $data['name'],
+            'value' => $data['value'],
+            'type' => $data['type'],
+            'quantity' => $data['quantity'] ?? 0,
+            'option_id' => $data['option_id'] ?? 0,
+            'option_value_id' => $data['option_value_id'] ?? 0,
+            'map_product_id' => $data['map_product_id'] ?? 0,
+        ];
 
-        if (empty($data['product_option_value_id']) && !empty($option_id) && !empty($option_value_id)){
-            $data['product_option_value_id'] = ProductOptionValue::where('product_option_id', $data['product_option_id'])
-                ->where('option_id', $data['option_id'])
-                ->where('option_value_id', $data['option_value_id'])
-                ->value('id');
-        }
-
-        $data['parent_product_option_value_id'] = $data['parent_product_option_value_id'] ?? 0;
-        $data['option_id'] = $data['option_id'] ?? 0;
-        $data['option_value_id'] = $data['option_value_id'] ?? 0;
-        $data['map_product_id'] = $data['map_product_id'] ?? 0;
-
-        return $data;
+        return $array;
     }
 }
 
