@@ -170,7 +170,19 @@
                     </div>
                   </div>
 
+                  <div class="row mb-3">
+                    <label for="input-updated_date" class="col-sm-2 col-form-label">修改時間</label>
+                    <div class="col-sm-10">
+                      <input type="text" value="{{ $receiving_order->updated_at }}" class="form-control" disabled/>
+                    </div>
+                  </div>
 
+                  <div class="row mb-3">
+                    <label for="input-created_date" class="col-sm-2 col-form-label">建立時間</label>
+                    <div class="col-sm-10">
+                      <input type="text" value="{{ $receiving_order->created_at }}" class="form-control" disabled/>
+                    </div>
+                  </div>
                 </fieldset>
               </div>
 
@@ -214,6 +226,7 @@
                         <td class="text-left" style="width:80px;">庫存<BR>單位</td>
                         <td class="text-left" style="width:100px;">庫存<BR>單價</td>
                         <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="最近三個月進貨單價平均" style="font-weight: bolder;" >近期<BR>均價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
+                        <td class="text-left" style="width:80px;">轉換<BR>率</td>
                         <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="轉入庫存數量" style="font-weight: bolder;" >入庫<BR>數量 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
 
                       </tr>
@@ -268,6 +281,9 @@
                         </td>
                         <td class="text-start">
                           <input type="text" id="input-products-average_stock_price-{{ $product_row }}" name="products[{{ $product_row }}][average_stock_price]" value="{{ $receiving_product->average_stock_price }}" class="form-control" readonly>
+                        </td>
+                        <td>
+                          <input type="text" id="input-products-factor-{{ $product_row }}" name="products[{{ $product_row }}][factor]" value="" class="form-control" readonly>
                         </td>
                         <td class="text-start">
                           <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">
@@ -375,16 +391,15 @@
 $(document).ready(function () {
   // 進貨單價、進貨數量、進貨金額 觸發計算
   $('#products').on('focusout', '.clcProduct', function(){
-setInterval(() => {
-    let rownum = $(this).closest('[data-rownum]').data('rownum');
-    calcProduct(rownum)
-}, 2000);
+    setInterval(() => {
+        let rownum = $(this).closest('[data-rownum]').data('rownum');
+        calcProduct(rownum)
+    }, 1000);
   });
 
   // 觸發查詢料件的 click 事件
   $('.schProductName').trigger('click');
 });
-
 
 // 查廠商名稱
 $('#input-supplier_name').autocomplete({
@@ -393,7 +408,7 @@ $('#input-supplier_name').autocomplete({
     var regex = /[a-zA-Z0-9\u3105-\u3129]+/; // 注音符號
     if (regex.test(request)) {
       return;
-    }else{
+    } else{
       $.ajax({
         url: "{{ $supplier_autocomplete_url }}?filter_keyword=" + encodeURIComponent(request),
         dataType: 'json',
@@ -424,7 +439,7 @@ $(document).on('click', '.schProductName', function() {
         supplier_url = '&equal_supplier_id=' + supplier_id + '&limit=0&pagination=0';
       }
 
-      ajaxUrl = '{{ $product_autocomplete_url }}?equal_is_active=1&with=product_units&filter_name=' + encodeURIComponent(request) + '&extra_columns=stock_unit_code,stock_unit_name' + supplier_url;
+      ajaxUrl = "{{ $product_autocomplete_url }}?filter_name=" + encodeURIComponent(request);
 
       if(form_type_code == 'RMT'){ //RMT原物料，如果是，則庫存管理=1。
         ajaxUrl += '&equal_is_inventory_managed=1'
@@ -439,7 +454,10 @@ $(document).on('click', '.schProductName', function() {
         });
     },
     'select': function (item) {
-      var rownum = $(this).data("rownum");
+      let rownum = $(this).data("rownum");
+      let factor = '';
+      console.log(JSON.stringify(item.stock_unit_name))
+
       $('#input-products-id-'+rownum).val(item.product_id);
       $('#input-products-name-'+rownum).val(item.name);
       $('#input-products-specification-'+rownum).val(item.specification);
@@ -447,6 +465,7 @@ $(document).on('click', '.schProductName', function() {
       $('#input-products-stock_unit_name-'+rownum).val(item.stock_unit_name);
       $('#input-products-product_edit_url-'+rownum).attr('href', item.product_edit_url);
       $('#input-products-product_edit_url-'+rownum).attr('target', '_blank');
+      $('#input-products-average_stock_price-'+rownum).val(item.average_stock_price);
 
       var selectElement = $('#input-products-receiving_unit_code-'+rownum);
       selectElement.empty();
@@ -461,10 +480,12 @@ $(document).on('click', '.schProductName', function() {
 
         selectElement.append(option);
       });
+
+      // factor
+      factor = $('#input-products-receiving_unit_code-'+rownum + ' option:selected').data('factor');
+      $('#input-products-factor-'+rownum).val(factor);
     }
   });
-
-
 
 });
 $('.schProductName').first().click();
@@ -474,6 +495,7 @@ $('#input-tax_type_code').on("change", function() {
   //$('#input-tax_type_code').val(tax_type_code); //不允許手動變更，回復原值
   chgTaxRate()
 });
+
 // 變更稅率
 function chgTaxRate(){
   let tax_type_code = $('#input-tax_type_code').val();
@@ -494,31 +516,6 @@ function chgTaxRate(){
   calcAllProducts()
 }
 
-// 查統一編號
-$('#input-tax_id_num').on('click', function(){
-  $('#input-tax_id_num').autocomplete({
-    'minLength': 1,
-    'source': function (request, response) {
-      if (request.length < 8) {
-        return;
-      }else{
-        $.ajax({
-          url: "{{ $supplier_autocomplete_url }}?filter_tax_id_num=" + encodeURIComponent(request),
-          dataType: 'json',
-          success: function (json) {
-            response(json);
-          }
-        });
-      }
-    },
-    'select': function (item) {
-      $('#input-supplier_id').val(item.supplier_id);
-      $('#input-supplier_name').val(item.supplier_name);
-      $('#input-tax_id_num').val(item.tax_id_num);
-    }
-  });
-});
-
 // 計算單一料件
 function calcProduct(rownum){
   let price = $('#input-products-price-'+rownum).val() ?? 0;
@@ -526,37 +523,37 @@ function calcProduct(rownum){
   let amount = $('#input-products-amount-'+rownum).val() ?? 0;
   let destination_quantity = 0;
   let factor = $('#input-products-receiving_unit_code-'+rownum + ' option:selected').data('factor');
-  
-  amount = (price*receiving_quantity).toFixed(2)
-  $('#input-products-amount-'+rownum).val(amount);
-  
-  console.log(receiving_quantity,factor)
-  if ($.isNumeric(receiving_quantity) && $.isNumeric(factor)) {
-    destination_quantity = (receiving_quantity * factor).toFixed(4);
-  }
-
   let stock_price = 0;
-  if ($.isNumeric(receiving_quantity) && destination_quantity > 0) {
-    stock_price = (amount / destination_quantity).toFixed(2)
+
+  // 商品小計
+  sub_total = (price*receiving_quantity).toFixed(2)
+  $('#input-products-amount-'+rownum).val(sub_total);
+
+  // 入庫數量：只有動態查詢商品之後，才會得到 factor。如果如果得到 factor，則用進貨數量*factor得到入庫數量。否則使用頁面上的入庫數量。
+  if (factor === undefined || factor === null || factor === '' || isNaN(factor)) {
+    stock_quantity = $('#input-products-stock_quantity-'+rownum).val();
   }
-  console.log('amount='+amount+', receiving_quantity='+receiving_quantity+', factor='+factor+', destination_quantity='+destination_quantity);
+  else if ($.isNumeric(receiving_quantity) && $.isNumeric(factor)) {
+    stock_quantity = (receiving_quantity * factor).toFixed(4);
+  }
+  $('#input-products-stock_quantity-'+rownum).val(stock_quantity);
 
-  // 庫存數量
-  $('#input-products-stock_quantity-'+rownum).val(destination_quantity);
+  // 庫存單價 = 商品小計/入庫數量
+  stock_price = (sub_total / stock_quantity).toFixed(4)
 
-  // 庫存單價 = 進貨金額/庫存數量
   $('#input-products-stock_price-'+rownum).val(stock_price);
+  console.log('factor='+factor+', receiving_quantity='+receiving_quantity+', stock_quantity='+stock_quantity+', sub_total='+sub_total+', stock_price='+stock_price);
 
   calcAllProducts()
 }
 
 // 逐一計算全部料件的加總
 function calcAllProducts(){
-  let sum_amount = 0; // 單身金額加總
+  let sum_sub_total = 0; // 單身金額加總
   let total = 0; // 單頭稅後總金額
 
   $('.productAmountInputs').each(function() {
-    sum_amount += parseFloat($(this).val()) || 0;
+    sum_sub_total += parseFloat($(this).val()) || 0;
   });
 
   var tax_type_code = $('#input-tax_type_code').val();
@@ -565,28 +562,28 @@ function calcAllProducts(){
 
   // 應稅內含
   if(tax_type_code == 1){
-    total = sum_amount;
+    total = sum_sub_total;
     before_tax = total/(1+tax_rate_pcnt);
     before_tax = Math.round(before_tax);
     tax = total - before_tax;
   }
   // 應稅外加
   else if(tax_type_code == 2){
-    before_tax = sum_amount;
-    tax = Math.round(sum_amount*tax_rate_pcnt);
-    total = sum_amount + tax;
+    before_tax = sum_sub_total;
+    tax = Math.round(sum_sub_total*tax_rate_pcnt);
+    total = sum_sub_total + tax;
   }
   // 零稅率或免稅
   else{
-    before_tax = sum_amount;
+    before_tax = sum_sub_total;
     tax = 0;
-    total = sum_amount;
+    total = sum_sub_total;
   }
   before_tax = before_tax.toFixed(0);
   tax = tax.toFixed(0);
   total = total.toFixed(0)
 
-  console.log('sum_amount='+sum_amount+', before_tax='+before_tax+', tax='+tax+', total='+total)
+  // console.log('sum_sub_total='+sum_sub_total+', before_tax='+before_tax+', tax='+tax+', total='+total)
 
   $('#input-before_tax').val(before_tax);
   $('#input-tax').val(tax);
@@ -657,6 +654,12 @@ function addReceivingProduct(){
   html += '  </td>';
   html += '  <td class="text-left">';
   html += '    <input type="text" id="input-products-stock_price-'+product_row+'" name="products['+product_row+'][stock_price]" value="" class="form-control" readonly>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-average_stock_price-'+product_row+'" name="products['+product_row+'][average_stock_price]" value="" class="form-control" readonly>';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-factor-'+product_row+'" name="products['+product_row+'][factor]" value="" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="'+product_row+'" readonly>';
   html += '  </td>';
   html += '  <td class="text-left">';
   html += '    <input type="text" id="input-products-stock_quantity-'+product_row+'" name="products['+product_row+'][stock_quantity]" value="" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="'+product_row+'">';

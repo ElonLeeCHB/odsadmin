@@ -383,7 +383,7 @@ class SupplierController extends BackendController
         // 稅別
         $data['tax_types'] = $this->SupplierService->getCodeKeyedTermsByTaxonomyCode('tax_type',toArray:false);
 
-        foreach ($suppliers as $row) {
+        foreach ($suppliers ?? [] as $row) {
             $json[] = array(
                 'label' => $row->name . ', ' . $row->tax_id_num,
                 'value' => $row->id,

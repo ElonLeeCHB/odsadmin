@@ -11,7 +11,7 @@ use App\Helpers\Classes\UnitConverter;
 use App\Models\Inventory\BomProduct;
 use App\Models\Catalog\Product;
 use Carbon\Carbon;
-
+use App\Helpers\Classes\OrmHelper;
 
 class ReceivingOrderService extends Service
 {
@@ -267,5 +267,17 @@ class ReceivingOrderService extends Service
         ];
 
         return $result;
+    }
+
+    public function getProducts($filter_data)
+    {
+        $query = Product::query();
+
+        $query->with(['productUnits']);
+
+        OrmHelper::applyFilters($query, $filter_data);
+        $products = OrmHelper::getResult($query, $filter_data);
+
+        return $products;
     }
 }

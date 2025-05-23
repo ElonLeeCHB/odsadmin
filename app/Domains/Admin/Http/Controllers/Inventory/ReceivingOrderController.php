@@ -168,7 +168,8 @@ class ReceivingOrderController extends BackendController
 
         $data['save_url'] = route('lang.admin.inventory.receivings.save', $receiving_order_id);
         $data['back_url'] = route('lang.admin.inventory.receivings.index', $query_data);
-        $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
+        // $data['product_autocomplete_url'] = route('lang.admin.inventory.products.autocomplete');
+        $data['product_autocomplete_url'] = route('lang.admin.inventory.receivings.searchProduct');
         $data['status_save_url'] = route('lang.admin.inventory.receivings.saveStatusCode');
         
 
@@ -364,11 +365,75 @@ class ReceivingOrderController extends BackendController
 
         return response(json_encode($json))->header('Content-Type','application/json');
     }
+
     public function getBeforeReceivingStockPrice($product_id){
         $rs = DB::select("
         SELECT stock_price,receiving_order_id FROM ".env('DB_DATABASE').".`receiving_order_products` WHERE product_id = $product_id
         ORDER BY `id` DESC LIMIT 2
         ");
         return $rs[1];
+    }
+
+    public function searchProduct()
+    {
+        $json = [];
+
+        foreach ($this->url_data as $key => $value) {
+            //檢查查詢字串
+            if(str_starts_with($key, 'filter_') || str_starts_with($key, 'equal_')){
+                //檢查輸入字串是否包含注音符號
+                if (preg_match('/[\x{3105}-\x{3129}\x{02C7}]+/u', $value)) {
+                    $json['error'] = '包含注音符號不允許查詢';
+                }
+            }
+        }
+
+        if(!empty($json)){
+            return response(json_encode($json))->header('Content-Type','application/json');
+        }
+
+        $products = $this->ReceivingOrderService->getProducts($this->url_data);
+
+        foreach ($products ?? [] as $product) {
+
+            $new_row = array(
+                'label' => $product->id . ' ' . $product->name . ' ' . $product->specification,
+                'value' => $product->id,
+                'product_id' => $product->id,
+                'name' => $product->name,
+                'specification' => $product->specification,
+                'stock_unit_code' => $product->stock_unit_code,
+                'stock_unit_name' => $product->stock_unit_name,
+                'usage_unit_code' => $product->usage_unit_code,
+                'usage_unit_name' => $product->usage_unit_name,
+                'usage_price' => $product->usage_price,
+                'average_stock_price' => $product->average_stock_price,
+                'product_edit_url' => route('lang.admin.inventory.products.form', $product->id),
+            );
+
+            if(!empty($product->productUnits)){
+                $product_units = $product->productUnits->keyBy('source_unit_code')->toArray();
+
+                data_forget($product_units, '*.source_unit');
+                data_forget($product_units, '*.destination_unit');
+
+                $new_row['product_units'] = $product_units;
+            }
+
+            if(empty($new_row['product_units'][$product->stock_unit_code])){
+                $new_row['product_units'][$product->stock_unit_code] = [
+                    'source_unit_name' => $product->stock_unit_name,
+                    'source_unit_code' => $product->stock_unit_code,
+                    'source_quantity' => 1,
+                    'destination_unit_code' => $product->stock_unit_code,
+                    'destination_quantity' => 1,
+                    'factor' => 1,
+                ];
+            }
+            
+            $json[] = $new_row;
+        }
+
+        return response()->json($json);
     }
 }
