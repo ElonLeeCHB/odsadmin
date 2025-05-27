@@ -393,7 +393,6 @@ class OrderService extends GlobalOrderService
             DB::commit();
 
             // 更新 option_id, option_value_id, map_product_id
-            // 之後應該要前端傳送。
             if(!empty($order->id)){
                 $sql = "
                     UPDATE order_product_options AS opo

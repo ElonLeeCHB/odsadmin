@@ -15,6 +15,7 @@ class OrmHelper
         self::select($query, $params);
         self::applyFilters($query, $params);
         self::sortOrder($query, $params);
+        // self::showSqlContent($query);
     }
     
     // 處理查詢欄位
@@ -212,7 +213,9 @@ class OrmHelper
                 $sort = 'id';
             }
 
-            if(empty($order)){
+            if (!empty($params['order'])){
+                $order = $params['order'];
+            } else {
                 $order = 'DESC';
             }
 

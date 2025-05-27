@@ -175,6 +175,9 @@
             @if(!empty($order['statistics']['lunchbox']['name']))
               {{ $order['statistics']['lunchbox']['name'] }}*{{ $order['statistics']['lunchbox']['quantity'] }}, 
             @endif
+            @if(!empty($order['statistics']['otherFlavorsBoxedMeal']['name']))
+              {{ $order['statistics']['otherFlavorsBoxedMeal']['name'] }}*{{ $order['statistics']['otherFlavorsBoxedMeal']['quantity'] }}, 
+            @endif
             
             @foreach($order['statistics']['drinks'] ?? [] as $drink)
             {{ $drink['value'] }}:{{ $drink['quantity'] }}, 

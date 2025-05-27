@@ -18,7 +18,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // 定期清除laravel舊快取
-        $schedule->command('clear:cache')->daily();
+        $schedule->command('cache:clear')->daily();
         
         // 定期更新訂單統計
         $schedule->job(new \App\Jobs\Sale\UpdateOrderByDatesJob)->hourly();
