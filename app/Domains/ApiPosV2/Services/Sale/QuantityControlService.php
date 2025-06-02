@@ -133,11 +133,15 @@ class QuantityControlService extends Service
         $start = $delivery_date_ymd . ' 00:00:00';
         $end = $delivery_date_ymd . ' 23:59:59';
     
-        $orders = Order::select(['id', 'code', 'delivery_time_range', 'shipping_state_id', 'shipping_city_id', 'shipping_road', 'delivery_date', 'quantity_for_control', 'comment', 'extra_comment'])
+        $orders = Order::select(['id', 'code', 'delivery_time_range', 'shipping_state_id', 'shipping_city_id', 'shipping_road', 'delivery_date', 'quantity_for_control', 'comment', 'extra_comment','status_code'])
                     ->with('shippingState')
                     ->with('shippingCity')
+                    ->with('status')
                     ->whereBetween('delivery_date', [$start, $end])
-                    ->whereIn('status_code', ['Confirmed', 'CCP'])
+                    ->where(function ($query) {
+                        $query->whereIn('status_code', ['Pending', 'Confirmed', 'CCP'])
+                              ->orWhereNull('status_code');
+                    })
                     ->get();
 
         $orders = $orders->toArray();

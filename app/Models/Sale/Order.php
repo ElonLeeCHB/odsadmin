@@ -10,6 +10,7 @@ use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductOption;
 use App\Models\User\User;
 use App\Models\Sale\OrderProduct;
+use App\Models\Sale\OrderPacking;
 use App\Models\SysData\Division;
 use App\Models\Counterparty\Organization;
 use App\Models\Catalog\OptionValue;
@@ -164,7 +165,11 @@ class Order extends Model
         return $this->belongsTo(OptionValue::class, 'status_id', 'id');
     }
 
-    
+    // 製餐記錄
+    public function packing()
+    {
+        return $this->hasOne(OrderPacking::class, 'order_id', 'id');
+    }
 
 
     /**

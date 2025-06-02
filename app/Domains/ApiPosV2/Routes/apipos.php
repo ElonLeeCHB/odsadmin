@@ -75,6 +75,17 @@ Route::group([
             // 訂單標籤基本資料
             Route::get('order-tags/list', 'Sale\OrderController@orderTagsList')->name('orderTags.list');
 
+
+            Route::get('drivers/list', 'Sale\DriversController@list')->name('drivers.list');
+            Route::get('drivers/info/{id}', 'Sale\DriversController@info')->name('drivers.info');
+            Route::get('drivers/infoByCode/{code}', 'Sale\DriversController@infoByCode')->name('drivers.infoByCode');
+            Route::post('drivers/store', 'Sale\DriversController@store')->name('drivers.store');
+            Route::post('drivers/update/{id}', 'Sale\DriversController@update')->name('drivers.update');
+
+            Route::get('orderPacking/list/{delivery_data?}', 'Sale\OrderPackingController@list')->name('orderPacking.list');
+            Route::post('orderPacking/update/{id}', 'Sale\OrderPackingController@update')->name('orderPacking.update');
+            Route::get('orderPacking/statuses', 'Sale\OrderPackingController@statuses')->name('orderPacking.statuses');
+
             Route::group([
                 'prefix' => 'orderlimit',
                 'as' => 'orderlimit.',
