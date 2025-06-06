@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 
 class OrmHelper
 {
@@ -22,8 +23,8 @@ class OrmHelper
     public static function applyFilters(EloquentBuilder $query, &$params = [])
     {
         $model = $query->getModel();
-        $table = $model->getPrefix() . $model->getTable();
-        $table_columns = $model->getTableColumns();
+        $table = self::getPrefix($model) . $model->getTable();
+        $table_columns = self::getTableColumns($model);
 
         // is_active
             // 沒設定 equal_is_active 的時候，預設=1
@@ -66,10 +67,11 @@ class OrmHelper
         if (!empty($params['select'])) {
             $select = $params['select'];
             $model = $query->getModel();
-            $table = $model->getPrefix() . $model->getTable();
+            $table = self::getPrefix($model) . $model->getTable();
+            $table_columns = self::getTableColumns($model);
 
             // 取交集
-            $select = array_intersect($select, $model->getTableColumns());
+            $select = array_intersect($select, $table_columns);
 
             $query = $query->select(array_map(function($field) use ($table) {
                 return "{$table}.{$field}";
@@ -203,13 +205,11 @@ class OrmHelper
 
         if($query instanceof EloquentBuilder){
             $masterModel = $query->getModel();
-            $mainTable = $masterModel->getPrefix() . $masterModel->getTable();
+            $mainTable = self::getPrefix($masterModel) . $masterModel->getTable();
             $foreign_key = $masterModel->getForeignKey();
+            $table_columns = self::getTableColumns($masterModel);
 
-            $translation_table = $masterModel->getTranslationTable() ?? '';
-            $translation_keys = $masterModel->getTranslationKeys() ?? [];
-
-            if(empty($sort) && in_array('id', $masterModel->getTableColumns())){
+            if(empty($sort) && in_array('id', $table_columns)){
                 $sort = 'id';
             }
 
@@ -220,15 +220,16 @@ class OrmHelper
             }
 
             // 本表欄位
-            if (in_array($sort, $masterModel->getTableColumns())) {
+            if (in_array($sort, $table_columns)) {
                 $query->orderBy("{$mainTable}.{$sort}", $order);
             }
             // 翻譯欄位
-            else if (!empty($translation_table && !empty($translation_keys) )){
+            else if (!empty($masterModel->translation_keys)){
+                $translation_table = $masterModel->getTranslationTable() ?? '';
                 $query->orderByRaw("(SELECT {$sort} FROM {$translation_table} 
-                WHERE {$translation_table}.{$foreign_key} = {$mainTable}.id 
-                AND {$translation_table}.locale = ?) {$order}", 
-                [app()->getLocale()]);
+                                    WHERE {$translation_table}.{$foreign_key} = {$mainTable}.id 
+                                    AND {$translation_table}.locale = ?) {$order}", 
+                                    [app()->getLocale()]);
             }
         }
     }
@@ -502,5 +503,75 @@ class OrmHelper
         }
 
         return $model;
+    }
+
+    public static function getPrefix(Model $row)
+    {
+        $connection = $row->getConnectionName();
+
+        return config("database.connections.{$connection}.prefix", '');
+    }
+
+    public static function getTableColumns(Model $row)
+    {
+        $table = $row->getTable();
+
+        $cache_key = 'cache/table_columns/' . $table . '.json';
+
+        return DataHelper::remember($cache_key, 60*60*24*90, 'json', function() use ($row, $table){
+
+            if(empty($row->connection) ){
+                $table_columns = DB::getSchemaBuilder()->getColumnListing($table); // use default connection
+            }else{
+                $table_columns = DB::connection($row->connection)->getSchemaBuilder()->getColumnListing($table);
+            }
+
+            return $table_columns;
+        });  
+    }
+
+    //處理 guarded()。原本 model 內建的 create() 會受 fillable() 限制。但是若使用 guarded() 不會包含在 fillable() 裡面。因此新增判斷
+    public static function getSavable(Model $row)
+    {
+        $table_columns = self::getTableColumns($row);
+        $fillable = $row->getFillable();
+
+        // 排除 $guarded
+        if (empty($fillable)) {
+            $result = array_diff($table_columns, $row->getGuarded());
+        }
+        // 模型未設定 $fillable: 資料表全部欄位，但是排除$guarded
+        else {
+            $result = array_diff($fillable, $row->getGuarded());
+        }
+
+        return $result;
+    }
+
+    public static function findIdOrFailOrNew(EloquentBuilder $query, $id)
+    {
+        // 如果有 id，就嘗試找資料
+        if (!empty($id)) {
+            $row = $query->findOrFail($id); // 找不到會丟出 ModelNotFoundException
+        } else {
+            $row = $query->getModel()->newInstance(); // 回傳一個新的 Model 實例
+        }
+
+        return $row ?? null;
+    }
+
+    public static function saveRow(Model $row, $data)
+    {
+        $table_columns = self::getSavable($row);
+
+        foreach ($data as $column => $value) {
+            if (in_array($column, $table_columns)){
+                $row->{$column} = $value;
+            }
+        }
+
+        $row->save();
+
+        return $row;
     }
 }

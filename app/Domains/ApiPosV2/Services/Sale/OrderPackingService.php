@@ -2,10 +2,14 @@
 
 namespace App\Domains\ApiPosV2\Services\Sale;
 
+use App\Helpers\Classes\OrmHelper;
 use App\Services\Service;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderPacking;
 use App\Models\Common\Term;
+use App\Models\Sale\Driver;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class OrderPackingService extends Service
 {
@@ -42,33 +46,50 @@ class OrderPackingService extends Service
         return $result;
     }
 
-    public function update($order_id, $data)
+    public function save($data, $order_id = null)
     {
-        $order_packing = OrderPacking::findOrNew($order_id);
+        try {
+            DB::beginTransaction();
+
+            $order_packing = OrderPacking::findOrNew($order_id);
+
+            $save_data = $data;
+
+            $save_data['order_id'] = $order_id;
+
+            // if ($order_packing->shipping_date) {
+            //     $shippingDate = Carbon::parse($order_packing->shipping_date);
+
+            //     // if ($shippingDate->lessThan(Carbon::yesterday())) {
+            //     //     throw new \Exception('不能修改昨天以前的派送記錄');
+            //     // }
+            // }
+                
+            // 從非準備中，改為準備中
+            if ($order_packing->packing_status_code != 'InPreparation' && $data['packing_status_code'] == 'InPreparation'){
+                    $save_data['packing_start_time'] = date('Y-m-d H:i:s');
+            }
             
-        // 必須放在前面，先判斷舊狀態
-        if ($order_packing->packing_status_code == 'NotPrepared' && $data['packing_status_code'] == 'InPreparation'){
-            $order_packing->packing_start_time = date('Y-m-d H:i:s');
+            // 從非準備完成，改為準備完成
+            if ($order_packing->packing_status_code != 'Prepared' && $data['packing_status_code'] == 'Prepared'){
+                $save_data['packing_end_time'] = date('Y-m-d H:i:s');
+            }
+            
+
+            // OrmHelper::saveRow($data, $order_packing);
+            OrmHelper::saveRow($order_packing, $save_data);
+
+            DB::commit();
+
+            return true;
+            
+        } catch (\Throwable $th) {
+            DB::rollback();
+            throw $th;
         }
-        
-        if ($order_packing->packing_status_code == 'InPreparation' && $data['packing_status_code'] == 'Prepared'){
-            $order_packing->packing_end_time = date('Y-m-d H:i:s');
-        }
-
-        $order_packing->order_id = $order_id;
-        $order_packing->packing_tables = $data['packing_tables'] ?? null;
-        $order_packing->packing_status_code = $data['packing_status_code'] ?? null;
-        $order_packing->scheduled_shipping_time = $data['scheduled_shipping_time'] ?? null;
-        $order_packing->shipping_time = $data['shipping_time'] ?? null;
-        $order_packing->driver_id = $data['driver_id'] ?? null;
-        $order_packing->driver_name = $data['driver_name'] ?? null;
-        $order_packing->driver_fee = $data['driver_fee'] ?? 0;
-
-        return $order_packing->save();
-
     }
 
-    public function statuses()
+    public function getStatuses()
     {
         $statuses = Term::where('taxonomy_code', 'SaleOrderPackingStatus')->where('is_active', 1)->orderBy('sort_order')->get()->keyBy('code');
 

@@ -29,7 +29,7 @@ class ReceivingOrderService extends Service
         $data = $this->resetQueryData($data);
 
         if(!empty($data['filter_product_name'])){
-            $data['whereHas'] = ['receiving_products' => ['product_name' => $data['filter_product_name']]];
+            $data['whereHas'] = ['receivingOrderProducts' => ['product_name' => $data['filter_product_name']]];
             unset($data['filter_product_name']);
         }
 

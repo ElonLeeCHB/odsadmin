@@ -33,14 +33,37 @@ class OrderPackingController extends ApiPosController
 
     public function update($order_id)
     {
-        $result = $this->OrderPackingService->update($order_id, $this->all_data);
+        try {
 
-        return $this->sendJsonResponse($result);
+            $json = [];
+
+            // 驗證表單
+                // if (){
+
+                // }
+            //
+
+            if(!$json){
+                $result = $this->OrderPackingService->save($this->all_data, $order_id);
+
+                if ($result){
+                    return response()->json(['success' => true]);
+                }
+            }
+
+            return $this->sendJsonResponse($json, 400);
+
+
+        } catch (\Throwable $th) {
+            //throw $th;
+            return $this->sendJsonResponse(['error' => $th->getMessage()], 500);
+        }
+
     }
 
     public function statuses()
     {
-        $result = $this->OrderPackingService->statuses();
+        $result = $this->OrderPackingService->getStatuses();
 
         return $this->sendJsonResponse($result);
     }
