@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use PDO;
 use App\Helpers\Classes\DataHelper;
+use App\Helpers\Classes\OrmHelper;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
@@ -857,35 +858,9 @@ trait EloquentTrait
         return $query;
     }
 
-    public function getTableColumns($connection = null)
+    public function getTableColumns($connection_name = null)
     {
-        // already exist
-        if(!empty($this->table_columns) && is_array($this->table_columns)){
-            return $this->table_columns;
-        }
-
-        // get from cache
-        if(empty($this->table)){
-            $this->table = $this->model->getTable();
-        }
-
-        $cache_name = 'cache/table_columns/' . $this->table . '.json';
-
-        $this->table_columns = DataHelper::getJsonFromStoragNew($cache_name);
-
-        if(!empty($this->table_columns)){
-            return $this->table_columns;
-        }
-
-        // get from database
-        if(empty($this->model->connection) ){
-            $this->table_columns = DB::getSchemaBuilder()->getColumnListing($this->table);
-        }else{
-            $this->table_columns = DB::connection($this->model->connection)->getSchemaBuilder()->getColumnListing($this->table);
-        }
-        DataHelper::setJsonToStorage($cache_name, $this->table_columns);
-
-        return DataHelper::getJsonFromStoragNew($cache_name);
+        return OrmHelper::getTableColumns($this->model->getTable(), $connection_name);
     }
 
     // For debug

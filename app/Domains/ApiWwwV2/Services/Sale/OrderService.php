@@ -168,8 +168,9 @@ class OrderService extends Service
                 // }
 
                 //
-                // 更新 option_id, option_value_id, map_product_id
-                // 之後應該要前端傳送。
+
+
+                // 更新 option_id, option_value_id, map_product_id 為了避免前端錯誤，後端另外處理
                 if(!empty($order->id)){
                     $sql = "
                         UPDATE order_product_options AS opo
@@ -179,7 +180,7 @@ class OrderService extends Service
                             opo.option_id = pov.option_id,
                             opo.option_value_id = pov.option_value_id,
                             opo.map_product_id = IFNULL(ov.product_id, opo.map_product_id)
-                            WHERE opo.order_id = " . $order->id;
+                        WHERE opo.order_id = " . $order->id;
                     DB::statement($sql);
                 }
             // end order_product_options

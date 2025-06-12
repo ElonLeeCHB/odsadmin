@@ -64,8 +64,6 @@ class OrderController extends ApiPosController
             $post_data['order_taker'] = auth()->user()->name;
     
             $order = $this->OrderService->save($this->post_data);
-    
-            event(new \App\Events\SaleOrderSavedEvent(saved_order:$order));
 
             $data = [
                 'id' => $order->id,

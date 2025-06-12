@@ -76,7 +76,7 @@ class OrderService extends Service
     }
 
     // 更新送達地址相關資料。手機、姓名不更新。
-    public function updateOrCreateCustomer($data)
+    public function saveCustomer($data)
     {
         $action = 'update';
 
@@ -158,7 +158,8 @@ class OrderService extends Service
 
             // members table
                 if (!empty($data['mobile'])){
-                    $data['customer_id'] = $this->updateOrCreateCustomer($data);
+                    $data['mobile'] = preg_replace('/\D/', '', $data['mobile']);
+                    $data['customer_id'] = $this->saveCustomer($data);
                 }
             //
 
@@ -198,6 +199,20 @@ class OrderService extends Service
                     (new OrderProductOptionRepository)->createMany($form_order_product['order_product_options'], $order->id, $order_product_id);
                 }
             // end order_product_options
+
+            // 更新 option_id, option_value_id, map_product_id 為了避免前端錯誤，後端另外處理
+            if(!empty($order->id)){
+                $sql = "
+                    UPDATE order_product_options AS opo
+                    JOIN product_option_values AS pov ON pov.id=opo.product_option_value_id
+                    JOIN option_values AS ov ON ov.id=pov.option_value_id
+                    SET
+                        opo.option_id = pov.option_id,
+                        opo.option_value_id = pov.option_value_id,
+                        opo.map_product_id = IFNULL(ov.product_id, opo.map_product_id)
+                    WHERE opo.order_id = " . $order->id;
+                DB::statement($sql);
+            }
 
             // OrderTotal
                 if(!empty($data['order_totals'])){

@@ -30,11 +30,20 @@ class TermService extends Service
 
     public function getList($params = [])
     {
-        $params['sort'] = 'name';
-        $params['order'] = 'ASC';
+        $params['sort'] = $params['sort'] ?? 'taxonomy_code';
+        $params['order'] = $params['order'] ?? 'DESC';
 
         $query = Term::query();
-        Term::prepareQuery($query, $params);
+
+        if (!empty($params['filter_taxonomy_name'])) {
+            $query->whereHas('taxonomy', function ($qry) use ($params) {
+                $qry->whereHas('translation', function ($qry2) use ($params) {
+                    OrmHelper::filterOrEqualColumn($qry2, 'filter_name', $params['filter_taxonomy_name']);
+                });
+            });
+        }
+
+        OrmHelper::prepare($query, $params);
 
         return OrmHelper::getResult($query, $params);
     }
