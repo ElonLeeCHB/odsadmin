@@ -24,7 +24,7 @@ class OrmHelper
     {
         $model = $query->getModel();
         $table = self::getPrefix($model) . $model->getTable();
-        $table_columns = self::getTableColumns($model);
+        $table_columns = self::getTableColumns($table);
 
         // is_active
             // 沒設定 equal_is_active 的時候，預設=1
@@ -68,7 +68,7 @@ class OrmHelper
             $select = $params['select'];
             $model = $query->getModel();
             $table = self::getPrefix($model) . $model->getTable();
-            $table_columns = self::getTableColumns($model);
+            $table_columns = self::getTableColumns($table);
 
             // 取交集
             $select = array_intersect($select, $table_columns);
@@ -207,7 +207,7 @@ class OrmHelper
             $masterModel = $query->getModel();
             $mainTable = self::getPrefix($masterModel) . $masterModel->getTable();
             $foreign_key = $masterModel->getForeignKey();
-            $table_columns = self::getTableColumns($masterModel);
+            $table_columns = self::getTableColumns($mainTable);
 
             if(empty($sort) && in_array('id', $table_columns)){
                 $sort = 'id';
@@ -512,18 +512,16 @@ class OrmHelper
         return config("database.connections.{$connection}.prefix", '');
     }
 
-    public static function getTableColumns(Model $row)
+    public static function getTableColumns($table, $connection_name = null)
     {
-        $table = $row->getTable();
+        $cache_key = 'cache/table_columns/' . $table . '.serialized.txt';
 
-        $cache_key = 'cache/table_columns/' . $table . '.json';
+        return DataHelper::remember($cache_key, 60*60*24*90, 'serialize', function() use ($table, $connection_name){
 
-        return DataHelper::remember($cache_key, 60*60*24*90, 'json', function() use ($row, $table){
-
-            if(empty($row->connection) ){
+            if(empty($connection_name) ){
                 $table_columns = DB::getSchemaBuilder()->getColumnListing($table); // use default connection
             }else{
-                $table_columns = DB::connection($row->connection)->getSchemaBuilder()->getColumnListing($table);
+                $table_columns = DB::connection($connection_name)->getSchemaBuilder()->getColumnListing($table);
             }
 
             return $table_columns;
@@ -533,7 +531,8 @@ class OrmHelper
     //處理 guarded()。原本 model 內建的 create() 會受 fillable() 限制。但是若使用 guarded() 不會包含在 fillable() 裡面。因此新增判斷
     public static function getSavable(Model $row)
     {
-        $table_columns = self::getTableColumns($row);
+        $table = $row->getTable();
+        $table_columns = self::getTableColumns($table);
         $fillable = $row->getFillable();
 
         // 排除 $guarded

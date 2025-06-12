@@ -158,12 +158,18 @@ class ReceivingOrderService extends Service
                 $amount = empty($fm_receiving_product['amount']) ? 0 : $fm_receiving_product['amount'];
                 $amount = str_replace(',', '', $amount);
 
+                if ($db_coded_products[$product_id]['usage_unit_code']){
+                    throw new \Exception('用量單位不能是空值');
+                }
+
                 //換算用量單位
                 $usage_factor = UnitConverter::build()->qty(1)
                                     ->from($db_coded_products[$product_id]['stock_unit_code'])
                                     ->to($db_coded_products[$product_id]['usage_unit_code'])
                                     ->product($product_id)
                                     ->get();
+
+                
                 if(!empty($usage_factor['error'])){
                     throw new \Exception($usage_factor['error']);
                 }

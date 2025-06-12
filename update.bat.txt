@@ -1,0 +1,2 @@
+git fetch elonchb staging
+git reset --hard elonchb/staging

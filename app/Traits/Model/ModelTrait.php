@@ -10,6 +10,7 @@ use App\Helpers\Classes\DataHelper;
 use Illuminate\Support\Facades\Schema;
 use App\Libraries\EloquentLibrary;
 use App\Helpers\Classes\EloquentHelper;
+use App\Helpers\Classes\OrmHelper;
 
 trait ModelTrait
 {
@@ -212,20 +213,10 @@ trait ModelTrait
 
     public function getTableColumns()
     {
-        $table = $this->getTable();
+        $connection = $this->getConnection();
+        $connectionName = $connection->getName();
 
-        $cache_key = 'cache/table_columns/' . $table . '.json';
-
-        return DataHelper::remember($cache_key, 60*60*24*90, 'json', function() use ($table){
-
-            if(empty($this->connection) ){
-                $table_columns = DB::getSchemaBuilder()->getColumnListing($table); // use default connection
-            }else{
-                $table_columns = DB::connection($this->connection)->getSchemaBuilder()->getColumnListing($table);
-            }
-
-            return $table_columns;
-        });
+        return OrmHelper::getTableColumns($this->getTable(), $connectionName);
     }
 
     /**

@@ -4,6 +4,7 @@ namespace App\Domains\ApiWwwV2\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\Classes\OrmHelper;
 use App\Helpers\Classes\DataHelper;
 use App\Helpers\Classes\ChineseCharacterHelper;
 
@@ -315,7 +316,7 @@ trait EloquentTrait
 
                 $relatedModel = $subQuery->getModel();
                 $relatedTable = $relatedModel->getTable();
-                $relatedColumns = $this->getTableColumns(null, $relatedTable);
+                $relatedColumns = $this->getTableColumns($relatedTable, null);
 
                 foreach($whereHasData as $key => $value){
 
@@ -927,29 +928,11 @@ trait EloquentTrait
     /**
      * $table should be full name
      */
-    public function getTableColumns($connection = null, $table = null)
+    public function getTableColumns($table_name = null, $connection_name = null)
     {
-        if(empty($table) && !empty($this->table)){
-            $table = $this->table;
-        }else if(empty($table) && empty($this->table)){
-            $table = $this->model->getTable();
-        }
+        $table_name = $this->model->getTable();
 
-        $cache_name = 'cache/table_columns/' . $table . '.serialized.txt';
-
-        return DataHelper::remember($cache_name, 60*60*24*90, 'json', function() use($connection, $table){
-            if(!empty($connection)){
-                $table_columns = DB::connection($connection)->getSchemaBuilder()->getColumnListing($table);
-            }
-            else if(!empty($this->model->connection) ){
-                $table_columns = DB::connection($this->model->connection)->getSchemaBuilder()->getColumnListing($table);
-            }
-            else{
-                $table_columns = DB::getSchemaBuilder()->getColumnListing($table);
-            }
-
-            return $table_columns;
-        });
+        return OrmHelper::getTableColumns($table_name, $connection_name);
     }
 
 

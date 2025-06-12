@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Helpers\Classes\DataHelper;
+use App\Helpers\Classes\OrmHelper;
 
 trait ModelTrait
 {
@@ -307,27 +308,10 @@ trait ModelTrait
 
     public function getTableColumns($connection = null)
     {
-        $table = $this->getTable();
+        $connection = $this->getConnection();
+        $connectionName = $connection->getName();
 
-        $cache_name = 'cache/table_columns/' . $table . '.json';
-
-        $table_columns = DataHelper::getJsonFromStorage($cache_name);
-
-        if(!empty($table_columns)){
-            return $table_columns;
-        }
-
-
-        /* If no cache */
-
-        if(empty($this->connection) ){
-            $table_columns = DB::getSchemaBuilder()->getColumnListing($table); // use default connection
-        }else{
-            $table_columns = DB::connection($this->connection)->getSchemaBuilder()->getColumnListing($table);
-        }
-        DataHelper::saveJsonToStorage($cache_name, $table_columns);
-
-        return DataHelper::getJsonFromStorage($cache_name);
+        return OrmHelper::getTableColumns($this->getTable(), $connectionName);
     }
 
     /**
