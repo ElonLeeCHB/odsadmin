@@ -31,13 +31,9 @@ Route::group([
         Route::get('orders/infoByCode/{code}', 'Sale\OrderController@infoByCode')->name('orders.infoByCode');
         Route::get('orders/info/{id?}', 'Sale\OrderController@info')->name('orders.info');
 
+        //只允許新增訂單，不允許修改。若要修改，由門市人員修改
         Route::post('orders/store', 'Sale\OrderController@store')->name('orders.store');
 
-        //官網目前沒有會員系統，因此只允許新增訂單，不允許修改。避免資安意外。
-        //若要修改，由公司內部修改
-        // Route::post('orders/edit/{order_id}', 'Sale\OrderController@edit')->name('orders.edit'); 
-
-        
         Route::get('orders/deliveries/list', 'Sale\OrderDeliveryController@list')->name('orders.deliveries.list');
 
         Route::post('update-timeslot', 'Sale\QuantityControlController@updateTimeslot')->name('updateTimeslot');

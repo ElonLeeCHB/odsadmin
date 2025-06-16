@@ -16,6 +16,7 @@ use App\Models\Sale\OrderTotal;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductOption;
 use App\Events\OrderSaved;
+use App\Helpers\Classes\OrmHelper;
 
 class OrderService extends Service
 {
@@ -27,20 +28,37 @@ class OrderService extends Service
     {
         $data['select'] = ['id', 'code', 'personal_name', 'delivery_time_range','status_code','order_date','delivery_date'];
             
-        $builder = Order::applyFilters($data);
+        $query = Order::query();
         
-        if(!empty($data['with'])){
-            if(is_string($data['with'])){
-                $with = explode(',', $data['with']);
-            }
-            if(in_array('deliveries', $with)){
-                $builder->with(['deliveries' => function($query) {
-                                $query->select('id', 'name', 'order_code','phone','cartype');
-                            }]);
-            }
-        }
+        OrmHelper::applyFilters($query, $data);
+        
+        $query->with(['orderPacking' => function($query) {
+                        $query->select('order_id', 'driver_id', 'driver_name','shipping_time', 'vehicle_type_code','packing_status_code');
+                        $query->with(['driver:id,mobile']);
+                    }]);
 
-        return $builder->getResult($data);
+        $rows = OrmHelper::getResult($query, $data);
+
+        $rows->getCollection()->transform(function ($row) {
+            return [
+                'id' => $row->id,
+                'code' => $row->code,
+                'personal_name' => $row->personal_name,
+                'delivery_time_range' => $row->delivery_time_range,
+                'status_code' => $row->status_code,
+                'order_date' => $row->order_date,
+                'delivery_date' => $row->delivery_date,
+                'order_packing' => $row->orderPacking ? [
+                    'driver_mobile' => $row->orderPacking->driver->mobile ?? null,
+                    'packing_status_code_name' => $row->orderPacking->packing_status_code_name,
+                    'shipping_time' => $row->orderPacking->shipping_time,
+                    'vehicle_type_code' => $row->orderPacking->vehicle_type_code,
+                ] : null,
+            ];
+        });
+
+        
+        return $rows;
     }
 
     public function getInfo($filter_data, $type= 'id')

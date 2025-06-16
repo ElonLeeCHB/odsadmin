@@ -322,15 +322,8 @@ class ReceivingOrderController extends BackendController
             return response()->json($json, 400);
 
         } catch (\Throwable $th) {
-            if(config('app.debug')){
-                throw $th;
-            }else{
-                return response()->json(['error' => $this->lang->text_fail], 500);
-            }
+            return response()->json(['error' => $th->getMessage()], 500);
         }
-
-    //    return response(json_encode($json))->header('Content-Type','application/json');
-       return response()->json($json, 500);
     }
 
 

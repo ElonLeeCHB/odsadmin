@@ -51,19 +51,19 @@ class OrderPackingService extends Service
         try {
             DB::beginTransaction();
 
+            if (!empty($order_id)){
+                $delivery_date = Order::where('id', $order)->value('delivery_date');
+
+                if ($delivery_date->lessThan(Carbon::yesterday())) {
+                    throw new \Exception('不能修改昨天以前的派送記錄');
+                }
+            }
+
             $order_packing = OrderPacking::findOrNew($order_id);
 
             $save_data = $data;
 
             $save_data['order_id'] = $order_id;
-
-            // if ($order_packing->shipping_date) {
-            //     $shippingDate = Carbon::parse($order_packing->shipping_date);
-
-            //     // if ($shippingDate->lessThan(Carbon::yesterday())) {
-            //     //     throw new \Exception('不能修改昨天以前的派送記錄');
-            //     // }
-            // }
                 
             // 從非準備中，改為準備中
             if ($order_packing->packing_status_code != 'InPreparation' && $data['packing_status_code'] == 'InPreparation'){
@@ -74,9 +74,11 @@ class OrderPackingService extends Service
             if ($order_packing->packing_status_code != 'Prepared' && $data['packing_status_code'] == 'Prepared'){
                 $save_data['packing_end_time'] = date('Y-m-d H:i:s');
             }
-            
 
-            // OrmHelper::saveRow($data, $order_packing);
+            if (!empty($save_data['driver_id'])){
+                $save_data['vehicle_type_code'] = Driver::where('id', $save_data['driver_id'])->value('vehicle_type_code');
+            }
+            
             OrmHelper::saveRow($order_packing, $save_data);
 
             DB::commit();

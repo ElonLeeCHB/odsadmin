@@ -26,6 +26,10 @@ class OrmHelper
         $table = self::getPrefix($model) . $model->getTable();
         $table_columns = self::getTableColumns($table);
 
+        if (!empty($params['select'])){
+            $query->select($params['select']);
+        }
+
         // is_active
             // 沒設定 equal_is_active 的時候，預設=1
             if(!isset($params['equal_is_active'])){
@@ -35,6 +39,8 @@ class OrmHelper
                 if($params['equal_is_active'] == '*'){
                     unset($params['equal_is_active']);
                 }
+
+                // 如果存在 equal_is_active，但值不是 1 也不是 *，代表值 = 0，不啟用
             }
         //
 

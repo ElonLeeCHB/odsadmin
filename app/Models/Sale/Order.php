@@ -166,6 +166,12 @@ class Order extends Model
     }
 
     // 製餐記錄
+    public function orderPacking()
+    {
+        return $this->hasOne(OrderPacking::class, 'order_id', 'id');
+    }
+
+    // 廢棄
     public function packing()
     {
         return $this->hasOne(OrderPacking::class, 'order_id', 'id');
@@ -288,12 +294,13 @@ class Order extends Model
         return $new_phone;
     }
 
-    protected function mobile(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => $this->parsePhone($value),
-        );
-    }
+    // 不需要為了加橫線而解析。前台前端使複製貼上反而造成混亂。
+    // protected function mobile(): Attribute
+    // {
+    //     return Attribute::make(
+    //         get: fn ($value) => $this->parsePhone($value),
+    //     );
+    // }
 
     protected function telephone(): Attribute
     {

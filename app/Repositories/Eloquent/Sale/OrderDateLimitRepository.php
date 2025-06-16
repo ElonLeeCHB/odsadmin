@@ -495,16 +495,20 @@ class OrderDateLimitRepository extends Repository
     // 取得未來多天數的資料
     public function getFutureDays($futureDays = 30)
     {
-        $today = Carbon::today();
-        $todaySring = $today->format('Y-m-d');
-        $targetDateString = Carbon::today()->addDays($futureDays)->format('Y-m-d');
+        if ($futureDays > 60) {
+            $futureDays = 60;
+        }
 
-        $records = OrderDateLimit::whereBetween('Date', [$todaySring, $targetDateString])->orderBy('Date');
-        $records = $records->get();
+        $today = Carbon::today();
+        $todayString = $today->format('Y-m-d');
+        $targetDateString = Carbon::today()->addDays($futureDays)->format('Y-m-d');
 
         $result = [];
 
-        foreach ($records ?? [] as $row) {
+        // 現有資料
+        $rows = OrderDateLimit::whereBetween('Date', [$todayString, $targetDateString])->orderBy('Date')->get();
+
+        foreach ($rows ?? [] as $row) {
             $date = $row->Date->format('Y-m-d');
 
             $result[$date][$row->TimeSlot] = [
@@ -512,6 +516,24 @@ class OrderDateLimitRepository extends Repository
                     'OrderedQuantity' => $row->OrderedQuantity,
                     'AcceptableQuantity' => $row->AcceptableQuantity,
             ];
+        }
+
+        // 新增預設資料
+        $defaultRow = $this->getDefaultLimits();
+
+        for ($i = 1; $i < $futureDays; $i++) {
+            $date = $today->copy()->addDays($i)->format('Y-m-d');
+
+            if (empty($result[$date])){
+                foreach ($defaultRow as $TimeSlot => $MaxQuantity) {
+                    $result[$date][$TimeSlot] = [
+                                                'MaxQuantity' => $MaxQuantity,
+                                                'OrderedQuantity' => 0,
+                                                'AcceptableQuantity' => $MaxQuantity,
+                                                ];
+                }
+                
+            }
         }
 
         return $result;

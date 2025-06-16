@@ -3,11 +3,10 @@
 namespace App\Domains\ApiWwwV2\Http\Controllers\Sale;
 
 use Illuminate\Http\Request;
-use App\Domains\ApiWwwV2\Http\Controllers\ApiWwwV2Controller;
-use App\Domains\ApiWwwV2\Services\Sale\DeliveryService;
-use App\Helpers\Classes\DataHelper;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use App\Domains\ApiWwwV2\Http\Controllers\ApiWwwV2Controller;
+use App\Helpers\Classes\DataHelper;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderDelivery;
 
