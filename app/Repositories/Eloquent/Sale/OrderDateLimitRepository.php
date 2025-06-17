@@ -496,14 +496,13 @@ class OrderDateLimitRepository extends Repository
     public function getFutureDays($futureDays = 30)
     {
         $today = Carbon::today();
-        $todaySring = $today->format('Y-m-d');
+        $todayString = $today->format('Y-m-d');
         $targetDateString = Carbon::today()->addDays($futureDays)->format('Y-m-d');
 
-        $records = OrderDateLimit::whereBetween('Date', [$todaySring, $targetDateString])->orderBy('Date');
-        $records = $records->get();
 
         $result = [];
-
+        $records = OrderDateLimit::whereBetween('Date', [$todayString, $targetDateString])->orderBy('Date');
+        $records = $records->get();
         foreach ($records ?? [] as $row) {
             $date = $row->Date->format('Y-m-d');
 
@@ -512,6 +511,23 @@ class OrderDateLimitRepository extends Repository
                     'OrderedQuantity' => $row->OrderedQuantity,
                     'AcceptableQuantity' => $row->AcceptableQuantity,
             ];
+        }
+
+        $defaultRow = $this->getDefaultLimits();
+
+        for ($i = 1; $i < $futureDays; $i++) {
+            $date = $today->copy()->addDays($i)->format('Y-m-d');
+
+            if (empty($result[$date])){
+                foreach ($defaultRow as $TimeSlot => $MaxQuantity) {
+                    $result[$date][$TimeSlot] = [
+                                                'MaxQuantity' => $MaxQuantity,
+                                                'OrderedQuantity' => 0,
+                                                'AcceptableQuantity' => $MaxQuantity,
+                                                ];
+                }
+                
+            }
         }
 
         return $result;

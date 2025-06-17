@@ -93,6 +93,18 @@ class OrderController extends ApiWwwV2Controller
             $json['error'] = '資料錯誤';
         }
 
+        foreach ($data['order_products'] as $order_product) {
+            foreach ($order_product['order_product_options'] as $order_product_option) {
+                if (strpos($order_product_option['value'], '酥魚') !== false) {
+                    $json['error'] = '資料錯誤';
+                }
+
+                if (strpos($order_product_option['value'], '滷肉') !== false) {
+                    $json['error'] = '資料錯誤';
+                }
+            }
+        }
+
         if (empty($json)){
 
             $data['order_taker'] = 'web';

@@ -16,6 +16,7 @@ use App\Models\Sale\OrderTotal;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductOption;
 use App\Events\OrderSaved;
+use App\Helpers\Classes\OrmHelper;
 
 class OrderService extends Service
 {
@@ -27,20 +28,22 @@ class OrderService extends Service
     {
         $data['select'] = ['id', 'code', 'personal_name', 'delivery_time_range','status_code','order_date','delivery_date'];
             
-        $builder = Order::applyFilters($data);
+        $query = Order::query();
+        
+        OrmHelper::applyFilters($query, $data);
         
         if(!empty($data['with'])){
             if(is_string($data['with'])){
                 $with = explode(',', $data['with']);
             }
             if(in_array('deliveries', $with)){
-                $builder->with(['deliveries' => function($query) {
+                $query->with(['deliveries' => function($query) {
                                 $query->select('id', 'name', 'order_code','phone','cartype');
                             }]);
             }
         }
 
-        return $builder->getResult($data);
+        return OrmHelper::getResult($query, $data);
     }
 
     public function getInfo($filter_data, $type= 'id')

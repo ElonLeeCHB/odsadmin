@@ -162,6 +162,54 @@ $(document).ready(function () {
 });
 
 // Forms
+function handleFormErrors(json, element) {
+    if (typeof json['error'] == 'string') {
+        $('#alert').prepend(
+            '<div class="alert alert-danger alert-dismissible">' +
+            '<i class="fa-solid fa-circle-exclamation"></i> ' + json['error'] +
+            ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+            '</div>'
+        );
+    }
+
+    if (typeof json['error'] == 'object') {
+        if (json['error']['warning']) {
+            $('#alert').prepend(
+                '<div class="alert alert-danger alert-dismissible">' +
+                '<i class="fa-solid fa-circle-exclamation"></i> ' + json['error']['warning'] +
+                ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                '</div>'
+            );
+        }
+
+        for (key in json['error']) {
+            if (key == 'warning') continue;
+            $('#input-' + key).addClass('is-invalid')
+                .find('.form-control, .form-select, .form-check-input, .form-check-label').addClass('is-invalid');
+            $('#error-' + key).html(json['error'][key]).addClass('d-block');
+        }
+    }
+
+    if (typeof json['errors'] == 'object') {
+        if (json['errors']['warning']) {
+            $('#alert').prepend(
+                '<div class="alert alert-danger alert-dismissible">' +
+                '<i class="fa-solid fa-circle-exclamation"></i> ' + json['errors']['warning'] +
+                ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                '</div>'
+            );
+        }
+
+        for (key in json['errors']) {
+            if (key == 'warning') continue;
+            $('#input-' + key).addClass('is-invalid')
+                .find('.form-control, .form-select, .form-check-input, .form-check-label').addClass('is-invalid');
+            $('#error-' + key).html(json['errors'][key]).addClass('d-block');
+        }
+    }
+}
+
+
 $(document).on('submit', 'form[data-oc-toggle=\'ajax\']', function (e) {
     e.preventDefault();
 
@@ -240,41 +288,7 @@ $(document).on('submit', 'form[data-oc-toggle=\'ajax\']', function (e) {
             }
             //end
 
-            if (typeof json['error'] == 'string') {
-                $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + json['error'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
-            }
-
-            if (typeof json['error'] == 'object') {
-                if (json['error']['warning']) {
-                    $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + json['error']['warning'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
-                }
-
-                for (key in json['error']) {
-                    //20230314 ronrun remove replaceAll() 1:underscore is needed 2:for older browser support
-                    if(key == 'warning'){
-                        continue;
-                    }
-                    $('#input-' + key).addClass('is-invalid').find('.form-control, .form-select, .form-check-input, .form-check-label').addClass('is-invalid');
-                    $('#error-' + key).html(json['error'][key]).addClass('d-block');
-                    //
-                }
-            }
-
-            // 新增 errors, 比照 error
-            if (typeof json['errors'] == 'object') {
-                if (json['errors']['warning']) {
-                    $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + json['errors']['warning'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
-                }
-
-                for (key in json['errors']) {
-                    if(key == 'warning'){
-                        continue;
-                    }
-                    $('#input-' + key).addClass('is-invalid').find('.form-control, .form-select, .form-check-input, .form-check-label').addClass('is-invalid');
-                    $('#error-' + key).html(json['errors'][key]).addClass('d-block');
-                }
-            }
-            // end 新增 errors
+            handleFormErrors(json, element);
 
             if (json['success']) {
                 $('#alert').prepend('<div class="alert alert-success alert-dismissible"><i class="fa-solid fa-circle-check"></i> ' + json['success'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
@@ -295,6 +309,16 @@ $(document).on('submit', 'form[data-oc-toggle=\'ajax\']', function (e) {
         },
         error: function (xhr, ajaxOptions, thrownError) {
             console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+
+            let json = {};
+
+            try {
+                json = JSON.parse(xhr.responseText);
+            } catch (e) {
+                console.error('無法解析 JSON：', e);
+            }
+
+            handleFormErrors(json, element);
         }
     });
 });

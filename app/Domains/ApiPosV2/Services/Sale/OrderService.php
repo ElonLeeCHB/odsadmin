@@ -44,22 +44,43 @@ class OrderService extends Service
         }
     }
 
-
     public function getList($filter_data)
     {
-        $builder = Order::query();
+        $query = Order::query();
 
         if (!empty($filter_data['simplelist'])){
-            $builder->select(Order::getDefaultListColumns());
+            $query->select(Order::getDefaultListColumns());
         }
 
-        $this->resetQueryBuilder($builder, $filter_data);
+        $this->resetQueryBuilder($query, $filter_data);
 
-        OrmHelper::applyFilters($builder, $filter_data);
-        OrmHelper::sortOrder($builder, $filter_data['sort'] ?? null, $filter_data['order'] ?? null);
+        OrmHelper::applyFilters($query, $filter_data);
+        OrmHelper::sortOrder($query, $filter_data['sort'] ?? null, $filter_data['order'] ?? null);
 
-        return OrmHelper::getResult($builder, $filter_data);
+        return OrmHelper::getResult($query, $filter_data);
     }
+
+    // public function getList($data)
+    // {
+    //     $data['select'] = ['id', 'code', 'personal_name', 'delivery_time_range','status_code','order_date','delivery_date'];
+
+    //     $query = Order::query();
+        
+    //     OrmHelper::applyFilters($query, $data);
+        
+    //     if(!empty($data['with'])){
+    //         if(is_string($data['with'])){
+    //             $with = explode(',', $data['with']);
+    //         }
+    //         if(in_array('deliveries', $with)){
+    //             $query->with(['deliveries' => function($query) {
+    //                             $query->select('id', 'name', 'order_code','phone','cartype');
+    //                         }]);
+    //         }
+    //     }
+
+    //     return OrmHelper::getResult($query, $data);
+    // }
 
     //getInfo
     public function getOrderByIdOrCode($value, $type = 'id')

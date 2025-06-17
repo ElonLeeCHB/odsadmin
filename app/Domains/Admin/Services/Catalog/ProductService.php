@@ -250,7 +250,7 @@ class ProductService extends Service
             }
         }
 
-        return $query->getResult($data);
+        return OrmHelper::getResult($query, $data);
     }
 
     public function getPosCategories($product_id)

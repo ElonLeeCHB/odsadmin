@@ -65,6 +65,7 @@ Route::group([
             'as' => 'sales.',
         ], function ()
         {
+            Route::get('orders/list2', 'Sale\OrderController@list2')->name('orders.list2');
             Route::get('orders/list', 'Sale\OrderController@list')->name('orders.list');
             Route::get('orders/info/{id}', 'Sale\OrderController@info')->name('orders.info');
             Route::get('orders/infoByCode/{code}', 'Sale\OrderController@infoByCode')->name('orders.infoByCode');
