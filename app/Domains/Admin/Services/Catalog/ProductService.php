@@ -233,6 +233,7 @@ class ProductService extends Service
         }
     }
 
+    // 取得列表
     public function getList($data)
     {
         $data['equal_is_salable'] = 1;
@@ -250,7 +251,7 @@ class ProductService extends Service
             }
         }
 
-        return $query->getResult($data);
+        return OrmHelper::getResult($query, $data);
     }
 
     public function getPosCategories($product_id)
