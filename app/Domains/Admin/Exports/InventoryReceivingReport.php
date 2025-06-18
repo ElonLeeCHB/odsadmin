@@ -74,7 +74,7 @@ class InventoryReceivingReport implements FromArray, WithTitle, WithHeadings, Wi
         $this->params['sort'] = 'receiving_date'; //必須按日期排序，並且會影響加總計算方式
         $this->params['order'] = 'ASC';
         $this->params['extra_columns'] = ['form_type_name', 'tax_type_name', ];
-        $this->params['with'] = DataHelper::addToArray(['receiving_products', 'supplier'], $params['with'] ?? []);
+        $this->params['with'] = DataHelper::addToArray(['receivingOrderProducts', 'supplier'], $params['with'] ?? []);
 
         $this->receivings = $this->ReceivingOrderRepository->getReceivingOrders($this->params);
 
@@ -97,7 +97,7 @@ class InventoryReceivingReport implements FromArray, WithTitle, WithHeadings, Wi
             $before_tax = '0';
             $after_tax = '0';
 
-            foreach ($receiving['receiving_products'] as $key2 => $receiving_product) { //每筆料件的迴圈
+            foreach ($receiving['receiving_order_products'] as $key2 => $receiving_product) { //每筆料件的迴圈
 
                 if($receiving['tax_type_code'] == 1){ //應稅內含
                     $tax = $receiving_product['amount'] * $receiving['tax_rate'];
