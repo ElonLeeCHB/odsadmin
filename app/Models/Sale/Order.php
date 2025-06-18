@@ -171,11 +171,11 @@ class Order extends Model
         return $this->hasOne(OrderPacking::class, 'order_id', 'id');
     }
 
-    // 廢棄
-    public function packing()
-    {
-        return $this->hasOne(OrderPacking::class, 'order_id', 'id');
-    }
+    // 製餐記錄 待廢
+    // public function packing()
+    // {
+    //     return $this->hasOne(OrderPacking::class, 'order_id', 'id');
+    // }
 
 
     /**

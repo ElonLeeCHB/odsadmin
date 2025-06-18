@@ -36,16 +36,20 @@ class RouteServiceProvider extends ServiceProvider
                 ->group(app_path('Domains/Api/Routes/api.php'));
 
             Route::middleware(['api'])
-                ->prefix('api/v2')
-                ->group(app_path('Domains/ApiV2/Routes/apiv2.php'));
-
-            Route::middleware(['api'])
                 ->prefix('api/posv2')
                 ->group(app_path('Domains/ApiPosV2/Routes/apipos.php'));
 
             Route::middleware(['api'])
                 ->prefix('api/wwwv2')
                 ->group(app_path('Domains/ApiWwwV2/Routes/apiwww.php'));
+
+            Route::middleware(['api'])
+                ->prefix('api/authv1')
+                ->group(app_path('Domains/ApiAuthV1/Routes/apiauthv1.php'));
+
+            Route::middleware(['api'])
+                ->prefix('api/hrmv1')
+                ->group(app_path('Domains/ApiHrmV1/Routes/apihrmv1.php'));
 
             // Route::middleware('web')
             //     ->group(base_path('routes/web.php'));

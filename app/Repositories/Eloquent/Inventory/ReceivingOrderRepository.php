@@ -57,6 +57,19 @@ class ReceivingOrderRepository extends Repository
         return $data;
     }
 
+    public function getReceivingOrders($data=[], $debug=0)
+    {
+        $data = $this->resetQueryData($data);
+
+        if(!empty($data['filter_product_name'])){
+            $data['whereHas'] = ['receivingOrderProducts' => ['product_name' => $data['filter_product_name']]];
+            unset($data['filter_product_name']);
+        }
+
+        $rows = $this->getRows($data, $debug);
+
+        return $this->unsetRelations($rows, ['status']);
+    }
 
     public function getReceivingOrderStatuses($data = [])
     {

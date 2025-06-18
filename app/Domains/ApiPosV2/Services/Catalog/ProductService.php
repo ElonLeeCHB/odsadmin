@@ -48,7 +48,7 @@ class ProductService extends Service
 
     public function getList($filter_data)
     {
-        $builder = Product::query();
+        $query = Product::query();
 
         if(!empty($filter_data['filter_product_tag_names'])){
             $product_tag_names = explode(',', $filter_data['filter_product_tag_names']);
@@ -66,16 +66,18 @@ class ProductService extends Service
 
             $tag_ids = $tags->pluck('term_id')->toArray();
 
-            $builder->whereHas('productTags', function($query) use ($tag_ids) {
+            $query->whereHas('productTags', function($query) use ($tag_ids) {
                 $query->whereIn('term_id', $tag_ids)
                       ->havingRaw('COUNT(DISTINCT term_id) = ?', [count($tag_ids)]);
             });
         }
         // $builder->debug();
-        
-        $builder->select(['id', 'price']);
 
-        $products = $builder->getResult($filter_data);
+        $params['select'] = ['id', 'price'];
+
+        OrmHelper::prepare($query, $params);
+
+        $products = OrmHelper::getResult($query, $params);
 
         foreach ($products as $product) {
             $result[] = [
