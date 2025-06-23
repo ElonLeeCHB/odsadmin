@@ -87,58 +87,43 @@ class OrderController extends ApiWwwV2Controller
 
     public function store()
     {
-        $data = request()->all();
-
-        if (empty($data)){
-            $json['error'] = '資料錯誤';
-        }
-
-        if (empty($json)){
-
-            $data['order_taker'] = 'web';
+        try {
+            $data = request()->all();
             
-            $order = $this->OrderService->store($data);
+            $json = [];
 
-            event(new \App\Events\SaleOrderSavedEvent(saved_order:$order, action:'created'));
+            // check data 
 
-            $data = [
-                'id' => $order->id,
-                'code' => $order->code,
-            ];
+            //
 
-            return $this->sendJsonResponse(data:$data, message:'訂單新增成功');
-        }
+            if (empty($json)){
 
-
-        // try {
-        //     $data = request()->all();
-
-        //     if (empty($data)){
-        //         $json['error'] = '資料錯誤';
-        //     }
-
-        //     if (empty($json)){
-
-        //         $data['order_taker'] = 'web';
+                $data['order_taker'] = 'web';
                 
-        //         $order = $this->OrderService->store($data);
-        //         echo "<pre>",print_r(999,true),"</pre>\r\n";exit;
-    
-        //         event(new \App\Events\SaleOrderSavedEvent(saved_order:$order));
-    
-        //         $data = [
-        //             'id' => $order->id,
-        //             'code' => $order->code,
-        //         ];
-    
-        //         return $this->sendJsonResponse(data:$data, message:'訂單新增成功');
-        //     }
+                // 這裡若有任何錯誤，必須 throw exception
+                DB::beginTransaction();
+                $order = $this->OrderService->store($data);
+                DB::commit();
 
-        //     return $this->sendJsonResponse(data:$json, status_code:400);
+                event(new \App\Events\SaleOrderSavedEvent(saved_order:$order, action:'created'));
 
-        // } catch (\Throwable $th) {
-        //     return $this->sendJsonResponse(data:['error' => $th->getMessage()], status_code:500);
-        // }
+                $data = [
+                    'id' => $order->id,
+                    'code' => $order->code,
+                ];
+
+                return $this->sendJsonResponse(data:$data, message:'訂單新增成功');
+            } else {
+                throw new \Exception($json['error']);
+            }
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+
+            (new \App\Repositories\Eloquent\SysData\LogRepository)->logRequest(note: $th->getMessage());
+
+            return response()->json(['error' => $th->getMessage(),], 400);
+        }
     }
 
     public function deliveries()

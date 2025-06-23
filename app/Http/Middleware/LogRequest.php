@@ -13,11 +13,8 @@ class LogRequest extends Middleware
 
     public function handle(Request $request, Closure $next)
     {
-        if($request->method()=='POST'){
-            $this->uniqueid = time() . '-' . uniqid();
-            $request->attributes->set('uniqueid', $this->uniqueid);
-    
-            (new \App\Repositories\Eloquent\SysData\LogRepository)->logRequest($this->uniqueid);
+        if($request->method()=='POST'){    
+            (new \App\Repositories\Eloquent\SysData\LogRepository)->logRequest();
         }
     
         return $next($request);

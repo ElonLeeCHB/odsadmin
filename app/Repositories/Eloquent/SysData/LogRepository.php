@@ -36,11 +36,11 @@ class LogRepository extends Repository
         $log->save();
     }
 
-    public function logRequest($uniqueid, $note = '')
+    public function logRequest($note = '')
     {
         $log = new Log;
 
-        $log->uniqueid = $uniqueid;
+        $log->uniqueid = app('uniqueid');
         $log->area = config('app.env');
         $log->url = request()->fullUrl() ?? '';
         $log->method = request()->method() ?? '';
