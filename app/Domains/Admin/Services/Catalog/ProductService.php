@@ -234,15 +234,16 @@ class ProductService extends Service
     }
 
     // 取得列表
-    public function getList($data)
+    public function getList($query_data)
     {
-        $data['equal_is_salable'] = 1;
+        $query_data['select'] = ['id','code','main_category_id','sort_order','price','is_active','is_salable'];
+        $query_data['equal_is_salable'] = 1;
 
         $query = Product::query();
-        OrmHelper::applyFilters($query, $data);
+        OrmHelper::applyFilters($query, $query_data);
 
-        if (!empty($data['filter_product_tags'])) {
-            $product_tags = explode(',', $data['filter_product_tags']);
+        if (!empty($query_data['filter_product_tags'])) {
+            $product_tags = explode(',', $query_data['filter_product_tags']);
 
             foreach ($product_tags as $term_id) {
                 $query->whereHas('ProductTags', function ($qry) use ($term_id) {
@@ -251,7 +252,7 @@ class ProductService extends Service
             }
         }
 
-        return OrmHelper::getResult($query, $data);
+        return OrmHelper::getResult($query, $query_data);
     }
 
     public function getPosCategories($product_id)

@@ -102,9 +102,10 @@ class OrderDailyRequisitionRepository
                         },
                         'productTags' => function ($query) {
                             $query->select(['product_id', 'term_id']);
-                        }]);
-                    }
-            ]);
+                        },
+                        'productPosCategories',
+                    ]);
+            }]);
     
             $orders = $query->get();
     
@@ -144,8 +145,29 @@ class OrderDailyRequisitionRepository
 
                 $braisedfood_option_value_ids = [1202,1203,1204];
                 
-                foreach ($order->orderProducts as $key2 => $orderOroduct) {
-                    foreach ($orderOroduct->orderProductOptions as $key3 => $orderProductOption) {
+                foreach ($order->orderProducts as $key2 => $orderProduct) {
+                    $product_id = $orderProduct->product_id;
+                    $printing_category_id = $orderProduct->product->pringting_category_id;
+
+                    // 單點，無選項
+                        if ($printing_category_id == 1494){
+                            $order_list[$order->id]['items'][$product_id]['required_datetime'] = $order->delivery_date;
+                            $order_list[$order->id]['items'][$product_id]['delivery_time_range'] = $order->delivery_time_range;
+                            $order_list[$order->id]['items'][$product_id]['product_id'] = $orderProduct->product_id;
+                            $order_list[$order->id]['items'][$product_id]['product_name'] = $orderProduct->name;
+                            $order_list[$order->id]['items'][$product_id]['map_product_id'] = $orderProduct->product_id;
+                            $order_list[$order->id]['items'][$product_id]['map_product_name'] = $orderProduct->name;
+
+                            if(empty($order_list[$order->id]['items'][$product_id]['quantity'])){ //若無值預設 = 0
+                                $order_list[$order->id]['items'][$product_id]['quantity'] = 0;
+                            }
+                            
+                            $order_list[$order->id]['items'][$product_id]['quantity'] += $orderProduct->quantity;
+                        }
+                    //
+
+
+                    foreach ($orderProduct->orderProductOptions ?? [] as $key3 => $orderProductOption) {
                         $map_product_id = $orderProductOption->map_product_id ?? 0;
                         $map_product_name = $orderProductOption->value ?? '';
                         $quantity  = $orderProductOption->quantity;
@@ -165,8 +187,8 @@ class OrderDailyRequisitionRepository
 
                                 $order_list[$order->id]['items'][$map_product_id]['required_datetime'] = $order->delivery_date;
                                 $order_list[$order->id]['items'][$map_product_id]['delivery_time_range'] = $order->delivery_time_range;
-                                $order_list[$order->id]['items'][$map_product_id]['product_id'] = $orderOroduct->product_id;
-                                $order_list[$order->id]['items'][$map_product_id]['product_name'] = $orderOroduct->name;
+                                $order_list[$order->id]['items'][$map_product_id]['product_id'] = $orderProduct->product_id;
+                                $order_list[$order->id]['items'][$map_product_id]['product_name'] = $orderProduct->name;
                                 $order_list[$order->id]['items'][$map_product_id]['map_product_id'] = $map_product_id;
                                 $order_list[$order->id]['items'][$map_product_id]['map_product_name'] = $map_product_name;
     
@@ -187,8 +209,8 @@ class OrderDailyRequisitionRepository
                                 $inch_6_product_id = $sales_wrap_map[$map_product_id]['new_product_id'];
                                 $inch_6_product_name = $sales_wrap_map[$map_product_id]['new_product_name'];
                                 
-                                $order_list[$order->id]['items'][$inch_6_product_id]['product_id'] = $orderOroduct->product_id;
-                                $order_list[$order->id]['items'][$inch_6_product_id]['product_name'] = $orderOroduct->name;
+                                $order_list[$order->id]['items'][$inch_6_product_id]['product_id'] = $orderProduct->product_id;
+                                $order_list[$order->id]['items'][$inch_6_product_id]['product_name'] = $orderProduct->name;
                                 $order_list[$order->id]['items'][$inch_6_product_id]['map_product_id'] = $inch_6_product_id;
                                 $order_list[$order->id]['items'][$inch_6_product_id]['map_product_name'] = $inch_6_product_name;
 
@@ -206,8 +228,8 @@ class OrderDailyRequisitionRepository
                                 $map_product_name = '廚娘油飯';
                                 $order_list[$order->id]['items'][$map_product_id]['required_datetime'] = $order->delivery_date;
                                 $order_list[$order->id]['items'][$map_product_id]['delivery_time_range'] = $order->delivery_time_range;
-                                $order_list[$order->id]['items'][$map_product_id]['product_id'] = $orderOroduct->product_id;
-                                $order_list[$order->id]['items'][$map_product_id]['product_name'] = $orderOroduct->name;
+                                $order_list[$order->id]['items'][$map_product_id]['product_id'] = $orderProduct->product_id;
+                                $order_list[$order->id]['items'][$map_product_id]['product_name'] = $orderProduct->name;
                                 $order_list[$order->id]['items'][$map_product_id]['map_product_id'] = $map_product_id;
                                 $order_list[$order->id]['items'][$map_product_id]['map_product_name'] = $map_product_name;
 
@@ -235,17 +257,18 @@ class OrderDailyRequisitionRepository
                         if(empty($order_list[$order->id]['items'][$map_product_id]['required_datetime'])){
                             $order_list[$order->id]['items'][$map_product_id]['required_datetime'] = $order->delivery_date;
                             $order_list[$order->id]['items'][$map_product_id]['delivery_time_range'] = $order->delivery_time_range;
-                            $order_list[$order->id]['items'][$map_product_id]['product_id'] = $orderOroduct->product_id;
-                            $order_list[$order->id]['items'][$map_product_id]['product_name'] = $orderOroduct->name;
+                            $order_list[$order->id]['items'][$map_product_id]['product_id'] = $orderProduct->product_id;
+                            $order_list[$order->id]['items'][$map_product_id]['product_name'] = $orderProduct->name;
                             $order_list[$order->id]['items'][$map_product_id]['map_product_id'] = $map_product_id;
                             $order_list[$order->id]['items'][$map_product_id]['map_product_name'] = $map_product_name;
                         }
 
                         //如果 null 則 0
                         $order_list[$order->id]['items'][$map_product_id]['quantity'] = ($order_list[$order->id]['items'][$map_product_id]['quantity'] ?? 0) + $orderProductOption->quantity;
-                    }
+                    }                    
 
-                    $order_list[$order->id]['tooltip'] .= '商品'.$orderOroduct->sort_order.'：' . $orderOroduct->name . '($'.(int)$orderOroduct->price.') * ' . $orderOroduct->quantity . "<BR>";
+                    // 懸浮視窗提示商品內容
+                    $order_list[$order->id]['tooltip'] .= '商品'.$orderProduct->sort_order.'：' . $orderProduct->name . '($'.(int)$orderProduct->price.') * ' . $orderProduct->quantity . "<BR>";
                 }
             }
 
@@ -263,46 +286,59 @@ class OrderDailyRequisitionRepository
                 foreach ($order['items'] as $map_product_id => $item) {
 
                     //allDay
+
+                    // 一般項目
                     $statistics['allDay'][$map_product_id] = ($statistics['allDay'][$map_product_id] ?? 0) + $item['quantity'];
 
+                    // 特別項目
                     if (in_array($map_product_id, $small_guabao_ids)){ // 小刈包
                         $statistics['allDay_sgb'] = ($statistics['allDay_sgb'] ?? 0) + $item['quantity'];
-                    }
+                    } 
                     else if (in_array($map_product_id, $big_guabao_ids)){ // 大刈包
                         $statistics['allDay_bgb'] = ($statistics['allDay_bgb'] ?? 0) + $item['quantity'];
-                    } else if (in_array($map_product_id, $lumpia6in_ids)){ //6吋潤餅
+                    }
+                    else if (in_array($map_product_id, $lumpia6in_ids)){  // 6吋潤餅
                         $statistics['allDay_6in'] = ($statistics['allDay_6in'] ?? 0) + $item['quantity'];
-                    }else if ($map_product_id == $spring_roll_id){ //春捲
+                    }
+                    else if ($map_product_id == $spring_roll_id){ // 春捲
                         $statistics['allDay_sr'] = ($statistics['allDay_sr'] ?? 0) + $item['quantity'];
                     }
 
                     //am
                     if($order['delivery_time_range_start'] <= '1300') {
+                        // 一般項目
                         $statistics['am'][$map_product_id] = ($statistics['am'][$map_product_id] ?? 0) + $item['quantity'];
 
+                        // 特別項目
                         if (in_array($map_product_id, $small_guabao_ids)){ // 小刈包
                             $statistics['am_sgb'] = ($statistics['am_sgb'] ?? 0) + $item['quantity'];
                         }
                         else if (in_array($map_product_id, $big_guabao_ids)){ // 大刈包
                             $statistics['am_bgb'] = ($statistics['am_bgb'] ?? 0) + $item['quantity'];
-                        } else if (in_array($map_product_id, $lumpia6in_ids)){ //6吋潤餅
+                        }
+                        else if (in_array($map_product_id, $lumpia6in_ids)){ //6吋潤餅
                             $statistics['am_6in'] = ($statistics['am_6in'] ?? 0) + $item['quantity'];
-                        }else if ($map_product_id == $spring_roll_id){ //春捲
+                        }
+                        else if ($map_product_id == $spring_roll_id){ //春捲
                             $statistics['am_sr'] = ($statistics['am_sr'] ?? 0) + $item['quantity'];
                         }
                     }
                     //pm
                     else{
+                        // 一般項目
                         $statistics['pm'][$map_product_id] = ($statistics['pm'][$map_product_id] ?? 0) + $item['quantity'];
 
+                        // 特別項目
                         if (in_array($map_product_id, $small_guabao_ids)){ // 小刈包
                             $statistics['pm_sgb'] = ($statistics['pm_sgb'] ?? 0) + $item['quantity'];
                         }
                         else if (in_array($map_product_id, $big_guabao_ids)){ // 大刈包
                             $statistics['pm_bgb'] = ($statistics['pm_bgb'] ?? 0) + $item['quantity'];
-                        } else if (in_array($map_product_id, $lumpia6in_ids)){ //6吋潤餅
+                        }
+                        else if (in_array($map_product_id, $lumpia6in_ids)){ //6吋潤餅
                             $statistics['pm_6in'] = ($statistics['pm_6in'] ?? 0) + $item['quantity'];
-                        }else if ($map_product_id == $spring_roll_id){ //春捲
+                        }
+                        else if ($map_product_id == $spring_roll_id){ //春捲
                             $statistics['pm_sr'] = ($statistics['pm_sr'] ?? 0) + $item['quantity'];
                         }
                     }
@@ -324,6 +360,7 @@ class OrderDailyRequisitionRepository
             foreach($orders as $order_id => $order){
 
                 foreach ($order->orderProducts as $order_product_id => $orderProduct) {
+
                     if(!empty($orderProduct->productTags)){
                         $product_tag_ids = optional($orderProduct->productTags)->pluck('term_id')->toArray() ?? [];
                     }

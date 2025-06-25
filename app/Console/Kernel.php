@@ -17,8 +17,17 @@ class Kernel extends ConsoleKernel
     // cron('*/20 * * * *');
     protected function schedule(Schedule $schedule): void
     {
-        // 定期清除laravel舊快取
+        // Commands (立即執行無佇列)
+
+        // 定期清除laravel內建快取
         $schedule->command('cache:clear')->daily();
+        
+        // 預設刪除 60 天以前的記錄
+        $schedule->command('app:delete-logs', ['60'])->daily();
+
+
+
+        // job() 會使用佇列
         
         // 定期更新訂單統計
         $schedule->job(new \App\Jobs\Sale\UpdateOrderByDatesJob)->hourly();

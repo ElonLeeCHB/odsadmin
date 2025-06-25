@@ -78,11 +78,12 @@ class Controller extends BaseController
             app()->setLocale($this->url_data['equal_locale']);
         }
 
-        if(isset($this->url_data['equal_is_active'])){
-            if($this->url_data['equal_is_active'] == '*'){
-                unset($this->url_data['equal_is_active']);
-            }
-        }
+        // 這裡不應該處理 equal_is_active。由 OrmHelper 或 EloquetTrait 處理。
+        // if(isset($this->url_data['equal_is_active'])){
+        //     if($this->url_data['equal_is_active'] == '*'){
+        //         unset($this->url_data['equal_is_active']);
+        //     }
+        // }
 
         return $this->url_data;
     }

@@ -295,7 +295,7 @@
                     </tbody>
                     <tfoot>
                       <tr>
-                        <td colspan="11" class="text-left">
+                        <td colspan="13" class="text-left">
                           <button type="button" onclick="addReceivingProduct()" data-toggle="tooltip" title="" class="btn btn-primary" data-original-title=""><i class="fa fa-plus-circle"></i></button>
                         </td>
                       </tr>

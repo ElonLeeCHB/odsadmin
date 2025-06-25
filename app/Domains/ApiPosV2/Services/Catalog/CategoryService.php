@@ -115,6 +115,7 @@ class CategoryService extends Service
             $tree[$category->id] = [
                 'id' => $category->id,
                 'name' => $category->name,
+                'sort_order' => $category->sort_order ?? 0,
                 'children' => $this->buildTermTree($category->id, $categories),
             ];
         }

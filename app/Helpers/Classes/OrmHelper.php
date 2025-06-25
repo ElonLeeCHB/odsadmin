@@ -31,16 +31,19 @@ class OrmHelper
         }
 
         // is_active
-            // 沒設定 equal_is_active 的時候，預設=1
+            // 如果不存在 equal_is_active ，預設=1
             if(!isset($params['equal_is_active'])){
                 $params['equal_is_active'] = 1;
-            } else {
-                // 存在 equal_is_active, 但值 = '*', 則取消檢查
+            }
+            // 存在 equal_is_active
+            else {
+                // 值 = '*', 取消此條件
                 if($params['equal_is_active'] == '*'){
                     unset($params['equal_is_active']);
+                } 
+                else {
+                    $params['equal_is_active'] = (int) $params['equal_is_active'];
                 }
-
-                // 如果存在 equal_is_active，但值不是 1 也不是 *，代表值 = 0，不啟用
             }
         //
 
