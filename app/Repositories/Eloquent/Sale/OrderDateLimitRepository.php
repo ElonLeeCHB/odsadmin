@@ -27,7 +27,7 @@ class OrderDateLimitRepository extends Repository
     public $modelName = "\App\Models\Sale\OrderDateLimit";
     public $controlled_status_code = ['Pending', 'Confirmed', 'CCP'];
     private $default_limits = [];
-    private $time_slot_keys = ["07:00-07:59", "08:00-08:59", "09:00-09:59", "10:00-10:59", "11:00-11:59", "12:00-12:59", "13:00-13:59","14:00-14:59", "15:00-15:59", "16:00-16:59", "17:00-17:59"];
+    private $time_slot_keys = ["07:00-07:59", "08:00-08:59", "09:00-09:59", "10:00-10:59", "11:00-11:59", "12:00-12:59", "13:00-13:59","14:00-14:59", "15:00-15:59", "16:00-16:59", "17:00-17:59", "18:00-18:59"];
     private $default_limit_count = 200;
     public $default_formatted_time_slots = [];
 
@@ -300,6 +300,7 @@ class OrderDateLimitRepository extends Repository
 
             $query->update(['op.quantity_for_control' => DB::raw('op.quantity * p.quantity_for_control')]);
         //
+        
 
         // 更新訂單商品表：商品本身沒有控單數量
             // -- (1) 先更新訂單商品選項表
@@ -350,21 +351,59 @@ class OrderDateLimitRepository extends Repository
         //
     }
 
+    // 將 OrderDateLimit 指定日期的資料更新為 settings 表預設的數量。所有訂單數量都會被重設為 0。
+    public function resetDefaultMaxQuantityByDate($date)
+    {
+        OrderDateLimit::whereDate('Date', $date)->delete(); // 刪除當日的資料
+
+        //預設 date_limit。根據 settings 表 pos_timeslotlimits 取得預設的數量。
+        $default_limits =  (new OrderDateLimitRepository)->getDefaultLimits();
+
+        $insert_data = [];
+
+        foreach ($default_limits as $time_slot_key => $quantity) {
+            $insert_data[] = [
+                'Date' => $date,
+                'TimeSlot' => $time_slot_key,
+                'MaxQuantity' => $quantity,
+                'OrderedQuantity' => 0,
+                'AcceptableQuantity' => $quantity,
+            ];
+        }
+
+        OrderDateLimit::insert($insert_data);
+    }
+
     // 重新計算某日訂單
     public function refreshOrderedQuantityByDate($date)
     {
         $date = Carbon::parse($date)->format('Y-m-d');
-        
-        // 獲取指定日期的資料
-        $formatted_data =  $this->getDbDateLimitsByDate($date);
 
-        // 既然當日訂單要重算，所以先設零。
-        foreach ($formatted_data['TimeSlots'] as $time_slot_key => $row) {
-            $formatted_data['TimeSlots'][$time_slot_key]['OrderedQuantity'] = 0;
-            $formatted_data['TimeSlots'][$time_slot_key]['AcceptableQuantity'] = $formatted_data['TimeSlots'][$time_slot_key]['MaxQuantity'];
-        }
+        $this->resetDefaultMaxQuantityByDate($date); // 重設當日的預設數量, 所有訂單數量都會被重設為 0。
+        
+        // // 獲取指定日期的資料
+        // $formatted_data =  $this->getDbDateLimitsByDate($date);
+
+        // // 既然當日訂單要重算，所以先設零。
+        // foreach ($formatted_data['TimeSlots'] as $time_slot_key => $row) {
+        //     $formatted_data['TimeSlots'][$time_slot_key]['OrderedQuantity'] = 0;
+        //     $formatted_data['TimeSlots'][$time_slot_key]['AcceptableQuantity'] = $formatted_data['TimeSlots'][$time_slot_key]['MaxQuantity'];
+        // }
 
         // 訂單資料
+        $order_ids = DB::table('orders as o')
+            ->whereDate('o.delivery_date', $date)
+            ->whereIn('o.status_code', $this->controlled_status_code)
+            ->orderBy('o.delivery_date')
+            ->pluck('o.id')
+            ->toArray();
+
+        // 更新訂單數量
+        foreach ($order_ids as $order_id) {
+            $this->updateOrderedQuantityForControlByOrderId($order_id);
+        }
+
+        // 重新抓訂單資料
         $builder = DB::table('orders as o')
                     ->select('o.id', 'o.code', 'o.delivery_date', 'o.delivery_time_range', 'o.quantity_for_control')
                     ->whereDate('o.delivery_date', $date)
@@ -495,15 +534,20 @@ class OrderDateLimitRepository extends Repository
     // 取得未來多天數的資料
     public function getFutureDays($futureDays = 30)
     {
+        if ($futureDays > 60) {
+            $futureDays = 60;
+        }
+
         $today = Carbon::today();
         $todayString = $today->format('Y-m-d');
         $targetDateString = Carbon::today()->addDays($futureDays)->format('Y-m-d');
 
-
         $result = [];
-        $records = OrderDateLimit::whereBetween('Date', [$todayString, $targetDateString])->orderBy('Date');
-        $records = $records->get();
-        foreach ($records ?? [] as $row) {
+
+        // 現有資料
+        $rows = OrderDateLimit::whereBetween('Date', [$todayString, $targetDateString])->orderBy('Date')->get();
+
+        foreach ($rows ?? [] as $row) {
             $date = $row->Date->format('Y-m-d');
 
             $result[$date][$row->TimeSlot] = [
@@ -513,6 +557,7 @@ class OrderDateLimitRepository extends Repository
             ];
         }
 
+        // 新增預設資料
         $defaultRow = $this->getDefaultLimits();
 
         for ($i = 1; $i < $futureDays; $i++) {
@@ -567,7 +612,9 @@ class OrderDateLimitRepository extends Repository
         // 避免傳進來的 $time_range 是 9:30，所以不能單純用 $hour = substr($time, 0, 2); 要在之前先確定是 hh:mm，所以用 str_pad()。
     }
 
-    // 更新特定格式的的訂單內容
+    // 更新特定格式的的訂單內容 
+    //   使用本方法之前，必須先將相關日期的 order_date_limits 恢復到預設值。即：MaxQuantity = AcceptableQuantity 並且有値。OrderedQuantity = 0
+    //   請執行 $this>resetDefaultMaxQuantityByDate($date)
     public function updateDefinedOrders($orders)
     {
         $all_formatted_data = [];

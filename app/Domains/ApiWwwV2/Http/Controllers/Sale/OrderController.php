@@ -87,70 +87,34 @@ class OrderController extends ApiWwwV2Controller
 
     public function store()
     {
-        $data = request()->all();
+        try {
+            $data = request()->all();
 
-        if (empty($data)){
-            $json['error'] = '資料錯誤';
-        }
-
-        foreach ($data['order_products'] as $order_product) {
-            foreach ($order_product['order_product_options'] as $order_product_option) {
-                if (strpos($order_product_option['value'], '酥魚') !== false) {
-                    $json['error'] = '資料錯誤';
-                }
-
-                if (strpos($order_product_option['value'], '滷肉') !== false) {
-                    $json['error'] = '資料錯誤';
-                }
+            if (empty($data)){
+                $json['error'] = '資料錯誤';
             }
-        }
 
-        if (empty($json)){
+            if (empty($json)){
 
-            $data['order_taker'] = 'web';
-            
-            $order = $this->OrderService->store($data);
-
-            event(new \App\Events\SaleOrderSavedEvent(saved_order:$order, action:'created'));
-
-            $data = [
-                'id' => $order->id,
-                'code' => $order->code,
-            ];
-
-            return $this->sendJsonResponse(data:$data, message:'訂單新增成功');
-        }
-
-
-        // try {
-        //     $data = request()->all();
-
-        //     if (empty($data)){
-        //         $json['error'] = '資料錯誤';
-        //     }
-
-        //     if (empty($json)){
-
-        //         $data['order_taker'] = 'web';
+                $data['order_taker'] = 'web';
                 
-        //         $order = $this->OrderService->store($data);
-        //         echo "<pre>",print_r(999,true),"</pre>\r\n";exit;
-    
-        //         event(new \App\Events\SaleOrderSavedEvent(saved_order:$order));
-    
-        //         $data = [
-        //             'id' => $order->id,
-        //             'code' => $order->code,
-        //         ];
-    
-        //         return $this->sendJsonResponse(data:$data, message:'訂單新增成功');
-        //     }
+                $order = $this->OrderService->store($data);
 
-        //     return $this->sendJsonResponse(data:$json, status_code:400);
+                event(new \App\Events\SaleOrderSavedEvent(saved_order:$order, action:'created'));
 
-        // } catch (\Throwable $th) {
-        //     return $this->sendJsonResponse(data:['error' => $th->getMessage()], status_code:500);
-        // }
+                $data = [
+                    'id' => $order->id,
+                    'code' => $order->code,
+                ];
+
+                return $this->sendJsonResponse(data:$data, message:'訂單新增成功');
+            } else {
+                throw new \Exception($json['error']);
+            }
+
+        } catch (\Throwable $th) {
+            return response()->json(['error' => $th->getMessage(),], 400);
+        }
     }
 
     public function deliveries()
