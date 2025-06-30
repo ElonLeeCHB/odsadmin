@@ -92,12 +92,11 @@ class OrderController extends ApiWwwV2Controller
             
             $json = [];
 
-            // check data 
-
+            // check data
+            
             //
 
             if (empty($json)){
-
                 $data['order_taker'] = 'web';
                 
                 // 這裡若有任何錯誤，必須 throw exception
@@ -119,9 +118,7 @@ class OrderController extends ApiWwwV2Controller
 
         } catch (\Throwable $th) {
             DB::rollback();
-
             (new \App\Repositories\Eloquent\SysData\LogRepository)->logRequest(note: $th->getMessage());
-
             return response()->json(['error' => $th->getMessage(),], 400);
         }
     }

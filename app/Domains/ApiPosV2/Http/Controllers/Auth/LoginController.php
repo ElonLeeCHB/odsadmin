@@ -39,7 +39,7 @@ class LoginController extends ApiPosController
         try{
             //前端欄位的 html name 必須是 username, 但值可以是 email 或 username
             $credentials = $request->only('username', 'password');
-            
+
             $user = User::where('username', $credentials['username'])->orWhere('email', $credentials['username'])->first();
 
             if ($user && Hash::check($credentials['password'], $user->password)) {
