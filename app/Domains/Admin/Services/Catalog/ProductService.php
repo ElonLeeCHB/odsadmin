@@ -52,7 +52,7 @@ class ProductService extends Service
                 $product->comment = $data['comment'] ?? '';
                 $product->is_active = $data['is_active'] ?? 0;
                 $product->is_salable = $data['is_salable'] ?? 0;
-                $product->is_on_web = $data['is_on_web'] ?? 0;
+                $product->is_on_www = $data['is_on_www'] ?? 0;
                 $product->sort_order = $data['sort_order'] ?? 999;
                 $product->save();
             //

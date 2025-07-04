@@ -15,12 +15,37 @@ class ProductService extends Service
 
     public $modelName = "\App\Models\Catalog\Product";
 
-    public function getInfo($params)
+    public function getProduct($product_id, $filter_data)
     {
-        $product = $this->getRow($params);
+        $query = Product::query();
+
+        if (!empty($product_id)) {
+            $query->where('id', $product_id);
+        }
+
+        $query->with([
+            'translation',
+            'product_options' => function ($query) {
+                $query->with([
+                    'translation',
+                    'product_option_values' => function ($query) {
+                        $query->with([
+                            'translation',
+                            'option_value'
+                        ]);
+                    }
+                ]);
+            }
+        ]);
+
+        OrmHelper::prepare($query, $filter_data);
+
+        $filter_data['first'] = true;
+
+        $product = OrmHelper::getResult($query, $filter_data);
     
         if (empty($product)) {
-            throw new \Exception('Product not found', 404);  // 404 是 HTTP 狀態碼
+            abort(404, 'Product not found');
         }
         
         $product->web_name = $product->translation->web_name;

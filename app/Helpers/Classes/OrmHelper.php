@@ -16,7 +16,6 @@ class OrmHelper
         self::select($query, $params);
         self::applyFilters($query, $params);
         self::sortOrder($query, $params);
-        // self::showSqlContent($query);
     }
     
     // 處理查詢欄位
