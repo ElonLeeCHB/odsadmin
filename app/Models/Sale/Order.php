@@ -16,6 +16,7 @@ use App\Models\Counterparty\Organization;
 use App\Models\Catalog\OptionValue;
 use App\Models\Common\Term;
 use App\Repositories\Eloquent\Common\TermRepository;
+use App\Repositories\Eloquent\SysData\DivisionRepository;
 use App\Traits\Model\ModelTrait;
 use DateTimeInterface;
 use App\Helpers\Classes\DataHelper;
@@ -213,17 +214,37 @@ class Order extends Model
         );
     }
 
+    // protected function shippingStateName(): Attribute
+    // {
+    //     // // DiviDivisionRepository
+    //     // $divisions = DivisionRepository::getDivisions();
+    //     // echo "<pre>",print_r($city_name,true),"</pre>";exit;
+    //     // return Attribute::make(
+    //     //     get: fn () => $this->shippingState?->name,
+    //     // );
+
+
+
+    //     $divisions = DivisionRepository::getDivisions();
+        
+    //     return Attribute::make(
+    //         get: fn () => $divisions[$this->shipping_state_id].'xx' ?? '',
+    //     );
+    // }
+
     protected function shippingStateName(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->shippingState?->name,
+            get: fn () => $this->shippingState?->name ?? null,
         );
     }
 
     protected function shippingCityName(): Attribute
     {
+        $divisions = DivisionRepository::getDivisions();
+        
         return Attribute::make(
-            get: fn () => $this->shippingCity?->name,
+            get: fn () => $this->shippingCity?->name ?? null,
         );
     }
     
