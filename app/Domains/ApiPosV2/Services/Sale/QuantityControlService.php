@@ -8,7 +8,9 @@ use App\Services\Service;
 use App\Models\Setting\Setting;
 use App\Models\Sale\OrderDateLimit;
 use App\Models\Sale\Order;
+use App\Models\SysData\Division;
 use App\Repositories\Eloquent\Sale\OrderDateLimitRepository;
+use App\Repositories\Eloquent\SysData\DivisionRepository;
 
 class QuantityControlService extends Service
 {
@@ -134,8 +136,6 @@ class QuantityControlService extends Service
         $end = $delivery_date_ymd . ' 23:59:59';
     
         $orders = Order::select(['id', 'code', 'delivery_time_range', 'shipping_state_id', 'shipping_city_id', 'shipping_road', 'delivery_date', 'quantity_for_control', 'comment', 'extra_comment','status_code'])
-                    ->with('shippingState')
-                    ->with('shippingCity')
                     ->with('status')
                     ->whereBetween('delivery_date', [$start, $end])
                     ->where(function ($query) {
@@ -146,9 +146,11 @@ class QuantityControlService extends Service
 
         $orders = $orders->toArray();
 
+        $divisions = DivisionRepository::getDivisions();
+
         foreach ($orders as $key => $order) {
-            unset($orders[$key]['shipping_state']);
-            unset($orders[$key]['shipping_city']);
+            $orders[$key]['shipping_state_name'] = $divisions[$orders[$key]['shipping_state_id']] ?? null;
+            $orders[$key]['shipping_city_name'] = $divisions[$orders[$key]['shipping_city_id']] ?? null;
         }
         
         return $orders;

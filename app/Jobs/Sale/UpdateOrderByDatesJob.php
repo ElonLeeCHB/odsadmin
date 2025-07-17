@@ -24,9 +24,10 @@ class UpdateOrderByDatesJob implements ShouldQueue
     public function handle(): void
     {
         // 執行時鎖定本任務
-        $lock = cache()->lock('sale-order-update-daily-requisition-job', 60);
+        // $lock = cache()->lock('sale-order-update-daily-requisition-job', 60);
 
-        if ($lock->get()) {
+        // if ($lock->get()) {
+        if (1) {
             try {
                 DB::transaction(function () {
                     $store_id = session('store_id', 1);
@@ -35,13 +36,19 @@ class UpdateOrderByDatesJob implements ShouldQueue
         
                     $current_updated_at = $setting->updated_at ?? null;
                     $updated_dates = $setting->setting_value ?? [];
+                    $updated_dates = array_unique($updated_dates); // 移除重複
+                    sort($updated_dates, SORT_STRING);
+
+                    // 控單表 order_date_limits。一次處理多日期
+                    (new \App\Repositories\Eloquent\Sale\OrderDateLimitRepository)->resetFutureOrders(delivery_dates: $updated_dates);
             
                     foreach ($updated_dates ?? [] as $updated_date) {
-                        (new \App\Repositories\Eloquent\Sale\OrderDateLimitRepository)->refreshOrderedQuantityByDate($updated_date);
+                        // (new \App\Repositories\Eloquent\Sale\OrderDateLimitRepository)->refreshOrderedQuantityByDate($updated_date);
+
+                        // 備料表。一次處理單一日期
                         (new \App\Repositories\Eloquent\Sale\OrderDailyRequisitionRepository)->getStatisticsByDate(required_date:$updated_date, force_update:false, is_return:false);
-                        // (new \App\Repositories\Eloquent\Sale\OrderDailyRequirementRepository)->handleByDate(required_date:$updated_date, force_update:false, is_return:false);
                     }
-        
+
                     $setting = Setting::where('store_id', $store_id)->where('setting_key', $setting_key)->first();
                     $new_updated_at = $setting->updated_at;
         
@@ -60,7 +67,9 @@ class UpdateOrderByDatesJob implements ShouldQueue
                 DB::rollBack();
                 (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorNotRequest(['data' => $th->getMessage(), 'note' => 'App\Jobs\Sale\UpdateOrderByDates->handle()']);
             } finally {
-                $lock->release();
+                if ($lock){
+                    $lock->release();
+                }
             }
         }
     }

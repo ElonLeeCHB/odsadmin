@@ -25,12 +25,10 @@ class Kernel extends ConsoleKernel
         // 預設刪除 60 天以前的記錄
         $schedule->command('app:delete-logs', ['60'])->daily();
 
-
-
         // job() 會使用佇列
         
         // 定期更新訂單統計
-        $schedule->job(new \App\Jobs\Sale\UpdateOrderByDatesJob)->hourly();
+        $schedule->job(new \App\Jobs\Sale\UpdateOrderByDatesJob)->everyMinute();
         
         // 計算近三個月進貨均價
         $schedule->job(new \App\Jobs\Inventory\CalculateRecentMaterialAveragePriceJob)->daily();
