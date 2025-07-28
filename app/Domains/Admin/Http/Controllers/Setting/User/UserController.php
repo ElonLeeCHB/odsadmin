@@ -195,42 +195,41 @@ class UserController extends BackendController
 
     public function save()
     {
-        $data = $this->request->all();
+        try {
+            $data = $this->request->all();
 
-        $json = [];
+            $json = [];
 
-        // Check user
-        $validator = $this->UserService->validator($this->request->post());
+            // Check user
+            $validator = $this->UserService->validator($this->request->post());
 
-        if($validator->fails()){
-            $messages = $validator->errors()->toArray();
+            if ($validator->fails()) {
+                $messages = $validator->errors()->toArray();
 
-            foreach ($messages as $key => $rows) {
-                $json['error'][$key] = $rows[0];
-            }
-        }
-
-        if(isset($json['error']) && !isset($json['error']['warning'])) {
-            $json['error']['warning'] = $this->lang->error_warning;
-        }
-
-        if(!$json) {
-            $result = $this->UserService->updateOrCreate($data);
-
-            if(empty($result['error'])){
-                $json['user_id'] = $result['data']['user_id'];
-                $json['success'] = $this->lang->text_success;
-            }else{
-                $user_id = auth()->user()->id;
-                if($user_id == 1){
-                    $json['error'] = $result['error'];
-                }else{
-                    $json['error'] = $this->lang->text_fail;
+                foreach ($messages as $key => $rows) {
+                    $json['error'][$key] = $rows[0];
                 }
             }
-        }
 
-       return response(json_encode($json))->header('Content-Type','application/json');
+            if (isset($json['error']) && !isset($json['error']['warning'])) {
+                $json['error']['warning'] = $this->lang->error_warning;
+            }
+
+            if(!empty($json)){
+                return response(json_encode($json), 400);
+            }
+
+            $result = $this->UserService->updateOrCreate($data);
+
+            $json = [
+                'success' => $this->lang->text_success,
+                'user_id' => $result['data']['user_id'],
+            ];
+
+            return response(json_encode($json));
+        } catch (\Throwable $th) {
+            return response(['error' => $th->getMessage()], 500);
+        }
     }
 
 

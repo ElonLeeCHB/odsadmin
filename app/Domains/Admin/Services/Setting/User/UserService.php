@@ -54,6 +54,10 @@ class UserService extends Service
                 $user->code = $data['code'];
             }
 
+            if (isset($data['employee_code'])) {
+                $user->employee_code = $data['employee_code'];
+            }
+
             if(isset($data['email'])){
                 $user->email = $data['email'];
             }
@@ -83,20 +87,84 @@ class UserService extends Service
             //     $this->UserMetaRepository->newModel()->upsert($upsertData, ['user_id','meta_key']);
             // }
 
-            DB::commit();
+
+            // 如果是員工，同步此 user 到差勤系統的 users 資料表
+            if (!empty($data['employee_code'])) {
+                $this->syncUserToHrm($user, auth()->user());
+            }
 
             $result['data']['user_id'] = $user->id;
 
-            return $result;
+            DB::commit();
 
-        } catch (\Exception $ex) {
+            return $result;
+        } catch (\Throwable $th) {
             DB::rollback();
-            $msg = $ex->getMessage();
-            $json['error'] = $msg;
-            return $json;
+            throw $th;
         }
     }
 
+    protected function syncUserToHrm(User $targetUser, User $loginUser)
+    {
+        try {
+            // 必須是 APP_ENV=production 並且 APP_DEBUG=false 才會同步到差勤系統
+            if (env('APP_ENV') == 'production' && env('APP_DEBUG') == true) {
+                $hrm_base_url = 'https://hrm.huabing.tw';
+            }
+            // 否則一律同步到測試環境
+            else{
+                $hrm_base_url = 'https://hrm.huabing.test';
+            }
+
+            if (!auth()->check()) {
+                throw new \Exception('目前未登入，請重新登入');
+            }
+
+            $http = new \GuzzleHttp\Client();
+
+            // 使用內部 API，用 username 登入
+            $loginResponse = $http->post($hrm_base_url . '/api/v1/poslogin', [
+                'verify' => false, // 忽略自發憑證的信任問題
+                'json' => [
+                    'username'      => $loginUser->username,
+                    'system_secret' => env('HRM_SYSTEM_SECRET'),
+                ],
+            ]);
+            $loginData = json_decode((string) $loginResponse->getBody(), true);
+            $accessToken = $loginData['access_token'];
+
+            // upsert 差勤用戶
+            $http = new \GuzzleHttp\Client();
+
+            $syncResponse = $http->post($hrm_base_url . '/api/v1/sync-user', [
+                'verify' => false,
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Accept'        => 'application/json',
+                ],
+                'json' => [
+                    'id'     => $targetUser->id,
+                    'username'     => $targetUser->username,
+                    'code'         => $targetUser->code,
+                    'name'         => $targetUser->name,
+                    'employee_code' => $targetUser->employee_code,
+                    'email'        => $targetUser->email,
+                    'password'     => $targetUser->password, // 這邊同步密碼
+                    'note'  => 'sync from pos '. date('Y-m-d H:i:s'),
+                    'system_secret' => env('HRM_SYSTEM_SECRET'),
+                ],
+            ]);
+            $syncData = json_decode((string) $syncResponse->getBody(), true);
+
+            if (!$syncData['success']) {
+                throw new \Exception('差勤同步失敗: ' . $syncData['message']);
+            }
+
+            return true;
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
 
     public function validator(array $data)
     {

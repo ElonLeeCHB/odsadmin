@@ -7,7 +7,7 @@ return [
 // Text
 'text_user' => '使用者管理',
 'text_user_details' => '使用者資料',
-'text_success' => '成功: 使用者資料設定已更新!',
+'text_success' => '成功: 使用者資料已更新!',
 'text_list' => '使用者清單',
 'text_add' => '新增使用者',
 'text_edit' => '編輯使用者',

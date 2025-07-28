@@ -86,6 +86,14 @@
                         </div>
                       </div>
                     </div>
+
+                    <div class="row mb-3">
+                      <label for="input-employee_code" class="col-sm-2 col-form-label">員工編號</label>
+                      <div class="col-sm-10">
+                        <input type="text" name="employee_code" value="{{ $user->employee_code ?? '' }}" id="input-employee_code" class="form-control"/>
+                        <div id="error-employee_code" class="invalid-feedback"></div>
+                      </div>
+                    </div>
                     
                     <legend>密碼</legend>
                     <div class="row mb-3">
