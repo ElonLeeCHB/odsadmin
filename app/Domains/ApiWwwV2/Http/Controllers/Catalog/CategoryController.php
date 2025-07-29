@@ -3,14 +3,30 @@
 namespace App\Domains\ApiWwwV2\Http\Controllers\Catalog;
 
 use Illuminate\Http\Request;
-use App\Domains\ApiWwwV2\Http\Controllers\ApiWwwController;
+use App\Domains\ApiWwwV2\Http\Controllers\ApiWwwV2Controller;
 use App\Domains\ApiWwwV2\Services\Catalog\CategoryService;
 
-class CategoryController extends ApiWwwController
+class CategoryController extends ApiWwwV2Controller
 {
     public function __construct(private Request $request, private CategoryService $CategoryService)
     {
         parent::__construct();
+    }
+
+    public function menu()
+    {
+        try {
+            $result = $this->CategoryService->getMenu();
+
+            // 使用 Collection 來排序並重設索引
+            $data['categories'] = collect($result['categories'])->sortBy('sort_order')->values()->all();
+
+            $data['products'] = $result['products'] ?? [];
+
+            return $this->sendJsonResponse($data);
+        } catch (\Throwable $th) {
+            return $this->sendJsonResponse(data: ['error' => $th->getMessage()]);
+        }
     }
 
 

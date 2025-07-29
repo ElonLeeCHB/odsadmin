@@ -94,10 +94,8 @@ class CategoryService extends Service
 
             // 將商品 ID 加入對應分類
             foreach ($product->terms as $term) {
-                if ($term->taxonomy_code === 'ProductPosCategory') {
-                    $arr_products[$product->id]['categories'][] = $term->id;
-                    $this->addProductToCategory($categories, $term->id, $product->id);
-                }
+                $arr_products[$product->id]['categories'][] = $term->id;
+                $this->addProductToCategory($categories, $term->id, $product->id);
             }
         }
 

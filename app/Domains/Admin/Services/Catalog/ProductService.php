@@ -57,7 +57,6 @@ class ProductService extends Service
                 $product->save();
             //
 
-
             // product_metas
                 //這裡不能用全刪再新增。比如 廠商料件名稱 supplier_product_name 不會出現在這裡，會誤刪。
                 $meta_keys = ['is_web_product'];
@@ -218,6 +217,30 @@ class ProductService extends Service
                 }
             //
 
+            // ProductWwwCategory
+                $taxonomy_id = Taxonomy::select('id')->where('code', 'ProductWwwCategory')->value('id');
+                ProductTerm::where('product_id', $product->id)->where('taxonomy_id', $taxonomy_id)->delete();
+
+                if (!empty($data['product_www_category'])) {
+                    if (!empty($taxonomy_id)) {
+
+                        $insert_data = [];
+
+                        foreach ($data['product_www_category'] as $term_id) {
+                            $insert_data[] = [
+                                'product_id' => $product->id,
+                                'term_id' => $term_id,
+                                'taxonomy_id' => $taxonomy_id,
+                            ];
+                        }
+
+                        if (!empty($insert_data)) {
+                            ProductTerm::insert($insert_data);
+                        }
+                    }
+                }
+            //
+
             DB::commit();
 
             //刪除快取
@@ -255,6 +278,58 @@ class ProductService extends Service
         return OrmHelper::getResult($query, $query_data);
     }
 
+    public function getWwwCategories($product_id)
+    {
+        // $rows = ProductTerm::where('product_id', $product_id)
+        //                     ->with('term.translation')
+        //                     ->join('taxonomies', 'product_terms.taxonomy_id', '=', 'taxonomies.id')
+        //                     ->get();
+        $poscategory_ids = ProductTerm::select('term_id')->where('product_id', $product_id)
+            ->join('taxonomies', 'product_terms.taxonomy_id', '=', 'taxonomies.id')
+            ->where('product_terms.taxonomy_id', '=', '36')
+            ->pluck('term_id');
+        $result = [];
+
+        foreach ($poscategory_ids as $poscategory_id) {
+            // $query = $this->db->query("SELECT DISTINCT *, (SELECT GROUP_CONCAT(cd1.`name` ORDER BY `level` SEPARATOR ' > ') FROM `" . DB_PREFIX . "category_path` cp LEFT JOIN `" . DB_PREFIX . "category_description` cd1 ON (cp.`path_id` = cd1.`category_id` AND cp.`category_id` != cp.`path_id`) WHERE cp.`category_id` = c.`category_id` AND cd1.`language_id` = '" . (int)$this->config->get('config_language_id') . "' GROUP BY cp.`category_id`) AS `path` FROM `" . DB_PREFIX . "category` c LEFT JOIN `" . DB_PREFIX . "category_description` cd2 ON (c.`category_id` = cd2.`category_id`) WHERE c.`category_id` = '" . (int)$category_id . "' AND cd2.`language_id` = '" . (int)$this->config->get('config_language_id') . "'");
+            $category_info = Term::getTermWithPath($poscategory_id);
+
+            if ($category_info) {
+                $result[] = (object) [
+                    'category_id' => $category_info->term_id,
+                    'name'        => ($category_info->path) ? $category_info->path . ' &gt; ' . $category_info->name : $category_info->name
+                ];
+            }
+        }
+
+        return $result;
+    }
+
+    public function getAllWwwCategories()
+    {
+        $params = [];
+        $params['equal_taxonomy_code'] = 'ProductWwwCategory';
+        $params['limit'] = 0;
+        $params['pagination'] = false;
+
+        $cache_key = 'cache/' . app()->getLocale() . '/terms/ChainedList-ProductWwwCategory-' . md5(json_encode($params));
+
+        return DataHelper::remember($cache_key, 60 * 5, 'serialize', function () use ($params) {
+            $rows = Term::getChainedList($params);
+            $rows = DataHelper::toCleanCollection($rows);
+
+            foreach ($rows as $row) {
+                $result[] = array(
+                    '_label' => $row->name,
+                    '_value' => $row->id,
+                    'term_id' => $row->id,
+                );
+            }
+            
+            return $result;
+        });
+    }
+
     public function getPosCategories($product_id)
     {
         // $rows = ProductTerm::where('product_id', $product_id)
@@ -262,8 +337,9 @@ class ProductService extends Service
         //                     ->join('taxonomies', 'product_terms.taxonomy_id', '=', 'taxonomies.id')
         //                     ->get();
         $poscategory_ids = ProductTerm::select('term_id')->where('product_id', $product_id)
-                        ->join('taxonomies', 'product_terms.taxonomy_id', '=', 'taxonomies.id')
-                        ->pluck('term_id');
+            ->join('taxonomies', 'product_terms.taxonomy_id', '=', 'taxonomies.id')
+            ->where('product_terms.taxonomy_id', '=', '32')
+            ->pluck('term_id');
         $result = [];
 
         foreach ($poscategory_ids as $poscategory_id) {

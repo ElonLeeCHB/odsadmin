@@ -70,6 +70,9 @@ Route::group(
                 Route::get('categories/autocomplete', 'Catalog\CategoryController@autocomplete')->name('categories.autocomplete');
                 Route::post('categories/destroy', 'Catalog\CategoryController@destroy')->name('categories.destroy');
 
+                //官網商品分類
+                Route::get('wwwcategories/autocomplete', 'Catalog\WwwCategoryController@autocomplete')->name('wwwcategories.autocomplete');
+
                 //POS商品分類
                 Route::get('poscategories', 'Catalog\PosCategoryController@index')->name('poscategories.index');
                 Route::get('poscategories/list', 'Catalog\PosCategoryController@list')->name('poscategories.list');

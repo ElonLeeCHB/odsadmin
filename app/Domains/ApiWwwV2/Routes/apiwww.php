@@ -17,6 +17,9 @@ Route::group([
         'as' => 'catalog.',
     ], function ()
     {
+        Route::get('categories/menu', 'Catalog\CategoryController@menu')->name('category.menu');
+        Route::get('categories/{category_id}/products', 'Catalog\CategoryController@products')->name('category.products');
+
         Route::get('products/list', 'Catalog\ProductController@list')->name('product.list');
         Route::get('products/info/{product_id}', 'Catalog\ProductController@info')->name('products.info');
     });

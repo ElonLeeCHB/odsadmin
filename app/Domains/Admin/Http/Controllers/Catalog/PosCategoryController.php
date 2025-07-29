@@ -227,7 +227,6 @@ class PosCategoryController extends BackendController
 
     public function autocomplete()
     {
-
         // Rows
         $rows = $this->PosCategoryService->getAutocomplete($this->url_data);
 

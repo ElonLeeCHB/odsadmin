@@ -330,8 +330,12 @@ class ProductController extends BackendController
             }
         }
 
+        // ProductWwwCategory
+        $data['ProductWwwCategories'] = $this->ProductService->getWwwCategories($product_id);
+        $data['AllProductWwwCategories'] = $this->ProductService->getAllWwwCategories($product_id);
+
         // ProductPosCategory
-        $data['product_categories'] = $this->ProductService->getPosCategories($product_id);
+        $data['ProductPosCategories'] = $this->ProductService->getPosCategories($product_id);
 
         return view('admin.catalog.product_form', $data);
     }

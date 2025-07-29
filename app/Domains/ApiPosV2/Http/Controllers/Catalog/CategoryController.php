@@ -19,8 +19,7 @@ class CategoryController extends ApiPosController
             $result = $this->CategoryService->getMenu();
 
             // 使用 Collection 來排序並重設索引
-            $tmpCatArr = collect($result['categories'])->sortBy('sort_order')->values()->all();
-            $data['categories'] = $tmpCatArr;
+            $data['categories'] = collect($result['categories'])->sortBy('sort_order')->values()->all();
             
             $data['products'] = $result['products'];
     

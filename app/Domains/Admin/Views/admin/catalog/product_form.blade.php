@@ -135,6 +135,42 @@
                 </div>
 
                 <div class="row mb-3">
+                  <label class="col-sm-2 col-form-label">官網分類</label>
+                  <div class="col-sm-10">
+                    {{-- 多選下拉 --}}
+                    <select id="input-www_category" class="form-select select2" multiple>
+                      @foreach ($AllProductWwwCategories as $cat)
+                        <option value="{{ $cat['_value'] }}">{{ $cat['_label'] }}</option>
+                      @endforeach
+                    </select>
+                    <div class="form-text"> </div>
+
+                    {{-- 顯示已選分類 --}}
+                    <div class="input-group mt-2">
+                      <div class="form-control p-0" style="height: 150px; overflow: auto;">
+                        <table id="product-www_category" class="table m-0">
+                          <tbody>
+                            @foreach($ProductWwwCategories ?? [] as $ProductwwwCategory)
+                              <tr id="product-www_category-{{ $ProductwwwCategory->category_id }}">
+                                <td>{!! $ProductwwwCategory->name !!}
+                                  <input type="hidden" name="product_www_category[]" value="{{ $ProductwwwCategory->category_id }}">
+                                </td>
+                                <td class="text-end">
+                                  <button type="button" class="btn btn-danger btn-remove-www-category">
+                                    <i class="fa-solid fa-minus-circle"></i>
+                                  </button>
+                                </td>
+                              </tr>
+                            @endforeach
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+                <div class="row mb-3">
                   <label class="col-sm-2 col-form-label">POS 分類</label>
                   <div class="col-sm-10">
                     <input type="text" name="pos_category" value="" placeholder="Categories" id="input-pos_category" data-oc-target="autocomplete-pos_category" class="form-control" autocomplete="off">
@@ -143,16 +179,16 @@
                       <div class="form-control p-0" style="height: 150px; overflow: auto;">
                         <table id="product-pos_category" class="table m-0">
                           <tbody>
-                            @foreach($product_categories as $product_category)
-                            <tr id="product-pos_category-{{ $product_category->category_id }}">
-                                <td>{!! $product_category->name !!}<input type="hidden" name="product_pos_category[]" value="{{ $product_category->category_id }}"></td>
+                            @foreach($ProductPosCategories as $ProductPosCategory)
+                            <tr id="product-pos_category-{{ $ProductPosCategory->category_id }}">
+                                <td>{!! $ProductPosCategory->name !!}<input type="hidden" name="product_pos_category[]" value="{{ $ProductPosCategory->category_id }}"></td>
                                 <td class="text-end"><button type="button" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button></td>
                             </tr>
                             @endforeach
                           </tbody>
                         </table>
                       </div>
-                                        </div>
+                    </div>
                     <div class="form-text">(Autocomplete)</div>
                   </div>
                 </div>
@@ -477,38 +513,36 @@
 @section('buttom')
   <script type="text/javascript">
 
-  $('#input-category').autocomplete({
-    'source': function(request, response) {
-      $.ajax({
-        url: "{{ route('lang.admin.catalog.categories.autocomplete') }}?filter_name=" + encodeURIComponent(request),
-        dataType: 'json',
-        success: function(json) {
-          response($.map(json, function(item) {
-            return {
-              label: item['name'],
-              value: item['category_id']
-            }
-          }));
-        }
-      });
-    },
-    'select': function (item) {
-      $('#input-category').val('');
+//   $('#input-category').autocomplete({
+//     'source': function(request, response) {
+//       $.ajax({
+//         url: "{{ route('lang.admin.catalog.categories.autocomplete') }}?filter_name=" + encodeURIComponent(request),
+//         dataType: 'json',
+//         success: function(json) {
+//           response($.map(json, function(item) {
+//             return {
+//               label: item['name'],
+//               value: item['category_id']
+//             }
+//           }));
+//         }
+//       });
+//     },
+//     'select': function (item) {
+//       $('#input-category').val('');
 
-      $('#product-pos_category-' + item['value']).remove();
+//       $('#product-pos_category-' + item['value']).remove();
 
-      html = '<tr id="product-pos_category-' + item['value'] + '">';
-      html += '  <td>' + item['label'] + '<input type="hidden" name="product_categories[]" value="' + item['value'] + '"/></td>';
-      html += '  <td class="text-end"><button type="button" class="btn btn-danger btn-sm"><i class="fa-solid fa-minus-circle"></i></button></td>';
-      html += '</tr>';
+//       html = '<tr id="product-pos_category-' + item['value'] + '">';
+//       html += '  <td>' + item['label'] + '<input type="hidden" name="product_categories[]" value="' + item['value'] + '"/></td>';
+//       html += '  <td class="text-end"><button type="button" class="btn btn-danger btn-sm"><i class="fa-solid fa-minus-circle"></i></button></td>';
+//       html += '</tr>';
 
-      $('#product-pos_category tbody').append(html);
-    }
-  });
+//       $('#product-pos_category tbody').append(html);
+//     }
+//   });
 
-  $('#product-pos_category').on('click', '.btn', function () {
-      $(this).parent().parent().remove();
-  });
+
 
   // Main Category
   $('#input-main_category').autocomplete({
@@ -789,7 +823,34 @@
   });
   <?php } ?>
 
- 
+// WWW Category
+$('#input-www_category').on('change', function () {
+  const selectedOptions = $(this).find('option:selected');
+
+  selectedOptions.each(function () {
+    const label = $(this).text();
+    const value = $(this).val();
+
+    if ($('#product-www_category-' + value).length === 0) {
+      let html = '<tr id="product-www_category-' + value + '">';
+      html += '  <td>' + label + '<input type="hidden" name="product_www_category[]" value="' + value + '"/></td>';
+      html += '  <td class="text-end"><button type="button" class="btn btn-danger btn-remove-www-category"><i class="fa-solid fa-minus-circle"></i></button></td>';
+      html += '</tr>';
+
+      $('#product-www_category tbody').append(html);
+    }
+  });
+
+  // 清空選取，避免重複選
+  $(this).val([]);
+});
+$(document).ready(function () {
+  $('#input-www_category').select2({
+    placeholder: '選擇官網分類',
+    allowClear: true,
+    width: '100%'
+  });
+});
 // POS Category
 $('#input-pos_category').autocomplete({
     'source': function (request, response) {
@@ -808,8 +869,6 @@ $('#input-pos_category').autocomplete({
         });
     },
     'select': function (item) {
-        $('#input-category').val('');
-
         $('#product-pos_category-' + item['value']).remove();
 
         html = '<tr id="product-pos_category-' + item['value'] + '">';
@@ -820,6 +879,11 @@ $('#input-pos_category').autocomplete({
         $('#product-pos_category tbody').append(html);
     }
 });
+$('#product-pos_category').on('click', '.btn-danger', function () {
+    $(this).parent().parent().remove();
+});
+
+
 
 </script>
 @endsection
