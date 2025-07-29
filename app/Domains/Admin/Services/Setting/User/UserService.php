@@ -134,8 +134,6 @@ class UserService extends Service
             $accessToken = $loginData['access_token'];
 
             // upsert 差勤用戶
-            $http = new \GuzzleHttp\Client();
-
             $syncResponse = $http->post($hrm_base_url . '/api/v1/sync-user', [
                 'verify' => false,
                 'headers' => [
@@ -149,7 +147,7 @@ class UserService extends Service
                     'name'         => $targetUser->name,
                     'employee_code' => $targetUser->employee_code,
                     'email'        => $targetUser->email,
-                    'password'     => $targetUser->password, // 這邊同步密碼
+                    'password'     => $targetUser->password,
                     'note'  => 'sync from pos '. date('Y-m-d H:i:s'),
                     'system_secret' => env('HRM_SYSTEM_SECRET'),
                 ],

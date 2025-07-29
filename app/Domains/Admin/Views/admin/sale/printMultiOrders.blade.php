@@ -89,7 +89,7 @@
         </tr>
         <tr>
           <td colspan="3">
-            <span class="fw-bold">送達公司：</span><span>{{ $order['header']->shipping_comment }}
+            <span class="fw-bold">送達公司：</span><span>{{ $order['header']->shipping_company }}</span>&nbsp;&nbsp;
           <span class="fw-bold">送達地址：</span>
           @if($order['header']->shipping_method == 'shipping_pickup')
             自取

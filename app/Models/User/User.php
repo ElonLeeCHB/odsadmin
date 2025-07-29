@@ -7,6 +7,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Sale\Order;
 use App\Models\Catalog\OptionValueTranslation;
@@ -14,9 +15,8 @@ use App\Models\Common\Term;
 use App\Models\SysData\Division;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Traits\Model\ModelTrait;
-
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Support\Facades\Schema;
+use Ramsey\Uuid\Uuid;
 
 class User extends Authenticatable
 {
@@ -87,6 +87,13 @@ class User extends Authenticatable
     }
 
     //Attribute
+    protected function uuid(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $value ? Uuid::fromBytes($value)->toString() : null,
+        );
+    }
+    
     protected function mobile(): Attribute
     {
         return Attribute::make(
