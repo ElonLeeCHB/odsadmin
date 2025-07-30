@@ -22,6 +22,7 @@ use App\Helpers\Classes\DataHelper;
 use App\Helpers\Classes\DateHelper;
 use App\Helpers\Classes\OrmHelper;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Sale\Invoice;
 
 /*
 delivery_date 應該改為 date 格式，不要有時分秒。因為已經有了 delivery_time_range。
@@ -176,6 +177,18 @@ class Order extends Model
     // {
     //     return $this->hasOne(OrderPacking::class, 'order_id', 'id');
     // }
+
+    public function invoices()
+    {
+        return $this->belongsToMany(Invoice::class, 'invoice_order_maps')
+            ->withPivot('allocated_amount')
+            ->withTimestamps();
+    }
+    
+    public function orderGroup()
+    {
+        return $this->belongsTo(OrderGroup::class, 'order_group_id');
+    }
 
 
     /**

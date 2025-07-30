@@ -2,6 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceBatchController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderGroupController;
+
+
 Route::group([
     'namespace' => 'App\Domains\ApiPosV2\Http\Controllers',
     'as' => 'api.posv2.',
@@ -71,6 +76,18 @@ Route::group([
             Route::post('orders/store', 'Sale\OrderController@store')->name('orders.store');
             Route::post('orders/update/{id}', 'Sale\OrderController@update')->name('orders.update');
             Route::post('orders/updateHeader/{id}', 'Sale\OrderController@updateHeader')->name('orders.updateHeader');
+
+            // 訂單群組
+            Route::apiResource('order-groups', OrderGroupController::class);
+            Route::post('order-groups/{id}/attach-order', [OrderGroupController::class, 'attachOrder']);
+            Route::post('order-groups/{id}/detach-order', [OrderGroupController::class, 'detachOrder']);
+            Route::post('order-groups/{id}/attach-invoice', [OrderGroupController::class, 'attachInvoice']);
+            Route::post('order-groups/{id}/detach-invoice', [OrderGroupController::class, 'detachInvoice']);
+            
+            // 發票
+            Route::apiResource('invoices', InvoiceController::class);
+            // 批次新增
+            Route::post('invoices/batch', [InvoiceBatchController::class, 'store']);
 
             // 訂單標籤基本資料
             Route::get('order-tags/list', 'Sale\OrderController@orderTagsList')->name('orderTags.list');
