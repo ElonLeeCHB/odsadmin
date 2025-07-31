@@ -59,12 +59,14 @@ class ProductService extends Service
                 }
                 //換算用量
                 else{
+
+                    echo "<pre>",print_r($post_data['usage_unit_code'],true),"</pre>";
                     $usage_factor = UnitConverter::build()->qty(1)
                                         ->from($post_data['usage_unit_code'])
                                         ->to($stock_unit_code)
                                         ->product($post_data['product_id'])
                                         ->get();
-
+echo "<pre>",print_r(999,true),"</pre>";exit;
                     if(!empty($usage_factor['error'])){
                         throw new \Exception($usage_factor['error']);
 

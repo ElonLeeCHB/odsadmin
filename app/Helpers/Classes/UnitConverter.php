@@ -2,7 +2,10 @@
 
 namespace App\Helpers\Classes;
 
+use App\Helpers\Classes\OrmHelper;
+
 use Illuminate\Support\Facades\DB;
+use App\Models\Catalog\ProductUnit;
 
 /**
  * 2023-11-14
@@ -104,12 +107,22 @@ class UnitConverter
                 if(empty($productUnit->destination_unit_code)){
 
                     // find again if there is reverse product unit.
-                    $reverse_product_unit = DB::table($this->puc_table_name)
-                                        ->where($this->puc_column_product_id, $this->product_id)
-                                        ->where($this->puc_column_source_unit_code, $this->toUnit)
-                                        ->where($this->puc_column_destination_unit_code, $this->fromUnit)
-                                        ->first();
-
+                    // $reverse_product_unit = DB::table($this->puc_table_name)
+                    //                     ->where($this->puc_column_product_id, $this->product_id)
+                    //                     ->where($this->puc_column_source_unit_code, $this->toUnit)
+                    //                     ->where($this->puc_column_destination_unit_code, $this->fromUnit)
+                    //                     ->first();
+                    //
+                    $query = ProductUnit::query();
+                    $query->where('product_id', $this->product_id);
+                    $query->where('source_unit_code', $this->toUnit);
+                    $query->where('destination_unit_code', $this->fromUnit);
+                    OrmHelper::showSqlContent($query);
+                    OrmHelper::prepare($query);
+//                     reverse_product_unit
+//                     $rows = 
+//                                         $reverse_product_unit
+// echo "<pre>reverse_product_unit=",print_r($reverse_product_unit,true),"</pre>";exit;
                     // Reverse product unit exist.
                     $productUnit = (object) [
                         'product_id' => $reverse_product_unit->product_id,
@@ -126,8 +139,9 @@ class UnitConverter
                 }
             }
             return $toQty ;
-        } catch (\Exception $ex) {
-            return ['error' => $ex->getMessage()];
+        } catch (\Throwable $th) {
+            echo "<pre>getMessage ",print_r($th->getMessage(),true),"</pre>";exit;
+            throw $th;
         }
 
     }

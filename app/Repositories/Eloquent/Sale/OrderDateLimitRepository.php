@@ -27,11 +27,11 @@ class OrderDateLimitRepository extends Repository
     public $modelName = "\App\Models\Sale\OrderDateLimit";
     public $controlled_status_code = ['Pending', 'Confirmed', 'CCP'];
     private $default_limits = [];
-    private $time_slot_keys = ["07:00-07:59", "08:00-08:59", "09:00-09:59", "10:00-10:59", "11:00-11:59", "12:00-12:59", "13:00-13:59","14:00-14:59", "15:00-15:59", "16:00-16:59", "17:00-17:59", "18:00-18:59"];
+    private $time_slot_keys = ["07:00-07:59", "08:00-08:59", "09:00-09:59", "10:00-10:59", "11:00-11:59", "12:00-12:59", "13:00-13:59","14:00-14:59", "15:00-15:59", "16:00-16:59", "17:00-17:59"];
     private $default_limit_count = 200;
     public $default_formatted_time_slots = [];
 
-    // 獲取預設的數量設定。來源： settings.setting_key = pos_timeslotlimits
+    // 獲取預設的數量設定。來源： settings.setting_key = pos_timeslotlimits. 陣列：0900-0959 => 200
     public function getDefaultLimits()
     {
         $this->default_limits = Setting::where('group','pos')->where('setting_key', 'pos_timeslotlimits')->first()->setting_value;
@@ -44,18 +44,18 @@ class OrderDateLimitRepository extends Repository
             return strtotime($startA) - strtotime($startB);
         });
 
-        //  確保每個時段都有預設的上限數量
-        foreach ($this->time_slot_keys as $time_slot_key) {
-            if(empty($this->default_limits[$time_slot_key])){
-                $this->default_limits[$time_slot_key] = $this->default_limit_count;
-            }
-        }
-
         return $this->default_limits;
     }
 
+    // 單純 slot keys 陣列, 自然數索引，沒有數量
     public function getDefaultTimeSlotKeys()
     {
+        if ($this->time_slot_keys){
+            $default_limits = $this->getDefaultLimits();
+
+            $this->time_slot_keys = array_keys($default_limits);
+        }
+
         return $this->time_slot_keys;
     }
 
@@ -380,15 +380,6 @@ class OrderDateLimitRepository extends Repository
         $date = Carbon::parse($date)->format('Y-m-d');
 
         $this->resetDefaultMaxQuantityByDate($date); // 重設當日的預設數量, 所有訂單數量都會被重設為 0。
-        
-        // // 獲取指定日期的資料
-        // $formatted_data =  $this->getDbDateLimitsByDate($date);
-
-        // // 既然當日訂單要重算，所以先設零。
-        // foreach ($formatted_data['TimeSlots'] as $time_slot_key => $row) {
-        //     $formatted_data['TimeSlots'][$time_slot_key]['OrderedQuantity'] = 0;
-        //     $formatted_data['TimeSlots'][$time_slot_key]['AcceptableQuantity'] = $formatted_data['TimeSlots'][$time_slot_key]['MaxQuantity'];
-        // }
 
         // 訂單資料
         $order_ids = DB::table('orders as o')
@@ -404,14 +395,16 @@ class OrderDateLimitRepository extends Repository
         }
 
         // 重新抓訂單資料
-        $builder = DB::table('orders as o')
+        $query = DB::table('orders as o')
                     ->select('o.id', 'o.code', 'o.delivery_date', 'o.delivery_time_range', 'o.quantity_for_control')
                     ->whereDate('o.delivery_date', $date)
                     ->whereIn('o.status_code', $this->controlled_status_code)
                     ->orderBy('o.delivery_date');
         
-        $customOrders = $builder->get();
+        $customOrders = $query->get();
         
+        // 以上處理訂單表 orders
+        // 以下處理 order_date_limits
         $this->updateDefinedOrders($customOrders);
 
         $formatted_data =  $this->getDbDateLimitsByDate($date); //抓 order_date_limits
@@ -579,20 +572,39 @@ class OrderDateLimitRepository extends Repository
     }
 
     // 重設未來訂單
-    public function resetFutureOrders()
+    public function resetFutureOrders($delivery_dates = [])
     {
         // 取得今天的日期
         $today = Carbon::today();
 
         // 查詢所有 delivery_date 大於今天的訂單
-        $builder = DB::table('orders as o')
-                    ->select('o.id', 'o.delivery_date', 'o.delivery_time_range', 'op.id as order_product_id', 'op.order_id', 'op.product_id', 'op.name', 'op.quantity', 'o.quantity_for_control')
-                    ->join('order_products as op', 'o.id', '=', 'op.order_id')
-                    ->where('delivery_date', '>', $today)
+        // $query = DB::table('orders as o')
+        //             ->select('o.id', 'o.delivery_date', 'o.delivery_time_range', 'op.id as order_product_id', 'op.order_id', 'op.product_id', 'op.name', 'op.quantity', 'o.quantity_for_control')
+        //             ->join('order_products as op', 'o.id', '=', 'op.order_id')
+        //             ->whereIn('o.status_code', $this->controlled_status_code)
+        //             ->orderBy('o.delivery_date');
+        $query = DB::table('orders as o')
+                    ->select('o.id', 'o.code', 'o.delivery_date', 'o.delivery_time_range', 'o.quantity_for_control')
                     ->whereIn('o.status_code', $this->controlled_status_code)
                     ->orderBy('o.delivery_date');
+        
+        $customOrders = $query->get();
+        // 重設全部未來訂單
+        if (empty($delivery_dates)){
+            $query->where('delivery_date', '>', $today);
+        }
+        // 指定日期
+        else {
+            $query->where(function ($q) use ($delivery_dates) {
+                collect($delivery_dates)->each(function ($d) use ($q) {
+                    $q->whereDate('delivery_date', $d, 'or');
+                });
+            });
+        }
 
-        $orders = $builder->get();
+        // OrmHelper::showSqlContent($query);
+
+        $orders = $query->get();
 
         return $this->updateDefinedOrders($orders);
     }
@@ -619,6 +631,8 @@ class OrderDateLimitRepository extends Repository
     {
         $all_formatted_data = [];
 
+        $delivery_dates = [];
+
         //計算 $order->delivery_date 必須是 datetime 並且有時間。預設取 delivery_time_range 的結束時間
         foreach ($orders ?? [] as $order) {
             $time_slot_key = $this->getTimeSlotKeyByDeliveryTimeRange($order->delivery_time_range);
@@ -633,8 +647,9 @@ class OrderDateLimitRepository extends Repository
 
             $delivery_dates[] = $delivery_date_ymd;
         }
+
         $delivery_dates = array_unique($delivery_dates); // 移除重複
-        //以上將所有訂單數量加總完成
+        //以上將所有訂單數量計算加總完成
 
         // 資料庫現有的資料
         $db_order_date_limits = $this->getFormattedDataInMultiDates($delivery_dates);
