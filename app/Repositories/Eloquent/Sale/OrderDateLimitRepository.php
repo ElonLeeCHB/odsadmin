@@ -588,7 +588,8 @@ class OrderDateLimitRepository extends Repository
                     ->whereIn('o.status_code', $this->controlled_status_code)
                     ->orderBy('o.delivery_date');
         
-        $customOrders = $query->get();
+        // $customOrders = $query->get();
+
         // 重設全部未來訂單
         if (empty($delivery_dates)){
             $query->where('delivery_date', '>', $today);
@@ -601,8 +602,6 @@ class OrderDateLimitRepository extends Repository
                 });
             });
         }
-
-        // OrmHelper::showSqlContent($query);
 
         $orders = $query->get();
 

@@ -17,6 +17,7 @@ use App\Traits\Model\ModelTrait;
 
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Facades\Schema;
+use Ramsey\Uuid\Uuid;
 
 class User extends Authenticatable
 {
@@ -87,6 +88,13 @@ class User extends Authenticatable
     }
 
     //Attribute
+    protected function uuid(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $value ? Uuid::fromBytes($value)->toString() : null,
+        );
+    }
+
     protected function mobile(): Attribute
     {
         return Attribute::make(

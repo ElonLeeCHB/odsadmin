@@ -21,7 +21,7 @@ class MemberController extends ApiPosController
     {
         $members = $this->service->getList(request()->all());
 
-        return $this->sendJsonResponse($members);
+        return response()->json($members, 200, [], JSON_UNESCAPED_UNICODE); 
     }
 
     public function info($member_id = null)

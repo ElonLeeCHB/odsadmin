@@ -8,6 +8,7 @@ use App\Services\Service;
 use App\Models\Setting\Setting;
 use App\Models\Sale\OrderDateLimit;
 use App\Models\Sale\Order;
+use App\Models\SysData\Division;
 use App\Repositories\Eloquent\Sale\OrderDateLimitRepository;
 
 class QuantityControlService extends Service
@@ -146,7 +147,12 @@ class QuantityControlService extends Service
 
         $orders = $orders->toArray();
 
+        $states = (new \App\Repositories\Eloquent\SysData\DivisionRepository)->getStates();
+
         foreach ($orders as $key => $order) {
+            $orders[$key]['shipping_state_name'] = $orders[$key]['shipping_state']['name'] ?? null;
+            $orders[$key]['shipping_city_name'] = $orders[$key]['shipping_city']['name'] ?? null;
+            
             unset($orders[$key]['shipping_state']);
             unset($orders[$key]['shipping_city']);
         }

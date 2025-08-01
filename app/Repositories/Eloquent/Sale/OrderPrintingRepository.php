@@ -283,8 +283,8 @@ class OrderPrintingRepository extends Repository
                 //
                 
                 $order->salutation_name = !empty($order->salutation_code) ? $salutations[$order->salutation_code]->name : '';
-                $order->shipping_salutation_name = !empty($order->shipping_salutation_id) ? $salutations[$order->shipping_salutation_id]->name : '';
-                $order->shipping_salutation_name2 = !empty($order->shipping_salutation_id2) ? $salutations[$order->shipping_salutation_id2]->name : '';
+                $order->shipping_salutation_name = !empty($order->shipping_salutation_code) ? $salutations[$order->shipping_salutation_code]->name : '';
+                $order->shipping_salutation_name2 = !empty($order->shipping_salutation_code2) ? $salutations[$order->shipping_salutation_code2]->name : '';
                 
                 // shipping_address
                 $order->shipping_address = '';
