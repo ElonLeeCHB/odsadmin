@@ -151,7 +151,7 @@ class OrderController extends ApiPosController
             }
 
         } catch (\Throwable $th) {
-            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
+            return $this->sendJsonResponse(data:['error' => $th->getMessage()], status_code:500);
         }
     }
 

@@ -46,7 +46,7 @@ class UpdateOrderQuantityControlJob implements ShouldQueue
                     'note' => get_class($this) . ' handle()',
                     'status' => 'error',
                 ];
-                (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorNotRequest($logData);
+                (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorAfterRequest($logData);
             } finally {
                 $lock->release();
             }

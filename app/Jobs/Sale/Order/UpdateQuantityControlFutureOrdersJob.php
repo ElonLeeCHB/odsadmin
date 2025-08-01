@@ -31,7 +31,7 @@ class UpdateQuantityControlFutureOrdersJob implements ShouldQueue
 
             } catch (\Throwable $th) {
                 DB::rollBack();
-                (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorNotRequest(['data' => $th->getMessage(), 'note' => 'UpdateQuantityControlFutureOrdersJob']);
+                (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorAfterRequest(['data' => $th->getMessage(), 'note' => 'UpdateQuantityControlFutureOrdersJob']);
             } finally {
                 $lock->release();
             }

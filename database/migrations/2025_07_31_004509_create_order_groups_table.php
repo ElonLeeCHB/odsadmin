@@ -24,6 +24,12 @@ return new class extends Migration
             $table->unsignedBigInteger('modifier_id')->nullable();
             $table->timestamps();
         });
+
+        if (!Schema::hasColumn('orders', 'order_group_id')) {
+            Schema::table('orders', function (Blueprint $table) {
+                $table->unsignedBigInteger('order_group_id')->nullable()->after('id');
+            });
+        }
     }
 
     /**

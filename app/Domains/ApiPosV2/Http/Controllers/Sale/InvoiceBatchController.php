@@ -57,13 +57,13 @@ class InvoiceBatchController extends ApiPosController
             'invoices.*.buyer_name' => 'required|string|max:100',
             'invoices.*.seller_name' => 'required|string|max:100',
             'invoices.*.tax_id_number' => 'nullable|string|max:20',
-            'invoices.*.total' => 'required|numeric|min:0',
+            'invoices.*.total_amount' => 'required|numeric|min:0',
             'invoices.*.status' => 'required|in:unpaid,paid,canceled',
             'invoices.*.invoice_items' => 'required|array|min:1',
 
             'invoices.*.invoice_items.*.name' => 'required|string|max:255',
             'invoices.*.invoice_items.*.quantity' => 'required|integer|min:1',
-            'invoices.*.invoice_items.*.unit_price' => 'required|numeric|min:0',
+            'invoices.*.invoice_items.*.price' => 'required|numeric|min:0',
             'invoices.*.invoice_items.*.amount' => 'required|numeric|min:0',
         ], [
             'invoices.*.invoice_items.*.name.required' => '明細名稱必填。',
@@ -74,9 +74,9 @@ class InvoiceBatchController extends ApiPosController
             'invoices.*.invoice_items.*.quantity.integer' => '明細數量必須是整數。',
             'invoices.*.invoice_items.*.quantity.min' => '明細數量至少為 1。',
 
-            'invoices.*.invoice_items.*.unit_price.required' => '明細單價必填。',
-            'invoices.*.invoice_items.*.unit_price.numeric' => '明細單價必須是數字。',
-            'invoices.*.invoice_items.*.unit_price.min' => '明細單價不能小於 0。',
+            'invoices.*.invoice_items.*.price.required' => '明細單價必填。',
+            'invoices.*.invoice_items.*.price.numeric' => '明細單價必須是數字。',
+            'invoices.*.invoice_items.*.price.min' => '明細單價不能小於 0。',
 
             'invoices.*.invoice_items.*.amount.required' => '明細金額必填。',
             'invoices.*.invoice_items.*.amount.numeric' => '明細金額必須是數字。',
@@ -144,7 +144,7 @@ class InvoiceBatchController extends ApiPosController
                         'tax_id_number'  => $invoiceData['tax_id_number'] ?? null,
                         'buyer_name'     => $invoiceData['buyer_name'],
                         'seller_name'    => $invoiceData['seller_name'],
-                        'total'          => $invoiceData['total'],
+                        'total_amount'   => $invoiceData['total_amount'],
                         'status'         => $invoiceData['status'],
                     ]
                 );
@@ -157,7 +157,7 @@ class InvoiceBatchController extends ApiPosController
                     $invoice->invoiceItems()->create([
                         'name'       => $item['name'],
                         'quantity'   => $item['quantity'],
-                        'unit_price' => $item['unit_price'],
+                        'price' => $item['price'],
                         'amount'     => $item['amount'],
                     ]);
                 }

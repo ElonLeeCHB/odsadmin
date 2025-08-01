@@ -5,6 +5,8 @@ namespace App\Models\Sale;
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\InvoiceStatus;
 use App\Models\Sale\Order;
+use App\Models\Sale\InvoiceItem;
+use App\Models\Sale\InvoiceOrderMap;
 
 class Invoice extends Model
 {
@@ -20,9 +22,7 @@ class Invoice extends Model
 
     public function orders()
     {
-        return $this->belongsToMany(Order::class, 'invoice_order_maps')
-            ->withPivot('allocated_amount')
-            ->withTimestamps();
+        return $this->belongsToMany(Order::class, 'invoice_order_maps');
     }
 
     public function invoiceItems()

@@ -70,11 +70,14 @@ class LogRepository extends Repository
     }
 
 
-    public function logErrorNotRequest($params)
+    /**
+     * 在 middleware 會先用 logRequest() 記錄請求，這裡用來記錄錯誤。所以這裡的 data 不應包含請求資料，而是錯誤訊息。
+     */
+    public function logErrorAfterRequest($params)
     {
         $log = new Log;
 
-        $log->uniqueid = time() . '-' . uniqid();
+        $log->uniqueid = app('unique_id') ?? time() . '-' . uniqid();
         $log->area = config('app.env');
         $log->url = '';
         $log->method = '';

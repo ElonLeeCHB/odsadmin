@@ -3,9 +3,11 @@
 namespace App\Domains\ApiPosV2\Http\Controllers\Sale;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
 use App\Helpers\Classes\DateHelper;
+use App\Helpers\Classes\LogHelper;
 use App\Helpers\Classes\OrmHelper;
 use App\Models\Sale\Invoice;
 
@@ -32,9 +34,9 @@ class InvoiceController extends ApiPosController
 
             $invoices = OrmHelper::getResult($query, $filter_data);
 
-            return $this->sendJsonResponse($invoices);
+            return response()->json(['success' => true, 'data' => $invoices], 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Throwable $th) {
-            return $this->sendJsonResponse(data: ['error' => $th->getMessage()]);
+            return $this->sendJsonErrorResponse(response: ['sys_error' => $th->getMessage()], status_code: 500);
         }
     }
 
@@ -46,9 +48,9 @@ class InvoiceController extends ApiPosController
         try {
             $invoice = Invoice::findOrFail($id);
 
-            return $this->sendJsonResponse($invoice);
+            return response()->json(['success' => true, 'data' => $invoice], 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Throwable $th) {
-            return $this->sendJsonResponse(data: ['error' => $th->getMessage()]);
+            return $this->sendJsonErrorResponse(response: ['sys_error' => $th->getMessage()], status_code: 500);
         }
     }
 
@@ -59,10 +61,6 @@ class InvoiceController extends ApiPosController
     {
         $invoice = new Invoice();
 
-        // 不讓外部帶入 invoice_number
-        unset($request['invoice_number']);
-
-        // 自動產生 invoice_number
         $invoice->invoice_number = $this->generateInvoiceNumber();
 
         return $this->save($invoice, $request);
@@ -71,9 +69,9 @@ class InvoiceController extends ApiPosController
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    // public function update(Request $request, string $id)
+    public function update(Request $request, Invoice $invoice)
     {
-        $invoice = Invoice::findOrFail($id);
         return $this->save($invoice, $request);
     }
 
@@ -81,29 +79,61 @@ class InvoiceController extends ApiPosController
     {
         $validated = $request->validate([
             'invoice_date' => 'required|date',
-            'customer_name' => 'nullable|string|max:20',
+            'buyer_name' => 'nullable|string|max:20',
             'seller_name' => 'nullable|string|max:20',
             'tax_id_number' => 'nullable|string|max:12',
-            'total' => 'required|integer|min:0',
+            'total_amount' => 'required|integer|min:0',
             'status' => 'required|in:unpaid,paid,canceled',
-            'items' => 'required|array|min:1',
-            'items.*.id' => 'nullable|integer|exists:invoice_items,id',
-            'items.*.name' => 'required|string|max:255',
-            'items.*.quantity' => 'required|integer|min:1',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.amount' => 'required|numeric|min:0',
+            'invoice_items' => 'required|array|min:1',
+            'invoice_items.*.id' => 'nullable|integer',
+            'invoice_items.*.name' => 'required|string|max:255',
+            'invoice_items.*.quantity' => 'required|integer|min:1',
+            'invoice_items.*.price' => 'required|numeric|min:0',
+            'invoice_items.*.subtotal' => 'required|numeric|min:0',
+        ], [
+            'invoice_date.required' => '請輸入發票日期',
+            'invoice_date.date' => '發票日期格式不正確',
+            'buyer_name.string' => '買受人名稱必須是文字',
+            'buyer_name.max' => '買受人名稱最多 20 個字',
+            'seller_name.string' => '賣方名稱必須是文字',
+            'seller_name.max' => '賣方名稱最多 20 個字',
+            'tax_id_number.string' => '統一編號必須是文字',
+            'tax_id_number.max' => '統一編號最多 12 個字',
+            'total_amount.required' => '請輸入總金額',
+            'total_amount.integer' => '總金額必須為整數',
+            'total_amount.min' => '總金額不能為負數',
+            'status.required' => '請選擇狀態',
+            'status.in' => '狀態只能是 unpaid、paid 或 canceled',
+            'invoice_items.required' => '請至少填寫一筆品項',
+            'invoice_items.array' => '品項格式錯誤',
+            'invoice_items.min' => '請至少填寫一筆品項',
+            'invoice_items.*.id.integer' => '品項 ID 必須為整數',
+            'invoice_items.*.name.required' => '請輸入品項名稱',
+            'invoice_items.*.name.string' => '品項名稱必須是文字',
+            'invoice_items.*.name.max' => '品項名稱最多 255 個字',
+            'invoice_items.*.quantity.required' => '請輸入數量',
+            'invoice_items.*.quantity.integer' => '數量必須為整數',
+            'invoice_items.*.quantity.min' => '數量至少為 1',
+            'invoice_items.*.price.required' => '請輸入單價',
+            'invoice_items.*.price.numeric' => '單價必須為數字',
+            'invoice_items.*.price.min' => '單價不能為負數',
+            'invoice_items.*.subtotal.required' => '請輸入小計',
+            'invoice_items.*.subtotal.numeric' => '小計必須為數字',
+            'invoice_items.*.subtotal.min' => '小計不能為負數',
         ]);
 
-        return DB::transaction(function () use ($invoice, $validated) {
+        try {
+            DB::beginTransaction();
+
             if (empty($invoice->invoice_number)) {
                 $invoice->invoice_number = $this->generateInvoiceNumber();
             }
 
             $invoice->invoice_date = $validated['invoice_date'];
-            $invoice->customer_name = $validated['customer_name'];
+            $invoice->buyer_name = $validated['buyer_name'];
             $invoice->seller_name = $validated['seller_name'];
             $invoice->tax_id_number = $validated['tax_id_number'];
-            $invoice->total = $validated['total'];
+            $invoice->total_amount = $validated['total_amount'];
             $invoice->status = $validated['status'];
             $invoice->save();
 
@@ -111,7 +141,7 @@ class InvoiceController extends ApiPosController
             $existingIds = $invoice->invoiceItems()->pluck('id')->toArray();
 
             // 輸入 items 中有的 id (排除空值)
-            $inputIds = collect($validated['items'])->pluck('id')->filter()->toArray();
+            $inputIds = collect($validated['invoice_items'])->pluck('id')->filter()->toArray();
 
             // 找出要刪除的 id（資料庫有但輸入沒有）
             $idsToDelete = array_diff($existingIds, $inputIds);
@@ -120,7 +150,7 @@ class InvoiceController extends ApiPosController
                 $invoice->invoiceItems()->whereIn('id', $idsToDelete)->delete();
             }
 
-            foreach ($validated['items'] as $item) {
+            foreach ($validated['invoice_items'] as $item) {
                 if (!empty($item['id'])) {
                     // 更新既有明細
                     $invoiceItem = $invoice->invoiceItems()->find($item['id']);
@@ -128,8 +158,8 @@ class InvoiceController extends ApiPosController
                         $invoiceItem->update([
                             'description' => $item['name'],
                             'quantity' => $item['quantity'],
-                            'unit_price' => $item['unit_price'],
-                            'amount' => $item['amount'],
+                            'price' => $item['price'],
+                            'subtotal' => $item['subtotal'],
                         ]);
                     }
                 } else {
@@ -137,14 +167,25 @@ class InvoiceController extends ApiPosController
                     $invoice->invoiceItems()->create([
                         'description' => $item['name'],
                         'quantity' => $item['quantity'],
-                        'unit_price' => $item['unit_price'],
-                        'amount' => $item['amount'],
+                        'price' => $item['price'],
+                        'subtotal' => $item['subtotal'],
                     ]);
                 }
             }
 
-            return response()->json($invoice->load('items'));
-        });
+            DB::commit();
+
+            $json = [
+                'success' => true,
+                'message' => '發票儲存成功',
+                'data' => $invoice->load('invoiceItems'),
+            ];
+
+            return response()->json($json, 200, [], JSON_UNESCAPED_UNICODE);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return $this->sendJsonErrorResponse(response: ['sys_error' => $th->getMessage()], status_code: 500);
+        }
     }
 
     /**
@@ -152,8 +193,13 @@ class InvoiceController extends ApiPosController
      */
     public function destroy(string $id)
     {
-        Invoice::destroy($id);
-        return response()->json(['message' => 'Deleted successfully']);
+        try {
+            Invoice::destroy($id);
+
+            return response()->json(['success' => true, 'message' => '刪除成功']);
+        } catch (\Throwable $th) {
+            return $this->sendJsonErrorResponse(response: ['sys_error' => $th->getMessage()], status_code: 500);
+        }
     }
 
     protected function generateInvoiceNumber(): string

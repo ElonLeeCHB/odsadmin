@@ -18,7 +18,6 @@ class ApiPosController extends Controller
         }
     }
 
-
     public function getErrorResponse($sys_error, $general_error, $status_code = 500)
     {
         $json = [];

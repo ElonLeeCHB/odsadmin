@@ -7,6 +7,7 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use App\Helpers\Classes\DataHelper;
+use App\Helpers\Classes\LogHelper;
 
 class Controller extends BaseController
 {
@@ -88,21 +89,15 @@ class Controller extends BaseController
         return $this->url_data;
     }
 
-    public function logError($error)
-    {
-        (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorNotRequest(['data' => $error.'', 'status' => 'error']);
-    }
-
-
     // $input['error'] 必須是執行過程的錯誤訊息。正常的資料欄位不可以包含 error。
     // 如果 $input['error'] 不存在，則 $input 本身就是資料內容，即 data 元素
-    public function sendJsonResponse($data, $status_code = 200, $message = '', )
+    public function sendJsonResponse($data, $status_code = 200, $message = '')
     {
         $json = [];
 
-        $error = $data['error'] ?? $data['errors'] ?? $data['warning'] ?? $data['errorWarning'] ?? '';
+        $error = $data['error'] ?? $data['warning'] ?? $data['errorWarning'] ?? '';
 
-        $default_error_message = '系統發生問題，請洽管理員。 sendJsonResponse()';
+        $default_error_message = '系統發生問題，請洽詢管理員。 sendJsonResponse()';
 
         // 有錯誤
         if(!empty($error)){
@@ -121,8 +116,8 @@ class Controller extends BaseController
                 // 非正式區，顯示除錯訊息
                 $json['error'] = $error ?? $default_error_message;
             }
-            
-            $this->logError($error);
+
+            (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorAfterRequest(['data' => $error . '', 'status' => 'error']);
         }
 
         // 無任何錯誤
@@ -139,6 +134,50 @@ class Controller extends BaseController
         // 如果有 message
         if(!empty($message)){
             $json['message'] = $message;
+        }
+
+        return response()->json($json, $status_code, [], JSON_UNESCAPED_UNICODE); // JSON_UNESCAPED_UNICODE 使用原本的字串，不要轉成 unicode
+    }
+
+    
+    /**
+     * 若成功，success=true, message=訊息內容(更新成功)。, data=資料內容
+     * 若失敗，error=錯誤訊息。
+     */
+    public function sendJsonErrorResponse($response, $status_code = 200, $th = null)
+    {
+        // 有錯誤
+        if (!empty($error)) {
+            $default_error_message = '系統發生問題，請洽詢管理員。 sendJsonResponseV2()';
+
+            // 正式區，不顯示真正除錯訊息
+            if (config('app.env') == 'production' && config('app.debug') == false) {
+                $output_error = $default_error_message;
+            }
+            // 非正式區，顯示除錯訊息
+            else {
+                $output_error = $response['sys_error'];
+            }
+
+            // logs 表記錄系統錯誤訊息。
+            (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorAfterRequest(['data' => $response['sys_error'] . '', 'status' => 'error']);
+
+            LogHelper::error($th, 'sendJsonErrorResponse', [
+                'response' => $response,
+                'status_code' => $status_code,
+            ]);
+
+            $json = [
+                'error' => $output_error,
+            ];
+        }
+        // 無任何錯誤
+        else {
+            $json = [
+                'success' => true,
+                'message' => $response['message'] ?? '操作成功',
+                'data' => $response['data'] ?? null,
+            ];
         }
 
         return response()->json($json, $status_code, [], JSON_UNESCAPED_UNICODE); // JSON_UNESCAPED_UNICODE 使用原本的字串，不要轉成 unicode

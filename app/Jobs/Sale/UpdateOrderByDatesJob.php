@@ -65,7 +65,7 @@ class UpdateOrderByDatesJob implements ShouldQueue
 
             } catch (\Throwable $th) {
                 DB::rollBack();
-                (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorNotRequest(['data' => $th->getMessage(), 'note' => 'App\Jobs\Sale\UpdateOrderByDates->handle()']);
+                (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorAfterRequest(['data' => $th->getMessage(), 'note' => 'App\Jobs\Sale\UpdateOrderByDates->handle()']);
             } finally {
                 if ($lock){
                     $lock->release();
