@@ -1,7 +1,7 @@
 @extends('admin.app')
 
 @section('pageJsCss')
-  <script src="{{ asset('assets/vendor/moment-with-locales.js') }}" type="text/javascript"></script>
+  <script src="{{ asset('assets2/public/vendor/moment-with-locales.js') }}" type="text/javascript"></script>
 @endsection
 
 @section('columnLeft')

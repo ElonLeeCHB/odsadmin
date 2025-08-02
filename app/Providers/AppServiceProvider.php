@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL;
 use App\Models\Sanctum\PersonalAccessToken;
 use Laravel\Sanctum\Sanctum;
 
@@ -21,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // URL::forceRootUrl(config('app.url'));
+
         app()->useLangPath(base_path('lang'));
 
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);

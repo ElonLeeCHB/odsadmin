@@ -96,7 +96,8 @@ class LoginController extends Controller
     {
         $data['lang'] = $this->lang;
 
-        $data['refresh_token_url'] = route('getToken');
+        // $data['refresh_token_url'] = route('getToken');
+        $data['refresh_token_url'] = route('lang.admin.getToken');
 
         if(request()->has('access-key')){
             $data['action'] = route('lang.admin.login') . '?access-key=' . request()->query('access-key');

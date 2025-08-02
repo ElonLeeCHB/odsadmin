@@ -78,13 +78,13 @@
                            <div id="vmap" style="width: 100%; height: 260px;"></div>
                         </div>
                      </div>
-                     <link type="text/css" href="{{ asset('assets-admin/javascript/jquery/jqvmap/jqvmap.css') }}" rel="stylesheet" media="screen"/>
-                     <script type="text/javascript" src="{{ asset('assets-admin/javascript/jquery/jqvmap/jquery.vmap.js') }}"></script>
-                     <script type="text/javascript" src="{{ asset('assets-admin/javascript/jquery/jqvmap/maps/jquery.vmap.world.js') }}"></script>
+                     <link type="text/css" href="{{ asset('assets2/ocadmin/javascript/jquery/jqvmap/jqvmap.css') }}" rel="stylesheet" media="screen"/>
+                     <script type="text/javascript" src="{{ asset('assets2/ocadmin/javascript/jquery/jqvmap/jquery.vmap.js') }}"></script>
+                     <script type="text/javascript" src="{{ asset('assets2/ocadmin/javascript/jquery/jqvmap/maps/jquery.vmap.world.js') }}"></script>
                      <script type="text/javascript"><!--
                         $(document).ready(function() {
                             $.ajax({
-                                url: "{{ asset('assets-admin/test/map.php') }}",
+                                url: "{{ asset('assets2/ocadmin/test/map.php') }}",
                                 dataType: 'html',
                                 success: function(json) {
                                     data = [];
@@ -134,8 +134,8 @@
                            <div id="chart-sale" style="width: 100%; height: 260px;"></div>
                         </div>
                      </div>
-                     <script type="text/javascript" src="{{ asset('assets-admin/javascript/jquery/flot/jquery.flot.js') }}"></script>
-                     <script type="text/javascript" src="{{ asset('assets-admin/javascript/jquery/flot/jquery.flot.resize.min.js') }}"></script>
+                     <script type="text/javascript" src="{{ asset('assets2/ocadmin/javascript/jquery/flot/jquery.flot.js') }}"></script>
+                     <script type="text/javascript" src="{{ asset('assets2/ocadmin/javascript/jquery/flot/jquery.flot.resize.min.js') }}"></script>
                      <script type="text/javascript"><!--
                         $('#range a').on('click', function(e) {
                             e.preventDefault();

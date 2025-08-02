@@ -47,11 +47,11 @@ class RouteServiceProvider extends ServiceProvider
                 ->prefix('api/authv1')
                 ->group(app_path('Domains/ApiAuthV1/Routes/apiauthv1.php'));
 
-            // Route::middleware('web')
-            //     ->group(base_path('routes/web.php'));
+            Route::middleware('web')
+                ->group(base_path('routes/web.php'));
 
-            Route::middleware(['web'])
-                ->group(app_path('Domains/Admin/Routes/admin.php'));
+            // Route::middleware(['web'])
+            //     ->group(app_path('Domains/Admin/Routes/admin.php'));
         });
     }
 }

@@ -3,9 +3,9 @@
 @section('pageJsCss')
 
 <!-- DataTable -->
-<link  href="{{ asset('assets/vendor/select2/select2.min.css') }}" rel="stylesheet" type="text/css"/>
-<script src="{{ asset('assets/vendor/select2/select2.min.js') }}"></script>
-<link  href="{{ asset('assets/stylesheet/path/sale/order_form.css') }}" rel="stylesheet" type="text/css"/>
+<link  href="{{ asset('assets2/public/vendor/select2/select2.min.css') }}" rel="stylesheet" type="text/css"/>
+<script src="{{ asset('assets2/public/vendor/select2/select2.min.js') }}"></script>
+<link  href="{{ asset('assets2/public/stylesheet/path/sale/order_form.css') }}" rel="stylesheet" type="text/css"/>
 @endsection
 
 @section('columnLeft')

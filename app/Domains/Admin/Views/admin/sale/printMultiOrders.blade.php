@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>外送訂購單</title>
-  <link  href="{{ asset('assets/package/bootstrap/css/bootstrap-5.1.3.min.css') }}" rel="stylesheet" crossorigin="anonymous"/>
-  <link  href="{{ asset('assets/package/bootstrap/css/bootstrap-icons-1.10.3.css') }}" rel="stylesheet"/>
-  <link  href="{{ asset('assets/package/bootstrap/css/bootstrap-table-1.21.2.min.css') }}" rel="stylesheet">
+  <link  href="{{ asset('assets2/public/package/bootstrap/css/bootstrap-5.1.3.min.css') }}" rel="stylesheet" crossorigin="anonymous"/>
+  <link  href="{{ asset('assets2/public/package/bootstrap/css/bootstrap-icons-1.10.3.css') }}" rel="stylesheet"/>
+  <link  href="{{ asset('assets2/public/package/bootstrap/css/bootstrap-table-1.21.2.min.css') }}" rel="stylesheet">
   <style>
     body {
       margin: 0;

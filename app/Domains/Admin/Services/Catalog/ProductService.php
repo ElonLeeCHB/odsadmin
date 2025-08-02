@@ -194,8 +194,7 @@ class ProductService extends Service
             }
 
             // ProductPosCategory
-                $taxonomy_id = Taxonomy::select('id')->where('code', 'ProductPosCategory')->value('id');
-                ProductTerm::where('product_id', $product->id)->where('taxonomy_id', $taxonomy_id)->delete();
+                ProductTerm::where('product_id', $product->id)->where('taxonomy_id', 32)->delete();
 
                 if(!empty($data['product_pos_category'])){
                     if (!empty($taxonomy_id)) {
@@ -218,8 +217,7 @@ class ProductService extends Service
             //
 
             // ProductWwwCategory
-                $taxonomy_id = Taxonomy::select('id')->where('code', 'ProductWwwCategory')->value('id');
-                ProductTerm::where('product_id', $product->id)->where('taxonomy_id', $taxonomy_id)->delete();
+                ProductTerm::where('product_id', $product->id)->where('taxonomy_id', 36)->delete();
 
                 if (!empty($data['product_www_category'])) {
                     if (!empty($taxonomy_id)) {

@@ -33,16 +33,24 @@ class DashboardController extends Controller
         //     $data['lang'] = $lang;
         // }
 
-        $data['sales_chart_url'] = asset('assets-admin/test/dashboard-chart-sales.html');
+        $data['sales_chart_url'] = asset('assets2/ocadmin/test/dashboard-chart-sales.html');
 
         return view('admin.dashboard', $data);
     }
 
-    public function setLanguage($lang_code)
+    public function setLanguage($new_locale)
     {
-        $locale = \App::getLocale();
-        $url = str_replace($locale, $lang_code, \URL::previous());
-        //echo $url;
-        return redirect($url);
+        // $locale = app()->getLocale();
+        // $url = str_replace($locale, $new_locale, url()->previous());
+
+        $supported = ['zh_Hant', 'en']; // 支援的語系清單
+        $url = url()->previous();
+
+        // 只替換開頭的語系
+        $parsedUrl = parse_url($url, PHP_URL_PATH); // /zh_Hant/products/123
+        $pattern = '#^/(' . implode('|', array_map('preg_quote', $supported)) . ')(?=/|$)#';
+        $newPath = preg_replace($pattern, '/' . $new_locale, $parsedUrl);
+
+        return redirect($newPath);
     }
 }

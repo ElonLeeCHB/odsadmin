@@ -7,18 +7,18 @@
     <meta http-equiv="cache-control" content="no-cache">
     <meta http-equiv="expires" content="0">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <link  href="{{ asset('assets-admin/stylesheet/bootstrap.css') }}" rel="stylesheet" media="screen"/>
-    <link  href="{{ asset('assets-admin/stylesheet/fonts/fontawesome/css/all.min.css') }}" rel="stylesheet" type="text/css"/>
-    <link  href="{{ asset('assets-admin/stylesheet/stylesheet.css') }}" rel="stylesheet" type="text/css"/>
-    <script src="{{ asset('assets-admin/javascript/jquery/jquery-3.6.1.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('assets-admin/javascript/jquery/datetimepicker/moment.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('assets-admin/javascript/jquery/datetimepicker/moment-with-locales.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('assets-admin/javascript/jquery/datetimepicker/daterangepicker.js') }}" type="text/javascript"></script>
-    <link  href="{{ asset('assets-admin/javascript/jquery/datetimepicker/daterangepicker.css') }}" rel="stylesheet" type="text/css"/>
-    <script src="{{ asset('assets-admin/javascript/ckeditor/ckeditor.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('assets-admin/javascript/ckeditor/adapters/jquery.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('assets-admin/javascript/common.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('assets/javascript/common.js') }}" type="text/javascript"></script>
+    <link  href="{{ asset('assets2/ocadmin/stylesheet/bootstrap.css') }}" rel="stylesheet" media="screen"/>
+    <link  href="{{ asset('assets2/ocadmin/stylesheet/fonts/fontawesome/css/all.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link  href="{{ asset('assets2/ocadmin/stylesheet/stylesheet.css') }}" rel="stylesheet" type="text/css"/>
+    <script src="{{ asset('assets2/ocadmin/javascript/jquery/jquery-3.6.1.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets2/ocadmin/javascript/jquery/datetimepicker/moment.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets2/ocadmin/javascript/jquery/datetimepicker/moment-with-locales.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets2/ocadmin/javascript/jquery/datetimepicker/daterangepicker.js') }}" type="text/javascript"></script>
+    <link  href="{{ asset('assets2/ocadmin/javascript/jquery/datetimepicker/daterangepicker.css') }}" rel="stylesheet" type="text/css"/>
+    <script src="{{ asset('assets2/ocadmin/javascript/ckeditor/ckeditor.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets2/ocadmin/javascript/ckeditor/adapters/jquery.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets2/ocadmin/javascript/common.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets2/public/javascript/common.js') }}" type="text/javascript"></script>
 
     {{-- 頁面套件 --}}
     @yield('pageJsCss')
@@ -46,7 +46,7 @@
       </div>
       <header id="header" class="navbar navbar-expand navbar-light bg-light">
         <div class="container-fluid">
-          <a href="javascript:void(0){{-- route('lang.admin.dashboard') --}}" class="navbar-brand d-none d-xxl-block"><img width="180" src="{{ asset('assets-admin/image/logo.png') }}" alt="Chinabing" title="Chinabing"></a>
+          <a href="javascript:void(0){{-- route('lang.admin.dashboard') --}}" class="navbar-brand d-none d-xxl-block"><img width="180" src="{{ asset('assets2/ocadmin/image/logo.png') }}" alt="Chinabing" title="Chinabing"></a>
 
           @if (Auth::check())
             <button type="button" id="button-menu" class="btn btn-link d-inline-block d-xxl-none"><i class="fa-solid fa-bars"></i></button>
@@ -65,7 +65,7 @@
               </li>
               </li>
               <li id="nav-profile" class="nav-item dropdown">
-                <a href="#" data-bs-toggle="dropdown" class="nav-link dropdown-toggle"><img src="{{ asset('assets-admin/image/profile.png') }}" alt="{{ $authUser->name ?? '' }}" title="{{ $authUser->username ?? '' }}" class="rounded-circle"/><span class="d-none d-md-inline d-lg-inline">&nbsp;&nbsp;&nbsp;{{ $authUser->name ?? '' }} <i class="fa-solid fa-caret-down fa-fw"></i></span></a>
+                <a href="#" data-bs-toggle="dropdown" class="nav-link dropdown-toggle"><img src="{{ asset('assets2/ocadmin/image/profile.png') }}" alt="{{ $authUser->name ?? '' }}" title="{{ $authUser->username ?? '' }}" class="rounded-circle"/><span class="d-none d-md-inline d-lg-inline">&nbsp;&nbsp;&nbsp;{{ $authUser->name ?? '' }} <i class="fa-solid fa-caret-down fa-fw"></i></span></a>
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li><a href="javascript:void(0)" class="dropdown-item"><i class="fa-solid fa-user-circle fa-fw"></i> 我的帳戶</a></li>
 
@@ -101,7 +101,7 @@
 
     </div>
 
-    <script src="{{ asset('assets-admin/javascript/bootstrap/js/bootstrap.bundle.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets2/ocadmin/javascript/bootstrap/js/bootstrap.bundle.min.js') }}" type="text/javascript"></script>
     <script type="text/javascript">
       $.ajaxSetup({
         statusCode: {

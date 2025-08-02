@@ -1,5 +1,25 @@
 <?php
 
+if (!function_exists('lang_url')) {
+    /**
+     * 替換網址中的語系前綴
+     *
+     * @param string $newLangCode 例如: en, zh_TW, ja
+     * @param string|null $url 預設為上一頁網址
+     * @param array $supportedLangs 支援語系
+     * @return string
+     */
+    function lang_url(string $newLangCode, string $url = '', array $supportedLangs = ['zh_Hant', 'en']): string
+    {
+        $url = $url ?? url()->previous();
+
+        // 語系樣式: /zh_TW/...、/en/... 等
+        $pattern = '#^/(' . implode('|', array_map('preg_quote', $supportedLangs)) . ')(?=/|$)#';
+
+        return preg_replace($pattern, '/' . $newLangCode, parse_url($url, PHP_URL_PATH));
+    }
+}
+
 if(!function_exists('arrayToObject')){
     function arrayToObject($array)
     {

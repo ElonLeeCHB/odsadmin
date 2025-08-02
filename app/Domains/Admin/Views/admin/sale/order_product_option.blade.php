@@ -1,4 +1,4 @@
-<link  href="{{ asset('assets/stylesheet/path/sale/order_form.css') }}" rel="stylesheet" type="text/css"/>
+<link  href="{{ asset('assets2/public/stylesheet/path/sale/order_form.css') }}" rel="stylesheet" type="text/css"/>
 
 <table class="table table-product-content" id="product-row-{{ $product_row }}-content-table">
 

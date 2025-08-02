@@ -1,8 +1,8 @@
 @extends('admin.app')
 
 @section('pageJsCss')
-<link  href="{{ asset('assets/vendor/select2/select2.min.css') }}" rel="stylesheet" type="text/css"/>
-<script src="{{ asset('assets/vendor/select2/select2.min.js') }}"></script>
+<link  href="{{ asset('assets2/public/vendor/select2/select2.min.css') }}" rel="stylesheet" type="text/css"/>
+<script src="{{ asset('assets2/public/vendor/select2/select2.min.js') }}"></script>
 
 <style>
 .select2-container .select2-selection--single{
