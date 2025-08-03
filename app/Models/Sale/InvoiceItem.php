@@ -3,21 +3,30 @@
 namespace App\Models\Sale;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InvoiceItem extends Model
 {
     public $timestamps = false;
-
+    
     protected $fillable = [
         'invoice_id',
+        'sort_order',
         'name',
+        'is_tax_included',
         'quantity',
         'price',
-        'amount',
-        'note',
+        'subtotal',
     ];
 
-    public function invoice()
+    protected $casts = [
+        'is_tax_included' => 'boolean',
+        'quantity' => 'decimal:3',
+        'price' => 'decimal:3',
+        'subtotal' => 'decimal:3',
+    ];
+
+    public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
     }

@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class InvoiceOrderMap extends Model
 {
     public $timestamps = false;
-    protected $table = 'invoice_order_maps';
     protected $fillable = ['invoice_id', 'order_id'];
 
     // 如果你想寫關聯

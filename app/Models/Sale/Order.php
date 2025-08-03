@@ -191,6 +191,10 @@ class Order extends Model
         return $this->belongsTo(OrderGroup::class, 'order_group_id');
     }
 
+    public function orderPayments()
+    {
+        return $this->hasMany(OrderPayment::class);
+    }
 
     /**
      * Attribute

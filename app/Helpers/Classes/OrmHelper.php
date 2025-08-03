@@ -581,4 +581,41 @@ class OrmHelper
 
         return $row;
     }
+
+
+    // $query = OrmHelper::applyEloquentIncludes($query, $includes, \App\Models\Sale\Invoice::class);
+    // {{BaseUrl}}/api/posv2/sales/invoices/1?include=invoiceItems:price,subtotal,customer:name,email
+    public static function applyEloquentIncludes(EloquentBuilder $query, array $includes, string $baseModelClass): EloquentBuilder
+    {
+        foreach ($includes as $relation => $fields) {
+            if (empty($fields)) {
+                $query->with($relation);
+            } else {
+                $query->with([
+                    $relation => function ($q) use ($fields, $relation, $baseModelClass) {
+                        $relationInstance = (new $baseModelClass)->{$relation}();
+                        $relatedModel = $relationInstance->getRelated();
+
+                        // 主鍵
+                        $primaryKey = $relatedModel->getKeyName();
+                        if (!in_array($primaryKey, $fields)) {
+                            $fields[] = $primaryKey;
+                        }
+
+                        // 外鍵（例如 invoice_id）
+                        if (method_exists($relationInstance, 'getForeignKeyName')) {
+                            $foreignKey = $relationInstance->getForeignKeyName();
+                            if (!in_array($foreignKey, $fields)) {
+                                $fields[] = $foreignKey;
+                            }
+                        }
+
+                        $q->select($fields);
+                    }
+                ]);
+            }
+        }
+
+        return $query;
+    }
 }

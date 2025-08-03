@@ -146,39 +146,28 @@ class Controller extends BaseController
      */
     public function sendJsonErrorResponse($response, $status_code = 200, $th = null)
     {
-        // 有錯誤
-        if (!empty($error)) {
-            $default_error_message = '系統發生問題，請洽詢管理員。 sendJsonResponseV2()';
+        $default_error_message = '系統發生問題，請洽詢管理員。 sendJsonResponseV2()';
 
-            // 正式區，不顯示真正除錯訊息
-            if (config('app.env') == 'production' && config('app.debug') == false) {
-                $output_error = $default_error_message;
-            }
-            // 非正式區，顯示除錯訊息
-            else {
-                $output_error = $response['sys_error'];
-            }
-
-            // logs 表記錄系統錯誤訊息。
-            (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorAfterRequest(['data' => $response['sys_error'] . '', 'status' => 'error']);
-
-            LogHelper::error($th, 'sendJsonErrorResponse', [
-                'response' => $response,
-                'status_code' => $status_code,
-            ]);
-
-            $json = [
-                'error' => $output_error,
-            ];
+        // 正式區，不顯示真正除錯訊息
+        if (config('app.env') == 'production' && config('app.debug') == false) {
+            $output_error = $default_error_message;
         }
-        // 無任何錯誤
+        // 非正式區，顯示除錯訊息
         else {
-            $json = [
-                'success' => true,
-                'message' => $response['message'] ?? '操作成功',
-                'data' => $response['data'] ?? null,
-            ];
+            $output_error = $response['sys_error'];
         }
+
+        // logs 表記錄系統錯誤訊息。
+        (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorAfterRequest(['data' => $response['sys_error'] . '', 'status' => 'error']);
+
+        LogHelper::error($th, 'sendJsonErrorResponse', [
+            'response' => $response,
+            'status_code' => $status_code,
+        ]);
+
+        $json = [
+            'error' => $output_error,
+        ];
 
         return response()->json($json, $status_code, [], JSON_UNESCAPED_UNICODE); // JSON_UNESCAPED_UNICODE 使用原本的字串，不要轉成 unicode
     }

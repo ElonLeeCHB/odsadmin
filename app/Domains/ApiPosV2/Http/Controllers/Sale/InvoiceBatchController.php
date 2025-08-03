@@ -64,7 +64,7 @@ class InvoiceBatchController extends ApiPosController
             'invoices.*.invoice_items.*.name' => 'required|string|max:255',
             'invoices.*.invoice_items.*.quantity' => 'required|integer|min:1',
             'invoices.*.invoice_items.*.price' => 'required|numeric|min:0',
-            'invoices.*.invoice_items.*.amount' => 'required|numeric|min:0',
+            'invoices.*.invoice_items.*.subtotal' => 'required|numeric|min:0',
         ], [
             'invoices.*.invoice_items.*.name.required' => '明細名稱必填。',
             'invoices.*.invoice_items.*.name.string' => '明細名稱必須是字串。',
@@ -78,9 +78,9 @@ class InvoiceBatchController extends ApiPosController
             'invoices.*.invoice_items.*.price.numeric' => '明細單價必須是數字。',
             'invoices.*.invoice_items.*.price.min' => '明細單價不能小於 0。',
 
-            'invoices.*.invoice_items.*.amount.required' => '明細金額必填。',
-            'invoices.*.invoice_items.*.amount.numeric' => '明細金額必須是數字。',
-            'invoices.*.invoice_items.*.amount.min' => '明細金額不能小於 0。',
+            'invoices.*.invoice_items.*.subtotal.required' => '明細金額必填。',
+            'invoices.*.invoice_items.*.subtotal.numeric' => '明細金額必須是數字。',
+            'invoices.*.invoice_items.*.subtotal.min' => '明細金額不能小於 0。',
         ]);
 
         if ($validator->fails()) {
@@ -155,10 +155,10 @@ class InvoiceBatchController extends ApiPosController
                 // 新增明細
                 foreach ($invoiceData['invoice_items'] as $item) {
                     $invoice->invoiceItems()->create([
-                        'name'       => $item['name'],
-                        'quantity'   => $item['quantity'],
-                        'price' => $item['price'],
-                        'amount'     => $item['amount'],
+                        'name'      => $item['name'],
+                        'quantity'  => $item['quantity'],
+                        'price'     => $item['price'],
+                        'subtotal'  => $item['subtotal'],
                     ]);
                 }
 

@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceBatchController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderGroupController;
-
+use App\Domains\ApiPosV2\Http\Controllers\Sale\PaymentController;
 
 Route::group([
     'namespace' => 'App\Domains\ApiPosV2\Http\Controllers',
@@ -136,7 +136,13 @@ Route::group([
                 Route::post('orders/save', 'Sale\QuantityControlController@quickSaveOrder')->name('quickSaveOrder');
             });
 
-            
+            Route::prefix('orders/{order}/payments')->group(function () {
+                Route::get('/', [PaymentController::class, 'index']);
+                Route::post('/', [PaymentController::class, 'store']);
+                Route::get('{payment}', [PaymentController::class, 'show']);
+                Route::put('{payment}', [PaymentController::class, 'update']);
+                Route::delete('{payment}', [PaymentController::class, 'destroy']);
+            });
         });
     
         

@@ -1,5 +1,55 @@
 <?php
 
+/**
+ * 解析 include 參數成關聯名稱 => 欄位陣列的純陣列
+ * 
+ * 例如：
+ * include=invoiceItems:price,subtotal,customer:name,email
+ * 會解析為：
+ * [
+ *    'invoiceItems' => ['price', 'subtotal'],
+ *    'customer' => ['name', 'email'],
+ * ]
+ * 
+ * 若關聯後面沒帶欄位，對應欄位陣列為空陣列。
+ * 
+ * @param string|null $includeParam
+ * @return array
+ */
+function parseInclude(?string $includeParam): array
+{
+    if (empty($includeParam)) {
+        return [];
+    }
+
+    $result = [];
+
+    // 每個關聯用分號隔開
+    $relations = explode(';', $includeParam);
+
+    foreach ($relations as $relationStr) {
+        $relationStr = trim($relationStr);
+        if ($relationStr === '') {
+            continue;
+        }
+
+        // 有冒號就分欄位，否則表示全部欄位
+        if (str_contains($relationStr, ':')) {
+            [$relation, $fieldsStr] = explode(':', $relationStr, 2);
+            $fields = array_filter(array_map('trim', explode(',', $fieldsStr)));
+            $result[trim($relation)] = $fields;
+        } else {
+            $result[$relationStr] = [];
+        }
+    }
+
+    return $result;
+}
+
+
+
+
+
 if (!function_exists('lang_url')) {
     /**
      * 替換網址中的語系前綴
