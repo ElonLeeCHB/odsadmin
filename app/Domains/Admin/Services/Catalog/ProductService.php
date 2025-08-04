@@ -181,41 +181,49 @@ class ProductService extends Service
 
             // ProductTag
             // taxonomy_id 31 = 餐點屬性
-            ProductTerm::where('taxonomy_id', 31)->where('product_id', $product->id)->delete();
-
-            foreach ($data['product_tag'] ?? [] as $term_id) {
-                $insert_data[] = [
-                    'product_id' => $product->id,
-                    'term_id' => $term_id,
-                    'taxonomy_id' => 31,
-                ];
-            }
-            if(!empty($insert_data)){
-                ProductTerm::insert($insert_data);
-            }
-
+            
             // ProductPosCategory
-                $taxonomy_id = Taxonomy::select('id')->where('code', 'ProductPosCategory')->value('id');
+            if (isset($data['product_pos_category'])) {
+                $taxonomy_id = 32;
+
                 ProductTerm::where('product_id', $product->id)->where('taxonomy_id', $taxonomy_id)->delete();
 
-                if(!empty($data['product_pos_category'])){
-                    if (!empty($taxonomy_id)) {
-        
-                        $insert_data = [];
-        
-                        foreach ($data['product_pos_category'] as $term_id) {
-                            $insert_data[] = [
-                                'product_id' => $product->id,
-                                'term_id' => $term_id,
-                                'taxonomy_id' => $taxonomy_id,
-                            ];
-                        }
-    
-                        if(!empty($insert_data)){
-                            ProductTerm::insert($insert_data);
-                        }
-                    }
+                $insert_data = [];
+
+                foreach ($data['product_pos_category'] as $term_id) {
+                    $insert_data[] = [
+                        'product_id' => $product->id,
+                        'term_id' => $term_id,
+                        'taxonomy_id' => $taxonomy_id,
+                    ];
                 }
+
+                if (!empty($insert_data)) {
+                    ProductTerm::insert($insert_data);
+                }
+            }
+            //
+
+            // ProductWwwCategory
+            if (isset($data['product_www_category'])) {
+                $taxonomy_id = 36;
+
+                ProductTerm::where('product_id', $product->id)->where('taxonomy_id', $taxonomy_id)->delete();
+
+                $insert_data = [];
+
+                foreach ($data['product_www_category'] as $term_id) {
+                    $insert_data[] = [
+                        'product_id' => $product->id,
+                        'term_id' => $term_id,
+                        'taxonomy_id' => $taxonomy_id,
+                    ];
+                }
+
+                if (!empty($insert_data)) {
+                    ProductTerm::insert($insert_data);
+                }
+            }
             //
 
             DB::commit();
