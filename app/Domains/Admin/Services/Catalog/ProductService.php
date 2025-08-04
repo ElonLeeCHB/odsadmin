@@ -194,47 +194,43 @@ class ProductService extends Service
             }
 
             // ProductPosCategory
-                ProductTerm::where('product_id', $product->id)->where('taxonomy_id', 32)->delete();
+                $taxonomy_id = 32;
+                ProductTerm::where('product_id', $product->id)->where('taxonomy_id', $taxonomy_id)->delete();
 
-                if(!empty($data['product_pos_category'])){
-                    if (!empty($taxonomy_id)) {
-        
-                        $insert_data = [];
-        
-                        foreach ($data['product_pos_category'] as $term_id) {
-                            $insert_data[] = [
-                                'product_id' => $product->id,
-                                'term_id' => $term_id,
-                                'taxonomy_id' => $taxonomy_id,
-                            ];
-                        }
-    
-                        if(!empty($insert_data)){
-                            ProductTerm::insert($insert_data);
-                        }
+                if(isset($data['product_pos_category'])){
+                    $insert_data = [];
+
+                    foreach ($data['product_pos_category'] as $term_id) {
+                        $insert_data[] = [
+                            'product_id' => $product->id,
+                            'term_id' => $term_id,
+                            'taxonomy_id' => $taxonomy_id,
+                        ];
+                    }
+
+                    if (!empty($insert_data)) {
+                        ProductTerm::insert($insert_data);
                     }
                 }
             //
 
             // ProductWwwCategory
-                ProductTerm::where('product_id', $product->id)->where('taxonomy_id', 36)->delete();
+                $taxonomy_id = 36;
+                ProductTerm::where('product_id', $product->id)->where('taxonomy_id', $taxonomy_id)->delete();
 
-                if (!empty($data['product_www_category'])) {
-                    if (!empty($taxonomy_id)) {
+                if (isset($data['product_www_category'])) {
+                    $insert_data = [];
 
-                        $insert_data = [];
+                    foreach ($data['product_www_category'] as $term_id) {
+                        $insert_data[] = [
+                            'product_id' => $product->id,
+                            'term_id' => $term_id,
+                            'taxonomy_id' => $taxonomy_id,
+                        ];
+                    }
 
-                        foreach ($data['product_www_category'] as $term_id) {
-                            $insert_data[] = [
-                                'product_id' => $product->id,
-                                'term_id' => $term_id,
-                                'taxonomy_id' => $taxonomy_id,
-                            ];
-                        }
-
-                        if (!empty($insert_data)) {
-                            ProductTerm::insert($insert_data);
-                        }
+                    if (!empty($insert_data)) {
+                        ProductTerm::insert($insert_data);
                     }
                 }
             //

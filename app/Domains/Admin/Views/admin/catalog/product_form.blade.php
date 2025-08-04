@@ -851,6 +851,9 @@ $(document).ready(function () {
     width: '100%'
   });
 });
+$('#product-www_category').on('click', '.btn-danger', function () {
+    $(this).parent().parent().remove();
+});
 // POS Category
 $('#input-pos_category').autocomplete({
     'source': function (request, response) {

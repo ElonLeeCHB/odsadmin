@@ -1,0 +1,25 @@
+#!/bin/bash
+cd /var/www/vhosts/pos-dev.huabing.tw/httpdocs/laravel
+
+export GIT_SSH_COMMAND="ssh -i /var/www/vhosts/pos-dev.huabing.tw/githubDeployKeys/private.pem"
+
+git fetch elonleechb
+git reset --hard elonleechb/dev
+
+#整體資料夾的群組是 psacln, 可讀、可執行，但不可寫
+chown -R pos-dev.huabing.tw_pywtc2kx37:psacln /var/www/vhosts/pos-dev.huabing.tw/httpdocs/laravel
+chmod 775 -R /var/www/vhosts/pos-dev.huabing.tw/httpdocs/laravel
+
+# 可寫入的資料夾給 psaserv 群組和 775 權限
+chgrp -R psaserv storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+
+# laravel 快取 cache()
+rm -rf /var/www/vhosts/pos-dev.huabing.tw/httpdocs/laravel/framework/cache/data/*
+
+# 自訂快取
+rm -rf /var/www/vhosts/pos-dev.huabing.tw/httpdocs/laravel/storage/app/cache/*
+
+#一般人可見的快取
+rm -rf /var/www/vhosts/pos-dev.huabing.tw/httpdocs/laravel/storage/app/public/cache/*
+
