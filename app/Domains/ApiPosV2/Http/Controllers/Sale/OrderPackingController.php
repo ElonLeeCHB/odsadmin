@@ -9,6 +9,7 @@ use App\Models\Setting\Setting;
 use App\Models\Sale\Datelimit;
 use App\Models\Sale\TimeSlotLimit;
 use App\Domains\ApiPosV2\Services\Sale\OrderPackingService;
+use Carbon\Carbon;
 
 class OrderPackingController extends ApiPosController
 {
@@ -38,9 +39,11 @@ class OrderPackingController extends ApiPosController
             $json = [];
 
             // 驗證表單
-                // if (){
-
-                // }
+            // if (env('APP_ENV') == 'production') {
+            //     if (Carbon::parse($data['shipping_date'])->lessThan(Carbon::yesterday())) {
+            //         throw new \Exception('只能修改當天的記錄。');
+            //     }
+            // }
             //
 
             if(!$json){

@@ -8,6 +8,7 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use App\Helpers\Classes\DataHelper;
 use App\Helpers\Classes\LogHelper;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class Controller extends BaseController
 {
@@ -139,36 +140,43 @@ class Controller extends BaseController
         return response()->json($json, $status_code, [], JSON_UNESCAPED_UNICODE); // JSON_UNESCAPED_UNICODE 使用原本的字串，不要轉成 unicode
     }
 
-    
     /**
-     * 若成功，success=true, message=訊息內容(更新成功)。, data=資料內容
-     * 若失敗，error=錯誤訊息。
+     * 發送 JSON 錯誤回應
+     *
+     * @param array $data 包含錯誤訊息的資料
+     * @param int $status_code HTTP 狀態碼，預設為 500
+     * @param \Throwable|null $th 當有例外時，傳入例外物件
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function sendJsonErrorResponse($response, $status_code = 200, $th = null)
+    public function sendJsonErrorResponse(array $data, int $status_code = 500, $th = null): \Illuminate\Http\JsonResponse
     {
-        $default_error_message = '系統發生問題，請洽詢管理員。 sendJsonResponseV2()';
-
-        // 正式區，不顯示真正除錯訊息
-        if (config('app.env') == 'production' && config('app.debug') == false) {
-            $output_error = $default_error_message;
-        }
-        // 非正式區，顯示除錯訊息
-        else {
-            $output_error = $response['sys_error'];
+        if ($th instanceof HttpResponseException) {
+            return $th->getResponse(); // 直接取出原本的 response 回傳
         }
 
-        // logs 表記錄系統錯誤訊息。
-        (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorAfterRequest(['data' => $response['sys_error'] . '', 'status' => 'error']);
+        $user = request()->user();
 
-        LogHelper::error($th, 'sendJsonErrorResponse', [
-            'response' => $response,
-            'status_code' => $status_code,
-        ]);
+        // 預設錯誤訊息
+        $general_error = $data['general_error'] ?? 'System error occurred. Please contact system administrator.';
+        $system_error = $data['system_error'] ?? $general_error;
 
-        $json = [
-            'error' => $output_error,
-        ];
+        // 非系統管理員或非 debug 模式，給一般錯誤
+        // if (!$user || !$user->hasRole('sys_admin', 'web', 'hrm') || !config('app.debug')) {
+        if (!config('app.debug')) {
+            return response()->json([
+                'success' => false,
+                'message' => $general_error,
+            ], $status_code);
+        }
 
-        return response()->json($json, $status_code, [], JSON_UNESCAPED_UNICODE); // JSON_UNESCAPED_UNICODE 使用原本的字串，不要轉成 unicode
+        // 系統管理員 + debug 模式，給詳細錯誤
+        return response()->json([
+            'success' => false,
+            'message' => $system_error,
+            'trace' => collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5))
+                ->pluck('file')
+                ->filter()
+                ->first(),
+        ], $status_code);
     }
 }

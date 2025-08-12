@@ -81,7 +81,7 @@ class OrderService extends Service
     public function store($data)
     {
         try {
-            // DB::beginTransaction(); //異動需要交易
+            DB::beginTransaction();
 
             // order
             $order = (new OrderRepository)->create($data);
@@ -224,12 +224,15 @@ class OrderService extends Service
                 }
             //
 
-            // DB::commit();
+
+            (new OrderRepository)->saveCustomer($data);
+
+            DB::commit();
 
             return $order;
 
         } catch (\Throwable $th) {
-            // DB::rollback();
+            DB::rollback();
             throw $th;
         }
     }

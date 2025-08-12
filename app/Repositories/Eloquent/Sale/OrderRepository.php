@@ -7,6 +7,7 @@ use App\Repositories\Eloquent\Catalog\OptionRepository;
 use App\Repositories\Eloquent\Catalog\OptionValueRepository;
 use App\Repositories\Eloquent\Sale\OrderTotalRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
+use App\Models\User\User;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderTag;
 use App\Models\Common\Term;
@@ -625,6 +626,57 @@ class OrderRepository extends Repository
 
             return $order;
         }
+    }
+
+    public function saveCustomer($data)
+    {
+        // 手機只使用純數字
+        $mobile = preg_replace('/\D+/', '', $data['mobile']) ?? null;
+
+        if (empty($mobile)) {
+            throw new \Exception('手機號碼錯誤', 404);
+        }
+
+        $member = User::where('mobile', $data['mobile'])->latest('id')
+                        ->first() ?? new User;
+
+        if (! $member->exists) {
+            $member->name            = $data['personal_name'];
+            $member->salutation_code = $data['salutation_code'] ?? null;
+            $member->email           = $data['email'] ?? null;
+        }
+
+        // 特殊欄位處理
+        $member->telephone = str_replace('-', '', data_get($data, 'telephone', $member->telephone));
+        $member->payment_tin = preg_replace('/\D/', '', $data['payment_tin']);
+
+        // 批量更新欄位
+        $fields = [
+            'telephone_prefix',
+            'payment_company',
+            'shipping_personal_name',
+            'shipping_salutation_code',
+            'shipping_salutation_code2',
+            'shipping_phone',
+            'shipping_state_id',
+            'shipping_city_id',
+            'shipping_address1',
+            'shipping_address2',
+            'shipping_road',
+            'shipping_road_abbr',
+            'comment' => 'customer_comment',
+        ];
+
+        foreach ($fields as $modelKey => $dataKey) {
+            if (is_int($modelKey)) {
+                $modelKey = $dataKey;
+            }
+            $member->{$modelKey} = data_get($data, $dataKey, $member->{$modelKey});
+        }
+
+        $member->save();
+
+        return $member->id;
     }
 }
 

@@ -99,10 +99,7 @@ class OrderController extends ApiWwwV2Controller
             if (empty($json)){
                 $data['order_taker'] = 'web';
                 
-                // 這裡若有任何錯誤，必須 throw exception
-                DB::beginTransaction();
                 $order = $this->OrderService->store($data);
-                DB::commit();
 
                 event(new \App\Events\SaleOrderSavedEvent(saved_order:$order, action:'created'));
 

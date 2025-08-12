@@ -30,7 +30,7 @@ class TermService extends Service
 
     public function getList($params = [])
     {
-        $params['sort'] = $params['sort'] ?? 'taxonomy_code';
+        $params['sort'] = $params['sort'] ?? 'id';
         $params['order'] = $params['order'] ?? 'DESC';
 
         $query = Term::query();

@@ -62,13 +62,18 @@ class CategoryService extends Service
         ];
 
         // products
-            $products = Product::select(['id', 'name', 'price'])->with(['terms' => function ($qry) {
-                                $qry->select(['id', 'taxonomy_code', 'sort_order', 'is_active', 'parent_id']);
-                                $qry->whereIn('taxonomy_code', ['ProductPosCategory', 'ProductTag']);
-                            }
-                        ])
-                        ->where('is_active', 1)->where('is_salable', 1)
-                        ->get();
+            $products = Product::select(['id', 'price']) 
+                ->with([
+                    'terms' => function ($qry) {
+                        $qry->select(['id', 'taxonomy_code', 'sort_order', 'is_active', 'parent_id']);
+                        $qry->whereIn('taxonomy_code', ['ProductPosCategory', 'ProductTag']);
+                    },
+                    'translation' => function ($qry) {
+                        $qry->select(['product_id', 'name', 'web_name']);
+                    },
+                ])
+                ->where('is_salable', 1)
+                ->get();
         //
 
         // 所有分類（樹狀結構）
@@ -87,7 +92,8 @@ class CategoryService extends Service
             // 加入商品資訊
             $arr_products[$product->id] = [
                 'id' => $product->id,
-                'name' => $product->name,
+                'name' => $product->translation->name,
+                'web_name' => $product->translation->web_name ?? '',
                 'price' => $product->price,
                 'categories' => [],
             ];

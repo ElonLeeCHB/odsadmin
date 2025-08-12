@@ -2,7 +2,7 @@
 
  return [
     // Heading
-    'heading_title' => '詞語屬性設定',
+    'heading_title' => '詞彙屬性設定',
 
     // Text
     'text_common' => '通用設定',

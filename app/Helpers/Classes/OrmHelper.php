@@ -536,8 +536,8 @@ class OrmHelper
         });  
     }
 
-    //處理 guarded()。原本 model 內建的 create() 會受 fillable() 限制。但是若使用 guarded() 不會包含在 fillable() 裡面。因此新增判斷
-    public static function getSavable(Model $row)
+    // 綜合判斷 $guarded, $fillable 
+    public static function getSavableColumns(Model $row)
     {
         $table = $row->getTable();
         $table_columns = self::getTableColumns($table);
@@ -555,6 +555,13 @@ class OrmHelper
         return $result;
     }
 
+    public static function getModelTableColumns(Model $model)
+    {
+        $table = $model->getTable();
+
+        return self::getTableColumns($table);
+    }
+
     public static function findIdOrFailOrNew(EloquentBuilder $query, $id)
     {
         // 如果有 id，就嘗試找資料
@@ -567,19 +574,31 @@ class OrmHelper
         return $row ?? null;
     }
 
-    public static function saveRow(Model $row, $data)
+    // $operator_user_id 必須是 users.id, 即 managers.user_id 或 members.user_id 要注意！
+    public static function saveRow(Model $row, $data, $operator_user_id = null)
     {
-        $table_columns = self::getSavable($row);
+        $table_columns = self::getSavableColumns($row);
 
         foreach ($data as $column => $value) {
-            if (in_array($column, $table_columns)){
+            if (in_array($column, $table_columns)) {
                 $row->{$column} = $value;
             }
         }
 
-        $row->save();
+        // 新增
+        if (empty($row->id)) {
+            if (in_array('creator_id', self::getModelTableColumns($row))) {
+                $data['creator_id'] = $operator_user_id;
+            }
+        }
+        // 修改
+        else {
+            if (in_array('modifier_id', self::getModelTableColumns($row))) {
+                $data['modifier_id'] = $operator_user_id;
+            }
+        }
 
-        return $row;
+        return $row->save();
     }
 
 

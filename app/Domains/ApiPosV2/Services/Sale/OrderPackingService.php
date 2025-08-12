@@ -20,6 +20,7 @@ class OrderPackingService extends Service
 
     public function getListByDeliveryDate($delivery_date)
     {
+
         $orders = Order::select(['id', 'code', 'mobile', 'delivery_time_range', 'delivery_date', 'comment', 'extra_comment', 'personal_name', 'payment_company', 'quantity_for_control','status_code'])
                     ->with(['orderPacking'])
                     ->whereDate('delivery_date', $delivery_date)
@@ -35,23 +36,16 @@ class OrderPackingService extends Service
         try {
             DB::beginTransaction();
 
-            if (env('APP_ENV') == 'production'){
-                $today = date('Y-m-d');
-
-                if ($data['data'] == $today){
-                    if (Carbon::parse($delivery_date)->lessThan(Carbon::yesterday())) {
-                        throw new \Exception('正式區只能修改今天的記錄。');
-                    }
-                }
-            }
-
-            $order_packing = OrderPacking::findOrNew($order_id);
+            $order_packing = OrderPacking::with('order:id,delivery_date')->findOrNew($order_id);
 
             $save_data = $data;
 
             $save_data['order_id'] = $order_id;
 
-            $save_data['shipping_date'] = date('Y-m-d');
+            // shipping_date 使用訂單的 delivery_date
+            $save_data['shipping_date'] = $order_packing?->order?->delivery_date
+                ? Carbon::parse($order_packing->order->delivery_date)->format('Y-m-d')
+                : null;
                 
             // 從非準備中，改為準備中
             if ($order_packing->packing_status_code != 'InPreparation' && $data['packing_status_code'] == 'InPreparation'){
@@ -70,7 +64,7 @@ class OrderPackingService extends Service
             unset($save_data['created_at']);
             unset($save_data['updated_at']);
 
-            OrmHelper::saveRow($order_packing, $save_data);
+            OrmHelper::saveRow($order_packing, $save_data); //只會修改有傳入的欄位。
 
             DB::commit();
 
