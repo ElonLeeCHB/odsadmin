@@ -20,36 +20,31 @@ class OrderPackingService extends Service
 
     public function getListByDeliveryDate($delivery_date)
     {
-    
+
         $orders = Order::select(['id', 'code', 'mobile', 'delivery_time_range', 'delivery_date', 'comment', 'extra_comment', 'personal_name', 'payment_company', 'quantity_for_control','status_code'])
-                    ->with(['packing'])
+                    ->with(['orderPacking'])
                     ->whereDate('delivery_date', $delivery_date)
                     ->whereIn('status_code', ['Confirmed', 'CCP'])
                     ->get()
                     ->keyBy('code');
 
-        $result = [];
-
-        foreach ($orders as $code => $order) {
-            $result[$code] = $order->toArray();
-            $result[$code]['packing']['packing_start_time'] = optional($order->packing)->packing_start_time ?? '';
-            $result[$code]['packing']['packing_end_time'] = optional($order->packing)->packing_end_time ?? '';
-            $result[$code]['packing']['packing_tables'] = optional($order->packing)->packing_tables ?? '';
-            $result[$code]['packing']['packing_status_code'] = optional($order->packing)->packing_status_code ?? '';
-            $result[$code]['packing']['scheduled_shipping_time'] = optional($order->packing)->scheduled_shipping_time ?? '';
-            $result[$code]['packing']['shipping_time'] = optional($order->packing)->shipping_time ?? '';
-            $result[$code]['packing']['driver_id'] = optional($order->packing)->driver_id ?? '';
-            $result[$code]['packing']['driver_name'] = optional($order->packing)->driver_name ?? '';
-            $result[$code]['packing']['driver_fee'] = optional($order->packing)->driver_fee ?? '';
-        }
-
-        return $result;
+        return $orders->toArray();
     }
 
     public function save($data, $order_id = null)
     {
         try {
             DB::beginTransaction();
+
+            if (env('APP_ENV') == 'production'){
+                $today = date('Y-m-d');
+
+                if ($data['data'] == $today){
+                    if (Carbon::parse($delivery_date)->lessThan(Carbon::yesterday())) {
+                        throw new \Exception('正式區只能修改今天的記錄。');
+                    }
+                }
+            }
 
             $order_packing = OrderPacking::findOrNew($order_id);
 
@@ -73,6 +68,9 @@ class OrderPackingService extends Service
                 $save_data['vehicle_type_code'] = Driver::where('id', $save_data['driver_id'])->value('vehicle_type_code');
             }
             
+            unset($save_data['created_at']);
+            unset($save_data['updated_at']);
+
             OrmHelper::saveRow($order_packing, $save_data);
 
             DB::commit();

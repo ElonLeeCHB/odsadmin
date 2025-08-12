@@ -252,16 +252,16 @@ class OptionController extends BackendController
             foreach ($messages as $key => $rows) {
                 $json['error'][$key] = $rows[0];
             }
-
         }
+
         // Check option_value_id in product_option_values
         if (isset($data['option_values']) && isset($data['option_id'])) {
-            $option_value_form_data = [];
+            $input_option_value_ids = [];
 
             //option_values in form
             foreach ($data['option_values'] as $option_value) {
                 if ($option_value['option_value_id']) {
-                    $option_value_form_data[] = $option_value['option_value_id'];
+                    $input_option_value_ids[] = $option_value['option_value_id'];
                 }
             }
 
@@ -272,16 +272,21 @@ class OptionController extends BackendController
             ];
             $option = $this->OptionService->getOption($filter_data);
 
-            if(!empty($option->product_option_values)){
+            if (!empty($option->product_option_values)) {
                 $in_use_option_value_ids = $option->product_option_values->pluck('option_value_id')->toArray() ?? [];
             }
-            $in_use_option_value_ids = array_unique($in_use_option_value_ids);
 
-            foreach ($in_use_option_value_ids as $in_use_option_value_id) {
-                //表單資料沒有使用中的 option_value_id 代表刪除動作。但這是使用中，所以不准刪。
-                if(!in_array($in_use_option_value_id, $option_value_form_data)){
-                    $json['error']['warning'] = $this->lang->error_value;
-                }
+            // 排除 option_value_id 為 0 的情況
+            $in_use_option_value_ids = array_unique(
+                array_filter($in_use_option_value_ids, fn($v) => $v !== 0 && $v !== '0')
+            );
+
+            $delete_option_value_ids = array_unique(
+                array_diff($in_use_option_value_ids, $input_option_value_ids)
+            );
+
+            if (!empty($delete_option_value_ids)) {
+                $json['error']['warning'] = '已有商品使用中。 option_value_id: ' . implode(',', $delete_option_value_ids);
             }
         }
 
@@ -450,14 +455,11 @@ class OptionController extends BackendController
                     'name'    => $option->name,
                 ];
             }
-
         }
-
 
         if(empty($this->request->dataType) || $this->request->dataType == 'json'){
             return response(json_encode($json))->header('Content-Type','application/json');
         }
-
     }
 
 
