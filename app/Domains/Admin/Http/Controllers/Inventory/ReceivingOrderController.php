@@ -9,7 +9,7 @@ use App\Domains\Admin\Services\Inventory\ReceivingOrderService;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
 use App\Repositories\Eloquent\Inventory\ReceivingOrderProductRepository;
 use App\Repositories\Eloquent\Common\TermRepository;
-use App\Models\Setting\Location;
+use App\Models\Sale\Location;
 use App\Models\Localization\Language;
 use App\Models\Catalog\Product;
 use App\Repositories\Eloquent\Catalog\ProductRepository;

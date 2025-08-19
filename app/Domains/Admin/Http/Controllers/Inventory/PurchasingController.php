@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Services\Inventory\PurchasingOrderService;
 use App\Repositories\Eloquent\Inventory\UnitRepository;
-use App\Models\Setting\Location;
+use App\Models\Sale\Location;
 use App\Models\Localization\Language;
 
 class PurchasingController extends BackendController

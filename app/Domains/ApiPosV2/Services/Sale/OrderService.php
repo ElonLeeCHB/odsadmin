@@ -239,6 +239,31 @@ class OrderService extends Service
                 $order->orderTags()->sync($data['order_tags']);
             }
 
+            // OrderCoupon
+            if (!empty($data['order_coupons'])) {
+                $newCouponIds = collect($data['order_coupons'])->pluck('coupon_id')->all();
+
+                // 刪掉不再使用的
+                $order->orderCoupons()->where('order_id', $order->id)
+                    ->whereNotIn('coupon_id', $newCouponIds)
+                    ->delete();
+
+                // 更新或新增
+                foreach ($data['order_coupons'] as $couponData) {
+                    $order->orderCoupons()->updateOrCreate(
+                        [
+                            'order_id'  => $order->id,
+                            'coupon_id' => $couponData['coupon_id'],
+                        ],
+                        [
+                            'name'     => $couponData['name'],
+                            'quantity' => $couponData['quantity'],
+                            'subtotal' => $couponData['subtotal'],
+                        ]
+                    );
+                }
+            }
+
             DB::commit();
 
             event(new \App\Events\SaleOrderSavedEvent(saved_order:$order, old_order:$old_order));

@@ -6,6 +6,7 @@ use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceBatchController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderGroupController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\PaymentController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderMetadataController;
 
 Route::group([
     'namespace' => 'App\Domains\ApiPosV2\Http\Controllers',
@@ -27,7 +28,7 @@ Route::group([
         //密碼
         Route::post('passwordReset/{id}', 'Auth\ResetPasswordController@passwordReset')->name('passwordReset');
 
-        //管理員 (非會員！)
+
         Route::group([
             'prefix' => 'user',
             'as' => 'user.',
@@ -40,7 +41,7 @@ Route::group([
             Route::get('permissions/info/{id}', 'User\PermissionController@info')->name('permission.info');
         });
 
-        //管理員 (非會員！)
+
         Route::group([
             'prefix' => 'members',
             'as' => 'members.',
@@ -48,6 +49,8 @@ Route::group([
         {
             Route::get('list', 'Member\MemberController@list')->name('members.list');
             Route::get('info/{id?}', 'Member\MemberController@info')->name('members.info');
+            Route::put('update/{id?}', 'Member\MemberController@update')->name('members.update');
+            Route::post('store', 'Member\MemberController@store')->name('members.store');
         });
     
         Route::group([
@@ -70,6 +73,8 @@ Route::group([
             'as' => 'sales.',
         ], function ()
         {
+            Route::get('order-metadata', [OrderMetadataController::class, 'index']);
+
             Route::get('orders/list', 'Sale\OrderController@list')->name('orders.list');
             Route::get('orders/info/{id}', 'Sale\OrderController@info')->name('orders.info');
             Route::get('orders/infoByCode/{code}', 'Sale\OrderController@infoByCode')->name('orders.infoByCode');

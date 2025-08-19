@@ -8,7 +8,7 @@ use App\Repositories\Eloquent\Setting\LocationRepository;
 
 class LocationService extends Service
 {
-    protected $modelName = "\App\Models\Setting\Location";
+    protected $modelName = "\App\Models\Sale\Location";
     public $repository;
 
 

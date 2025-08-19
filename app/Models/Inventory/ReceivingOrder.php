@@ -9,7 +9,7 @@ use App\Models\Inventory\ReceivingOrderProduct;
 use App\Models\Catalog\Product;
 use App\Models\Counterparty\Organization;
 use App\Models\Common\Term;
-use App\Models\Setting\Location;
+use App\Models\Sale\Location;
 use App\Traits\Model\ModelTrait;
 use App\Repositories\Eloquent\Common\TermRepository;
 

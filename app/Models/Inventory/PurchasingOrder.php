@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 use App\Models\Catalog\Product;
 use App\Models\Inventory\PurchasingProduct;
 use App\Models\Common\Term;
-use App\Models\Setting\Location;
+use App\Models\Sale\Location;
 
 class PurchasingOrder extends Model
 {

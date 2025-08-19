@@ -4,11 +4,11 @@ namespace App\Repositories\Eloquent\Setting;
 
 use Illuminate\Support\Facades\DB;
 use App\Repositories\Eloquent\Repository;
-use App\Models\Setting\Location;
+use App\Models\Sale\Location;
 
 class LocationRepository extends Repository
 {
-    public $modelName = "\App\Models\Setting\Location";
+    public $modelName = "\App\Models\Sale\Location";
 
 
     public function getLocations($data = [], $debug = 0)

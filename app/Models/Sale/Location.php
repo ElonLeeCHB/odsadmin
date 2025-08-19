@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Setting;
+namespace App\Models\Sale;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Sale\CouponType;

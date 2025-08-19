@@ -15,4 +15,7 @@ return array (
   'roles' => 'Roles',
   'permissions' => 'Permissions',
   'database' => 'Database',
+
+
+    // 'text_coupon' => '優惠券',
 );

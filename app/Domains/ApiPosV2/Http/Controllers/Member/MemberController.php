@@ -3,10 +3,9 @@
 namespace App\Domains\ApiPosV2\Http\Controllers\Member;
 
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
 use App\Domains\ApiPosV2\Services\Member\MemberService;
-use App\Rules\ValidPassword;
-use Illuminate\Support\Facades\Hash;
 
 class MemberController extends ApiPosController
 {
@@ -19,14 +18,14 @@ class MemberController extends ApiPosController
 
     public function list()
     {
-        $members = $this->service->getList(request()->all());
+        $members = $this->service->getMembers(request()->all());
 
         return $this->sendJsonResponse($members);
     }
 
     public function info($member_id = null)
     {
-        $member = $this->service->getInfo($member_id, request()->all());
+        $member = $this->service->getMemberById($member_id, request()->all());
 
         if (empty($member)){
             return $this->sendJsonResponse(['error' => true], 404);
@@ -34,4 +33,28 @@ class MemberController extends ApiPosController
 
         return $this->sendJsonResponse($member);
     }
+
+    public function store(Request $request)
+    {
+        try {
+            return $this->service->saveMember($request);
+        } catch (ValidationException $ex) {
+            throw $ex;
+        } catch (\Throwable $ex) {
+            return $this->sendJsonErrorResponse(data: ['sys_error' => $ex->getMessage()], status_code: 500);
+        }
+    }
+
+    public function update(Request $request, $member_id)
+    {
+        try {
+            return $this->service->saveMember($request, $member_id);
+        } catch (ValidationException $ex) {
+            throw $ex;
+        } catch (\Throwable $ex) {
+            return $this->sendJsonErrorResponse(data: ['sys_error' => $ex->getMessage()], status_code: 500);
+        }
+    }
+
+
 }

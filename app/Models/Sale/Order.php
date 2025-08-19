@@ -100,6 +100,11 @@ class Order extends Model
         return $this->hasMany(OrderTotal::class, 'order_id', 'id');
     }
 
+    public function orderCoupons()
+    {
+        return $this->hasMany(OrderCoupon::class);
+    }
+    
     /**
      * 應該用 order_id 但是前人用了 order_code
      */

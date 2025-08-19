@@ -12,13 +12,14 @@ use App\Repositories\Eloquent\Common\TermRepository;
 
 class UserRepository extends Repository
 {
+    private $TermRepository;
 
     public $modelName = "\App\Models\User\User";
 
-    public function __construct(private TermRepository $TermRepository)
+    public function __construct()
     {
         parent::__construct();
-        $this->TermRepository = $TermRepository;
+        $this->TermRepository = (new TermRepository);
     }
 
     public function getAdminUserIds()

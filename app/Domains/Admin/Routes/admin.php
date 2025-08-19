@@ -109,6 +109,15 @@ Route::group([
         // Route::get('orders/printOrders/{order_ids}/{print_status}', 'Sale\OrderPrintingController@printOrders')->name('orders.printOrders');
         Route::get('orders/printMultiOrders', 'Sale\OrderController@printMultiOrders')->name('orders.printMultiOrders');
 
+        // 優惠券
+        // Route::resource('coupon_types', \App\Http\Controllers\Admin\Sale\CouponTypeController::class);
+        // Route::resource('coupon_types', 'Sale\CouponTypeController');
+        Route::get('coupon_types', 'Sale\CouponTypeController@index')->name('coupon_types.index');
+        Route::get('coupon_types/list', 'Sale\CouponTypeController@list')->name('coupon_types.list');
+        Route::get('coupon_types/form/{coupon_type_id?}', 'Sale\CouponTypeController@form')->name('coupon_types.form');
+        Route::post('coupon_types/save', 'Sale\CouponTypeController@save')->name('coupon_types.save');
+        Route::post('coupon_types/destroy', 'Sale\CouponTypeController@destroy')->name('coupon_types.destroy');
+
         Route::get('orders/schedule/list/{delivery_date?}', 'Sale\OrderScheduleController@list')->name('order_schedule.list');
         Route::post('orders/schedule/save', 'Sale\OrderScheduleController@save')->name('order_schedule.save');
         Route::get('orders/schedule/{delivery_date?}', 'Sale\OrderScheduleController@index')->name('order_schedule.index');

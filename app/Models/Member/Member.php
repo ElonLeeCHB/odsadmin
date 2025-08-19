@@ -14,7 +14,7 @@ class Member extends User
     use ModelTrait;
     
     public $table = 'users';    
-    protected $guarded = [];
+    protected $guarded = ['id', 'uuid', 'code', 'username', 'last_seen_at'];
     protected $foreignKey = 'user_id';
     
     public $meta_keys = [

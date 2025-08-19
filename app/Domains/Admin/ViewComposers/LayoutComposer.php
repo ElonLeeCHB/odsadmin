@@ -185,8 +185,38 @@ class LayoutComposer
             ];
         }
 
+        //優惠券類別
+        if (1) {
+            $sale[] = [
+                'name'       => '優惠券類別',
+                'icon'       => '',
+                'href'     => route('lang.admin.sale.coupon_types.index'),
+                'children' => []
+            ];
+        }
+
+        //優惠券記錄
+        if (1) {
+            $sale[] = [
+                'name'       => '優惠券記錄',
+                'icon'       => '',
+                'href'     => '',
+                'children' => []
+            ];
+        }
+
+        // //優惠券
+        // if (1) {
+        //     $sale[] = [
+        //         'name'       => $this->lang->text_sales_order_schedule,
+        //         'icon'       => '',
+        //         'href'     => route('lang.admin.sale.order_schedule.index'),
+        //         'children' => []
+        //     ];
+        // }
+
         //訂單排程
-        if(1) {
+        if(0) {
             $sale[] = [
                 'name'	   => $this->lang->text_sales_order_schedule,
                 'icon'	   => '',

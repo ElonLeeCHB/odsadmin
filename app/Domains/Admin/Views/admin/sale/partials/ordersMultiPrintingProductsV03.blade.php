@@ -145,7 +145,7 @@
           @php $column_used_num++; @endphp
         @endforeach
 
-        @php $left = 18-$column_used_num; @endphp
+        @php $left = $max_columns-$column_used_num; @endphp
         @for($i = 1; $i <= $left; $i++)
           <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
         @endfor
@@ -167,6 +167,7 @@
 
 <!-- 潤餅便當系列 -->
   @if(!empty($order['categories']['lumpiaBento']))
+    @php $max_columns=18; @endphp
   <table id="lumpiaBento" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
     <thead>
       <tr>
@@ -188,7 +189,7 @@
           @php $column_used_num++; @endphp
         @endforeach
 
-        @php $left = 18-$column_used_num; @endphp
+        @php $left = $max_columns-$column_used_num; @endphp
         @for($i = 1; $i <= $left; $i++)
           <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
         @endfor
@@ -228,7 +229,7 @@
           @php $column_used_num++; @endphp
         @endforeach
 
-        @php $left = 18-$column_used_num; @endphp
+        @php $left = $max_columns-$column_used_num; @endphp
         @for($i = 1; $i <= $left; $i++)
           <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
         @endfor
@@ -250,6 +251,7 @@
 
 <!-- 刈包便當系列 -->
   @if(!empty($order['categories']['guabaoBento']))
+    @php $max_columns=18; @endphp
     <table id="guabaoBento" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
       <thead>
         <tr>
@@ -271,7 +273,7 @@
             @php $column_used_num++; @endphp
           @endforeach
 
-          @php $left = 18-$column_used_num; @endphp
+          @php $left = $max_columns-$column_used_num; @endphp
           @for($i = 1; $i <= $left; $i++)
             <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
           @endfor
@@ -311,7 +313,7 @@
             @php $column_used_num++; @endphp
           @endforeach
 
-          @php $left = 18-$column_used_num; @endphp
+          @php $left = $max_columns-$column_used_num; @endphp
           @for($i = 1; $i <= $left; $i++)
             <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
           @endfor
@@ -447,6 +449,13 @@
           @php $column_used_num++; @endphp
         @endforeach
 
+        @foreach($order['categories']['lumpiaLunchBox']['Columns']['SecondaryMainMeal'] ?? [] as $option_value_id => $name)
+          <td style="width:24px; @if ($loop->last) border-right:3px solid black @endif" class="fw-bold">
+          {{ $name }}
+          </td>
+          @php $column_used_num++; @endphp
+        @endforeach
+
         @foreach($order['categories']['lumpiaLunchBox']['Columns']['SideDish'] ?? [] as $option_value_id => $name)
           <td style="width:24px; @if ($loop->last) border-right:3px solid black @endif" class="fw-bold">
             {{ $name }}
@@ -503,7 +512,7 @@
           @php $column_used_num++; @endphp
         @endforeach
 
-        @php $left = 18-$column_used_num; @endphp
+        @php $left = $max_columns-$column_used_num; @endphp
         @for($i = 1; $i <= $left; $i++)
           <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
         @endfor

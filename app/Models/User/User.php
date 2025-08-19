@@ -13,6 +13,7 @@ use App\Models\Sale\Order;
 use App\Models\Catalog\OptionValueTranslation;
 use App\Models\Common\Term;
 use App\Models\SysData\Division;
+use App\Models\Sale\UserCoupon;
 use App\Repositories\Eloquent\Common\TermRepository;
 use App\Traits\Model\ModelTrait;
 use Spatie\Permission\Traits\HasRoles;
@@ -34,11 +35,15 @@ class User extends Authenticatable
 
     protected $guarded = [
         'id',
+        'uuid',
+        'code',
+        'username',
         'mobile',
         'password',
         'email',
         'email_verified_at',
         'is_admin',
+        'last_seen_at',
         'created_at',
         'updated_at',
     ];
@@ -67,6 +72,11 @@ class User extends Authenticatable
 
     public $meta_keys = [
     ];
+
+    public function userCoupons()
+    {
+        return $this->hasMany(UserCoupon::class, 'user_id', 'id');
+    }
 
     public function addresses()
     {

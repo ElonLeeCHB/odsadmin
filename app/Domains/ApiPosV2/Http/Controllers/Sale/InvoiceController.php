@@ -30,7 +30,7 @@ class InvoiceController extends ApiPosController
 
             return response()->json(['success' => true, 'data' => $invoices], 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Throwable $th) {
-            return $this->sendJsonErrorResponse(response: ['sys_error' => $th->getMessage()], status_code: 500);
+            return $this->sendJsonErrorResponse(data: ['sys_error' => $th->getMessage()], status_code: 500);
         }
     }
 
@@ -48,7 +48,7 @@ class InvoiceController extends ApiPosController
 
             return response()->json(['success' => true, 'data' => $invoice], 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Throwable $th) {
-            return $this->sendJsonErrorResponse(response: ['sys_error' => $th->getMessage()], status_code: 500, th: $th);
+            return $this->sendJsonErrorResponse(data: ['sys_error' => $th->getMessage()], status_code: 500, th: $th);
         }
     }
 
@@ -128,7 +128,7 @@ class InvoiceController extends ApiPosController
             return response()->json(['success' => true,'message' => '發票儲存成功','data' => $invoice->load('invoiceItems'),], 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Throwable $th) {
             DB::rollBack();
-            return $this->sendJsonErrorResponse(response: ['sys_error' => $th->getMessage()],status_code: 500,th: $th);
+            return $this->sendJsonErrorResponse(data: ['sys_error' => $th->getMessage()],status_code: 500,th: $th);
         }
     }
 

@@ -17,6 +17,5 @@ class Repository
         if (method_exists($this, 'initialize')) {
             $this->initialize();
         }
-
     }
 }

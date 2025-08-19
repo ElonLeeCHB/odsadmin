@@ -37,7 +37,7 @@ class PaymentController extends ApiPosController
 
             return response()->json(['success' => true, 'data' => $data], 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Throwable $th) {
-            return $this->sendJsonErrorResponse(response: ['sys_error' => $th->getMessage()], status_code: 500);
+            return $this->sendJsonErrorResponse(data: ['sys_error' => $th->getMessage()], status_code: 500);
         }
     }
 

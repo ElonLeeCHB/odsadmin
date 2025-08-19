@@ -21,6 +21,8 @@ class Controller extends BaseController
     protected $post_data;
     protected $all_data;
 
+    protected bool $booted = false;
+
     public function __construct()
     {
         if (basename($_SERVER['SCRIPT_NAME']) == 'artisan') {
@@ -158,25 +160,35 @@ class Controller extends BaseController
 
         // 預設錯誤訊息
         $general_error = $data['general_error'] ?? 'System error occurred. Please contact system administrator.';
-        $system_error = $data['system_error'] ?? $general_error;
+        $sys_error = $data['sys_error'] ?? $general_error;
 
-        // 非系統管理員或非 debug 模式，給一般錯誤
         // if (!$user || !$user->hasRole('sys_admin', 'web', 'hrm') || !config('app.debug')) {
-        if (!config('app.debug')) {
+
+        // debug 模式, 或系統管理員，給詳細錯誤
+        if (config('app.debug') || ($user && $user->hasRole('sys_admin'))) {
             return response()->json([
                 'success' => false,
-                'message' => $general_error,
+                'message' => $sys_error,
             ], $status_code);
         }
 
-        // 系統管理員 + debug 模式，給詳細錯誤
+        // 給一般錯誤
         return response()->json([
             'success' => false,
-            'message' => $system_error,
-            'trace' => collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5))
-                ->pluck('file')
-                ->filter()
-                ->first(),
+            'message' => $general_error,
         ], $status_code);
+    }
+
+    protected function boot(): void
+    {
+        // 子 controller 可選擇 override
+    }
+
+    protected function bootIfNotBooted(): void
+    {
+        if (! $this->booted) {
+            $this->boot();
+            $this->booted = true;
+        }
     }
 }
