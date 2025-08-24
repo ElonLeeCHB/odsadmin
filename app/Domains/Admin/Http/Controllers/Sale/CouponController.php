@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use App\Models\Sale\CouponType;
 use App\Repositories\Eloquent\Sale\CouponTypeRepository;
 
-class CouponTypeController extends BackendController
+class CouponController extends BackendController
 {
     private $breadcumbs;
     

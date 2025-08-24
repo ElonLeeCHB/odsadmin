@@ -28,6 +28,10 @@ return new class extends Migration
             $table->unsignedInteger('user_id')->comment('使用者 users.id');
             $table->unsignedInteger('coupon_id')->comment('用戶擁有的券ID coupons.id');
             $table->unsignedInteger('quantity')->comment('擁有幾張');
+            // $table->unsignedSmallInteger('subtotal')->comment('小計');
+            $table->dateTime('valid_from')->nullable(); // 生效時間
+            $table->dateTime('valid_to')->nullable();   // 失效時間
+            $table->enum('action', ['plus', 'minus']); //増減張数
             $table->timestamps();
 
             $table->unique(['user_id', 'coupon_id']); // 一個人同種類券數量統一管理

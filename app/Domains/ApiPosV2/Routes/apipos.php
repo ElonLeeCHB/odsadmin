@@ -101,7 +101,6 @@ Route::group([
             Route::get('orderPacking/list/{delivery_data?}', 'Sale\OrderPackingController@list')->name('orderPacking.list');
             Route::post('orderPacking/update/{id}', 'Sale\OrderPackingController@update')->name('orderPacking.update');
             Route::get('orderPacking/statuses', 'Sale\OrderPackingController@statuses')->name('orderPacking.statuses');
-
             
             // 外送員
             Route::get('drivers', 'Sale\DriverController@index')->name('drivers.index');
@@ -109,6 +108,26 @@ Route::group([
             Route::put('drivers/{driver_id}', 'Sale\DriverController@save')->name('drivers.update');
             Route::delete('drivers/{driver_id}', 'Sale\DriverController@destroy')->name('drivers.destroy');
             Route::get('drivers/show/{id}', 'Sale\DriverController@show')->name('drivers.show');
+
+            //優惠券
+            Route::group([
+                'prefix' => 'coupons',
+                'as' => 'coupons.',
+            ], function () {
+                Route::get('/', 'Sale\CouponController@index')->name('coupons.index');
+                
+            });
+            //優惠券
+            Route::group([
+                'prefix' => 'userCoupons',
+                'as' => 'userCoupons.',
+            ], function () {
+                Route::get('/', 'Sale\UserCouponController@index')->name('userCoupons.index');
+                Route::post('/', 'Sale\UserCouponController@store')->name('userCoupons.store');
+                Route::patch('/{id}', 'Sale\UserCouponController@update')->name('userCoupons.update');
+                Route::delete('/{id}', 'Sale\UserCouponController@destroy')->name('userCoupons.destroy');
+            });
+
 
             Route::group([
                 'prefix' => 'orderlimit',

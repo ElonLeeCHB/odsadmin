@@ -31,11 +31,10 @@ class RequisitionController extends BackendController
         private OrderService $OrderService,
         private OrderRepository $OrderRepository,
         private SettingRepository $SettingRepository,
-        )
-    {
+    ) {
         parent::__construct();
 
-        $this->getLang(['admin/common/common','admin/sale/requisition']);
+        $this->getLang(['admin/common/common', 'admin/sale/requisition']);
     }
 
     // 呈現全頁框架，但初始不包含備料表格。提供查詢欄位
@@ -46,24 +45,24 @@ class RequisitionController extends BackendController
             $data['lang'] = $this->lang;
 
             // Breadcomb
-                $breadcumbs[] = (object)[
-                    'text' => $this->lang->text_home,
-                    'href' => route('lang.admin.dashboard'),
-                ];
-    
-                $breadcumbs[] = (object)[
-                    'text' => $this->lang->text_sale,
-                    'href' => 'javascript:void(0)',
-                    'cursor' => 'default',
-                ];
-    
-                $breadcumbs[] = (object)[
-                    'text' => $this->lang->heading_title,
-                    'href' => route('lang.admin.member.members.index'),
-                ];
-    
-                $data['breadcumbs'] = (object)$breadcumbs;
-    
+            $breadcumbs[] = (object)[
+                'text' => $this->lang->text_home,
+                'href' => route('lang.admin.dashboard'),
+            ];
+
+            $breadcumbs[] = (object)[
+                'text' => $this->lang->text_sale,
+                'href' => 'javascript:void(0)',
+                'cursor' => 'default',
+            ];
+
+            $breadcumbs[] = (object)[
+                'text' => $this->lang->heading_title,
+                'href' => route('lang.admin.member.members.index'),
+            ];
+
+            $data['breadcumbs'] = (object)$breadcumbs;
+
             // End Breadcomb
 
             // Prepare links
@@ -71,22 +70,20 @@ class RequisitionController extends BackendController
             $data['print_form_url'] = route('lang.admin.sale.requisitions.printForm', $required_date ?? '');
             $data['export_matrix_list_url'] = route('lang.admin.sale.requisitions.exportMatrixList');
 
-            if(!empty(request()->query('required_date'))){
+            if (!empty(request()->query('required_date'))) {
                 $data['requiredDataTable'] = $this->getForm();
             }
-            
+
             return view('admin.sale.requisition_form', $data);
-
         } catch (\Throwable $th) {
-            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
+            return $this->sendJsonResponse(data: ['error' => $th->getMessage()]);
         }
-
     }
 
     // 產生包含 html 的備料表格 相當於 opencart getList()
     public function getForm()
     {
-        if(empty(request()->required_date)){
+        if (empty(request()->required_date)) {
             return response()->json(['error' => '日期錯誤', 'errorWarning' => '日期錯誤'], 400);
         }
 
@@ -98,10 +95,10 @@ class RequisitionController extends BackendController
     // 請求包含 html 的備料表格。平時用不到。相當於 opencart list()
     public function getRequiredDataTable()
     {
-        if(empty(request()->query('required_date') )){
+        if (empty(request()->query('required_date'))) {
             return response()->json(['error' => '日期錯誤'], 400);
         }
-        
+
         return $this->getForm(request()->query('required_date'));
     }
 
@@ -114,16 +111,26 @@ class RequisitionController extends BackendController
         $data['base'] = config('app.admin_url');
 
         // parseDate
-        if(!empty($required_date)){
+        if (!empty($required_date)) {
             $required_date = parseDate($required_date);
 
-            if(empty($required_date)){
+            if (empty($required_date)) {
                 return redirect(route('lang.admin.sale.requisitions.form'))->with("warning", "日期格式錯誤");
             }
         }
 
-        if(!empty($required_date)){            
+        if (!empty($required_date)) {
             $data['statistics'] = $this->RequisitionService->getStaticsByRequiredDate($required_date, request()->forceUpdate);
+        }
+
+        // 刪除不列印的項目
+        $sale_requisition_skip_printing = Setting::select('setting_value')->where('setting_key', 'sale_requisition_skip_printing')->first()->setting_value;
+        $sale_requisition_skip_printing = json_decode($sale_requisition_skip_printing, true);
+
+        foreach ($data['statistics']['sales_ingredients_table_items'] as $key => $value) {
+            if (in_array($key, $sale_requisition_skip_printing)) {
+                unset($data['statistics']['sales_ingredients_table_items'][$key]);
+            }
         }
 
         return view('admin.sale.requisition_print_form', $data);
@@ -134,10 +141,10 @@ class RequisitionController extends BackendController
     {
         $params = request()->all();
 
-        if(empty($params['start_date']) || empty($params['end_date'])){
+        if (empty($params['start_date']) || empty($params['end_date'])) {
             return response()->json(['error' => '日期錯誤'], 400);
         }
-        
+
         return $this->RequisitionService->exportMatrixList($params);
     }
 
@@ -178,19 +185,19 @@ class RequisitionController extends BackendController
 
 
         //需要除2的潤餅
-        $sales_wrap_map = Setting::where('setting_key','sales_wrap_map')->first()->setting_value;
-        
+        $sales_wrap_map = Setting::where('setting_key', 'sales_wrap_map')->first()->setting_value;
+
         $lines = [];
         foreach ($sales_wrap_map as $key => $row) {
-            $lines[] = $row['product_id'] . ',"' . trim($row['product_name']) .'",' . $row['new_product_id'] . ',"' . trim($row['new_product_name']) . '"';
+            $lines[] = $row['product_id'] . ',"' . trim($row['product_name']) . '",' . $row['new_product_id'] . ',"' . trim($row['new_product_name']) . '"';
         }
         $data['sales_wrap_map'] = implode("\n", $lines);
 
         //顯示項目
-        $sales_ingredients_table_items = Setting::where('setting_key','sales_ingredients_table_items')->first()->setting_value;
+        $sales_ingredients_table_items = Setting::where('setting_key', 'sales_ingredients_table_items')->first()->setting_value;
         $lines = [];
         foreach ($sales_ingredients_table_items as $product_id => $product_name) {
-            $lines[] = $product_id . ',"' . trim($product_name).'"';
+            $lines[] = $product_id . ',"' . trim($product_name) . '"';
         }
         $data['sales_ingredients_table_items'] = implode("\n", $lines);
 
@@ -213,7 +220,7 @@ class RequisitionController extends BackendController
         //需要除2的潤餅 sales_wrap_map
         $sales_wrap_map = $this->request->post('sales_wrap_map') ?? '';
 
-        if(!empty($sales_wrap_map)){
+        if (!empty($sales_wrap_map)) {
             $lines = explode("\n", $sales_wrap_map);  // 將多行文字拆成陣列
             $lines = array_map('trim', $lines);      // 去除每行文字的首尾空白
 
@@ -245,7 +252,7 @@ class RequisitionController extends BackendController
         //顯示項目 sales_ingredients_table_items
         $sales_ingredients_table_items = $this->request->post('sales_ingredients_table_items') ?? '';
 
-        if(!empty($sales_ingredients_table_items)){
+        if (!empty($sales_ingredients_table_items)) {
             $lines = explode("\n", $sales_ingredients_table_items);  // 將多行文字拆成陣列
             $lines = array_map('trim', $lines);      // 去除每行文字的首尾空白
 
@@ -271,7 +278,7 @@ class RequisitionController extends BackendController
             ];
         }
 
-        if(!empty($updateData)){
+        if (!empty($updateData)) {
             $json = [];
 
             try {
@@ -281,7 +288,7 @@ class RequisitionController extends BackendController
                 $json['error'] = $e->getCode();
             }
 
-            return response(json_encode($json))->header('Content-Type','application/json');
+            return response(json_encode($json))->header('Content-Type', 'application/json');
         }
     }
 
@@ -385,7 +392,8 @@ class RequisitionController extends BackendController
     // }
 
     //前人寫的，可能提供給 hrc 或是 dts 站台，用途不明。暫時不動。
-    public function getRequisitionBurrito($date){
+    public function getRequisitionBurrito($date)
+    {
         $start_date = $date . ' 00:00:00';
         $end_date = $date . ' 23:59:59';
 
@@ -395,8 +403,8 @@ class RequisitionController extends BackendController
         $rs = DB::select("
         SELECT opo.id, o.delivery_time_range ,opo.order_id,
         SUM(CASE WHEN opo.product_id = 1062 THEN opo.quantity * 2 ELSE opo.quantity END) AS total
-        FROM ".env('DB_DATABASE').".`orders` AS o
-        JOIN ".env('DB_DATABASE').".`order_product_options` AS opo ON opo.order_id = o.id
+        FROM " . env('DB_DATABASE') . ".`orders` AS o
+        JOIN " . env('DB_DATABASE') . ".`order_product_options` AS opo ON opo.order_id = o.id
         WHERE DATE(o.delivery_date) BETWEEN ? AND ?
         AND o.status_code != 'Void'
         $where
@@ -406,7 +414,7 @@ class RequisitionController extends BackendController
         $morning_orders_total = 0;
         $afternoon_orders_total = 0;
         // dd($rs);
-        if(isset($rs[0])){
+        if (isset($rs[0])) {
             foreach ($rs as $order) {
                 // 提取時間範圍中的開始時間
                 list($start_time, $end_time) = explode('-', $order->delivery_time_range);
@@ -420,9 +428,12 @@ class RequisitionController extends BackendController
                 }
             }
         }
-        $orders_total = $morning_orders_total+$afternoon_orders_total;
-        return ['morning_total'=>$morning_orders_total
-        ,'afternoon_total'=>$afternoon_orders_total,'total'=>$orders_total];
+        $orders_total = $morning_orders_total + $afternoon_orders_total;
+        return [
+            'morning_total' => $morning_orders_total,
+            'afternoon_total' => $afternoon_orders_total,
+            'total' => $orders_total
+        ];
     }
 
     /**
@@ -432,37 +443,36 @@ class RequisitionController extends BackendController
     {
         try {
             $diff_days = DateHelper::parseDiffDays($required_date, date('Y-m-d H:i:s'));
-    
+
             //再重新整理。因故不執行的時候，用彈出式提醒，不要影響當前畫面。
             // $n = -30; //負數表示過去
-    
+
             // if(is_numeric($diff_days) && $diff_days < $n){
             //     if(auth()->user()->username !== 'admin'){
             //         $msg = ['error' => '超過'.abs($n).'天，禁止執行！'];
             //         return response(json_encode($msg))->header('Content-Type','application/json');
             //     }
             // }
-    
+
             $this->RequisitionService->getOrderIngredients($required_date);
             $this->setCacheFromIngredientTable($required_date);
-    
+
             /**
              * 2024-10-30 Elon: 下面這個可能是？我2023年用於給上暉看的料件需求？
              */
             //根據BOM表計算真實料件需求
             $result = $this->RequisitionService->calcRequirementsForDate($required_date);
-    
-            if(!empty($result['error'])){
+
+            if (!empty($result['error'])) {
                 return $result;
             }
             //End
-    
+
             $required_date_2ymd = parseDateStringTo6d($required_date);
-    
+
             return ['required_date_2ymd' => $required_date_2ymd];
-            
         } catch (\Throwable $th) {
-            return $this->sendJsonResponse(data:['error' => $th->getMessage()]);
+            return $this->sendJsonResponse(data: ['error' => $th->getMessage()]);
         }
     }
 
@@ -501,13 +511,13 @@ class RequisitionController extends BackendController
             $ingredient_product_name = $ingredient->ingredient_product_name;
             $quantity = $ingredient->quantity;
 
-            if(empty($data['orders'][$order_id])){
+            if (empty($data['orders'][$order_id])) {
                 $data['orders'][$order_id] = [
                     'require_date_ymd' => $ingredient->required_date,
                     'required_date_hi' => $ingredient->required_date_hi,
                     'source_id' => $ingredient->order_id,
                     'source_id_url' => route('lang.admin.sale.orders.form', [$order_id]),
-                    'order_code' => substr($orders[$order_id]->code,4,4),
+                    'order_code' => substr($orders[$order_id]->code, 4, 4),
                     'shipping_road_abbr' => $ingredient->order->shipping_road_abbr,
 
                 ];
@@ -517,7 +527,7 @@ class RequisitionController extends BackendController
 
 
             // all_day
-            if(empty($result['all_day'][$ingredient_product_id]['quantity'])){
+            if (empty($result['all_day'][$ingredient_product_id]['quantity'])) {
                 $result['all_day'][$ingredient_product_id]['quantity'] = 0;
             }
 
@@ -533,7 +543,7 @@ class RequisitionController extends BackendController
 
             //  - am
             if (!$carbon_required_time->greaterThanOrEqualTo($carbon_cutOffTime)) {
-                if(empty($data['am'][$ingredient_product_id]['quantity'])){
+                if (empty($data['am'][$ingredient_product_id]['quantity'])) {
                     $data['am'][$ingredient_product_id]['quantity'] = 0;
                 }
 
@@ -541,19 +551,18 @@ class RequisitionController extends BackendController
                 $data['am'][$ingredient_product_id]['ingredient_product_name'] = $ingredient->ingredient_product_name;
             }
             //  - pm
-            else{
-                if(empty($data['pm'][$ingredient_product_id]['quantity'])){
+            else {
+                if (empty($data['pm'][$ingredient_product_id]['quantity'])) {
                     $data['pm'][$ingredient_product_id]['quantity'] = 0;
                 }
 
                 $data['pm'][$ingredient_product_id]['quantity'] += (int)$ingredient->quantity;
                 $data['pm'][$ingredient_product_id]['ingredient_product_name'] = $ingredient->ingredient_product_name;
             }
-
         }
 
         // 排序
-        if(!empty($data['orders'] )){
+        if (!empty($data['orders'])) {
             $data['orders'] = collect($data['orders'])->sortBy('source_idsn')->sortBy('required_date_hi')->values()->all();
         }
 
@@ -561,9 +570,8 @@ class RequisitionController extends BackendController
 
         cache()->forget($cacheName);
 
-        cache()->put($cacheName, $result, 60*60*24*30);
+        cache()->put($cacheName, $result, 60 * 60 * 24 * 30);
 
         return $result;
     }
-
 }

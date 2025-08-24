@@ -1,32 +1,19 @@
 <?php
 
+// app/Enums/Sale/CouponDiscountType.php
+
 namespace App\Enums\Sale;
 
-class CouponDiscountType
+enum CouponDiscountType: string
 {
-    const FIXED = 'fixed';
-    const PERCENT = 'percent';
+    case Fixed = 'fixed';
+    case Percent = 'percent';
 
-    public static function all(): array
+    public function label(): string
     {
-        return [
-            self::FIXED,
-            self::PERCENT,
-        ];
-    }
-
-    public static function labels(): array
-    {
-        return [
-            // self::FIXED   => __('coupon.discount_type.fixed'),
-            // self::PERCENT => __('coupon.discount_type.percent'),
-            self::FIXED   => '固定金額',
-            self::PERCENT => '百分比',
-        ];
-    }
-
-    public static function label(string $value): string
-    {
-        return self::labels()[$value] ?? $value;
+        return match ($this) {
+            self::Fixed => '固定金額',
+            self::Percent => '百分比',
+        };
     }
 }

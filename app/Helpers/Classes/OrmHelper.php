@@ -319,7 +319,7 @@ class OrmHelper
         };
     
         // LengthAwarePaginator 結構
-        if(method_exists($rows, 'get') || !empty($rows->get('path'))){
+        if ($rows instanceof LengthAwarePaginator) {
             $realRows = $rows->get('data');
             return $realRows->map($mapFunction);
         }

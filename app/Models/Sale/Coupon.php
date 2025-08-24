@@ -2,12 +2,13 @@
 
 namespace App\Models\Sale;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
+use App\Enums\Sale\CouponDiscountType;
 use App\Models\User\User;
 use App\Models\Sale\UserCoupon;
 use App\Models\Sale\OrderCoupon;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Coupon extends Model
 {
@@ -29,4 +30,14 @@ class Coupon extends Model
     {
         return $this->hasMany(OrderCoupon::class);
     }
+
+
+
+    protected function discountTypeLabel(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => CouponDiscountType::tryFrom($this->discount_type)?->label() ?? '未知'
+        );
+    }
+
 }

@@ -20,7 +20,7 @@ class Kernel extends ConsoleKernel
         // Commands (立即執行無佇列)
 
         // 定期清除laravel內建快取
-        $schedule->command('cache:clear')->daily();
+        $schedule->command('app:clear-cache')->monthlyOn(30, '22:00');
         
         // 預設刪除 60 天以前的記錄
         $schedule->command('app:delete-logs', ['60'])->daily();

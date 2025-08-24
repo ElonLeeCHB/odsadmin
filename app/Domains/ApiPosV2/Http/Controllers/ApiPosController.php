@@ -5,17 +5,38 @@ namespace App\Domains\ApiPosV2\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Helpers\Classes\DataHelper;
 use App\Helpers\Classes\IpHelper;
+use App\Libraries\TranslationLibrary;
 
 class ApiPosController extends Controller
 {
     protected $url_data;
     protected $post_data;
+    protected $lang;
 
     public function __construct()
     {
         if (method_exists(parent::class, '__construct')) {
             parent::__construct();
         }
+    }
+
+    public function setLang($paths)
+    {
+        $arr = [];
+
+        if (!isset($this->lang)) {
+            $arr = ['default', 'apiPosV2/default'];
+
+            if (!is_array($paths)) { // 字串
+                $arr[] = $paths;
+            } else {
+                $arr = array_merge($arr, $paths);
+            }
+
+            $this->lang = (new TranslationLibrary())->getTranslations($arr);
+        }
+        
+        return $this->lang;
     }
 
     public function getErrorResponse($sys_error, $general_error, $status_code = 500)
