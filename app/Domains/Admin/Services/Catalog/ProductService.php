@@ -27,6 +27,11 @@ class ProductService extends Service
         $this->repository = $ProductRepository;
     }
 
+    // public function findIdOrFailOrNew()
+    // {
+
+    // }
+
     // 商品管理的商品基本資料 save();
     public function save($data)
     {
@@ -119,24 +124,28 @@ class ProductService extends Service
 
                                     foreach ($product_option['product_option_values'] as $product_option_value) {
                                         $arr = [
-                                            'id' => $product_option_value['product_option_value_id'],
-                                            'product_option_id' => $product_option_model->id,
-                                            'option_id' => $product_option['option_id'],
-                                            'option_value_id' => $product_option_value['option_value_id'],
-                                            'product_id' => $product->id,
-                                            'price_prefix' => $product_option_value['price_prefix'],
-                                            'price' => $product_option_value['price'],
-                                            'sort_order' => $product_option_value['sort_order'] ?? 0,
-                                            'is_active' => $product_option_value['is_active'] ?? 1,
-                                            'is_default' => $product_option_value['is_default'] ?? 0,
-                                            'quantity' => 0, //暫時不用
-                                            'default_quantity' => $product_option_value['default_quantity'] ?? 0,
+                                        'id' => $product_option_value['product_option_value_id'],
+                                        'product_option_id' => $product_option_model->id,
+                                        'option_id' => $product_option['option_id'],
+                                        'option_value_id' => $product_option_value['option_value_id'],
+                                        'product_id' => $product->id,
+                                        'price_prefix' => $product_option_value['price_prefix'],
+                                        'price' => $product_option_value['price'],
+                                        'sort_order' => $product_option_value['sort_order'] ?? 0,
+                                        'is_on_www' => $product_option_value['is_on_www'] ?? 0,
+                                        'is_active' => $product_option_value['is_on_www'] ?? 1,
+                                        'is_default' => $product_option_value['is_default'] ?? 0,
+                                        'quantity' => 0, //暫時不用
+                                        'default_quantity' => $product_option_value['default_quantity'] ?? 0,
                                         ];
+
                                         ProductOptionValue::create($arr);
 
                                         $cacheName = 'ProductId_' . $product->id . '_ProductOptionId_' . $product_option_model->id . '_ ProductOptionValues';
                                         cache()->forget($cacheName);
                                     }
+
+                               
                                 }
                             } else {
                                 $arr = [
@@ -157,7 +166,7 @@ class ProductService extends Service
                     }
                 }
             //
-
+            
             // // Product Categories - many to many
             // if(!empty($data['product_categories'])){
             //     // Delete all

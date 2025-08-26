@@ -666,7 +666,7 @@
   <table id="customLunchbox" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
     <thead>
       <tr>
-        <td style="width:160px;" class="fw-bold">{{ $order['categories']['customLunchbox']['name'] }}</td>
+        <td style="width:230px;" class="fw-bold">{{ $order['categories']['customLunchbox']['name'] }}</td>
         <td style="width:24px;" class="fw-bold">小計</td>
         @php $column_used_num = 2; @endphp
         
@@ -784,10 +784,11 @@
 
 <!-- 其它口味餐點 -->
   @if(!empty($order['categories']['otherFlavors']))
+  @php $max_columns=24; @endphp
   <table id="otherFlavors" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
     <thead>
       <tr>
-        <td style="width:160px;" class="fw-bold">{{ $order['categories']['otherFlavors']['name'] }}</td>
+        <td style="width:230px;" class="fw-bold">{{ $order['categories']['otherFlavors']['name'] }}</td>
         <td style="width:24px;" class="fw-bold">小計</td>
         @php $column_used_num = 2; @endphp
 
@@ -798,7 +799,7 @@
           @php $column_used_num++; @endphp
         @endforeach
 
-        @php $left = 28-$column_used_num; @endphp
+        @php $left = $max_columns-$column_used_num; @endphp
         @for($i = 1; $i <= $left; $i++)
           <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif" class="fw-bold"> </td>
         @endfor
@@ -814,15 +815,15 @@
         @foreach($columns['MainMeal'] ?? [] as $item)
           <td style="@if ($loop->last) border-right:3px solid black @endif">
             @foreach($item->option_value_ids as $option_value_id)
-              @if(!empty($product['product_options']['MainMeal'][$option_value_id]['quantity']))
-                {{ $product['product_options']['MainMeal'][$option_value_id]['quantity'] }}
+              @if(!empty($product['product_options']['Lumpia6inch'][$option_value_id]['quantity']))
+                {{ $product['product_options']['Lumpia6inch'][$option_value_id]['quantity'] }}
               @endif
             @endforeach
           </td>
           @php $column_used_num++; @endphp
         @endforeach
 
-        @php $left = 28-$column_used_num; @endphp
+        @php $left = $max_columns-$column_used_num; @endphp
         @for($i = 1; $i <= $left; $i++)
           <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
         @endfor

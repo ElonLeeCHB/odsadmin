@@ -86,21 +86,14 @@ class UserCouponController extends ApiPosController
                 $json['errors']['warning'] = $this->lang->error_warning;
             }
 
-            $data = $request->validate([
-                'user_id'   => 'required|exists:users,id',
-                'coupon_id' => 'required|exists:coupons,id',
-                'code'      => 'nullable|string|max:50|unique:user_coupons,code',
-                'valid_from' => 'nullable|date',
-                'valid_to'  => 'nullable|date|after_or_equal:valid_from',
-            ]);
-
             $userCoupon = UserCoupon::create([
-                'user_id'    => $data['user_id'],
-                'coupon_id'  => $data['coupon_id'],
-                'code'       => $data['code'] ?? null,
-                'action'     => 'plus',
-                'valid_from' => $data['valid_from'] ?? null,
-                'valid_to'   => $data['valid_to'] ?? null,
+                'user_id'    => $validated['user_id'],
+                'coupon_id'  => $validated['coupon_id'],
+                'code'       => $validated['code'] ?? null,
+                'action'     => $validated['action'],
+                'valid_from' => $validated['valid_from'] ?? null,
+                'valid_to'   => $validated['valid_to'] ?? null,
+                'quantity'   => $validated['quantity'] ?? null,
             ]);
 
             return response()->json(['success' => true, 'message' => '新增成功', 'data' => $userCoupon]);

@@ -864,14 +864,14 @@ class OrderController extends BackendController
 
                 //新方案 for template=V03 
                 $data['columns']['MainMeal'] = [
-                    (object) ['short_name' => '主廚', 'option_id' => 1003, 'option_value_ids' => [1083, 1102,]],
-                    (object) ['short_name' => '奶素', 'option_id' => 1003, 'option_value_ids' => [1047, 1105,]],
-                    (object) ['short_name' => '鮮蔬', 'option_id' => 1003, 'option_value_ids' => [1017, 1096,]],
-                    (object) ['short_name' => '炸蝦', 'option_id' => 1003, 'option_value_ids' => [1018, 1097,]],
-                    (object) ['short_name' => '芥雞', 'option_id' => 1003, 'option_value_ids' => [1019, 1098,]],
-                    (object) ['short_name' => '酥魚', 'option_id' => 1003, 'option_value_ids' => [1020, 1099,]],
-                    (object) ['short_name' => '培根', 'option_id' => 1003, 'option_value_ids' => [1021, 1100,]],
-                    (object) ['short_name' => '滷肉', 'option_id' => 1003, 'option_value_ids' => [1022, 1101,]],
+                    (object) ['short_name' => '主廚', 'option_id' => 1003, 'option_value_ids' => [1083, 1102, 1095]],
+                    (object) ['short_name' => '奶素', 'option_id' => 1003, 'option_value_ids' => [1047, 1105, 1058]],
+                    (object) ['short_name' => '鮮蔬', 'option_id' => 1003, 'option_value_ids' => [1017, 1096, 1059]],
+                    (object) ['short_name' => '炸蝦', 'option_id' => 1003, 'option_value_ids' => [1018, 1097, 1060]],
+                    (object) ['short_name' => '芥雞', 'option_id' => 1003, 'option_value_ids' => [1019, 1098, 1061]],
+                    (object) ['short_name' => '酥魚', 'option_id' => 1003, 'option_value_ids' => [1020, 1099, 1062]],
+                    (object) ['short_name' => '培根', 'option_id' => 1003, 'option_value_ids' => [1021, 1100, 1063]],
+                    (object) ['short_name' => '滷肉', 'option_id' => 1003, 'option_value_ids' => [1022, 1101, 1064]],
                     (object) ['short_name' => '春捲', 'option_id' => 1003, 'option_value_ids' => [1093]],
                 ];
             //

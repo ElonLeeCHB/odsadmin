@@ -420,6 +420,7 @@
                                 <td class="text-start">{{ $lang->column_option_value }}</td>
                                 <td class="text-start">{{ $lang->column_is_default }}</td>
                                 <td class="text-start">預設數量</td>
+                                <td class="text-start">官網啟用</td>
                                 <td class="text-start">{{ $lang->column_is_active }}</td>
                                 <td class="text-end">{{ $lang->column_price }}</td>
                                 <td class="text-end">{{ $lang->column_sort_order }}</td>
@@ -444,6 +445,13 @@
                                   <td class="text-end">
                                     {{ $product_option_value->default_quantity ??= 0 }}
                                     <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][default_quantity]" value="{{ $product_option_value->default_quantity ??= 0 }}"/></td>
+                                  </td>
+                                  <td class="text-start">@if($product_option_value->is_on_www)
+                                      {{ $lang->text_yes }}
+                                    @else
+                                      {{ $lang->text_no }}
+                                    @endif
+                                    <input type="hidden" name="product_options[{{ $option_row }}][product_option_values][{{ $option_value_row }}][is_on_www]" value="{{ $product_option_value->is_on_www }}"/>
                                   </td>
                                   <td class="text-start">@if($product_option_value->is_active)
                                       {{ $lang->text_yes }}
@@ -721,6 +729,7 @@
       html += '          <input type="hidden" name="product_option_value_id" value="' + ($(element).attr('data-option-value-row') ? $('input[name=\'product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][product_option_value_id]\']').val() : '') + '"/>';
       html += '        </div>';
 
+      // 是否預設
       html += '        <div class="mb-3">';
       html += '      	   <label for="input-modal-is_default" class="form-label">{{ $lang->column_is_default }}</label>';
       html += '      	   <select name="is_default" id="input-modal-is_default" class="form-select">';
@@ -736,6 +745,23 @@
       html += '      	   </select>';
       html += '        </div>';
 
+      // 是否啟用
+      html += '        <div class="mb-3">';
+      html += '      	   <label for="input-modal-is_on_www" class="form-label">官網啟用</label>';
+      html += '      	   <select name="is_on_www" id="input-modal-is_on_www" class="form-select">';
+
+      if ($(element).attr('data-option-value-row') && $('input[name=\'product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][is_on_www]\']').val() == '1') {
+          html += '        <option value="1" selected="selected">{{ $lang->text_yes }}</option>';
+          html += '      	 <option value="0">{{ $lang->text_no }}</option>';
+      } else {
+          html += '      	 <option value="1">{{ $lang->text_yes }}</option>';
+          html += '      	 <option value="0" selected="selected">{{ $lang->text_no }}</option>';
+      }
+
+      html += '      	   </select>';
+      html += '        </div>';
+
+      // 是否啟用
       html += '        <div class="mb-3">';
       html += '      	   <label for="input-modal-is_active" class="form-label">{{ $lang->column_is_active }}</label>';
       html += '      	   <select name="is_active" id="input-modal-is_active" class="form-select">';
@@ -751,6 +777,7 @@
       html += '      	   </select>';
       html += '        </div>';
 
+      // 單價
       html += '        <div class="mb-3">';
       html += '      	   <label for="input-modal-price" class="form-label">{{ $lang->column_price }}</label>';
       html += '          <div class="input-group">';
@@ -804,6 +831,7 @@
           html += '  <td class="text-start">' + $('#modal-option select[name=\'option_value_id\'] option:selected').text() + '<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][option_value_id]" value="' + $('#modal-option select[name=\'option_value_id\']').val() + '"/><input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][product_option_value_id]" value="' + $('#modal-option input[name=\'product_option_value_id\']').val() + '"/></td>';
           html += '  <td class="text-start">' + ($('#modal-option select[name=\'is_default\'] option:selected').val() == '1' ? '{{ $lang->text_yes }}' : '{{ $lang->text_no }}') + '<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][is_default]" value="' + $('#modal-option select[name=\'is_default\'] option:selected').val() + '"/></td>';
           html += '  <td class="text-end">'+$('#modal-option input[name=\'default_quantity\']').val()+'<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][default_quantity]" value="' + $('#modal-option input[name=\'default_quantity\']').val() + '"/></td>';
+          html += '  <td class="text-start">' + ($('#modal-option select[name=\'is_on_www\'] option:selected').val() == '1' ? '{{ $lang->text_yes }}' : '{{ $lang->text_no }}') + '<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][is_on_www]" value="' + $('#modal-option select[name=\'is_on_www\'] option:selected').val() + '"/></td>';
           html += '  <td class="text-start">' + ($('#modal-option select[name=\'is_active\'] option:selected').val() == '1' ? '{{ $lang->text_yes }}' : '{{ $lang->text_no }}') + '<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][is_active]" value="' + $('#modal-option select[name=\'is_active\'] option:selected').val() + '"/></td>';
           html += '  <td class="text-end">' + $('#modal-option select[name=\'price_prefix\'] option:selected').val() + $('#modal-option input[name=\'price\']').val() + '<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][price_prefix]" value="' + $('#modal-option select[name=\'price_prefix\'] option:selected').val() + '"/><input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][price]" value="' + $('#modal-option input[name=\'price\']').val() + '"/></td>';
           html += '  <td class="text-end">'+$('#modal-option input[name=\'sort_order\']').val()+'<input type="hidden" name="product_options[' + $(element).attr('data-option-row') + '][product_option_values][' + element.option_value_row + '][sort_order]" value="' + $('#modal-option input[name=\'sort_order\']').val() + '"/></td>';

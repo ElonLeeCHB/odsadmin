@@ -286,6 +286,7 @@ class ProductController extends BackendController
                             'default_quantity'        => $product_option_value->default_quantity ?? 0,
                             'quantity'                => $product_option_value->quantity,
                             'is_default'              => $product_option_value->is_default,
+                            'is_on_www'               => $product_option_value->is_on_www,
                             'is_active'               => $product_option_value->is_active,
                             'subtract'                => $product_option_value->subtract,
                             'price'                   => round($product_option_value->price),

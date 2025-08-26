@@ -441,6 +441,9 @@ class OrderPrintingRepository extends Repository
                             else if($option_id == 1004){ //飲料湯品 1004
                                 $tmp_option_type = 'Drink';
                             }
+                            else if($option_id == 1009){ // 6吋潤餅
+                                $tmp_option_type = 'Lumpia6inch';
+                            }
                             else{
                                 $tmp_option_type = 'Other';
                             }

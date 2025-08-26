@@ -43,7 +43,7 @@ class ProductService extends Service
         $filter_data['first'] = true;
 
         $product = OrmHelper::getResult($query, $filter_data);
-    
+
         if (empty($product)) {
             abort(404, 'Product not found');
         }
@@ -59,13 +59,15 @@ class ProductService extends Service
                 ->toArray(),
         ];
 
-        foreach ($product['product_options'] as $key1 => $product_option) {
-            foreach ($product_option['product_option_values'] as $key2 => $product_option_value) {
-                if(empty($product_option_value['option_value']['is_on_www'])){
-                    unset($product['product_options'][$key1]['product_option_values'][$key2]);
-                }
-            }
-        }
+        // option_value 的 is_on_www 改為，如果 = 0， 而 product_option_value.is_on_www，則此項的意義是，仍然有此選項值，只是暫時缺貨不賣。
+        // 所以不再 unset()
+        // foreach ($product['product_options'] as $key1 => $product_option) {
+        //     foreach ($product_option['product_option_values'] as $key2 => $product_option_value) {
+        //         if(empty($product_option_value['option_value']['is_on_www'])){
+        //             unset($product['product_options'][$key1]['product_option_values'][$key2]);
+        //         }
+        //     }
+        // }
 
         RowsArrayHelper::removeTranslation($product);
 
