@@ -320,13 +320,13 @@ class OrderPrintingRepository extends Repository
                     $printing_category_id = $orderProduct->product->pringting_category_id;
 
                     //product_id
-                        // 注意！ 客製餐點不合併，所以將 product_id 加再上 sort_order 做為新的 product_id
-                        // 後面必須使用 $product_id, 不能再使用 $orderProduct->product_id
-                        if ($printing_category_id != 1478){ // 不是客製
-                            $product_id = $orderProduct->product_id;
-                        }else{
-                            $product_id = $orderProduct->product_id . '-' . $product_id = $orderProduct->sort_order;
-                        }
+                    // 注意！ 客製餐點不合併，所以將 product_id 加再上 sort_order 做為新的 product_id
+                    // 後面必須使用 $product_id, 不能再使用 $orderProduct->product_id
+                    if ($printing_category_id == 1477 || $printing_category_id == 1478) { // 是客製
+                        $product_id = $orderProduct->product_id . '-' . $product_id = $orderProduct->sort_order;
+                    } else { // 不是客製
+                        $product_id = $orderProduct->product_id;
+                    }
                     //
 
                     // 設定分類
@@ -414,13 +414,13 @@ class OrderPrintingRepository extends Repository
                         $printing_category_id = $orderProduct->product->pringting_category_id;
 
                         //product_id
-                            // 注意！ 客製餐點不合併，所以將 product_id 加再上 sort_order 做為新的 product_id
-                            // 後面必須使用 $product_id, 不能再使用 $orderProduct->product_id
-                            if ($printing_category_id != 1478){ // 不是客製
-                                $product_id = $orderProduct->product_id;
-                            }else{
-                                $product_id = $orderProduct->product_id . '-' . $product_id = $orderProduct->sort_order;
-                            }
+                        // 注意！ 客製餐點不合併，所以將 product_id 加再上 sort_order 做為新的 product_id
+                        // 後面必須使用 $product_id, 不能再使用 $orderProduct->product_id
+                        if ($printing_category_id == 1477 || $printing_category_id == 1478) { // 是客製
+                            $product_id = $orderProduct->product_id . '-' . $product_id = $orderProduct->sort_order;
+                        } else { // 不是客製
+                            $product_id = $orderProduct->product_id;
+                        }
                         //                        
 
                         $identifier = $orderProduct->identifier;
@@ -483,13 +483,13 @@ class OrderPrintingRepository extends Repository
                     }
 
                     //product_id
-                        // 注意！ 客製餐點不合併，所以將 product_id 加再上 sort_order 做為新的 product_id
-                        // 後面必須使用 $product_id, 不能再使用 $order_product->product_id
-                        if ($printing_category_id != 1478){ // 不是客製
-                            $product_id = $orderProduct->product_id;
-                        }else{
-                            $product_id = $orderProduct->product_id . '-' . $product_id = $orderProduct->sort_order;
-                        }
+                    // 注意！ 客製餐點不合併，所以將 product_id 加再上 sort_order 做為新的 product_id
+                    // 後面必須使用 $product_id, 不能再使用 $order_product->product_id
+                    if ($printing_category_id == 1477 || $printing_category_id == 1478) { // 是客製
+                        $product_id = $orderProduct->product_id . '-' . $product_id = $orderProduct->sort_order;
+                    } else { // 不是客製
+                        $product_id = $orderProduct->product_id;
+                    }
                     //
 
                     $identifier = $orderProduct->identifier;

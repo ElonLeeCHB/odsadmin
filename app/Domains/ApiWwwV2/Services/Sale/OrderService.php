@@ -40,14 +40,16 @@ class OrderService extends Service
         $rows = OrmHelper::getResult($query, $data);
 
         $rows->getCollection()->transform(function ($row) {
+            $new_row = (object) $row->toArray();
+
             return [
-                'id' => $row->id,
-                'code' => $row->code,
-                'personal_name' => $row->personal_name,
-                'delivery_time_range' => $row->delivery_time_range,
-                'status_code' => $row->status_code,
-                'order_date' => $row->order_date,
-                'delivery_date' => $row->delivery_date,
+                'id' => $new_row->id,
+                'code' => $new_row->code,
+                'personal_name' => $new_row->personal_name,
+                'delivery_time_range' => $new_row->delivery_time_range,
+                'status_code' => $new_row->status_code,
+                'order_date' => $new_row->order_date,
+                'delivery_date' => $new_row->delivery_date,
                 'order_packing' => $row->orderPacking ? [
                     'driver_mobile' => $row->orderPacking->driver->mobile ?? null,
                     'packing_status_code_name' => $row->orderPacking->packing_status_code_name,
@@ -56,7 +58,6 @@ class OrderService extends Service
                 ] : null,
             ];
         });
-
         
         return $rows;
     }

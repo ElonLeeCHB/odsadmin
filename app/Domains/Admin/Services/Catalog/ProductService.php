@@ -92,7 +92,7 @@ class ProductService extends Service
                 }
             //
 
-            // product_translationsl
+            // product_translations
                 if(!empty($data['translations'])){
                     $this->saveRowTranslationData($product, $data['translations']);
                 }
@@ -133,7 +133,7 @@ class ProductService extends Service
                                         'price' => $product_option_value['price'],
                                         'sort_order' => $product_option_value['sort_order'] ?? 0,
                                         'is_on_www' => $product_option_value['is_on_www'] ?? 0,
-                                        'is_active' => $product_option_value['is_on_www'] ?? 1,
+                                        'is_active' => $product_option_value['is_active'] ?? 1,
                                         'is_default' => $product_option_value['is_default'] ?? 0,
                                         'quantity' => 0, //暫時不用
                                         'default_quantity' => $product_option_value['default_quantity'] ?? 0,

@@ -45,6 +45,7 @@ class Order extends Model
         'is_closed' => 'boolean',
         'is_payed_off' => 'boolean',
         'order_date' => 'date:Y-m-d',
+        'delivery_date' => 'date:Y-m-d',
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];

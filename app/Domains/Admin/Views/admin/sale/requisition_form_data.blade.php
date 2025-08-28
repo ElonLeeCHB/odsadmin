@@ -72,7 +72,7 @@
             {{ $order['tooltip'] ?? '' }}
         </div>">
           @if(isset($order['order_id']))
-              <a href="{{env('APP_URL')}}/#/ordered/{{ $order['order_id'] }}"
+              <a href="{{env('APP_URL')}}/#/orders/{{ $order['order_id'] }}"
                 data-bs-toggle="tooltip"
                 target="_blank">
                 {{ $order['order_code']}}
