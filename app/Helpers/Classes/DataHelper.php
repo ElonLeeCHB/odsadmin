@@ -27,6 +27,20 @@ class DataHelper
     /**
      * 遞迴刪除陣列裡的指定元素
      */
+    public static function arrayRemoveKeyRecursive(array $array, string $keyToRemove): array
+    {
+        unset($array[$keyToRemove]);
+
+        foreach ($array as $k => $v) {
+            if (is_array($v)) {
+                $array[$k] = self::arrayRemoveKeyRecursive($v, $keyToRemove);
+            }
+        }
+
+        return $array;
+    }
+
+    // 這是舊的寫法，有處理物件，本來打算處理 model 物件，但是還是會被加載回去。
     public static function unsetArrayIndexRecursively($input, $unset_keys)
     {
         foreach ($input as $key => &$value) {

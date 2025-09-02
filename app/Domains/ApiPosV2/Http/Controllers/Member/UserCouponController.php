@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\ApiPosV2\Http\Controllers\Sale;
+namespace App\Domains\ApiPosV2\Http\Controllers\Member;
 
 use Illuminate\Http\Request;
 use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
@@ -27,9 +27,9 @@ class UserCouponController extends ApiPosController
 
         $json = [];
 
-        if (empty($filters['equal_user_id'])) {
-            $json['errors']['user_id'] = 'user_id 必填';
-        }
+        // if (empty($filters['equal_user_id'])) {
+        //     $json['errors']['user_id'] = 'user_id 必填';
+        // }
 
         if (isset($json['errors']) && !isset($json['errors']['warning'])) {
             $json['errors']['warning'] = $this->lang->error_warning;
@@ -45,11 +45,18 @@ class UserCouponController extends ApiPosController
         // 獲取資料集
         $query = UserCoupon::query()->with('coupon');
 
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->input('user_id'));
+        if ($request->filled('equal_user_id')) {
+            $query->where('user_id', $request->input('equal_user_id'));
         }
 
         $userCoupons = OrmHelper::getResult($query, $filters);
+
+        if ($userCoupons->isEmpty()) {
+            return response()->json([
+                'success' => true,
+                'message' => '查無結果'
+            ]);
+        }
 
         $select_coupon_columns = ['name'];
 
@@ -97,6 +104,67 @@ class UserCouponController extends ApiPosController
             ]);
 
             return response()->json(['success' => true, 'message' => '新增成功', 'data' => $userCoupon]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['success' => false, 'errors' => $e->errors(), 'message' => '驗證失敗'], 422);
+        } catch (\Throwable $th) {
+            return $this->sendJsonErrorResponse(data: ['sys_error' => $th->getMessage()], status_code: 500);
+        }
+    }
+
+    public function storeMany(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'user_id' => 'required|integer|exists:users,id',
+                'coupons' => 'required|array|min:1', // 必須是陣列，至少一個元素
+                'coupons.*.coupon_id' => 'required|integer|exists:coupons,id',
+                'coupons.*.quantity' => 'required|integer|min:1',
+                'coupons.*.total' => 'required|integer|min:1',
+                'coupons.*.valid_from' => 'nullable|date',
+                'coupons.*.valid_to' => 'nullable|date|after_or_equal:coupons.*.valid_from',
+            ], [
+                'user_id.required' => '使用者 ID 為必填',
+                'user_id.integer' => '使用者 ID 必須是整數',
+                'user_id.exists' => '指定的使用者不存在',
+
+                'coupons.required' => '優惠券資料為必填',
+                'coupons.array' => '優惠券資料格式錯誤',
+
+                'coupons.*.coupon_id.required' => '優惠券 ID 為必填',
+                'coupons.*.coupon_id.integer' => '優惠券 ID 必須是整數',
+                'coupons.*.coupon_id.exists' => '指定的優惠券不存在',
+
+                'coupons.*.quantity.required' => '數量為必填',
+                'coupons.*.quantity.integer' => '數量必須是整數',
+                'coupons.*.quantity.min' => '數量不能小於 1',
+
+                'coupons.*.total.required' => '總計為必填',
+                'coupons.*.total.integer' => '總計必須是整數',
+                'coupons.*.total.min' => '總計不能小於 1',
+
+                'coupons.*.valid_from.date' => '有效起始日期格式錯誤',
+                'coupons.*.valid_to.date' => '有效截止日期格式錯誤',
+                'coupons.*.valid_to.after_or_equal' => '有效截止日期必須大於等於有效起始日期',
+            ]);
+
+            $user_id = $validated['user_id'];
+
+            $create_data = [];
+
+            foreach ($validated['coupons'] as $coupon) {
+                $userCoupon = UserCoupon::create([
+                    'user_id' => $user_id,
+                    'coupon_id' => $coupon['coupon_id'],
+                    'quantity'   => $coupon['quantity'],
+                    'total'   => $coupon['total'],
+                    'valid_from' => $coupon['valid_from'],
+                    'valid_to' => $coupon['valid_to'],
+                    'action' => 'plus',
+                ]);
+                $create_data[] = $userCoupon;
+            }
+
+            return response()->json(['success' => true,'message' => '批量新增成功', 'data' => $create_data,]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['success' => false, 'errors' => $e->errors(), 'message' => '驗證失敗'], 422);
         } catch (\Throwable $th) {

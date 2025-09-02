@@ -66,19 +66,23 @@ class OrderController extends ApiWwwV2Controller
     public function infoByCode($order_code)
     {
         try {
-            if(empty(request()->query('personal_name'))){
+
+            if(empty(request()->query('equal_personal_name'))){
                 throw new \Exception('姓名錯誤', 404);
             }
     
             $filter_data = [
-                'equal_personal_name' => request()->query('personal_name'),
                 'equal_code' => $order_code,
                 'first' => true,
             ];
     
-            $data = $this->OrderService->getInfo($filter_data, 'code');
+            $order = $this->OrderService->getInfo($filter_data, 'code');
 
-            return $this->sendJsonResponse(data:$data, status_code:200, message:'訂單新增成功');
+            if ($order->personal_name !== request()->query('equal_personal_name')) {
+                throw new \Exception('姓名錯誤', 404);
+            }
+
+            return $this->sendJsonResponse(data:$order, status_code:200, message:'訂單新增成功');
 
         } catch (\Throwable $th) {
             return $this->sendJsonResponse(data:['error' => $th->getMessage()]);

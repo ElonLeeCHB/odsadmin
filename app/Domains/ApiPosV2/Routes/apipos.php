@@ -51,6 +51,18 @@ Route::group([
             Route::get('info/{id?}', 'Member\MemberController@info')->name('members.info');
             Route::put('update/{id?}', 'Member\MemberController@update')->name('members.update');
             Route::post('store', 'Member\MemberController@store')->name('members.store');
+
+            //優惠券
+            Route::group([
+                'prefix' => 'userCoupons',
+                'as' => 'userCoupons.',
+            ], function () {
+                Route::get('/', 'Member\UserCouponController@index')->name('userCoupons.index');
+                Route::post('/', 'Member\UserCouponController@store')->name('userCoupons.store');
+                Route::post('/storeMany', 'Member\UserCouponController@storeMany')->name('userCoupons.storeMany');
+                Route::patch('/{id}', 'Member\UserCouponController@update')->name('userCoupons.update');
+                Route::delete('/{id}', 'Member\UserCouponController@destroy')->name('userCoupons.destroy');
+            });
         });
     
         Route::group([
@@ -115,19 +127,7 @@ Route::group([
                 'as' => 'coupons.',
             ], function () {
                 Route::get('/', 'Sale\CouponController@index')->name('coupons.index');
-                
             });
-            //優惠券
-            Route::group([
-                'prefix' => 'userCoupons',
-                'as' => 'userCoupons.',
-            ], function () {
-                Route::get('/', 'Sale\UserCouponController@index')->name('userCoupons.index');
-                Route::post('/', 'Sale\UserCouponController@store')->name('userCoupons.store');
-                Route::patch('/{id}', 'Sale\UserCouponController@update')->name('userCoupons.update');
-                Route::delete('/{id}', 'Sale\UserCouponController@destroy')->name('userCoupons.destroy');
-            });
-
 
             Route::group([
                 'prefix' => 'orderlimit',

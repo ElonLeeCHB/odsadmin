@@ -13,6 +13,7 @@ use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
 use App\Models\Common\TermTranslation;
 use Illuminate\Support\Facades\DB;
+use App\Caches\Catalog\Product\Sale\ProductByLocale;
 
 class ProductService extends Service
 {
@@ -22,6 +23,11 @@ class ProductService extends Service
 
     public function getProductById($product_id)
     {
+        // $product = ProductByLocale::getById($product_id, app()->getLocale());
+
+        // $product = DataHelper::arrayRemoveKeyRecursive($product, 'translation');
+
+        // return $product;
         return (new Product)->getLocaleProductByIdForSale($product_id);
     }
 

@@ -50,7 +50,7 @@ class ProductService extends Service
         
         $product->web_name = $product->translation->web_name;
 
-        // 重構選項並合併到產品數據
+        // 重新組合選項，並合併到產品。這樣處理是因為如果直接改 $product->product_options，可能後續又會被加載成原始資料
         $product = [
             ...$product->toArray(),
             'product_options' => $product->product_options
@@ -58,16 +58,6 @@ class ProductService extends Service
                 ->keyBy('option_code')
                 ->toArray(),
         ];
-
-        // option_value 的 is_on_www 改為，如果 = 0， 而 product_option_value.is_on_www，則此項的意義是，仍然有此選項值，只是暫時缺貨不賣。
-        // 所以不再 unset()
-        foreach ($product['product_options'] as $key1 => $product_option) {
-            foreach ($product_option['product_option_values'] as $key2 => $product_option_value) {
-                if(empty($product_option_value['option_value']['is_on_www'])){
-                    unset($product['product_options'][$key1]['product_option_values'][$key2]);
-                }
-            }
-        }
 
         RowsArrayHelper::removeTranslation($product);
 
