@@ -11,6 +11,7 @@ use App\Repositories\Eloquent\Sale\OrderRepository;
 use App\Repositories\Eloquent\Sale\OrderProductRepository;
 use App\Repositories\Eloquent\Sale\OrderProductOptionRepository;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
+use App\Models\User\User;
 use App\Models\Sale\Order;
 use App\Models\Sale\OrderTotal;
 use App\Models\Catalog\Product;
@@ -76,6 +77,69 @@ class OrderService extends Service
     }
 
     /**
+     * 如果是修改，更新送達地址。手機、姓名不更新。
+     * 如果是新增，會新增所有會員相關欄位。
+     */
+    public function saveCustomer($data)
+    {
+        // 手機只使用純數字
+        $data['mobile'] = preg_replace('/\D+/', '', $data['mobile']);
+        $mobile = $data['mobile'] ?? null;
+
+        $customer_id = $data['customer_id'] ?? null;
+
+        $member = null;
+
+        // 新增
+        if (empty($customer_id) && empty($mobile)) {
+            $member = new User();
+
+            $member->mobile = $data['mobile'] ?? $member->mobile;
+            $member->name = $data['personal_name'];
+            $member->email = $data['email'] ?? $member->email;
+        }
+        // 修改
+        else {
+            if (!empty($customer_id)){
+                $member = User::find($customer_id);
+            } else if (!empty($mobile)) {
+                $member = User::where('mobile', $mobile)->orderBy('id', 'desc')->first();
+            } else {
+                $member = null;
+            }
+
+            if (empty($member)) {
+                abort(400, '會員資料錯誤，無法更新');
+            }
+        }
+
+        // 共用
+        $member->salutation_code = $data['salutation_code'] ?? $member->salutation_code;
+        $member->shipping_personal_name = $data['shipping_personal_name'] ?? $member->shipping_personal_name;
+        $member->shipping_salutation_code = $data['shipping_salutation_code'] ?? $member->shipping_salutation_code;
+        $member->telephone_prefix = $data['telephone_prefix'] ?? $member->telephone_prefix;
+        $member->telephone = $data['telephone'] ?? $member->telephone;
+        $member->payment_tin = $data['payment_tin'] ?? $member->payment_tin;
+
+        $member->payment_company = $data['payment_company'] ?? $member->payment_company;
+        $member->shipping_personal_name = $data['shipping_personal_name'] ?? $member->shipping_personal_name;
+        $member->shipping_salutation_code = $data['shipping_salutation_code'] ?? $member->shipping_salutation_code;
+        $member->shipping_salutation_code2 = $data['shipping_salutation_code2'] ?? $member->shipping_salutation_code2;
+        $member->shipping_phone = $data['shipping_phone'] ?? $member->shipping_phone;
+        $member->shipping_state_id = $data['shipping_state_id'] ?? $member->shipping_state_id;
+        $member->shipping_city_id = $data['shipping_city_id'] ?? $member->shipping_city_id;
+        $member->shipping_address1 = $data['shipping_address1'] ?? $member->shipping_address1;
+        $member->shipping_address2 = $data['shipping_address2'] ?? $member->shipping_address2;
+        $member->shipping_road = $data['shipping_road'] ?? $member->shipping_road;
+        $member->shipping_road_abbr = $data['shipping_road_abbr'] ?? $member->shipping_road_abbr;
+        $member->comment = $data['customer_comment'] ?? $member->comment;
+
+        $member->save();
+
+        return $member->id;
+    }
+
+    /**
      * 注意：官網不提供配菜選擇。並且前人將資料寫死。導致後台的配菜有異動時，前端要即時調整每一個商品，非常麻煩。
      * 所以這裡的訂單儲存，會將前端傳來的所有配菜都刪除。從資料庫抓取當前的預設。
      */
@@ -83,6 +147,8 @@ class OrderService extends Service
     {
         try {
             DB::beginTransaction();
+
+            $data['mobile'] = preg_replace('/\D/', '', $data['mobile']);
 
             // order
             $order = (new OrderRepository)->create($data);
@@ -105,8 +171,14 @@ class OrderService extends Service
                 $db_products = DataHelper::unsetArrayIndexRecursively($db_products, ['translation','option']);
             //
 
+            // customer = users table
+            if (!empty($data['customer_id']) || !empty($data['mobile'])) {
+                $data['customer_id'] = $this->saveCustomer($data);
+            }
+            //
+
             // order_products
-                foreach ($data['order_products'] as $key => $order_product) {
+            foreach ($data['order_products'] as $key => $order_product) {
                     $order_product['name'] = $db_products[$product_id]['name'];
                     unset($data['order_products']['id']);
                     unset($data['order_products']['order_product_id']);

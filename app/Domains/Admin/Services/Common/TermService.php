@@ -18,8 +18,16 @@ class TermService extends Service
     {
         // $this->repository = $TermRepository;
     }
-    
 
+    public function getProductByKey($key, $value)
+    {
+        $data['with'] = DataHelper::addToArray('parent', $data['with'] ?? []);
+
+        $data['filter_' . $key] = $value;
+
+        return (new TermRepository)->getTerm($data);
+    }
+    
     public function getTerm($data = [])
     {
         $data['with'] = DataHelper::addToArray('parent', $data['with'] ?? []);

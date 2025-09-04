@@ -103,9 +103,7 @@ class OrderController extends ApiWwwV2Controller
             if (empty($json)){
                 $data['order_taker'] = 'web';
                 
-                $order = $this->OrderService->store($data);
-
-                event(new \App\Events\SaleOrderSavedEvent(saved_order:$order, action:'created'));
+                $order = $this->OrderService->addOrder($data);
 
                 $data = [
                     'id' => $order->id,

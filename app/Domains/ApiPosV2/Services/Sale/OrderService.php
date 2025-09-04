@@ -151,7 +151,7 @@ class OrderService extends Service
         return 0;
     }
 
-    public function save($data, $order_id = null)
+    public function addOrder($data, $order_id = null)
     {
         try {
             DB::beginTransaction();
@@ -243,7 +243,7 @@ class OrderService extends Service
             if (!empty($data['order_coupons'])) {
                 $newCouponIds = collect($data['order_coupons'])->pluck('coupon_id')->all();
 
-                // 刪掉不再使用的
+                // 刪掉不再使用的優惠券種類 coupon_id
                 $order->orderCoupons()->where('order_id', $order->id)
                     ->whereNotIn('coupon_id', $newCouponIds)
                     ->delete();

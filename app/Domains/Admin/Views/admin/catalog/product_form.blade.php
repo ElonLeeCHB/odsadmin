@@ -229,6 +229,7 @@
                   </div>
                 </div>
 
+                {{-- 
                 <div class="row mb-3">
                   <label class="col-sm-2 col-form-label">{{ $lang->column_is_salable }}</label>
                   <div class="col-sm-10">
@@ -238,9 +239,11 @@
                         <input type="checkbox" name="is_salable" value="1" class="form-check-input" @if($product->is_salable) checked @endif/>
                       </div>
                     </div>
-                    <div class="form-text">可以用於銷售，例如內部打單或是官網下訂。</div>
+                    <div class="form-text">可以用於銷售。目的在於跟原物料做區分。不可銷售的料件/商品不會出現在銷售模組。</div>
                   </div>
                 </div>
+                 --}}
+                <input type="hidden" name="is_salable" value="{{ $product->is_salable ?? 0 }}"/>
 
                 <div class="row mb-3">
                   <label class="col-sm-2 col-form-label">官網銷售</label>
@@ -251,7 +254,7 @@
                         <input type="checkbox" name="is_on_www" value="1" class="form-check-input" @if($product->is_on_www) checked @endif/>
                       </div>
                     </div>
-                    <div class="form-text">可以用於官網銷售。如果本欄未開，則官網不出現。官網要能下訂，必須【可否銷售】、【官網銷售】、【是否啟用】三欄同時開啟。 </div>
+                    <div class="form-text">可以用於官網銷售。如果本欄未開，則官網不出現。</div>
                   </div>
                 </div>
 
