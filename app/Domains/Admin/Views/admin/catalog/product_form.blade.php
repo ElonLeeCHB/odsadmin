@@ -39,6 +39,7 @@
             <li class="nav-item"><a href="#tab-trans" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_trans }}</a></li>
             <li class="nav-item"><a href="#tab-data" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_data }}</a></li>
             <li class="nav-item"><a href="#tab-option" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_option }}</a></li>
+
           </ul>
           <form id="form-product" action="{{ $save }}" method="post" data-oc-toggle="ajax">
             @csrf

@@ -143,7 +143,7 @@ class OrderService extends Service
      * 注意：官網不提供配菜選擇。並且前人將資料寫死。導致後台的配菜有異動時，前端要即時調整每一個商品，非常麻煩。
      * 所以這裡的訂單儲存，會將前端傳來的所有配菜都刪除。從資料庫抓取當前的預設。
      */
-    public function store($data)
+    public function addOrder($data)
     {
         try {
             DB::beginTransaction();

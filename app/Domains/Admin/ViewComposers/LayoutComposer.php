@@ -113,6 +113,15 @@ class LayoutComposer
             ];
         }
 
+        if (1) {
+            $Catalog[] = [
+                'name'       => '同步商品選項',
+                'icon'       => '',
+                'href'       => route('lang.admin.catalog.syncProductOptions.index'),
+                'children' => []
+            ];
+        }
+
         //
         $level_2 = [];
 

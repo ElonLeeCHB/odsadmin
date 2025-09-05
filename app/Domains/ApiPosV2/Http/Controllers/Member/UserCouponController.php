@@ -101,6 +101,7 @@ class UserCouponController extends ApiPosController
                 'valid_from' => $validated['valid_from'] ?? null,
                 'valid_to'   => $validated['valid_to'] ?? null,
                 'quantity'   => $validated['quantity'] ?? null,
+                'issued_by_name'   => $validated['issued_by_name'] ?? null,
             ]);
 
             return response()->json(['success' => true, 'message' => '新增成功', 'data' => $userCoupon]);
@@ -115,6 +116,7 @@ class UserCouponController extends ApiPosController
     {
         try {
             $validated = $request->validate([
+                'issued_by_name' => 'nullable|string',
                 'user_id' => 'required|integer|exists:users,id',
                 'coupons' => 'required|array|min:1', // 必須是陣列，至少一個元素
                 'coupons.*.coupon_id' => 'required|integer|exists:coupons,id',
@@ -123,6 +125,8 @@ class UserCouponController extends ApiPosController
                 'coupons.*.valid_from' => 'nullable|date',
                 'coupons.*.valid_to' => 'nullable|date|after_or_equal:coupons.*.valid_from',
             ], [
+                'issued_by_name.string' => '發放人名稱必須是字串',
+
                 'user_id.required' => '使用者 ID 為必填',
                 'user_id.integer' => '使用者 ID 必須是整數',
                 'user_id.exists' => '指定的使用者不存在',
@@ -153,6 +157,7 @@ class UserCouponController extends ApiPosController
 
             foreach ($validated['coupons'] as $coupon) {
                 $userCoupon = UserCoupon::create([
+                    'issued_by_name'   => $validated['issued_by_name'] ?? null,
                     'user_id' => $user_id,
                     'coupon_id' => $coupon['coupon_id'],
                     'quantity'   => $coupon['quantity'],

@@ -188,7 +188,7 @@
     <!-- end 統計 -->
     
     <!-- 客戶簽收 -->
-      <table data-toggle="table" class="table table-bordered border border-dark tr-border-top">
+      <table data-toggle="table" class="table table-bordered border border-dark tr-border-top" style="margin-bottom: 5px;">
         <tr>
           <td class="align-top" style="width: 50%;border-right:3px solid black" >
             <p style="white-space: pre-wrap;margin:0">訂單備註：{{ $order['header']->comment }}</p>
@@ -243,23 +243,30 @@
           </td>
         </tr>
       </table>
-      外送人員簽名：____________
-      <input type="checkbox"> 外送機車/車牌：__________
-      <input type="checkbox" id="input-chk001" >
-      <label for="input-chk001">膠台</label>
-      <input type="checkbox" id="input-chk002" >
-      <label for="input-chk002">推車</label>
-      <input type="checkbox" id="input-chk003" >
-      <label for="input-chk003">拉繩</label>
-      @if(!empty($order['header']->order_taker))
-      接單人員:  {{$order['header']->order_taker }}
-      @else
-      接單人員:__________
-      @endif
-      <br>
-      <div class="fw-bold"  style="text-align: right;margin-right: 1.5em">{{'製單時間：'}}{{ now() }}</div>
-    <!-- End 客戶簽收 -->
-  
+    <!-- end 客戶簽收 -->
+
+    <!-- 第一行：外送員資料與工具 -->
+    <div style="display: flex; justify-content: space-between; margin: 3px 1.5em 0 1.5em; padding: 2px 4px; font-weight: bold; line-height: 1.2;">
+        <div>
+            外送員簽名：______________
+                 手機：______________
+                 車牌：______________
+            <input type="checkbox" id="input-chk001">
+            <label for="input-chk001">膠台</label>
+            <input type="checkbox" id="input-chk002">
+            <label for="input-chk002">推車</label>
+            <input type="checkbox" id="input-chk003">
+            <label for="input-chk003">拉繩</label>
+            接單員: web
+        </div>
+    </div>
+
+    <!-- 第二行：運費靠左，製單時間靠右 -->
+    <div style="display: flex; justify-content: space-between; margin: 3px 1.5em 0 1.5em; padding: 2px 4px; font-weight: bold; line-height: 1.2;">
+        <div>運費：____________</div>
+        <div>製單時間：{{ now() }}</div>
+    </div>
+
   </section>
   @endforeach
 </body>

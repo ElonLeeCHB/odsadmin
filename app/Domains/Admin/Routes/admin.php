@@ -46,6 +46,9 @@ Route::group([
         Route::get('categories/autocomplete', 'Catalog\CategoryController@autocomplete')->name('categories.autocomplete');
         Route::post('categories/destroy', 'Catalog\CategoryController@destroy')->name('categories.destroy');
 
+        Route::get('syncProductOptions', 'Catalog\SyncProductOptionController@index')->name('syncProductOptions.index');
+
+        
         //官網商品分類
         Route::get('wwwcategories/autocomplete', 'Catalog\WwwCategoryController@autocomplete')->name('wwwcategories.autocomplete');
 
