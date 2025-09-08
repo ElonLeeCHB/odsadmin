@@ -18,6 +18,7 @@ use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductOption;
 use App\Events\OrderSaved;
 use App\Helpers\Classes\OrmHelper;
+use App\Caches\Catalog\Product\Sale\ProductByLocaleWithOptionsIndexedByOptionCode;
 
 class OrderService extends Service
 {
@@ -159,7 +160,7 @@ class OrderService extends Service
                 }
 
                 foreach ($product_ids as $product_id) {
-                    $db_product = (new Product)->getLocaleProductByIdForSale($product_id);
+                    $db_product = ProductByLocaleWithOptionsIndexedByOptionCode::getById($product_id);
 
                     $db_products[$db_product->id] = $db_product;
                 }

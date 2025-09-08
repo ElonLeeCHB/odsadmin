@@ -151,7 +151,7 @@ class OrderService extends Service
         return 0;
     }
 
-    public function addOrder($data, $order_id = null)
+    public function save($data, $order_id = null)
     {
         try {
             DB::beginTransaction();

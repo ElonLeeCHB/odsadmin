@@ -24,6 +24,17 @@ class Product extends Model
 
     protected $guarded = [];
     protected $appends = ['name'];
+
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+
+    protected $attributes = [
+        'quantity_for_control' => 0,
+        'is_option_qty_controlled'  => 0,
+    ];
+
     public $translation_keys = ['name', 'short_name','web_name' , 'short_description', 'description', 'specification'
                                 ,'meta_title','meta_description','meta_keyword',
                                 ];
@@ -33,11 +44,6 @@ class Product extends Model
         'supplier_own_product_name',
         'supplier_own_product_specification',
         'temperature_type_code',
-    ];
-
-    protected $casts = [
-        'created_at' => 'datetime:Y-m-d H:i:s',
-        'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
     
     protected $with = ['translation'];
@@ -261,94 +267,5 @@ class Product extends Model
             get: fn ($value) => TermRepository::getNameByCodeAndTaxonomyCode($this->temperature_type_code, 'product_storage_temperature_type') ?? '',
         );
     }
-    
 
-    /**
-     * cache
-     */
-        public function getCacheKeysByProductId($product_id = null)
-        {
-            $product_id = $product_id ?? $this->id ?? null;
-
-            if(empty($product_id)){
-                throw new \Exception('$product_id cannot be empty.');
-            }
-
-            return [
-                $this->getCacheKeyForSale($product_id),
-                // 舉例
-                // $this->getCacheKeyForPurchasing($product_id),
-                // $this->getCacheKeyForInventory($product_id),
-            ];
-        }
-
-        public function getCacheKeyForSale($product_id = null)
-        {
-            $product_id = $product_id ?? $this->id ?? null;
-
-            // 如果還是沒有 $product_id, 回覆錯誤
-            if(empty($product_id)){// 直接拋出錯誤
-                throw new \Exception('$product_id cannot be empty.');
-            }
-
-            $locale = app()->getLocale();
-            $cache_key = 'cache/locales/'.$locale.'/catalog/product/' . 'id-' . $product_id . '.txt';
-
-            return $cache_key ?? '';
-        }
-
-        public function deleteCacheByProductId($product_id = null)
-        {
-            foreach ($this->getCacheKeysByProductId($product_id) as $cache_key) {
-                Storage::delete($this->getCacheKeyForSale($product_id));
-            }
-        }
-
-        public function getLocaleProductByIdForSale($product_id)
-        {
-            $locale = app()->getLocale();
-            $cache_key = $this->getCacheKeyForSale($product_id);
-
-            if(request()->has('no-cache') && request()->query('no-cache') == 1){
-                DataHelper::deleteDataFromStorage($cache_key);
-            }
-
-            return DataHelper::remember($cache_key, 60*60*24, 'serialize', function() use ($product_id) {
-                $builder = Product::query();
-                $builder->select(['id', 'code', 'price', 'quantity_of_flavor', 'quantity_for_control', 'is_option_qty_controlled']);
-                $builder->where('id', $product_id)
-                    ->with(['productOptions' => function($query) {
-                        $query->where('is_active', 1)
-                            ->with(['productOptionValues' => function($query) {
-                                $query->where('is_active', 1)
-                                    ->with('optionValue')
-                                    ->with('translation')
-                                    ->with(['materialProduct' => function($query) {
-                                        $query->select('products.id as material_product_id', 'products.quantity_for_control', 'products.is_option_qty_controlled')
-                                            ->from('products');  // 另外指定使用 products 表的 id 來避免歧義，跟一開始的主表 products 區隔
-                                    }]);
-                            }])
-                            ->with('option');
-                    }])
-                    ->with('translation');
-
-                    return $builder->first();
-            });
-        }
-    //
-
-    public function prepareArrayData($row)
-    {
-        if(is_array($row)){
-            $row['quantity_for_control'] = $row['quantity_for_control'] ?? 0;
-            $row['is_option_qty_controlled'] = $row['is_option_qty_controlled'] ?? 0;
-        }
-
-        else if(is_object($row)){
-            $row->quantity_for_control = $row->quantity_for_control ?? 0;
-            $row->is_option_qty_controlled = $row->is_option_qty_controlled ?? 0;
-        }
-
-        return $row;
-    }
 }

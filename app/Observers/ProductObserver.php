@@ -3,44 +3,26 @@
 namespace App\Observers;
 
 use App\Models\Catalog\Product;
-use App\Helpers\Classes\DataHelper;
-use Illuminate\Support\Facades\Storage;
+use App\Caches\FileCustomCacheManager;
 
 class ProductObserver
 {
-
-    public function creating(Product $product)
-    {
-        return $product->prepareArrayData($product);
-    }
-
-    public function updating(Product $product)
-    {
-        return $product->prepareArrayData($product);
-    }
-
     // 在創建或更新後都會觸發此方法
     public function saved(Product $product)
     {
-        return $this->deleteCache($product);
+        $this->clearProductCache($product->id);
     }
-
 
     public function deleted(Product $product)
     {
-        return $this->deleteCache($product);
+        $this->clearProductCache($product->id);
     }
 
-
-
-    /**
-     * 自訂方法
-     */
-    
-    private function deleteCache(Product $product)
+    protected function clearProductCache(int $product_id)
     {
-        return $product->deleteCacheByProductId($product->id);
+        FileCustomCacheManager::clearByUniqueKey("id-{$product_id}", ['entity', 'product']);
     }
+    
 }
 
 ?>

@@ -16,6 +16,7 @@ use App\Models\Catalog\ProductOptionValue;
 use App\Models\Catalog\ProductTerm;
 use App\Models\Common\Term;
 use App\Helpers\Classes\OrmHelper;
+use App\Caches\FileCustomCacheManager;
 
 class ProductService extends Service
 {
@@ -247,7 +248,7 @@ class ProductService extends Service
             DB::commit();
 
             //刪除快取
-            $product->deleteCacheByProductId();
+            FileCustomCacheManager::clearByUniqueKey("id-{$product->id}", ['entity', 'product']);
 
             $result['product_id'] = $product->id;
 
@@ -455,7 +456,7 @@ class ProductService extends Service
                 }
 
                 //刪除快取
-                $product->deleteCacheByProductId();
+                FileCustomCacheManager::clearByUniqueKey("id-{$product->id}", ['entity', 'product']);
             }
             
             DB::commit();

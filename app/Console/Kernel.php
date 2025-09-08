@@ -21,6 +21,12 @@ class Kernel extends ConsoleKernel
 
         // 定期清除laravel內建快取
         $schedule->command('app:clear-cache')->monthlyOn(30, '22:00');
+
+        // 定期刪除自訂快取過期檔案
+        // $schedule->command('custom-cache:clean-expired')->monthlyOn(30, '22:00')->withoutOverlapping();
+
+        // 定期清除自訂快取所有檔案
+        $schedule->command('custom-cache:clear')->monthlyOn(30, '22:00')->withoutOverlapping();
         
         // 預設刪除 60 天以前的日誌記錄
         $schedule->command('app:delete-logs', ['60'])->daily();

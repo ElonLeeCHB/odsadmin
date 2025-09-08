@@ -23,12 +23,7 @@ class ProductService extends Service
 
     public function getProductById($product_id)
     {
-        // $product = ProductByLocale::getById($product_id, app()->getLocale());
-
-        // $product = DataHelper::arrayRemoveKeyRecursive($product, 'translation');
-
-        // return $product;
-        return (new Product)->getLocaleProductByIdForSale($product_id);
+        return ProductByLocale::getById($product_id, app()->getLocale(), 3600);
     }
 
     /**
