@@ -624,22 +624,20 @@ where op.order_id=9219
         }
 
         return DataHelper::remember($cache_key, 60*60*24, 'serialize', function() use ($order_id) {
-            $builder = $this->query();
-            $builder->where('id', $order_id);
+            $query = $this->query();
+            $query->where('id', $order_id);
 
-            $builder->with(['orderProducts' => function($qry) {
+            $query->with(['orderProducts' => function($qry) {
                         $qry->with('orderProductOptions');
                     }]);
 
-            $builder->with('orderTotals')
+            $query->with('orderTotals')
                     ->with('OrderTags')
                     ->with('shippingState')
                     ->with('shippingCity')
-                    ->with('orderCoupons')
-                    ->with('customer:id,comment');
+                    ->with('orderCoupons');
 
-
-            $order = $builder->first();
+            $order = $query->first();
 
             $order->setRelation('orderTotals', $order->orderTotals->keyBy('code'));
 

@@ -72,6 +72,9 @@ class OrderService extends Service
 
         $order = (new Order)->getOrderByIdOrCode($order_id, 'id');
 
+        // 必須重新載入會員備註，因為前面的 $order 有用快取
+        $order->load('customer:id,comment');
+
         return $order;
     }
 
@@ -256,9 +259,9 @@ class OrderService extends Service
                             'coupon_id' => $couponData['coupon_id'],
                         ],
                         [
-                            'name'     => $couponData['name'],
-                            'quantity' => $couponData['quantity'],
-                            'subtotal' => $couponData['subtotal'],
+                            'coupon_name'     => $couponData['coupon_name'],
+                            'quantity'        => $couponData['quantity'],
+                            'discount_amount' => $couponData['discount_amount'],
                         ]
                     );
                 }

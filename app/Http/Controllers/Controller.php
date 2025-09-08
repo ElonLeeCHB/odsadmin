@@ -144,6 +144,7 @@ class Controller extends BaseController
 
     /**
      * 發送 JSON 錯誤回應
+     * 2025-09-10 改移到 app\Exceptions\Handler.php
      *
      * @param array $data 包含錯誤訊息的資料
      * @param int $status_code HTTP 狀態碼，預設為 500

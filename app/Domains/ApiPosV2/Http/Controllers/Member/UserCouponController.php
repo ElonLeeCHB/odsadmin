@@ -83,25 +83,16 @@ class UserCouponController extends ApiPosController
         try {
             $validated = $this->validated($request);
 
-            $json = [];
-
-            if (empty($validated['quantity'])) {
-                $json['errors']['quantity'] = '數量必須大於0';
-            }
-
-            if (isset($json['errors']) && !isset($json['errors']['warning'])) {
-                $json['errors']['warning'] = $this->lang->error_warning;
-            }
-
             $userCoupon = UserCoupon::create([
-                'user_id'    => $validated['user_id'],
-                'coupon_id'  => $validated['coupon_id'],
-                'code'       => $validated['code'] ?? null,
-                'action'     => $validated['action'],
-                'valid_from' => $validated['valid_from'] ?? null,
-                'valid_to'   => $validated['valid_to'] ?? null,
-                'quantity'   => $validated['quantity'] ?? null,
-                'issued_by_name'   => $validated['issued_by_name'] ?? null,
+                'user_id'       => $validated['user_id'],
+                'coupon_id'     => $validated['coupon_id'],
+                'name'          => $validated['name'],
+                'action'        => $validated['action'],
+                'valid_from'    => $validated['valid_from'] ?? null,
+                'valid_to'      => $validated['valid_to'] ?? null,
+                'quantity'      => $validated['quantity'] ?? null,
+                'discount_amount'=> $validated['discount_amount'] ?? 0,
+                'issued_by_name'=> $validated['issued_by_name'] ?? null,
             ]);
 
             return response()->json(['success' => true, 'message' => '新增成功', 'data' => $userCoupon]);
@@ -120,8 +111,9 @@ class UserCouponController extends ApiPosController
                 'user_id' => 'required|integer|exists:users,id',
                 'coupons' => 'required|array|min:1', // 必須是陣列，至少一個元素
                 'coupons.*.coupon_id' => 'required|integer|exists:coupons,id',
+                'coupons.*.name' => 'required|string',
                 'coupons.*.quantity' => 'required|integer|min:1',
-                'coupons.*.total' => 'required|integer|min:1',
+                'coupons.*.discount_amount' => 'required|integer|min:1',
                 'coupons.*.valid_from' => 'nullable|date',
                 'coupons.*.valid_to' => 'nullable|date|after_or_equal:coupons.*.valid_from',
             ], [
@@ -134,17 +126,20 @@ class UserCouponController extends ApiPosController
                 'coupons.required' => '優惠券資料為必填',
                 'coupons.array' => '優惠券資料格式錯誤',
 
-                'coupons.*.coupon_id.required' => '優惠券 ID 為必填',
+                'coupons.*.coupon_id.required' => '優惠券 ID 必填',
                 'coupons.*.coupon_id.integer' => '優惠券 ID 必須是整數',
                 'coupons.*.coupon_id.exists' => '指定的優惠券不存在',
 
-                'coupons.*.quantity.required' => '數量為必填',
+                'coupons.*.name.required' => '優惠券名稱必填',
+                'coupons.*.name.string' => '優惠券名稱必須是字串',
+
+                'coupons.*.quantity.required' => '數量必填',
                 'coupons.*.quantity.integer' => '數量必須是整數',
                 'coupons.*.quantity.min' => '數量不能小於 1',
 
-                'coupons.*.total.required' => '總計為必填',
-                'coupons.*.total.integer' => '總計必須是整數',
-                'coupons.*.total.min' => '總計不能小於 1',
+                'coupons.*.discount_amount.required' => '優惠金額必填',
+                'coupons.*.discount_amount.integer' => '優惠金額必須是整數',
+                'coupons.*.discount_amount.min' => '優惠金額不能小於 1',
 
                 'coupons.*.valid_from.date' => '有效起始日期格式錯誤',
                 'coupons.*.valid_to.date' => '有效截止日期格式錯誤',
@@ -161,7 +156,7 @@ class UserCouponController extends ApiPosController
                     'user_id' => $user_id,
                     'coupon_id' => $coupon['coupon_id'],
                     'quantity'   => $coupon['quantity'],
-                    'total'   => $coupon['total'],
+                    'discount_amount'   => $coupon['discount_amount'],
                     'valid_from' => $coupon['valid_from'],
                     'valid_to' => $coupon['valid_to'],
                     'action' => 'plus',
@@ -204,7 +199,9 @@ class UserCouponController extends ApiPosController
             // 更新資料
             $userCoupon->user_id = $validated['user_id'];
             $userCoupon->coupon_id = $validated['coupon_id'];
+            $userCoupon->name = $validated['name'];
             $userCoupon->quantity = $validated['quantity'];
+            $userCoupon->discount_amount = $validated['discount_amount'];
             $userCoupon->action = $validated['action'];
             $userCoupon->valid_from = $validated['valid_from'] ?? null;
             $userCoupon->valid_to = $validated['valid_to'] ?? null;
@@ -258,9 +255,12 @@ class UserCouponController extends ApiPosController
         return $request->validate([
             'user_id' => 'required|integer|exists:users,id',
             'coupon_id' => 'required|integer|exists:coupons,id',
+            'name' => 'required|string|exists:coupons,name',
             'quantity' => 'required|integer|min:1',
+            'discount_amount' => 'discount_amount|integer',
             'action' => 'required|string|in:plus,minus',
         ], [
+            
             'user_id.required' => '使用者 ID 為必填',
             'user_id.integer' => '使用者 ID 必須是整數',
             'user_id.exists' => '指定的使用者不存在',
@@ -268,6 +268,10 @@ class UserCouponController extends ApiPosController
             'coupon_id.required' => '優惠券 ID 為必填',
             'coupon_id.integer' => '優惠券 ID 必須是整數',
             'coupon_id.exists' => '指定的優惠券不存在',
+
+            'name.required' => '優惠券名稱必填',
+            'name.string' => '優惠券名稱必須是字串',
+            'name.exists' => '指定的優惠券不存在',
 
             'quantity.required' => '數量為必填',
             'quantity.integer' => '數量必須是整數',

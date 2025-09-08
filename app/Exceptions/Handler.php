@@ -5,8 +5,9 @@ namespace App\Exceptions;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Auth\AuthenticationException;
-//use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use App\Domains\Exceptions\NotFoundException;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 use App\Helpers\Classes\CheckAreaHelper;
 
@@ -28,23 +29,23 @@ class Handler extends ExceptionHandler
      */
     public function register(): void
     {
+        // ✅ 全域錯誤收集（輕量 log, 可接 Sentry / Slack 等）
         $this->reportable(function (Throwable $e) {
-            //
+            // 這裡只做基礎記錄，不回應
+            (new \App\Repositories\Eloquent\SysData\LogRepository)
+                ->logRequest(note: $e->getMessage());
         });
     }
 
-
     protected function unauthenticated($request, AuthenticationException $exception)
     {
-        if(CheckAreaHelper::isAdminArea($request)){
+        if (CheckAreaHelper::isAdminArea($request)) {
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json(['message' => 'Unauthenticated.'], 401); // 對於 AJAX 請求，返回 401
             }
 
             return redirect()->guest($exception->redirectTo() ?? route('lang.admin.login'));
-        }
-
-        else if(CheckAreaHelper::isPublicArea($request)){
+        } else if (CheckAreaHelper::isPublicArea($request)) {
             redirect()->guest($exception->redirectTo() ?? route('lang.login'));
         }
 
@@ -54,5 +55,69 @@ class Handler extends ExceptionHandler
         // return $this->shouldReturnJson($request, $exception)
         //             ? response()->json(['message' => $exception->getMessage()], 401)
         //             : redirect()->guest($exception->redirectTo() ?? route('lang.admin.login'));
+    }
+
+    public function render($request, Throwable $exception)
+    {
+        // ✅ API (expectsJson)
+        if ($request->expectsJson()) {
+            // 1. 表單驗證錯誤
+            if ($exception instanceof ValidationException) {
+                $response = response()->json([
+                    'success' => false,
+                    'message' => '資料驗證失敗',
+                    'errors'  => $exception->errors(),
+                ], 422);
+            }
+            // 2. HTTP 例外（abort(400, 'xxx')）
+            elseif ($exception instanceof HttpException) {
+                $response = response()->json([
+                    'success' => false,
+                    'message' => $exception->getMessage(),
+                ], $exception->getStatusCode());
+            }
+            // 3. 其他錯誤
+            else {
+                $response = $this->sendJsonErrorResponse([
+                    'general_error' => '系統發生錯誤，請聯絡管理員。',
+                    'sys_error'     => $exception->getMessage(),
+                ], 500, $exception);
+            }
+        }
+        // ❗非 API (例如 Blade 錯誤頁)
+        else {
+            $response = parent::render($request, $exception);
+        }
+
+        // ✅ 統一記錄到 DB（API + Web 都會記）
+        (new \App\Repositories\Eloquent\SysData\LogRepository)->logRequest(
+            note: $exception->getMessage()
+        );
+
+        return $response;
+    }
+
+    public function sendJsonErrorResponse(array $data, int $status_code = 500, $th = null): \Illuminate\Http\JsonResponse
+    {
+        if ($th instanceof HttpResponseException) {
+            return $th->getResponse();
+        }
+
+        $user = request()->user();
+
+        $general_error = $data['general_error'] ?? 'System error occurred. Please contact system administrator.';
+        $sys_error = $data['sys_error'] ?? $general_error;
+
+        if (config('app.debug') || ($user && $user->hasRole('sys_admin'))) {
+            return response()->json([
+                'success' => false,
+                'message' => $sys_error,
+            ], $status_code);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => $general_error,
+        ], $status_code);
     }
 }
