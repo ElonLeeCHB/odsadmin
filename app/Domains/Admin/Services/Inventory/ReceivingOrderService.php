@@ -104,6 +104,7 @@ class ReceivingOrderService extends Service
                     'with' => ['stock_unit','usage_unit'],
                 ];
                 $db_coded_products = $this->ProductRepository->getProducts($params)->toArray();
+
                 $units = $this->UnitRepository->getCodeKeyedActiveUnits();
                 $now_receiving_order = $this->ReceivingOrderProductRepository->getReceivingOrderById($receiving_order->id);
                 // Delete receiving_products
@@ -173,7 +174,6 @@ class ReceivingOrderService extends Service
                                         ->product($product_id)
                                         ->get();
 
-                    
                     if(!empty($usage_factor['error'])){
                         throw new \Exception($usage_factor['error']);
                     }

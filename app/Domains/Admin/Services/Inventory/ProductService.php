@@ -41,17 +41,25 @@ class ProductService extends Service
             $product = $result['data'];
 
             $stock_unit_code = '';
-
-            // 若庫存單位已存在資料庫則不改
-            if(!empty($product->stock_unit_code)){
-                unset($post_data['stock_unit_code']);
+  
+            // 若商品已有庫存單位，則取用之。忽略 post 傳來的庫存單位。前端應該禁止傳入庫存單位(設為 disabled) 
+            if (!empty($product->stock_unit_code)){
+                if (!empty($post_data['stock_unit_code']) && $product->stock_unit_code != $post_data['stock_unit_code']) {
+                    abort(400, '庫存單位已存在，無法更改');
+                }
 
                 $stock_unit_code = $product->stock_unit_code;
             }
-            // 新增庫存單位
+
+            // 新設定庫存單位 (原本商品無庫存單位，但post資料有庫存單位)
             else if(empty($product->stock_unit_code) && !empty($post_data['stock_unit_code'])){
                 $stock_unit_code = $post_data['stock_unit_code'];
             }
+
+            // 取得用量單位的換算系數，為了算用量價格。
+            // 例如 1包=1.8公斤，1包600元，則先求得1包=1.8公斤=1800公克，然後再用庫存單價 600/1800公克 = 用量單價(0.33元/公克)
+            $usage_factor = 1;
+
             if(!empty($stock_unit_code) && !empty($post_data['usage_unit_code'])){
                 // 庫存單位 = 用量單位
                 if($stock_unit_code == $post_data['usage_unit_code']){
@@ -64,6 +72,7 @@ class ProductService extends Service
                                         ->to($stock_unit_code)
                                         ->product($post_data['product_id'])
                                         ->get();
+
                     if(!empty($usage_factor['error'])){
                         throw new \Exception($usage_factor['error']);
 

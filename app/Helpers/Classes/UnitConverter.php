@@ -73,77 +73,61 @@ class UnitConverter
         $qty = 0;
         $toQty = 0;
 
-        try{
-            if($this->fromUnit == $this->toUnit){
-                return $this->fromQty;
-            }
-
-            // all standard units
-            else if(in_array($this->fromUnit, $standard_unit_codes) && in_array($this->toUnit, $standard_unit_codes)){
-                $from = DB::table($this->uc_table_name)
-                            ->where($this->uc_column_source_unit_code, $this->fromUnit)
-                            ->where('is_standard', 1)
-                            ->first();
-                            
-                $to = DB::table($this->uc_table_name)
-                            ->where($this->uc_column_source_unit_code, $this->toUnit)
-                            ->where('is_standard', 1)
-                            ->first();
-                // 基準單位必須相同
-                if($from->base_unit_code !== $to->base_unit_code){
-                    return ['error' => '單位的基準單位必須相同！來源單位：'.$this->fromUnit.', 基準單位：'.$from->base_unit_code.', 目的單位：'.$this->toUnit.', 基準單位：'.$to->base_unit_code];
-                }
-                $toQty = $this->fromQty * $from->factor / $to->factor;
-            }
-
-
-            else if(!empty($this->product_id)){
-                $productUnit = DB::table($this->puc_table_name)
-                                ->where($this->puc_column_product_id, $this->product_id)
-                                ->where($this->puc_column_source_unit_code, $this->fromUnit)
-                                ->where($this->puc_column_destination_unit_code, $this->toUnit)
-                                ->first();
-
-                if(empty($productUnit->destination_unit_code)){
-
-                    // find again if there is reverse product unit.
-                    // $reverse_product_unit = DB::table($this->puc_table_name)
-                    //                     ->where($this->puc_column_product_id, $this->product_id)
-                    //                     ->where($this->puc_column_source_unit_code, $this->toUnit)
-                    //                     ->where($this->puc_column_destination_unit_code, $this->fromUnit)
-                    //                     ->first();
-                    //
-                    $query = ProductUnit::query();
-                    $query->where('product_id', $this->product_id);
-                    $query->where('source_unit_code', $this->toUnit);
-                    $query->where('destination_unit_code', $this->fromUnit);
-                    OrmHelper::showSqlContent($query);
-                    OrmHelper::prepare($query);
-//                     reverse_product_unit
-//                     $rows = 
-//                                         $reverse_product_unit
-// echo "<pre>reverse_product_unit=",print_r($reverse_product_unit,true),"</pre>";exit;
-                    // Reverse product unit exist.
-                    $productUnit = (object) [
-                        'product_id' => $reverse_product_unit->product_id,
-                        'source_unit_code' => $reverse_product_unit->destination_unit_code,
-                        'source_quantity' => $reverse_product_unit->destination_quantity,
-                        'destination_unit_code' => $reverse_product_unit->source_unit_code,
-                        'destination_quantity' => $reverse_product_unit->source_quantity,
-                        'factor' => $reverse_product_unit->source_quantity / $reverse_product_unit->destination_quantity,
-                    ];
-                }
-
-                if(!empty($productUnit)){
-                    $toQty = $this->fromQty * $productUnit->factor;
-                }
-            }
-            return $toQty ;
-        } catch (\Throwable $th) {
-            echo "<pre>getMessage ",print_r($th->getMessage(),true),"</pre>";exit;
-            throw $th;
+        if ($this->fromUnit == $this->toUnit) {
+            return $this->fromQty;
         }
 
+        // all standard units
+        else if (in_array($this->fromUnit, $standard_unit_codes) && in_array($this->toUnit, $standard_unit_codes)) {
+            $from = DB::table($this->uc_table_name)
+                ->where($this->uc_column_source_unit_code, $this->fromUnit)
+                ->where('is_standard', 1)
+                ->first();
+
+            $to = DB::table($this->uc_table_name)
+                ->where($this->uc_column_source_unit_code, $this->toUnit)
+                ->where('is_standard', 1)
+                ->first();
+            // 基準單位必須相同
+            if ($from->base_unit_code !== $to->base_unit_code) {
+                return ['error' => '單位的基準單位必須相同！來源單位：' . $this->fromUnit . ', 基準單位：' . $from->base_unit_code . ', 目的單位：' . $this->toUnit . ', 基準單位：' . $to->base_unit_code];
+            }
+            $toQty = $this->fromQty * $from->factor / $to->factor;
+        } else if (!empty($this->product_id)) {
+            $productUnit = DB::table($this->puc_table_name)
+                ->where($this->puc_column_product_id, $this->product_id)
+                ->where($this->puc_column_source_unit_code, $this->fromUnit)
+                ->where($this->puc_column_destination_unit_code, $this->toUnit)
+                ->first();
+
+            // 如果沒有找到，反向再找一次。例如原本要找 1包=幾公斤？如果用包找公斤沒找到，則用公斤找包，也許有。
+            if (empty($productUnit->destination_unit_code)) {
+                $query = ProductUnit::query();
+                $query->where('product_id', $this->product_id);
+                $query->where('source_unit_code', $this->toUnit);
+                $query->where('destination_unit_code', $this->fromUnit);
+                OrmHelper::prepare($query);
+                // OrmHelper::showSqlContent($query);
+                $reverseProductUnit = $query->first();
+
+                if (!empty($reverseProductUnit)) {
+                    $productUnit = (object) [
+                        'product_id' => $reverseProductUnit->product_id,
+                        'source_unit_code' => $reverseProductUnit->destination_unit_code,
+                        'source_quantity' => $reverseProductUnit->destination_quantity,
+                        'destination_unit_code' => $reverseProductUnit->source_unit_code,
+                        'destination_quantity' => $reverseProductUnit->source_quantity,
+                        'factor' => $reverseProductUnit->source_quantity / $reverseProductUnit->destination_quantity,
+                    ];
+                }
+            }
+
+            if (!empty($productUnit)) {
+                $toQty = $this->fromQty * $productUnit->factor;
+            }
+        }
+
+        return $toQty ?? 0;
     }
 
     private function getStandardUnitCodes()

@@ -55,7 +55,7 @@
     {{-- 聯絡資料表格 --}}
       <table id="contactInfo" class="border-none contact" style="width: 100%;" >
         <tr style="height: 70px;">
-          <td class="col-sm-1"><img width="60" src="{{ asset('image/logo.png') }}" alt="Chinabing" title="Chinabing"/></td>
+          <td class="col-sm-1"><img width="60" src="{{ asset('assets2/image/logo.png') }}" alt="Chinabing" title="Chinabing"/></td>
           <td class="text-center"><span style="font-size: 1.5em;">外送訂購單</span></td>
           <td style="width: 160px;">下單日期 {{ $order['header']->order_date_ymd }}<BR></td>
         </tr>
@@ -195,7 +195,7 @@
           </td>
           <td class="border-right:3px solid black">
             客戶簽收：<BR>
-            @if( $order['header']->payment_method ==='cash')
+            @if( $order['header']->payment_method =='cash')
             <input type="checkbox" id="checkedCheckbox" name="checkedCheckbox" checked>
             {{"現金"}}
             @else
@@ -203,8 +203,8 @@
             {{"現金"}}
             @endif
             <BR>
-            @if( $order['header']->payment_method ==='debt')
-            <input type="checkbox" id="checkedCheckbox" name="checkedCheckbox" checked> {{"預計匯款日"}}
+            @if( $order['header']->payment_method !='cash')
+            <input type="checkbox" id="checkedCheckbox" name="checkedCheckbox" checked> 預計匯款日
             @if(!empty($order['header']->scheduled_payment_date))
             {{ $order['header']->scheduled_payment_date}}
             @else
