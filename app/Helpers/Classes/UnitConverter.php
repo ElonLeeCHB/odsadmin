@@ -73,11 +73,11 @@ class UnitConverter
         $qty = 0;
         $toQty = 0;
 
+        // 單位相同，不需換算直接回傳
         if ($this->fromUnit == $this->toUnit) {
             return $this->fromQty;
         }
-
-        // all standard units
+        // 來源跟目的都是公制單位
         else if (in_array($this->fromUnit, $standard_unit_codes) && in_array($this->toUnit, $standard_unit_codes)) {
             $from = DB::table($this->uc_table_name)
                 ->where($this->uc_column_source_unit_code, $this->fromUnit)
@@ -88,26 +88,31 @@ class UnitConverter
                 ->where($this->uc_column_source_unit_code, $this->toUnit)
                 ->where('is_standard', 1)
                 ->first();
+
             // 基準單位必須相同
             if ($from->base_unit_code !== $to->base_unit_code) {
                 return ['error' => '單位的基準單位必須相同！來源單位：' . $this->fromUnit . ', 基準單位：' . $from->base_unit_code . ', 目的單位：' . $this->toUnit . ', 基準單位：' . $to->base_unit_code];
             }
+
             $toQty = $this->fromQty * $from->factor / $to->factor;
-        } else if (!empty($this->product_id)) {
+
+        }
+        // 來源或目的其中一個是非公制單位。依附於產品的單位換算
+        else if (!empty($this->product_id)) {
             $productUnit = DB::table($this->puc_table_name)
                 ->where($this->puc_column_product_id, $this->product_id)
                 ->where($this->puc_column_source_unit_code, $this->fromUnit)
                 ->where($this->puc_column_destination_unit_code, $this->toUnit)
                 ->first();
 
-            // 如果沒有找到，反向再找一次。例如原本要找 1包=幾公斤？如果用包找公斤沒找到，則用公斤找包，也許有。
+            // 如果沒有找到，反向再找一次。例如原本要找 1包=幾公斤？如果沒找到，則用公斤找包，也許有。
             if (empty($productUnit->destination_unit_code)) {
                 $query = ProductUnit::query();
                 $query->where('product_id', $this->product_id);
                 $query->where('source_unit_code', $this->toUnit);
                 $query->where('destination_unit_code', $this->fromUnit);
                 OrmHelper::prepare($query);
-                // OrmHelper::showSqlContent($query);
+
                 $reverseProductUnit = $query->first();
 
                 if (!empty($reverseProductUnit)) {

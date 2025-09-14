@@ -204,7 +204,6 @@
                       @endforeach
                     </select>
                     <div id="error-pringting_category_id" class="invalid-feedback"></div>
-                    
                     <div class="form-text">會用在備料表的判斷。請小心設定。</div>
                   </div>
                 </div>
@@ -215,6 +214,20 @@
                   <div class="col-sm-10">
                     <input type="text" name="model" value="{{ $product->model }}" placeholder="{{ $lang->column_model }}" id="input-model" class="form-control"/>
                     <div id="error-model" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <label class="col-sm-2 col-form-label">是否固定預設商品選項</label>
+                  <div class="col-sm-10">
+                    <div class="input-group">
+                      <div id="input-is_product_options_fixed" class="form-check form-switch form-switch-lg">
+                        <input type="hidden" name="is_product_options_fixed" value="0"/>
+                        <input type="checkbox" name="is_product_options_fixed" value="1" class="form-check-input" @if($product->is_product_options_fixed) checked @endif/>
+                      </div>
+                    </div>
+                    <div class="form-text">開啟時，訂單儲存後將一律使用商品預設的選項及數量。會清除任何前端送來的商品選項。</div>
+                    
                   </div>
                 </div>
 

@@ -7,8 +7,8 @@
         <tr>
           <td class="text-center" style="width: 1px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></td>
           <td class="text-end"><a href="{{ $sort_id }}" @if($sort=='id') class="{{ $order }}" @endif>{{ $lang->column_id }}</a></td>
-          <td class="text-start"><a href="{{ $sort_name }}" @if($sort=='name') class="{{ $order }}" @endif>{{ $lang->column_name }}</a></td>
-          <td class="text-start"><a href="{{ $sort_web_name }}" @if($sort=='web_name') class="{{ $order }}" @endif>{{ $lang->column_web_name }}</a></td>
+          <td class="text-start">{{ $lang->column_name }}</td>
+          <td class="text-start">{{ $lang->column_web_name }}</td>
           <td class="text-start"><a href="{{ $sort_price }}" @if($sort=='price') class="{{ $order }}" @endif>{{ $lang->column_price }}</a></td>
           <td class="text-start">{{ $lang->column_is_salable }}</td>
           <td class="text-start">{{ $lang->column_is_active }}</td>

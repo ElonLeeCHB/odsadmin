@@ -562,7 +562,7 @@ class OrmHelper
         return self::getTableColumns($table);
     }
 
-    public static function findIdOrFailOrNew(EloquentBuilder $query, $id)
+    public static function findIdOrFailOrNew(EloquentBuilder $query, $id = null)
     {
         // 如果有 id，就嘗試找資料
         if (!empty($id)) {
@@ -598,7 +598,9 @@ class OrmHelper
             }
         }
 
-        return $row->save();
+        $row->save();
+
+        return $row;
     }
 
 

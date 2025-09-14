@@ -16,6 +16,7 @@ use App\Models\Sale\OrderProductOption;
 use App\Models\User\User;
 use App\Models\Common\Term;
 use App\Helpers\Classes\OrmHelper;
+use App\Caches\Catalog\Product\Sale\ProductForAdmin;
 
 class OrderService extends Service
 {
@@ -55,7 +56,7 @@ class OrderService extends Service
 
         $this->resetQueryBuilder($query, $filter_data);
 
-        OrmHelper::applyFilters($query, $filter_data);
+        OrmHelper::prepare($query, $filter_data);
         OrmHelper::sortOrder($query, $filter_data['sort'] ?? null, $filter_data['order'] ?? null);
 
         return OrmHelper::getResult($query, $filter_data);
@@ -194,11 +195,44 @@ class OrderService extends Service
                 $db_order_products = $order->orderProducts->keyBy('sort_order')->toArray();
 
                 foreach ($data['order_products'] ?? [] as $sort_order => $form_order_product) {
+
                     // 利用 sort_order 結合表單 $form_order_product 與資料庫 $dbOrderProducts
                     $order_product_id = $db_order_products[$sort_order]['id'];
+                    $product_id = $db_order_products[$sort_order]['product_id'];
+                    $product = ProductForAdmin::getById($product_id, app()->getLocale());
+
+                    // 如果產品是固定選項，則指定使用商品的預設選項
+                    if ($product->is_product_options_fixed == 1){
+                        $form_order_product['order_product_options'] = []; // 不論前端丟什麼過來都清空
+                        
+                        // $upsert_order_product_options = [];
+
+                        $product->load('productOptions.productOptionValues');
+
+                        foreach ($product->productOptions as $productOption) {
+                            foreach ($productOption->productOptionValues as $productOptionValue) {
+                                $form_order_product['order_product_options'][] = [
+                                    'order_id' => $order->id,
+                                    'order_product_id' => $order_product_id,
+                                    'product_id' => $product_id,
+                                    'product_option_id' => $productOption->id,
+                                    'product_option_value_id' => $productOptionValue->id,
+                                    'name' => $productOption->name,
+                                    'value' => $productOptionValue->name,
+                                    'type' => $productOption->type,
+                                    'quantity' => $form_order_product['quantity'] * $productOptionValue->default_quantity,
+                                    // 'quantity_for_control' => $product->materialProduct->quantity_for_control,
+                                    'option_id' => $productOption->option_id,
+                                    'option_value_id' => $productOptionValue->option_value_id,
+                                    'map_product_id' => $productOptionValue->optionValue->product_id,
+                                ];
+                            }
+                        }
+                    }
+
 
                     // 前面 OrderProductRepository 的 upsertManyByOrderId() 裡面已烴順便刪除了選項，所以這裡用新增
-                    // 一律用新增是因為，選項所依附的 order_products ，前面的動作包括更新與新增， 是不確定的存在。所以選項一律用新增。
+                    // 一律用新增是因為，選項所依附的 order_products ，在前面的動作包括更新與新增， 是不確定的存在。所以選項一律用新增。
                     (new OrderProductOptionRepository)->createMany($form_order_product['order_product_options'], $order->id, $order_product_id);
                 }
             // end order_product_options

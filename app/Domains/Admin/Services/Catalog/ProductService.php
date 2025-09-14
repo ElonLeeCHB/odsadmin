@@ -17,6 +17,7 @@ use App\Models\Catalog\ProductTerm;
 use App\Models\Common\Term;
 use App\Helpers\Classes\OrmHelper;
 use App\Caches\FileCustomCacheManager;
+use App\Caches\Catalog\Product\Sale\ProductForAdmin;
 
 class ProductService extends Service
 {
@@ -39,33 +40,17 @@ class ProductService extends Service
         try {
             DB::beginTransaction();
 
-            $result = $this->findIdOrFailOrNew($data['product_id']);
+            $query = Product::query();
 
-            if(!empty($result['error'])){
-                return response(json_encode($result))->header('Content-Type','application/json');
-            }
+            $product = OrmHelper::findIdOrFailOrNew($query, $data['product_id'] ?? null);
 
-            $product = $result['data'];
-
-            // products
-                $product->model = $data['model'] ?? null;
-                $product->pringting_category_id = $data['pringting_category_id'] ?? null;
-                $product->comment = $data['comment'] ?? '';
-                $product->price = $data['price'] ?? 0;
-                $product->quantity = $data['quantity'] ?? 0;
-                $product->quantity_for_control = $data['quantity_for_control'] ?? 0;
-                $product->is_option_qty_controlled = $data['is_option_qty_controlled'] ?? 0;
-                $product->comment = $data['comment'] ?? '';
-                $product->is_active = $data['is_active'] ?? 0;
-                $product->is_salable = $data['is_salable'] ?? 0;
-                $product->is_on_www = $data['is_on_www'] ?? 0;
-                $product->sort_order = $data['sort_order'] ?? 999;
-                $product->save();
-            //
+            $product = OrmHelper::saveRow($product, $data, auth()->user()->id);
 
             // product_metas
-                //這裡不能用全刪再新增。比如 廠商料件名稱 supplier_product_name 不會出現在這裡，會誤刪。
-                $meta_keys = ['is_web_product'];
+                //這裡不能用全刪再新增。比如 廠商料件名稱 supplier_product_name 不會出現在在本作業，而是在庫存管理的料件設定。所以如果這裡全刪，會誤刪料件設定的 meta 資料。
+                // $meta_keys = $product->meta_keys;
+                $meta_keys = ['is_web_product', 'is_product_options_fixed'];
+
                 $metas_query = ProductMeta::where('product_id', $product->id)->whereIn('meta_key', $meta_keys);
 
                 // 取出後刪除
@@ -261,13 +246,13 @@ class ProductService extends Service
     }
 
     // 取得列表
-    public function getList($query_data)
+    public function getProductList($query_data)
     {
         $query_data['select'] = ['id','code','main_category_id','sort_order','price','is_active','is_salable'];
         $query_data['equal_is_salable'] = 1;
 
         $query = Product::query();
-        OrmHelper::applyFilters($query, $query_data);
+        OrmHelper::prepare($query, $query_data);
 
         if (!empty($query_data['filter_product_tags'])) {
             $product_tags = explode(',', $query_data['filter_product_tags']);
@@ -280,6 +265,21 @@ class ProductService extends Service
         }
 
         return OrmHelper::getResult($query, $query_data);
+    }
+
+    public function getProductById($product_id)
+    {
+        if (!empty($product_id)){
+            $product = ProductForAdmin::getById($product_id, app()->getLocale());
+
+            if (empty($product->id)) {
+                abort(404, 'Product not found');
+            }
+        } else {
+            $product = new Product();
+        }
+
+        return $product;
     }
 
     public function getWwwCategories($product_id)

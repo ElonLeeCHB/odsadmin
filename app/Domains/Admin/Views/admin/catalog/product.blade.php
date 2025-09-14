@@ -46,6 +46,7 @@
               <datalist id="list-name"></datalist>
             </div>
 
+            {{-- 
             <div class="mb-3">
               <label class="form-label">商品標籤</label>
               <select id="input-filter_product_tags" name="filter_product_tags[]" class="select2-multiple form-control" multiple="multiple">
@@ -53,8 +54,8 @@
                 <option value="{{ $term_id }}">{{ $product_tag_name }}</option>
                 @endforeach
               </select>
-              <!--{{--<input type="text" id="input-filter_status_code"  name="filter_status_code" value="{{ $filter_status_code ?? '' }}" class="form-control"/>--}}-->
             </div>
+             --}}
 
             <div class="mb-3">
               <label class="form-label">{{ $lang->column_is_active }}</label>

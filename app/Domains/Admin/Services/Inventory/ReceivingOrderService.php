@@ -187,7 +187,6 @@ class ReceivingOrderService extends Service
                                 $db_coded_products[$product_id]['usage_price'] = $stock_price / $usage_factor;
                             }
 
-                    // $db_coded_products[$product_id]['usage_price'] = $stock_price / $usage_factor;
                     $row = [
                         'id' => $fm_receiving_product['receiving_product_id'] ?? null,
                         'receiving_order_id' => $receiving_order->id,

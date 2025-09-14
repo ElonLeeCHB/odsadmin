@@ -96,7 +96,7 @@ class ProductController extends BackendController
         $query_data['select'] = ['id','code','main_category_id','sort_order','price','is_active','is_salable'];
         $query_data['equal_is_salable'] = 1;
 
-        $products = $this->ProductService->getList($query_data);
+        $products = $this->ProductService->getProductList($query_data);
 
         if(!empty($products)){
             $products->load('main_category');
@@ -219,24 +219,11 @@ class ProductController extends BackendController
         $data['back'] = route('lang.admin.catalog.products.index', $queries);
 
         // Get Record
-        $params = [
-            'with' => [
-                        'product_options.translation',
-                        'product_options.product_option_values.translation',
-                        'product_options.option.translation',
-                        'product_options.option.option_values.translation',
-                      ],
-        ];
-        $result = $this->ProductService->findIdOrFailOrNew($product_id, $params);
-
-        if(!empty($result['data'])){
-            $product = $result['data'];
-        }else if(!empty($result['error'])){
-            return response(json_encode(['error' => $result['error']]))->header('Content-Type','application/json');
-        }
-        unset($result);
+        $product = $this->ProductService->getProductById($product_id);
 
         $data['product']  = $product;
+
+
 
         $params = [
             'pagination' => false,
@@ -267,17 +254,17 @@ class ProductController extends BackendController
         }
         $data['translations'] = $translations;
 
-        if($product->product_options->isEmpty()){
+        if($product->productOptions->isEmpty()){
             $data['product_options'] = [];
         }
         else{
-            foreach ($product->product_options as $product_option) {
-                if(empty($product_option->translation->name)){
+            foreach ($product->productOptions as $productOption) {
+                if(empty($productOption->translation->name)){
                     continue;
                 }
                 $product_option_value_data = [];
-                if (!empty($product_option->product_option_values)) {
-                    $sorted = $product_option->product_option_values->sortBy('sort_order');
+                if (!empty($productOption->productOptionValues)) {
+                    $sorted = $productOption->productOptionValues->sortBy('sort_order');
                     foreach ($sorted as $product_option_value) {
                         $product_option_value_data[] = (object)[
                             'product_option_value_id' => $product_option_value->id,
@@ -300,18 +287,18 @@ class ProductController extends BackendController
                     }
                 }
                 $data['product_options'][] = (object)[
-                    'id'                   => $product_option->id,
-                    'product_option_id'    => $product_option->id,
+                    'id'                   => $productOption->id,
+                    'product_option_id'    => $productOption->id,
                     'product_option_values' => $product_option_value_data,
-                    'option_id'            => $product_option->option_id,
-                    'name'                 => $product_option->translation->name,
-                    'type'                 => $product_option->option->type,
-                    'value'                => isset($product_option->value) ? $product_option->value : '',
-                    'required'             => $product_option->required,
-                    'sort_order'           => $product_option->sort_order,
-                    'is_active'             => $product_option->is_active,
-                    'is_fixed'             => $product_option->is_fixed,
-                    'is_hidden'             => $product_option->is_hidden,
+                    'option_id'            => $productOption->option_id,
+                    'name'                 => $productOption->translation->name,
+                    'type'                 => $productOption->option->type,
+                    'value'                => isset($productOption->value) ? $productOption->value : '',
+                    'required'             => $productOption->required,
+                    'sort_order'           => $productOption->sort_order,
+                    'is_active'             => $productOption->is_active,
+                    'is_fixed'             => $productOption->is_fixed,
+                    'is_hidden'             => $productOption->is_hidden,
                 ];
             }
         }
@@ -319,14 +306,14 @@ class ProductController extends BackendController
         // For modal window
         $data['option_values'] = [];
 
-        foreach ($product->product_options as $product_option) {
-            if(empty($product_option->translation->name)){
+        foreach ($product->productOptions as $productOption) {
+            if(empty($productOption->translation->name)){
                 continue;
             }
-            $option = $product_option->option;
-            if ($option->type == 'options_with_qty' || $option->type == 'select' || $option->type == 'radio' || $option->type == 'checkbox' || $product_option->type == 'image') {
+            $option = $productOption->option;
+            if ($option->type == 'options_with_qty' || $option->type == 'select' || $option->type == 'radio' || $option->type == 'checkbox' || $productOption->type == 'image') {
                 if (!isset($data['option_values'][$option->id])) { //避免重複。
-                    $data['option_values'][$option->id] = $option->option_values->where('is_active',1)->sortBy('sort_order');
+                    $data['option_values'][$option->id] = $option->optionValues->where('is_active',1)->sortBy('sort_order');
                 }
             }
         }
@@ -418,7 +405,7 @@ class ProductController extends BackendController
             return $this->getErrorResponse($result['error'], $this->lang->text_fail, 200);
         }
 
-        // 順便更新選項(例如配菜)
+        // 如果是招牌潤餅便當，順便更新選項(例如配菜)
             if ($data['product_id'] == 1001){ // 招牌潤餅便當
                 //POS分類包括 潤餅便當 1453，刈包便當 1454，不含素食 1464, 不含客製 1459
                 $product_ids = DB::table('product_terms')
@@ -437,6 +424,8 @@ class ProductController extends BackendController
                 $this->copyProductOption(1001, 1005, $product_ids);
             }
         //
+
+
 
         // 執行成功 200
         $json = [
