@@ -87,7 +87,7 @@ class OrderService extends Service
         $data['mobile'] = preg_replace('/\D+/', '', $data['mobile']);
         $mobile = $data['mobile'] ?? null;
 
-        if (!empty($mobile)) {
+        if (empty($mobile)) {
             abort(400, '缺少手機號碼，無法更新');
         }
 

@@ -1,7 +1,7 @@
 {{-- 聯絡資料表格 --}}
   <table id="contactInfo" class="border-none contact" style="width: 100%;" >
     <tr style="height: 70px;">
-      <td class="col-sm-1"><img width="60" src="{{ asset('image/logo.png') }}" alt="Chinabing" title="Chinabing"/></td>
+      <td class="col-sm-1"><img width="60" src="{{ asset('assets2/image/logo.png') }}" alt="Chinabing" title="Chinabing"/></td>
       <td class="text-center"><span style="font-size: 1.5em;">外送訂購單</span></td>
       <td style="width: 160px;">下單日期 {{ $order['header']->order_date_ymd }}<BR></td>
     </tr>

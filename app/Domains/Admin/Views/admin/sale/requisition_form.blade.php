@@ -87,7 +87,7 @@
     <div class="modal-content" style="background: transparent; border: none;">
       <div class="modal-body" style="display: flex; justify-content: center; align-items: center; height: 100px;">
         <div class="loadingdiv" id="loading">
-          <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>
+          <img src="{{ asset('assets2/image/ajax-loader.gif') }}" width="50"/>
         </div>
       </div>
     </div>

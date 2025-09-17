@@ -89,11 +89,7 @@ class FileCustomCacheManager
         $files = File::allFiles($basePath);
         foreach ($files as $file) {
             if (basename($file) == (string)$uniqueKey) {
-                if (app()->environment('production')) {
-                    dispatch(new ClearCustomCacheJob($file));
-                } else {
-                    File::delete($file);
-                }
+                File::delete($file);
             }
         }
     }

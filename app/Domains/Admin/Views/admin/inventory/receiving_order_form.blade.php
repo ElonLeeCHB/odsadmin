@@ -343,7 +343,7 @@
           </form>
 
           <div class="loadingdiv" id="loading" style="display: none;">
-            <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>
+            <img src="{{ asset('assets2/image/ajax-loader.gif') }}" width="50"/>
           </div>
 
 

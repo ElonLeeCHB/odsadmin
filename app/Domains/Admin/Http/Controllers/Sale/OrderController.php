@@ -873,6 +873,7 @@ class OrderController extends BackendController
                     (object) ['short_name' => '培根', 'option_id' => 1003, 'option_value_ids' => [1021, 1100, 1063]],
                     (object) ['short_name' => '滷肉', 'option_id' => 1003, 'option_value_ids' => [1022, 1101, 1064]],
                     (object) ['short_name' => '春捲', 'option_id' => 1003, 'option_value_ids' => [1093]],
+                    (object) ['short_name' => '米食', 'option_id' => 1003, 'option_value_ids' => [1211]],
                 ];
             //
 

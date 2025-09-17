@@ -47,6 +47,7 @@ class InvoiceRepository
             }
 
             $items[] = [
+                'name'    => $item['name'],
                 'price'    => $netUnitPrice,
                 'quantity' => $quantity,
                 'subtotal' => $netSubtotal,

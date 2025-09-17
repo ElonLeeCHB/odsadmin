@@ -77,7 +77,7 @@
       </div>
       <div class="modal-body">
         <div class="loadingdiv" id="loading" style="display: block;">
-          <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>     
+          <img src="{{ asset('assets2/image/ajax-loader.gif') }}" width="50"/>     
         </div>
         
       </div>
@@ -93,7 +93,7 @@
       </div>
       <div class="modal-body">
         <div class="loadingdiv" id="loading" style="display: block;">
-          <img src="{{ asset('image/ajax-loader.gif') }}" width="50"/>     
+          <img src="{{ asset('assets2/image/ajax-loader.gif') }}" width="50"/>     
         </div>
         
       </div>
