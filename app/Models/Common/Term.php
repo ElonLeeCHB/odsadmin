@@ -257,7 +257,21 @@ class Term extends Model
 
     public function generateCacheByTaxonomyCode($taxonomy_code, $forceUpdate = 0)
     {
-        return (new Taxonomy)->generateCacheByTaxonomyCode($taxonomy_code, $forceUpdate);
+        $cache_key = 'term_of_taxonomy_code_' . $taxonomy_code . app()->getLocale();
+
+        if ($forceUpdate == 1) {
+            cache()->forget($cache_key);
+        }
+
+        return cache()->remember($cache_key, 60 * 24, function () use ($taxonomy_code) {
+            $terms = Term::where('taxonomy_code', $taxonomy_code)->where('is_active', 1)->with('translation:term_id,name')->get()->toArray();
+
+            foreach ($terms as $term) {
+                $rows[] = (object) DataHelper::unsetArrayFromArray($term);
+            }
+
+            return $rows;
+        });
     }
 
 }

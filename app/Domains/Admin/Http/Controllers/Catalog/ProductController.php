@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\DB;
 
 class ProductController extends BackendController
 {
+    private $breadcumbs;
+
     public function __construct(
         private Request $request
         , private LanguageRepository $languageRepository
@@ -33,6 +35,27 @@ class ProductController extends BackendController
         $this->getLang(['admin/common/common','admin/catalog/product']);
     }
 
+    private function setBreadcumbs()
+    {
+        $this->breadcumbs = [];
+
+        $this->breadcumbs[] = (object)[
+            'text' => $this->lang->text_home,
+            'href' => route('lang.admin.dashboard'),
+        ];
+
+        $this->breadcumbs[] = (object)[
+            'text' => $this->lang->text_product,
+            'href' => 'javascript:void(0)',
+            'cursor' => 'default',
+        ];
+
+        $this->breadcumbs[] = (object)[
+            'text' => $this->lang->heading_title,
+            'href' => route('lang.admin.sales.orders.index'),
+        ];
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -42,29 +65,11 @@ class ProductController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-
-        // Breadcomb
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_home,
-            'href' => route('lang.admin.dashboard'),
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_product,
-            'href' => 'javascript:void(0)',
-            'cursor' => 'default',
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.catalog.products.index'),
-        ];
-
-        $data['breadcumbs'] = (object)$breadcumbs;
+        $data['breadcumbs'] = (object)$this->breadcumbs;
 
 
         // categories
-        $data['categories'] = $this->CategoryService->getCategories();
+        // $data['categories'] = $this->CategoryService->getCategories();
 
         $data['list'] = $this->getList();
 
@@ -73,7 +78,16 @@ class ProductController extends BackendController
         $data['delete_url'] = route('lang.admin.catalog.products.destroy');
 
         // $data['order_printing_product_tags'] = $this->ProductService->getProductTags();
-        $data['pringting_categories'] = $this->ProductService->getTermsByTaxonomyCode(taxonomy_code:'OrderPrintingProductCategory');
+        $data['printing_categories'] = $this->ProductService->getTermsByTaxonomyCode(taxonomy_code:'OrderPrintingProductCategory');
+
+        /*
+        // ProductWwwCategory
+        $data['ProductWwwCategories'] = $this->ProductService->getWwwCategories($product_id);
+        $data['AllProductWwwCategories'] = $this->ProductService->getAllWwwCategories($product_id);
+
+        // ProductPosCategory
+        $data['ProductPosCategories'] = $this->ProductService->getPosCategories($product_id);
+        */
 
         return view('admin.catalog.product', $data);
     }
@@ -93,16 +107,10 @@ class ProductController extends BackendController
         $query_data = $this->url_data;
 
         // Rows, LengthAwarePaginator
-        $query_data['select'] = ['id','code','main_category_id','sort_order','price','is_active','is_salable'];
-        $query_data['equal_is_salable'] = 1;
-
-        $products = $this->ProductService->getProductList($query_data);
+        $products = $this->ProductService->getProductList($this->url_data);
 
         if(!empty($products)){
-            $products->load('main_category');
-
             foreach ($products as $row) {
-                $row->main_category_name = $row->main_category->name ?? '';
                 $row->edit_url = route('lang.admin.catalog.products.form', array_merge([$row->id], $this->url_data));
             }
             
@@ -229,7 +237,7 @@ class ProductController extends BackendController
             'pagination' => false,
             'limit' => 0,
         ];
-        $data['pringting_categories'] = $this->ProductService->getTermsByTaxonomyCode(taxonomy_code:'OrderPrintingProductCategory');
+        $data['printing_categories'] = $this->ProductService->getTermsByTaxonomyCode(taxonomy_code:'OrderPrintingProductCategory');
 
         // $data['exist_product_tag_ids'] = optional($product->productTags)->pluck('term_id')->toArray();
         $data['exist_order_printing_product_category_ids'] = optional($product->productTags)->pluck('term_id')->toArray();

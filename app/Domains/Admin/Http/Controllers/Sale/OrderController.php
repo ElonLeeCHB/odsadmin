@@ -862,19 +862,31 @@ class OrderController extends BackendController
                 //飲料 抓選項
                 $data['columns']['Drink'] = $this->OrderService->getDrinks();
 
-                //新方案 for template=V03 
-                $data['columns']['MainMeal'] = [
-                    (object) ['short_name' => '主廚', 'option_id' => 1003, 'option_value_ids' => [1083, 1102, 1095]],
-                    (object) ['short_name' => '奶素', 'option_id' => 1003, 'option_value_ids' => [1047, 1105, 1058]],
-                    (object) ['short_name' => '鮮蔬', 'option_id' => 1003, 'option_value_ids' => [1017, 1096, 1059]],
-                    (object) ['short_name' => '炸蝦', 'option_id' => 1003, 'option_value_ids' => [1018, 1097, 1060]],
-                    (object) ['short_name' => '芥雞', 'option_id' => 1003, 'option_value_ids' => [1019, 1098, 1061]],
-                    (object) ['short_name' => '酥魚', 'option_id' => 1003, 'option_value_ids' => [1020, 1099, 1062]],
-                    (object) ['short_name' => '培根', 'option_id' => 1003, 'option_value_ids' => [1021, 1100, 1063]],
-                    (object) ['short_name' => '滷肉', 'option_id' => 1003, 'option_value_ids' => [1022, 1101, 1064]],
-                    (object) ['short_name' => '春捲', 'option_id' => 1003, 'option_value_ids' => [1093]],
-                    (object) ['short_name' => '米食', 'option_id' => 1003, 'option_value_ids' => [1211]],
-                ];
+            //新方案 for template=V03 
+            // $data['columns']['MainMeal'] = [
+            //     (object) ['short_name' => '主廚', 'option_value_ids' => [1083, 1102, 1095]],
+            //     (object) ['short_name' => '奶素', 'option_value_ids' => [1047, 1105, 1058]],
+            //     (object) ['short_name' => '鮮蔬', 'option_value_ids' => [1017, 1096, 1059]],
+            //     (object) ['short_name' => '炸蝦', 'option_value_ids' => [1018, 1097, 1060]],
+            //     (object) ['short_name' => '芥雞', 'option_value_ids' => [1019, 1098, 1061]],
+            //     (object) ['short_name' => '酥魚', 'option_value_ids' => [1020, 1099, 1062]],
+            //     (object) ['short_name' => '培根', 'option_value_ids' => [1021, 1100, 1063]],
+            //     (object) ['short_name' => '滷肉', 'option_value_ids' => [1022, 1101, 1064]],
+            //     (object) ['short_name' => '春捲', 'option_value_ids' => [1093]],
+            //     (object) ['short_name' => '米食', 'option_value_ids' => [1211]],
+            // ];
+            $data['columns']['MainMeal'] = [
+                (object) ['short_name' => '主廚', 'option_value_ids' => [1083, 1102, 1095]],
+                (object) ['short_name' => '奶素', 'option_value_ids' => [1047, 1105, 1058]],
+                (object) ['short_name' => '鮮蔬', 'option_value_ids' => [1017, 1096, 1059]],
+                (object) ['short_name' => '炸蝦', 'option_value_ids' => [1018, 1097, 1060]],
+                (object) ['short_name' => '芥雞', 'option_value_ids' => [1019, 1098, 1061]],
+                (object) ['short_name' => '酥魚', 'option_value_ids' => [1020, 1099, 1062]],
+                (object) ['short_name' => '培根', 'option_value_ids' => [1021, 1100, 1063]],
+                (object) ['short_name' => '滷肉', 'option_value_ids' => [1022, 1101, 1064]],
+                (object) ['short_name' => '春捲', 'option_value_ids' => [1093]],
+                (object) ['short_name' => '米食', 'option_value_ids' => [1211]],
+            ];
             //
 
             if(empty($request_data['template'])){

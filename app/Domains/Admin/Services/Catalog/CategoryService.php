@@ -15,10 +15,10 @@ class CategoryService extends Service
     }
     
 
-    public function getCategories($params = [], $debug = 0)
-    {
-        return $this->CategoryRepository->getCategories($params, $debug);
-    }
+    // public function getCategories($params = [], $debug = 0)
+    // {
+    //     return $this->CategoryRepository->getCategories($params, $debug);
+    // }
 
     public function saveCategory($category_id)
     {

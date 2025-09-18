@@ -195,15 +195,15 @@
                 </div>
 
                 <div class="row mb-3">
-                  <label for="input-pringting_category_id" class="col-sm-2 col-form-label">訂單商品列印分類</label>
+                  <label for="input-printing_category_id" class="col-sm-2 col-form-label">訂單商品列印分類</label>
                   <div class="col-sm-10">
-                    <select id="input-pringting_category_id" name="pringting_category_id" class="form-control">
+                    <select id="input-printing_category_id" name="printing_category_id" class="form-control">
                       <option> -- </option>
-                      @foreach($pringting_categories ?? [] as $pringting_category)
-                      <option value="{{ $pringting_category->id }}" @if($pringting_category->id == $product->pringting_category_id) selected @endif>{{ $pringting_category->name }}</option>
+                      @foreach($printing_categories ?? [] as $pringting_category)
+                      <option value="{{ $pringting_category->id }}" @if($pringting_category->id == $product->printing_category_id) selected @endif>{{ $pringting_category->name }}</option>
                       @endforeach
                     </select>
-                    <div id="error-pringting_category_id" class="invalid-feedback"></div>
+                    <div id="error-printing_category_id" class="invalid-feedback"></div>
                     <div class="form-text">會用在備料表的判斷。請小心設定。</div>
                   </div>
                 </div>

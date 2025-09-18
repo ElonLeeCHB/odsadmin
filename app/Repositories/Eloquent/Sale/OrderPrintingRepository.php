@@ -224,7 +224,7 @@ class OrderPrintingRepository extends Repository
                 'orderProducts' => function ($query) {
                     $query->with([
                         'orderProductOptions',
-                        'product:id,pringting_category_id',
+                        'product:id,printing_category_id',
                         'productTags.translation',
                         'productPosCategories.translation',
                     ]);
@@ -317,7 +317,7 @@ class OrderPrintingRepository extends Repository
             //order_products
                 foreach ($order->orderProducts as $orderProduct) {
                     $product_id = $orderProduct->product_id;
-                    $printing_category_id = $orderProduct->product->pringting_category_id;
+                    $printing_category_id = $orderProduct->product->printing_category_id;
 
                     //product_id
                     // 注意！ 客製餐點不合併，所以將 product_id 加再上 sort_order 做為新的 product_id
@@ -366,6 +366,10 @@ class OrderPrintingRepository extends Repository
                             $orderProduct->identifier = 'customLunchbox';
                             $printingRowsByCategory[$orderProduct->identifier]['name'] = '客製盒餐';
                         }
+                        else if ($printing_category_id == 1515) { // 單點潤餅或飲料
+                            $orderProduct->identifier = 'soloDrinkLumpiaGuabao';
+                            $printingRowsByCategory[$orderProduct->identifier]['name'] = '單點潤餅刈包飲料';
+                        }
                         else if ($printing_category_id == 1476){
                             $orderProduct->identifier = 'otherFlavors';
                             $printingRowsByCategory[$orderProduct->identifier]['name'] = '其它口味餐點';
@@ -411,7 +415,7 @@ class OrderPrintingRepository extends Repository
             //order_product_options
                 //處理全部選項
                     foreach ($order->orderProducts as $orderProduct) {
-                        $printing_category_id = $orderProduct->product->pringting_category_id;
+                        $printing_category_id = $orderProduct->product->printing_category_id;
 
                         //product_id
                         // 注意！ 客製餐點不合併，所以將 product_id 加再上 sort_order 做為新的 product_id
@@ -424,7 +428,7 @@ class OrderPrintingRepository extends Repository
                         //                        
 
                         $identifier = $orderProduct->identifier;
-    
+                        
                         foreach ($orderProduct->order_product_options as $orderProduct_option) {
                             $option_id = $orderProduct_option->option_id;
                             $option_value_id = $orderProduct_option->option_value_id;
@@ -470,12 +474,12 @@ class OrderPrintingRepository extends Repository
                             $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['quantity'] += $orderProduct_option->quantity;
                         }
                     }
-                //             
-    
+            //             
+
                 //再次處理全部選項，但只抓盒餐飲料
                 foreach ($order->orderProducts as $orderProduct) {
                     // $product_tag_ids = $order_product->productTags->pluck('term_id')->toArray();
-                    $printing_category_id = $orderProduct->product->pringting_category_id;                    
+                    $printing_category_id = $orderProduct->product->printing_category_id;                    
 
                     // 判斷商品標籤是否有盒餐：1473(潤餅盒餐), 1474(刈包盒餐), 1478(客製盒餐)，不是則略過。
                     if (!in_array($printing_category_id, $this->lunchBoxPrintingCategoryIds)){
@@ -590,7 +594,7 @@ class OrderPrintingRepository extends Repository
                 //便當系列
                     $tmp_array = [1471, 1472];
                     foreach ($order->orderProducts as $orderProduct) {
-                        $printing_category_id = $orderProduct->product->pringting_category_id;
+                        $printing_category_id = $orderProduct->product->printing_category_id;
 
                         if ($printing_category_id == 1475){ //油飯盒
                             $orderProduct->identifier = 'oilRiceBox';
@@ -695,6 +699,13 @@ class OrderPrintingRepository extends Repository
                 'order_totals' => $order_totals,
             ];
         }
+
+        /*
+                        else if ($printing_category_id == 1515) { // 單點潤餅或飲料
+                            $orderProduct->identifier = 'soloDrinkLumpiaGuabao';
+                            $printingRowsByCategory[$orderProduct->identifier]['name'] = '單點潤餅刈包飲料';
+                        }
+        */
 
         // 處理訂單列印狀態
         if(!empty($params['printStatus']) && !empty($order_ids)){

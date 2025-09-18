@@ -240,7 +240,6 @@
               {{ $product['product_options']['Drink'][$item->option_value_id]['quantity'] }}
             @endif
           </td>
-          @php $column_used_num++; @endphp
         @endforeach
       </tr>
       @endforeach
@@ -324,8 +323,7 @@
                 {{ $product['product_options']['Drink'][$item->option_value_id]['quantity'] }}
               @endif
             </td>
-            @php $column_used_num++; @endphp
-        @endforeach
+          @endforeach
         </tr>
         @endforeach
       </tbody>
@@ -585,9 +583,6 @@
           </td>
           @php $column_used_num++; @endphp
         @endforeach
-
-
-
       </tr>
     </thead>
     <tbody>
@@ -833,6 +828,94 @@
   </table>
   @endif
 <!-- end 分享餐系列 -->
+
+
+@if(!empty($order['categories']['soloDrinkLumpiaGuabao']))
+@php $max_columns=18; @endphp
+@php $column_used_num = 0; @endphp
+<!-- 單點飲料 -->
+<table id="guabaoBento" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
+      <thead>
+        <tr>
+          <td style="width:230px;" class="fw-bold">{{ $order['categories']['soloDrinkLumpiaGuabao']['name'] }}</td>
+          <td style="width:24px;" class="fw-bold">小計</td>
+          @php $column_used_num = 2; @endphp
+
+          @foreach($columns['MainMeal'] ?? [] as $item)
+            <td style="width:24px; @if ($loop->last) border-right:3px solid black @endif" class="fw-bold">
+              {{ $item->short_name }}
+            </td>
+            @php $column_used_num++; @endphp
+          @endforeach
+
+          @foreach($order['categories']['soloDrinkLumpiaGuabao']['Columns']['SecondaryMainMeal'] ?? [] as $option_value_id => $name)
+            <td style="width:24px; @if ($loop->last) border-right:3px solid black @endif" class="fw-bold">
+              {{ $name }}
+            </td>
+            @php $column_used_num++; @endphp
+          @endforeach
+
+          @php $left = $max_columns-$column_used_num; @endphp
+          @for($i = 1; $i <= $left; $i++)
+            <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
+          @endfor
+
+          @foreach($columns['Drink'] ?? [] as $item)
+            <td style="width:24px; @if ($loop->last) border-right:3px solid black @endif" class="fw-bold">
+              {{ $item->short_name }}
+            </td>
+            @php $column_used_num++; @endphp
+          @endforeach
+        </tr>
+      </thead>
+      <tbody>
+        @foreach($order['categories']['soloDrinkLumpiaGuabao']['items'] ?? [] as $product_id => $product)
+        @php
+        // echo "<pre>", print_r($product, true), "</pre>";exit;
+        @endphp
+        <tr>
+          <td>{{ $product['name'] }} ${{ $product['price'] }}</td>
+          <td>{{ $product['quantity'] }}</td>
+          @php $column_used_num = 2; @endphp
+
+          @foreach($columns['MainMeal'] ?? [] as $item)
+            <td style="@if ($loop->last) border-right:3px solid black @endif">
+              @foreach($item->option_value_ids as $option_value_id)
+                @if(!empty($product['product_options']['Lumpia6inch'][$option_value_id]['quantity']))
+                  {{ $product['product_options']['Lumpia6inch'][$option_value_id]['quantity'] }}
+                @endif
+              @endforeach
+            </td>
+            @php $column_used_num++; @endphp
+          @endforeach
+
+          @foreach($order['categories']['soloDrinkLumpiaGuabao']['Columns']['SecondaryMainMeal'] ?? [] as $option_value_id => $name)
+            <td style="@if ($loop->last) border-right:3px solid black @endif">
+              @if(!empty($product['product_options']['SecondaryMainMeal'][$option_value_id]['quantity']))
+                {{ $product['product_options']['SecondaryMainMeal'][$option_value_id]['quantity'] }}
+              @endif
+            </td>
+            @php $column_used_num++; @endphp
+          @endforeach
+
+          @php $left = $max_columns-$column_used_num; @endphp
+          @for($i = 1; $i <= $left; $i++)
+            <td style="width:24px; @if ($i == $left) border-right:3px solid black @endif"> </td>
+          @endfor
+
+          @foreach($columns['Drink'] ?? [] as $item)
+            <td style="@if ($loop->last) border-right:3px solid black @endif">
+              @if(!empty($product['product_options']['Drink'][$item->option_value_id]['quantity']))
+                {{ $product['product_options']['Drink'][$item->option_value_id]['quantity'] }}
+              @endif
+            </td>
+          @endforeach
+        </tr>
+        @endforeach
+      </tbody>
+</table>
+<!-- end 單點飲料 -->
+@endif
 
 <!-- 其它 -->
 @if(!empty($order['categories']['otherCategory']))

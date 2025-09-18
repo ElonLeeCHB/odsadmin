@@ -55,7 +55,27 @@
                 @endforeach
               </select>
             </div>
+
+            <div class="mb-3">
+              <label class="form-label">商品列印分類</label>
+              <select id="input-filter_printing_category_id" name="filter_printing_category_id[]" class="select2-multiple form-control" multiple="multiple">
+                @foreach($printing_categories ?? [] as $pringting_category)
+                <option value="{{ $pringting_category->id }}">{{ $pringting_category->name }}</option>
+                @endforeach
+              </select>
+            </div>
              --}}
+
+            <div class="mb-3">
+              <label class="form-label">商品列印分類</label>
+              <select id="input-filter_printing_category_id" name="filter_printing_category_id[]" class="select2-multiple form-control">
+                <option value='*'>{{ $lang->text_please_choose }}</option>
+                    
+                @foreach($printing_categories ?? [] as $pringting_category)
+                <option value="{{ $pringting_category->id }}">{{ $pringting_category->name }}</option>
+                @endforeach
+              </select>
+            </div>
 
             <div class="mb-3">
               <label class="form-label">{{ $lang->column_is_active }}</label>
@@ -103,10 +123,10 @@ $('#button-filter').on('click', function() {
     url += '&filter_name=' + encodeURIComponent(filter_name);
   }
 
-  var filter_product_tags = $('#input-filter_product_tags').val();
+  var filter_printing_category_id = $('#input-filter_printing_category_id').val();
 
-  if (filter_product_tags && filter_product_tags.length > 0) {
-    url += '&filter_product_tags=' + encodeURIComponent(filter_product_tags);
+  if (filter_printing_category_id && filter_printing_category_id.length > 0 && filter_printing_category_id != '*') {
+    url += '&filter_printing_category_id=' + encodeURIComponent('=' + filter_printing_category_id);
   }
 
   var equal_is_active = $('#input-equal_is_active').val();
@@ -123,7 +143,7 @@ $('#button-filter').on('click', function() {
   $("#button-add").attr("href", add_url);
 });
 
-$('#input-filter_product_tags').select2({
+$('#input-filter_printing_category_id').select2({
   width:'100%',
 });
 

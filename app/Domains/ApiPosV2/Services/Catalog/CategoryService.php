@@ -77,7 +77,7 @@ class CategoryService extends Service
         //
 
         // 所有分類（樹狀結構）
-            $categories = Term::where('taxonomy_code', 'ProductPosCategory')
+            $categories = Term::where('taxonomy_code', 'ProductPosCategory')->where('is_active', 1)
                             ->orderBy('sort_order')
                             ->get()
                             ->groupBy('parent_id'); // 依據 parent_id 分組，建立樹狀

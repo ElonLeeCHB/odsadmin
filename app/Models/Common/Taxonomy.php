@@ -30,6 +30,7 @@ class Taxonomy extends Model
         );
     }
 
+    /*
     //內建 cache
     public function deleteCacheByTaxonomyCode($taxonomy_code)
     {
@@ -56,4 +57,5 @@ class Taxonomy extends Model
             return $rows;
         });
     }
+        */
 }

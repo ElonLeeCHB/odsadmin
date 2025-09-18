@@ -246,16 +246,25 @@ class ProductService extends Service
     }
 
     // 取得列表
-    public function getProductList($query_data)
+    public function getProductList($params)
     {
-        $query_data['select'] = ['id','code','main_category_id','sort_order','price','is_active','is_salable'];
-        $query_data['equal_is_salable'] = 1;
+        $params['select'] = ['id','code','sort_order','price','is_active','is_salable', 'printing_category_id'];
+        $params['equal_is_salable'] = 1;
 
         $query = Product::query();
-        OrmHelper::prepare($query, $query_data);
 
-        if (!empty($query_data['filter_product_tags'])) {
-            $product_tags = explode(',', $query_data['filter_product_tags']);
+        // POS商品分類 product_terms.taxonomy_id = 32
+        if (isset($params['filter_printing_category_id'])){
+            if (ctype_digit((string) $params['filter_printing_category_id'])) {
+                $params['filter_printing_category_id'] = '=' . $params['filter_printing_category_id'];
+            }
+        }
+
+
+        OrmHelper::prepare($query, $params);
+
+        if (!empty($params['filter_product_tags'])) {
+            $product_tags = explode(',', $params['filter_product_tags']);
 
             foreach ($product_tags as $term_id) {
                 $query->whereHas('ProductTags', function ($qry) use ($term_id) {
@@ -264,7 +273,8 @@ class ProductService extends Service
             }
         }
 
-        return OrmHelper::getResult($query, $query_data);
+        // OrmHelper::showSqlContent($query);
+        return OrmHelper::getResult($query, $params);
     }
 
     public function getProductById($product_id)

@@ -29,37 +29,25 @@ use Illuminate\Support\Facades\DB;
 
 class OrderDailyRequisitionRepository
 {
-    // public function handleByDate($required_date, $force_update = 0, $is_return = false)
-    // {
-    //     $required_date = Carbon::parse($required_date)->format('Y-m-d');
-
-    //     $cache_key = 'sale_order_requisition_date_' . $required_date;
-                
-    //     $statistics = cache()->get($cache_key);
-
-    //     // 如果快取不存在或快取中的 cache_created_at 超過指定期限
-    //     if ($force_update || !$statistics || !isset($statistics['cache_created_at']) || Carbon::parse($statistics['cache_created_at'])->diffInMinutes(now()) > 60) {
-    //         $statistics = $this->calculateByDate($required_date);
-    //         cache()->put($cache_key, $statistics, 60*24*180);
-    //     }
-
-    //     if ($is_return == true){
-    //         return $statistics;
-    //     }
-    // }
-
     public function getStatisticsByDate($required_date, $force_update = 0, $is_return = true)
     {
         $required_date = Carbon::parse($required_date)->format('Y-m-d');
 
         $cache_key = 'sale_order_requisition_date_' . $required_date;
-                
+
+        // 先取得快取
         $statistics = cache()->get($cache_key);
 
-        // 如果快取不存在或快取中的 cache_created_at 超過指定期限
-        if ($force_update || !$statistics || !isset($statistics['cache_created_at']) || Carbon::parse($statistics['cache_created_at'])->diffInMinutes(now()) > 60) {
-            $statistics = $this->calculateByDate($required_date);
-            cache()->put($cache_key, $statistics, 60*24*180);
+        // 如果快取不存在或快取中的 cache_created_at 超過指定期限，則重新產生快取
+        if (
+            $force_update ||
+            !$statistics ||
+            !isset($statistics['cache_created_at']) ||
+            Carbon::parse($statistics['cache_created_at'])->diffInMinutes(now()) > 60
+        ) {
+            $statistics = cache()->remember($cache_key, 60 * 24 * 180, function () use ($required_date) {
+                return $this->calculateByDate($required_date);
+            });
         }
 
         if ($is_return == true){
@@ -129,25 +117,28 @@ class OrderDailyRequisitionRepository
             $order_list = [];
             
             foreach ($orders ?? [] as $key1 => $order) {
-                $delivery_time_ranges = explode('-', $order->delivery_time_range);
+                $order->delivery_time_range = str_replace(' ', '', $order->delivery_time_range);
+                $delivery_time_range_array = explode('-', $order->delivery_time_range);
+
+                $delivery_time_range_start = substr($delivery_time_range_array[0], 0, 2) . ':' . substr($delivery_time_range_array[0], -2);
+                $delivery_time_range_end   = substr($delivery_time_range_array[1], 0, 2) . ':' . substr($delivery_time_range_array[1], -2);
 
                 $order_list[$order->id]['order_id'] = $order->id;
                 $order_list[$order->id]['order_code'] = substr($order->code,4,4);
                 $order_list[$order->id]['required_datetime'] = $order->delivery_date;
                 $order_list[$order->id]['required_date_ymd'] = $required_date_ymd;
                 $order_list[$order->id]['delivery_time_range'] = $order->delivery_time_range;
-                $order_list[$order->id]['delivery_time_range_start'] = substr($delivery_time_ranges[0],0,2) . ':' . substr($delivery_time_ranges[0],-2) ;
-                $order_list[$order->id]['delivery_time_range_end']   = substr($delivery_time_ranges[1],0,2) . ':' . substr($delivery_time_ranges[1],-2) ;
+                $order_list[$order->id]['delivery_time_range_start'] = $delivery_time_range_start;
+                $order_list[$order->id]['delivery_time_range_end']   = $delivery_time_range_end;
                 $order_list[$order->id]['shipping_road_abbr'] = $order->shipping_road_abbr;
                 $order_list[$order->id]['order_url'] = route('lang.admin.sale.orders.form', [$order->order_id]);
-
                 $order_list[$order->id]['tooltip'] = '';
 
                 $braisedfood_option_value_ids = [1202,1203,1204];
                 
                 foreach ($order->orderProducts as $key2 => $orderProduct) {
                     $product_id = $orderProduct->product_id;
-                    $printing_category_id = $orderProduct->product->pringting_category_id;
+                    $printing_category_id = $orderProduct->product->printing_category_id;
 
                     // 單點，無選項
                         if ($printing_category_id == 1494){
@@ -366,7 +357,7 @@ class OrderDailyRequisitionRepository
                     }
                     //1331 套餐, 1330 盒餐, 1329 便當, 1437 素食, 1440 刈包, 1441 潤餅, 1443 油飯盒, 1461 美味單點
 
-                    $printing_category_id = $orderProduct->product->pringting_category_id;      
+                    $printing_category_id = $orderProduct->product->printing_category_id;      
 
                     // $product_tag_ids = $product_tag_ids ?? [];
                     //1471=潤餅便當 1472=刈包便當 1473=潤餅盒餐 1474=刈包盒餐 1475=油飯盒 1477=客製便當 1478=客製盒餐
