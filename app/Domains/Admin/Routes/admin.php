@@ -83,6 +83,12 @@ Route::group([
         Route::get('products/autocomplete', 'Catalog\ProductController@autocomplete')->name('products.autocomplete');
         Route::post('products/save/{product_id?}', 'Catalog\ProductController@save')->name('products.save');
         Route::post('products/destroy', 'Catalog\ProductController@destroy')->name('products.destroy');
+
+        Route::get('cost_estimations', 'Catalog\CostEstimationController@index')->name('cost_estimations.index');
+        Route::get('cost_estimations/list', 'Catalog\CostEstimationController@list')->name('cost_estimations.list');
+        Route::get('cost_estimations/form/{id?}', 'Catalog\CostEstimationController@form')->name('cost_estimations.form');
+        Route::post('cost_estimations/save/{id?}', 'Catalog\CostEstimationController@save')->name('cost_estimations.save');
+        Route::post('cost_estimations/delete', 'Catalog\CostEstimationController@delete')->name('cost_estimations.delete');
     });
 
     Route::group([

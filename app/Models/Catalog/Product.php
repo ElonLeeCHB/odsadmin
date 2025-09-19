@@ -56,13 +56,6 @@ class Product extends Model
         static::observe(\App\Observers\ProductObserver::class);
     }
 
-
-    //主分類這個名稱太籠統，以後不用。
-    public function main_category()
-    {
-        return $this->belongsTo(Term::class, 'main_category_id', 'id');
-    }
-
     public function productTerms()
     {
         return $this->hasMany(ProductTerm::class, 'product_id', 'id');
@@ -71,6 +64,12 @@ class Product extends Model
     public function terms()
     {
         return $this->belongsToMany(Term::class, 'product_terms', 'product_id', 'term_id');
+    }
+
+    // Term terms.id=products.printing_category_id
+    public function printingCategory()
+    {
+        return $this->belongsTo(Term::class, 'printing_category_id', 'id');
     }
 
     // 暫時不用

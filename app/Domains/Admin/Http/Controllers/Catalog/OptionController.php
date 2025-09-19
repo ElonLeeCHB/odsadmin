@@ -21,11 +21,11 @@ class OptionController extends BackendController
     {
         parent::__construct();
 
-        $this->getLang(['admin/common/common','admin/catalog/option']);
+        $this->getLang(['admin/common/common','admin/common/column_left','admin/catalog/option']);
         $this->setBreadcumbs();
     }
 
-    private function setBreadcumbs()
+    protected function setBreadcumbs()
     {
         $this->breadcumbs = [];
 
@@ -35,7 +35,7 @@ class OptionController extends BackendController
         ];
 
         $this->breadcumbs[] = (object)[
-            'text' => $this->lang->text_option,
+            'text' => $this->lang->text_catalog,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];

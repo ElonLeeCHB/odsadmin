@@ -9,6 +9,7 @@ use App\Models\Inventory\Bom;
 use App\Models\Inventory\BomProduct;
 use App\Models\Catalog\Product;
 use App\Helpers\Classes\DataHelper;
+use App\Helpers\Classes\OrmHelper;
 
 class BomRepository extends Repository
 {
@@ -55,88 +56,72 @@ class BomRepository extends Repository
         return $boms;
     }
 
-    public function saveBom($post_data = [], $debug = 0)
+    public function saveBomBundle($data = [], $debug = 0)
     {
-        try{
+        $bom_id = $data['bom_id'] ?? null;
 
-            $bom_id = $post_data['bom_id'] ?? null;
-            $result = parent::saveRow($bom_id, $post_data, 1);
+        // $result = parent::saveRow($bom_id, $data, 1);
+        $query = Bom::query();
+        $bom = OrmHelper::findIdOrFailOrNew($query, $bom_id);
 
-            if(!empty($result['error'])){
-                throw new \Exception($result['error']);
-            }
+        // 儲存本表 boms
+        OrmHelper::saveRow($bom, $data);
 
-            $bom_id = $result['id'];
+        $bom_id = $bom->id;
+        $master_product_id = $data['product_id']; // 主件
 
-            $result = parent::findIdOrFailOrNew($bom_id);
+        // 儲存子表 bom_products
+            $input_bom_products = $data['bom_products'] ?? [];
 
-            if(!empty($result['data'])){
-                $bom = $result['data'];
-            }else if($result['error']){
-                throw new \Exception($result['error']);
-            }
-            unset($result);
+            // 1. 取得目前資料庫中的 BomProduct ID 清單
+            $existing_bom_products = BomProduct::where('bom_id', $bom_id)->get()->keyBy('id');
+            $existing_bom_product_ids = $existing_bom_products->keys()->all();
 
-            if(!empty($post_data['products'])){
-                $post_data['bom_id'] = $bom->id;
-                $result2 = $this->saveBomProducts($post_data);
+            // 2. 初始化 ID 收集器
+            $input_bom_product_ids = [];
 
-                if(!empty($result2['error'])){
-                    throw new \Exception($result2['error']);
+            // 3. 處理輸入資料
+            foreach ($input_bom_products as $input_bom_product) {
+                $id = $input_bom_product['id'] ?? null;
+
+                $record_data = [
+                    'bom_id' => $bom_id,
+                    'product_id' => $master_product_id,
+                    'sub_product_id' => $input_bom_product['sub_product_id'],
+                    'quantity' => $input_bom_product['quantity'],
+                    'usage_unit_code' => $input_bom_product['usage_unit_code'],
+                    'waste_rate' => $input_bom_product['waste_rate'] ?? 0,
+                    'amount' => $input_bom_product['amount'] ?? 0,
+                ];
+
+                if ($id && isset($existing_bom_products[$id])) {
+                    // 更新資料
+                    $existing_bom_products[$id]->update($record_data);
+                    $input_bom_product_ids[] = $id;
+                } else {
+                    // 新增資料（不使用傳入的 id）
+                    BomProduct::create($record_data);
                 }
             }
 
-            // 將BOM單頭成本回寫料件資料表的 庫存單位成本
-            if(isset($post_data['total']) && $post_data['total'] != ''){
-                $product = Product::find($bom->product_id);
-                $product->stock_price = $bom->total;
-                $product->save();
+            // 4. 刪除資料庫中有但輸入資料沒有的項目
+            $to_delete_bom_product_ids = array_diff($existing_bom_product_ids, $input_bom_product_ids);
+
+            if (!empty($to_delete_ids)) {
+                BomProduct::whereIn('id', $to_delete_bom_product_ids)->delete();
             }
+        // end 儲存子表 bom_products
 
-            $bom->refresh();
-            $bom->load('bomProducts');
-            DataHelper::setJsonToStorage('cache/inventory/BomId_' . $bom->id . '.json', $bom->toArray());
+        // 將BOM單頭成本回寫料件資料表的 庫存單位成本
+            $product = Product::find($bom->product_id);
+            $product->stock_price = $bom->total;
+            $product->save();
+        // end 將BOM單頭成本回寫料件資料表的 庫存單位成本
 
-            return ['data' => ['id' => $bom->id]];
+        $bom->refresh();
+        $bom->load('bomProducts');
 
-        } catch (\Exception $ex) {
-            return ['error' => $ex->getMessage()];
-        }
-    }
-
-
-    public function saveBomProducts($post_data)
-    {
-        $upsert_data = [];
-
-        try{
-            $bom_id = $post_data['bom_id'];
-            $product_id = $post_data['product_id']; // 主件
-
-            foreach ($post_data['products'] as $product) {
-                $upsert_data[] = [
-                    'id' => $product['id'] ?? null,
-                    'bom_id' => $bom_id,
-                    'product_id' => $product_id,
-                    'sub_product_id' => $product['sub_product_id'],
-                    'quantity' => $product['quantity'],
-                    'usage_unit_code' => $product['usage_unit_code'],
-                    'waste_rate' => $product['waste_rate'] ?? 0,
-                    'amount' => $product['amount'] ?? 0,
-                ];
-            }
-
-            if(!empty($upsert_data)){
-                $res1 = BomProduct::where('bom_id', $bom_id)->delete();
-                $res2 = BomProduct::upsert($upsert_data, ['id']);
-            }
-
-            return true;
-
-        } catch (\Throwable $th) {
-            echo "<pre>",print_r($th->getMessage(),true),"</pre>\r\n";exit;
-            throw $th;
-        }
+        return $bom;
     }
 
 

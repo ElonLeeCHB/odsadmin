@@ -26,7 +26,7 @@ class CouponController extends BackendController
         })->only(['index', 'list', 'form']);
     }
 
-    private function setBreadcumbs()
+    protected function setBreadcumbs()
     {
         $this->breadcumbs = [];
 

@@ -59,7 +59,7 @@ class LayoutComposer
          */
         /*
         if(1) {
-            $Catalog[] = [
+            $catalog[] = [
                 'name'	   => $this->lang->text_tag,
                 'icon'	   => '',
                 'href'     => 'javascript:void()',
@@ -68,7 +68,7 @@ class LayoutComposer
         }
 
         if(1) {
-            $Catalog[] = [
+            $catalog[] = [
                 'name'	   => $this->lang->text_category,
                 'icon'	   => '',
                 'href'     => route('lang.admin.catalog.categories.index'),
@@ -78,7 +78,7 @@ class LayoutComposer
         */
 
         // if(1) {
-        //     $Catalog[] = [
+        //     $catalog[] = [
         //         'name'	   => 'POS商品分類',
         //         'icon'	   => '',
         //         'href'     => route('lang.admin.catalog.poscategories.index', ['equal_is_active' => 1]),
@@ -87,7 +87,7 @@ class LayoutComposer
         // }
 
         // if(1) {
-        //     $Catalog[] = [
+        //     $catalog[] = [
         //         'name'	   => '訂單列印分類',
         //         'icon'	   => '',
         //         'href'     => route('lang.admin.catalog.order-printing-categories.index', ['equal_is_active' => 1]),
@@ -96,7 +96,7 @@ class LayoutComposer
         // }
 
         if(1) {
-            $Catalog[] = [
+            $catalog[] = [
                 'name'	   => $this->lang->text_option,
                 'icon'	   => '',
                 'href'     => route('lang.admin.catalog.options.index', ['equal_is_active' => 1]),
@@ -105,7 +105,7 @@ class LayoutComposer
         }
 
         if(1) {
-            $Catalog[] = [
+            $catalog[] = [
                 'name'	   => $this->lang->text_product,
                 'icon'	   => '',
                 'href'     => route('lang.admin.catalog.products.index', ['equal_is_active' => 1]),
@@ -114,10 +114,20 @@ class LayoutComposer
         }
 
         if (1) {
-            $Catalog[] = [
+            $catalog[] = [
                 'name'       => '同步商品選項',
                 'icon'       => '',
                 'href'       => route('lang.admin.catalog.syncProductOptions.index'),
+                'children' => []
+            ];
+        }
+
+        // 成本估算
+        if (1) {
+            $catalog[] = [
+                'name'       => $this->lang->text_cost_estimation,
+                'icon'       => '',
+                'href'     => route('lang.admin.catalog.cost_estimations.index'),
                 'children' => []
             ];
         }
@@ -144,20 +154,20 @@ class LayoutComposer
         }
 
         if (!empty($attributesParent)) {
-            $Catalog[] = [
+            $catalog[] = [
                 'name'	   => $this->lang->text_attribute,
                 'icon'	   => ' ',
                 'children' => $attributesParent
             ];
         }
 
-        if(!empty($Catalog) && ($this->acting_user->username == 'admin')) {
+        if(!empty($catalog) && ($this->acting_user->username == 'admin')) {
             $menus[] = [
                 'id'       => 'menu-system',
                 'icon'	   => 'fas fa-cog',
                 'name'	   => $this->lang->text_catalog,
                 'href'     => '',
-                'children' => $Catalog
+                'children' => $catalog
             ];
         }
 
@@ -445,7 +455,7 @@ class LayoutComposer
             $menus[] = [
                 'id'       => 'menu-inventory',
                 'icon'	   => 'fas fa-user',
-                'name'	   => $this->lang->text_menu_inventory,
+                'name'	   => $this->lang->text_inventory,
                 'href'     => '',
                 'children' => $inventory
             ];

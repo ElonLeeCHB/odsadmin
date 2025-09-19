@@ -45,6 +45,8 @@ class OrderDailyRequisitionRepository
             !isset($statistics['cache_created_at']) ||
             Carbon::parse($statistics['cache_created_at'])->diffInMinutes(now()) > 60
         ) {
+            cache()->forget($cache_key);
+
             $statistics = cache()->remember($cache_key, 60 * 24 * 180, function () use ($required_date) {
                 return $this->calculateByDate($required_date);
             });

@@ -940,7 +940,7 @@ trait EloquentTrait
 
     }
 
-    // must be public
+    // 儲存本表資料
     public function saveRowBasicData($modelInstance, $post_data)
     {
         $this->initialize();

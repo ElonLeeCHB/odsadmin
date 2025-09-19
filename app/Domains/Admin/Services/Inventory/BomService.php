@@ -60,11 +60,11 @@ class BomService
         try {
             DB::beginTransaction();
 
-            $result = $this->BomRepository->saveBom($post_data);
+            $bom = $this->BomRepository->saveBomBundle($post_data);
 
             DB::commit();
 
-            return $result;
+            return $bom;
 
         } catch (\Throwable $th) {
             DB::rollBack();

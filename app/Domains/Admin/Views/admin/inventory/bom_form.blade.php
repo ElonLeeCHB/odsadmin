@@ -55,6 +55,26 @@
                 </div>
 
                 <div class="row mb-3">
+                  <label for="input-subtitle" class="col-sm-2 col-form-label">副標題</label>
+                  <div class="col-sm-10">
+                    <div class="input-group">
+                      <input type="text" id="input-subtitle" name="subtitle" value="{{ $bom->subtitle }}" class="form-control">
+                    </div>
+                    <div id="error-subtitle" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <label for="input-version" class="col-sm-2 col-form-label">版本編號</label>
+                  <div class="col-sm-10">
+                    <div class="input-group">
+                      <input type="text" id="input-version" name="version" value="{{ $bom->version }}" class="form-control">
+                    </div>
+                    <div id="error-version" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
                   <label for="input-product_id" class="col-sm-2 col-form-label">生效日期</label>
                   <div class="col-sm-10">
                     <div class="input-group">
@@ -79,6 +99,16 @@
                       <input type="text" id="input-total" name="total" value="{{ $bom->total }}" class="form-control">
                     </div>
                     <div id="error-total" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <label for="input-comment" class="col-sm-2 col-form-label">備註</label>
+                  <div class="col-sm-10">
+                    <div class="input-group">
+                      <input type="text" id="input-comment" name="comment" value="{{ $bom->comment }}" class="form-control">
+                    </div>
+                    <div id="error-comment" class="invalid-feedback"></div>
                   </div>
                 </div>
 
@@ -109,7 +139,7 @@
                         <td class="text-right required">用量</td>
                         <td class="text-right">用量單位</td>
                         <td class="text-right">單位成本</td>
-                        <td class="text-right">成本</td>
+                        <td class="text-right">成本小計</td>
                         <td></td>
                       </tr>
                     </thead>
@@ -121,10 +151,10 @@
 
                           <div class="container input-group col-sm-12">
                             <div class="col-sm-3">
-                              <input type="text" id="input-products-sub_product_id-{{ $product_row }}" name="products[{{ $product_row }}][sub_product_id]" value="{{ $bom_product->sub_product_id ?? '' }}" class="form-control" readonly>
+                              <input type="text" id="input-products-sub_product_id-{{ $product_row }}" name="bom_products[{{ $product_row }}][sub_product_id]" value="{{ $bom_product->sub_product_id ?? '' }}" class="form-control" readonly>
                             </div>
                             <div class="col-sm-8">
-                              <input type="text" id="input-products-sub_product_name-{{ $product_row }}" name="products[{{ $product_row }}][sub_product_name]" value="{{ $bom_product->sub_product_name ?? '' }}" data-rownum="{{ $product_row }}" class="form-control schProductName" data-oc-target="autocomplete-sub_product_name-{{ $product_row }}" autocomplete="off">
+                              <input type="text" id="input-products-sub_product_name-{{ $product_row }}" name="bom_products[{{ $product_row }}][sub_product_name]" value="{{ $bom_product->sub_product_name ?? '' }}" data-rownum="{{ $product_row }}" class="form-control schProductName" data-oc-target="autocomplete-sub_product_name-{{ $product_row }}" autocomplete="off">
                               <ul id="autocomplete-sub_product_name-{{ $product_row }}" class="dropdown-menu"></ul>
                             </div>
                             <div class="col-sm-1">
@@ -135,20 +165,20 @@
                           </div>
 
                           {{-- bom表的主索引 id --}}
-                          <input type="hidden" id="input-products-id-{{ $product_row }}" name="products[{{ $product_row }}][id]" value="{{ $bom_product->id ?? '' }}"  readonly>
+                          <input type="hidden" id="input-products-id-{{ $product_row }}" name="bom_products[{{ $product_row }}][id]" value="{{ $bom_product->id ?? '' }}"  readonly>
 
                           {{-- bom表的主件 product_id --}}
-                          <input type="hidden" id="input-products-product_id-{{ $product_row }}" name="products[{{ $product_row }}][product_id]" value="{{ $bom_product->product_id ?? '' }}"  readonly>
+                          <input type="hidden" id="input-products-product_id-{{ $product_row }}" name="bom_products[{{ $product_row }}][product_id]" value="{{ $bom_product->product_id ?? '' }}"  readonly>
                         </td>
-                        <td class="text-right"><input type="text" id="input-products-sub_product_specification-{{ $product_row }}" name="products[{{ $product_row }}][sub_product_specification]" value="{{ $bom_product->sub_product_specification }}" class="form-control" disabled/></td>
-                        <td class="text-right"><input type="text" id="input-products-sub_product_supplier_short_name-{{ $product_row }}" name="products[{{ $product_row }}][sub_product_supplier_short_name]" value="{{ $bom_product->sub_product_supplier_short_name ?? '' }}" class="form-control" disabled/></td>
-                        <td class="text-right"><input type="text" id="input-products-quantity-{{ $product_row }}" name="products[{{ $product_row }}][quantity]" value="{{ $bom_product->quantity }}" class="form-control" onkeyup="calcSubProduct('{{ $product_row }}');" /></td>
+                        <td class="text-right"><input type="text" id="input-products-sub_product_specification-{{ $product_row }}" name="bom_products[{{ $product_row }}][sub_product_specification]" value="{{ $bom_product->sub_product_specification }}" class="form-control" disabled/></td>
+                        <td class="text-right"><input type="text" id="input-products-sub_product_supplier_short_name-{{ $product_row }}" name="bom_products[{{ $product_row }}][sub_product_supplier_short_name]" value="{{ $bom_product->sub_product_supplier_short_name ?? '' }}" class="form-control" disabled/></td>
+                        <td class="text-right"><input type="text" id="input-products-quantity-{{ $product_row }}" name="bom_products[{{ $product_row }}][quantity]" value="{{ $bom_product->quantity }}" class="form-control" onkeyup="calcSubProduct('{{ $product_row }}');" /></td>
                         <td class="text-right">
-                          <input type="text" id="input-products-usage_unit_name-{{ $product_row }}" name="products[{{ $product_row }}][usage_unit_name]" value="{{ $bom_product->usage_unit_name }}" class="form-control" readonly="readonly" />
-                          <input type="hidden" id="input-products-usage_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][usage_unit_code]" value="{{ $bom_product->usage_unit_code }}" class="form-control" readonly="readonly" />
+                          <input type="text" id="input-products-usage_unit_name-{{ $product_row }}" name="bom_products[{{ $product_row }}][usage_unit_name]" value="{{ $bom_product->usage_unit_name }}" class="form-control" readonly="readonly" />
+                          <input type="hidden" id="input-products-usage_unit_code-{{ $product_row }}" name="bom_products[{{ $product_row }}][usage_unit_code]" value="{{ $bom_product->usage_unit_code }}" class="form-control" readonly="readonly" />
                         </td>
-                        <td class="text-right"><input type="text" id="input-products-usage_price-{{ $product_row }}" name="products[{{ $product_row }}][usage_price]" value="{{ $bom_product->usage_price }}" class="form-control" readonly /></td>
-                        <td class="text-right"><input type="text" id="input-products-amount-{{ $product_row }}" name="products[{{ $product_row }}][amount]" value="{{ $bom_product->amount }}" class="form-control" readonly /></td>
+                        <td class="text-right"><input type="text" id="input-products-usage_price-{{ $product_row }}" name="bom_products[{{ $product_row }}][usage_price]" value="{{ $bom_product->usage_price }}" class="form-control" readonly /></td>
+                        <td class="text-right"><input type="text" id="input-products-amount-{{ $product_row }}" name="bom_products[{{ $product_row }}][amount]" value="{{ $bom_product->amount }}" class="form-control" readonly /></td>
                         <td class="text-left">
                           <button type="button" onclick="$('#bom-row{{ $product_row }}').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button>
                         </td>
@@ -243,10 +273,10 @@ function addBOM() {
 
   html += '    <div class="container input-group col-sm-12">';
   html += '      <div class="col-sm-3">';
-  html += '        <input type="text" id="input-products-sub_product_id-'+product_row+'" name="products['+product_row+'][sub_product_id]" value="" class="form-control" readonly>';
+  html += '        <input type="text" id="input-products-sub_product_id-'+product_row+'" name="bom_products['+product_row+'][sub_product_id]" value="" class="form-control" readonly>';
   html += '      </div>';
   html += '      <div class="col-sm-8">';
-  html += '        <input type="text" id="input-products-sub_product_name-'+product_row+'" name="products['+product_row+'][sub_product_name]" value="" data-rownum="'+product_row+'" class="form-control schProductName" data-oc-target="autocomplete-product_name-'+product_row+'" autocomplete="off">';
+  html += '        <input type="text" id="input-products-sub_product_name-'+product_row+'" name="bom_products['+product_row+'][sub_product_name]" value="" data-rownum="'+product_row+'" class="form-control schProductName" data-oc-target="autocomplete-product_name-'+product_row+'" autocomplete="off">';
   html += '        <ul id="autocomplete-product_name-'+product_row+'" class="dropdown-menu"></ul>';
   html += '      </div>';
   html += '      <div class="col-sm-1">';
@@ -256,14 +286,14 @@ function addBOM() {
   html += '      </div>';
   html += '    </div>';
   html += '  </td>';
-  html += '  <td><input type="text" id="input-products-sub_product_specification-'+product_row+'" name="products['+product_row+'][sub_product_specification]" value="" class="form-control schProductName" autocomplete="off"></td>';
-  html += '  <td><input type="text" id="input-products-sub_product_supplier_short_name-'+product_row+'" name="products['+product_row+'][sub_product_supplier_short_name]" value="" class="form-control" autocomplete="off"></td>';
-  html += '  <td><input type="text" id="input-products-quantity-'+product_row+'" name="products['+product_row+'][quantity]" value="" class="form-control schProductName" autocomplete="off" onkeyup="calcSubProduct('+product_row+');"></td>';
-  html += '  <td><input type="text" id="input-products-usage_unit_name-'+product_row+'" name="products['+product_row+'][usage_unit_name]" value="" class="form-control schProductName" autocomplete="off"></td>';
-  html += '    <input type="hidden" id="input-products-usage_unit_code-'+product_row+'" name="products['+product_row+'][usage_unit_code]" value="" class="form-control schProductName" autocomplete="off">';
+  html += '  <td><input type="text" id="input-products-sub_product_specification-'+product_row+'" name="bom_products['+product_row+'][sub_product_specification]" value="" class="form-control schProductName" autocomplete="off"></td>';
+  html += '  <td><input type="text" id="input-products-sub_product_supplier_short_name-'+product_row+'" name="bom_products['+product_row+'][sub_product_supplier_short_name]" value="" class="form-control" autocomplete="off"></td>';
+  html += '  <td><input type="text" id="input-products-quantity-'+product_row+'" name="bom_products['+product_row+'][quantity]" value="" class="form-control schProductName" autocomplete="off" onkeyup="calcSubProduct('+product_row+');"></td>';
+  html += '  <td><input type="text" id="input-products-usage_unit_name-'+product_row+'" name="bom_products['+product_row+'][usage_unit_name]" value="" class="form-control schProductName" autocomplete="off"></td>';
+  html += '    <input type="hidden" id="input-products-usage_unit_code-'+product_row+'" name="bom_products['+product_row+'][usage_unit_code]" value="" class="form-control schProductName" autocomplete="off">';
   html += '  </td>'
-  html += '  <td><input type="text" id="input-products-usage_price-'+product_row+'" name="products['+product_row+'][usage_price]" value="" class="form-control schProductName" autocomplete="off"></td>';
-  html += '  <td><input type="text" id="input-products-amount-'+product_row+'" name="products['+product_row+'][amount]" value="" class="form-control schProductName" autocomplete="off"></td>';
+  html += '  <td><input type="text" id="input-products-usage_price-'+product_row+'" name="bom_products['+product_row+'][usage_price]" value="" class="form-control schProductName" autocomplete="off"></td>';
+  html += '  <td><input type="text" id="input-products-amount-'+product_row+'" name="bom_products['+product_row+'][amount]" value="" class="form-control schProductName" autocomplete="off"></td>';
   html += '  <td class="text-left"><button type="button" onclick="$(\'#bom-row'+product_row+'\').remove();" data-toggle="tooltip" title="" class="btn btn-danger" data-original-title="Remove"><i class="fa fa-minus-circle"></i></button></td>';
   html += '</tr>';
 

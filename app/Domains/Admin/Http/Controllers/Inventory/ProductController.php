@@ -49,7 +49,7 @@ class ProductController extends BackendController
         ];
 
         $breadcumbs[] = (object)[
-            'text' => $this->lang->text_menu_inventory,
+            'text' => $this->lang->text_inventory,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];

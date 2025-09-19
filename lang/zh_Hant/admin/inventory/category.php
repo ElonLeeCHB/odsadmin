@@ -7,7 +7,7 @@ return [
 // Tab
 
 // Text
-'text_menu_inventory' => '庫存管理',
+'text_inventory' => '庫存管理',
 'text_category' => '商品管理',
 
 

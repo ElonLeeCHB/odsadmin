@@ -33,9 +33,12 @@ class Controller extends BaseController
             $this->resetUrlData(request()->query());
             $this->resetPostData(request()->post());
             $this->resetAllData(request()->post());
+            $this->setBreadcumbs();
             return $next($request);
         });
     }
+
+    protected function setBreadcumbs(){}
 
     protected function cleanValue($value)
     {

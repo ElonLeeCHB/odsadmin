@@ -8,7 +8,7 @@ return [
 'tab_general' => '基本資料',
 
 // Text
-'text_menu_inventory' => '庫存管理',
+'text_inventory' => '庫存管理',
 'text_status_without_voided' => '不含作廢',
 
 // Column

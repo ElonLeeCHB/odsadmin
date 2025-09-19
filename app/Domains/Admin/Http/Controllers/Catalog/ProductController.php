@@ -32,10 +32,10 @@ class ProductController extends BackendController
     {
         parent::__construct();
 
-        $this->getLang(['admin/common/common','admin/catalog/product']);
+        $this->getLang(['admin/common/common', 'admin/common/column_left','admin/catalog/product']);
     }
 
-    private function setBreadcumbs()
+    protected function setBreadcumbs()
     {
         $this->breadcumbs = [];
 
@@ -45,14 +45,14 @@ class ProductController extends BackendController
         ];
 
         $this->breadcumbs[] = (object)[
-            'text' => $this->lang->text_product,
+            'text' => $this->lang->text_catalog,
             'href' => 'javascript:void(0)',
             'cursor' => 'default',
         ];
 
         $this->breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.sales.orders.index'),
+            'href' => route('lang.admin.sale.orders.index'),
         ];
     }
 

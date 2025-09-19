@@ -9,6 +9,8 @@ use App\Helpers\Classes\DataHelper;
 
 class BomController extends BackendController
 {
+    protected $breadcumbs;
+
     public function __construct(
         protected Request $request
         , private BomService $BomService
@@ -19,29 +21,34 @@ class BomController extends BackendController
         $this->getLang(['admin/common/common','admin/inventory/bom']);
     }
 
+    protected function setBreadcumbs()
+    {
+        $this->breadcumbs = [];
+
+        $this->breadcumbs[] = (object)[
+            'text' => $this->lang->text_home,
+            'href' => route('lang.admin.dashboard'),
+        ];
+
+        $this->breadcumbs[] = (object)[
+            'text' => $this->lang->text_inventory,
+            'href' => 'javascript:void(0)',
+            'cursor' => 'default',
+        ];
+
+        $this->breadcumbs[] = (object)[
+            'text' => $this->lang->heading_title,
+            'href' => route('lang.admin.inventory.boms.index'),
+        ];
+    }
+
 
     public function index()
     {
         $data['lang'] = $this->lang;
 
         // Breadcomb
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_home,
-            'href' => route('lang.admin.dashboard'),
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_menu_inventory,
-            'href' => 'javascript:void(0)',
-            'cursor' => 'default',
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.inventory.boms.index'),
-        ];
-
-        $data['breadcumbs'] = (object)$breadcumbs;
+        $data['breadcumbs'] = (object)$this->breadcumbs;
 
         $data['list'] = $this->getList();
 
@@ -120,24 +127,7 @@ class BomController extends BackendController
         $data['lang'] = $this->lang;
 
         // Breadcomb
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_home,
-            'href' => route('lang.admin.dashboard'),
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_product,
-            'href' => 'javascript:void(0)',
-            'cursor' => 'default',
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.inventory.boms.index'),
-        ];
-
-        $data['breadcumbs'] = (object)$breadcumbs;
-
+        $data['breadcumbs'] = (object)$this->breadcumbs;
 
         // Prepare link for save, back
         $queries  = $this->url_data;
@@ -193,37 +183,39 @@ class BomController extends BackendController
 
     public function save()
     {
-        $post_data = $this->request->post();
+        try {
+            $post_data = $this->request->post();
 
-        // 檢查
-        $json = [];
+            // 檢查
+            $json = [];
 
-        $bom_id = $post_data['bom_id'] ?? '';
+            $bom_id = $post_data['bom_id'] ?? '';
 
+            // 檢查錯誤
 
-        if (isset($json['error']) && !isset($json['error']['warning'])) {
-            $json['error']['warning'] = $this->lang->error_warning;
-        }
+            //
 
+            // 返回錯誤
+            if (!empty($json)) {
+                $json['error_warning'] = $this->lang->error_warning;
 
-        // 檢查通過
-        if(!$json) {
-            $result = $this->BomService->saveBom($post_data);
-
-            //$result = $this->BomService->saveBomProducts($post_data);
-            if(empty($result['error'])){
-                $json = [
-                    'bom_id' => $result['data']['id'],
-                    'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.inventory.boms.form', $result['data']['id']),
-                ];
-            }else if(auth()->user()->username == 'admin'){
-                $json['error'] = $result['error'];
-            }else{
-                $json['error'] = $this->lang->text_fail;
+                return response()->json($json, 422);
             }
-        }
 
-        return response(json_encode($json))->header('Content-Type','application/json');
+            // 檢查通過
+            if (!$json) {
+                $bom = $this->BomService->saveBom($post_data);
+
+                $json = [
+                    'success' => $this->lang->text_success,
+                    'bom_id' => $bom->id,
+                    'redirectUrl' => route('lang.admin.inventory.boms.form', $bom->id),
+                ];
+
+                return response()->json($json);
+            }
+        } catch (\Throwable $th) {
+            return $this->sendJsonErrorResponse(['system_error' => $th->getMessage(), 'general_error' => $this->lang->error_system], 500, $th);
+        }
     }
 }
