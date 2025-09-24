@@ -653,7 +653,7 @@ where op.order_id=9219
     public static function getDefaultListColumns()
     {
         return [
-            'id', 'code', 'source', 'personal_name', 'mobile', 'telephone_prefix', 'telephone', 'payment_company', 'delivery_date', 'status_code'
+            'id', 'code', 'customer_id', 'source', 'personal_name', 'mobile', 'telephone_prefix', 'telephone', 'payment_company', 'delivery_date', 'status_code'
             , 'print_status', 'order_taker', 'salutation_code'
         ];
 
