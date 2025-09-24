@@ -122,7 +122,7 @@ class LayoutComposer
             ];
         }
 
-        // 成本估算
+        // 成本計算
         if (1) {
             $catalog[] = [
                 'name'       => $this->lang->text_cost_estimation,

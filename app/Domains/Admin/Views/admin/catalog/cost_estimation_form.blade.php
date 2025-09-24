@@ -89,7 +89,7 @@
             <div class="row mb-3">
               <label for="input-note" class="col-sm-2 col-form-label">備註</label>
               <div class="col-sm-10">
-                <input type="text" id="input-note" name="note" value="本項請勿使用！請使用&quot;主餐&quot; 編碼=main_meal" placeholder="備註" class="form-control">
+                <input type="text" id="input-note" name="note" value="" placeholder="備註" class="form-control">
               </div>
             </div>
           </fieldset>

@@ -37,7 +37,7 @@ class CostEstimationController extends BackendController
             'cursor' => 'default',
         ];
 
-        $this->lang->heading_title = '成本估算';
+        $this->lang->heading_title = '成本計算';
         $this->breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
             'href' => route('lang.admin.catalog.cost_estimations.index'),
