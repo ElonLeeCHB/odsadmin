@@ -395,4 +395,21 @@ Route::group([
 
     //     Route::get('country', 'Localization\CountryController@index')->name('country');
     // });
+
+    // 報表系統
+    Route::group([
+        'prefix' => 'reports',
+        'as' => 'reports.',
+    ], function () {
+        // 營運月報表
+        Route::get('operation-monthly', 'Report\OperationMonthlyReportController@index')->name('operation-monthly.index');
+        Route::get('operation-monthly/export-year/{year}', 'Report\OperationMonthlyReportController@exportYear')->name('operation-monthly.exportYear');
+        Route::get('operation-monthly/{year}/{month}', 'Report\OperationMonthlyReportController@show')->name('operation-monthly.show');
+        Route::get('operation-monthly/{year}/{month}/export', 'Report\OperationMonthlyReportController@export')->name('operation-monthly.export');
+        Route::post('operation-monthly/{year}/{month}/rebuild', 'Report\OperationMonthlyReportController@rebuild')->name('operation-monthly.rebuild');
+
+        // 年度訂單分析
+        Route::get('annual-order', 'Report\AnnualOrderReportController@index')->name('annual-order.index');
+        Route::get('annual-order/export', 'Report\AnnualOrderReportController@export')->name('annual-order.export');
+    });
 });

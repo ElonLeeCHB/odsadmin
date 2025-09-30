@@ -223,15 +223,13 @@ class ProductController extends BackendController
             $queries['limit'] = $this->request->query('limit');
         }
 
-        $data['save'] = route('lang.admin.catalog.products.save');
-        $data['back'] = route('lang.admin.catalog.products.index', $queries);
+        $data['save_url'] = route('lang.admin.catalog.products.save');
+        $data['back_url'] = route('lang.admin.catalog.products.index', $queries);
 
         // Get Record
         $product = $this->ProductService->getProductById($product_id);
 
         $data['product']  = $product;
-
-
 
         $params = [
             'pagination' => false,

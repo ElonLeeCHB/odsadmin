@@ -173,119 +173,153 @@ class LayoutComposer
 
 
         // Sales
-        $sale = [];
+            $sale = [];
 
-        if(1) {
-            $sale[] = [
-                'name'	   => $this->lang->text_order,
-                'icon'	   => '',
-                'href'     => route('lang.admin.sale.orders.index'),
-                // 'href'     => env('APP_URL') . '/#/ordered',
-                'children' => []
-            ];
-        }
+            if(1) {
+                $sale[] = [
+                    'name'	   => $this->lang->text_order,
+                    'icon'	   => '',
+                    'href'     => route('lang.admin.sale.orders.index'),
+                    // 'href'     => env('APP_URL') . '/#/ordered',
+                    'children' => []
+                ];
+            }
 
-        if(1) {
-            $sale[] = [
-                'name'	   => $this->lang->text_individual,
-                'icon'	   => '',
-                'href'     => route('lang.admin.member.members.index'),
-                'href'     => env('APP_URL') . '/#/member',
-                'children' => []
-            ];
-        }
+            if(1) {
+                $sale[] = [
+                    'name'	   => $this->lang->text_individual,
+                    'icon'	   => '',
+                    'href'     => route('lang.admin.member.members.index'),
+                    'href'     => env('APP_URL') . '/#/member',
+                    'children' => []
+                ];
+            }
 
-        if(1) {
-            $sale[] = [
-                'name'	   => $this->lang->text_sales_phrase,
-                'icon'	   => '',
-                'href'     => route('lang.admin.sale.phrases.index'),
-                'children' => []
-            ];
-        }
+            if(1) {
+                $sale[] = [
+                    'name'	   => $this->lang->text_sales_phrase,
+                    'icon'	   => '',
+                    'href'     => route('lang.admin.sale.phrases.index'),
+                    'children' => []
+                ];
+            }
 
-        //優惠券類別
-        if (1) {
-            $sale[] = [
-                'name'       => '優惠券類別',
-                'icon'       => '',
-                'href'     => route('lang.admin.sale.coupon_types.index'),
-                'children' => []
-            ];
-        }
+            //優惠券類別
+            if (1) {
+                $sale[] = [
+                    'name'       => '優惠券類別',
+                    'icon'       => '',
+                    'href'     => route('lang.admin.sale.coupon_types.index'),
+                    'children' => []
+                ];
+            }
 
-        //優惠券記錄
-        if (1) {
-            $sale[] = [
-                'name'       => '優惠券記錄',
-                'icon'       => '',
-                'href'     => '',
-                'children' => []
-            ];
-        }
+            //優惠券記錄
+            if (1) {
+                $sale[] = [
+                    'name'       => '優惠券記錄',
+                    'icon'       => '',
+                    'href'     => '',
+                    'children' => []
+                ];
+            }
 
-        // //優惠券
-        // if (1) {
-        //     $sale[] = [
-        //         'name'       => $this->lang->text_sales_order_schedule,
-        //         'icon'       => '',
-        //         'href'     => route('lang.admin.sale.order_schedule.index'),
-        //         'children' => []
-        //     ];
-        // }
+            // //優惠券
+            // if (1) {
+            //     $sale[] = [
+            //         'name'       => $this->lang->text_sales_order_schedule,
+            //         'icon'       => '',
+            //         'href'     => route('lang.admin.sale.order_schedule.index'),
+            //         'children' => []
+            //     ];
+            // }
 
-        //訂單排程
-        if(0) {
-            $sale[] = [
-                'name'	   => $this->lang->text_sales_order_schedule,
-                'icon'	   => '',
-                'href'     => route('lang.admin.sale.order_schedule.index'),
-                'children' => []
-            ];
-        }
+            //訂單排程
+            if(0) {
+                $sale[] = [
+                    'name'	   => $this->lang->text_sales_order_schedule,
+                    'icon'	   => '',
+                    'href'     => route('lang.admin.sale.order_schedule.index'),
+                    'children' => []
+                ];
+            }
 
-        //備料單
-        if(1) {
-            $sale[] = [
-                'name'	   => $this->lang->text_menu_sale_requisition,
-                'icon'	   => '',
-                'href'     => route('lang.admin.sale.requisitions.form'),
-                'children' => []
-            ];
-        }
+            //備料單
+            if(1) {
+                $sale[] = [
+                    'name'	   => $this->lang->text_menu_sale_requisition,
+                    'icon'	   => '',
+                    'href'     => route('lang.admin.sale.requisitions.form'),
+                    'children' => []
+                ];
+            }
 
-        //備料單設定
-        if($this->acting_user->username == 'admin') {
-            $sale[] = [
-                'name'	   => $this->lang->text_material_requisition_setting,
-                'icon'	   => '',
-                'href'     => route('lang.admin.sale.requisitions.setting'),
-                'children' => []
-            ];
-        }
+            //備料單設定
+            if($this->acting_user->username == 'admin') {
+                $sale[] = [
+                    'name'	   => $this->lang->text_material_requisition_setting,
+                    'icon'	   => '',
+                    'href'     => route('lang.admin.sale.requisitions.setting'),
+                    'children' => []
+                ];
+            }
 
-        // 上暉料件需求
-        // if(1) {
-        //     $inventory[] = [
-        //         'name'	   => '上暉料件需求',
-        //         'icon'	   => '',
-        //         'href'     => route('lang.admin.inventory.shRequirements.index'),
-        //         'children' => []
-        //     ];
-        // }
+            // 上暉料件需求
+            // if(1) {
+            //     $inventory[] = [
+            //         'name'	   => '上暉料件需求',
+            //         'icon'	   => '',
+            //         'href'     => route('lang.admin.inventory.shRequirements.index'),
+            //         'children' => []
+            //     ];
+            // }
 
 
-        // add to Menus
-        if(!empty($sale)) {
-            $menus[] = [
-                'id'       => 'menu-sale',
-                'icon'	   => 'fas fa-user',
-                'name'	   => $this->lang->text_menu_sale,
-                'href'     => '',
-                'children' => $sale
-            ];
-        }
+            // add to Menus
+            if(!empty($sale)) {
+                $menus[] = [
+                    'id'       => 'menu-sale',
+                    'icon'	   => 'fas fa-user',
+                    'name'	   => $this->lang->text_menu_sale,
+                    'href'     => '',
+                    'children' => $sale
+                ];
+            }
         // Sales End
+
+
+        // Reports
+            $report = [];
+
+            if (1) {
+                $report[] = [
+                    'name'       => '營運月報表',
+                    'icon'       => '',
+                    'href'     => route('lang.admin.reports.operation-monthly.index'),
+                    'children' => []
+                ];
+            }
+
+            if (1) {
+                $report[] = [
+                    'name'       => '年度訂單分析',
+                    'icon'       => '',
+                    'href'     => route('lang.admin.reports.annual-order.index'),
+                    'children' => []
+                ];
+            }
+
+            // add to Menus
+            if (!empty($report)) {
+                $menus[] = [
+                    'id'       => 'menu-reports',
+                    'icon'       => 'fas fa-chart-bar',
+                    'name'       => '報表系統',
+                    'href'     => '',
+                    'children' => $report
+                ];
+            }
+        // Reports End
 
 
         // Common
