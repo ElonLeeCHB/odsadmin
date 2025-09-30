@@ -119,17 +119,17 @@ class OrderService extends Service
                 if (!empty($data['mobile'])){
                     $member->mobile = $data['mobile'];
                 }
-        
-                if (!empty($data['telephone_prefix'])){
-                    $member->telephone_prefix = $data['telephone_prefix'];
-                }
-    
-                if (!empty($data['telephone'])){
-                    $member->telephone = str_replace('-', '', $data['telephone']);
-                }
-            } 
+            }
 
             //新增或修改共用
+            if (!empty($data['telephone_prefix'])) {
+                $member->telephone_prefix = $data['telephone_prefix'];
+            }
+
+            if (!empty($data['telephone'])) {
+                $member->telephone = str_replace('-', '', $data['telephone']);
+            }
+
             if (!empty($data['payment_tin'])){
                 $member->payment_tin = preg_replace('/\D/', '', $data['payment_tin']);
             }
