@@ -17,6 +17,7 @@ class MonthlyOperationReport extends Model
         'order_customer_count',
         'new_customer_count',
         'purchase_total_amount',
+        'gross_profit_amount',
         'supplier_count',
     ];
 
@@ -28,6 +29,7 @@ class MonthlyOperationReport extends Model
         'order_customer_count' => 'integer',
         'new_customer_count' => 'integer',
         'purchase_total_amount' => 'decimal:2',
+        'gross_profit_amount' => 'decimal:2',
         'supplier_count' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',

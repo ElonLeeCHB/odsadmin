@@ -49,12 +49,12 @@ class ReportExportService
 
         // 標題
         $sheet->setCellValue('A1', "{$year} 年營運月報表");
-        $sheet->mergeCells('A1:H1');
+        $sheet->mergeCells('A1:I1');
         $sheet->getStyle('A1')->getFont()->setSize(16)->setBold(true);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         // 表頭
-        $headers = ['月份', '訂單總金額', '訂單數量', '訂單客戶數', '新客戶數', '進貨總金額', '廠商數量'];
+        $headers = ['月份', '訂單總金額', '訂單數量', '訂單客戶數', '新客戶數', '進貨總金額', '毛利金額', '廠商數量'];
         $sheet->fromArray($headers, null, 'A3');
 
         // 設定表頭樣式
@@ -69,7 +69,7 @@ class ReportExportService
                 'allBorders' => ['borderStyle' => Border::BORDER_THIN]
             ]
         ];
-        $sheet->getStyle('A3:G3')->applyFromArray($headerStyle);
+        $sheet->getStyle('A3:H3')->applyFromArray($headerStyle);
 
         // 取得數據
         $reports = MonthlyOperationReport::where('year', $year)
@@ -89,7 +89,8 @@ class ReportExportService
                 $sheet->setCellValue("D{$row}", $report->order_customer_count);
                 $sheet->setCellValue("E{$row}", $report->new_customer_count);
                 $sheet->setCellValue("F{$row}", $report->purchase_total_amount);
-                $sheet->setCellValue("G{$row}", $report->supplier_count);
+                $sheet->setCellValue("G{$row}", $report->gross_profit_amount);
+                $sheet->setCellValue("H{$row}", $report->supplier_count);
             } else {
                 $sheet->setCellValue("B{$row}", '-');
                 $sheet->setCellValue("C{$row}", '-');
@@ -97,6 +98,7 @@ class ReportExportService
                 $sheet->setCellValue("E{$row}", '-');
                 $sheet->setCellValue("F{$row}", '-');
                 $sheet->setCellValue("G{$row}", '-');
+                $sheet->setCellValue("H{$row}", '-');
             }
 
             $row++;
@@ -108,18 +110,18 @@ class ReportExportService
                 'allBorders' => ['borderStyle' => Border::BORDER_THIN]
             ]
         ];
-        $sheet->getStyle("A4:G15")->applyFromArray($dataStyle);
+        $sheet->getStyle("A4:H15")->applyFromArray($dataStyle);
 
         // 數字欄位靠右對齊
-        $sheet->getStyle("B4:G15")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $sheet->getStyle("B4:H15")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
         // 數字格式
         $sheet->getStyle("B4:B15")->getNumberFormat()->setFormatCode('#,##0');
-        $sheet->getStyle("C4:G15")->getNumberFormat()->setFormatCode('#,##0');
-        $sheet->getStyle("F4:F15")->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle("C4:H15")->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle("F4:G15")->getNumberFormat()->setFormatCode('#,##0');
 
         // 自動調整欄寬
-        foreach (range('A', 'G') as $col) {
+        foreach (range('A', 'H') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
     }

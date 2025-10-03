@@ -45,7 +45,7 @@ class Order extends Model
         'is_closed' => 'boolean',
         'is_payed_off' => 'boolean',
         'order_date' => 'date:Y-m-d',
-        'delivery_date' => 'date:Y-m-d',
+        // 'delivery_date' => 'date:Y-m-d',
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
@@ -455,7 +455,7 @@ class Order extends Model
         $data['is_option_qty_controlled'] = $data['is_option_qty_controlled'] ?? 0;
         $data['mobile'] = preg_replace('/\D+/', '', $data['mobile'] ?? null);
         $data['salutation_code'] = $data['salutation_code'] ?? 0;
-        
+
         $data['payment_total'] = (isset($data['payment_total']) && is_numeric($data['payment_total'])) ? $data['payment_total'] : 0;
         $data['payment_paid'] = (isset($data['payment_paid']) && is_numeric($data['payment_paid'])) ? $data['payment_paid'] : 0;
         $data['payment_unpaid'] = (isset($data['payment_unpaid']) && is_numeric($data['payment_unpaid'])) ? $data['payment_unpaid'] : 0;
@@ -469,51 +469,7 @@ class Order extends Model
         $data['shipping_salutation_code'] = $data['shipping_salutation_code'] ?? 0;
         $data['shipping_salutation_code2'] = $data['shipping_salutation_code2'] ?? 0;
 
-        //delivery_date 如果送達時間的 時分秒 是00:00:00, 則取時間範圍的結束時間做為送達時間。例如 1100-1200, 取 12:00。
-            
-            // $delivery_date_ymd 必須來自 $data['delivery_date'] 或 $data['delivery_date_ymd']
-            if (!empty($data['delivery_date_ymd'])){
-                $delivery_date_ymd = $data['delivery_date_ymd'];
-            } else {
-                $delivery_date_ymd = preg_match('/^\d{4}-\d{2}-\d{2}/', $data['delivery_date']) ?? '';
-            }
-
-            // $delivery_date_hi 必須來自 $data['delivery_date'] 或 $data['delivery_date_hi'] 注意沒有秒數 s
-            if (!empty($data['delivery_date_hi'])) {
-                //避免使用者只打數字，例如 1630所以取開頭、跟結尾，中間插入冒號 :
-                $delivery_date_hi = substr($data['delivery_date_hi'],0,2).':'.substr($data['delivery_date_hi'],-2);
-            } else if (!empty($data['delivery_date'])) {
-                $time = substr($data['delivery_date'], 11, 5);
-                $delivery_date_hi = !empty($time) ? $time : '00:00';
-            } else {
-                $delivery_date_hi = '00:00';
-            }
-
-            $delivery_date = $delivery_date_ymd . ' ' . $delivery_date_hi . ':00';
-
-            if (!DateHelper::isValid($delivery_date)){
-                throw new \Exception('送達時間錯誤！');
-            }
-
-            // 如果時分是00:00，並且存在時間範圍，, 取結尾時間
-            if ($delivery_date_hi == '00:00' && !empty($data['delivery_time_range'])){
-                
-                $arr = explode('-',$data['delivery_time_range']);
-
-                // 前兩位數 + 冒號 + 倒數兩位數
-                if(!empty($arr[1])){
-                    $t2 = substr($arr[1],0,2).':'.substr($arr[1],-2);
-                }else if(!empty($arr[0])){
-                    $t2 = substr($arr[0],0,2).':'.substr($arr[0],-2);
-                }
-
-                if(!empty($t2)){
-                    $delivery_date = $delivery_date_ymd . ' ' . $t2 . ':00';
-                }
-            }
-        //
-
-        $data['delivery_date'] = $delivery_date;
+        $data['delivery_date'] = $data['delivery_date_ymd'] . ' 00:00:00';
 
         return $this->processPrepareData($data);
     }

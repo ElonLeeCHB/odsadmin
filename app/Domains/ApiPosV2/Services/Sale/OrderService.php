@@ -176,6 +176,7 @@ class OrderService extends Service
                 // 修改
                 else {
                     $data['id'] = $order_id;
+
                     $old_order = Order::with('orderProducts.orderProductOptions')->find($order_id);
                     $order = (new OrderRepository)->update($data, $order_id);
                 }
@@ -324,7 +325,7 @@ class OrderService extends Service
 
             // $order = (new OrderRepository)->update($data, $order_id);
             $order = Order::find($order_id);
-            $order = (new Order)->prepareData(data:$data);
+            $order = (new OrderRepository)->prepareRequestData($data);
             $order->save();
 
             DB::commit();

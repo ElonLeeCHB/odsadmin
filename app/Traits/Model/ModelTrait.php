@@ -328,7 +328,9 @@ trait ModelTrait
         return (object) $result;
     }
 
-    //處理 guarded()。原本 model 內建的 create() 會受 fillable() 限制。但是若使用 guarded() 不會包含在 fillable() 裡面。因此新增判斷
+    //處理 guarded()。原本 model 內建的 create() 會受 fillable() 限制。但是若使用 guarded() 不會包含在 fillable() 裡面。因此使用此方法
+    // 如果沒有 $fillable，則使用 table columns 減去 $guarded 的結果。這時候如果 $guarded 也是空的，則 $fillable，等於所有 table columns。
+    // 如果經上面處理之後 $fillable 仍然是空的
     public function getFillable()
     {
         $fillable = parent::getFillable();
@@ -340,7 +342,9 @@ trait ModelTrait
         }
 
         if(empty($fillable)){
-            $fillable = $table_columns;
+            // 理論上這個情況不應該發生。
+            echo "<pre>", print_r('理論上這個情況不應該發生。請找 php 開發工程師', true), "</pre>"; exit;
+            $fillable = [];
         }
 
         // 排除 $guarded 中列出的欄位
@@ -368,12 +372,10 @@ trait ModelTrait
     {
         // 禁止修改的欄位
         unset($data['created_at']);
-        unset($data['updated_at']);
         unset($data['creator_id']);
-        unset($data['updater_id']);
 
         foreach ($data as $key => $value) {
-            if (!in_array($key, $this->getTableColumns())){
+            if (!in_array($key, $this->getFillable())){
                 unset($data[$key]);
             }
         }

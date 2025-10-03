@@ -73,7 +73,7 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-md-6 col-sm-6 mb-3">
+          <div class="col-md-4 col-sm-6 mb-3">
             <div class="card border-secondary">
               <div class="card-body text-center">
                 <h6 class="text-muted">進貨總金額</h6>
@@ -81,7 +81,15 @@
               </div>
             </div>
           </div>
-          <div class="col-md-6 col-sm-6 mb-3">
+          <div class="col-md-4 col-sm-6 mb-3">
+            <div class="card border-danger">
+              <div class="card-body text-center">
+                <h6 class="text-muted">毛利金額</h6>
+                <h3 class="text-danger">{{ number_format($report->gross_profit_amount, 0) }}</h3>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 col-sm-6 mb-3">
             <div class="card border-dark">
               <div class="card-body text-center">
                 <h6 class="text-muted">廠商數量</h6>

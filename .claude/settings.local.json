@@ -1,7 +1,24 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(./php.bat artisan make:migration add_gross_profit_amount_to_monthly_operation_reports --path=database/migrations/reports)",
+      "Bash(./php.bat artisan report:update-monthly 202401)",
+      "Bash(./php.bat artisan report:update-monthly 202402)",
+      "Bash(./php.bat artisan report:update-monthly 202403)",
+      "Bash(./php.bat artisan report:update-monthly 202404)",
+      "Bash(./php.bat artisan report:update-monthly 202405)",
+      "Bash(./php.bat artisan report:update-monthly 202406)",
+      "Bash(./php.bat artisan report:update-monthly 202407)",
+      "Bash(./php.bat artisan report:update-monthly 202408)",
+      "Bash(./php.bat artisan report:update-monthly 202409)",
+      "Bash(./php.bat artisan report:update-monthly 202410)",
+      "Bash(./php.bat artisan report:update-monthly 202411)",
+      "Bash(./php.bat artisan report:update-monthly 202412)",
+      "Bash(./php.bat artisan report:update-monthly 202501)",
+      "Bash(./php.bat artisan report:update-monthly 202502)",
+      "Bash(./php.bat artisan report:update-monthly 202503)",
+      "Bash(./php.bat artisan:*)"
     ],
     "deny": [],
     "ask": []

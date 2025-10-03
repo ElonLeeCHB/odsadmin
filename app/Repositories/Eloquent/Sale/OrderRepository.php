@@ -100,6 +100,7 @@ class OrderRepository extends Repository
         if(!empty($data['filter_is_void'])){
             $data['filter_status_code'] = '<>Void';
         }
+        
         return $data;
     }
 
@@ -531,22 +532,18 @@ class OrderRepository extends Repository
         unset($data['id']);
         unset($data['order_id']);
 
-        try {
-            $order = new Order;
+        $order = new Order;
 
-            $data = $order->prepareData(data:$data);
+        // $data = $order->prepareData(data:$data);
+        $data = $this->prepareRequestData($data);
 
-            foreach ($data as $key => $value) {
-                $order->{$key} = $value;
-            }
-            
-            $order->save();
-
-            return $order;
-
-        } catch (\Throwable $th) {
-            throw $th;
+        foreach ($data as $key => $value) {
+            $order->{$key} = $value;
         }
+
+        $order->save();
+
+        return $order;
     }
 
     public function save($data)
@@ -607,21 +604,13 @@ class OrderRepository extends Repository
             throw new \Exception('找不到此訂單序號！');
         }
 
-        $fillable = $this->model->getFillable();
-
         $orderData = [];
 
-        $orderData = (new Order)->prepareData(data:$data);
-
-        foreach ($fillable as $column) {
-            if($column != 'id' && isset($data[$column])){
-                $orderData[$column] = $data[$column];
-            }
-        }
-
-        $orderData['id'] = $id;
+         $orderData = $this->prepareRequestData($data);
 
         if (!empty($orderData)) {
+            $orderData['id'] = $id;
+
             $order->update($orderData);
 
             return $order;
@@ -677,6 +666,51 @@ class OrderRepository extends Repository
         $member->save();
 
         return $member->id;
+    }
+
+    public function prepareRequestData($data)
+    {
+        $data['source'] = $data['source'] ?? null;
+        $data['store_id'] = $data['store_id'] ?? 0;
+        $data['customer_id'] = (isset($data['customer_id']) && is_numeric($data['customer_id'])) ? $data['customer_id'] : 0;
+        $data['quantity_for_control'] = $data['quantity_for_control'] ?? 0;
+        $data['is_option_qty_controlled'] = $data['is_option_qty_controlled'] ?? 0;
+        $data['mobile'] = preg_replace('/\D+/', '', $data['mobile'] ?? null);
+        $data['salutation_code'] = $data['salutation_code'] ?? 0;
+
+        $data['payment_total'] = (isset($data['payment_total']) && is_numeric($data['payment_total'])) ? $data['payment_total'] : 0;
+        $data['payment_paid'] = (isset($data['payment_paid']) && is_numeric($data['payment_paid'])) ? $data['payment_paid'] : 0;
+        $data['payment_unpaid'] = (isset($data['payment_unpaid']) && is_numeric($data['payment_unpaid'])) ? $data['payment_unpaid'] : 0;
+        $data['payment_unpaid'] = empty($data['payment_paid']) ? $data['payment_total'] : $data['payment_unpaid'];
+
+        $data['shipping_personal_name'] = $data['shipping_personal_name'] ?? $data['personal_name'] ?? null;
+        $data['shipping_company'] = $data['shipping_company'] ?? $data['payment_company'] ?? null;
+        $data['shipping_country_code'] = $data['shipping_country_code'] ?? config('vars.default_country_code');
+        $data['shipping_road_abbr'] = $data['shipping_road_abbr'] ?? $data['shipping_road'] ?? null;
+        $data['shipping_road'] = $data['shipping_road'] ?? null;
+        $data['shipping_salutation_code'] = $data['shipping_salutation_code'] ?? 0;
+        $data['shipping_salutation_code2'] = $data['shipping_salutation_code2'] ?? 0;
+
+        $data['delivery_date'] = $data['delivery_date_ymd'] . ' 00:00:00';
+
+        // 禁止修改的欄位
+        unset($data['created_at']);
+        unset($data['creator_id']);
+
+        foreach ($data as $key => $value) {
+            // 不可更新的欄位
+            if (!in_array($key, $this->model->getFillable())) {
+                unset($data[$key]);
+            }
+            // 可以更新的欄位
+            else {
+                if ($value === 'null'){ // 可以更新，但值卻是 null，通常是前端的錯。
+                    unset($data[$key]);
+                }
+            }
+        }
+
+        return $data;
     }
 }
 
