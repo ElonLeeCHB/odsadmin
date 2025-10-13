@@ -15,7 +15,7 @@ class CategoryService extends Service
     public function getMenu()
     {
         // 所有分類
-        $categories = Term::where('taxonomy_code', 'ProductWwwCategory')
+        $categories = Term::where('taxonomy_code', 'ProductWwwCategory')->where('is_active', 1)
             ->orderBy('sort_order')
             ->get()
             ->groupBy('parent_id'); // 依據 parent_id 分組，建立樹狀
@@ -38,6 +38,7 @@ class CategoryService extends Service
             ->whereHas('productTerms', function ($query) {
                 $query->where('taxonomy_id', 36);
             })
+            ->where('is_active', 1)
             ->get();
 
         foreach ($products as $product) {

@@ -246,23 +246,24 @@
     <!-- end 客戶簽收 -->
 
     <!-- 第一行：外送員資料與工具 -->
-    <div style="display: flex; justify-content: space-between; margin: 3px 1.5em 0 1.5em; padding: 2px 4px; font-weight: bold; line-height: 1.2;">
+    <div style="display: flex; justify-content: space-between; margin: 3px 0 0 1em; padding: 0px 0px; font-weight: bold; line-height: 1.2;">
         <div>
             外送員簽名：______________
                  手機：______________
                  車牌：______________
+            &nbsp;
             <input type="checkbox" id="input-chk001">
             <label for="input-chk001">膠台</label>
             <input type="checkbox" id="input-chk002">
             <label for="input-chk002">推車</label>
             <input type="checkbox" id="input-chk003">
             <label for="input-chk003">拉繩</label>
-            接單員: web
+            &nbsp;接單員: {{ $order['header']->order_taker }}
         </div>
     </div>
 
     <!-- 第二行：運費靠左，製單時間靠右 -->
-    <div style="display: flex; justify-content: space-between; margin: 3px 1.5em 0 1.5em; padding: 2px 4px; font-weight: bold; line-height: 1.2;">
+    <div style="display: flex; justify-content: space-between; margin: 3px 1em 0 1em; padding: 2px 4px; font-weight: bold; line-height: 1.2;">
         <div>運費：____________</div>
         <div>製單時間：{{ now() }}</div>
     </div>
