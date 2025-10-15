@@ -168,6 +168,13 @@ class ReceivingOrderService extends Service
                     }
 
                     //換算用量單位
+                    // $obj = $usage_factor = UnitConverter::build()->qty(1)
+                    //     ->from($db_coded_products[$product_id]['stock_unit_code'])
+                    //     ->to($db_coded_products[$product_id]['usage_unit_code'])
+                    //     ->product($product_id);
+                    // echo "<pre>", print_r($obj, true), "</pre>";
+                    // exit;
+
                     $usage_factor = UnitConverter::build()->qty(1)
                                         ->from($db_coded_products[$product_id]['stock_unit_code'])
                                         ->to($db_coded_products[$product_id]['usage_unit_code'])
@@ -178,7 +185,7 @@ class ReceivingOrderService extends Service
                         throw new \Exception($usage_factor['error']);
                     }
                     if($usage_factor == 0){
-                        throw new \Exception("換算單位異常");
+                        throw new \Exception("換算單位異常。請檢查庫存單位與用量單位是否有換算關係。產品ID：".$product_id);
                     }
                             //fucking shit
                             if ($data['tax_type_code']==1){

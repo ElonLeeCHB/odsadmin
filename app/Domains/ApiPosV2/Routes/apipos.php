@@ -16,6 +16,9 @@ Route::group([
 {
 
     Route::post('login', 'Auth\LoginController@login');
+    Route::post('oauth/login', 'Auth\OAuthController@login');
+    Route::post('oauth/logout', 'Auth\OAuthController@logout'); // OAuth SSO 登出
+
     //暫時使用。直接更新密碼
     Route::post('passwordUpdate', 'Auth\ResetPasswordController@tmpPasswordUpdate');
     
