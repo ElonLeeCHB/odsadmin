@@ -10,7 +10,7 @@ use TCPDF;
 use Illuminate\Support\Facades\Http;
 
 
-class OrderPrintingController extends BackendController
+class OrderPrintingTCPDFController extends BackendController
 {
     public function __construct(private OrderPrintingService $OrderPrintingService,)
     {

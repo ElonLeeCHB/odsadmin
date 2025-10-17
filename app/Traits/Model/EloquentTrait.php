@@ -1066,35 +1066,61 @@ trait EloquentTrait
             $meta_model = $masterModelInstance->getMetaModel();
 
             if(empty($meta_model)){
-                return ;
+                return;
             }
 
             // Keys
             $master_key = $meta_model->master_key ?? $masterModelInstance->getForeignKey();
-
             $master_key_value = $masterModelInstance->id;
 
-            //先取出舊資料
+            // 取出舊資料
             $all_meta = $masterModelInstance->metas()->get()->keyBy('meta_key')->toArray();
 
-            //全刪
-            $masterModelInstance->metas()->where($master_key, $master_key_value)->delete();
             $upsert_data = [];
+            $keys_to_delete = [];
 
-            foreach($post_data as $column => $value){
-                if(!in_array($column, $this->model->meta_keys) || empty($value)){
-                    continue;
+            // 遍歷 meta_keys（而非 post_data）
+            foreach($this->model->meta_keys ?? [] as $meta_key){
+                // 如果前端有傳這個 key
+                if(array_key_exists($meta_key, $post_data)){
+                    $value = $post_data[$meta_key];
+
+                    // 值不為空：準備 upsert
+                    if($value !== '' && $value !== null){
+                        $arr = [
+                            'id' => $all_meta[$meta_key]['id'] ?? null,
+                            $master_key => $master_key_value,
+                            'meta_key' => $meta_key,
+                            'meta_value' => $value,
+                        ];
+                        $upsert_data[] = $arr;
+                    }
+                    // 值為空：標記刪除
+                    else{
+                        if(isset($all_meta[$meta_key])){
+                            $keys_to_delete[] = $meta_key;
+                        }
+                    }
                 }
-
-                $arr['id'] = $all_meta[$column]['id'] ?? null; // 將原本的 id 值塞回去。
-                $arr[$master_key] = $master_key_value;
-                $arr['meta_key'] = $column;
-                $arr['meta_value'] = $value;
-                $upsert_data[] = $arr;
+                // 前端沒傳這個 key：標記刪除
+                else{
+                    if(isset($all_meta[$meta_key])){
+                        $keys_to_delete[] = $meta_key;
+                    }
+                }
             }
 
+            // 執行 upsert
             if(!empty($upsert_data)){
-                $result = $meta_model->upsert($upsert_data,['id']);
+                $meta_model->upsert($upsert_data, ['id']);
+            }
+
+            // 執行刪除
+            if(!empty($keys_to_delete)){
+                $masterModelInstance->metas()
+                    ->where($master_key, $master_key_value)
+                    ->whereIn('meta_key', $keys_to_delete)
+                    ->delete();
             }
 
             return true;

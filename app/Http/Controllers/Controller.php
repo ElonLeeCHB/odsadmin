@@ -17,9 +17,9 @@ class Controller extends BaseController
     protected $lang;
     protected $acting_user;
     protected $acting_username;
-    protected $url_data;
-    protected $post_data;
-    protected $all_data;
+    protected $url_data = [];
+    protected $post_data = [];
+    protected $all_data = [];
 
     protected bool $booted = false;
 
@@ -58,14 +58,16 @@ class Controller extends BaseController
 
     public function resetPostData()
     {
-        $this->post_data = DataHelper::unsetNullUndefined(request()->post());
+        // 無值的鍵還是會用來判斷，不可刪。
+        // $this->post_data = DataHelper::unsetNullUndefined(request()->post());
 
         return $this->post_data;
     }
 
     public function resetUrlData()
     {
-        $this->url_data = DataHelper::unsetNullUndefined(request()->query());
+        // 無值的鍵還是會用來判斷，不可刪。
+        // $this->url_data = DataHelper::unsetNullUndefined(request()->query());
 
         // 如果有 locale
         if(!empty($this->url_data['locale'])){
@@ -84,13 +86,6 @@ class Controller extends BaseController
         else{
             app()->setLocale($this->url_data['equal_locale']);
         }
-
-        // 這裡不應該處理 equal_is_active。由 OrmHelper 或 EloquetTrait 處理。
-        // if(isset($this->url_data['equal_is_active'])){
-        //     if($this->url_data['equal_is_active'] == '*'){
-        //         unset($this->url_data['equal_is_active']);
-        //     }
-        // }
 
         return $this->url_data;
     }
@@ -165,8 +160,6 @@ class Controller extends BaseController
         // 預設錯誤訊息
         $general_error = $data['general_error'] ?? 'System error occurred. Please contact system administrator.';
         $sys_error = $data['sys_error'] ?? $general_error;
-
-        // if (!$user || !$user->hasRole('sys_admin', 'web', 'hrm') || !config('app.debug')) {
 
         // debug 模式, 或系統管理員，給詳細錯誤
         if (config('app.debug') || ($user && $user->hasRole('sys_admin'))) {

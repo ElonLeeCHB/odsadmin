@@ -546,55 +546,43 @@ class OrderRepository extends Repository
         return $order;
     }
 
-    public function save($data)
-    {
-        try {
+    // 2025-10-16 用不到
+    // public function save(array $data, $id = null, bool $isFullUpdate = false)
+    // {
+    //     try {
 
-            // 新增或編輯
-                if(empty($data['order_id'])){
-                    $isAddingOrder = true;
-                }
+    //         // 新增或編輯
+    //             if(empty($data['order_id'])){
+    //                 $isAddingOrder = true;
+    //             }
 
-                if (!empty($data['order_id']) && filter_var($data['order_id'], FILTER_VALIDATE_INT) !== false) {
-                    $isEdittingOrder = true;
-                }
-            //
+    //             if (!empty($data['order_id']) && filter_var($data['order_id'], FILTER_VALIDATE_INT) !== false) {
+    //                 $isEdittingOrder = true;
+    //             }
+    //         //
 
-            // get order
-            $result = $this->findIdOrFailOrNew($data['order_id'] ?? null);
+    //         // get order
+    //         $result = $this->findIdOrFailOrNew($data['order_id'] ?? null);
 
-            if(empty($result['error'])){
-                $order = $result['data'];
-            }
+    //         if(empty($result['error'])){
+    //             $order = $result['data'];
+    //         }
 
-            if($isAddingOrder){
-                $order->created_at = now();
-                $order->updated_at = now();
-            }else if($isEdittingOrder){
-                $order->updated_at = now();
-            }
-            $order->save();
+    //         if($isAddingOrder){
+    //             $order->created_at = now();
+    //             $order->updated_at = now();
+    //         }else if($isEdittingOrder){
+    //             $order->updated_at = now();
+    //         }
+    //         $order->save();
 
-            return $order->id;
+    //         return $order->id;
 
 
-        } catch (\Throwable $th) {
-            throw $th; //不使用 return
-
-            // // 可以記錄錯誤，例如使用 Laravel 的 Log 類來記錄
-            // // \Log::error('An error occurred: ' . $th->getMessage(), ['exception' => $th]);
-
-            // // 回應 JSON 格式的錯誤回應
-            // return response()->json([
-            //     'status' => 'error',
-            //     'message' => 'An unexpected error occurred. Please try again later.',
-            //     'success' => false,
-            //     'error_code' => 'INTERNAL_SERVER_ERROR',
-            //     'details' => env('APP_DEBUG') ? $th->getMessage() : null // 在開發模式下顯示錯誤訊息
-            // ], 500);  // HTTP 500 表示伺服器內部錯誤
-        }
-
-    }
+    //     } catch (\Throwable $th) {
+    //         throw $th;
+    //     }
+    // }
 
     public function update($data, $id)
     {

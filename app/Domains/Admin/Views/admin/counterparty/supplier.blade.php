@@ -30,7 +30,7 @@
 
               <div class="mb-3">
                 <label class="form-label">{{ $lang->column_keyword }}</label>
-                <input type="text" id="input-keyword" name="filter_keyword" value="{{ $filter_keyword ?? '' }}" placeholder="名稱、簡稱" class="form-control" autocomplete="off"/>
+                <input type="text" id="input-filter_search_keyword" name="filter_search_keyword" value="{{ $filter_search_keyword ?? '' }}" placeholder="名稱、簡稱" class="form-control" autocomplete="off"/>
               </div>
 
               <div class="mb-3">
@@ -81,10 +81,10 @@ $('#supplier').on('click', 'thead a, .pagination a', function(e) {
 $('#button-filter').on('click', function() {
 	url = '';
   
-	var filter_keyword = $('#input-keyword').val();
+	var filter_search_keyword = $('#input-filter_search_keyword').val();
 
-	if (filter_keyword) {
-		url += '&filter_keyword=' + encodeURIComponent(filter_keyword);
+	if (filter_search_keyword) {
+		url += '&filter_search_keyword=' + encodeURIComponent(filter_search_keyword);
 	}
 
   var filter_tax_id_num = $('#input-filter_tax_id_num').val();

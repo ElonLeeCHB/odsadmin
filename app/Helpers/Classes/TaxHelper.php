@@ -1,22 +1,22 @@
 <?php
 
-namespace App\Helpers;
+namespace App\Helpers\Classes;
 
-
+/*
 // 假設是稅外價 1000
 $result = TaxHelper::calculate(1000);
 // 回傳：
-/*
+
 [
     'tax' => 50,
     'exclusive' => 1000,
     'inclusive' => 1050,
 ]
-*/
+
 
 // 假設是稅內價 1050
 $result = TaxHelper::calculate(1050, taxRate: 5.0, taxIncluded: true);
-/*
+
 [
     'tax' => 50,
     'exclusive' => 1000,

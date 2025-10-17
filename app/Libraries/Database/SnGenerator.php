@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Database\Libraries;
+namespace App\Libraries\Database;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -19,6 +19,10 @@ class SnGenerator
      */
     public static function generateYearMonthSn(string $table, string $column, int $yearDigits = 6, int $snDigits = 4): string
     {
+        if ($yearDigits !== 4 && $yearDigits !== 6) {
+            throw new \InvalidArgumentException("yearDigits 必須是 4 或 6");
+        }
+        
         $prefix = now()->format($yearDigits === 4 ? 'Y' : 'Ym');
 
         $maxTries = 5;

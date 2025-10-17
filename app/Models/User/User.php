@@ -71,6 +71,7 @@ class User extends Authenticatable
     ];
 
     public $meta_keys = [
+        'line_id',
     ];
 
     public function userCoupons()

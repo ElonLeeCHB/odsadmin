@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class OrmHelper
 {
@@ -139,7 +140,7 @@ class OrmHelper
     
             // '=' Empty or null
             if($value === '='){
-                $query->$type(function ($query) use($column) {
+                $query->where(function ($query) use($column) {
                     $query->orWhereNull($column);
                     $query->orWhere($column, '=', '');
                 });
@@ -540,14 +541,14 @@ class OrmHelper
     public static function getSavableColumns(Model $row)
     {
         $table = $row->getTable();
-        $table_columns = self::getTableColumns($table);
-        $fillable = $row->getFillable();
+        $table_columns = Schema::getColumnListing($table);
+        $fillable = $row->getFillable(); // getFillable(): laravel 內建
 
-        // 排除 $guarded
+        // 不存在 $fillable，則使用資料表全部欄位, 然後排除 $guarded
         if (empty($fillable)) {
             $result = array_diff($table_columns, $row->getGuarded());
         }
-        // 模型未設定 $fillable: 資料表全部欄位，但是排除$guarded
+        // 存在 $fillable: 使用資料表全部欄位，但是排除 $guarded
         else {
             $result = array_diff($fillable, $row->getGuarded());
         }
@@ -574,6 +575,217 @@ class OrmHelper
         return $row ?? null;
     }
 
+    // 2025-10-16 新增
+    public static function save(string $model_name, array $data, $id = null, $params = [])
+    {
+        // 確保類別存在
+        if (!class_exists($model_name)) {
+            throw new \Exception("Model class {$model_name} not found");
+        }
+
+        // 動態建立或查找 Model
+        if (empty($id)) {
+            $row = new $model_name();
+        } else {
+            $row = $model_name::find($id);
+
+            if (empty($row)) {
+                throw new \Exception("{$model_name} id={$id} not found");
+            }
+        }
+
+        // 修改
+        if (!empty($id)) {
+            unset($data['creator_id']);
+            unset($data['created_by']);
+            unset($data['created_by_id']); // 推薦
+        }
+
+        // 新增或修改共用
+        unset($data['created_at']); // 由系統自行決定
+        unset($data['updated_at']); // 由系統自行決定
+
+        // 刪除不可使用的欄位
+        $savableColumns = self::getSavableColumns($row);
+
+        foreach ($data as $key => $value) {
+            if (!in_array($key, $savableColumns)) {
+                unset($data[$key]);
+            }
+        }
+
+        // 🔹 取得欄位結構 & 預設值
+        $table = $row->getTable();
+        $connection = $row->getConnectionName();
+        $tableMeta = self::getTableColumnsWithDefaults($table, $connection);
+
+        $table_columns = array_keys($tableMeta);
+
+        // 如果有 $params['operator_id']，再依序判斷資料表欄位是否存在
+        if (!empty($params['operator_id'])) {
+            $operatorId = $params['operator_id'];
+
+            // 優先順序設定：建立者
+            $creatorFields = ['created_by_id', 'created_by', 'creator_id']; // 取其一
+            foreach ($creatorFields as $field) {
+                if (in_array($field, $table_columns)) {
+                    $row->$field = $operatorId;
+                    break;
+                }
+            }
+
+            // 優先順序設定：修改者
+            $updaterFields = ['updated_by_id', 'updated_by', 'updater_id', 'modifier_id', 'modified_by', 'modified_by_id']; // 取其一
+            foreach ($updaterFields as $field) {
+                if (in_array($field, $table_columns)) {
+                    $row->$field = $operatorId;
+                    break;
+                }
+            }
+        }
+
+        // 🔹 根據更新模式處理
+        $params['isFullUpdate'] = $params['isFullUpdate'] ?? false;
+
+        if ($params['isFullUpdate']) {
+            self::applyFullUpdate($row, $data, $tableMeta);
+        } else {
+            self::applyPartialUpdate($row, $data, $tableMeta);
+        }
+
+        $row->save();
+
+        return $row;
+    }
+
+    // 2025-10-16 新增
+    protected static function getTableColumnsWithDefaults(string $table, $connection = null)
+    {
+        $connection = $connection ?: config('database.default');
+        $database = DB::connection($connection)->getDatabaseName();
+
+        $columns = DB::connection($connection)->select("
+            SELECT COLUMN_NAME as name, COLUMN_DEFAULT as default_value
+            FROM information_schema.columns
+            WHERE table_schema = ? AND table_name = ?
+        ", [$database, $table]);
+
+        $meta = [];
+        foreach ($columns as $col) {
+            $meta[$col->name] = ['default' => $col->default_value];
+        }
+
+        return $meta;
+    }
+
+    // 2025-10-16 新增
+    protected static function applyFullUpdate($row, array $data, array $tableMeta)
+    {
+        foreach ($tableMeta as $field => $meta) {
+            if (in_array($field, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
+                continue;
+            }
+
+            $row->$field = array_key_exists($field, $data)
+                ? $data[$field]
+                : ($meta['default'] ?? null);
+        }
+    }
+
+    // 2025-10-16 新增
+    protected static function applyPartialUpdate($row, array $data, array $tableMeta)
+    {
+        foreach ($data as $field => $value) {
+            if (
+                array_key_exists($field, $tableMeta) &&
+                !in_array($field, ['id', 'created_at', 'updated_at', 'deleted_at'])
+            ) {
+                $row->$field = $value;
+            }
+        }
+    }
+
+    // 2025-10-16 新增
+    // 儲存 Model 的 Meta 資料
+    // 用於處理有 metas 關聯的 Model，根據 meta_keys 進行 upsert 或刪除
+    public static function saveRowMetaData(Model $row, array $data)
+    {
+        // 檢查 Model 是否有 getMetaModel 方法
+        if (!empty($row->meta_model)) {
+            $meta_model_name = $row->meta_model;
+        } else {
+            $meta_model_name = get_class($row) . 'Meta';
+        }
+
+        if (class_exists($meta_model_name)) {
+            $meta_model = new $meta_model_name();
+        }
+
+        if (empty($meta_model)) {
+            return;
+        }
+
+        // 檢查 Model 是否定義了 meta_keys
+        if (empty($row->meta_keys)) {
+            return;
+        }
+
+        // Keys
+        $master_key = $meta_model->master_key ?? $row->getForeignKey();
+        $master_key_value = $row->id;
+
+        // 取出舊資料
+        $all_meta = $row->metas()->get()->keyBy('meta_key')->toArray();
+
+        $upsert_data = [];
+        $keys_to_delete = [];
+
+        // 遍歷 meta_keys（而非 post_data）
+        foreach ($row->meta_keys as $meta_key) {
+            // 如果前端有傳這個 key
+            if (array_key_exists($meta_key, $data)) {
+                $value = $data[$meta_key];
+
+                // 值不為空：準備 upsert
+                if ($value !== '' && $value !== null) {
+                    $arr = [
+                        'id' => $all_meta[$meta_key]['id'] ?? null,
+                        $master_key => $master_key_value,
+                        'meta_key' => $meta_key,
+                        'meta_value' => $value,
+                    ];
+                    $upsert_data[] = $arr;
+                }
+                // 值為空：標記刪除
+                else {
+                    if (isset($all_meta[$meta_key])) {
+                        $keys_to_delete[] = $meta_key;
+                    }
+                }
+            }
+            // 前端沒傳這個 key：標記刪除
+            else {
+                if (isset($all_meta[$meta_key])) {
+                    $keys_to_delete[] = $meta_key;
+                }
+            }
+        }
+
+        // 執行 upsert
+        if (!empty($upsert_data)) {
+            $meta_model->upsert($upsert_data, ['id']);
+        }
+
+        // 執行刪除
+        if (!empty($keys_to_delete)) {
+            $row->metas()
+                ->where($master_key, $master_key_value)
+                ->whereIn('meta_key', $keys_to_delete)
+                ->delete();
+        }
+    }
+
+    // 2025-10-16 以前，可能要廢棄
     // $operator_user_id 必須是 users.id, 即 managers.user_id 或 members.user_id 要注意！
     public static function saveRow(Model $row, $data, $operator_user_id = null)
     {

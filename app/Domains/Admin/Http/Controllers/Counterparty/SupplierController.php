@@ -2,7 +2,6 @@
 
 namespace App\Domains\Admin\Http\Controllers\Counterparty;
 
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Validator;
@@ -13,6 +12,8 @@ use App\Domains\Admin\Services\Localization\DivisionService;
 use App\Helpers\Classes\DataHelper;
 use App\Http\Resources\Inventory\SupplierResource;
 use App\Http\Resources\Inventory\SupplierCollection;
+use App\Helpers\Classes\OrmHelper;
+use App\Models\Counterparty\Supplier;
 
 class SupplierController extends BackendController
 {
@@ -64,18 +65,17 @@ class SupplierController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        $query_data  = $this->url_data;
-
-
         // Prepare query_data for records
-        $query_data  = $this->url_data;
-
-        // Extra default
-        $query_data['equal_is_supplier'] = 1;
-        $query_data['pagination'] = true;
+        $query_data  = $this->url_data ?? [];
 
         // Records
         $suppliers = $this->SupplierService->getSuppliers($query_data);
+
+        if(!empty($suppliers)){
+            foreach ($suppliers as $row) {
+                $row->edit_url = route('lang.admin.counterparty.suppliers.form', array_merge([$row->id], $data));
+            }
+        }
 
         foreach ($suppliers as $row) {
             $row->edit_url = route('lang.admin.counterparty.suppliers.form', array_merge([$row->id], $query_data));
@@ -234,47 +234,38 @@ class SupplierController extends BackendController
 
         $json = [];
 
-        if(empty($this->request->tax_type_code)){
-            $json['error']['tax_type_code'] = '請選擇課稅別';
-        }
-
-        $postData['is_supplier'] = 1;
-        $postData['organization_id'] = $postData['supplier_id'];
-
+        // 檢查欄位
         $validator = $this->validator($postData);
 
         if($validator->fails()){
             $messages = $validator->errors()->toArray();
+
             foreach ($messages as $key => $rows) {
-                $json['error'][$key] = $rows[0];
-            }
-        }
-
-        // 檢查欄位
-        // do something
-        if(isset($json['error']) && !isset($json['error']['warning'])) {
-            $json['error']['warning'] = $this->lang->error_warning;
-        }
-
-        if(!$json) {
-            $result = $this->SupplierService->saveSupplier($postData);
-
-            if(empty($result['error']) && !empty($result['id'])){
-                $json = [
-                    'supplier_id' => $result['id'],
-                    'success' => $this->lang->text_success,
-                    'redirectUrl' => route('lang.admin.counterparty.suppliers.form', $result['id']),
-                ];
-            }else{
-                if(config('app.debug')){
-                    $json['error'] = $result['error'];
-                }else{
-                    $json['error'] = $this->lang->text_fail;
+                // 處理多語欄位：translations.zh_Hant.name -> name-zh_Hant
+                if (preg_match('/^translations\.([^.]+)\.(.+)$/', $key, $matches)) {
+                    $locale = $matches[1];      // zh_Hant, en, 等
+                    $field = $matches[2];       // name, description, 等
+                    $json['errors'][$field . '-' . $locale] = $rows[0];
+                }
+                // 一般欄位
+                else {
+                    $json['errors'][$key] = $rows[0];
                 }
             }
+
+            $json['error'] = $this->lang->error_warning;
+            return response()->json($json, 422);
         }
 
-       return response(json_encode($json))->header('Content-Type','application/json');
+        $result = $this->SupplierService->saveSupplier($postData, $postData['supplier_id'] ?? null);
+
+        $json = [
+            'supplier_id' => $result['id'],
+            'success' => $this->lang->text_success,
+            'redirectUrl' => route('lang.admin.counterparty.suppliers.form', $result['id']),
+        ];
+
+        return response()->json($json);
     }
 
     public function destroy()
@@ -313,20 +304,27 @@ class SupplierController extends BackendController
 
     public function validator(array $data)
     {
+        // 取得當前語言（假設是必填語言）
+        $current_locale = app()->getLocale();
+
+
         return Validator::make($data, [
                 'supplier_id' =>'nullable|integer',
                 'code' =>'nullable|unique:organizations,code,'.$data['supplier_id'],
-                'name' =>'min:2|max:100|unique:organizations,name,'.$data['supplier_id'],
-                'short_name' =>'min:2|max:50|unique:organizations,short_name,'.$data['supplier_id'],
+                'name' =>'required|min:2|max:50|unique:organizations,name,'.$data['supplier_id'],
+                'short_name' =>'required|min:2|max:50|unique:organizations,short_name,'.$data['supplier_id'],
                 'mobile' =>'nullable|min:9|max:20',
                 'telephone' =>'nullable|min:7|max:20',
+                'tax_type_code' =>'required',
+
             ],[
                 'supplier_id.*' => $this->lang->error_supplier_id,
                 'code.*' => $this->lang->error_code,
-                'name.*' => $this->lang->error_name,
-                'short_name.*' => $this->lang->error_short_name,
+                'name.*' => '請輸入 2 - 50 個中文字',
+                'short_name.*' => '請輸入 2 - 50 個中文字',
                 'mobile.*' => $this->lang->error_mobile,
                 'telephone.*' => $this->lang->error_telephone,
+                'tax_type_code.*' => '請選擇課稅別',
         ]);
     }
 
@@ -359,7 +357,6 @@ class SupplierController extends BackendController
             }
         }
 
-
         // 不存在任何查詢
         if($hasFilterOrEqual !== true){
             $cache_name = 'cache/counterparty/suppliers/often_used.json';
@@ -374,11 +371,6 @@ class SupplierController extends BackendController
 
             $suppliers = $this->rowsWithMetaData($suppliers);
         }
-
-        // // 不存在任何查詢
-        // if($hasFilterOrEqual !== true){
-        //     $filter_data['equal_is_often_used_supplier'] = 1;
-        // }
 
         // 稅別
         $data['tax_types'] = $this->SupplierService->getCodeKeyedTermsByTaxonomyCode('tax_type',toArray:false);

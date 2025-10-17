@@ -45,7 +45,7 @@ use Illuminate\Support\Facades\Http;
  * getOrderPringtingData(Order $order)
  */
 
-class OrderPrintingRepository extends Repository
+class OrderPrintingRepositoryTCPDF extends Repository
 {    
     public $modelName = "\App\Models\Sale\Order";
 

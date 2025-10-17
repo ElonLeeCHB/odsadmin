@@ -9,9 +9,15 @@ use App\Models\Counterparty\Organization;
 use App\Models\Counterparty\OrganizationMeta;
 use App\Models\Counterparty\PaymentTerm;
 use App\Repositories\Eloquent\Common\TermRepository;
+use App\Traits\Model\ModelTrait;
 
-class Supplier extends Organization
+// class Supplier extends Organization
+class Supplier extends Model
 {
+    use ModelTrait;
+
+    protected $table = 'organizations';
+
     public $meta_keys = [
         'supplier_contact_name',
         'supplier_contact_email',
@@ -29,7 +35,6 @@ class Supplier extends Organization
     ];
     public $master_key = 'organization_id';
     public $meta_model = 'App\Models\Counterparty\OrganizationMeta';
-    protected $table = 'organizations';
     protected $appends = ['tax_type_name'];
 
     protected $casts = [
@@ -39,8 +44,6 @@ class Supplier extends Organization
     
     protected static function booted()
     {
-        parent::booted();
-
         static::addGlobalScope('is_supplier', function (Builder $builder) {
             $builder->where('is_supplier', 1);
         });

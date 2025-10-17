@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use App\Helpers\Classes\IpHelper;
 
-class checkApiWwwV2Authorization
+class CheckApiWwwV2Authorization
 {
     /**
      * Handle an incoming request.

@@ -202,8 +202,7 @@ function handleFormErrors(json, element) {
 
         for (key in json['errors']) {
             if (key == 'warning') continue;
-            $('#input-' + key).addClass('is-invalid')
-                .find('.form-control, .form-select, .form-check-input, .form-check-label').addClass('is-invalid');
+            $('#input-' + key).addClass('is-invalid').find('.form-control, .form-select, .form-check-input, .form-check-label').addClass('is-invalid');
             $('#error-' + key).html(json['errors'][key]).addClass('d-block');
         }
     }
