@@ -40,11 +40,7 @@ class AccountsOAuthLibrary
             ];
 
             // 如果有提供 return_url，加入請求
-            $returnUrl = $returnUrl ?? 'http://ods.dtstw.com/#/index';
-            
-            if ($returnUrl) {
-                $payload['return_url'] = $returnUrl ?? 'http://ods.dtstw.com/#/index';
-            }
+            $payload['return_url'] = $returnUrl ?? 'http://ods.dtstw.com/#/index';
 
             $response = Http::timeout($timeout)
                 ->withOptions(['verify' => false]) // 忽略 SSL 憑證驗證
@@ -54,21 +50,14 @@ class AccountsOAuthLibrary
             $statusCode = $response->status();
             $body = $response->json();
 
-            /*
-    [auto_login_token] => twXULtgoS1DFPFEpz1xLqivmDYXo1VUfPNngT7lD8n9Cpp7QdH7eqoYjCw5cSNBd
-    [redirect_url] => https://accounts.huabing.test/reset-password-required?token=twXULtgoS1DFPFEpz1xLqivmDYXo1VUfPNngT7lD8n9Cpp7QdH7eqoYjCw5cSNBd
-    [return_url] => http://ods.dtstw.com/#/index
-            */
-
-            // 需要重設密碼
-            if (!empty($body['require_password_reset'])){
+            // 需要重設密碼 (200 狀態碼)
+            if (!empty($body['error_code']) && $body['error_code'] === 'require_password_reset'){
                 return [
-                    'success' => true,
-                    'message' => $body['message'] ?? '需要重設密碼..',
-                    'status_code' => 200, 
-                    'requires_2fa' => true,
-                    'require_password_reset' => true,
-                    'data' => $body['data'],
+                    'success' => false,
+                    'message' => $body['message'] ?? '需要重設密碼',
+                    'status_code' => 200,
+                    'error_code' => 'require_password_reset',
+                    'data' => $body['data'] ?? null,
                     'auto_login_token' => $body['auto_login_token'] ?? null,
                     'redirect_url' => $body['redirect_url'] ?? null,
                     'return_url' => $body['return_url'] ?? null,
@@ -76,19 +65,10 @@ class AccountsOAuthLibrary
                 ];
             }
 
-            // 需要 2FA 驗證
-            else if (!empty($body['requires_2fa'])){
-                return [
-                    'success' => false,
-                    'message' => $body['message'] ?? '需要進行雙因素驗證',
-                    'status_code' => 401, 
-                    'requires_2fa' => true,
-                    'data' => $body['data'],
-                ];
-            }
+            // 注意：需要 2FA 驗證現在使用 403 狀態碼，會在 catch (RequestException) 區塊中處理
 
-            // 成功登入 (200)
-            else if ($statusCode === 200 && isset($body['success']) && $body['success'] && empty($body['requires_2fa'])) {
+            // 成功登入 (200 && success=true)
+            if ($statusCode === 200 && isset($body['success']) && $body['success']) {
                 return [
                     'success' => true,
                     'message' => $body['message'] ?? '登入成功',
@@ -99,13 +79,15 @@ class AccountsOAuthLibrary
                 ];
             }
 
-            // 其它驗證失敗 (401, 400, 422, 403 等) 但4開頭會進入 RequestException, 所以這裡可能不會用到
+            // 其它驗證失敗 (401, 400, 422, 403 等) (但4開頭會進入 RequestException, 所以這裡可能不會用到)
             return [
                 'success' => false,
                 'status_code' => $statusCode, // 保留原始 HTTP status code
                 'data' => $body['data'] ?? null,
                 'message' => $body['message'] ?? '登入失敗',
                 'error' => $body['error'] ?? null,
+                'error_code' => $body['error_code'] ?? null,
+                'status_code' => $status_code ?? 500,
             ];
 
         } catch (RequestException $ex) {
@@ -114,13 +96,26 @@ class AccountsOAuthLibrary
             $statusCode = $response->status();
             $body = $response->json();
 
+            // 特殊處理：需要 2FA 驗證（403 狀態碼）
+            if ($statusCode === 403 && !empty($body['error_code']) && $body['error_code'] === 'requires_2fa') {
+                return [
+                    'success' => false,
+                    'message' => $body['message'] ?? '需要進行雙因素驗證',
+                    'status_code' => 403,
+                    'error_code' => 'requires_2fa',
+                    'error' => $ex->getMessage(),
+                    'data' => $body['data'] ?? null,
+                ];
+            }
+
             // 回傳錯誤資料，不拋出異常（讓呼叫方正常處理業務邏輯錯誤）
             return [
                 'success' => false,
-                'status_code' => $statusCode,
-                'data' => $body['data'] ?? null,
                 'message' => $body['message'] ?? '請求失敗',
+                'status_code' => $statusCode ?? 400,
                 'error' => $body['error'] ?? $ex->getMessage(),
+                'error_code' => $body['error_code'] ?? null,
+                'data' => $body['data'] ?? null,
             ];
 
         } catch (Exception $ex) { // 真正的連線失敗（網路問題、timeout 等

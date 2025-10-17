@@ -66,74 +66,17 @@ class OAuthController extends ApiPosController
             try {
                 $oauthResult = AccountsOAuthLibrary::login($account, $password, $returnUrl);
 
-                // 失敗
+                // 統一處理失敗情況（包含密碼錯誤、2FA、需要重設密碼）
                 if (empty($oauthResult['success'])){
-                    $oauthResult['status_code'] = $oauthResult['status_code'] ?? 500;
-
                     return response()->json([
                         'success' => false,
                         'message' => $oauthResult['message'],
+                        'error_code' => $oauthResult['error_code'] ?? null,
                         'data' => $oauthResult['data'] ?? null,
                         'error' => $oauthResult['error'] ?? null,
-                    ], $oauthResult['status_code']);
-                }
-
-                // 檢查是否需要重設密碼
-                if (!empty($oauthResult['require_password_reset'])){
-                    // Accounts 已經在回應中提供 redirect_url 和 auto_login_token
-                    if (!empty($oauthResult['redirect_url'])) {
-                        return response()->json([
-                            'success' => false,
-                            'require_password_reset' => true,
-                            'message' => '系統要求重設密碼，即將跳轉至帳號管理中心',
-                            'redirect_url' => $oauthResult['redirect_url'],
-                            'auto_login_token' => $oauthResult['auto_login_token'] ?? null,
-                            'data' => $oauthResult['data'] ?? null,
-                        ], 200);
-                    }
-
-                    // Fallback: 如果 Accounts 沒有提供 redirect_url，才自己請求
-                    try {
-                        // 向 Accounts 中心請求自動登入 Token
-                        $autoLoginResult = AccountsOAuthLibrary::requestAutoLoginToken($account, $password, $returnUrl);
-
-                        if ($autoLoginResult['success']) {
-                            // 成功取得自動登入 Token
-                            $redirectUrl = $autoLoginResult['redirect_url'];
-
-                            return response()->json([
-                                'success' => false,
-                                'require_password_reset' => true,
-                                'message' => '系統要求重設密碼，即將跳轉至帳號管理中心',
-                                'redirect_url' => $redirectUrl,
-                                'auto_login_token' => $autoLoginResult['token'],
-                                'data' => $oauthResult['data'] ?? null,
-                            ], 200); // 使用 200 因為這是預期的業務流程
-                        }
-
-                        // 無法取得自動登入 Token，Fallback 到一般提示
-                        Log::warning('OAuth 登入需重設密碼但無法取得自動登入 Token', [
-                            'account' => $account,
-                            'error' => $autoLoginResult['message'] ?? '',
-                        ]);
-
-                    } catch (Exception $ex) {
-                        // 請求自動登入 Token 失敗（如網路問題）
-                        Log::error('OAuth 請求自動登入 Token 時發生錯誤', [
-                            'account' => $account,
-                            'error' => $ex->getMessage(),
-                        ]);
-                    }
-
-                    // Fallback：返回簡單的錯誤訊息（不含自動登入）
-                    $accountsUrl = config('services.accounts.url');
-                    return response()->json([
-                        'success' => false,
-                        'require_password_reset' => true,
-                        'message' => '系統要求重設密碼。請到帳號管理中心重新設定。',
-                        'redirect_url' => rtrim($accountsUrl, '/') . '/profile', // 不含 token，需手動登入
-                        'data' => $oauthResult['data'] ?? null,
-                    ], $oauthResult['status_code']);
+                        'redirect_url' => $oauthResult['redirect_url'] ?? null,
+                        'auto_login_token' => $oauthResult['auto_login_token'] ?? null,
+                    ], $oauthResult['status_code'] ?? 500);
                 }
 
             } catch (Exception $ex) {
@@ -200,11 +143,11 @@ class OAuthController extends ApiPosController
             ], 200);
 
         } catch (Exception $ex) {
-            echo "<pre>", print_r('最後不明原因失敗', true), "</pre>";exit;
             return response()->json([
                 'success' => false,
                 'message' => '登入失敗，請稍後再試',
                 'error' => config('app.debug') ? $ex->getMessage() : null,
+                'error_code' => '不明原因的錯誤',
             ], 500);
         }
     }
