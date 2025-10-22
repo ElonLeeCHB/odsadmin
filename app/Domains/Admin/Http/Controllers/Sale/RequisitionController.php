@@ -9,10 +9,12 @@ use Illuminate\Database\QueryException;
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Repositories\Eloquent\Sale\OrderRepository;
+use App\Repositories\Eloquent\Sale\OrderDailyRequisitionRepository;
+use App\Repositories\Eloquent\Sale\OrderIngredientRepository;
+use App\Repositories\Eloquent\Sale\DailyIngredientRepository;
 use App\Repositories\Eloquent\Setting\SettingRepository;
 use App\Models\Sale\OrderIngredientHour;
 use App\Models\Setting\Setting;
-use App\Domains\Admin\Services\Sale\RequisitionService;
 use App\Helpers\Classes\DataHelper;
 use App\Helpers\Classes\DateHelper;
 use App\Domains\Admin\Services\Sale\OrderService;
@@ -27,7 +29,9 @@ class RequisitionController extends BackendController
 
     public function __construct(
         private Request $request,
-        private RequisitionService $RequisitionService,
+        private OrderDailyRequisitionRepository $orderDailyRequisitionRepository,
+        private OrderIngredientRepository $orderIngredientRepository,
+        private DailyIngredientRepository $dailyIngredientRepository,
         private OrderService $OrderService,
         private OrderRepository $OrderRepository,
         private SettingRepository $SettingRepository,
@@ -87,7 +91,7 @@ class RequisitionController extends BackendController
             return response()->json(['error' => '日期錯誤', 'errorWarning' => '日期錯誤'], 400);
         }
 
-        $data['statistics'] = $this->RequisitionService->getStaticsByRequiredDate(request()->required_date, request()->force_update);
+        $data['statistics'] = $this->orderDailyRequisitionRepository->getStatisticsByDate(request()->required_date, request()->force_update);
 
         return view('admin.sale.requisition_form_data', $data);
     }
@@ -120,7 +124,7 @@ class RequisitionController extends BackendController
         }
 
         if (!empty($required_date)) {
-            $data['statistics'] = $this->RequisitionService->getStaticsByRequiredDate($required_date, request()->forceUpdate);
+            $data['statistics'] = $this->orderDailyRequisitionRepository->getStatisticsByDate($required_date, request()->forceUpdate);
         }
 
         // 刪除不列印的項目
@@ -145,7 +149,7 @@ class RequisitionController extends BackendController
             return response()->json(['error' => '日期錯誤'], 400);
         }
 
-        return $this->RequisitionService->exportMatrixList($params);
+        return $this->dailyIngredientRepository->exportMatrixList($params);
     }
 
     // 傳統的列表。用不到
@@ -454,14 +458,14 @@ class RequisitionController extends BackendController
             //     }
             // }
 
-            $this->RequisitionService->getOrderIngredients($required_date);
+            $this->orderIngredientRepository->getOrderIngredients($required_date);
             $this->setCacheFromIngredientTable($required_date);
 
             /**
              * 2024-10-30 Elon: 下面這個可能是？我2023年用於給上暉看的料件需求？
              */
             //根據BOM表計算真實料件需求
-            $result = $this->RequisitionService->calcRequirementsForDate($required_date);
+            $result = $this->orderIngredientRepository->calcRequirementsForDate($required_date);
 
             if (!empty($result['error'])) {
                 return $result;
