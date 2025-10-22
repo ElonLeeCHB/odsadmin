@@ -1,0 +1,60 @@
+資料表 
+orders: id
+order_products: id, order_id, product_id
+order_product_options: id, order_product_id, order_id, product_id(同上，商品ID), map_product_id(選項值對應的料件), option_id, option_value_id, name, quantity
+options:id, quantity
+option_translations: id, option_id, locale, name
+option_values:id, product_id (此選項值對應的料件，即 option_values.product_id=order_product_options.map_product_id)
+option_value_translations:id, option_value_id, locale, name
+
+商品結構：
+招牌潤餅便當 product_id=1001, 數量 100
+選項 主餐 option_id=1003
+  選項內容：
+  鮮蔬潤餅3吋 30個
+  芥雞潤餅3吋 30個
+  滷肉潤餅3吋 40個
+
+3吋潤餅、6吋潤餅對應
+說明：潤餅製做的時候使用6吋，再切半得到3吋。所以會需要以6吋為基礎單位。商品選項的3吋潤餅，要換算成6吋。
+資料表 settings.setting_key=sales_wrap_map，會做 json_encode(), json_decode()
+1057,"全素潤餅3吋",1056,"全素潤餅6吋"
+1059,"奶素潤餅3吋",1058,"奶素潤餅6吋"
+1037,"鮮蔬潤餅3吋",1010,"鮮蔬潤餅6吋"
+1038,"炸蝦潤餅3吋",1011,"炸蝦潤餅6吋"
+1039,"芥雞潤餅3吋",1012,"芥雞潤餅6吋"
+1040,"酥魚潤餅3吋",1013,"酥魚潤餅6吋"
+1041,"培根潤餅3吋",1014,"培根潤餅6吋"
+1042,"滷肉潤餅3吋",1015,"滷肉潤餅6吋"
+1081,"主廚潤餅3吋",1663,"主廚潤餅6吋"
+
+3吋潤潤餅的 product_id
+setting_key=sales_3inch_lumpia
+1057,1059,1037,1038,1039,1040,1041,1042,1081
+
+6吋潤潤餅的 product_id
+setting_key=sales_6inch_lumpia
+1056,1010,1011,1012,1013,1014,1015,1663
+
+備料表表格橫軸項目
+說明：有記載的項目，才需要出現在備料表。
+setting_key=sales_ingredients_table_items
+{"1010":"鮮蔬潤餅6吋","1011":"炸蝦潤餅6吋","1012":"芥雞潤餅6吋","1013":"酥魚潤餅6吋","1014":"培根潤餅6吋","1015":"滷肉潤餅6吋","1663":"主廚潤餅6吋","1903":"客家米食","1664":"鮮蔬小刈包","1665":"炸蝦小刈包","1666":"芥雞小刈包","1667":"酥魚小刈包","1668":"培根小刈包","1669":"滷肉小刈包","1672":"主廚小刈包","1661":"春捲","1022":"嫩雞胸","1023":"滷雞腿","1028":"炸雞翅","1024":"滷牛腱","1069":"素肉排","1083":"鮭魚","1695":"控肉","1036":"油飯","1845":"餐包","1032":"鹽水煮蛋","1076":"花椰菜朵","1077":"毛豆","1804":"滷味個","1025":"炸地瓜","1026":"蛋塔","1027":"酥餅","1694":"酸菜","1016":"微豆","1017":"無豆","1018":"紅茶","1019":"奶茶","1020":"濃湯","1021":"甜湯","1713":"紅豆豆花","1714":"綠豆豆花","1717":"花生豆花","1890":"蛋黃酥6入+鳳黃酥3入","1889":"蛋黃酥3入+鳳黃酥3入","1888":"純享蛋黃酥 9入","1887":"純享蛋黃酥6入","1886":"金萃鳳凰酥8入","1899":"蛋黃酥","1900":"鳳凰酥"}
+
+然後會有一些統計欄位：當天便當多少個、油飯盒多少個、盒餐多少個。
+
+相關檔案：
+D:\Elon\Codes\dtstw.com\ods.dtstw.com\htdocsStd\laravel\app\Domains\Admin\Routes\admin.php
+        // 備料表
+        Route::get('requisitions', 'Sale\RequisitionController@index')->name('requisitions.index');
+        Route::get('requisitions/form/{required_date?}', 'Sale\RequisitionController@form')->name('requisitions.form');
+        Route::get('requisitions/getForm', 'Sale\RequisitionController@getForm')->name('requisitions.getForm');
+
+D:\Elon\Codes\dtstw.com\ods.dtstw.com\htdocsStd\laravel\app\Domains\Admin\Http\Controllers\Sale\RequisitionController.php
+D:\Elon\Codes\dtstw.com\ods.dtstw.com\htdocsStd\laravel\app\Domains\Admin\Services\Sale\RequisitionService.php
+D:\Elon\Codes\dtstw.com\ods.dtstw.com\htdocsStd\laravel\app\Repositories\Eloquent\Sale\OrderDailyRequisitionRepository.php
+
+需求：
+1 整個計算過程，看看能否再處理的更有邏輯性，更結構化，更易閱讀。
+2 RequisitionService 這一層可取消。
+

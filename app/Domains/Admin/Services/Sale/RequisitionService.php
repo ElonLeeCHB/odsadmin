@@ -12,7 +12,6 @@ use App\Repositories\Eloquent\Sale\OrderDailyRequisitionRepository;
  *     Requisition 備料表
  *     Requirements 需求表
  * 
- * 備料表使用快取，不使用資料表
  */
 class RequisitionService extends Service
 {

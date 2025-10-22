@@ -33,7 +33,7 @@ class OrderDailyRequisitionRepository
     {
         $required_date = Carbon::parse($required_date)->format('Y-m-d');
 
-        $cache_key = 'sale_order_requisition_date_' . $required_date;
+        $cache_key = 'sale_order_requisition_date_' . $required_date; 
 
         // 先取得快取
         $statistics = cache()->get($cache_key);
@@ -159,11 +159,10 @@ class OrderDailyRequisitionRepository
                         }
                     //
 
-
                     foreach ($orderProduct->orderProductOptions ?? [] as $key3 => $orderProductOption) {
                         $map_product_id = $orderProductOption->map_product_id ?? 0;
                         $map_product_name = $orderProductOption->value ?? '';
-                        $quantity  = $orderProductOption->quantity;
+                        $quantity  = $orderProductOption->quantity ?? 0;
 
                         // 滷味小、中、大
                             if (in_array($orderProductOption->option_value_id, $braisedfood_option_value_ids)){
@@ -256,9 +255,15 @@ class OrderDailyRequisitionRepository
                             $order_list[$order->id]['items'][$map_product_id]['map_product_name'] = $map_product_name;
                         }
 
-                        //如果 null 則 0
-                        $order_list[$order->id]['items'][$map_product_id]['quantity'] = ($order_list[$order->id]['items'][$map_product_id]['quantity'] ?? 0) + $orderProductOption->quantity;
-                    }                    
+                        // 將選項累加。如果還沒有累加過 預設 0
+                        if ($printing_category_id != 1494) {
+                            $order_list[$order->id]['items'][$map_product_id]['quantity'] = ($order_list[$order->id]['items'][$map_product_id]['quantity'] ?? 0) + $orderProductOption->quantity;
+                        }
+                        // 要排除 1494 單點無選項，因為上面已經處理過。大概在 158 行
+                        // $order_list[$order->id]['items'][$product_id]['quantity'] += $orderProduct->quantity;
+                        // 那為什麼單點無選項，還會有選項，以致於出現在這裡，還要排除？多此一舉？
+                        // 因為現在發生的問題是：商品就是鳳凰酥，單點的算顆。但是又設定了選項鳳凰酥。應該是不用設定選項，但目前就是設定了，所以這邊要排除。不然會重複，25個變成50個。
+                    }
 
                     // 懸浮視窗提示商品內容
                     $order_list[$order->id]['tooltip'] .= '商品'.$orderProduct->sort_order.'：' . $orderProduct->name . '($'.(int)$orderProduct->price.') * ' . $orderProduct->quantity . "<BR>";
@@ -277,6 +282,7 @@ class OrderDailyRequisitionRepository
 
             foreach ($order_list as $order_id => $order) {
                 foreach ($order['items'] as $map_product_id => $item) {
+                    $item['quantity'] = $item['quantity'] ?? 0;
 
                     //allDay
 
