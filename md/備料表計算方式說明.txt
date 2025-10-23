@@ -60,3 +60,266 @@ D:\Elon\Codes\dtstw.com\ods.dtstw.com\htdocsStd\laravel\app\Repositories\Eloquen
 1 整個計算過程，看看能否再處理的更有邏輯性，更結構化，更易閱讀。
 2 RequisitionService 這一層可取消。
 
+================================================================================
+重構記錄 (2025-10-23)
+================================================================================
+
+一、重構內容
+
+1. OrderDailyRequisitionRepository 重構
+   ----------------------------------------
+
+   1.1 結構化改進
+       - 將原本 350+ 行的 calculateByDate() 方法拆分為 15+ 個職責單一的方法
+       - 使用清晰的區塊註解分隔不同功能區域：
+         * 配置常數
+         * 公開方法
+         * 私有方法 - 配置與初始化
+         * 私有方法 - 資料獲取
+         * 私有方法 - 訂單處理
+         * 私有方法 - 統計計算
+
+   1.2 配置集中管理
+       - 將所有魔術數字提取為類常數
+       - 列印分類 ID：PRINTING_CATEGORY_* 系列常數
+       - 商品 ID：PRODUCT_* 系列常數
+       - 選項值 ID：OPTION_VALUE_* 系列常數
+       - 時段分界點：TIME_CUT_OFF = '1300'
+       - 快取時間：CACHE_EXPIRE_MINUTES, CACHE_RETENTION_DAYS
+
+   1.3 方法職責分離
+       getConfiguration()              - 獲取所有配置（已優化為單次查詢）
+       fetchOrders()                   - 獲取訂單資料
+       buildOrderList()                - 建立訂單列表
+       initializeOrderData()           - 初始化訂單基本資料
+       processOrderProduct()           - 處理訂單商品
+       processSingleItem()             - 處理單點無選項商品
+       processProductOption()          - 處理商品選項
+       processBraisedFood()            - 處理滷味商品（小、中、大）
+       convertProductQuantity()        - 商品數量轉換（3吋→6吋等）
+       sortOrderList()                 - 排序訂單列表
+       accumulateStatistics()          - 累加統計（全日、上午、下午）
+       accumulateSpecialItems()        - 累加特殊項目（小刈包、大刈包、6吋潤餅、春捲）
+       calculateTotals()               - 計算總計（便當、盒餐、油飯盒）
+
+   1.4 查詢優化
+       優化前：4 次資料庫查詢
+       - Setting::where('setting_key', 'sales_ingredients_table_items')->first()
+       - Setting::where('setting_key', 'sales_orders_to_be_prepared_status')->first()
+       - Setting::where('setting_key', 'sales_wrap_map')->first()  (重複查詢)
+
+       優化後：1 次資料庫查詢
+       - Setting::whereIn('setting_key', [...])->get()->keyBy('setting_key')
+
+       性能提升：資料庫查詢次數減少 75%
+
+   1.5 消除重複代碼
+       - 原本全日、上午、下午的統計邏輯重複了 3 次
+       - 現在統一使用 accumulateSpecialItems() 方法處理
+
+   1.6 使用現代 PHP 語法
+       - 使用 match 表達式代替多層 if-else（滷味數量計算）
+       - 使用箭頭函數（cache()->remember()）
+       - 使用 null 合併運算符（?? []）增加安全性
+
+2. 移除 RequisitionService 層
+   ----------------------------------------
+
+   2.1 架構簡化
+       優化前：Controller → Service → Repository (3 層)
+       優化後：Controller → Repository (2 層)
+
+   2.2 檔案處理
+       - RequisitionService.php 已備份為 RequisitionService.php.bak.{date}
+       - RequisitionController 直接注入並調用對應的 Repository：
+         * OrderDailyRequisitionRepository - 備料統計
+         * OrderIngredientRepository - 訂單材料
+         * DailyIngredientRepository - 每日材料匯出
+
+   2.3 方法對應關係
+       Service 方法                              Repository 方法
+       ----------------------------------------------------------------
+       getStaticsByRequiredDate()       →        getStatisticsByDate()
+       exportMatrixList()               →        exportMatrixList()
+       getOrderIngredients()            →        getOrderIngredients()
+       calcRequirementsForDate()        →        calcRequirementsForDate()
+
+二、商品轉換邏輯說明
+
+1. 3吋潤餅 → 6吋潤餅
+   convertProductQuantity() 方法處理
+   - 轉換規則：數量 ÷ 2（向上取整）
+   - 原因：6吋潤餅切半得到3吋，所以備料以6吋為基礎單位
+   - 對應關係來自 settings.sales_wrap_map
+
+2. 極品油飯 → 廚娘油飯
+   convertProductQuantity() 方法處理
+   - 轉換規則：數量 × 2
+   - product_id: 1737 → 1036
+
+3. 全素/奶素小刈包 → 鮮蔬小刈包
+   convertProductQuantity() 方法處理
+   - 轉換規則：數量不變
+   - product_id: 1688 → 1664
+   - product_id: 1689 → 1664
+   - 備註：前端送來的 order_product_options 資料有誤，暫時在此修正
+
+4. 滷味商品（小、中、大）
+   processBraisedFood() 方法處理
+   - 滷味小（option_value_id=1202）：1份 = 6個
+   - 滷味中（option_value_id=1203）：1份 = 9個
+   - 滷味大（option_value_id=1204）：1份 = 12個
+   - 統一轉換為「滷味個」(product_id=1804)
+
+三、特殊項目統計
+
+accumulateSpecialItems() 方法處理以下特殊項目的累加：
+
+1. 小刈包 (small_guabao_ids)
+   [1664, 1665, 1666, 1667, 1668, 1669, 1672, 1688, 1689]
+   統計欄位：allDay_sgb, am_sgb, pm_sgb
+
+2. 大刈包 (big_guabao_ids)
+   [1809, 1810, 1811, 1812, 1813, 1814, 1838, 1839, 1840]
+   統計欄位：allDay_bgb, am_bgb, pm_bgb
+
+3. 6吋潤餅 (lumpia6in_ids)
+   [1010, 1011, 1012, 1013, 1014, 1015, 1056, 1058, 1663]
+   統計欄位：allDay_6in, am_6in, pm_6in
+
+4. 春捲 (spring_roll_id)
+   product_id = 1661
+   統計欄位：allDay_sr, am_sr, pm_sr
+
+四、時段劃分邏輯
+
+1. 判斷依據
+   - 上午 (am)：delivery_time_range_start <= '1300' (13:00)
+   - 下午 (pm)：delivery_time_range_start > '1300' (13:00)
+
+2. 統計維度
+   - 全日 (allDay)：所有訂單的累加
+   - 上午 (am)：13:00 前送達的訂單
+   - 下午 (pm)：13:00 後送達的訂單
+
+五、套餐分類統計
+
+calculateTotals() 方法處理套餐分類：
+
+1. 便當 (total_bento)
+   - 潤餅便當 (PRINTING_CATEGORY_LUMPIA_BENTO = 1471)
+   - 刈包便當 (PRINTING_CATEGORY_GUABAO_BENTO = 1472)
+   - 客製便當 (PRINTING_CATEGORY_CUSTOM_BENTO = 1477)
+
+2. 盒餐 (total_lunchbox)
+   - 潤餅盒餐 (PRINTING_CATEGORY_LUMPIA_LUNCHBOX = 1473)
+   - 刈包盒餐 (PRINTING_CATEGORY_GUABAO_LUNCHBOX = 1474)
+   - 客製盒餐 (PRINTING_CATEGORY_CUSTOM_LUNCHBOX = 1478)
+
+3. 油飯盒 (total_oil_rice_box)
+   - 油飯盒 (PRINTING_CATEGORY_OIL_RICE_BOX = 1475)
+
+4. 套餐總數 (total_set)
+   total_set = total_bento + total_lunchbox + total_oil_rice_box
+
+六、快取機制
+
+1. 快取策略
+   - 快取鍵：'sale_order_requisition_date_' . $required_date
+   - 快取時間：180 天
+   - 快取內容包含 cache_created_at 欄位記錄產生時間
+
+2. 刷新條件 (shouldRefreshCache 方法)
+   - force_update = 1（強制更新）
+   - 快取不存在
+   - 快取超過 60 分鐘
+
+3. 快取內容結構
+   [
+       'order_list' => [],           // 訂單列表
+       'allDay' => [],               // 全日統計
+       'allDay_sgb' => 0,            // 全日小刈包
+       'allDay_bgb' => 0,            // 全日大刈包
+       'allDay_6in' => 0,            // 全日6吋潤餅
+       'allDay_sr' => 0,             // 全日春捲
+       'am' => [],                   // 上午統計
+       'am_sgb' => 0,                // 上午小刈包
+       'am_bgb' => 0,                // 上午大刈包
+       'am_6in' => 0,                // 上午6吋潤餅
+       'am_sr' => 0,                 // 上午春捲
+       'pm' => [],                   // 下午統計
+       'pm_sgb' => 0,                // 下午小刈包
+       'pm_bgb' => 0,                // 下午大刈包
+       'pm_6in' => 0,                // 下午6吋潤餅
+       'pm_sr' => 0,                 // 下午春捲
+       'info' => [                   // 套餐統計
+           'total_bento' => 0,
+           'total_lunchbox' => 0,
+           'total_oil_rice_box' => 0,
+           'total_set' => 0,
+           'required_date_ymd' => '',
+       ],
+       'sales_ingredients_table_items' => [], // 備料表項目
+       'cache_created_at' => '',     // 快取建立時間
+   ]
+
+七、程式碼品質提升
+
+1. 可讀性提升
+   - 從 1 個 350+ 行方法 → 15+ 個職責單一的小方法
+   - 每個方法都有清晰的 PHPDoc 註解
+   - 業務邏輯流程更清晰易懂
+
+2. 可維護性提升
+   - 配置集中管理，修改時只需改一處
+   - 方法職責單一，便於測試和除錯
+   - 消除重複代碼，降低維護成本
+
+3. 擴展性提升
+   - 新增商品轉換規則只需修改 convertProductQuantity() 方法
+   - 新增特殊項目統計只需修改 accumulateSpecialItems() 方法
+   - 架構更清晰，便於未來擴展
+
+4. 性能提升
+   - 資料庫查詢次數：4 次 → 1 次（減少 75%）
+   - 網路往返 (Round Trips)：4 次 → 1 次（減少 75%）
+
+八、修改的檔案清單
+
+1. app\Repositories\Eloquent\Sale\OrderDailyRequisitionRepository.php
+   - 完整重構，提升結構化和可讀性
+
+2. app\Domains\Admin\Http\Controllers\Sale\RequisitionController.php
+   - 移除 RequisitionService 依賴
+   - 直接注入並調用對應的 Repository
+
+3. app\Domains\Admin\Services\Sale\RequisitionService.php
+   - 已備份移除（RequisitionService.php.bak.{date}）
+
+九、注意事項
+
+1. 單點無選項商品 (printing_category_id = 1494)
+   - 在 processSingleItem() 方法中特別處理
+   - 避免在 processProductOption() 中重複累加
+   - 原因：某些單點商品（如鳳凰酥）既設定了商品數量，又設定了選項
+
+2. 訂單商品選項資料問題
+   - 前端送來的 order_product_options 中 product_option_id, product_option_value_id 可能有誤
+   - 目前在 convertProductQuantity() 方法中暫時修正（全素/奶素小刈包）
+   - 建議未來修正前端資料來源
+
+3. 排序邏輯
+   - 先按 source_idsn 排序
+   - 再按 delivery_time_range_end 排序
+   - 註：目前 source_idsn 欄位不存在，需確認是否為 order_id
+
+4. productTags 關聯
+   - 在 fetchOrders() 中有載入 productTags 關聯
+   - 但重構後的程式碼中未使用
+   - 可能為舊版邏輯遺留，建議確認後移除
+
+================================================================================
+重構完成日期：2025-10-23
+重構執行者：Claude Code (AI Assistant)
+================================================================================
+
