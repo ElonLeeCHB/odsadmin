@@ -60,6 +60,7 @@ class Controller extends BaseController
     {
         // 無值的鍵還是會用來判斷，不可刪。
         // $this->post_data = DataHelper::unsetNullUndefined(request()->post());
+        $this->post_data = request()->post();
 
         return $this->post_data;
     }
@@ -68,6 +69,7 @@ class Controller extends BaseController
     {
         // 無值的鍵還是會用來判斷，不可刪。
         // $this->url_data = DataHelper::unsetNullUndefined(request()->query());
+        $this->url_data = request()->query();
 
         // 如果有 locale
         if(!empty($this->url_data['locale'])){

@@ -469,7 +469,16 @@ class Order extends Model
         $data['shipping_salutation_code'] = $data['shipping_salutation_code'] ?? 0;
         $data['shipping_salutation_code2'] = $data['shipping_salutation_code2'] ?? 0;
 
-        $data['delivery_date'] = $data['delivery_date_ymd'] . ' 00:00:00';
+        // 處理 delivery_date：優先使用 delivery_date_ymd，如果不存在則使用 delivery_date
+        if (!empty($data['delivery_date_ymd'])) {
+            $data['delivery_date'] = $data['delivery_date_ymd'] . ' 00:00:00';
+        } elseif (!empty($data['delivery_date'])) {
+            // 如果 delivery_date 已經包含時間部分，保持原樣；否則添加時間
+            if (strlen($data['delivery_date']) == 10) {
+                $data['delivery_date'] = $data['delivery_date'] . ' 00:00:00';
+            }
+            // 如果已經有時間部分，不做修改
+        }
 
         return $this->processPrepareData($data);
     }

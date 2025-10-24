@@ -4,7 +4,8 @@ use Illuminate\Support\Facades\Route;
 
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceBatchController;
-use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\InvoiceGivemeTestController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeDataTestController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeTestController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderGroupController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\PaymentController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderMetadataController;
@@ -110,14 +111,24 @@ Route::group([
             // 批次新增
             Route::post('invoices/batch', [InvoiceBatchController::class, 'store']);
 
-            // Giveme 電子發票測試
+            // Giveme 電子發票 - API 直接測試（前端傳完整資料）
+            Route::prefix('invoice-issue/giveme/data-test')->group(function () {
+                Route::get('config', [GivemeDataTestController::class, 'showConfig']);
+                Route::get('signature', [GivemeDataTestController::class, 'testSignature']);
+                Route::post('b2c', [GivemeDataTestController::class, 'testB2C']);
+                Route::post('b2b', [GivemeDataTestController::class, 'testB2B']);
+                Route::post('query', [GivemeDataTestController::class, 'testQuery']);
+                Route::post('cancel', [GivemeDataTestController::class, 'testCancel']);
+                Route::get('print', [GivemeDataTestController::class, 'testPrint']);
+                Route::post('picture', [GivemeDataTestController::class, 'testPicture']);
+            });
+
+            // Giveme 電子發票 - 完整流程測試（從資料庫讀取）
             Route::prefix('invoice-issue/giveme/test')->group(function () {
-                Route::get('config', [InvoiceGivemeTestController::class, 'showConfig']);
-                Route::get('signature', [InvoiceGivemeTestController::class, 'testSignature']);
-                Route::post('b2c', [InvoiceGivemeTestController::class, 'testB2C']);
-                Route::post('b2b', [InvoiceGivemeTestController::class, 'testB2B']);
-                Route::post('query', [InvoiceGivemeTestController::class, 'testQuery']);
-                Route::post('cancel', [InvoiceGivemeTestController::class, 'testCancel']);
+                Route::post('issue', [GivemeTestController::class, 'issue']);
+                Route::post('query', [GivemeTestController::class, 'query']);
+                Route::post('cancel', [GivemeTestController::class, 'cancel']);
+                Route::get('print-url/{invoice_number}', [GivemeTestController::class, 'printUrl']);
             });
 
             // 訂單標籤基本資料

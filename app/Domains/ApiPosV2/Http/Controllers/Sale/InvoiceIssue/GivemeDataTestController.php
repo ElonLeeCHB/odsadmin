@@ -8,10 +8,11 @@ use Illuminate\Support\Facades\Log;
 use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
 
 /**
- * Giveme 電子發票 API 測試控制器
+ * Giveme 電子發票 API 直接測試控制器
  *
- * 用途：測試 Giveme API 串接功能
+ * 用途：測試 Giveme API 連線功能（前端直接傳送完整資料）
  * 環境：使用測試環境帳號
+ * 特點：不操作資料庫，純 API 測試
  *
  * 測試帳號資訊：
  * - 統編: 53418005
@@ -20,11 +21,11 @@ use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
  */
 
 /*
-  ✅ Giveme 電子發票測試 API 路徑
+  ✅ Giveme 電子發票 API 直接測試路徑
 
   基礎路徑
 
-  http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/test
+  http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/data-test
 
   可用端點
 
@@ -32,35 +33,45 @@ use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
   |------|------------|-------------------------------------|
   | GET  | /config    | 查看當前環境設定                            |
   | GET  | /signature | 測試簽名算法                              |
-  | POST | /b2c       | 測試 B2C 發票開立                         |
-  | POST | /b2b       | 測試 B2B 發票開立                         |
+  | POST | /b2c       | 測試 B2C 發票開立（傳完整資料）                  |
+  | POST | /b2b       | 測試 B2B 發票開立（傳完整資料）                  |
   | POST | /query     | 測試發票查詢（需提供 invoice_number）          |
   | POST | /cancel    | 測試發票作廢（需提供 invoice_number 和 reason） |
+  | GET  | /print     | 測試發票列印（需提供 code 參數）                |
+  | POST | /picture   | 測試發票圖片列印（需提供 code 和 type）          |
 
   完整 URL 範例
 
   # 1. 查看設定
-  GET http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/test/config
+  GET http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/data-test/config
 
   # 2. 測試簽名算法
-  GET http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/test/signature
+  GET http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/data-test/signature
 
   # 3. 測試 B2C 發票開立
-  POST http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/test/b2c
+  POST http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/data-test/b2c
 
   # 4. 測試 B2B 發票開立
-  POST http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/test/b2b
+  POST http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/data-test/b2b
 
   # 5. 測試發票查詢
-  POST http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/test/query
+  POST http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/data-test/query
   Body: { "invoice_number": "AB12345678" }
 
   # 6. 測試發票作廢
-  POST http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/test/cancel
+  POST http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/data-test/cancel
   Body: { "invoice_number": "AB12345678", "reason": "測試作廢" }
+
+  # 7. 測試發票列印（網頁版）
+  GET http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/data-test/print?code=AB12345678
+
+  # 8. 測試發票圖片列印
+  POST http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/data-test/picture
+  Body: { "code": "AB12345678", "type": "1" }
+  type: 1-證明聯+明細, 2-證明聯, 3-明細
 */
 
-class InvoiceGivemeTestController extends ApiPosController
+class GivemeDataTestController extends ApiPosController
 {
     /**
      * API 基礎 URL
@@ -132,6 +143,33 @@ class InvoiceGivemeTestController extends ApiPosController
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
+
+    /* json 範例
+  {
+    "customerName": "測試公司",
+    "phone": "/XYZ5678",
+    "datetime": "2025-10-24",
+    "email": "test@company.com",
+    "state": "0",
+    "taxType": 0,
+    "totalFee": "550",
+    "content": "月結帳單",
+    "items": [
+      {
+        "name": "珍珠奶茶",
+        "money": 200,
+        "number": 2,
+        "remark": ""
+      },
+      {
+        "name": "雞排",
+        "money": 150,
+        "number": 1,
+        "remark": "不辣"
+      }
+    ]
+  }
+    */
     public function testB2C(Request $request)
     {
         try {
@@ -233,6 +271,29 @@ class InvoiceGivemeTestController extends ApiPosController
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
+
+    /* json 範例
+  {
+    "customerName": "XYZ企業有限公司",
+    "phone": "12345678",
+    "datetime": "2025-10-23",
+    "email": "admin@xyz.com.tw",
+    "taxState": "1",
+    "totalFee": "1050",
+    "amount": "50",
+    "sales": "1000",
+    "taxType": 0,
+    "content": "辦公用品採購",
+    "items": [
+      {
+        "name": "辦公桌椅",
+        "money": 500.00,
+        "number": 2,
+        "remark": ""
+      }
+    ]
+  }
+    */
     public function testB2B(Request $request)
     {
         try {
@@ -451,6 +512,189 @@ class InvoiceGivemeTestController extends ApiPosController
 
         } catch (\Throwable $th) {
             Log::error('Giveme Cancel Test Error', [
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString(),
+            ]);
+
+            return $this->sendJsonErrorResponse(
+                data: ['error' => $th->getMessage()],
+                status_code: 500
+            );
+        }
+    }
+
+    /**
+     * 測試發票列印（網頁版）
+     *
+     * GET /api/pos/v2/invoice-issue/giveme/data-test/print
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function testPrint(Request $request)
+    {
+        try {
+            $invoiceNumber = $request->input('code', '');
+
+            if (empty($invoiceNumber)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '請提供發票號碼 (code)',
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // 組裝列印 URL（根據文檔，這是 GET 請求，不需要簽名）
+            $printUrl = $this->apiUrl . '?action=invoicePrint&code=' . urlencode($invoiceNumber) . '&uncode=' . urlencode($this->taxId);
+
+            Log::info('Giveme Print Test Request', [
+                'invoice_number' => $invoiceNumber,
+                'print_url' => $printUrl,
+            ]);
+
+            // 發送請求（測試環境跳過 SSL 驗證）
+            $response = Http::timeout(30)
+                ->withoutVerifying()  // 跳過 SSL 憑證驗證（僅用於開發/測試環境）
+                ->get($printUrl);
+
+            // 判斷是否返回 HTML 或 JSON
+            $contentType = $response->header('Content-Type');
+
+            if (strpos($contentType, 'application/json') !== false) {
+                $responseData = $response->json();
+
+                Log::info('Giveme Print Test Response (JSON)', [
+                    'status' => $response->status(),
+                    'response' => $responseData,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => '發票列印測試（JSON 回應）',
+                    'print_url' => $printUrl,
+                    'response' => $responseData,
+                    'http_status' => $response->status(),
+                ], 200, [], JSON_UNESCAPED_UNICODE);
+            } else {
+                // 返回 HTML 內容
+                Log::info('Giveme Print Test Response (HTML)', [
+                    'status' => $response->status(),
+                    'content_type' => $contentType,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => '發票列印測試（HTML 回應）',
+                    'print_url' => $printUrl,
+                    'note' => '請直接在瀏覽器中開啟 print_url 查看發票列印頁面',
+                    'http_status' => $response->status(),
+                    'content_type' => $contentType,
+                ], 200, [], JSON_UNESCAPED_UNICODE);
+            }
+
+        } catch (\Throwable $th) {
+            Log::error('Giveme Print Test Error', [
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString(),
+            ]);
+
+            return $this->sendJsonErrorResponse(
+                data: ['error' => $th->getMessage()],
+                status_code: 500
+            );
+        }
+    }
+
+    /**
+     * 測試發票圖片列印
+     *
+     * POST /api/pos/v2/invoice-issue/giveme/data-test/picture
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function testPicture(Request $request)
+    {
+        try {
+            $invoiceNumber = $request->input('code', '');
+            $type = $request->input('type', '1');  // 1-證明聯+明細, 2-證明聯, 3-明細
+
+            if (empty($invoiceNumber)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '請提供發票號碼 (code)',
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            if (!in_array($type, ['1', '2', '3'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '圖片類型錯誤，請選擇 1-證明聯+明細, 2-證明聯, 3-明細',
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            $timeStamp = round(microtime(true) * 1000);
+            $sign = strtoupper(md5($timeStamp . $this->account . $this->password));
+
+            // 組裝請求資料
+            $requestData = [
+                'timeStamp' => (string)$timeStamp,
+                'uncode' => $this->taxId,
+                'idno' => $this->account,
+                'sign' => $sign,
+                'code' => $invoiceNumber,
+                'type' => $type,
+            ];
+
+            Log::info('Giveme Picture Test Request', ['request' => $requestData]);
+
+            // 發送請求（測試環境跳過 SSL 驗證）
+            $response = Http::timeout(30)
+                ->withoutVerifying()  // 跳過 SSL 憑證驗證（僅用於開發/測試環境）
+                ->withHeaders(['Content-Type' => 'application/json'])
+                ->post($this->apiUrl . '?action=picture', $requestData);
+
+            $contentType = $response->header('Content-Type');
+
+            // 判斷回應類型
+            if (strpos($contentType, 'application/json') !== false) {
+                $responseData = $response->json();
+
+                Log::info('Giveme Picture Test Response (JSON)', [
+                    'status' => $response->status(),
+                    'response' => $responseData,
+                ]);
+
+                return response()->json([
+                    'success' => $responseData['success'] ?? false,
+                    'message' => '發票圖片測試（錯誤回應）',
+                    'request' => $requestData,
+                    'response' => $responseData,
+                    'http_status' => $response->status(),
+                ], 200, [], JSON_UNESCAPED_UNICODE);
+            } else {
+                // 返回圖片流
+                Log::info('Giveme Picture Test Response (Image)', [
+                    'status' => $response->status(),
+                    'content_type' => $contentType,
+                    'content_length' => strlen($response->body()),
+                ]);
+
+                // 將圖片轉為 base64
+                $imageBase64 = base64_encode($response->body());
+
+                return response()->json([
+                    'success' => true,
+                    'message' => '發票圖片測試（成功）',
+                    'request' => $requestData,
+                    'http_status' => $response->status(),
+                    'content_type' => $contentType,
+                    'image_base64' => $imageBase64,
+                    'note' => '請將 image_base64 解碼後顯示或儲存為圖片',
+                ], 200, [], JSON_UNESCAPED_UNICODE);
+            }
+
+        } catch (\Throwable $th) {
+            Log::error('Giveme Picture Test Error', [
                 'error' => $th->getMessage(),
                 'trace' => $th->getTraceAsString(),
             ]);
