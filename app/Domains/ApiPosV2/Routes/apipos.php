@@ -6,6 +6,7 @@ use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceBatchController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeDataTestController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeTestController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderGroupController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\PaymentController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderMetadataController;
@@ -111,26 +112,6 @@ Route::group([
             // 批次新增
             Route::post('invoices/batch', [InvoiceBatchController::class, 'store']);
 
-            // Giveme 電子發票 - API 直接測試（前端傳完整資料）
-            Route::prefix('invoice-issue/giveme/data-test')->group(function () {
-                Route::get('config', [GivemeDataTestController::class, 'showConfig']);
-                Route::get('signature', [GivemeDataTestController::class, 'testSignature']);
-                Route::post('b2c', [GivemeDataTestController::class, 'testB2C']);
-                Route::post('b2b', [GivemeDataTestController::class, 'testB2B']);
-                Route::post('query', [GivemeDataTestController::class, 'testQuery']);
-                Route::post('cancel', [GivemeDataTestController::class, 'testCancel']);
-                Route::get('print', [GivemeDataTestController::class, 'testPrint']);
-                Route::post('picture', [GivemeDataTestController::class, 'testPicture']);
-            });
-
-            // Giveme 電子發票 - 完整流程測試（從資料庫讀取）
-            Route::prefix('invoice-issue/giveme/test')->group(function () {
-                Route::post('issue', [GivemeTestController::class, 'issue']);
-                Route::post('query', [GivemeTestController::class, 'query']);
-                Route::post('cancel', [GivemeTestController::class, 'cancel']);
-                Route::get('print-url/{invoice_number}', [GivemeTestController::class, 'printUrl']);
-            });
-
             // 訂單標籤基本資料
             Route::get('order-tags/list', 'Sale\OrderController@orderTagsList')->name('orderTags.list');
 
@@ -209,6 +190,37 @@ Route::group([
         // });
     });
 
+    // OAuth 認證路由組（逐步替換 Sanctum）
+    // 使用帶緩存的 OAuth 中間件，提升效能
+    Route::middleware(['checkOAuthTokenWithCache'])->group(function () {
+        // API 直接測試（前端傳完整資料）
+        Route::prefix('sales/invoice-issue/giveme/data-test')->group(function () {
+            Route::get('config', [GivemeDataTestController::class, 'showConfig']);
+            Route::get('signature', [GivemeDataTestController::class, 'testSignature']);
+            Route::post('b2c', [GivemeDataTestController::class, 'testB2C']);
+            Route::post('b2b', [GivemeDataTestController::class, 'testB2B']);
+            Route::post('query', [GivemeDataTestController::class, 'testQuery']);
+            Route::post('cancel', [GivemeDataTestController::class, 'testCancel']);
+            Route::get('print', [GivemeDataTestController::class, 'testPrint']);
+            Route::post('picture', [GivemeDataTestController::class, 'testPicture']);
+        });
+
+        // 完整流程測試（從資料庫讀取）
+        Route::prefix('sales/invoice-issue/giveme/test')->group(function () {
+            Route::post('issue', [GivemeTestController::class, 'issue']);
+            Route::post('query', [GivemeTestController::class, 'query']);
+            Route::post('cancel', [GivemeTestController::class, 'cancel']);
+            Route::get('print-url/{invoice_number}', [GivemeTestController::class, 'printUrl']);
+        });
+
+        // 正式環境（僅限 production）
+        Route::prefix('sales/invoice-issue/giveme')->group(function () {
+            Route::post('issue', [GivemeController::class, 'issue']);
+            Route::post('query', [GivemeController::class, 'query']);
+            Route::post('cancel', [GivemeController::class, 'cancel']);
+            Route::get('print-url/{invoice_number}', [GivemeController::class, 'printUrl']);
+        });
+    });
 
     Route::get('test', 'ApiPosController@test')->name('test');
 

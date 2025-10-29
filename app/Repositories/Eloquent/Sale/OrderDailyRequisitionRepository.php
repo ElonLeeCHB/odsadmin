@@ -458,7 +458,7 @@ class OrderDailyRequisitionRepository
             return [
                 'map_product_id' => self::PRODUCT_CHEF_OIL_RICE,
                 'map_product_name' => '廚娘油飯',
-                'quantity' => $quantity * 2,
+                'quantity' => $quantity * 2.5,
             ];
         }
 

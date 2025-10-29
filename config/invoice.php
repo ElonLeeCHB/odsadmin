@@ -16,9 +16,9 @@ return [
         'api_url' => env('GIVEME_INVOICE_API_URL', 'https://www.giveme.com.tw/invoice.do'),
 
         // 正式環境帳號（從 .env 讀取）
-        'tax_id' => env('GIVEME_INVOICE_TAX_ID'),
-        'account' => env('GIVEME_INVOICE_ACCOUNT'),
-        'password' => env('GIVEME_INVOICE_PASSWORD'),
+        'tax_id' => env('GIVEME_INVOICE_PROD_TAX_ID'),
+        'account' => env('GIVEME_INVOICE_PROD_ACCOUNT'),
+        'password' => env('GIVEME_INVOICE_PROD_PASSWORD'),
     ],
 
     // 測試環境帳號

@@ -82,7 +82,10 @@ class Kernel extends HttpKernel
         'checkApiAuthorization'      => \App\Http\Middleware\CheckApiAuthorization::class,
         'checkApiPosV2Authorization' => \App\Http\Middleware\CheckApiPosV2Authorization::class,
         'checkApiWwwV2Authorization' => \App\Http\Middleware\CheckApiWwwV2Authorization::class,
-        
+
+        'checkOAuthToken' => \App\Http\Middleware\CheckOAuthToken::class,
+        'checkOAuthTokenWithCache' => \App\Http\Middleware\CheckOAuthTokenWithCache::class,
+
         'forceJsonAcceptHeader' => \App\Http\Middleware\ForceJsonAcceptHeader::class,
 
         

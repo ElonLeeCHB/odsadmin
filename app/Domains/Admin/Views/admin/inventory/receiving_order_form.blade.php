@@ -224,7 +224,8 @@
                         <td class="text-left" style="width:100px;">進貨<BR>單價</td>
                         <td class="text-left" style="width:100px;">進貨<BR>金額</td>
                         <td class="text-left" style="width:80px;">庫存<BR>單位</td>
-                        <td class="text-left" style="width:100px;">庫存<BR>單價</td>
+                        <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="料件主檔的預設庫存單價" style="font-weight: bolder;" >預設庫存<BR>單價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
+                        <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="本次進貨的庫存單價(進貨金額/入庫數量)" style="font-weight: bolder;" >本次庫存<BR>單價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
                         <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="最近三個月進貨單價平均" style="font-weight: bolder;" >近期<BR>均價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
                         <td class="text-left" style="width:80px;">轉換<BR>率</td>
                         <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="轉入庫存數量" style="font-weight: bolder;" >入庫<BR>數量 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
@@ -277,6 +278,9 @@
                           <input type="hidden" id="input-products-stock_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_code]" value="{{ $receiving_product->stock_unit_code ?? '' }}">
                         </td>
                         <td class="text-start">
+                          <input type="text" id="input-products-default_stock_price-{{ $product_row }}" name="products[{{ $product_row }}][default_stock_price]" value="{{ $receiving_product->product->stock_price ?? 0 }}" class="form-control" readonly>
+                        </td>
+                        <td class="text-start">
                           <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? 0 }}" class="form-control" readonly>
                         </td>
                         <td class="text-start">
@@ -295,7 +299,7 @@
                     </tbody>
                     <tfoot>
                       <tr>
-                        <td colspan="13" class="text-left">
+                        <td colspan="14" class="text-left">
                           <button type="button" onclick="addReceivingProduct()" data-toggle="tooltip" title="" class="btn btn-primary" data-original-title=""><i class="fa fa-plus-circle"></i></button>
                         </td>
                       </tr>
@@ -387,6 +391,72 @@
 @section('buttom')
 <script type="text/javascript">
 
+// 驗證庫存單價差異
+function validateStockPriceDifference() {
+  let hasWarning = false;
+  let warningMessages = [];
+
+  // 遍歷所有料件行
+  $('#products tbody tr').each(function() {
+    let rownum = $(this).data('rownum');
+    if (!rownum) return true; // 跳過無效行
+
+    let productName = $('#input-products-name-' + rownum).val();
+    let defaultStockPrice = parseFloat($('#input-products-default_stock_price-' + rownum).val()) || 0;
+    let currentStockPrice = parseFloat($('#input-products-stock_price-' + rownum).val()) || 0;
+
+    // 如果沒有料件名稱或兩個單價都是 0，跳過
+    if (!productName || (defaultStockPrice === 0 && currentStockPrice === 0)) {
+      return true;
+    }
+
+    // 如果預設單價為 0 但本次單價不為 0，也需要提醒
+    if (defaultStockPrice === 0 && currentStockPrice > 0) {
+      warningMessages.push('【' + productName + '】預設庫存單價為 0，但本次庫存單價為 ' + currentStockPrice.toFixed(2) + '，請確認是否正確？');
+      hasWarning = true;
+      return true;
+    }
+
+    // 計算差異百分比
+    let difference = currentStockPrice - defaultStockPrice;
+    let percentageDiff = (difference / defaultStockPrice) * 100;
+    let absPercentageDiff = Math.abs(percentageDiff);
+
+    // 如果差異超過 3%
+    if (absPercentageDiff > 3) {
+      let message = '【' + productName + '】';
+
+      // 差異超過 100%，提示單位可能錯誤
+      if (absPercentageDiff > 100) {
+        if (percentageDiff > 0) {
+          message += '本次單價比預設單價超過 ' + absPercentageDiff.toFixed(1) + '%，請確認單位有無選錯？';
+        } else {
+          message += '本次單價比預設單價減少 ' + absPercentageDiff.toFixed(1) + '%，請確認單位有無選錯？';
+        }
+      }
+      // 差異在 3% ~ 100% 之間
+      else {
+        if (percentageDiff > 0) {
+          message += '本次單價比預設單價超過 ' + absPercentageDiff.toFixed(1) + '%，請確認？';
+        } else {
+          message += '本次單價比預設單價減少 ' + absPercentageDiff.toFixed(1) + '%，請確認？';
+        }
+      }
+
+      message += '\n(預設: ' + defaultStockPrice.toFixed(2) + ' / 本次: ' + currentStockPrice.toFixed(2) + ')';
+      warningMessages.push(message);
+      hasWarning = true;
+    }
+  });
+
+  // 如果有警告訊息，顯示 confirm
+  if (hasWarning) {
+    let fullMessage = '發現以下庫存單價異常：\n\n' + warningMessages.join('\n\n') + '\n\n是否仍要繼續儲存？';
+    return confirm(fullMessage);
+  }
+
+  return true; // 沒有警告，允許提交
+}
 
 $(document).ready(function () {
   // 進貨單價、進貨數量、進貨金額 觸發計算
@@ -399,6 +469,16 @@ $(document).ready(function () {
 
   // 觸發查詢料件的 click 事件
   $('.schProductName').trigger('click');
+
+  // 攔截表單提交，進行庫存單價驗證
+  $('#form-member').on('submit', function(e) {
+    // 先執行庫存單價差異驗證
+    if (!validateStockPriceDifference()) {
+      e.preventDefault(); // 取消提交
+      return false;
+    }
+    // 驗證通過，繼續提交
+  });
 });
 
 // 查廠商名稱
@@ -465,6 +545,7 @@ $(document).on('click', '.schProductName', function() {
       $('#input-products-stock_unit_name-'+rownum).val(item.stock_unit_name);
       $('#input-products-product_edit_url-'+rownum).attr('href', item.product_edit_url);
       $('#input-products-product_edit_url-'+rownum).attr('target', '_blank');
+      $('#input-products-default_stock_price-'+rownum).val(item.stock_price);
       $('#input-products-average_stock_price-'+rownum).val(item.average_stock_price);
 
       var selectElement = $('#input-products-receiving_unit_code-'+rownum);
@@ -651,6 +732,9 @@ function addReceivingProduct(){
   html += '  <td class="text-left">';
   html += '    <input type="text" id="input-products-stock_unit_name-'+product_row+'" name="products['+product_row+'][stock_unit_name]" value="" class="form-control" readonly>';
   html += '    <input type="hidden" id="input-products-stock_unit_code-'+product_row+'" name="products['+product_row+'][stock_unit_code]" value="">';
+  html += '  </td>';
+  html += '  <td class="text-left">';
+  html += '    <input type="text" id="input-products-default_stock_price-'+product_row+'" name="products['+product_row+'][default_stock_price]" value="" class="form-control" readonly>';
   html += '  </td>';
   html += '  <td class="text-left">';
   html += '    <input type="text" id="input-products-stock_price-'+product_row+'" name="products['+product_row+'][stock_price]" value="" class="form-control" readonly>';

@@ -10,24 +10,22 @@ use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
 use App\Models\Sale\Invoice;
 
 /**
- * Giveme 電子發票測試控制器（完整流程）
+ * Giveme 電子發票正式環境控制器
  *
- * 用途：測試完整的發票開立流程（前端傳入 order_id, invoice_id，然後從資料庫讀取資料，再轉換為 API 所需格式）
- * 環境：使用測試環境帳號
- * 特點：模擬正式流程，但使用測試帳號
+ * 用途：正式環境的發票開立流程（從資料庫讀取）
+ * 環境：僅限 production 環境使用
+ * 特點：使用正式帳號，僅在正式環境執行
  *
- * 測試帳號資訊：
- * - 統編: 53418005
- * - 帳號: Giveme09
- * - 密碼: 9VHGCq
+ * ⚠️ 重要：此控制器僅能在 APP_ENV=production 時執行
+ * 非 production 環境請使用 GivemeTestController
  */
 
 /*
-  ✅ Giveme 電子發票完整流程測試路徑
+  ✅ Giveme 電子發票正式環境路徑
 
   基礎路徑
 
-  http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/test
+  http://your-domain.com/api/posv2/sales/invoice-issue/giveme
 
   可用端點
 
@@ -41,7 +39,7 @@ use App\Models\Sale\Invoice;
   完整 URL 範例
 
   # 1. 開立發票
-  POST http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/test/issue
+  POST http://your-domain.com/api/posv2/sales/invoice-issue/giveme/issue
   Body: {
     "invoice_id": 123,
     "order_id": 456,
@@ -49,23 +47,23 @@ use App\Models\Sale\Invoice;
   }
 
   # 2. 作廢發票
-  POST http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/test/cancel
+  POST http://your-domain.com/api/posv2/sales/invoice-issue/giveme/cancel
   Body: {
     "invoice_id": 123,
     "reason": "客戶要求作廢"
   }
 
   # 3. 查詢發票
-  POST http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/test/query
+  POST http://your-domain.com/api/posv2/sales/invoice-issue/giveme/query
   Body: {
     "invoice_id": 123
   }
 
   # 4. 取得發票列印 URL
-  GET http://ods.dtstw.test/api/posv2/sales/invoice-issue/giveme/test/print-url/JN80000776
+  GET http://your-domain.com/api/posv2/sales/invoice-issue/giveme/print-url/JN80000776
 */
 
-class GivemeTestController extends ApiPosController
+class GivemeController extends ApiPosController
 {
     /**
      * API 基礎 URL
@@ -73,29 +71,34 @@ class GivemeTestController extends ApiPosController
     protected string $apiUrl;
 
     /**
-     * 測試環境參數
+     * 正式環境參數
      */
     protected string $taxId;
     protected string $account;
     protected string $password;
 
     /**
-     * 建構子
+     * 建構子 - 檢查環境並初始化設定
      */
     public function __construct()
     {
         parent::__construct();
 
+        // 環境檢查：僅允許 production 環境使用
+        if (config('app.env') !== 'production') {
+            abort(403, '此 API 僅限正式環境使用，請使用 GivemeTestController 進行測試');
+        }
+
         $this->apiUrl = config('invoice.giveme.api_url');
-        $this->taxId = config('invoice.test.tax_id');
-        $this->account = config('invoice.test.account');
-        $this->password = config('invoice.test.password');
+        $this->taxId = config('invoice.giveme.tax_id');
+        $this->account = config('invoice.giveme.account');
+        $this->password = config('invoice.giveme.password');
     }
 
     /**
      * 開立發票（從資料庫讀取）
      *
-     * POST /api/posv2/sales/invoice-issue/giveme/test/issue
+     * POST /api/posv2/sales/invoice-issue/giveme/issue
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -156,7 +159,7 @@ class GivemeTestController extends ApiPosController
             ], 422, [], JSON_UNESCAPED_UNICODE);
 
         } catch (\Throwable $th) {
-            Log::error('Giveme Test Issue Error', [
+            Log::error('Giveme Production Issue Error', [
                 'error' => $th->getMessage(),
                 'trace' => $th->getTraceAsString(),
             ]);
@@ -220,20 +223,19 @@ class GivemeTestController extends ApiPosController
                 $requestData['orderCode'] = $invoice->carrier_number;
             }
 
-            Log::info('Giveme Test B2C Request', [
+            Log::info('Giveme Production B2C Request', [
                 'invoice_id' => $invoice->id,
                 'request' => $requestData,
             ]);
 
             // 發送請求
             $response = Http::timeout(30)
-                ->withoutVerifying()
                 ->withHeaders(['Content-Type' => 'application/json'])
                 ->post($this->apiUrl . '?action=addB2C', $requestData);
 
             $responseData = $response->json();
 
-            Log::info('Giveme Test B2C Response', [
+            Log::info('Giveme Production B2C Response', [
                 'invoice_id' => $invoice->id,
                 'status' => $response->status(),
                 'response' => $responseData,
@@ -255,7 +257,6 @@ class GivemeTestController extends ApiPosController
                     'message' => 'B2C 發票開立成功',
                     'invoice_id' => $invoice->id,
                     'invoice_number' => $invoice->invoice_number,
-                    'request' => $requestData,
                     'response' => $responseData,
                 ], 200, [], JSON_UNESCAPED_UNICODE);
             } else {
@@ -272,7 +273,6 @@ class GivemeTestController extends ApiPosController
                     'message' => 'B2C 發票開立失敗',
                     'invoice_id' => $invoice->id,
                     'error' => $responseData['msg'] ?? 'API 回應失敗',
-                    'request' => $requestData,
                     'response' => $responseData,
                 ], 400, [], JSON_UNESCAPED_UNICODE);
             }
@@ -280,7 +280,7 @@ class GivemeTestController extends ApiPosController
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            Log::error('Giveme Test B2C Error', [
+            Log::error('Giveme Production B2C Error', [
                 'invoice_id' => $invoice->id,
                 'error' => $th->getMessage(),
                 'trace' => $th->getTraceAsString(),
@@ -341,20 +341,19 @@ class GivemeTestController extends ApiPosController
                 'items' => $items,
             ];
 
-            Log::info('Giveme Test B2B Request', [
+            Log::info('Giveme Production B2B Request', [
                 'invoice_id' => $invoice->id,
                 'request' => $requestData,
             ]);
 
             // 發送請求
             $response = Http::timeout(30)
-                ->withoutVerifying()
                 ->withHeaders(['Content-Type' => 'application/json'])
                 ->post($this->apiUrl . '?action=addB2B', $requestData);
 
             $responseData = $response->json();
 
-            Log::info('Giveme Test B2B Response', [
+            Log::info('Giveme Production B2B Response', [
                 'invoice_id' => $invoice->id,
                 'status' => $response->status(),
                 'response' => $responseData,
@@ -375,7 +374,6 @@ class GivemeTestController extends ApiPosController
                     'message' => 'B2B 發票開立成功',
                     'invoice_id' => $invoice->id,
                     'invoice_number' => $invoice->invoice_number,
-                    'request' => $requestData,
                     'response' => $responseData,
                 ], 200, [], JSON_UNESCAPED_UNICODE);
             } else {
@@ -392,7 +390,6 @@ class GivemeTestController extends ApiPosController
                     'message' => 'B2B 發票開立失敗',
                     'invoice_id' => $invoice->id,
                     'error' => $responseData['msg'] ?? 'API 回應失敗',
-                    'request' => $requestData,
                     'response' => $responseData,
                 ], 400, [], JSON_UNESCAPED_UNICODE);
             }
@@ -400,7 +397,7 @@ class GivemeTestController extends ApiPosController
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            Log::error('Giveme Test B2B Error', [
+            Log::error('Giveme Production B2B Error', [
                 'invoice_id' => $invoice->id,
                 'error' => $th->getMessage(),
                 'trace' => $th->getTraceAsString(),
@@ -418,7 +415,7 @@ class GivemeTestController extends ApiPosController
     /**
      * 查詢發票
      *
-     * POST /api/posv2/sales/invoice-issue/giveme/test/query
+     * POST /api/posv2/sales/invoice-issue/giveme/query
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -463,17 +460,16 @@ class GivemeTestController extends ApiPosController
                 'code' => $invoice->invoice_number,
             ];
 
-            Log::info('Giveme Test Query Request', ['request' => $requestData]);
+            Log::info('Giveme Production Query Request', ['request' => $requestData]);
 
             // 發送請求
             $response = Http::timeout(30)
-                ->withoutVerifying()
                 ->withHeaders(['Content-Type' => 'application/json'])
                 ->post($this->apiUrl . '?action=query', $requestData);
 
             $responseData = $response->json();
 
-            Log::info('Giveme Test Query Response', [
+            Log::info('Giveme Production Query Response', [
                 'status' => $response->status(),
                 'response' => $responseData,
             ]);
@@ -482,12 +478,11 @@ class GivemeTestController extends ApiPosController
                 'success' => true,
                 'message' => '發票查詢成功',
                 'invoice_id' => $invoice->id,
-                'request' => $requestData,
                 'response' => $responseData,
             ], 200, [], JSON_UNESCAPED_UNICODE);
 
         } catch (\Throwable $th) {
-            Log::error('Giveme Test Query Error', [
+            Log::error('Giveme Production Query Error', [
                 'error' => $th->getMessage(),
                 'trace' => $th->getTraceAsString(),
             ]);
@@ -502,7 +497,7 @@ class GivemeTestController extends ApiPosController
     /**
      * 作廢發票
      *
-     * POST /api/posv2/sales/invoice-issue/giveme/test/cancel
+     * POST /api/posv2/sales/invoice-issue/giveme/cancel
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -560,17 +555,16 @@ class GivemeTestController extends ApiPosController
                 'remark' => $reason,
             ];
 
-            Log::info('Giveme Test Cancel Request', ['request' => $requestData]);
+            Log::info('Giveme Production Cancel Request', ['request' => $requestData]);
 
             // 發送請求
             $response = Http::timeout(30)
-                ->withoutVerifying()
                 ->withHeaders(['Content-Type' => 'application/json'])
                 ->post($this->apiUrl . '?action=cancelInvoice', $requestData);
 
             $responseData = $response->json();
 
-            Log::info('Giveme Test Cancel Response', [
+            Log::info('Giveme Production Cancel Response', [
                 'status' => $response->status(),
                 'response' => $responseData,
             ]);
@@ -590,7 +584,6 @@ class GivemeTestController extends ApiPosController
                     'message' => '發票作廢成功',
                     'invoice_id' => $invoice->id,
                     'invoice_number' => $invoice->invoice_number,
-                    'request' => $requestData,
                     'response' => $responseData,
                 ], 200, [], JSON_UNESCAPED_UNICODE);
             } else {
@@ -601,7 +594,6 @@ class GivemeTestController extends ApiPosController
                     'message' => '發票作廢失敗',
                     'invoice_id' => $invoice->id,
                     'error' => $responseData['msg'] ?? 'API 回應失敗',
-                    'request' => $requestData,
                     'response' => $responseData,
                 ], 400, [], JSON_UNESCAPED_UNICODE);
             }
@@ -609,7 +601,7 @@ class GivemeTestController extends ApiPosController
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            Log::error('Giveme Test Cancel Error', [
+            Log::error('Giveme Production Cancel Error', [
                 'error' => $th->getMessage(),
                 'trace' => $th->getTraceAsString(),
             ]);
@@ -624,7 +616,7 @@ class GivemeTestController extends ApiPosController
     /**
      * 取得發票列印 URL
      *
-     * GET /api/posv2/sales/invoice-issue/giveme/test/print-url/{invoice_number}
+     * GET /api/posv2/sales/invoice-issue/giveme/print-url/{invoice_number}
      *
      * @param string $invoiceNumber
      * @return \Illuminate\Http\JsonResponse
@@ -639,12 +631,10 @@ class GivemeTestController extends ApiPosController
                 ], 400, [], JSON_UNESCAPED_UNICODE);
             }
 
-            $taxId = config('invoice.test.tax_id');
+            // 組裝列印 URL（使用正式環境統編）
+            $printUrl = $this->apiUrl . '?action=invoicePrint&code=' . $invoiceNumber . '&uncode=' . $this->taxId;
 
-            // 組裝列印 URL
-            $printUrl = $this->apiUrl . '?action=invoicePrint&code=' . $invoiceNumber . '&uncode=' . $taxId;
-
-            Log::info('Giveme Test Print URL', [
+            Log::info('Giveme Production Print URL', [
                 'invoice_number' => $invoiceNumber,
                 'print_url' => $printUrl,
             ]);
@@ -658,7 +648,7 @@ class GivemeTestController extends ApiPosController
             ], 200, [], JSON_UNESCAPED_UNICODE);
 
         } catch (\Throwable $th) {
-            Log::error('Giveme Test Print URL Error', [
+            Log::error('Giveme Production Print URL Error', [
                 'error' => $th->getMessage(),
                 'trace' => $th->getTraceAsString(),
             ]);

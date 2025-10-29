@@ -109,6 +109,8 @@ class AccountsOAuthLibrary
             }
 
             // 回傳錯誤資料，不拋出異常（讓呼叫方正常處理業務邏輯錯誤）
+            echo "<pre>", print_r($body, true), "</pre>";
+            exit;
             return [
                 'success' => false,
                 'message' => $body['message'] ?? '請求失敗',
@@ -135,7 +137,7 @@ class AccountsOAuthLibrary
     {
         $url = config('services.accounts.url');
         $timeout = config('services.accounts.timeout', 10);
-        $endpoint = rtrim($url, '/') . '/api/oauth/user';
+        $endpoint = rtrim($url, '/') . '/api/me';
 
         try {
             Log::info('AccountsOAuth: 開始呼叫 Accounts 中心取得使用者資訊', [
@@ -154,6 +156,7 @@ class AccountsOAuthLibrary
             Log::info('AccountsOAuth: 收到 Accounts 中心回應', [
                 'status_code' => $statusCode,
                 'success' => $body['success'] ?? false,
+                'message' => $body['message'] ?? null,
             ]);
 
             if ($statusCode === 200 && isset($body['success']) && $body['success']) {
@@ -164,17 +167,51 @@ class AccountsOAuthLibrary
                 ];
             }
 
+            // 處理 401 未授權
+            if ($statusCode === 401) {
+                Log::warning('AccountsOAuth: Token 未授權', [
+                    'status_code' => $statusCode,
+                    'body' => $body,
+                ]);
+
+                return [
+                    'success' => false,
+                    'data' => $body['data'] ?? null,
+                    'message' => $body['message'] ?? 'Token 無效或已過期',
+                    'error' => $body['error'] ?? 'Unauthorized',
+                    'status_code' => 401,
+                ];
+            }
+
+            // 處理 500 伺服器錯誤
+            if ($statusCode >= 500) {
+                Log::error('AccountsOAuth: Accounts 中心伺服器錯誤', [
+                    'status_code' => $statusCode,
+                    'body' => $body,
+                ]);
+
+                return [
+                    'success' => false,
+                    'data' => null,
+                    'message' => 'Accounts 中心伺服器錯誤',
+                    'error' => $body['message'] ?? $body['error'] ?? 'Internal Server Error',
+                    'status_code' => $statusCode,
+                ];
+            }
+
             return [
                 'success' => false,
                 'data' => $body['data'] ?? null,
                 'message' => $body['message'] ?? '取得使用者資訊失敗',
                 'error' => $body['error'] ?? null,
+                'status_code' => $statusCode,
             ];
 
         } catch (Exception $e) {
             Log::error('AccountsOAuth: 取得使用者資訊失敗', [
                 'endpoint' => $endpoint,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             throw new Exception('無法連線至 Accounts 中心: ' . $e->getMessage(), 0, $e);

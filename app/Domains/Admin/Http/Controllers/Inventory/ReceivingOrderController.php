@@ -15,6 +15,7 @@ use App\Models\Catalog\Product;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\Classes\UnitConverter;
+
 class ReceivingOrderController extends BackendController
 {
     public function __construct(
@@ -400,6 +401,7 @@ class ReceivingOrderController extends BackendController
                 'usage_unit_code' => $product->usage_unit_code,
                 'usage_unit_name' => $product->usage_unit_name,
                 'usage_price' => $product->usage_price,
+                'stock_price' => $product->stock_price ?? 0,
                 'average_stock_price' => $product->average_stock_price,
                 'product_edit_url' => route('lang.admin.inventory.products.form', $product->id),
             );

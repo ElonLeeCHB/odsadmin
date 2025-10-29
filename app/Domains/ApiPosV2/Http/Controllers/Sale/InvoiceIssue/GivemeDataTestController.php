@@ -10,7 +10,7 @@ use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
 /**
  * Giveme 電子發票 API 直接測試控制器
  *
- * 用途：測試 Giveme API 連線功能（前端直接傳送完整資料）
+ * 用途：測試 Giveme API 連線功能（前端直接傳送機迷坊需要的資料格式）
  * 環境：使用測試環境帳號
  * 特點：不操作資料庫，純 API 測試
  *
