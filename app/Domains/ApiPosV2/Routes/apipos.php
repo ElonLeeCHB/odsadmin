@@ -26,7 +26,7 @@ Route::group([
     Route::post('passwordUpdate', 'Auth\ResetPasswordController@tmpPasswordUpdate');
     
     Route::group([
-        'middleware' => ['auth:sanctum'], //登入後驗證 sanctum
+        'middleware' => ['checkSanctumOrOAuth'], // 支援 Sanctum 或 OAuth（相容模式）
     ], function ()
     {
         Route::post('logout', 'Auth\LoginController@logout')->name('logout');
@@ -80,7 +80,7 @@ Route::group([
             // Route::get('category/info/{category_id}', 'Catalog\CategoryController@info')->name('category.info');
     
             Route::get('products/list', 'Catalog\ProductController@list')->name('product.list');
-            Route::get('products/info/{product_id}', 'Catalog\ProductController@info')->name('product.info')->middleware(['auth:sanctum']);
+            Route::get('products/info/{product_id}', 'Catalog\ProductController@info')->name('product.info');
 
             //應該給後台backend使用，暫時放這裡
             Route::post('products/copyProductOption/{product_id}/{option_id}', 'Catalog\ProductController@copyProductOption')->name('products.copyProductOption');
@@ -190,9 +190,8 @@ Route::group([
         // });
     });
 
-    // OAuth 認證路由組（逐步替換 Sanctum）
-    // 使用帶緩存的 OAuth 中間件，提升效能
-    Route::middleware(['checkOAuthTokenWithCache'])->group(function () {
+    // 發票相關路由（支援 Sanctum 或 OAuth 雙認證）
+    Route::middleware(['checkSanctumOrOAuth'])->group(function () {
         // API 直接測試（前端傳完整資料）
         Route::prefix('sales/invoice-issue/giveme/data-test')->group(function () {
             Route::get('config', [GivemeDataTestController::class, 'showConfig']);

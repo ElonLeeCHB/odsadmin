@@ -109,8 +109,6 @@ class AccountsOAuthLibrary
             }
 
             // 回傳錯誤資料，不拋出異常（讓呼叫方正常處理業務邏輯錯誤）
-            echo "<pre>", print_r($body, true), "</pre>";
-            exit;
             return [
                 'success' => false,
                 'message' => $body['message'] ?? '請求失敗',
@@ -140,10 +138,6 @@ class AccountsOAuthLibrary
         $endpoint = rtrim($url, '/') . '/api/me';
 
         try {
-            Log::info('AccountsOAuth: 開始呼叫 Accounts 中心取得使用者資訊', [
-                'endpoint' => $endpoint,
-            ]);
-
             $response = Http::timeout($timeout)
                 ->withOptions(['verify' => false]) // 忽略 SSL 憑證驗證
                 ->retry(2, 100)
@@ -152,12 +146,6 @@ class AccountsOAuthLibrary
 
             $statusCode = $response->status();
             $body = $response->json();
-
-            Log::info('AccountsOAuth: 收到 Accounts 中心回應', [
-                'status_code' => $statusCode,
-                'success' => $body['success'] ?? false,
-                'message' => $body['message'] ?? null,
-            ]);
 
             if ($statusCode === 200 && isset($body['success']) && $body['success']) {
                 return [
@@ -232,10 +220,6 @@ class AccountsOAuthLibrary
         $endpoint = rtrim($url, '/') . '/api/logout';
 
         try {
-            Log::info('AccountsOAuth: 開始呼叫 Accounts 中心登出 API', [
-                'endpoint' => $endpoint,
-            ]);
-
             $response = Http::timeout($timeout)
                 ->withOptions(['verify' => false]) // 忽略 SSL 憑證驗證
                 ->retry(2, 100)
@@ -244,11 +228,6 @@ class AccountsOAuthLibrary
 
             $statusCode = $response->status();
             $body = $response->json();
-
-            Log::info('AccountsOAuth: 收到 Accounts 中心登出回應', [
-                'status_code' => $statusCode,
-                'success' => $body['success'] ?? false,
-            ]);
 
             // 成功登出 (200)
             if ($statusCode === 200 && isset($body['success']) && $body['success']) {

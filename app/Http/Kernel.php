@@ -84,7 +84,7 @@ class Kernel extends HttpKernel
         'checkApiWwwV2Authorization' => \App\Http\Middleware\CheckApiWwwV2Authorization::class,
 
         'checkOAuthToken' => \App\Http\Middleware\CheckOAuthToken::class,
-        'checkOAuthTokenWithCache' => \App\Http\Middleware\CheckOAuthTokenWithCache::class,
+        'checkSanctumOrOAuth' => \App\Http\Middleware\CheckSanctumOrOAuth::class,
 
         'forceJsonAcceptHeader' => \App\Http\Middleware\ForceJsonAcceptHeader::class,
 
