@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceBatchController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceGroupController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeDataTestController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeTestController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeController;
@@ -106,11 +107,64 @@ Route::group([
             Route::post('order-groups/{id}/detach-order', [OrderGroupController::class, 'detachOrder']);
             Route::post('order-groups/{id}/attach-invoice', [OrderGroupController::class, 'attachInvoice']);
             Route::post('order-groups/{id}/detach-invoice', [OrderGroupController::class, 'detachInvoice']);
-            
-            // 發票
-            Route::apiResource('invoices', InvoiceController::class);
-            // 批次新增
-            Route::post('invoices/batch', [InvoiceBatchController::class, 'store']);
+
+            // 發票群組（開票作業）
+            Route::prefix('invoice-groups')->name('invoice-groups.')->group(function () {
+                Route::get('/', [InvoiceGroupController::class, 'show'])->name('show');
+                Route::post('/', [InvoiceGroupController::class, 'store'])->name('store');
+                Route::put('/', [InvoiceGroupController::class, 'update'])->name('update');
+            });
+
+            // 發票管理
+            Route::group([
+                'prefix' => 'invoices',
+                'as' => 'invoices.',
+            ], function () {
+
+                // 發票 CRUD
+                Route::get('/', [InvoiceController::class, 'index'])->name('index');
+                Route::post('/', [InvoiceController::class, 'store'])->name('store');
+                Route::get('/{invoice}', [InvoiceController::class, 'show'])->name('show');
+                Route::put('/{invoice}', [InvoiceController::class, 'update'])->name('update');
+                Route::delete('/{invoice}', [InvoiceController::class, 'destroy'])->name('destroy');
+
+                // 批次新增
+                Route::post('batch', [InvoiceBatchController::class, 'store'])->name('batch.store');
+
+                // 發票開立
+                Route::group([
+                    'prefix' => 'issue',
+                    'as' => 'issue.',
+                ], function () {
+                    // API 直接測試（前端傳完整資料）
+                    Route::prefix('giveme/data-test')->name('giveme.data-test.')->group(function () {
+                        Route::get('config', [GivemeDataTestController::class, 'showConfig'])->name('config');
+                        Route::get('signature', [GivemeDataTestController::class, 'testSignature'])->name('signature');
+                        Route::post('b2c', [GivemeDataTestController::class, 'testB2C'])->name('b2c');
+                        Route::post('b2b', [GivemeDataTestController::class, 'testB2B'])->name('b2b');
+                        Route::post('query', [GivemeDataTestController::class, 'testQuery'])->name('query');
+                        Route::post('cancel', [GivemeDataTestController::class, 'testCancel'])->name('cancel');
+                        Route::get('print', [GivemeDataTestController::class, 'testPrint'])->name('print');
+                        Route::post('picture', [GivemeDataTestController::class, 'testPicture'])->name('picture');
+                    });
+
+                    // 完整流程測試（從資料庫讀取）
+                    Route::prefix('giveme/test')->name('giveme.test.')->group(function () {
+                        Route::post('issue', [GivemeTestController::class, 'issue'])->name('issue');
+                        Route::post('query', [GivemeTestController::class, 'query'])->name('query');
+                        Route::post('cancel', [GivemeTestController::class, 'cancel'])->name('cancel');
+                        Route::get('print-url/{invoice_number}', [GivemeTestController::class, 'printUrl'])->name('printUrl');
+                    });
+
+                    // 正式環境
+                    Route::prefix('giveme')->name('giveme.')->group(function () {
+                        Route::post('issue', [GivemeController::class, 'issue'])->name('issue');
+                        Route::post('query', [GivemeController::class, 'query'])->name('query');
+                        Route::post('cancel', [GivemeController::class, 'cancel'])->name('cancel');
+                        Route::get('print-url/{invoice_number}', [GivemeController::class, 'printUrl'])->name('printUrl');
+                    });
+                });
+            });
 
             // 訂單標籤基本資料
             Route::get('order-tags/list', 'Sale\OrderController@orderTagsList')->name('orderTags.list');
@@ -189,38 +243,6 @@ Route::group([
     
         // });
     });
-
-    // 發票相關路由（支援 Sanctum 或 OAuth 雙認證）
-    Route::middleware(['checkSanctumOrOAuth'])->group(function () {
-        // API 直接測試（前端傳完整資料）
-        Route::prefix('sales/invoice-issue/giveme/data-test')->group(function () {
-            Route::get('config', [GivemeDataTestController::class, 'showConfig']);
-            Route::get('signature', [GivemeDataTestController::class, 'testSignature']);
-            Route::post('b2c', [GivemeDataTestController::class, 'testB2C']);
-            Route::post('b2b', [GivemeDataTestController::class, 'testB2B']);
-            Route::post('query', [GivemeDataTestController::class, 'testQuery']);
-            Route::post('cancel', [GivemeDataTestController::class, 'testCancel']);
-            Route::get('print', [GivemeDataTestController::class, 'testPrint']);
-            Route::post('picture', [GivemeDataTestController::class, 'testPicture']);
-        });
-
-        // 完整流程測試（從資料庫讀取）
-        Route::prefix('sales/invoice-issue/giveme/test')->group(function () {
-            Route::post('issue', [GivemeTestController::class, 'issue']);
-            Route::post('query', [GivemeTestController::class, 'query']);
-            Route::post('cancel', [GivemeTestController::class, 'cancel']);
-            Route::get('print-url/{invoice_number}', [GivemeTestController::class, 'printUrl']);
-        });
-
-        // 正式環境（僅限 production）
-        Route::prefix('sales/invoice-issue/giveme')->group(function () {
-            Route::post('issue', [GivemeController::class, 'issue']);
-            Route::post('query', [GivemeController::class, 'query']);
-            Route::post('cancel', [GivemeController::class, 'cancel']);
-            Route::get('print-url/{invoice_number}', [GivemeController::class, 'printUrl']);
-        });
-    });
-
     Route::get('test', 'ApiPosController@test')->name('test');
 
 });

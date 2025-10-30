@@ -134,7 +134,7 @@ class GivemeController extends ApiPosController
                 && !str_starts_with($invoice->invoice_number, 'PENDING_')) {
                 return response()->json([
                     'success' => false,
-                    'message' => '發票已開立',
+                    'message' => '發票已存在',
                     'invoice_number' => $invoice->invoice_number,
                 ], 400, [], JSON_UNESCAPED_UNICODE);
             }

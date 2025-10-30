@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Enums;
+namespace App\Enums\Sales;
 
 enum InvoiceStatus: string
 {
-    case Unpaid = 'unpaid';
-    case Paid = 'paid';
-    case Canceled = 'canceled';
+    case Pending = 'pending';
+    case Issued = 'issued';
+    case Voided = 'voided';
 
     /**
-     * 取得所有 value 值（['unpaid', 'paid', 'canceled']）
+     * 取得所有 value 值（['pending', 'issued', 'voided']）
      */
     public static function values(): array
     {
@@ -17,7 +17,7 @@ enum InvoiceStatus: string
     }
 
     /**
-     * 取得所有 name 值（['Unpaid', 'Paid', 'Canceled']）
+     * 取得所有 name 值（['Pending', 'Issued', 'Voided']）
      */
     public static function names(): array
     {
@@ -41,26 +41,27 @@ enum InvoiceStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Unpaid => '未付款',
-            self::Paid => '已付款',
-            self::Canceled => '已取消',
+            self::Pending => '待開立',
+            self::Issued => '已開立',
+            self::Voided => '已作廢',
         };
     }
 }
 
 /* 使用範例：
 InvoiceStatus::values();
-// ['unpaid', 'paid', 'canceled']
+// ['pending', 'issued', 'voided']
 
 InvoiceStatus::names();
-// ['Unpaid', 'Paid', 'Canceled']
+// ['Pending', 'Issued', 'Voided']
 
 InvoiceStatus::options();
 // [
-//     ['name' => 'Unpaid', 'value' => 'unpaid'],
-//     ['name' => 'Paid', 'value' => 'paid'],
-//     ['name' => 'Canceled', 'value' => 'canceled'],
+//     ['name' => 'Pending', 'value' => 'pending'],
+//     ['name' => 'Issued', 'value' => 'issued'],
+//     ['name' => 'Voided', 'value' => 'voided'],
 // ]
 
-InvoiceStatus::Unpaid->label();
+InvoiceStatus::Pending->label();
+// '待開立'
 */

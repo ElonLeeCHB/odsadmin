@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
 use App\Helpers\Classes\DateHelper;
 use App\Helpers\Classes\OrmHelper;
-use App\Enums\InvoiceStatus;
+use App\Enums\Sales\InvoiceStatus;
 
 /*
 public function index()    // GET 所有資料

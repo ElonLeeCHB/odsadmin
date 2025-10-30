@@ -2,7 +2,7 @@
 
 namespace App\Models\Sale;
 
-use App\Enums\InvoiceStatus;
+use App\Enums\Sales\InvoiceStatus;
 use App\Enums\TaxType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,52 +11,74 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 class Invoice extends Model
 {
     protected $fillable = [
-        'order_group_id',
         'invoice_number',
+        'invoice_type',
+        'invoice_format',
         'invoice_date',
+        'customer_id',
+        'tax_id_number',
         'buyer_name',
         'seller_name',
-        'tax_id_number',
-        'customer_id',
         'tax_type',
+        'tax_state',
         'tax_amount',
+        'net_amount',
         'total_amount',
+        'api_request_data',
+        'api_response_data',
+        'api_error',
+        'canceled_at',
+        'cancel_reason',
+        'random_code',
+        'content',
+        'email',
+        'carrier_type',
+        'carrier_number',
+        'donation_code',
         'status',
-        'creator_id',
-        'modifier_id',
+        'void_reason',
+        'voided_by',
+        'voided_at',
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
         'invoice_date' => 'date:Y-m-d',
-        'tax_amount' => 'integer',
-        'total_amount' => 'integer',
+        'tax_amount' => 'decimal:2',
+        'net_amount' => 'decimal:2',
+        'total_amount' => 'decimal:2',
+        'tax_state' => 'integer',
         'tax_type' => TaxType::class,
         'status' => InvoiceStatus::class,
+        'api_request_data' => 'array',
+        'api_response_data' => 'array',
+        'canceled_at' => 'datetime',
+        'voided_at' => 'datetime',
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
 
-    // 單身項目
+    // 發票明細項目
     public function invoiceItems(): HasMany
     {
         return $this->hasMany(InvoiceItem::class);
     }
 
-    // 對應到多張訂單
-    public function orders()
+    // 所屬的發票群組（透過中介表）
+    public function invoiceGroups()
     {
-        return $this->hasManyThrough(
-            Order::class, // 你可以替換成實際的 Order Model
-            InvoiceOrderMap::class,
-            'invoice_id', // 中介表 invoice_order_maps 中的外鍵
-            'id',         // Order 的主鍵
-            'id',         // Invoice 的主鍵
-            'order_id'    // 中介表中的訂單 ID
-        );
+        return $this->belongsToMany(
+            InvoiceGroup::class,
+            'invoice_group_invoices',
+            'invoice_id',
+            'group_id'
+        )->withPivot('invoice_amount')->withTimestamps();
     }
 
-    public function invoiceOrderMaps()
+    // 客戶關聯
+    public function customer()
     {
-        return $this->hasMany(InvoiceOrderMap::class, 'invoice_id', 'id');
+        return $this->belongsTo(\App\Models\Customer::class, 'customer_id');
     }
 }

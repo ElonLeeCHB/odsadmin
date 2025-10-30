@@ -42,6 +42,7 @@ return new class extends Migration
             $table->string('payment_comment')->nullable();
             $table->date('scheduled_payment_date')->nullable();
             $table->boolean('is_payment_tin')->default('0');
+            $table->enum('invoice_issue_mode', ['standard', 'split', 'merge', 'mixed'])->nullable()->comment('開票方式: standard(標準一對一)/split(拆單)/merge(合併)/mixed(混合)');
             $table->string('shipping_personal_name',50)->nullable();
             $table->string('shipping_country_code',5)->nullable();
             $table->string('shipping_company',100)->nullable();
