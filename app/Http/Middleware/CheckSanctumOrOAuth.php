@@ -162,12 +162,12 @@ class CheckSanctumOrOAuth
     protected function verifyTokenAndGetUser(string $token): ?array
     {
         try {
-            // 嘗試從 Token 提取 user_id（用於緩存 key）
-            $userId = $this->extractUserIdFromToken($token);
+            // 使用 Token Hash 作為緩存 key（避免不同 token 共用緩存）
+            $tokenHash = md5($token);
+            $cacheKey = "oauth:token:{$tokenHash}";
 
             // 嘗試從緩存讀取
-            if ($this->enableCache && $userId) {
-                $cacheKey = "oauth:user:{$userId}";
+            if ($this->enableCache) {
                 $cachedUser = Cache::get($cacheKey);
 
                 if ($cachedUser) {
@@ -202,9 +202,8 @@ class CheckSanctumOrOAuth
                 return null;
             }
 
-            // 緩存用戶資訊
-            if ($this->enableCache && $userId) {
-                $cacheKey = "oauth:user:{$userId}";
+            // 緩存用戶資訊（使用 token hash 作為 key）
+            if ($this->enableCache) {
                 Cache::put($cacheKey, $oauthUser, $this->cacheTtl);
             }
 
@@ -233,33 +232,6 @@ class CheckSanctumOrOAuth
         }
 
         return User::where('code', $code)->first();
-    }
-
-    /**
-     * 從 JWT Token 提取 user_id（用於緩存 key）
-     */
-    protected function extractUserIdFromToken(string $token): ?int
-    {
-        try {
-            $parts = explode('.', $token);
-
-            if (count($parts) !== 3) {
-                return null;
-            }
-
-            // Base64Url 解碼 payload
-            $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), true);
-
-            if (!$payload) {
-                return null;
-            }
-
-            // Passport 使用 'sub' claim 存儲 user_id
-            return $payload['sub'] ?? null;
-
-        } catch (Exception $e) {
-            return null;
-        }
     }
 
     /**

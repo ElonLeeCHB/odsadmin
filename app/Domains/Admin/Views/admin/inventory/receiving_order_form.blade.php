@@ -391,71 +391,52 @@
 @section('buttom')
 <script type="text/javascript">
 
-// 驗證庫存單價差異
-function validateStockPriceDifference() {
-  let hasWarning = false;
-  let warningMessages = [];
+// 驗證單一料件的庫存單價差異
+function checkStockPriceDifference(rownum) {
+  let productName = $('#input-products-name-' + rownum).val();
+  let defaultStockPrice = parseFloat($('#input-products-default_stock_price-' + rownum).val()) || 0;
+  let currentStockPrice = parseFloat($('#input-products-stock_price-' + rownum).val()) || 0;
 
-  // 遍歷所有料件行
-  $('#products tbody tr').each(function() {
-    let rownum = $(this).data('rownum');
-    if (!rownum) return true; // 跳過無效行
-
-    let productName = $('#input-products-name-' + rownum).val();
-    let defaultStockPrice = parseFloat($('#input-products-default_stock_price-' + rownum).val()) || 0;
-    let currentStockPrice = parseFloat($('#input-products-stock_price-' + rownum).val()) || 0;
-
-    // 如果沒有料件名稱或兩個單價都是 0，跳過
-    if (!productName || (defaultStockPrice === 0 && currentStockPrice === 0)) {
-      return true;
-    }
-
-    // 如果預設單價為 0 但本次單價不為 0，也需要提醒
-    if (defaultStockPrice === 0 && currentStockPrice > 0) {
-      warningMessages.push('【' + productName + '】預設庫存單價為 0，但本次庫存單價為 ' + currentStockPrice.toFixed(2) + '，請確認是否正確？');
-      hasWarning = true;
-      return true;
-    }
-
-    // 計算差異百分比
-    let difference = currentStockPrice - defaultStockPrice;
-    let percentageDiff = (difference / defaultStockPrice) * 100;
-    let absPercentageDiff = Math.abs(percentageDiff);
-
-    // 如果差異超過 3%
-    if (absPercentageDiff > 3) {
-      let message = '【' + productName + '】';
-
-      // 差異超過 100%，提示單位可能錯誤
-      if (absPercentageDiff > 100) {
-        if (percentageDiff > 0) {
-          message += '本次單價比預設單價超過 ' + absPercentageDiff.toFixed(1) + '%，請確認單位有無選錯？';
-        } else {
-          message += '本次單價比預設單價減少 ' + absPercentageDiff.toFixed(1) + '%，請確認單位有無選錯？';
-        }
-      }
-      // 差異在 3% ~ 100% 之間
-      else {
-        if (percentageDiff > 0) {
-          message += '本次單價比預設單價超過 ' + absPercentageDiff.toFixed(1) + '%，請確認？';
-        } else {
-          message += '本次單價比預設單價減少 ' + absPercentageDiff.toFixed(1) + '%，請確認？';
-        }
-      }
-
-      message += '\n(預設: ' + defaultStockPrice.toFixed(2) + ' / 本次: ' + currentStockPrice.toFixed(2) + ')';
-      warningMessages.push(message);
-      hasWarning = true;
-    }
-  });
-
-  // 如果有警告訊息，顯示 confirm
-  if (hasWarning) {
-    let fullMessage = '發現以下庫存單價異常：\n\n' + warningMessages.join('\n\n') + '\n\n是否仍要繼續儲存？';
-    return confirm(fullMessage);
+  // 如果沒有料件名稱或兩個單價都是 0，不提醒
+  if (!productName || (defaultStockPrice === 0 && currentStockPrice === 0)) {
+    return;
   }
 
-  return true; // 沒有警告，允許提交
+  // 如果預設單價為 0 但本次單價不為 0，提醒
+  if (defaultStockPrice === 0 && currentStockPrice > 0) {
+    alert('【' + productName + '】\n預設庫存單價為 0，但本次庫存單價為 ' + currentStockPrice.toFixed(2) + '\n請確認是否正確？');
+    return;
+  }
+
+  // 計算差異百分比
+  let difference = currentStockPrice - defaultStockPrice;
+  let percentageDiff = (difference / defaultStockPrice) * 100;
+  let absPercentageDiff = Math.abs(percentageDiff);
+
+  // 如果差異超過 3%，提醒使用者
+  if (absPercentageDiff > 3) {
+    let message = '【' + productName + '】\n';
+
+    // 差異超過 100%，提示單位可能錯誤
+    if (absPercentageDiff > 100) {
+      if (percentageDiff > 0) {
+        message += '本次單價比預設單價超過 ' + absPercentageDiff.toFixed(1) + '%\n請確認單位有無選錯？';
+      } else {
+        message += '本次單價比預設單價減少 ' + absPercentageDiff.toFixed(1) + '%\n請確認單位有無選錯？';
+      }
+    }
+    // 差異在 3% ~ 100% 之間
+    else {
+      if (percentageDiff > 0) {
+        message += '本次單價比預設單價超過 ' + absPercentageDiff.toFixed(1) + '%\n請確認是否正確？';
+      } else {
+        message += '本次單價比預設單價減少 ' + absPercentageDiff.toFixed(1) + '%\n請確認是否正確？';
+      }
+    }
+
+    message += '\n\n預設庫存單價: ' + defaultStockPrice.toFixed(2) + '\n本次庫存單價: ' + currentStockPrice.toFixed(2);
+    alert(message);
+  }
 }
 
 $(document).ready(function () {
@@ -469,16 +450,6 @@ $(document).ready(function () {
 
   // 觸發查詢料件的 click 事件
   $('.schProductName').trigger('click');
-
-  // 攔截表單提交，進行庫存單價驗證
-  $('#form-member').on('submit', function(e) {
-    // 先執行庫存單價差異驗證
-    if (!validateStockPriceDifference()) {
-      e.preventDefault(); // 取消提交
-      return false;
-    }
-    // 驗證通過，繼續提交
-  });
 });
 
 // 查廠商名稱
@@ -626,6 +597,9 @@ function calcProduct(rownum){
   console.log('factor='+factor+', receiving_quantity='+receiving_quantity+', stock_quantity='+stock_quantity+', sub_total='+sub_total+', stock_price='+stock_price);
 
   calcAllProducts()
+
+  // 檢查庫存單價差異並提醒
+  checkStockPriceDifference(rownum);
 }
 
 // 逐一計算全部料件的加總
