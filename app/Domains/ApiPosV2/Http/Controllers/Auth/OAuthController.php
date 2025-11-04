@@ -68,7 +68,7 @@ class OAuthController extends ApiPosController
 
                 // 統一處理失敗情況（包含密碼錯誤、2FA、需要重設密碼）
                 if (empty($oauthResult['success'])){
-                    return response()->json([
+                    $response = [
                         'success' => false,
                         'message' => $oauthResult['message'],
                         'error_code' => $oauthResult['error_code'] ?? null,
@@ -76,7 +76,14 @@ class OAuthController extends ApiPosController
                         'error' => $oauthResult['error'] ?? null,
                         'redirect_url' => $oauthResult['redirect_url'] ?? null,
                         'auto_login_token' => $oauthResult['auto_login_token'] ?? null,
-                    ], $oauthResult['status_code'] ?? 500);
+                    ];
+
+                    // 傳遞 error_data（Debug Key 提供的詳細錯誤資訊）
+                    if (isset($oauthResult['error_data'])) {
+                        $response['error_data'] = $oauthResult['error_data'];
+                    }
+
+                    return response()->json($response, $oauthResult['status_code'] ?? 500);
                 }
 
             } catch (Exception $ex) {

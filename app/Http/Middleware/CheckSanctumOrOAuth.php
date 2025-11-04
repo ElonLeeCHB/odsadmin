@@ -71,10 +71,16 @@ class CheckSanctumOrOAuth
         // 根據失敗原因返回明確的錯誤訊息
         $reason = $oauthResult['reason'] ?? $sanctumResult['reason'] ?? 'unknown';
 
+        // 準備 extra 資料（包含 error_data）
+        $extra = [];
+        if (isset($oauthResult['error_data'])) {
+            $extra['error_data'] = $oauthResult['error_data'];
+        }
+
         return match($reason) {
-            'user_disabled' => $this->errorResponse(__('auth.error_codes.USER_DISABLED'), 'USER_DISABLED', 403),
-            'user_not_found' => $this->errorResponse(__('auth.error_codes.USER_NOT_FOUND'), 'USER_NOT_FOUND', 404),
-            default => $this->errorResponse(__('auth.error_codes.TOKEN_INVALID'), 'TOKEN_INVALID', 401),
+            'user_disabled' => $this->errorResponse(__('auth.error_codes.USER_DISABLED'), 'USER_DISABLED', 403, $extra),
+            'user_not_found' => $this->errorResponse(__('auth.error_codes.USER_NOT_FOUND'), 'USER_NOT_FOUND', 404, $extra),
+            default => $this->errorResponse(__('auth.error_codes.TOKEN_INVALID'), 'TOKEN_INVALID', 401, $extra),
         };
     }
 
@@ -85,14 +91,20 @@ class CheckSanctumOrOAuth
     {
         try {
             // 驗證 Token 並取得 OAuth 用戶資訊（帶緩存）
-            $oauthUser = $this->verifyTokenAndGetUser($token);
+            $result = $this->verifyTokenAndGetUser($token);
 
-            if (!$oauthUser) {
+            if (!$result || !isset($result['user'])) {
                 Log::warning('OAuth 驗證失敗：無法取得用戶資訊', [
                     'token_preview' => substr($token, 0, 20) . '...',
                 ]);
-                return ['success' => false, 'reason' => 'oauth_failed'];
+                return [
+                    'success' => false,
+                    'reason' => 'oauth_failed',
+                    'error_data' => $result['error_data'] ?? null,
+                ];
             }
+
+            $oauthUser = $result['user'];
 
             // 查找本地用戶
             $user = $this->findLocalUser($oauthUser);
@@ -168,10 +180,10 @@ class CheckSanctumOrOAuth
 
             // 嘗試從緩存讀取
             if ($this->enableCache) {
-                $cachedUser = Cache::get($cacheKey);
+                $cached = Cache::get($cacheKey);
 
-                if ($cachedUser) {
-                    return $cachedUser;
+                if ($cached) {
+                    return $cached;
                 }
             }
 
@@ -182,8 +194,13 @@ class CheckSanctumOrOAuth
                 Log::warning('Accounts 中心驗證失敗', [
                     'message' => $result['message'] ?? 'unknown',
                     'status_code' => $result['status_code'] ?? 'unknown',
+                    'error_data' => $result['error_data'] ?? null,
                 ]);
-                return null;
+                // 返回包含 error_data 的結果
+                return [
+                    'user' => null,
+                    'error_data' => $result['error_data'] ?? null,
+                ];
             }
 
             // 處理資料結構：可能是 data 或 data.user
@@ -199,15 +216,19 @@ class CheckSanctumOrOAuth
                     'has_user' => isset($oauthUser['user']),
                     'has_code' => isset($oauthUser['code']),
                 ]);
-                return null;
+                return [
+                    'user' => null,
+                    'error_data' => $result['error_data'] ?? null,
+                ];
             }
 
             // 緩存用戶資訊（使用 token hash 作為 key）
+            $cacheData = ['user' => $oauthUser];
             if ($this->enableCache) {
-                Cache::put($cacheKey, $oauthUser, $this->cacheTtl);
+                Cache::put($cacheKey, $cacheData, $this->cacheTtl);
             }
 
-            return $oauthUser;
+            return $cacheData;
 
         } catch (Exception $e) {
             // AccountsOAuthLibrary::getUser() 可能會拋出異常（網路錯誤等）
@@ -237,12 +258,23 @@ class CheckSanctumOrOAuth
     /**
      * 統一的錯誤回應格式
      */
-    protected function errorResponse(string $message, string $errorCode, int $statusCode)
+    protected function errorResponse(string $message, string $errorCode, int $statusCode, ?array $extra = null)
     {
-        return response()->json([
+        $data = [
             'success' => false,
             'message' => $message,
             'error_code' => $errorCode,
-        ], $statusCode);
+        ];
+
+        if ($extra) {
+            // 將 error_data 保持在第一層，其他 extra 資料合併
+            if (isset($extra['error_data'])) {
+                $data['error_data'] = $extra['error_data'];
+                unset($extra['error_data']);
+            }
+            $data = array_merge($data, $extra);
+        }
+
+        return response()->json($data, $statusCode);
     }
 }

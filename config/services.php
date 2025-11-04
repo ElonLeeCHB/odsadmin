@@ -50,6 +50,9 @@ return [
         // System Code - 識別目標系統
         'system_code' => env('ACCOUNTS_SYSTEM_CODE', 'pos'),
 
+        // API Debug Key - 用於 API 除錯
+        'api_debug_key' => env('ACCOUNTS_API_DEBUG_KEY'),
+
         // API 請求逾時時間（秒）
         'timeout' => env('ACCOUNTS_TIMEOUT', 10),
 

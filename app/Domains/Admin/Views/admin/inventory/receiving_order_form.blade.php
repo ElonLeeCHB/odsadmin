@@ -224,10 +224,10 @@
                         <td class="text-left" style="width:100px;">進貨<BR>單價</td>
                         <td class="text-left" style="width:100px;">進貨<BR>金額</td>
                         <td class="text-left" style="width:80px;">庫存<BR>單位</td>
-                        <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="料件主檔的預設庫存單價" style="font-weight: bolder;" >預設庫存<BR>單價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
                         <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="本次進貨的庫存單價(進貨金額/入庫數量)" style="font-weight: bolder;" >本次庫存<BR>單價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
+                        <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="料件主檔的預設庫存單價" style="font-weight: bolder;" >預設庫存<BR>單價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
                         <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="最近三個月進貨單價平均" style="font-weight: bolder;" >近期<BR>均價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
-                        <td class="text-left" style="width:80px;">轉換<BR>率</td>
+                        <td class="text-center" style="width:80px;"><label data-bs-toggle="tooltip" title="單價異常時請打勾確認" style="font-weight: bolder;" >確認<BR>單價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
                         <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="轉入庫存數量" style="font-weight: bolder;" >入庫<BR>數量 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
 
                       </tr>
@@ -278,16 +278,16 @@
                           <input type="hidden" id="input-products-stock_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_code]" value="{{ $receiving_product->stock_unit_code ?? '' }}">
                         </td>
                         <td class="text-start">
-                          <input type="text" id="input-products-default_stock_price-{{ $product_row }}" name="products[{{ $product_row }}][default_stock_price]" value="{{ $receiving_product->product->stock_price ?? 0 }}" class="form-control" readonly>
+                          <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? 0 }}" class="form-control" readonly>
                         </td>
                         <td class="text-start">
-                          <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? 0 }}" class="form-control" readonly>
+                          <input type="text" id="input-products-default_stock_price-{{ $product_row }}" name="products[{{ $product_row }}][default_stock_price]" value="{{ $receiving_product->product->stock_price ?? 0 }}" class="form-control" readonly>
                         </td>
                         <td class="text-start">
                           <input type="text" id="input-products-average_stock_price-{{ $product_row }}" name="products[{{ $product_row }}][average_stock_price]" value="{{ $receiving_product->average_stock_price }}" class="form-control" readonly>
                         </td>
-                        <td>
-                          <input type="text" id="input-products-factor-{{ $product_row }}" name="products[{{ $product_row }}][factor]" value="" class="form-control" readonly>
+                        <td class="text-center">
+                          <input type="checkbox" id="input-products-price_confirmed-{{ $product_row }}" name="products[{{ $product_row }}][price_confirmed]" value="1" class="form-check-input price-confirm-checkbox" data-rownum="{{ $product_row }}" style="width: 20px; height: 20px;">
                         </td>
                         <td class="text-start">
                           <input type="text" id="input-products-stock_quantity-{{ $product_row }}" name="products[{{ $product_row }}][stock_quantity]" value="{{ $receiving_product->stock_quantity ?? 0 }}" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="{{ $product_row }}">
@@ -391,65 +391,208 @@
 @section('buttom')
 <script type="text/javascript">
 
+// 記錄每個料件的確認狀態
+var priceConfirmationStatus = {};
+// priceConfirmationStatus[rownum] = {
+//   isAbnormal: true/false,        // 單價是否異常
+//   isConfirmed: true/false,       // 使用者是否已確認
+//   productName: '商品名稱'
+// }
+
+// 更新視覺標記（淡紅色背景=異常未確認，淡橘色背景=異常已確認，白底=正常）
+function updatePriceVisualIndicator(rownum) {
+  let status = priceConfirmationStatus[rownum];
+  let stockPriceInput = $('#input-products-stock_price-' + rownum);
+
+  // 先移除所有異常樣式
+  stockPriceInput.removeClass('border-danger border-warning');
+  stockPriceInput.css('border-width', '');
+  stockPriceInput.css('background-color', '');
+  stockPriceInput.css('color', '');
+
+  if (status && status.isAbnormal) {
+    if (status.isConfirmed) {
+      // 異常但已確認：淡橘色背景
+      stockPriceInput.css('background-color', '#FFB84D');
+      stockPriceInput.css('color', '#000');
+    } else {
+      // 異常且未確認：淡紅色背景
+      stockPriceInput.css('background-color', '#FF0000');
+      stockPriceInput.css('color', '#000');
+    }
+  } else {
+    // 正常：恢復預設樣式（白底黑字，無特殊邊框）
+    console.log('→ 恢復正常樣式（白底黑字）');
+  }
+}
+
 // 驗證單一料件的庫存單價差異
 function checkStockPriceDifference(rownum) {
   let productName = $('#input-products-name-' + rownum).val();
   let defaultStockPrice = parseFloat($('#input-products-default_stock_price-' + rownum).val()) || 0;
   let currentStockPrice = parseFloat($('#input-products-stock_price-' + rownum).val()) || 0;
+  let checkbox = $('#input-products-price_confirmed-' + rownum);
 
-  // 如果沒有料件名稱或兩個單價都是 0，不提醒
-  if (!productName || (defaultStockPrice === 0 && currentStockPrice === 0)) {
+  console.log('=== checkStockPriceDifference 開始 ===');
+  console.log('rownum:', rownum, 'productName:', productName);
+  console.log('defaultStockPrice:', defaultStockPrice, 'currentStockPrice:', currentStockPrice);
+
+  // 1. 如果本次庫存單價=0或不存在，不觸發檢查
+  if (!currentStockPrice || currentStockPrice === 0) {
+    console.log('→ 本次庫存單價為0，不檢查');
+    priceConfirmationStatus[rownum] = {
+      isAbnormal: false,
+      isConfirmed: true,
+      productName: productName
+    };
+    // 禁用 checkbox
+    checkbox.prop('disabled', true).prop('checked', false);
+    updatePriceVisualIndicator(rownum);
     return;
   }
 
-  // 如果預設單價為 0 但本次單價不為 0，提醒
-  if (defaultStockPrice === 0 && currentStockPrice > 0) {
-    alert('【' + productName + '】\n預設庫存單價為 0，但本次庫存單價為 ' + currentStockPrice.toFixed(2) + '\n請確認是否正確？');
-    return;
-  }
+  // 2. 本次庫存單價不為0，觸發檢查
+  let isAbnormal = false;
+  let percentageDiff = 0;
 
-  // 計算差異百分比
-  let difference = currentStockPrice - defaultStockPrice;
-  let percentageDiff = (difference / defaultStockPrice) * 100;
-  let absPercentageDiff = Math.abs(percentageDiff);
+  // 如果預設單價為 0 但本次單價不為 0，視為異常
+  if (defaultStockPrice === 0) {
+    isAbnormal = true;
+    percentageDiff = 999;
+  } else {
+    // 計算差異百分比
+    let difference = currentStockPrice - defaultStockPrice;
+    percentageDiff = (difference / defaultStockPrice) * 100;
+    let absPercentageDiff = Math.abs(percentageDiff);
 
-  // 如果差異超過 3%，提醒使用者
-  if (absPercentageDiff > 3) {
-    let message = '【' + productName + '】\n';
+    console.log('差異百分比:', absPercentageDiff.toFixed(1) + '%');
 
-    // 差異超過 100%，提示單位可能錯誤
-    if (absPercentageDiff > 100) {
-      if (percentageDiff > 0) {
-        message += '本次單價比預設單價超過 ' + absPercentageDiff.toFixed(1) + '%\n請確認單位有無選錯？';
-      } else {
-        message += '本次單價比預設單價減少 ' + absPercentageDiff.toFixed(1) + '%\n請確認單位有無選錯？';
-      }
-    }
-    // 差異在 3% ~ 100% 之間
-    else {
-      if (percentageDiff > 0) {
-        message += '本次單價比預設單價超過 ' + absPercentageDiff.toFixed(1) + '%\n請確認是否正確？';
-      } else {
-        message += '本次單價比預設單價減少 ' + absPercentageDiff.toFixed(1) + '%\n請確認是否正確？';
-      }
+    // 2.1. 單價異動在3%合理範圍內，不做進一步動作
+    if (absPercentageDiff <= 3) {
+      console.log('→ 差異在3%內，正常');
+      priceConfirmationStatus[rownum] = {
+        isAbnormal: false,
+        isConfirmed: true,
+        productName: productName
+      };
+      // 禁用 checkbox
+      checkbox.prop('disabled', true).prop('checked', false);
+      updatePriceVisualIndicator(rownum);
+      return;
     }
 
-    message += '\n\n預設庫存單價: ' + defaultStockPrice.toFixed(2) + '\n本次庫存單價: ' + currentStockPrice.toFixed(2);
-    alert(message);
+    // 差異超過 3%，視為異常
+    isAbnormal = true;
   }
+
+  // 發現單價異常
+  console.log('→ 發現單價異常');
+
+  // 啟用 checkbox，讓使用者可以勾選確認
+  checkbox.prop('disabled', false);
+
+  // 檢查 checkbox 是否已勾選
+  let isConfirmed = checkbox.prop('checked');
+
+  console.log('checkbox 是否已勾選:', isConfirmed);
+
+  // 更新狀態
+  priceConfirmationStatus[rownum] = {
+    isAbnormal: true,
+    isConfirmed: isConfirmed,
+    productName: productName,
+    currentPrice: currentStockPrice
+  };
+
+  // 更新視覺標記（紅框或黃框）
+  updatePriceVisualIndicator(rownum);
+
+  console.log('=== checkStockPriceDifference 結束 ===');
 }
 
 $(document).ready(function () {
   // 進貨單價、進貨數量、進貨金額 觸發計算
   $('#products').on('focusout', '.clcProduct', function(){
-    setInterval(() => {
-        let rownum = $(this).closest('[data-rownum]').data('rownum');
-        calcProduct(rownum)
-    }, 1000);
+    let rownum = $(this).closest('[data-rownum]').data('rownum');
+    // 直接執行，不使用 setTimeout（否則 confirm/alert 會被瀏覽器阻止）
+    calcProduct(rownum);
+  });
+
+  // 當進貨數量或進貨單價改變時，清除該料件的確認狀態
+  $('#products').on('input', '.productPriceInputs', function(){
+    let rownum = $(this).closest('[data-rownum]').data('rownum');
+    // 清除確認狀態（因為數值改變了，需要重新確認）
+    if (priceConfirmationStatus[rownum]) {
+      priceConfirmationStatus[rownum].isConfirmed = false;
+      // 清除 checkbox
+      $('#input-products-price_confirmed-' + rownum).prop('checked', false);
+      // 立即更新視覺標記（變回紅色）
+      updatePriceVisualIndicator(rownum);
+    }
+  });
+
+  // checkbox 勾選/取消勾選時，更新確認狀態和視覺標記
+  $('#products').on('change', '.price-confirm-checkbox', function(){
+    let rownum = $(this).data('rownum');
+    let isChecked = $(this).prop('checked');
+
+    console.log('checkbox changed - rownum:', rownum, 'isChecked:', isChecked);
+
+    // 更新確認狀態
+    if (priceConfirmationStatus[rownum]) {
+      priceConfirmationStatus[rownum].isConfirmed = isChecked;
+      // 更新視覺標記（勾選=黃框，未勾選=紅框）
+      updatePriceVisualIndicator(rownum);
+    }
   });
 
   // 觸發查詢料件的 click 事件
   $('.schProductName').trigger('click');
+
+  // 表單提交時檢查是否有未確認的異常料件
+  $('#form-member').on('submit', function(e) {
+    console.log('=== 表單提交驗證開始 ===');
+    console.log('priceConfirmationStatus:', priceConfirmationStatus);
+
+    let unconfirmedItems = [];
+
+    // 檢查所有料件
+    for (let rownum in priceConfirmationStatus) {
+      let status = priceConfirmationStatus[rownum];
+      console.log('檢查 rownum:', rownum, 'status:', status);
+
+      if (status.isAbnormal && !status.isConfirmed) {
+        let itemText = '• ' + status.productName;
+        if (status.currentPrice) {
+          itemText += ' (本次單價: ' + status.currentPrice.toFixed(2) + ')';
+        }
+        unconfirmedItems.push(itemText);
+        console.log('→ 發現未確認項目:', itemText);
+      }
+    }
+
+    console.log('未確認的料件數量:', unconfirmedItems.length);
+    console.log('未確認項目列表:', unconfirmedItems);
+
+    // 如果有未確認的異常料件，阻止提交
+    if (unconfirmedItems.length > 0) {
+      console.log('→ 準備顯示 alert');
+      e.preventDefault();
+      e.stopPropagation();
+
+      let message = '以下料件的單價異常尚未確認（紅色框標示）：\n\n' +
+                    unconfirmedItems.join('\n') +
+                    '\n\n請勾選「確認單價」核取方塊後再儲存。';
+
+      console.log('alert 訊息:', message);
+      alert(message);
+      console.log('→ alert 已執行，阻止表單提交');
+      return false;
+    }
+
+    console.log('→ 允許表單提交');
+    return true;
+  });
 });
 
 // 查廠商名稱
@@ -708,16 +851,16 @@ function addReceivingProduct(){
   html += '    <input type="hidden" id="input-products-stock_unit_code-'+product_row+'" name="products['+product_row+'][stock_unit_code]" value="">';
   html += '  </td>';
   html += '  <td class="text-left">';
-  html += '    <input type="text" id="input-products-default_stock_price-'+product_row+'" name="products['+product_row+'][default_stock_price]" value="" class="form-control" readonly>';
+  html += '    <input type="text" id="input-products-stock_price-'+product_row+'" name="products['+product_row+'][stock_price]" value="" class="form-control" readonly>';
   html += '  </td>';
   html += '  <td class="text-left">';
-  html += '    <input type="text" id="input-products-stock_price-'+product_row+'" name="products['+product_row+'][stock_price]" value="" class="form-control" readonly>';
+  html += '    <input type="text" id="input-products-default_stock_price-'+product_row+'" name="products['+product_row+'][default_stock_price]" value="" class="form-control" readonly>';
   html += '  </td>';
   html += '  <td class="text-left">';
   html += '    <input type="text" id="input-products-average_stock_price-'+product_row+'" name="products['+product_row+'][average_stock_price]" value="" class="form-control" readonly>';
   html += '  </td>';
-  html += '  <td class="text-left">';
-  html += '    <input type="text" id="input-products-factor-'+product_row+'" name="products['+product_row+'][factor]" value="" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="'+product_row+'" readonly>';
+  html += '  <td class="text-center">';
+  html += '    <input type="checkbox" id="input-products-price_confirmed-'+product_row+'" name="products['+product_row+'][price_confirmed]" value="1" class="form-check-input price-confirm-checkbox" data-rownum="'+product_row+'" style="width: 20px; height: 20px;">';
   html += '  </td>';
   html += '  <td class="text-left">';
   html += '    <input type="text" id="input-products-stock_quantity-'+product_row+'" name="products['+product_row+'][stock_quantity]" value="" class="form-control productReceivingQuantityInputs clcProduct" data-rownum="'+product_row+'">';

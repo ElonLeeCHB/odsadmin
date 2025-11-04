@@ -23,17 +23,16 @@ class UpdateOrderByDatesJob implements ShouldQueue
 
     public function handle(): void
     {
-        // 執行時鎖定本任務
-        // $lock = cache()->lock('sale-order-update-daily-requisition-job', 60);
+        // 執行時鎖定本任務，防止重複執行
+        $lock = cache()->lock('sale-order-update-daily-requisition-job', 60);
 
-        // if ($lock->get()) {
-        if (1) {
+        if ($lock->get()) {
             try {
                 DB::transaction(function () {
                     $store_id = session('store_id', 1);
                     $setting_key = 'sale_order_queued_delivery_dates';
                     $setting = Setting::where('store_id', $store_id)->where('setting_key', $setting_key)->first();
-        
+
                     $current_updated_at = $setting->updated_at ?? null;
                     $updated_dates = $setting->setting_value ?? [];
                     $updated_dates = array_unique($updated_dates); // 移除重複
@@ -41,7 +40,7 @@ class UpdateOrderByDatesJob implements ShouldQueue
 
                     // 控單表 order_date_limits。一次處理多日期
                     (new \App\Repositories\Eloquent\Sale\OrderDateLimitRepository)->resetFutureOrders(delivery_dates: $updated_dates);
-            
+
                     foreach ($updated_dates ?? [] as $updated_date) {
                         // (new \App\Repositories\Eloquent\Sale\OrderDateLimitRepository)->refreshOrderedQuantityByDate($updated_date);
 
@@ -51,7 +50,7 @@ class UpdateOrderByDatesJob implements ShouldQueue
 
                     $setting = Setting::where('store_id', $store_id)->where('setting_key', $setting_key)->first();
                     $new_updated_at = $setting->updated_at;
-        
+
                     if ($current_updated_at != $new_updated_at){
                         DB::rollBack();
                         return;
@@ -60,16 +59,14 @@ class UpdateOrderByDatesJob implements ShouldQueue
                     $setting->setting_value = '';
                     $setting->save();
                 });
-                
+
                 (new \App\Repositories\Eloquent\SysData\LogRepository)->log(['data'=>'','note'=>'UpdateOrderByDatesJob 執行成功']);
 
             } catch (\Throwable $th) {
                 DB::rollBack();
                 (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorAfterRequest(['data' => $th->getMessage(), 'note' => 'App\Jobs\Sale\UpdateOrderByDates->handle()']);
             } finally {
-                if ($lock){
-                    $lock->release();
-                }
+                $lock->release();
             }
         }
     }

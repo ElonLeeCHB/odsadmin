@@ -42,8 +42,16 @@ class AccountsOAuthLibrary
             // 如果有提供 return_url，加入請求
             $payload['return_url'] = $returnUrl ?? 'http://ods.dtstw.com/#/index';
 
+            // 準備 Headers
+            $headers = [];
+            $debugKey = config('services.accounts.api_debug_key');
+            if ($debugKey) {
+                $headers['X-Debug-Key'] = $debugKey;
+            }
+
             $response = Http::timeout($timeout)
                 ->withOptions(['verify' => false]) // 忽略 SSL 憑證驗證
+                ->withHeaders($headers)
                 ->retry(2, 100) // 重試 2 次，間隔 100ms
                 ->post($endpoint, $payload);
 
@@ -87,6 +95,7 @@ class AccountsOAuthLibrary
                 'message' => $body['message'] ?? '登入失敗',
                 'error' => $body['error'] ?? null,
                 'error_code' => $body['error_code'] ?? null,
+                'error_data' => $body['error_data'] ?? null,
                 'status_code' => $status_code ?? 500,
             ];
 
@@ -104,6 +113,7 @@ class AccountsOAuthLibrary
                     'status_code' => 403,
                     'error_code' => 'requires_2fa',
                     'error' => $ex->getMessage(),
+                    'error_data' => $body['error_data'] ?? null,
                     'data' => $body['data'] ?? null,
                 ];
             }
@@ -115,6 +125,7 @@ class AccountsOAuthLibrary
                 'status_code' => $statusCode ?? 400,
                 'error' => $body['error'] ?? $ex->getMessage(),
                 'error_code' => $body['error_code'] ?? null,
+                'error_data' => $body['error_data'] ?? null,
                 'data' => $body['data'] ?? null,
             ];
 
@@ -138,8 +149,16 @@ class AccountsOAuthLibrary
         $endpoint = rtrim($url, '/') . '/api/me';
 
         try {
+            // 準備 Headers
+            $headers = [];
+            $debugKey = config('services.accounts.api_debug_key');
+            if ($debugKey) {
+                $headers['X-Debug-Key'] = $debugKey;
+            }
+
             $response = Http::timeout($timeout)
                 ->withOptions(['verify' => false]) // 忽略 SSL 憑證驗證
+                ->withHeaders($headers)
                 ->retry(2, 100)
                 ->withToken($token)
                 ->get($endpoint);
@@ -167,6 +186,7 @@ class AccountsOAuthLibrary
                     'data' => $body['data'] ?? null,
                     'message' => $body['message'] ?? 'Token 無效或已過期',
                     'error' => $body['error'] ?? 'Unauthorized',
+                    'error_data' => $body['error_data'] ?? null,
                     'status_code' => 401,
                 ];
             }
@@ -183,6 +203,7 @@ class AccountsOAuthLibrary
                     'data' => null,
                     'message' => 'Accounts 中心伺服器錯誤',
                     'error' => $body['message'] ?? $body['error'] ?? 'Internal Server Error',
+                    'error_data' => $body['error_data'] ?? null,
                     'status_code' => $statusCode,
                 ];
             }
@@ -192,6 +213,7 @@ class AccountsOAuthLibrary
                 'data' => $body['data'] ?? null,
                 'message' => $body['message'] ?? '取得使用者資訊失敗',
                 'error' => $body['error'] ?? null,
+                'error_data' => $body['error_data'] ?? null,
                 'status_code' => $statusCode,
             ];
 
@@ -220,8 +242,16 @@ class AccountsOAuthLibrary
         $endpoint = rtrim($url, '/') . '/api/logout';
 
         try {
+            // 準備 Headers
+            $headers = [];
+            $debugKey = config('services.accounts.api_debug_key');
+            if ($debugKey) {
+                $headers['X-Debug-Key'] = $debugKey;
+            }
+
             $response = Http::timeout($timeout)
                 ->withOptions(['verify' => false]) // 忽略 SSL 憑證驗證
+                ->withHeaders($headers)
                 ->retry(2, 100)
                 ->withToken($token) // 使用 Bearer Token
                 ->post($endpoint);
@@ -311,8 +341,16 @@ class AccountsOAuthLibrary
                 $payload['return_url'] = $returnUrl;
             }
 
+            // 準備 Headers
+            $headers = [];
+            $debugKey = config('services.accounts.api_debug_key');
+            if ($debugKey) {
+                $headers['X-Debug-Key'] = $debugKey;
+            }
+
             $response = Http::timeout($timeout)
                 ->withOptions(['verify' => false])
+                ->withHeaders($headers)
                 ->retry(2, 100)
                 ->post($endpoint, $payload);
 
@@ -364,8 +402,16 @@ class AccountsOAuthLibrary
         $endpoint = rtrim($url, '/') . '/api/health';
 
         try {
+            // 準備 Headers
+            $headers = [];
+            $debugKey = config('services.accounts.api_debug_key');
+            if ($debugKey) {
+                $headers['X-Debug-Key'] = $debugKey;
+            }
+
             $response = Http::timeout($timeout)
                 ->withOptions(['verify' => false]) // 忽略 SSL 憑證驗證
+                ->withHeaders($headers)
                 ->get($endpoint);
             return $response->successful();
         } catch (Exception $e) {

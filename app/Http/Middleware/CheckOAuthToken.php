@@ -113,6 +113,7 @@ class CheckOAuthToken
             Log::warning('OAuth Token 驗證失敗', [
                 'message' => $result['message'] ?? 'unknown',
                 'error' => $result['error'] ?? 'unknown',
+                'error_data' => $result['error_data'] ?? null,
             ]);
             return null;
         }
@@ -238,6 +239,11 @@ class CheckOAuthToken
         ];
 
         if ($extra) {
+            // 將 error_data 保持在第一層，其他 extra 資料合併
+            if (isset($extra['error_data'])) {
+                $data['error_data'] = $extra['error_data'];
+                unset($extra['error_data']);
+            }
             $data = array_merge($data, $extra);
         }
 
