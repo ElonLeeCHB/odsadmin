@@ -262,15 +262,18 @@ class CountingController extends BackendController
 
         // 檢查欄位
 
-        // 狀態碼
-        $params = [
-            'equal_id' => $post_data['counting_id'],
-            'select' => ['id', 'status_code'],
-        ];
-        $row = $this->CountingService->getRow($params);
-        if(!empty($row->status_code ) && $row->status_code != 'P'){
-            $json['error']['status_code'] = '單據未確認才可修改。現在是 ' . $row->status_name;
-            $json['error']['warning'] = '單據未確認才可修改。現在是 ' . $row->status_name;
+        if (!empty($post_data['counting_id'])){
+            // 狀態碼
+            $params = [
+                'equal_id' => $post_data['counting_id'],
+                'select' => ['id', 'status_code'],
+            ];
+            $row = $this->CountingService->getRow($params);
+
+            if(!empty($row->status_code ) && $row->status_code != 'P'){
+                $json['error']['status_code'] = '單據未確認才可修改。現在是 ' . $row->status_name;
+                $json['error']['warning'] = '單據未確認才可修改。現在是 ' . $row->status_name;
+            }
         }
 
         if(isset($json['error']) && !isset($json['error']['warning'])) {

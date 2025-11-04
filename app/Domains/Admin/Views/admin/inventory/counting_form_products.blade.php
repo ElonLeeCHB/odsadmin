@@ -6,7 +6,7 @@
       <td class="text-left"></td>
       <td class="text-left">料件流水號</td>
       <td class="text-left">品名</td>
-      <td class="text-left">規格</td>
+      <td class="text-left">規格.</td>
       <td class="text-left" style="width:100px;">庫存單位</td>
       <td class="text-left" style="width:100px;">入庫數量</td>
       <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="若要選擇不同盤點單位，請先重新選擇料件" style="font-weight: bolder;" >盤點單位 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
@@ -35,7 +35,7 @@
         <ul id="autocomplete-product_name-{{ $product_row }}" class="dropdown-menu"></ul>
       </td>
       <td class="text-left">
-        <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $counting_product->product_specification ?? '' }}" class="form-control" readonly>
+        <input type="text" id="input-products-specification-{{ $product_row }}" name="products[{{ $product_row }}][specification]" value="{{ $counting_product->product_specification ?? '' }}" class="form-control" disabled>
       </td>
       <td class="text-left">
         <input type="text" id="input-products-stock_unit_name-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_name]" value="{{ $counting_product->stock_unit_name ?? '' }}" class="form-control" readonly>
@@ -91,7 +91,7 @@ function addCountingProduct(){
   html += '    <ul id="autocomplete-product_name-'+product_row +'" class="dropdown-menu"></ul>';
   html += '  </td>';
   html += '  <td class="text-left">';
-  html += '    <input type="text" id="input-products-specification-'+product_row +'" name="products['+product_row +'][specification]" value="" class="form-control" readonly>';
+  html += '    <input type="text" id="input-products-specification-'+product_row +'" name="products['+product_row +'][specification]" value="" class="form-control" disabled>';
   html += '  </td>';
   html += '  <td class="text-left">';
   html += '    <input type="text" id="input-products-stock_unit_name-'+product_row +'" name="products['+product_row +'][stock_unit_name]" value="" class="form-control" readonly>';
