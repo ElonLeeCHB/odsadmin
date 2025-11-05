@@ -412,7 +412,7 @@ class Order extends Model
     protected function paymentTotal(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => $value ?? 0,
+            get: fn ($value) => (int)($value ?? 0),
             set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
         );
     }
@@ -420,7 +420,7 @@ class Order extends Model
     protected function paymentPaid(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => $value ?? 0,
+            get: fn ($value) => (int)($value ?? 0),
             set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
         );
     }
@@ -428,7 +428,7 @@ class Order extends Model
     protected function paymentUnpaid(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => $value ?? 0,
+            get: fn ($value) => (int)($value ?? 0),
             set: fn ($value) => empty($value) ? 0 : str_replace(',', '', $value),
         );
     }

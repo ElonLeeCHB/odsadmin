@@ -11,7 +11,7 @@ class OrderPayment extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'status_code' => OrderPaymentStatus::class,
+        'status' => OrderPaymentStatus::class,
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
