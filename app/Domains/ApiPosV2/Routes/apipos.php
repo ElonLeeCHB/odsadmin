@@ -220,12 +220,13 @@ Route::group([
                 Route::post('orders/save', 'Sale\QuantityControlController@quickSaveOrder')->name('quickSaveOrder');
             });
 
-            Route::prefix('orders/{order}/payments')->group(function () {
-                Route::get('/', [PaymentController::class, 'index']);
-                Route::post('/', [PaymentController::class, 'store']);
-                Route::get('{payment}', [PaymentController::class, 'show']);
-                Route::put('{payment}', [PaymentController::class, 'update']);
-                Route::delete('{payment}', [PaymentController::class, 'destroy']);
+            // 付款記錄 API (標準 RESTful)
+            Route::prefix('payments')->group(function () {
+                Route::get('/', [PaymentController::class, 'index']);                      // GET /payments?order_id=xxx
+                Route::post('/', [PaymentController::class, 'store']);                     // POST /payments
+                // Route::get('{payment_id}', [PaymentController::class, 'show']);         // GET /payments/{payment_id}?order_id=xxx
+                // Route::put('{payment_id}', [PaymentController::class, 'update']);       // PUT /payments/{payment_id}
+                Route::delete('{payment_id}', [PaymentController::class, 'destroy']);      // DELETE /payments/{payment_id}
             });
         });
     
