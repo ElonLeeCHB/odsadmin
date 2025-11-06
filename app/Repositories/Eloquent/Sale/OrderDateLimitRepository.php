@@ -379,7 +379,32 @@ class OrderDateLimitRepository extends Repository
     {
         $date = Carbon::parse($date)->format('Y-m-d');
 
-        $this->resetDefaultMaxQuantityByDate($date); // 重設當日的預設數量, 所有訂單數量都會被重設為 0。
+        // 先取得當日現有的資料（保留 MaxQuantity）
+        $existing_data = OrderDateLimit::whereDate('Date', $date)->get();
+
+        // 如果當日沒有資料，則建立預設資料
+        if ($existing_data->isEmpty()) {
+            $default_limits = $this->getDefaultLimits();
+            $insert_data = [];
+
+            foreach ($default_limits as $time_slot_key => $quantity) {
+                $insert_data[] = [
+                    'Date' => $date,
+                    'TimeSlot' => $time_slot_key,
+                    'MaxQuantity' => $quantity,
+                    'OrderedQuantity' => 0,
+                    'AcceptableQuantity' => $quantity,
+                ];
+            }
+
+            OrderDateLimit::insert($insert_data);
+        } else {
+            // 只重設 OrderedQuantity 為 0，保留原本的 MaxQuantity
+            OrderDateLimit::whereDate('Date', $date)->update([
+                'OrderedQuantity' => 0,
+                'AcceptableQuantity' => DB::raw('MaxQuantity')
+            ]);
+        }
 
         // 訂單資料
         $order_ids = DB::table('orders as o')
@@ -400,9 +425,9 @@ class OrderDateLimitRepository extends Repository
                     ->whereDate('o.delivery_date', $date)
                     ->whereIn('o.status_code', $this->controlled_status_code)
                     ->orderBy('o.delivery_date');
-        
+
         $customOrders = $query->get();
-        
+
         // 以上處理訂單表 orders
         // 以下處理 order_date_limits
         $this->updateDefinedOrders($customOrders);

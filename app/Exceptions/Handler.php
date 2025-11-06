@@ -32,7 +32,11 @@ class Handler extends ExceptionHandler
         // ✅ 全域錯誤收集（輕量 log, 可接 Sentry / Slack 等）
         $this->reportable(function (Throwable $e) {
             // 這裡只做基礎記錄，不回應
-            (new \App\Repositories\Eloquent\SysData\LogRepository)
+            // (new \App\Repositories\Eloquent\SysData\LogRepository)
+            //     ->logRequest(note: $e->getMessage());
+
+            // 改用 LogFileRepository 記錄到檔案
+            (new \App\Repositories\LogFileRepository)
                 ->logRequest(note: $e->getMessage());
         });
     }
@@ -90,7 +94,12 @@ class Handler extends ExceptionHandler
         }
 
         // ✅ 統一記錄到 DB（API + Web 都會記）
-        (new \App\Repositories\Eloquent\SysData\LogRepository)->logRequest(
+        // (new \App\Repositories\Eloquent\SysData\LogRepository)->logRequest(
+        //     note: $exception->getMessage()
+        // );
+
+        // 改用 LogFileRepository 記錄到檔案
+        (new \App\Repositories\LogFileRepository)->logRequest(
             note: $exception->getMessage()
         );
 

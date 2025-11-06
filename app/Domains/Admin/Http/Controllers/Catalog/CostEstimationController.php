@@ -77,12 +77,7 @@ class CostEstimationController extends BackendController
 
         // Rows, LengthAwarePaginator
         $query = Product::query();
-        // $query->with([
-        //     'printingCategory.translation:id,name',
-        //     'productOptions.optionValues', // 抓選項與選項值
-        //     'bom.items', // 抓 BOM 內容
-        // ]);
-        // $query->with(['printingCategory.translation:id,name']);
+
         $query->with(['printingCategory']);
         OrmHelper::prepare($query, $query_data);
         $products = OrmHelper::getResult($query, $query_data);

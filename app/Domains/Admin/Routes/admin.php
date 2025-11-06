@@ -412,4 +412,15 @@ Route::group([
         Route::get('annual-order', 'Report\AnnualOrderReportController@index')->name('annual-order.index');
         Route::get('annual-order/export', 'Report\AnnualOrderReportController@export')->name('annual-order.export');
     });
+
+    // 系統日誌
+    Route::group([
+        'prefix' => 'system',
+        'as' => 'system.',
+    ], function () {
+        Route::get('logs', 'System\LogController@index')->name('logs.index');
+        Route::get('logs/list', 'System\LogController@list')->name('logs.list');
+        Route::get('logs/form', 'System\LogController@form')->name('logs.form');
+        Route::get('logs/files', 'System\LogController@files')->name('logs.files');
+    });
 });
