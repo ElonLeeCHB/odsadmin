@@ -138,15 +138,16 @@ class OAuthController extends ApiPosController
             // 回傳給前端（使用 Accounts 的 Token）
             return response()->json([
                 'success' => true,
+                'message' => '登入成功',
                 'token' => $accountsToken, // ← 使用 Accounts 的 Passport Token
-                'token_type' => 'Bearer',
-                'permissions' => $permissions,
-                'user_id' => $user->id,
-                'user_code' => $user->code,
-                'username' => $user->username,
-                'name' => $user->name,
-                'email' => $user->email,
-                'message' => '登入成功（SSO）',
+                'data' => [
+                    'permissions' => $permissions,
+                    'user_id' => $user->id,
+                    'user_code' => $user->code,
+                    'username' => $user->username,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ],
             ], 200);
 
         } catch (Exception $ex) {

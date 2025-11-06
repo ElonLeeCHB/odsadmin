@@ -440,8 +440,8 @@ class OrderController extends ApiController
 
     public function getTimeQuantity(){
         $rs = DB::select("
-        SELECT * 
-        FROM ".env('DB_DATABASE').".time_limit_order_quantity
+        SELECT *
+        FROM `".env('DB_DATABASE')."`.`time_limit_order_quantity`
         ");
         return response()->json(array('status' => 'OK','data'=>$rs));
     }
@@ -453,9 +453,9 @@ class OrderController extends ApiController
 
         $sql = "
         SELECT o.id,o.code,o.control_comment as remark,o.delivery_time_range,o.shipping_city_id,d.name AS road, SUM(op.quantity) AS amount
-        FROM ".env('DB_DATABASE').".`orders` AS o
-        LEFT JOIN ".env('DB_DATABASE').".`order_products` AS op ON op.order_id = o.id
-        LEFT JOIN ".env('DB_DATABASE').".`divisions` AS d ON d.id = o.shipping_city_id
+        FROM `".env('DB_DATABASE')."`.`orders` AS o
+        LEFT JOIN `".env('DB_DATABASE')."`.`order_products` AS op ON op.order_id = o.id
+        LEFT JOIN `".env('DB_DATABASE')."`.`divisions` AS d ON d.id = o.shipping_city_id
         WHERE DATE(o.delivery_date) BETWEEN ? AND ?
         AND o.status_code != 'Void'
         AND o.status_code IN ('Pending', 'Confirmed', 'CCP')
@@ -523,9 +523,9 @@ class OrderController extends ApiController
         $code = $request->input('code');
         $comment = $request->input('comment');
         $rs = DB::select("
-        update ".env('DB_DATABASE').".orders
+        update `".env('DB_DATABASE')."`.`orders`
         set control_comment = '$comment'
-        where code = $code 
+        where code = $code
         ");
          return response()->json(array('status' => 'OK'));
     }
@@ -537,8 +537,8 @@ class OrderController extends ApiController
         $rs = DB::select("
         SELECT opo.id, o.delivery_time_range ,opo.order_id,
         SUM(CASE WHEN opo.product_id = 1062 THEN opo.quantity * 2 ELSE opo.quantity END) AS total
-        FROM ".env('DB_DATABASE').".`orders` AS o
-        JOIN ".env('DB_DATABASE').".`order_product_options` AS opo ON opo.order_id = o.id
+        FROM `".env('DB_DATABASE')."`.`orders` AS o
+        JOIN `".env('DB_DATABASE')."`.`order_product_options` AS opo ON opo.order_id = o.id
         WHERE DATE(o.delivery_date) BETWEEN ? AND ?
         AND o.status_code != 'Void'
         AND o.status_code IN ('Pending', 'Confirmed', 'CCP')
@@ -571,13 +571,13 @@ class OrderController extends ApiController
         $start_date = $date . ' 00:00:00';
         $end_date = $date . ' 23:59:59';
         $rs = DB::select("
-        SELECT  
+        SELECT
         SUM(CASE WHEN o.payment_method = 'cash' AND o.payment_unpaid = 0  THEN o.payment_total ELSE 0 END) AS `cash`,
         SUM(CASE WHEN o.payment_method = 'debt' THEN o.payment_total ELSE 0 END) AS `debt`,
         SUM(CASE WHEN o.payment_method = 'wire' THEN o.payment_total ELSE 0 END) AS `wire`,
         SUM( o.payment_total) AS `total`,
         SUM( o.payment_unpaid) AS `not_pay`
-        FROM ".env('DB_DATABASE').".orders as o 
+        FROM `".env('DB_DATABASE')."`.`orders` as o
         WHERE DATE(o.delivery_date) BETWEEN ? AND ?  AND status_code != 'Void'
         ", [$start_date, $end_date]);
         $rs = array($rs[0]);
@@ -597,8 +597,8 @@ class OrderController extends ApiController
         $rs = DB::select("
         SELECT opo.id, o.delivery_time_range ,opo.order_id,
         SUM(CASE WHEN opo.product_id = 1062 THEN opo.quantity * 2 ELSE opo.quantity END) AS total
-        FROM ".env('DB_DATABASE').".`orders` AS o
-        JOIN ".env('DB_DATABASE').".`order_product_options` AS opo ON opo.order_id = o.id
+        FROM `".env('DB_DATABASE')."`.`orders` AS o
+        JOIN `".env('DB_DATABASE')."`.`order_product_options` AS opo ON opo.order_id = o.id
         WHERE DATE(o.delivery_date) BETWEEN ? AND ?
         AND o.status_code != 'Void'
         $where
@@ -609,8 +609,8 @@ class OrderController extends ApiController
         $rs2 = DB::select("
         SELECT opo.id, o.delivery_time_range ,opo.order_id,
         SUM(CASE WHEN opo.product_id = 1062 THEN opo.quantity * 2 ELSE opo.quantity END) AS total
-        FROM ".env('DB_DATABASE').".`orders` AS o
-        JOIN ".env('DB_DATABASE').".`order_product_options` AS opo ON opo.order_id = o.id
+        FROM `".env('DB_DATABASE')."`.`orders` AS o
+        JOIN `".env('DB_DATABASE')."`.`order_product_options` AS opo ON opo.order_id = o.id
         WHERE DATE(o.delivery_date) BETWEEN ? AND ?
         AND o.status_code != 'Void'
         AND (opo.value like '%潤餅%' OR opo.value like '%春捲%')
@@ -676,13 +676,13 @@ class OrderController extends ApiController
                 'amount', bp.amount
                 )
             ) AS items
-               from ".env('DB_DATABASE').".boms b
-          left join ".env('DB_DATABASE').".product_translations pt on pt.product_id = b.product_id 
-          left join ".env('DB_DATABASE').".option_values ov on ov.product_id = b.product_id 
-          left join ".env('DB_DATABASE').".option_value_translations ovt on ovt.option_value_id = ov.id
-          left join ".env('DB_DATABASE').".option_translations ot on ot.option_id = ovt.option_id
-          LEFT JOIN ".env('DB_DATABASE').".`bom_products` bp ON bp.product_id = b.product_id
-          LEFT JOIN ".env('DB_DATABASE').".product_translations pt2 ON pt2.product_id = bp.sub_product_id
+               from `".env('DB_DATABASE')."`.`boms` b
+          left join `".env('DB_DATABASE')."`.`product_translations` pt on pt.product_id = b.product_id
+          left join `".env('DB_DATABASE')."`.`option_values` ov on ov.product_id = b.product_id
+          left join `".env('DB_DATABASE')."`.`option_value_translations` ovt on ovt.option_value_id = ov.id
+          left join `".env('DB_DATABASE')."`.`option_translations` ot on ot.option_id = ovt.option_id
+          LEFT JOIN `".env('DB_DATABASE')."`.`bom_products` bp ON bp.product_id = b.product_id
+          LEFT JOIN `".env('DB_DATABASE')."`.`product_translations` pt2 ON pt2.product_id = bp.sub_product_id
           GROUP BY  b.product_id, b.id, ot.name, ovt.name, ovt.option_id,b.total
         ");
         foreach ($rs as $rsdata){{
@@ -697,9 +697,9 @@ class OrderController extends ApiController
                 'name', pt.name
             )
         ) AS items
-        FROM ".env('DB_DATABASE').".term_translations tt
-        LEFT JOIN ".env('DB_DATABASE').".products p ON p.main_category_id = tt.term_id
-        LEFT JOIN ".env('DB_DATABASE').".product_translations pt ON pt.product_id = p.id
+        FROM `".env('DB_DATABASE')."`.`term_translations` tt
+        LEFT JOIN `".env('DB_DATABASE')."`.`products` p ON p.main_category_id = tt.term_id
+        LEFT JOIN `".env('DB_DATABASE')."`.`product_translations` pt ON pt.product_id = p.id
         WHERE tt.term_id IN ('1001','1002','1406')
         GROUP BY tt.term_id,tt.name
         ");
@@ -716,8 +716,8 @@ class OrderController extends ApiController
                 'name', ci.name
             )
         ) AS items
-        FROM ".env('DB_DATABASE').".combo c
-        LEFT JOIN ".env('DB_DATABASE').".combo_items ci ON ci.combo_id = c.id
+        FROM `".env('DB_DATABASE')."`.`combo` c
+        LEFT JOIN `".env('DB_DATABASE')."`.`combo_items` ci ON ci.combo_id = c.id
         GROUP BY c.id,c.name,c.total,c.created_at,c.updated_at
         ");
         foreach ($rs3 as $rs3data){{
@@ -730,11 +730,11 @@ class OrderController extends ApiController
         $product_id = $request->input('product_id');
         $rs = DB::select("
         select  pov.option_id as type,ovt.name,b.total,pov.is_active,pov.is_default
-        from ".env('DB_DATABASE').".product_option_values pov 
-        left join ".env('DB_DATABASE').".option_value_translations ovt ON ovt.option_value_id = pov.option_value_id
-        left join ".env('DB_DATABASE').".option_values ov ON ov.id = ovt.option_value_id
-        left join ".env('DB_DATABASE').".boms b ON b.product_id = ov.product_id
-        where pov.product_id  = $product_id 
+        from `".env('DB_DATABASE')."`.`product_option_values` pov
+        left join `".env('DB_DATABASE')."`.`option_value_translations` ovt ON ovt.option_value_id = pov.option_value_id
+        left join `".env('DB_DATABASE')."`.`option_values` ov ON ov.id = ovt.option_value_id
+        left join `".env('DB_DATABASE')."`.`boms` b ON b.product_id = ov.product_id
+        where pov.product_id  = $product_id
         ");
         return response()->json(array('status' => 'OK','data'=>$rs));
     }
@@ -746,20 +746,20 @@ class OrderController extends ApiController
         $taiwanTime = Carbon::now('Asia/Taipei');
         $check = DB::select("
         select id
-        from  ".env('DB_DATABASE').".combo
+        from  `".env('DB_DATABASE')."`.`combo`
         where name = '$name'
         ");
         if(isset($check) && $check!=[]){
             $insertedId = $check[0]->id;
             $rs = DB::select("
-            update ".env('DB_DATABASE').".combo
+            update `".env('DB_DATABASE')."`.`combo`
             set total = $total,updated_at = '$taiwanTime'
             where combo.id = $ininsertedId
             ");
 
         }else{
             $rs = DB::select("
-            insert into ".env('DB_DATABASE').".combo
+            insert into `".env('DB_DATABASE')."`.`combo`
             set name = '$name',total = $total,created_at = '$taiwanTime',updated_at = '$taiwanTime'
             ");
             $insertedId = DB::getPdo()->lastInsertId();
@@ -776,7 +776,7 @@ class OrderController extends ApiController
                     }
                     $total = $value['total'] ?? 0;
                     $rs2 = DB::select("
-                    insert into ".env('DB_DATABASE').".combo_items
+                    insert into `".env('DB_DATABASE')."`.`combo_items`
                     set name = '$name',combo_id = $combo,type_id = $type_id,total = $total
                     ");
                 }
@@ -809,8 +809,8 @@ class OrderController extends ApiController
                 'product_id',opo.product_id
             )
         ) AS items
-        from ".env('DB_DATABASE').".orders o 
-        LEFT JOIN ".env('DB_DATABASE').".order_product_options opo ON opo.order_id = o.id
+        from `".env('DB_DATABASE')."`.`orders` o
+        LEFT JOIN `".env('DB_DATABASE')."`.`order_product_options` opo ON opo.order_id = o.id
 
         WHERE DATE(o.delivery_date) BETWEEN '$start_date'  AND '$end_date'
         GROUP BY o.id,o.shipping_company,o.delivery_date,o.production_table,o.shipping_status,o.production_ready_time
@@ -897,14 +897,14 @@ class OrderController extends ApiController
 
     public function getOrderSource(Request $request){
         $month = $request->input('month'); //"2024-08"
-    
+
         $start_date = $month . '-01  00:00:00';
         $end_date = $month . '-31  23:59:59';
         $rs = DB::select("
-        SELECT 
+        SELECT
         SUM(CASE WHEN o.source = '預購' THEN 1 ELSE 0 END) AS '預購',
         SUM(CASE WHEN o.source = 'pos' THEN 1 ELSE 0 END) AS 'pos'
-        FROM ".env('DB_DATABASE').".orders o 
+        FROM `".env('DB_DATABASE')."`.`orders` o
         WHERE o.delivery_date BETWEEN '$start_date'  AND '$end_date'
         ");
         return response()->json(array('status' => 'OK' , 'data'=>$rs));
@@ -915,11 +915,11 @@ class OrderController extends ApiController
         $start_date = $date . '  00:00:00';
         $end_date = $date . '  23:59:59';
         $rs = DB::select("
-        SELECT      
-        FROM       ".env('DB_DATABASE').".orders o 
-        LEFT  JOIN ".env('DB_DATABASE').".order_product_options opo ON opo.order_id = o.id 
-        LEFT  JOIN ".env('DB_DATABASE').".boms b ON b.product_id = opo.product_id
-        INNER JOIN ".env('DB_DATABASE').".bom_products bp ON bp.bom_id = b.id
+        SELECT
+        FROM       `".env('DB_DATABASE')."`.`orders` o
+        LEFT  JOIN `".env('DB_DATABASE')."`.`order_product_options` opo ON opo.order_id = o.id
+        LEFT  JOIN `".env('DB_DATABASE')."`.`boms` b ON b.product_id = opo.product_id
+        INNER JOIN `".env('DB_DATABASE')."`.`bom_products` bp ON bp.bom_id = b.id
         WHERE  o.delivery_date BETWEEN '$start_date'  AND '$end_date'
 
         ");
@@ -929,33 +929,33 @@ class OrderController extends ApiController
         $user = $request->input('user');
         $code = $request->input('code');
         $check = DB::select("
-        SELECT order_taker 
-        FROM   ".env('DB_DATABASE').".orders o 
+        SELECT order_taker
+        FROM   `".env('DB_DATABASE')."`.`orders` o
         WHERE o.code = $code
         ");
-        //check user name 
+        //check user name
         if($check[0]->order_taker===null){
             $rs = DB::select("
-        update ".env('DB_DATABASE').".orders
+        update `".env('DB_DATABASE')."`.`orders`
         set order_taker = '$user'
         where code = $code ");
         }else{
             return response()->json(array('status' => 'OK' ));
-        }    
+        }
         return response()->json(array('status' => 'OK' ));
     }
     //以後不再使用 2025-03-11 ron
-    //接單人員 新增訂單使用 
+    //接單人員 新增訂單使用
     public function insertOrderTakerForAdd($user, $code){
         $check = DB::select("
-        SELECT order_taker 
-        FROM   ".env('DB_DATABASE').".orders o 
+        SELECT order_taker
+        FROM   `".env('DB_DATABASE')."`.`orders` o
         WHERE o.id = $code
         ");
-        //check user name 
+        //check user name
         if($check[0]->order_taker===null){
             $rs = DB::select("
-        update ".env('DB_DATABASE').".orders
+        update `".env('DB_DATABASE')."`.`orders`
         set order_taker = '$user'
         where id = $code ");
         }else{
@@ -980,27 +980,27 @@ class OrderController extends ApiController
         //product_units
         $products   = DB::select("
         SELECT p.id,ptt.name,p.quantity,u.comment,p.usage_unit_code,p.stock_unit_code,u.factor,pu.factor as pufactor,pu.source_unit_code,u2.comment as pucomment
-        FROM      ".env('DB_DATABASE').".products p
-        LEFT JOIN ".env('DB_DATABASE').".bom_products bp ON bp.product_id = p.id
-        LEFT JOIN ".env('DB_DATABASE').".product_translations ptt ON ptt.product_id = p.id
-        LEFT JOIN ".env('DB_DATABASE').".units u ON  u.code = p.stock_unit_code  AND u.base_unit_code = p.usage_unit_code
+        FROM      `".env('DB_DATABASE')."`.products p
+        LEFT JOIN `".env('DB_DATABASE')."`.bom_products bp ON bp.product_id = p.id
+        LEFT JOIN `".env('DB_DATABASE')."`.product_translations ptt ON ptt.product_id = p.id
+        LEFT JOIN `".env('DB_DATABASE')."`.units u ON  u.code = p.stock_unit_code  AND u.base_unit_code = p.usage_unit_code
         LEFT JOIN (
             SELECT * 
-            FROM ".env('DB_DATABASE').".product_units 
+            FROM `".env('DB_DATABASE')."`.product_units 
             WHERE id IN (
                 SELECT MIN(id) 
-                FROM ".env('DB_DATABASE').".product_units 
+                FROM `".env('DB_DATABASE')."`.product_units 
                 GROUP BY product_id
             )
         ) pu ON pu.product_id = p.id AND pu.destination_unit_code = p.stock_unit_code
-        LEFT JOIN ".env('DB_DATABASE').".units u2 ON u2.code = pu.source_unit_code  
+        LEFT JOIN `".env('DB_DATABASE')."`.units u2 ON u2.code = pu.source_unit_code  
         WHERE p.is_inventory_managed = 1 AND p.is_active = 1
         ");
         // dd($products);
         //搜尋日期範圍內訂單
         $orders  = DB::select("
         SELECT o.id
-        FROM      ".env('DB_DATABASE').".orders o
+        FROM      `".env('DB_DATABASE')."`.orders o
         WHERE o.delivery_date  BETWEEN '$start_date'  AND '$end_date' and o.status_code != 'Void'
         ");
         if($orders===[]){
@@ -1011,7 +1011,7 @@ class OrderController extends ApiController
         }, $orders));
         $orderProducts  = DB::select("
         SELECT opo.value,sum(opo.quantity) as quantity,ov.product_id
-        FROM   ".env('DB_DATABASE').".order_product_options opo 
+        FROM   `".env('DB_DATABASE')."`.order_product_options opo 
         LEFT JOIN product_option_values pov ON pov.id = opo.product_option_value_id 
         LEFT JOIN option_values ov ON ov.id = pov.option_value_id
         WHERE opo.order_id IN ($idStrings)
@@ -1029,13 +1029,13 @@ class OrderController extends ApiController
                 'amount', bp.amount
                 )
             ) AS items
-               from ".env('DB_DATABASE').".boms b
-          left join ".env('DB_DATABASE').".option_values ov on ov.product_id = b.product_id 
-          left join ".env('DB_DATABASE').".option_value_translations ovt on ovt.option_value_id = ov.id
-          left join ".env('DB_DATABASE').".option_translations ot on ot.option_id = ovt.option_id
-          LEFT JOIN ".env('DB_DATABASE').".`bom_products` bp ON bp.product_id = b.product_id
-          LEFT JOIN ".env('DB_DATABASE').".product_translations pt2 ON pt2.product_id = bp.sub_product_id
-          LEFT JOIN ".env('DB_DATABASE').".product_translations pt  ON pt.product_id = b.product_id 
+               from `".env('DB_DATABASE')."`.boms b
+          left join `".env('DB_DATABASE')."`.option_values ov on ov.product_id = b.product_id 
+          left join `".env('DB_DATABASE')."`.option_value_translations ovt on ovt.option_value_id = ov.id
+          left join `".env('DB_DATABASE')."`.option_translations ot on ot.option_id = ovt.option_id
+          LEFT JOIN `".env('DB_DATABASE')."`.`bom_products` bp ON bp.product_id = b.product_id
+          LEFT JOIN `".env('DB_DATABASE')."`.product_translations pt2 ON pt2.product_id = bp.sub_product_id
+          LEFT JOIN `".env('DB_DATABASE')."`.product_translations pt  ON pt.product_id = b.product_id 
           GROUP BY  b.product_id, b.id, ot.name, ovt.name, ovt.option_id,b.total,pt.name
           ");
           foreach ($bom as $rsdata){{
@@ -1159,9 +1159,9 @@ class OrderController extends ApiController
         // if($productName)   product_translations ptt      ov.product_id = ptt.product_id 
         $rs = DB::select("  
         SELECT  ptt.name
-        FROM      ".env('DB_DATABASE').".option_value_translations ovt
-        LEFT JOIN ".env('DB_DATABASE').".option_values ov ON ov.id = ovt.option_value_id 
-        LEFT JOIN ".env('DB_DATABASE').".product_translations ptt  ON ptt.product_id = ov.product_id 
+        FROM      `".env('DB_DATABASE')."`.option_value_translations ovt
+        LEFT JOIN `".env('DB_DATABASE')."`.option_values ov ON ov.id = ovt.option_value_id 
+        LEFT JOIN `".env('DB_DATABASE')."`.product_translations ptt  ON ptt.product_id = ov.product_id 
         WHERE ovt.name = '$orderproductName'
         ");
         if(isset($rs[0]->name)){

@@ -342,8 +342,6 @@ trait ModelTrait
         }
 
         if(empty($fillable)){
-            // 理論上這個情況不應該發生。
-            echo "<pre>", print_r('理論上這個情況不應該發生。請找 php 開發工程師', true), "</pre>"; exit;
             $fillable = [];
         }
 
