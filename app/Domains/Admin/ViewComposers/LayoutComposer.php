@@ -590,25 +590,15 @@ class LayoutComposer
             ];
         }
 
-        // 查看日誌 使用 LogFileRepository 記錄到檔案
-        $logs = [];
-
+        // 系統日誌
         if (1) {
-            $logs[] = [
-                'name'     => '日誌查看',
-                'href'     => route('lang.admin.system.logs.index'),
-                'icon'     => 'fa-solid fa-file-lines',
-            ];
-        }
-
-        if ($logs) {
             $system[] = [
                 'name'     => '系統日誌',
-                'icon'     => 'fa-solid fa-list',
-                'children' => $logs
+                'icon'     => '',
+                'href'     => route('lang.admin.system.logs.index'),
+                'children' => []
             ];
         }
-        // end 查看日誌
 
 
         // Localisation

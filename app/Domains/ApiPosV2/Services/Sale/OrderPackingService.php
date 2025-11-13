@@ -21,7 +21,7 @@ class OrderPackingService extends Service
     public function getListByDeliveryDate($delivery_date)
     {
 
-        $orders = Order::select(['id', 'code', 'mobile', 'delivery_time_range', 'delivery_date', 'comment', 'extra_comment', 'personal_name', 'payment_company', 'quantity_for_control','status_code'])
+        $orders = Order::select(['id', 'code', 'mobile', 'delivery_time_range', 'delivery_date', 'comment', 'extra_comment', 'personal_name', 'payment_company', 'shipping_company', 'quantity_for_control','status_code'])
                     ->with(['orderPacking'])
                     ->whereDate('delivery_date', $delivery_date)
                     ->whereIn('status_code', ['Confirmed', 'CCP'])

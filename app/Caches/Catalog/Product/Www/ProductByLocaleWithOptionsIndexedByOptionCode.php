@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Caches\Catalog\Product\Sale;
+namespace App\Caches\Catalog\Product\Www;
 
 use App\Models\Catalog\Product;
 use App\Caches\FileCustomCacheManager;
@@ -15,7 +15,7 @@ class ProductByLocaleWithOptionsIndexedByOptionCode
     protected static array $baseKeyParts = [
         'entity',
         'product',
-        'sale',
+        'www',
         'ProductWithOptionsIndexedByOptionCode'
     ];
 

@@ -420,11 +420,6 @@ class OrderService extends Service
         }
     }
 
-    public function getMultiOrdersForPrinting($params)
-    {
-        return (new OrderPrintingRepository)->getMultiOrders($params);
-    }
-
     public function getOptionValuesByProductOption($product_id, $option_id)
     {
         return (new ProductOptionValueRepository)->getOptionValuesByProductOption($product_id, $option_id);

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Domains\Admin\Http\Controllers\System\LogController;
 
 Route::get('refresh-token', function () {
     return csrf_token();
@@ -116,7 +117,7 @@ Route::group([
         Route::get('orders/toPDF/{order_id?}', 'Sale\OrderController@toPDF')->name('orders.toPDF');
 
         // Route::get('orders/printOrders/{order_ids}/{print_status}', 'Sale\OrderPrintingController@printOrders')->name('orders.printOrders');
-        Route::get('orders/printMultiOrders', 'Sale\OrderController@printMultiOrders')->name('orders.printMultiOrders');
+        Route::get('orders/printMultiOrders', 'Sale\OrderPringintController@printMultiOrders')->name('orders.printMultiOrders');
 
         // 優惠券
         // Route::resource('coupon_types', \App\Http\Controllers\Admin\Sale\CouponTypeController::class);
@@ -418,9 +419,9 @@ Route::group([
         'prefix' => 'system',
         'as' => 'system.',
     ], function () {
-        Route::get('logs', 'System\LogController@index')->name('logs.index');
-        Route::get('logs/list', 'System\LogController@list')->name('logs.list');
-        Route::get('logs/form', 'System\LogController@form')->name('logs.form');
-        Route::get('logs/files', 'System\LogController@files')->name('logs.files');
+        Route::get('logs', [LogController::class, 'index'])->name('logs.index');
+        Route::get('logs/list', [LogController::class, 'list'])->name('logs.list');
+        Route::get('logs/form', [LogController::class, 'form'])->name('logs.form');
+        Route::get('logs/files', [LogController::class, 'files'])->name('logs.files');
     });
 });

@@ -54,6 +54,15 @@ class OrderService extends Service
             $query->select(Order::getDefaultListColumns());
         }
 
+        // 查詢 OrderProduct 模型的 name
+        if (!empty($filter_data['filter_product_name'])) {
+            $query->whereHas('orderProducts', function ($q) use ($filter_data) {
+                OrmHelper::filterOrEqualColumn($q, 'filter_name', $filter_data['filter_product_name']);
+            });
+
+            unset($filter_data['filter_product_name']);
+        }
+
         $this->resetQueryBuilder($query, $filter_data);
 
         OrmHelper::prepare($query, $filter_data);

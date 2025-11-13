@@ -11,6 +11,7 @@ class InvoiceGroupOrder extends Model
         'group_id',
         'order_id',
         'order_amount',
+        'is_active',
     ];
 
     protected $casts = [

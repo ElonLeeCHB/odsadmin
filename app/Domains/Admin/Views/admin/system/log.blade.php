@@ -44,6 +44,17 @@
               </div>
 
               <div class="mb-3">
+                <label class="form-label">狀態</label>
+                <select name="filter_status" id="input-status" class="form-select">
+                  <option value="">-- 全部 --</option>
+                  <option value="success" @if(($filter_status ?? '') == 'success') selected @endif>Success</option>
+                  <option value="error" @if(($filter_status ?? '') == 'error') selected @endif>Error</option>
+                  <option value="warning" @if(($filter_status ?? '') == 'warning') selected @endif>Warning</option>
+                  <option value="empty" @if(($filter_status ?? '') == 'empty') selected @endif>空值</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
                 <label class="form-label">關鍵字搜尋</label>
                 <input type="text" id="input-keyword" name="filter_keyword" value="{{ $filter_keyword ?? '' }}" placeholder="搜尋 URL、IP、備註..." class="form-control" autocomplete="off"/>
               </div>
@@ -90,6 +101,12 @@ $('#button-filter').on('click', function() {
 		url += '&filter_method=' + encodeURIComponent(filter_method);
 	}
 
+	var filter_status = $('#input-status').val();
+
+	if (filter_status) {
+		url += '&filter_status=' + encodeURIComponent(filter_status);
+	}
+
   var filter_keyword = $('#input-keyword').val();
 
   if (filter_keyword) {
@@ -104,6 +121,7 @@ $('#button-filter').on('click', function() {
 $('#button-clear').on('click', function() {
 	$('#input-date').val('{{ \Carbon\Carbon::today()->format('Y-m-d') }}');
 	$('#input-method').val('');
+	$('#input-status').val('');
 	$('#input-keyword').val('');
 	$('#button-filter').click();
 });

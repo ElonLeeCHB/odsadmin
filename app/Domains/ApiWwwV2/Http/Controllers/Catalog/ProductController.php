@@ -48,7 +48,6 @@ class ProductController extends ApiWwwV2Controller
     public function info($product_id = null)
     {
         try {
-    
             $result = $this->ProductService->getProductById($product_id,$this->url_data);
 
             return $this->sendJsonResponse($result);

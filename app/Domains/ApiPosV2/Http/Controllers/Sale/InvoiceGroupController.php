@@ -186,6 +186,191 @@ class InvoiceGroupController extends ApiPosController
     }
 
     /**
+     * 檢查訂單是否可加入發票群組
+     * 支持單個或批量檢查
+     *
+     * 單個檢查：?order_code=ORD20250001
+     * 批量檢查：?order_codes=ORD-001,ORD-002,ORD-003
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function checkOrder(Request $request): JsonResponse
+    {
+        $orderCode = $request->input('order_code');
+        $orderCodes = $request->input('order_codes');
+
+        // 驗證：必須提供其中一個參數
+        if (empty($orderCode) && empty($orderCodes)) {
+            return response()->json([
+                'success' => false,
+                'message' => '請提供 order_code 或 order_codes 參數',
+            ], 400, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        // 處理批量檢查
+        if (!empty($orderCodes)) {
+            return $this->checkOrdersBatch($orderCodes);
+        }
+
+        // 處理單個檢查
+        return $this->checkOrderSingle($orderCode);
+    }
+
+    /**
+     * 單個訂單檢查
+     *
+     * @param string $orderCode
+     * @return JsonResponse
+     */
+    private function checkOrderSingle(string $orderCode): JsonResponse
+    {
+        // 1. 查詢訂單是否存在
+        $order = Order::where('code', $orderCode)->first();
+
+        if (!$order) {
+            return response()->json([
+                'success' => true,
+                'available' => false,
+                'reason_code' => 'not_exist',
+                'message' => "找不到訂單編號：{$orderCode}",
+                'data' => [
+                    'order_code' => $orderCode,
+                    'order_id' => null,
+                ],
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        // 2. 檢查訂單是否已在活動群組中
+        $groupOrder = InvoiceGroupOrder::where('order_id', $order->id)
+            ->where('is_active', 1)
+            ->with(['invoiceGroup' => function ($query) {
+                $query->where('status', 'active');
+            }])
+            ->first();
+
+        // 訂單未在群組中，可用
+        if (!$groupOrder || !$groupOrder->invoiceGroup) {
+            return response()->json([
+                'success' => true,
+                'available' => true,
+                'message' => '此訂單尚未加入群組',
+                'data' => [
+                    'order_code' => $orderCode,
+                    'order_id' => $order->id,
+                ],
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        // 訂單已在群組中，不可用
+        $group = $groupOrder->invoiceGroup;
+        return response()->json([
+            'success' => true,
+            'available' => false,
+            'reason_code' => 'in_group',
+            'message' => "此訂單已加入群組 {$group->group_no}",
+            'data' => [
+                'order_code' => $orderCode,
+                'order_id' => $order->id,
+                'group_info' => [
+                    'group_id' => $group->id,
+                    'group_no' => $group->group_no,
+                    'invoice_issue_mode' => $group->invoice_issue_mode,
+                    'order_count' => $group->order_count,
+                    'invoice_count' => $group->invoice_count,
+                    'total_amount' => $group->total_amount,
+                    'created_at' => $group->created_at,
+                ],
+            ],
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * 批量訂單檢查
+     *
+     * @param string $orderCodes 逗號分隔的訂單編號
+     * @return JsonResponse
+     */
+    private function checkOrdersBatch(string $orderCodes): JsonResponse
+    {
+        $codeArray = array_map('trim', explode(',', $orderCodes));
+        $results = [];
+
+        foreach ($codeArray as $code) {
+            // 1. 查詢訂單
+            $order = Order::where('code', $code)->first();
+
+            if (!$order) {
+                $results[] = [
+                    'order_code' => $code,
+                    'order_id' => null,
+                    'available' => false,
+                    'reason_code' => 'not_exist',
+                    'message' => '訂單不存在',
+                ];
+                continue;
+            }
+
+            // 2. 檢查是否在活動群組中
+            $groupOrder = InvoiceGroupOrder::where('order_id', $order->id)
+                ->where('is_active', 1)
+                ->with(['invoiceGroup' => function ($query) {
+                    $query->where('status', 'active');
+                }])
+                ->first();
+
+            if (!$groupOrder || !$groupOrder->invoiceGroup) {
+                // 可用
+                $results[] = [
+                    'order_code' => $code,
+                    'order_id' => $order->id,
+                    'available' => true,
+                    'message' => '尚未加入群組',
+                ];
+            } else {
+                // 不可用 - 已在群組
+                $group = $groupOrder->invoiceGroup;
+                $results[] = [
+                    'order_code' => $code,
+                    'order_id' => $order->id,
+                    'available' => false,
+                    'reason_code' => 'in_group',
+                    'message' => "已在群組 {$group->group_no} 中",
+                    'group_no' => $group->group_no,
+                    'group_id' => $group->id,
+                ];
+            }
+        }
+
+        // 統計結果
+        $availableCount = collect($results)->where('available', true)->count();
+        $totalCount = count($results);
+        $unavailableCount = $totalCount - $availableCount;
+
+        // 只要有一個不可用，整體 available 就是 false
+        $allAvailable = ($availableCount === $totalCount);
+
+        // 動態訊息
+        if ($allAvailable) {
+            $message = "已檢查 {$totalCount} 筆訂單，全部可用";
+        } else {
+            $message = "已檢查 {$totalCount} 筆訂單，{$availableCount} 筆可用，{$unavailableCount} 筆不可用";
+        }
+
+        return response()->json([
+            'success' => true,
+            'available' => $allAvailable,
+            'message' => $message,
+            'data' => [
+                'total' => $totalCount,
+                'available_count' => $availableCount,
+                'unavailable_count' => $unavailableCount,
+                'orders' => $results,
+            ],
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
      * 建立發票群組資料（RESTful store）
      *
      * @param Request $request
@@ -416,8 +601,28 @@ class InvoiceGroupController extends ApiPosController
             throw new \Exception('部分訂單不存在');
         }
 
-        // 刪除舊的關聯
-        InvoiceGroupOrder::where('group_id', $invoiceGroup->id)->delete();
+        // 檢查訂單是否已經在其他活動群組中（利用數據庫唯一索引防止重複）
+        $existingGroupOrders = InvoiceGroupOrder::whereIn('order_id', $orderIdArray)
+            ->where('group_id', '!=', $invoiceGroup->id)
+            ->where('is_active', 1) // 只檢查活動中的群組
+            ->with(['invoiceGroup:id,group_no', 'order:id,code'])
+            ->get();
+
+        if ($existingGroupOrders->isNotEmpty()) {
+            $duplicates = $existingGroupOrders->map(function ($groupOrder) {
+                return sprintf(
+                    '訂單 %s 已在群組 %s 中',
+                    $groupOrder->order->code ?? "ID:{$groupOrder->order_id}",
+                    $groupOrder->invoiceGroup->group_no ?? "ID:{$groupOrder->group_id}"
+                );
+            })->toArray();
+
+            throw new \Exception('以下訂單已經在其他群組中，不可重複加入：' . implode('、', $duplicates));
+        }
+
+        // 將舊的關聯標記為失效（保留歷史記錄）
+        InvoiceGroupOrder::where('group_id', $invoiceGroup->id)
+            ->update(['is_active' => null]);
 
         // 建立新的關聯
         $totalOrderAmount = 0;
@@ -426,6 +631,7 @@ class InvoiceGroupController extends ApiPosController
                 'group_id' => $invoiceGroup->id,
                 'order_id' => $order->id,
                 'order_amount' => $order->payment_total,
+                'is_active' => 1, // 新關聯標記為活動中
             ]);
             $totalOrderAmount += $order->payment_total;
         }

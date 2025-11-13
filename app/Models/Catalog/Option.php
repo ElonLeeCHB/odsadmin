@@ -21,6 +21,13 @@ class Option extends Model
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
 
+    protected static function booted()
+    {
+        parent::boot();
+
+        static::observe(\App\Observers\OptionObserver::class);
+    }
+
     //待廢棄，改用 optionValues()
     public function option_values()
     {

@@ -110,6 +110,7 @@ Route::group([
 
             // 發票群組（開票作業）
             Route::prefix('invoice-groups')->name('invoice-groups.')->group(function () {
+                Route::get('/check-order', [InvoiceGroupController::class, 'checkOrder'])->name('check-order');
                 Route::get('/', [InvoiceGroupController::class, 'show'])->name('show');
                 Route::post('/', [InvoiceGroupController::class, 'store'])->name('store');
                 Route::put('/', [InvoiceGroupController::class, 'update'])->name('update');

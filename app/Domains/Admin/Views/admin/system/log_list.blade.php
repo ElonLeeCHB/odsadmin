@@ -2,8 +2,36 @@
   <table class="table table-bordered table-hover">
     <thead>
       <tr>
-        <td class="text-start" style="width: 80px;">時間</td>
+        <td class="text-start" style="width: 80px;">
+          @php
+            $currentSort = $sort ?? 'time';
+            $currentOrder = $order ?? 'desc';
+            $newOrder = ($currentSort === 'time' && $currentOrder === 'desc') ? 'asc' : 'desc';
+
+            $sortUrl = route('lang.admin.system.logs.list', [
+              'filter_date' => request('filter_date', \Carbon\Carbon::today()->format('Y-m-d')),
+              'filter_method' => request('filter_method', ''),
+              'filter_keyword' => request('filter_keyword', ''),
+              'sort' => 'time',
+              'order' => $newOrder,
+              'page' => 1
+            ]);
+          @endphp
+          <a href="{{ $sortUrl }}" class="text-decoration-none text-dark">
+            時間
+            @if($currentSort === 'time')
+              @if($currentOrder === 'desc')
+                <i class="fa-solid fa-sort-down"></i>
+              @else
+                <i class="fa-solid fa-sort-up"></i>
+              @endif
+            @else
+              <i class="fa-solid fa-sort text-muted"></i>
+            @endif
+          </a>
+        </td>
         <td class="text-start" style="width: 80px;">Method</td>
+        <td class="text-start" style="width: 80px;">狀態</td>
         <td class="text-start">URL</td>
         <td class="text-start" style="width: 120px;">Client IP</td>
         <td class="text-start">備註</td>
@@ -27,6 +55,24 @@
             @endphp
             <span class="{{ $methodClass }}">{{ $log['method'] ?? '' }}</span>
           </td>
+          <td class="text-start">
+            @php
+              $status = $log['status'] ?? '';
+              $statusClass = match($status) {
+                'success' => 'badge bg-success',
+                'error' => 'badge bg-danger',
+                'warning' => 'badge bg-warning',
+                '' => '',
+                default => 'badge bg-secondary'
+              };
+              $statusText = $status ?: '-';
+            @endphp
+            @if($statusClass)
+              <span class="{{ $statusClass }}">{{ $statusText }}</span>
+            @else
+              <span class="text-muted">{{ $statusText }}</span>
+            @endif
+          </td>
           <td class="text-start" title="{{ $log['url'] ?? '' }}">
             <small>{{ $log['short_url'] ?? '' }}</small>
           </td>
@@ -49,7 +95,7 @@
         @endforeach
       @else
         <tr>
-          <td colspan="6" class="text-center">沒有找到日誌記錄</td>
+          <td colspan="7" class="text-center">沒有找到日誌記錄</td>
         </tr>
       @endif
     </tbody>

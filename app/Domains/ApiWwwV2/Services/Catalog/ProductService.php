@@ -8,7 +8,7 @@ use App\Services\Service;
 use App\Traits\Model\EloquentTrait;
 use App\Models\Catalog\Product;
 use App\Helpers\Classes\RowsArrayHelper;
-use App\Caches\Catalog\Product\Sale\ProductByLocaleWithOptionsIndexedByOptionCode;
+use App\Caches\Catalog\Product\Www\ProductByLocaleWithOptionsIndexedByOptionCode;
 
 class ProductService extends Service
 {

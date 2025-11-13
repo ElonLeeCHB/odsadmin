@@ -589,26 +589,14 @@ class OrderPrintingRepository extends Repository
             // end order_totals
 
             //statistics
-                $statistics = [];
+                $statistics = []; // 1477=客製便當, 1478=客製盒餐, 1520=客製油飯盒
 
-                //便當系列
-                    $tmp_array = [1471, 1472];
+            //便當系列
+            $tmp_array = [1471, 1472];
                     foreach ($order->orderProducts as $orderProduct) {
                         $printing_category_id = $orderProduct->product->printing_category_id;
 
-                        if ($printing_category_id == 1475){ //油飯盒
-                            $orderProduct->identifier = 'oilRiceBox';
-
-                            if (!isset($statistics[$orderProduct->identifier])) {
-                                $statistics[$orderProduct->identifier] = [
-                                    'name' => '油飯盒',
-                                    'quantity' => 0,
-                                ];
-                            }
-
-                            $statistics[$orderProduct->identifier]['quantity'] += $orderProduct->quantity;
-                        }
-                        else if (in_array($printing_category_id, [1471, 1472])){ //潤餅便當,刈包便當
+                        if (in_array($printing_category_id, [1471, 1472, 1477])) { //潤餅便當,刈包便當,客製便當
                             $orderProduct->identifier = 'bento';
 
                             if (!isset($statistics[$orderProduct->identifier])) {
@@ -620,12 +608,24 @@ class OrderPrintingRepository extends Repository
 
                             $statistics[$orderProduct->identifier]['quantity'] += $orderProduct->quantity;
                         }
-                        else if (in_array($printing_category_id, [1473, 1474])){ //潤餅盒餐,刈包盒餐
+                        else if (in_array($printing_category_id, [1473, 1474,1478])){ //潤餅盒餐,刈包盒餐,客製盒餐
                             $orderProduct->identifier = 'lunchbox';
 
                             if (!isset($statistics[$orderProduct->identifier])) {
                                 $statistics[$orderProduct->identifier] = [
                                     'name' => '盒餐',
+                                    'quantity' => 0,
+                                ];
+                            }
+
+                            $statistics[$orderProduct->identifier]['quantity'] += $orderProduct->quantity;
+                        }
+                        else if (in_array($printing_category_id, [1475, 1520])){ //油飯盒
+                            $orderProduct->identifier = 'oilRiceBox';
+
+                            if (!isset($statistics[$orderProduct->identifier])) {
+                                $statistics[$orderProduct->identifier] = [
+                                    'name' => '油飯盒',
                                     'quantity' => 0,
                                 ];
                             }
@@ -675,10 +675,10 @@ class OrderPrintingRepository extends Repository
                         $statistics['drinks'][] = $tmpRows[$drink->product_id];
                     }
                 }
-            // end statics
-    
+            // end statistics
+
             // order_totals
-                if(!$order->orderTotals->isEmpty()){
+            if(!$order->orderTotals->isEmpty()){
                     foreach ($order->orderTotals as $orderTotal) {
                         $order_totals[$orderTotal->code] = $orderTotal->toCleanObject();
                     }

@@ -22,6 +22,13 @@ class OptionValue extends Model
 
     public $translation_keys = ['name','short_name','web_name'];
 
+    protected static function booted()
+    {
+        parent::boot();
+
+        static::observe(\App\Observers\OptionValueObserver::class);
+    }
+
     //選項值對應的商品代號
     public function product()
     {

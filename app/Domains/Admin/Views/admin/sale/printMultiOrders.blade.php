@@ -166,15 +166,22 @@
         <tr>
         <td style="width:100px;" >統計</td>
         <td>
+            {{-- 油飯盒 --}}
             @if(!empty($order['statistics']['oilRiceBox']['name']))
               {{ $order['statistics']['oilRiceBox']['name'] }}*{{ $order['statistics']['oilRiceBox']['quantity'] }}, 
             @endif
+
+            {{-- 便當 --}}
             @if(!empty($order['statistics']['bento']['name']))
               {{ $order['statistics']['bento']['name'] }}*{{ $order['statistics']['bento']['quantity'] }}, 
             @endif
+
+            {{-- 盒餐 --}}
             @if(!empty($order['statistics']['lunchbox']['name']))
               {{ $order['statistics']['lunchbox']['name'] }}*{{ $order['statistics']['lunchbox']['quantity'] }}, 
             @endif
+
+            {{-- 其他口味盒餐 --}}
             @if(!empty($order['statistics']['otherFlavorsBoxedMeal']['name']))
               {{ $order['statistics']['otherFlavorsBoxedMeal']['name'] }}*{{ $order['statistics']['otherFlavorsBoxedMeal']['quantity'] }}, 
             @endif

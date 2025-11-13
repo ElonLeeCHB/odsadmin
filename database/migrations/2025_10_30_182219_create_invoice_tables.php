@@ -118,6 +118,7 @@ return new class extends Migration
             $table->unsignedBigInteger('group_id')->comment('群組ID');
             $table->unsignedBigInteger('order_id')->comment('訂單ID');
             $table->decimal('order_amount', 10, 2)->comment('訂單金額（冗餘）');
+            $table->tinyInteger('is_active')->nullable()->default(1)->comment('1=活動中, NULL=已失效（用於保存歷史記錄）');
             $table->timestamps();
 
             $table->foreign('group_id')->references('id')->on('invoice_groups')->onDelete('cascade');
@@ -125,7 +126,8 @@ return new class extends Migration
 
             $table->index('group_id');
             $table->index('order_id');
-            $table->unique(['group_id', 'order_id']);
+            $table->unique(['group_id', 'order_id']); // 同一群組內不能有重複訂單
+            $table->unique(['order_id', 'is_active'], 'uk_order_active'); // 一個訂單同時只能在一個活動群組中（NULL不參與唯一約束）
         });
 
         // 4. 群組-發票關聯表
