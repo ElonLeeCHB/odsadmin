@@ -16,30 +16,47 @@ use App\Models\Sale\InvoiceItem;
 class InvoiceGroupController extends ApiPosController
 {
     /**
-     * 查詢群組資料（RESTful show - 單一資源詳情）
+     * 查詢群組資料（RESTful edit - 單一資源詳情）
      * 參數優先順序：group_no > order_code > invoice_number
      * 如果提供 group_no，則忽略其他參數
      *
      * 返回規則：
      * - 群組：只返回 status='active' 的群組
-     * - 發票：只返回 status='pending' 或 'issued' 的發票（排除已作廢）
+     * - 發票：返回所有狀態的發票（包括 pending、issued、voided）
      *
      * 注意：所有開票方式都使用群組（包括標準一對一）
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function show(Request $request): JsonResponse
+    public function edit(Request $request): JsonResponse
     {
-        $groupNo = $request->input('group_no');
+        // 預先定義訂單欄位
+        $orderColumns = [
+            'id',
+            'code',
+            'customer_id',
+            'personal_name',
+            'mobile',
+            'payment_total',
+            'order_date',
+            'status_code',
+            'created_at'
+        ];
+
+        // group_no order_code invoice_number
+
+        // $groupNo = $request->input('group_no');
+        $groupId = $request->input('group_id');
         $orderCode = $request->input('order_code');
         $invoiceNumber = $request->input('invoice_number');
-
+        $invoiceId = $request->input('invoice_id');
+        
         // 驗證：必須提供其中一個參數
-        if (empty($groupNo) && empty($orderCode) && empty($invoiceNumber)) {
+        if (empty($groupId) && empty($orderCode) && empty($invoiceNumber) && empty($invoiceId)) {
             return response()->json([
                 'success' => false,
-                'message' => '請提供 group_no、order_code 或 invoice_number 其中一個參數',
+                'message' => '請提供 group_no, order_code, invoice_number, invoice_id 其中一個參數',
             ], 400, [], JSON_UNESCAPED_UNICODE);
         }
 
@@ -48,16 +65,16 @@ class InvoiceGroupController extends ApiPosController
         $usedParam = null; // 記錄實際使用的參數
 
         // 優先順序 1: group_no
-        if (!empty($groupNo)) {
+        if (!empty($groupId)) {
             // 只查詢有效的群組
-            $invoiceGroup = InvoiceGroup::where('group_no', $groupNo)
+            $invoiceGroup = InvoiceGroup::where('group_no', $groupId)
                 ->where('status', 'active')
                 ->first();
             $usedParam = 'group_no';
         }
         // 優先順序 2: order_code（僅在沒有 group_no 時使用）
         elseif (!empty($orderCode)) {
-            $order = Order::where('code', $orderCode)->first();
+            $order = Order::where('code', $orderCode)->with('orderProducts')->first();
 
             if ($order) {
                 // 查找該訂單所屬的有效群組
@@ -67,15 +84,17 @@ class InvoiceGroupController extends ApiPosController
             }
             $usedParam = 'order_code';
         }
-        // 優先順序 3: invoice_number（僅在前兩個都沒有時使用）
-        elseif (!empty($invoiceNumber)) {
-            // 查找有效的發票（pending 或 issued）
-            $invoice = Invoice::where('invoice_number', $invoiceNumber)
-                ->whereIn('status', ['pending', 'issued'])
-                ->first();
+        // 優先順序 3: invoice_id or invoice_number（僅在沒有 group_no 和 order_code 時使用）
+        elseif (!empty($invoiceId) || !empty($invoiceNumber)) {
 
+            if (!empty($invoiceId)) {
+                $invoice = Invoice::find($invoiceId);
+            } else if (!empty($invoiceNumber)) {
+                $invoice = Invoice::where('invoice_number', $invoiceNumber)->first();
+            }
+
+            // 查找該發票所屬的有效群組
             if ($invoice) {
-                // 查找該發票所屬的有效群組
                 $invoiceGroup = InvoiceGroup::whereHas('invoices', function ($query) use ($invoice) {
                     $query->where('invoice_id', $invoice->id);
                 })->where('status', 'active')->first();
@@ -83,33 +102,41 @@ class InvoiceGroupController extends ApiPosController
             $usedParam = 'invoice_number';
         }
 
-        // 如果找不到群組
-        if (!$invoiceGroup) {
-            return response()->json([
-                'success' => false,
-                'message' => '找不到相關的發票群組',
-            ], 404, [], JSON_UNESCAPED_UNICODE);
+        // 指定群組ID或發票號碼，但找不到群組。
+        if (empty($invoiceGroup)) {
+            if (!empty($groupId) || !empty($invoiceNumber)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '找不到相關的發票群組',
+                ], 404, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // 指定 order_code，但該訂單未加入任何群組，可以視為新增狀態。
+            if (!empty($orderCode)) {
+                $order = Order::where('code', $orderCode)
+                    ->select($orderColumns)
+                    ->with('orderProducts')
+                    ->first();
+
+                if (!$order) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => '找不到指定的訂單',
+                    ], 404, [], JSON_UNESCAPED_UNICODE);
+                }
+            }
         }
 
-        // 載入相關的訂單和發票資料（發票只載入有效的：pending 或 issued）
-        $invoiceGroup->load([
-            'orders' => function ($query) {
-                $query->select([
-                    'orders.id',
-                    'orders.code',
-                    'orders.customer_id',
-                    'orders.personal_name',
-                    'orders.mobile',
-                    'orders.payment_total',
-                    'orders.order_date',
-                    'orders.status_code',
-                    'orders.created_at'
-                ]);
+        // 載入相關的訂單和發票資料（發票載入所有狀態，包括作廢）
+        if ($invoiceGroup) {
+            $invoiceGroup->load([
+            'orders' => function ($query) use ($orderColumns) {
+                $ordersWithPrefix = array_map(fn($col) => "orders.{$col}", $orderColumns);
+                $query->select($ordersWithPrefix)->with('orderProducts');
             },
             'invoices' => function ($query) {
-                // 只載入有效的發票（排除已作廢）
-                $query->whereIn('status', ['pending', 'issued'])
-                    ->select([
+                // 載入所有狀態的發票（包括 pending、issued、voided）
+                $query->select([
                         'invoices.id',
                         'invoices.invoice_number',
                         'invoices.invoice_type',
@@ -128,56 +155,31 @@ class InvoiceGroupController extends ApiPosController
             'invoiceGroupOrders',
             'invoiceGroupInvoices',
         ]);
+        }
 
         // 組織回傳資料
-        $data = [
-            'used_param' => $usedParam, // 標示實際使用的參數
-            'group' => [
-                'id' => $invoiceGroup->id,
-                'group_no' => $invoiceGroup->group_no,
-                'invoice_issue_mode' => $invoiceGroup->invoice_issue_mode,
-                'status' => $invoiceGroup->status,
-                'order_count' => $invoiceGroup->order_count,
-                'invoice_count' => $invoiceGroup->invoice_count,
-                'total_amount' => $invoiceGroup->total_amount,
-                'void_reason' => $invoiceGroup->void_reason,
-                'voided_at' => $invoiceGroup->voided_at,
-                'created_at' => $invoiceGroup->created_at,
-            ],
-            'orders' => $invoiceGroup->orders->map(function ($order) {
-                return [
-                    'id' => $order->id,
-                    'code' => $order->code,
-                    'customer_id' => $order->customer_id,
-                    'personal_name' => $order->personal_name,
-                    'mobile' => $order->mobile,
-                    'payment_total' => $order->payment_total,
-                    'order_date' => $order->order_date,
-                    'status_code' => $order->status_code,
-                    'allocated_amount' => $order->pivot->order_amount, // 從中間表取得分配金額
-                    'created_at' => $order->created_at,
-                ];
-            }),
-            'invoices' => $invoiceGroup->invoices->map(function ($invoice) {
-                return [
-                    'id' => $invoice->id,
-                    'invoice_number' => $invoice->invoice_number,
-                    'invoice_type' => $invoice->invoice_type,
-                    'invoice_date' => $invoice->invoice_date,
-                    'buyer_name' => $invoice->buyer_name,
-                    'tax_id_number' => $invoice->tax_id_number,
-                    'total_amount' => $invoice->total_amount,
-                    'tax_amount' => $invoice->tax_amount,
-                    'net_amount' => $invoice->net_amount,
-                    'status' => $invoice->status,
-                    'carrier_type' => $invoice->carrier_type,
-                    'carrier_number' => $invoice->carrier_number,
-                    'allocated_amount' => $invoice->pivot->invoice_amount, // 從中間表取得分配金額
-                    'invoice_items' => $invoice->invoiceItems,
-                    'created_at' => $invoice->created_at,
-                ];
-            }),
-        ];
+        $data = [];
+
+        $data['used_param'] = $usedParam; // 標示實際使用的參數
+
+        $data['group'] = $invoiceGroup ? [
+            'id' => $invoiceGroup->id,
+            'group_no' => $invoiceGroup->group_no,
+            'invoice_issue_mode' => $invoiceGroup->invoice_issue_mode,
+            'status' => $invoiceGroup->status,
+            'order_count' => $invoiceGroup->order_count,
+            'invoice_count' => $invoiceGroup->invoice_count,
+            'total_amount' => $invoiceGroup->total_amount,
+            'void_reason' => $invoiceGroup->void_reason,
+            'voided_at' => $invoiceGroup->voided_at,
+            'created_at' => $invoiceGroup->created_at,
+        ] : null;
+
+        $data['orders'] = $invoiceGroup ? $invoiceGroup->orders : (isset($order) ? [$order] : []);
+        $data['invoices'] = $invoiceGroup ? $invoiceGroup->invoices : [];
+
+        // 發票預設項目
+        $data['invoiceItems'] = (new \App\Caches\Custom\Sales\DefaultInvoiceItems())->getData();
 
         return response()->json([
             'success' => true,
@@ -226,7 +228,7 @@ class InvoiceGroupController extends ApiPosController
     private function checkOrderSingle(string $orderCode): JsonResponse
     {
         // 1. 查詢訂單是否存在
-        $order = Order::where('code', $orderCode)->first();
+        $order = Order::where('code', $orderCode)->with('orderProducts')->first();
 
         if (!$order) {
             return response()->json([

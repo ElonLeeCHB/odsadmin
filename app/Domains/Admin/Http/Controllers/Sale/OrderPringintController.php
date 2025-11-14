@@ -111,7 +111,7 @@ class OrderPringintController extends BackendController
             //
 
             if (empty($request_data['template'])) {
-                $request_data['template'] = 'V01';
+                $request_data['template'] = 'V03';
             }
 
             if ($request_data['template'] == 'V03') {

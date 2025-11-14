@@ -108,14 +108,6 @@ Route::group([
             Route::post('order-groups/{id}/attach-invoice', [OrderGroupController::class, 'attachInvoice']);
             Route::post('order-groups/{id}/detach-invoice', [OrderGroupController::class, 'detachInvoice']);
 
-            // 發票群組（開票作業）
-            Route::prefix('invoice-groups')->name('invoice-groups.')->group(function () {
-                Route::get('/check-order', [InvoiceGroupController::class, 'checkOrder'])->name('check-order');
-                Route::get('/', [InvoiceGroupController::class, 'show'])->name('show');
-                Route::post('/', [InvoiceGroupController::class, 'store'])->name('store');
-                Route::put('/', [InvoiceGroupController::class, 'update'])->name('update');
-            });
-
             // 發票管理
             Route::group([
                 'prefix' => 'invoices',
@@ -124,13 +116,24 @@ Route::group([
 
                 // 發票 CRUD
                 Route::get('/', [InvoiceController::class, 'index'])->name('index');
-                Route::post('/', [InvoiceController::class, 'store'])->name('store');
-                Route::get('/{invoice}', [InvoiceController::class, 'show'])->name('show');
-                Route::put('/{invoice}', [InvoiceController::class, 'update'])->name('update');
-                Route::delete('/{invoice}', [InvoiceController::class, 'destroy'])->name('destroy');
+                // Route::post('/', [InvoiceController::class, 'store'])->name('store');
+                // Route::get('/{invoice}', [InvoiceController::class, 'show'])->name('show');
+                // Route::put('/{invoice}', [InvoiceController::class, 'update'])->name('update');
+                // Route::delete('/{invoice}', [InvoiceController::class, 'destroy'])->name('destroy');
 
-                // 批次新增
-                Route::post('batch', [InvoiceBatchController::class, 'store'])->name('batch.store');
+                // // Route::get('/items', [InvoiceItemsController::class, 'index'])->name('index');
+
+                // // 批次新增
+                // Route::post('batch', [InvoiceBatchController::class, 'store'])->name('batch.store');
+
+                // 發票群組（開票作業）
+                Route::prefix('groups')->name('groups.')->group(function () {
+                    Route::get('/check-order', [InvoiceGroupController::class, 'checkOrder'])->name('check-order');
+                    // Route::get('/', [InvoiceGroupController::class, 'index'])->name('index');
+                    Route::post('/', [InvoiceGroupController::class, 'store'])->name('store');
+                    Route::put('/', [InvoiceGroupController::class, 'update'])->name('update');
+                    Route::get('/edit', [InvoiceGroupController::class, 'edit'])->name('edit');
+                });
 
                 // 發票開立
                 Route::group([

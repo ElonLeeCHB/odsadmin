@@ -379,9 +379,10 @@ class OrderPrintingRepository extends Repository
                             $orderProduct->identifier = 'otherCategory';
                             $printingRowsByCategory[$orderProduct->identifier]['name'] = '其它';
                         }
-    
+
                         $identifier = $orderProduct->identifier;
                     //
+
 
                     // 設定新的訂單商品集合 $printingRowsByCategory
                         if(!isset($printingRowsByCategory[$identifier]['items'][$product_id])){
@@ -562,7 +563,7 @@ class OrderPrintingRepository extends Repository
                     }
                     // $otherProducts1062
                 }
-                
+
             //
 
             //下面中文要改寫。模組化。
