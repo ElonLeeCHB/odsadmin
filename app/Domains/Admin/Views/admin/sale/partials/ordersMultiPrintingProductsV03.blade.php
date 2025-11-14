@@ -565,6 +565,13 @@
           @php $column_used_num++; @endphp
         @endforeach
 
+        @foreach($order['categories']['guabaoLunchBox']['Columns']['SecondaryMainMeal'] ?? [] as $option_value_id => $name)
+          <td style="width:24px; @if ($loop->last) border-right:3px solid black @endif" class="fw-bold">
+          {{ $name }}
+          </td>
+          @php $column_used_num++; @endphp
+        @endforeach
+
         @foreach($order['categories']['guabaoLunchBox']['Columns']['SideDish'] ?? [] as $option_value_id => $name)
           <td style="width:24px; @if ($loop->last) border-right:3px solid black @endif" class="fw-bold">
             {{ $name }}
@@ -599,6 +606,15 @@
                 {{ $product['product_options']['MainMeal'][$option_value_id]['quantity'] }}
               @endif
             @endforeach
+          </td>
+          @php $column_used_num++; @endphp
+        @endforeach
+
+        @foreach($order['categories']['guabaoLunchBox']['Columns']['SecondaryMainMeal'] ?? [] as $option_value_id => $name)
+          <td style="@if ($loop->last) border-right:3px solid black @endif">
+            @if(!empty($product['product_options']['SecondaryMainMeal'][$option_value_id]['quantity']))
+              {{ $product['product_options']['SecondaryMainMeal'][$option_value_id]['quantity'] }}
+            @endif
           </td>
           @php $column_used_num++; @endphp
         @endforeach

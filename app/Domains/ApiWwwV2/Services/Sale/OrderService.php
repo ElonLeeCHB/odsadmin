@@ -18,7 +18,7 @@ use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductOption;
 use App\Events\OrderSaved;
 use App\Helpers\Classes\OrmHelper;
-use App\Caches\Catalog\Product\Sale\ProductByLocaleWithOptionsIndexedByOptionCode;
+use App\Caches\Catalog\Product\Www\ProductByLocaleWithOptionsIndexedByOptionCode;
 
 class OrderService extends Service
 {

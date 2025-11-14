@@ -180,6 +180,7 @@ class OrderPrintingRepository extends Repository
 
     public function getMultiOrders($params)
     {
+        
         //抓訂單、處理單頭
             // orders.id
             $order_ids = [];
@@ -394,14 +395,6 @@ class OrderPrintingRepository extends Repository
     
                         $printingRowsByCategory[$identifier]['items'][$product_id]['quantity'] += $orderProduct->quantity;
                     //
-
-
-                    // //商品標籤
-                    // if(!empty($orderProduct->productTags)){
-                    //     $printingRowsByCategory[$identifier]['items'][$product_id]['product_tag_ids'] = array_map(function($tag) {
-                    //         return $tag['term_id'];
-                    //     }, $orderProduct->productTags->toArray());
-                    // }
                     
                     //商品POS分類
                     if(!empty($orderProduct->productPosCategories)){

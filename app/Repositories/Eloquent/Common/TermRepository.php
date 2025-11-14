@@ -331,6 +331,20 @@ class TermRepository extends Repository
             }
         }
 
+        // 如果存在 sort_order 欄位則按照此欄位排序
+        if (!empty($rows)) {
+            $firstRow = reset($rows);
+            $hasSortOrder = $toArray ? isset($firstRow['sort_order']) : isset($firstRow->sort_order);
+
+            if ($hasSortOrder) {
+                uasort($rows, function($a, $b) use ($toArray) {
+                    $sortA = $toArray ? ($a['sort_order'] ?? 0) : ($a->sort_order ?? 0);
+                    $sortB = $toArray ? ($b['sort_order'] ?? 0) : ($b->sort_order ?? 0);
+                    return $sortA <=> $sortB;
+                });
+            }
+        }
+
         return $rows;
     }
 

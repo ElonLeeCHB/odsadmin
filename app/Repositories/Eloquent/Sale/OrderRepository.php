@@ -625,6 +625,8 @@ class OrderRepository extends Repository
 
         // 特殊欄位處理
         $member->telephone = str_replace('-', '', data_get($data, 'telephone', $member->telephone));
+
+        $data['payment_tin'] = $data['payment_tin'] ?? null;
         $member->payment_tin = preg_replace('/\D/', '', $data['payment_tin']);
 
         // 批量更新欄位
@@ -652,7 +654,7 @@ class OrderRepository extends Repository
         }
 
         $member->save();
-
+        
         return $member->id;
     }
 
