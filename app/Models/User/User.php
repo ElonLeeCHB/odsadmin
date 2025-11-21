@@ -24,7 +24,7 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
     use HasRoles;
     use ModelTrait;
-    
+
     public $salutations;
 
     // protected $fillable = [
@@ -38,11 +38,9 @@ class User extends Authenticatable
         'uuid',
         'code',
         'username',
-        'mobile',
         'password',
         'email',
         'email_verified_at',
-        'is_admin',
         'last_seen_at',
         'created_at',
         'updated_at',
@@ -56,7 +54,6 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
-        'is_admin',
     ];
 
     /**
@@ -97,6 +94,73 @@ class User extends Authenticatable
         return $this->belongsTo(Term::class, 'salutation_code', 'option_value_id');
     }
 
+    /**
+     * 使用者可訪問的門市
+     */
+    public function stores()
+    {
+        return $this->belongsToMany(\App\Models\Store::class, 'user_stores')
+                    ->withTimestamps();
+    }
+
+    /**
+     * 使用者管理的門市（作為店長）
+     */
+    public function managedStores()
+    {
+        return $this->hasMany(\App\Models\Store::class, 'manager_id');
+    }
+
+    /**
+     * 檢查使用者是否有訪問指定門市的權限
+     *
+     * @param int $storeId
+     * @return bool
+     */
+    public function hasAccessToStore(int $storeId): bool
+    {
+        return $this->stores()->where('stores.id', $storeId)->exists();
+    }
+
+    /**
+     * 檢查使用者是否為指定門市的店長
+     *
+     * @param int $storeId
+     * @return bool
+     */
+    public function isManagerOfStore(int $storeId): bool
+    {
+        return $this->managedStores()->where('id', $storeId)->exists();
+    }
+
+    /**
+     * 取得使用者可訪問的門市 ID 陣列
+     *
+     * @return array
+     */
+    public function getAccessibleStoreIds(): array
+    {
+        return $this->stores()->pluck('stores.id')->toArray();
+    }
+
+    /**
+     * 系統使用記錄
+     */
+    public function systemUser()
+    {
+        return $this->hasOne(\App\Models\SystemUser::class, 'user_id');
+    }
+
+    /**
+     * 是否曾經使用過系統
+     *
+     * @return bool
+     */
+    public function hasUsedSystem(): bool
+    {
+        return $this->systemUser()->exists();
+    }
+
     //Attribute
     protected function uuid(): Attribute
     {
@@ -109,6 +173,7 @@ class User extends Authenticatable
     {
         return Attribute::make(
             get: fn ($value) => $this->parsePhone($value),
+            set: fn ($value) => preg_replace('/\D/', '', $value),
         );
     }
 

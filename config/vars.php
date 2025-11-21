@@ -3,6 +3,8 @@
 return [
     'app_fqdn' => env('APP_FQDN', 'localhost'),
     'default_country_code' => env('DEFAULT_COUNTRY_CODE', 'TW'),
+    
+    'admin_folder' => env('ADMIN_FOLDER', 'admin'),
 
     //keys
     'admin_access_key' => env('ADMIN_ACCESS_KEY', ''),

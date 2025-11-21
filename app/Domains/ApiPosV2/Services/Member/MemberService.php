@@ -77,18 +77,23 @@ class MemberService
 
             $userRepo = new UserRepository;
 
-            if (empty($member_id)) {
-                // ➕ 新增模式
-                $user = null;
-                $exists = $userRepo->newModel()->where('mobile', $data['mobile'])->exists();
-            } else {
-                // ✏️ 修改模式
+            // ✏️ 修改模式 必須使用 $member_id 做唯一性檢查，不可使用手機
+            if (!empty($member_id)) {
                 $user = $userRepo->newModel()->findOrFail($member_id);
 
+                // 傳來的手機號碼已被他人使用！
                 $exists = $userRepo->newModel()
                     ->where('mobile', $data['mobile'])
                     ->where('id', '!=', $member_id)
                     ->exists();
+            }
+
+            // ➕ 新增模式
+            else {
+                $user = null;
+
+                // 傳來的手機號碼已被他人使用！
+                $exists = $userRepo->newModel()->where('mobile', $data['mobile'])->exists();
             }
 
             // ✅ 唯一性檢查
@@ -107,12 +112,20 @@ class MemberService
                 $data['password'] = Hash::make($request->input('password'));
             }
 
+            // 若是手機，移除非數字
+            if (!empty($data['shipping_phone']) && substr($data['shipping_phone'], 0, 2) == '09') {
+                $data['shipping_phone'] = preg_replace('/\D/', '', $data['shipping_phone']);
+            }
+            if (!empty($data['shipping_phone2']) && substr($data['shipping_phone2'], 0, 2) == '09') {
+                $data['shipping_phone2'] = preg_replace('/\D/', '', $data['shipping_phone2']);
+            }
+
             // ✅ 寫入資料庫
             if ($user) {
                 $user->update($data);
             } else {
                 $user = $userRepo->newModel()->create($data);
-            }
+            }            
 
             // ✅ 處理 user_coupons
             if (!empty($data['user_coupons']) && is_array($data['user_coupons'])) {

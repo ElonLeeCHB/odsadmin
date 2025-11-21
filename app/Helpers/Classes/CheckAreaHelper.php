@@ -3,12 +3,28 @@
 namespace App\Helpers\Classes;
 
 use Illuminate\Http\Request;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class CheckAreaHelper
 {
     public static function isAdminArea(Request $request)
     {
-        return str_starts_with($request->path(), env('ADMIN_FOLDER'));
+        $adminFolder = config('vars.admin_folder', 'admin');
+        $path = $request->path();
+
+        // 取得支援的語言代碼
+        $locales = array_map(
+            fn($locale) => preg_quote(str_replace('_', '-', $locale), '#'),
+            array_keys(LaravelLocalization::getSupportedLocales())
+        );
+        $localePattern = implode('|', $locales);
+
+        // 匹配模式：
+        // 1. backend 或 backend/...
+        // 2. {locale}/backend 或 {locale}/backend/...
+        $pattern = '#^(' . $localePattern . '/)?' . preg_quote($adminFolder, '#') . '(/|$)#';
+
+        return preg_match($pattern, $path) === 1;
     }
 
     public static function isApiArea(Request $request)

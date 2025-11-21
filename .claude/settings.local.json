@@ -18,7 +18,9 @@
       "Bash(./php.bat artisan report:update-monthly 202501)",
       "Bash(./php.bat artisan report:update-monthly 202502)",
       "Bash(./php.bat artisan report:update-monthly 202503)",
-      "Bash(./php.bat artisan:*)"
+      "Bash(./php.bat artisan:*)",
+      "Bash(mkdir:*)",
+      "Bash(./composer.bat dump-autoload:*)"
     ],
     "deny": [],
     "ask": []

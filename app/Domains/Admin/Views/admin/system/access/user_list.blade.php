@@ -11,7 +11,6 @@
           <td class="text-start"><a href="{{ $sort_name }}" @if($sort=='full_name') class="{{ $order }}" @endif>{{ $lang->column_name }}</a></td>
           <td class="text-start"><a href="{{ $sort_email }}" @if($sort=='email') class="{{ $order }}" @endif>{{ $lang->column_email }}</a></td>
           <td class="text-start"><a href="{{ $sort_created_at }}" @if($sort=='created_at') class="{{ $order }}" @endif>{{ $lang->column_date_added }}</a></td>
-          <td class="text-start">管理者</td>
           <td class="text-start">是否啟用</td>
           <td class="text-end">{{ $lang->column_action }}</td>
         </tr>
@@ -25,11 +24,6 @@
           <td class="text-start">{{ $row->name }}</td>
           <td class="text-start">{{ $row->email }}</td>
           <td class="text-start d-none d-lg-table-cell">{{ $row->created_ymd }}</td>
-          <td class="text-start">@if($row->is_admin)
-                                      {{ $lang->text_yes }}
-                                    @else
-                                      {{ $lang->text_no }}
-                                    @endif</td>
           <td class="text-start">@if($row->is_active)
                                       {{ $lang->text_yes }}
                                     @else

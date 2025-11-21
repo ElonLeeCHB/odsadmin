@@ -193,7 +193,7 @@
                 <div class="col-sm-10">
                   <input type="text" id="input-stock_price" name="stock_price" value="{{ $product->stock_price }}" class="form-control"/>
                   <div id="error-stock_price" class="invalid-feedback"></div>
-                  <div class="form-text">採購價(進貨價)</div>
+                  <div class="form-text">採購價(進貨價) (2025-11-17 以後一律使用含稅價。所以如果沒有新的進貨，有可能是未稅價)</div>
                 </div>
               </div>
 

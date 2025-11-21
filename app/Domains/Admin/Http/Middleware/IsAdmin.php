@@ -6,6 +6,12 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 
+/*
+本檔案用於檢查使用者是否具有管理員權限。
+現在不再使用。由獨立的帳號系統判斷可否使用本系統。
+本系統另外會有角色與權限做個別功能的控管。
+*/
+
 class IsAdmin
 {
     /**

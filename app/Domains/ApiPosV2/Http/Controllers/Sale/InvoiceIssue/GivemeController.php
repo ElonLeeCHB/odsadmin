@@ -85,9 +85,9 @@ class GivemeController extends ApiPosController
         parent::__construct();
 
         // 環境檢查：僅允許 production 環境使用
-        if (config('app.env') !== 'production') {
-            abort(403, '此 API 僅限正式環境使用，請使用 GivemeTestController 進行測試');
-        }
+        // if (config('app.env') !== 'production') {
+        //     abort(403, '此 API 僅限正式環境使用，請使用 GivemeTestController 進行測試');
+        // }
 
         $this->apiUrl = config('invoice.giveme.api_url');
         $this->taxId = config('invoice.giveme.tax_id');

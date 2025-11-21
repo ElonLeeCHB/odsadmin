@@ -3,22 +3,21 @@
 namespace App\Models\Member;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Models\User\User;
+use Illuminate\Database\Eloquent\Model;
 use App\Models\Sale\Order;
 use App\Models\Localization\City;
 use App\Models\Member\MemberMeta;
 use App\Traits\Model\ModelTrait;
 
-class Member extends User
+class Member extends Model
 {
     use ModelTrait;
-    
-    public $table = 'users';    
+
+    protected $table = 'users';    
     protected $guarded = ['id', 'uuid', 'code', 'username', 'last_seen_at'];
     protected $foreignKey = 'user_id';
     
     public $meta_keys = [
-        'is_admin',
         'first_name',
         'last_name',
         'short_name',

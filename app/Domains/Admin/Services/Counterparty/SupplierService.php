@@ -25,8 +25,8 @@ class SupplierService extends Service
         OrmHelper::prepare($query, $data);
 
         // 關鍵字查詢（需手動指定查詢欄位）
-        if (!empty($data['filter_search_keyword'])) {
-            $search = $data['filter_search_keyword'];
+        if (!empty($data['filter_keyword'])) {
+            $search = $data['filter_keyword'];
 
             $query->where(function ($q) use ($search) {
                 OrmHelper::filterOrEqualColumn($q, 'filter_name', $search);
@@ -36,7 +36,7 @@ class SupplierService extends Service
                 });
             });
 
-            unset($data['filter_search_keyword']);
+            unset($data['filter_keyword']);
         }
 
         $suppliers = OrmHelper::getResult($query, $data);

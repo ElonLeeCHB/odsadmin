@@ -77,15 +77,7 @@
                         <div id="error-email" class="invalid-feedback"></div>
                       </div>
                     </div>
-                    <div class="row mb-3">
-                      <label for="input-is_admin" class="col-sm-2 col-form-label">{{ $lang->column_is_admin }}</label>
-                      <div class="col-sm-10">
-                        <div class="form-check form-switch form-switch-lg">
-                          <input type="hidden" name="is_admin" value="0"/>
-                          <input type="checkbox" id="input-is_admin" name="is_admin" value="1" class="form-check-input" @if($user->is_admin) checked @endif/>
-                        </div>
-                      </div>
-                    </div>
+                    {{-- DEPRECATED: is_admin 改由帳號中心的 user_systems 管理 --}}
 
                     <div class="row mb-3">
                       <label for="input-employee_code" class="col-sm-2 col-form-label">員工編號</label>

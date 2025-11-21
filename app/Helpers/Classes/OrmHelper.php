@@ -596,9 +596,9 @@ class OrmHelper
 
         // 修改
         if (!empty($id)) {
-            unset($data['creator_id']);
             unset($data['created_by']);
-            unset($data['created_by_id']); // 推薦
+            unset($data['creator_id']);
+            unset($data['created_by_id']);
         }
 
         // 新增或修改共用
@@ -635,7 +635,7 @@ class OrmHelper
             }
 
             // 優先順序設定：修改者
-            $updaterFields = ['updated_by_id', 'updated_by', 'updater_id', 'modifier_id', 'modified_by', 'modified_by_id']; // 取其一
+            $updaterFields = ['updated_by', 'updated_by_id', 'updater_id', 'modifier_id', 'modified_by', 'modified_by_id']; // 取其一
             foreach ($updaterFields as $field) {
                 if (in_array($field, $table_columns)) {
                     $row->$field = $operatorId;

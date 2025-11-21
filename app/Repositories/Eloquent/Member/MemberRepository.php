@@ -14,12 +14,7 @@ class MemberRepository extends UserRepository
 
     public function getMembers($filter_data = [], $debug = 0)
     {
-        foreach ($filter_data as $key => $value) {
-            if (substr($key, -8) === '_is_admin') {
-                unset($filter_data[$key]);
-            }
-        }
-
+        // DEPRECATED: 已移除 is_admin 過濾邏輯
         return parent::getUsers($filter_data, $debug);
     }
 

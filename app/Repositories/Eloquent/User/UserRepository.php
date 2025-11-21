@@ -22,20 +22,22 @@ class UserRepository extends Repository
         $this->TermRepository = (new TermRepository);
     }
 
-    public function getAdminUserIds()
-    {
-        return UserMeta::where('meta_key', 'is_admin')->where('meta_value', 1)->pluck('user_id');
-    }
-    
-    
-    public function getAdminUsers($query_data,$debug=0)
-    {
-        $query_data['whereHas']['userMeta'] = ['meta_key' => 'is_admin', 'meta_value' => 1];
+    // DEPRECATED: 已廢棄，is_admin 改由帳號中心的 user_systems 管理
+    // public function getAdminUserIds()
+    // {
+    //     return UserMeta::where('meta_key', 'is_admin')->where('meta_value', 1)->pluck('user_id');
+    // }
 
-        $users = $this->getRows($query_data);
 
-        return $users;
-    }
+    // DEPRECATED: 已廢棄，is_admin 改由帳號中心的 user_systems 管理
+    // public function getAdminUsers($query_data,$debug=0)
+    // {
+    //     $query_data['whereHas']['userMeta'] = ['meta_key' => 'is_admin', 'meta_value' => 1];
+    //
+    //     $users = $this->getRows($query_data);
+    //
+    //     return $users;
+    // }
 
 
     public function getUsers($data = [], $debug = 0)

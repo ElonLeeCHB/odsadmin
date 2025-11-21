@@ -88,8 +88,10 @@ class Repository
         return $row;
     }
 
-    protected function getTableColumnsWithDefaults(string $table, string $connection = null)
+    protected function getTableColumnsWithDefaults(string $table, string $connection = '')
     {
+        $connection = empty($connection) ? null : $connection;
+
         $connection = $connection ?: config('database.default');
         $database = DB::connection($connection)->getDatabaseName();
 

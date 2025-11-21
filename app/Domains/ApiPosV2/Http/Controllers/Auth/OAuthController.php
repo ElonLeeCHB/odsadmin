@@ -3,12 +3,10 @@
 namespace App\Domains\ApiPosV2\Http\Controllers\Auth;
 
 use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
-use App\Libraries\AccountsOAuthLibrary;
-use App\Models\User\User;
-use Carbon\Carbon;
+use Huabing\AccountsOAuth\AccountsOAuthClient;
+use Huabing\AccountsOAuth\Exceptions\AccountsConnectionException;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
@@ -23,6 +21,14 @@ use Exception;
  */
 class OAuthController extends ApiPosController
 {
+    protected $oauthClient;
+
+    public function __construct(AccountsOAuthClient $oauthClient)
+    {
+        parent::__construct();
+        $this->oauthClient = $oauthClient;
+    }
+
     /**
      * OAuth 登入
      *
@@ -30,8 +36,7 @@ class OAuthController extends ApiPosController
      * 1. 接收前端的帳號密碼
      * 2. 轉發到 Accounts 中心進行驗證
      * 3. 驗證成功後同步使用者資料
-     * 4. 生成本地 JWT Token
-     * 5. 回傳給前端
+     * 4. 回傳 SSO Token 給前端
      *
      * @param Request $request
      * @return JsonResponse
@@ -43,7 +48,7 @@ class OAuthController extends ApiPosController
             $validator = Validator::make($request->all(), [
                 'account' => 'required|string',
                 'password' => 'required|string',
-                'return_url' => 'nullable|string|url', // 密碼重設後的返回 URL
+                'return_url' => 'nullable|string|url',
             ], [
                 'account.required' => '請輸入帳號',
                 'password.required' => '請輸入密碼',
@@ -60,14 +65,14 @@ class OAuthController extends ApiPosController
 
             $account = $request->input('account');
             $password = $request->input('password');
-            $returnUrl = $request->input('return_url'); // 取得返回 URL
+            $returnUrl = $request->input('return_url');
 
             // 呼叫 Accounts 中心進行驗證
             try {
-                $oauthResult = AccountsOAuthLibrary::login($account, $password, $returnUrl);
+                $oauthResult = $this->oauthClient->login($account, $password, $returnUrl);
 
                 // 統一處理失敗情況（包含密碼錯誤、2FA、需要重設密碼）
-                if (empty($oauthResult['success'])){
+                if (!$oauthResult['success']) {
                     $response = [
                         'success' => false,
                         'message' => $oauthResult['message'],
@@ -86,12 +91,11 @@ class OAuthController extends ApiPosController
                     return response()->json($response, $oauthResult['status_code'] ?? 500);
                 }
 
-            } catch (Exception $ex) {
-
+            } catch (AccountsConnectionException $ex) {
                 return response()->json([
                     'success' => false,
                     'message' => '無法連線至帳號管理中心，請稍後再試',
-                    'error' => $ex->getMessage(),
+                    'error' => config('app.debug') ? $ex->getMessage() : null,
                 ], 503);
             }
 
@@ -105,14 +109,18 @@ class OAuthController extends ApiPosController
                 ], 500);
             }
 
-            // 同步或建立本地使用者
-            $user = $this->syncUserFromOAuth($oauthUserData);
+            // 使用套件的 syncUser 方法同步使用者
+            $user = $this->oauthClient->syncUser($oauthUserData);
+
+            // ✨ 新增：同步密碼到本地作為備援
+            $user->password = Hash::make($password);
+            $user->save();
 
             // 取得本地權限（用於前端判斷功能顯示）
             $permissions = $user->permissions()->where('name', 'like', 'pos.%')->pluck('name')->toArray();
 
             // 取得 Accounts 中心發放的 Token（真正的 SSO Token）
-            $accountsToken = $oauthResult['token'] ?? null; // token 在第一層
+            $accountsToken = $oauthResult['token'] ?? null;
 
             if (!$accountsToken) {
                 return response()->json([
@@ -139,7 +147,7 @@ class OAuthController extends ApiPosController
             return response()->json([
                 'success' => true,
                 'message' => '登入成功',
-                'token' => $accountsToken, // ← 使用 Accounts 的 Passport Token
+                'token' => $accountsToken,
                 'data' => [
                     'permissions' => $permissions,
                     'user_id' => $user->id,
@@ -151,115 +159,19 @@ class OAuthController extends ApiPosController
             ], 200);
 
         } catch (Exception $ex) {
+            Log::error('OAuth 登入發生錯誤', [
+                'error' => $ex->getMessage(),
+                'trace' => $ex->getTraceAsString(),
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => '登入失敗，請稍後再試',
                 'error' => config('app.debug') ? $ex->getMessage() : null,
-                'error_code' => '不明原因的錯誤',
             ], 500);
         }
     }
 
-    /**
-     * 同步或建立本地使用者
-     *
-     * 根據 Accounts 中心回傳的使用者資料，
-     * 在本地資料庫中建立或更新使用者記錄
-     *
-     * @param array $oauthUser Accounts 中心的使用者資料
-     * @return User
-     */
-    protected function syncUserFromOAuth(array $oauthUser): User
-    {
-        $code = $oauthUser['code'] ?? null;
-
-        if (!$code) {
-            throw new Exception('OAuth 使用者資料缺少 code 欄位');
-        }
-
-        // 使用 code 作為唯一識別，同步使用者
-        $user = User::updateOrCreate(
-            ['code' => $code], // 查詢條件
-            [
-                'username' => $oauthUser['username'] ?? null,
-                'email' => $oauthUser['email'] ?? null,
-                'name' => $oauthUser['name'] ?? '',
-                'is_active' => $oauthUser['is_active'] ?? '',
-                'last_seen_at' => Carbon::now(),
-            ]
-        );
-
-        return $user;
-    }
-
-    /**
-     * Fallback 到本地登入
-     *
-     * 當 Accounts 中心無法連線時，使用本地資料庫驗證
-     *
-     * @param string $account
-     * @param string $password
-     * @param Request $request
-     * @return JsonResponse
-     */
-    protected function fallbackToLocalLogin(string $account, string $password, Request $request): JsonResponse
-    {
-        return response()->json(['success' => false, 'message' => 'Accounts 系統無法連線',], 401);
-
-        // try {
-        //     // 查詢使用者
-        //     $user = User::where('username', $account)
-        //         ->orWhere('email', $account)
-        //         ->first();
-
-        //     // 驗證密碼
-        //     if (!$user || !Hash::check($password, $user->password)) {
-        //         return response()->json(['success' => false,'message' => '帳號或密碼錯誤',], 401);
-        //     }
-
-        //     // 生成 Token
-        //     $permissions = $user->permissions()->where('name', 'like', 'pos.%')->pluck('name')->toArray();
-        //     $plainTextToken = $user->createToken('pos')->plainTextToken;
-
-        //     // 更新裝置識別碼
-        //     $ip = $request->ip();
-        //     $userAgent = $request->header('User-Agent');
-        //     $device_id = hash('sha256', $ip . $userAgent);
-
-        //     $token = $user->tokens->last();
-        //     $token->device_id = $device_id;
-        //     $token->save();
-
-        //     Session::put('device_id', $device_id);
-
-        //     Log::info('Fallback 本地登入成功', [
-        //         'user_id' => $user->id,
-        //         'username' => $user->username,
-        //     ]);
-
-        //     return response()->json([
-        //         'success' => true,
-        //         'token' => $plainTextToken,
-        //         'permissions' => $permissions,
-        //         'user_id' => $user->id,
-        //         'username' => $user->username,
-        //         'name' => $user->name,
-        //         'email' => $user->email,
-        //         'message' => '登入成功（本地驗證）',
-        //         'fallback' => true,
-        //     ], 200);
-
-        // } catch (Exception $e) {
-        //     Log::error('Fallback 登入失敗', [
-        //         'error' => $e->getMessage(),
-        //     ]);
-
-        //     return response()->json([
-        //         'success' => false,
-        //         'message' => '登入失敗',
-        //     ], 500);
-        // }
-    }
 
     /**
      * OAuth SSO 登出
@@ -287,8 +199,8 @@ class OAuthController extends ApiPosController
 
             // 呼叫 Accounts 中心登出
             try {
-                $logoutResult = AccountsOAuthLibrary::logout($token);
-            } catch (Exception $e) {
+                $logoutResult = $this->oauthClient->logout($token);
+            } catch (AccountsConnectionException $e) {
                 // Accounts 中心連線失敗，記錄錯誤但仍視為登出成功
                 Log::warning('OAuth 登出時 Accounts 中心無法連線', [
                     'error' => $e->getMessage(),
@@ -322,7 +234,7 @@ class OAuthController extends ApiPosController
 
             return response()->json([
                 'success' => true,
-                'message' => '登出成功', // 已撤銷 SSO Token
+                'message' => '登出成功',
                 'data' => $logoutResult['data'] ?? null,
             ], 200);
 

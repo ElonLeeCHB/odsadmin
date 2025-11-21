@@ -204,15 +204,15 @@ class LayoutComposer
                 ];
             }
 
-            //優惠券類別
-            if (1) {
-                $sale[] = [
-                    'name'       => '優惠券類別',
-                    'icon'       => '',
-                    'href'     => route('lang.admin.sale.coupon_types.index'),
-                    'children' => []
-                ];
-            }
+            // //優惠券類別
+            // if (1) {
+            //     $sale[] = [
+            //         'name'       => '優惠券類別',
+            //         'icon'       => '',
+            //         'href'     => route('lang.admin.sale.coupon_types.index'),
+            //         'children' => []
+            //     ];
+            // }
 
             //優惠券記錄
             if (1) {
@@ -542,51 +542,51 @@ class LayoutComposer
             ];
         }
 
-        // 門市設定
+        // 門市管理
         if(1) {
             $system[] = [
-                'name'	   => '門市設定',
+                'name'	   => '門市管理',
                 'icon'	   => '',
-                'href'     => route('lang.admin.setting.locations.index'),
+                'href'     => route('lang.admin.system.stores.index'),
                 'children' => []
             ];
         }
 
-        // System User
-        $user = [];
+        // 訪問控制 (Access Control)
+        $access = [];
 
         // users
         if (1) {
-            $user[] = [
+            $access[] = [
                 'name'	   => '使用者',
-                'href'     => route('lang.admin.setting.user.users.index', ['equal_is_admin' => 1, 'equal_is_active' => 1]),
+                'href'     => route('lang.admin.system.access.users.index', ['equal_is_admin' => 1, 'equal_is_active' => 1]),
                 'icon'	   => ' ',
             ];
         }
 
         // permissions
-        // if (1) {
-        //     $user[] = [
-        //         'name'	   => '權限',
-        //         'href'     => '/',
-        //         'icon'	   => ' ',
-        //     ];
-        // }
-
-        // // roles
-        // if (1) {
-        //     $user[] = [
-        //         'name'	   => '角色',
-        //         'href'     => '/',
-        //         'icon'	   => ' ',
-        //     ];
-        // }
-
-        if ($user) {
-            $system[] = [
-                'name'	   => '使用者',
+        if (1) {
+            $access[] = [
+                'name'	   => '權限',
+                'href'     => route('lang.admin.system.access.permissions.index'),
                 'icon'	   => ' ',
-                'children' => $user
+            ];
+        }
+
+        // roles
+        if (1) {
+            $access[] = [
+                'name'	   => '角色',
+                'href'     => route('lang.admin.system.access.roles.index'),
+                'icon'	   => ' ',
+            ];
+        }
+
+        if ($access) {
+            $system[] = [
+                'name'	   => '訪問控制',
+                'icon'	   => ' ',
+                'children' => $access
             ];
         }
 

@@ -31,7 +31,7 @@ class Handler extends ExceptionHandler
     {
         // ✅ 全域錯誤收集（輕量 log, 可接 Sentry / Slack 等）
         $this->reportable(function (Throwable $e) {
-            // 這裡只做基礎記錄，不回應
+            // 舊的寫法，寫到資料庫。改為寫到檔案。
             // (new \App\Repositories\Eloquent\SysData\LogRepository)
             //     ->logRequest(note: $e->getMessage());
 
@@ -54,11 +54,6 @@ class Handler extends ExceptionHandler
         }
 
         return response()->json(['message' => $exception->getMessage()], 401);
-
-
-        // return $this->shouldReturnJson($request, $exception)
-        //             ? response()->json(['message' => $exception->getMessage()], 401)
-        //             : redirect()->guest($exception->redirectTo() ?? route('lang.admin.login'));
     }
 
     public function render($request, Throwable $exception)
@@ -92,11 +87,6 @@ class Handler extends ExceptionHandler
         else {
             $response = parent::render($request, $exception);
         }
-
-        // ✅ 統一記錄到 DB（API + Web 都會記）
-        // (new \App\Repositories\Eloquent\SysData\LogRepository)->logRequest(
-        //     note: $exception->getMessage()
-        // );
 
         // 改用 LogFileRepository 記錄到檔案
         (new \App\Repositories\LogFileRepository)->logRequest(

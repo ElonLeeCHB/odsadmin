@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Domains\Admin\Http\Controllers\Setting\User;
+namespace App\Domains\Admin\Http\Controllers\System\Access;
 
 use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use Illuminate\Http\Request;
-use App\Domains\Admin\Services\Setting\User\UserService;
+use App\Domains\Admin\Services\System\Access\UserService;
 
 class UserController extends BackendController
 {
     public function __construct(protected Request $request, protected UserService $UserService)
     {
         parent::__construct();
-        
+
         $this->getLang(['admin/common/common','admin/admin/user']);
     }
 
@@ -24,7 +24,7 @@ class UserController extends BackendController
     public function index()
     {
         $data['lang'] = $this->lang;
-        
+
         $query_data  = $this->url_data;
 
         // Breadcomb
@@ -41,31 +41,30 @@ class UserController extends BackendController
 
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.setting.user.users.index'),
+            'href' => route('lang.admin.system.access.users.index'),
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
 
         $data['list'] = $this->getList();
-        
-        $data['list_url']   =  route('lang.admin.setting.user.users.list');
-        $data['add_url']    = route('lang.admin.setting.user.users.form');
-        $data['delete_url'] = route('lang.admin.setting.user.users.destroy');
-        
+
+        $data['list_url']   =  route('lang.admin.system.access.users.list');
+        $data['add_url']    = route('lang.admin.system.access.users.form');
+        $data['delete_url'] = route('lang.admin.system.access.users.destroy');
+
         //Filters
         $data['filter_keyname'] = $query_data['filter_keyname'] ?? '';
         $data['filter_phone'] = $query_data['filter_phone'] ?? '';
-        $data['equal_is_admin'] = $query_data['equal_is_admin'] ?? 1;
         $data['equal_is_active'] = $query_data['equal_is_active'] ?? 1;
 
-        return view('admin.setting.user', $data);
+        return view('admin.system.access.user', $data);
     }
 
     public function list()
     {
         $data['lang'] = $this->lang;
 
-        $data['form_action'] = route('lang.admin.setting.user.users.list');
+        $data['form_action'] = route('lang.admin.system.access.users.list');
 
         return $this->getList();
     }
@@ -83,22 +82,16 @@ class UserController extends BackendController
         // Prepare queries for records
         $query_data  = $this->url_data;
 
-        // if(isset($query_data['equal_is_admin']) && $query_data['equal_is_admin'] == 0){
-        //     $query_data['whereDoesntHave']['metas'] = ['is_admin' => 1];
-        //     unset($query_data['equal_is_admin']);
-        // }
-
-
         // Rows
         $users = $this->UserService->getUsers($query_data);
 
         if(!empty($users)){
             foreach ($users as $row) {
-                $row->edit_url = route('lang.admin.setting.user.users.form', array_merge([$row->id], $query_data));
+                $row->edit_url = route('lang.admin.system.access.users.form', array_merge([$row->id], $query_data));
             }
         }
 
-        $data['users'] = $users->withPath(route('lang.admin.setting.user.users.list'))->appends($query_data);
+        $data['users'] = $users->withPath(route('lang.admin.system.access.users.list'))->appends($query_data);
 
 
         // Prepare links for list table's header
@@ -107,7 +100,7 @@ class UserController extends BackendController
         }else{
             $order = 'ASC';
         }
-        
+
         $data['sort'] = strtolower($query_data['sort'] ?? '');
         $data['order'] = strtolower($order);
 
@@ -125,16 +118,16 @@ class UserController extends BackendController
         }
 
         //link of table header for sorting
-        $route = route('lang.admin.setting.user.users.list');
+        $route = route('lang.admin.system.access.users.list');
 
         $data['sort_username'] = $route . "?sort=username&order=$order" .$url;
         $data['sort_name'] = $route . "?sort=name&order=$order" .$url;
         $data['sort_email'] = $route . "?sort=email&order=$order" .$url;
         $data['sort_created_at'] = $route . "?sort=created_at&order=$order" .$url;
-        
-        $data['list_url'] = route('lang.admin.setting.user.users.list');
 
-        return view('admin.setting.user_list', $data);
+        $data['list_url'] = route('lang.admin.system.access.users.list');
+
+        return view('admin.system.access.user_list', $data);
     }
 
 
@@ -158,7 +151,7 @@ class UserController extends BackendController
 
         $breadcumbs[] = (object)[
             'text' => $this->lang->heading_title,
-            'href' => route('lang.admin.setting.user.users.index'),
+            'href' => route('lang.admin.system.access.users.index'),
         ];
 
         $data['breadcumbs'] = (object)$breadcumbs;
@@ -166,8 +159,8 @@ class UserController extends BackendController
         // Prepare link for save, back
         $queries  = $this->url_data;
 
-        $data['save_url'] = route('lang.admin.setting.user.users.save');
-        $data['back_url'] = route('lang.admin.setting.user.users.index', $queries);
+        $data['save_url'] = route('lang.admin.system.access.users.save');
+        $data['back_url'] = route('lang.admin.system.access.users.index', $queries);
 
         // Get Record
         $result = $this->UserService->findIdOrFailOrNew($user_id);
@@ -189,7 +182,7 @@ class UserController extends BackendController
             $data['user_id'] = null;
         }
 
-        return view('admin.setting.user_form', $data);
+        return view('admin.system.access.user_form', $data);
     }
 
 
@@ -224,6 +217,7 @@ class UserController extends BackendController
             $json = [
                 'success' => $this->lang->text_success,
                 'user_id' => $result['data']['user_id'],
+                'redirectUrl' => route('lang.admin.system.access.users.form', $result['data']['user_id']),
             ];
 
             return response(json_encode($json));
@@ -249,7 +243,7 @@ class UserController extends BackendController
         if($this->acting_username !== 'admin'){
             $json['error'] = $this->lang->error_permission;
         }
-        
+
 		if (!$json) {
             $result = $this->UserService->destroy($selected);
 

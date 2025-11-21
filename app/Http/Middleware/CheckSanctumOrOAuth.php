@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Libraries\AccountsOAuthLibrary;
+use Huabing\AccountsOAuth\AccountsOAuthClient;
 use App\Models\User\User;
 use Closure;
 use Illuminate\Http\Request;
@@ -28,6 +28,11 @@ use Exception;
 class CheckSanctumOrOAuth
 {
     /**
+     * OAuth 客戶端
+     */
+    protected AccountsOAuthClient $oauthClient;
+
+    /**
      * 是否啟用緩存（預設啟用，減少 OAuth API 呼叫）
      */
     protected bool $enableCache = true;
@@ -38,6 +43,14 @@ class CheckSanctumOrOAuth
     protected int $cacheTtl = 3600;
 
     /**
+     * 建構函式
+     */
+    public function __construct(AccountsOAuthClient $oauthClient)
+    {
+        $this->oauthClient = $oauthClient;
+    }
+
+    /**
      * Handle an incoming request.
      */
     public function handle(Request $request, Closure $next)
@@ -46,6 +59,14 @@ class CheckSanctumOrOAuth
 
         if (!$token) {
             return $this->errorResponse(__('auth.error_codes.TOKEN_MISSING'), 'TOKEN_MISSING', 401);
+        }
+
+        // ✨ 新增：檢查 AUTH_DRIVER
+        $authDriver = config('accounts-oauth.auth_driver', 'accounts-center');
+
+        if ($authDriver === 'local') {
+            // 直接使用 Sanctum 驗證（跳過 OAuth）
+            return $this->handleLocalAuth($request, $next);
         }
 
         // 步驟 1: 嘗試 OAuth 驗證（優先）
@@ -188,7 +209,7 @@ class CheckSanctumOrOAuth
             }
 
             // 緩存未命中，呼叫 Accounts 中心
-            $result = AccountsOAuthLibrary::getUser($token);
+            $result = $this->oauthClient->getUser($token);
 
             if (!$result['success']) {
                 Log::warning('Accounts 中心驗證失敗', [
@@ -253,6 +274,20 @@ class CheckSanctumOrOAuth
         }
 
         return User::where('code', $code)->first();
+    }
+
+    /**
+     * 處理本地認證模式
+     */
+    protected function handleLocalAuth(Request $request, Closure $next)
+    {
+        $sanctumResult = $this->trySanctumAuthentication($request);
+
+        if ($sanctumResult['success']) {
+            return $next($request);
+        }
+
+        return $this->errorResponse(__('auth.error_codes.TOKEN_INVALID'), 'TOKEN_INVALID', 401);
     }
 
     /**

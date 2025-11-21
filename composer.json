@@ -4,10 +4,17 @@
     "description": "The Laravel Framework.",
     "keywords": ["framework", "laravel"],
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/huabingtw/accounts-oauth.git"
+        }
+    ],
     "require": {
         "php": "^8.2",
         "elibyy/tcpdf-laravel": "^10.0",
         "guzzlehttp/guzzle": "^7.2",
+        "huabing/accounts-oauth": "^1.0",
         "laravel/framework": "^10.8",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",

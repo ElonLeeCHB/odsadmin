@@ -20,8 +20,42 @@ Route::group([
 {
 
     Route::post('login', 'Auth\LoginController@login');
-    Route::post('oauth/login', 'Auth\OAuthController@login');
-    Route::post('oauth/logout', 'Auth\OAuthController@logout'); // OAuth SSO 登出
+
+    // ✨ 根據 AUTH_DRIVER 動態選擇認證方式
+    // 注意：切換 AUTH_DRIVER 後需執行 php artisan config:clear
+    $authDriver = config('accounts-oauth.auth_driver', 'accounts-center');
+
+    if ($authDriver === 'accounts-center') {
+        // 使用 Accounts 中心認證（預設）
+        Route::post('oauth/login', 'Auth\OAuthController@login');
+        Route::post('oauth/logout', 'Auth\OAuthController@logout');
+    } else {
+        // local 模式使用本地認證（備援模式）
+        Route::post('oauth/login', 'Auth\LoginController@login');
+        Route::post('oauth/logout', 'Auth\LoginController@logout');
+    }
+
+    // 測試 Accounts OAuth 套件連線
+    Route::get('oauth/test-connection', function () {
+        $client = app(\Huabing\AccountsOAuth\AccountsOAuthClient::class);
+
+        if ($client->isAvailable()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Accounts 中心連線正常！',
+                'config' => [
+                    'url' => config('accounts-oauth.url'),
+                    'system_code' => config('accounts-oauth.system_code'),
+                    'client_code' => config('accounts-oauth.client_code'),
+                ],
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Accounts 中心無法連線',
+        ], 503);
+    });
 
     //暫時使用。直接更新密碼
     Route::post('passwordUpdate', 'Auth\ResetPasswordController@tmpPasswordUpdate');

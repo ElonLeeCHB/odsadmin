@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a00ba7b9462480098b071af3c4decbf6",
+    "content-hash": "e9c3d9b37ef2e664f513ea0e85804ef3",
     "packages": [
         {
             "name": "brick/math",
@@ -1330,6 +1330,76 @@
                 }
             ],
             "time": "2025-02-03T10:55:03+00:00"
+        },
+        {
+            "name": "huabing/accounts-oauth",
+            "version": "v1.0.2",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:huabingtw/accounts-oauth.git",
+                "reference": "69f2d9f6160c5fb3776855f6abc4bb60df3fae30"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/huabingtw/accounts-oauth/zipball/69f2d9f6160c5fb3776855f6abc4bb60df3fae30",
+                "reference": "69f2d9f6160c5fb3776855f6abc4bb60df3fae30",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.0",
+                "illuminate/database": "^9.0|^10.0|^11.0",
+                "illuminate/http": "^9.0|^10.0|^11.0",
+                "illuminate/support": "^9.0|^10.0|^11.0",
+                "php": "^8.0|^8.1|^8.2"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^7.0|^8.0|^9.0",
+                "phpunit/phpunit": "^9.0|^10.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Huabing\\AccountsOAuth\\AccountsOAuthServiceProvider"
+                    ],
+                    "aliases": {
+                        "AccountsOAuth": "Huabing\\AccountsOAuth\\Facades\\AccountsOAuth"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Huabing\\AccountsOAuth\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Huabing\\AccountsOAuth\\Tests\\": "tests/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "authors": [
+                {
+                    "name": "Huabing Technology",
+                    "email": "info@huabing.tw"
+                }
+            ],
+            "description": "帳號管理中心 OAuth 認證套件 - 提供統一的 SSO 登入、登出和使用者同步功能（內部使用）",
+            "keywords": [
+                "accounts",
+                "authentication",
+                "huabing",
+                "laravel",
+                "oauth",
+                "sso"
+            ],
+            "support": {
+                "source": "https://github.com/huabingtw/accounts-oauth/tree/v1.0.2",
+                "issues": "https://github.com/huabingtw/accounts-oauth/issues"
+            },
+            "time": "2025-11-18T13:22:08+00:00"
         },
         {
             "name": "laravel/framework",

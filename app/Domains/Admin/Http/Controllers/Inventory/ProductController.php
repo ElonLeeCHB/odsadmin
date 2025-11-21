@@ -208,7 +208,6 @@ class ProductController extends BackendController
         $product = $this->ProductService->setRowExtraColumns($product, $extra_columns);
         $product = $this->ProductService->setMetasToRow($product);
 
-
         // Default column value
         if(empty($product->id)){
             $product->is_active = 1;

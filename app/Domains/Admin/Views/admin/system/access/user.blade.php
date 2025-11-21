@@ -41,15 +41,6 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">{{ $lang->column_is_admin }}</label>
-          <select name="equal_is_admin" id="input-equal_is_admin" class="form-select">
-          <option value="*">{{ $lang->text_select }}</option>
-            <option value="1"@if($equal_is_admin==1) selected @endif>{{ $lang->text_yes }}</option>
-            <option value="0"@if($equal_is_admin==0) selected @endif>{{ $lang->text_no }}</option>
-          </select>
-        </div>
-
-        <div class="mb-3">
           <label class="form-label">{{ $lang->column_is_active }}</label>
           <select name="equal_is_active" id="input-equal_is_active" class="form-select">
           <option value="*">{{ $lang->text_select }}</option>
@@ -100,12 +91,6 @@ $('#button-filter').on('click', function() {
 
   if (filter_phone) {
     url += '&filter_phone=' + encodeURIComponent(filter_phone);
-  }
-
-  var equal_is_admin = $('#input-equal_is_admin').val();
-
-  if (equal_is_admin) {
-    url += '&equal_is_admin=' + encodeURIComponent(equal_is_admin);
   }
 
   var equal_is_active = $('#input-equal_is_active').val();

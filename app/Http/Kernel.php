@@ -76,7 +76,9 @@ class Kernel extends HttpKernel
         'localeCookieRedirect'    => \Mcamara\LaravelLocalization\Middleware\LocaleCookieRedirect::class,
         'localeViewPath'          => \Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath::class,
 
-        'is_admin' => \App\Domains\Admin\Http\Middleware\IsAdmin::class,
+        // DEPRECATED: 已廢棄 is_admin middleware，請使用 'auth' + 'trackSystemAccess'
+        // 保留此註冊以避免舊代碼錯誤，但不應再使用
+        // 'is_admin' => \App\Domains\Admin\Http\Middleware\IsAdmin::class,
 
         'checkAdminAuthorization'    => \App\Http\Middleware\CheckAdminAuthorization::class,
         'checkApiAuthorization'      => \App\Http\Middleware\CheckApiAuthorization::class,
@@ -88,7 +90,6 @@ class Kernel extends HttpKernel
 
         'forceJsonAcceptHeader' => \App\Http\Middleware\ForceJsonAcceptHeader::class,
 
-        
-        
+        'trackSystemAccess' => \App\Http\Middleware\TrackSystemAccess::class,
     ];
 }

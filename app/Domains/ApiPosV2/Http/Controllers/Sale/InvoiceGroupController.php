@@ -20,6 +20,10 @@ class InvoiceGroupController extends ApiPosController
      * 參數優先順序：group_no > order_code > invoice_number
      * 如果提供 group_no，則忽略其他參數
      *
+     * 使用模式：
+     * - 不帶參數：返回空資料結構，用於新增模式
+     * - 帶參數：查詢並返回現有群組資料
+     *
      * 返回規則：
      * - 群組：只返回 status='active' 的群組
      * - 發票：返回所有狀態的發票（包括 pending、issued、voided）
@@ -39,6 +43,7 @@ class InvoiceGroupController extends ApiPosController
             'personal_name',
             'mobile',
             'payment_total',
+            'payment_tin',
             'order_date',
             'status_code',
             'created_at'
@@ -51,13 +56,22 @@ class InvoiceGroupController extends ApiPosController
         $orderCode = $request->input('order_code');
         $invoiceNumber = $request->input('invoice_number');
         $invoiceId = $request->input('invoice_id');
-        
-        // 驗證：必須提供其中一個參數
+
+        // 發票預設項目
+        $invoiceItems = (new \App\Caches\Custom\Sales\DefaultInvoiceItems())->getData();
+
+        // 如果沒有提供任何參數，視為新增模式
         if (empty($groupId) && empty($orderCode) && empty($invoiceNumber) && empty($invoiceId)) {
             return response()->json([
-                'success' => false,
-                'message' => '請提供 group_no, order_code, invoice_number, invoice_id 其中一個參數',
-            ], 400, [], JSON_UNESCAPED_UNICODE);
+                'success' => true,
+                'data' => [
+                    'used_param' => null,
+                    'group' => null,
+                    'orders' => [],
+                    'invoices' => [],
+                    'invoiceItems' => $invoiceItems,
+                ],
+            ], 200, [], JSON_UNESCAPED_UNICODE);
         }
 
         // 根據優先順序查詢群組
@@ -67,7 +81,7 @@ class InvoiceGroupController extends ApiPosController
         // 優先順序 1: group_no
         if (!empty($groupId)) {
             // 只查詢有效的群組
-            $invoiceGroup = InvoiceGroup::where('group_no', $groupId)
+            $invoiceGroup = InvoiceGroup::where('id', $groupId)
                 ->where('status', 'active')
                 ->first();
             $usedParam = 'group_no';
@@ -177,9 +191,9 @@ class InvoiceGroupController extends ApiPosController
 
         $data['orders'] = $invoiceGroup ? $invoiceGroup->orders : (isset($order) ? [$order] : []);
         $data['invoices'] = $invoiceGroup ? $invoiceGroup->invoices : [];
-
+        
         // 發票預設項目
-        $data['invoiceItems'] = (new \App\Caches\Custom\Sales\DefaultInvoiceItems())->getData();
+        $data['invoiceItems'] = $invoiceItems;
 
         return response()->json([
             'success' => true,

@@ -16,7 +16,7 @@ Route::group([
 });
 
 Route::group([
-    'middleware' => ['is_admin'],
+    'middleware' => ['auth', 'trackSystemAccess'],
 ], function () {
     Route::post('logout', 'Auth\LoginController@logout')->name('logout');
     
@@ -27,25 +27,25 @@ Route::group([
         'as' => 'auth.',
     ], function () {
         //商品分類基本資料
-        Route::get('categories', 'Auth\ResetPasswordController@index')->name('categories.index');
-        Route::get('categories/list', 'Auth\ResetPasswordController@list')->name('categories.list');
-        Route::get('categories/form/{category_id?}', 'Auth\CategoryController@form')->name('categories.form');
-        Route::post('categories/save/{category_id?}', 'Auth\CategoryController@save')->name('categories.save');
-        Route::get('categories/autocomplete', 'Auth\CategoryController@autocomplete')->name('categories.autocomplete');
-        Route::post('categories/destroy', 'Auth\CategoryController@destroy')->name('categories.destroy');
+        // Route::get('categories', 'Auth\ResetPasswordController@index')->name('categories.index');
+        // Route::get('categories/list', 'Auth\ResetPasswordController@list')->name('categories.list');
+        // Route::get('categories/form/{category_id?}', 'Auth\CategoryController@form')->name('categories.form');
+        // Route::post('categories/save/{category_id?}', 'Auth\CategoryController@save')->name('categories.save');
+        // Route::get('categories/autocomplete', 'Auth\CategoryController@autocomplete')->name('categories.autocomplete');
+        // Route::post('categories/destroy', 'Auth\CategoryController@destroy')->name('categories.destroy');
     });
 
     Route::group([
         'prefix' => 'catalog',
         'as' => 'catalog.',
     ], function () {
-        //商品分類基本資料 廢棄
-        Route::get('categories', 'Catalog\CategoryController@index')->name('categories.index');
-        Route::get('categories/list', 'Catalog\CategoryController@list')->name('categories.list');
-        Route::get('categories/form/{category_id?}', 'Catalog\CategoryController@form')->name('categories.form');
-        Route::post('categories/save/{category_id?}', 'Catalog\CategoryController@save')->name('categories.save');
-        Route::get('categories/autocomplete', 'Catalog\CategoryController@autocomplete')->name('categories.autocomplete');
-        Route::post('categories/destroy', 'Catalog\CategoryController@destroy')->name('categories.destroy');
+        // //商品分類基本資料 廢棄
+        // Route::get('categories', 'Catalog\CategoryController@index')->name('categories.index');
+        // Route::get('categories/list', 'Catalog\CategoryController@list')->name('categories.list');
+        // Route::get('categories/form/{category_id?}', 'Catalog\CategoryController@form')->name('categories.form');
+        // Route::post('categories/save/{category_id?}', 'Catalog\CategoryController@save')->name('categories.save');
+        // Route::get('categories/autocomplete', 'Catalog\CategoryController@autocomplete')->name('categories.autocomplete');
+        // Route::post('categories/destroy', 'Catalog\CategoryController@destroy')->name('categories.destroy');
 
         Route::get('syncProductOptions', 'Catalog\SyncProductOptionController@index')->name('syncProductOptions.index');
 
@@ -119,14 +119,14 @@ Route::group([
         // Route::get('orders/printOrders/{order_ids}/{print_status}', 'Sale\OrderPrintingController@printOrders')->name('orders.printOrders');
         Route::get('orders/printMultiOrders', 'Sale\OrderPringintController@printMultiOrders')->name('orders.printMultiOrders');
 
-        // 優惠券
-        // Route::resource('coupon_types', \App\Http\Controllers\Admin\Sale\CouponTypeController::class);
-        // Route::resource('coupon_types', 'Sale\CouponTypeController');
-        Route::get('coupon_types', 'Sale\CouponTypeController@index')->name('coupon_types.index');
-        Route::get('coupon_types/list', 'Sale\CouponTypeController@list')->name('coupon_types.list');
-        Route::get('coupon_types/form/{coupon_type_id?}', 'Sale\CouponTypeController@form')->name('coupon_types.form');
-        Route::post('coupon_types/save', 'Sale\CouponTypeController@save')->name('coupon_types.save');
-        Route::post('coupon_types/destroy', 'Sale\CouponTypeController@destroy')->name('coupon_types.destroy');
+        // // 優惠券
+        // // Route::resource('coupon_types', \App\Http\Controllers\Admin\Sale\CouponTypeController::class);
+        // // Route::resource('coupon_types', 'Sale\CouponTypeController');
+        // Route::get('coupon_types', 'Sale\CouponTypeController@index')->name('coupon_types.index');
+        // Route::get('coupon_types/list', 'Sale\CouponTypeController@list')->name('coupon_types.list');
+        // Route::get('coupon_types/form/{coupon_type_id?}', 'Sale\CouponTypeController@form')->name('coupon_types.form');
+        // Route::post('coupon_types/save', 'Sale\CouponTypeController@save')->name('coupon_types.save');
+        // Route::post('coupon_types/destroy', 'Sale\CouponTypeController@destroy')->name('coupon_types.destroy');
 
         Route::get('orders/schedule/list/{delivery_date?}', 'Sale\OrderScheduleController@list')->name('order_schedule.list');
         Route::post('orders/schedule/save', 'Sale\OrderScheduleController@save')->name('order_schedule.save');
@@ -345,17 +345,6 @@ Route::group([
         Route::get('settings/form/{setting_id?}', 'Setting\SettingController@form')->name('settings.form');
         Route::post('settings/save', 'Setting\SettingController@save')->name('settings.save');
         Route::post('settings/destroy', 'Setting\SettingController@destroy')->name('settings.destroy');
-
-        Route::group([
-            'prefix' => 'user',
-            'as' => 'user.',
-        ], function () {
-            Route::get('users', 'Setting\User\UserController@index')->name('users.index');
-            Route::get('users/form/{user_id?}', 'Setting\User\UserController@form')->name('users.form');
-            Route::get('users/list', 'Setting\User\UserController@list')->name('users.list');
-            Route::post('users/save/{user_id?}', 'Setting\User\UserController@save')->name('users.save');
-            Route::post('users/destroy', 'Setting\User\UserController@destroy')->name('users.destroy');
-        });
         Route::group(['prefix' => 'maintenance', 'as' => 'maintenance.'], function () {
             Route::group(['prefix' => 'tools', 'as' => 'tools.'], function () {
                 Route::get('trans-from-opencart', 'Tools\TransFromOpencartController@getForm')->name('trans_from_opencart');
@@ -397,6 +386,52 @@ Route::group([
     //     Route::get('country', 'Localization\CountryController@index')->name('country');
     // });
 
+    // 系統管理
+    Route::group([
+        'prefix' => 'system',
+        'as' => 'system.',
+    ], function () {
+        // 訪問控制
+        Route::group([
+            'prefix' => 'access',
+            'as' => 'access.',
+        ], function () {
+            // 使用者管理
+            Route::get('users', 'System\Access\UserController@index')->name('users.index');
+            Route::get('users/form/{user_id?}', 'System\Access\UserController@form')->name('users.form');
+            Route::get('users/list', 'System\Access\UserController@list')->name('users.list');
+            Route::post('users/save/{user_id?}', 'System\Access\UserController@save')->name('users.save');
+            Route::post('users/destroy', 'System\Access\UserController@destroy')->name('users.destroy');
+
+            // 權限管理
+            Route::get('permissions', 'System\Access\PermissionController@index')->name('permissions.index');
+            Route::get('permissions/form/{permission_id?}', 'System\Access\PermissionController@form')->name('permissions.form');
+            Route::get('permissions/list', 'System\Access\PermissionController@list')->name('permissions.list');
+            Route::post('permissions/save/{permission_id?}', 'System\Access\PermissionController@save')->name('permissions.save');
+            Route::post('permissions/destroy', 'System\Access\PermissionController@destroy')->name('permissions.destroy');
+
+            // 角色管理
+            Route::get('roles', 'System\Access\RoleController@index')->name('roles.index');
+            Route::get('roles/form/{role_id?}', 'System\Access\RoleController@form')->name('roles.form');
+            Route::get('roles/list', 'System\Access\RoleController@list')->name('roles.list');
+            Route::post('roles/save/{role_id?}', 'System\Access\RoleController@save')->name('roles.save');
+            Route::post('roles/destroy', 'System\Access\RoleController@destroy')->name('roles.destroy');
+        });
+
+        // 門市管理
+        Route::get('stores', 'System\StoreController@index')->name('stores.index');
+        Route::get('stores/list', 'System\StoreController@list')->name('stores.list');
+        Route::get('stores/form/{store_id?}', 'System\StoreController@form')->name('stores.form');
+        Route::post('stores/save/{store_id?}', 'System\StoreController@save')->name('stores.save');
+        Route::post('stores/destroy', 'System\StoreController@destroy')->name('stores.destroy');
+
+        // 系統日誌
+        Route::get('logs', [LogController::class, 'index'])->name('logs.index');
+        Route::get('logs/list', [LogController::class, 'list'])->name('logs.list');
+        Route::get('logs/form', [LogController::class, 'form'])->name('logs.form');
+        Route::get('logs/files', [LogController::class, 'files'])->name('logs.files');
+    });
+
     // 報表系統
     Route::group([
         'prefix' => 'reports',
@@ -412,16 +447,5 @@ Route::group([
         // 年度訂單分析
         Route::get('annual-order', 'Report\AnnualOrderReportController@index')->name('annual-order.index');
         Route::get('annual-order/export', 'Report\AnnualOrderReportController@export')->name('annual-order.export');
-    });
-
-    // 系統日誌
-    Route::group([
-        'prefix' => 'system',
-        'as' => 'system.',
-    ], function () {
-        Route::get('logs', [LogController::class, 'index'])->name('logs.index');
-        Route::get('logs/list', [LogController::class, 'list'])->name('logs.list');
-        Route::get('logs/form', [LogController::class, 'form'])->name('logs.form');
-        Route::get('logs/files', [LogController::class, 'files'])->name('logs.files');
     });
 });

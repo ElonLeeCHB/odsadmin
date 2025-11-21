@@ -224,9 +224,9 @@
                         <td class="text-left" style="width:100px;">進貨<BR>單價</td>
                         <td class="text-left" style="width:100px;">進貨<BR>金額</td>
                         <td class="text-left" style="width:80px;">庫存<BR>單位</td>
-                        <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="本次進貨的庫存單價(進貨金額/入庫數量)" style="font-weight: bolder;" >本次庫存<BR>單價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
-                        <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="料件主檔的預設庫存單價" style="font-weight: bolder;" >預設庫存<BR>單價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
-                        <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="最近三個月進貨單價平均" style="font-weight: bolder;" >近期<BR>均價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
+                        <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="本次進貨的庫存單價(進貨金額/入庫數量)" style="font-weight: bolder;" >本次庫存<BR>含稅單價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
+                        <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="料件主檔的預設庫存單價" style="font-weight: bolder;" >預設庫存<BR>含稅單價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
+                        <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="最近三個月進貨單價平均" style="font-weight: bolder;" >近期<BR>含稅均價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
                         <td class="text-center" style="width:80px;"><label data-bs-toggle="tooltip" title="單價異常時請打勾確認" style="font-weight: bolder;" >確認<BR>單價 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
                         <td class="text-left" style="width:100px;"><label data-bs-toggle="tooltip" title="轉入庫存數量" style="font-weight: bolder;" >入庫<BR>數量 <i class="fa fa-question-circle" aria-hidden="true"></i></label></td>
 
@@ -278,7 +278,7 @@
                           <input type="hidden" id="input-products-stock_unit_code-{{ $product_row }}" name="products[{{ $product_row }}][stock_unit_code]" value="{{ $receiving_product->stock_unit_code ?? '' }}">
                         </td>
                         <td class="text-start">
-                          <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="{{ $receiving_product->stock_price ?? 0 }}" class="form-control" readonly>
+                          <input type="text" id="input-products-stock_price-{{ $product_row }}" name="products[{{ $product_row }}][stock_price]" value="" class="form-control" readonly>
                         </td>
                         <td class="text-start">
                           <input type="text" id="input-products-default_stock_price-{{ $product_row }}" name="products[{{ $product_row }}][default_stock_price]" value="{{ $receiving_product->product->stock_price ?? 0 }}" class="form-control" readonly>
@@ -445,8 +445,8 @@ function checkStockPriceDifference(rownum) {
       isConfirmed: true,
       productName: productName
     };
-    // 禁用 checkbox
-    checkbox.prop('disabled', true).prop('checked', false);
+    // 確保 checkbox 可用（讓使用者可以自由勾選）
+    checkbox.prop('disabled', false);
     updatePriceVisualIndicator(rownum);
     return;
   }
@@ -475,8 +475,8 @@ function checkStockPriceDifference(rownum) {
         isConfirmed: true,
         productName: productName
       };
-      // 禁用 checkbox
-      checkbox.prop('disabled', true).prop('checked', false);
+      // 確保 checkbox 可用（讓使用者可以自由勾選）
+      checkbox.prop('disabled', false);
       updatePriceVisualIndicator(rownum);
       return;
     }
@@ -541,13 +541,45 @@ $(document).ready(function () {
     // 更新確認狀態
     if (priceConfirmationStatus[rownum]) {
       priceConfirmationStatus[rownum].isConfirmed = isChecked;
+      console.log('→ 已更新 priceConfirmationStatus[' + rownum + '].isConfirmed =', isChecked);
       // 更新視覺標記（勾選=黃框，未勾選=紅框）
+      updatePriceVisualIndicator(rownum);
+    } else {
+      // 如果 priceConfirmationStatus[rownum] 不存在，建立一個基本物件
+      // 讓使用者勾選的狀態能被保留
+      let productName = $('#input-products-name-' + rownum).val();
+      let currentStockPrice = parseFloat($('#input-products-stock_price-' + rownum).val()) || 0;
+
+      priceConfirmationStatus[rownum] = {
+        isAbnormal: true,  // 假設是異常（因為使用者需要勾選確認）
+        isConfirmed: isChecked,
+        productName: productName,
+        currentPrice: currentStockPrice
+      };
+      console.log('→ 建立新的 priceConfirmationStatus[' + rownum + ']，isConfirmed =', isChecked);
+      // 更新視覺標記
       updatePriceVisualIndicator(rownum);
     }
   });
 
   // 觸發查詢料件的 click 事件
   $('.schProductName').trigger('click');
+
+  // 頁面載入時，重新計算所有料件的庫存含稅單價
+  $('#products tbody tr').each(function() {
+    let rownum = $(this).data('rownum');
+    if (rownum !== undefined) {
+      // 取得該料件的資料
+      let price = $('#input-products-price-' + rownum).val();
+      let receiving_quantity = $('#input-products-receiving_quantity-' + rownum).val();
+      let stock_quantity = $('#input-products-stock_quantity-' + rownum).val();
+
+      // 如果有資料，重新計算庫存含稅單價
+      if (price && receiving_quantity && stock_quantity) {
+        calcProduct(rownum);
+      }
+    }
+  });
 
   // 表單提交時檢查是否有未確認的異常料件
   $('#form-member').on('submit', function(e) {
@@ -559,7 +591,8 @@ $(document).ready(function () {
     // 檢查所有料件
     for (let rownum in priceConfirmationStatus) {
       let status = priceConfirmationStatus[rownum];
-      console.log('檢查 rownum:', rownum, 'status:', status);
+      console.log('檢查 rownum:', rownum, '(type: ' + typeof rownum + ')', 'status:', status);
+      console.log('  isAbnormal:', status.isAbnormal, 'isConfirmed:', status.isConfirmed);
 
       if (status.isAbnormal && !status.isConfirmed) {
         let itemText = '• ' + status.productName;
@@ -568,6 +601,10 @@ $(document).ready(function () {
         }
         unconfirmedItems.push(itemText);
         console.log('→ 發現未確認項目:', itemText);
+      } else if (status.isAbnormal && status.isConfirmed) {
+        console.log('→ 此項目異常但已確認，允許儲存');
+      } else {
+        console.log('→ 此項目正常');
       }
     }
 
@@ -733,11 +770,22 @@ function calcProduct(rownum){
   }
   $('#input-products-stock_quantity-'+rownum).val(stock_quantity);
 
-  // 庫存單價 = 商品小計/入庫數量
-  stock_price = (sub_total / stock_quantity).toFixed(4)
+  // 取得課稅別和稅率
+  var tax_type_code = $('#input-tax_type_code').val();
+  var tax_rate_pcnt = parseFloat($('#input-formatted_tax_rate').val()) / 100;
+
+  // 計算本次庫存含稅單價
+  // 如果是應稅外加（tax_type_code == 2），需要將稅額加入
+  if (tax_type_code == 2) {
+    // 應稅外加：庫存含稅單價 = 商品小計 * (1 + 稅率) / 入庫數量
+    stock_price = (sub_total * (1 + tax_rate_pcnt) / stock_quantity).toFixed(4);
+  } else {
+    // 應稅內含、零稅率、免稅：庫存含稅單價 = 商品小計 / 入庫數量
+    stock_price = (sub_total / stock_quantity).toFixed(4);
+  }
 
   $('#input-products-stock_price-'+rownum).val(stock_price);
-  console.log('factor='+factor+', receiving_quantity='+receiving_quantity+', stock_quantity='+stock_quantity+', sub_total='+sub_total+', stock_price='+stock_price);
+  console.log('factor='+factor+', receiving_quantity='+receiving_quantity+', stock_quantity='+stock_quantity+', sub_total='+sub_total+', tax_type_code='+tax_type_code+', tax_rate_pcnt='+(tax_rate_pcnt*100)+'%, stock_price='+stock_price);
 
   calcAllProducts()
 

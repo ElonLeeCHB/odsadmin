@@ -2,10 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+
 Route::group(
     [
         'prefix' => LaravelLocalization::setLocale(),
-        'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
+        'middleware' => ['localize', 'localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
         'as' => 'lang.'
     ],
     function () {
