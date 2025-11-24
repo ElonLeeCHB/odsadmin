@@ -20,7 +20,7 @@ class PermissionController extends ApiPosController
     {
         $filter_data = $this->url_data;
 
-        $filter_data['select'] = ['name', 'display_name', 'guard_name'];
+        $filter_data['select'] = ['name', 'title', 'guard_name'];
 
         $filter_data['filter_name'] = 'pos.*';
 

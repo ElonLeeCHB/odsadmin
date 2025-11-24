@@ -24,15 +24,21 @@ return new class extends Migration
             throw new \Exception('Error: team_foreign_key on config/permission.php not loaded. Run [php artisan config:clear] and try again.');
         }
 
-        Schema::create($tableNames['permissions'], function (Blueprint $table) {
+        Schema::create($tableNames['permissions'], function (Blueprint $table) use ($tableNames) {
             //$table->engine('InnoDB');
             $table->bigIncrements('id'); // permission id
+            $table->unsignedBigInteger('parent_id')->nullable(); // 父層 ID，NULL 為頂層
             $table->string('name');       // For MyISAM use string('name', 225); // (or 166 for InnoDB with Redundant/Compact row format)
             $table->string('guard_name'); // For MyISAM use string('guard_name', 25);
+            $table->string('title', 50)->nullable(); // 顯示名稱 (用此欄位是因為 spatie permission 的 name 使用上偏向代號的概念。因此新增 title 欄位來存放顯示名稱)
             $table->text('description')->nullable(); // 權限說明
+            $table->string('icon', 50)->nullable(); // 圖示 class (FontAwesome)
+            $table->integer('sort_order')->default(0); // 排序，數字越小越前面
+            $table->enum('type', ['menu', 'action'])->default('menu'); // 類型：menu=顯示在選單, action=功能權限
             $table->timestamps();
 
             $table->unique(['name', 'guard_name']);
+            $table->foreign('parent_id')->references('id')->on($tableNames['permissions'])->onDelete('cascade');
         });
 
         Schema::create($tableNames['roles'], function (Blueprint $table) use ($teams, $columnNames) {
@@ -44,7 +50,7 @@ return new class extends Migration
             }
             $table->string('name');       // For MyISAM use string('name', 225); // (or 166 for InnoDB with Redundant/Compact row format)
             $table->string('guard_name'); // For MyISAM use string('guard_name', 25);
-            $table->string('display_name')->nullable(); // 顯示名稱
+            $table->string('title')->nullable(); // 名稱 (用此欄位是因為 spatie permission 的 name 使用上偏向代號的概念。因此新增 title 欄位來存放顯示名稱)
             $table->text('description')->nullable(); // 權限說明
             $table->timestamps();
             

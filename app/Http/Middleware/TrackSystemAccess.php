@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use App\Models\SystemUser;
+use App\Models\Access\SystemUser;
 
 class TrackSystemAccess
 {

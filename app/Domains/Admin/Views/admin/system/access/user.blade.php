@@ -1,6 +1,8 @@
 @extends('admin.app')
 
 @section('pageJsCss')
+<link href="{{ asset('assets2/public/vendor/select2/select2.min.css') }}" rel="stylesheet" type="text/css"/>
+<script src="{{ asset('assets2/public/vendor/select2/select2.min.js') }}"></script>
 @endsection
 
 @section('columnLeft')
@@ -46,6 +48,15 @@
           <option value="*">{{ $lang->text_select }}</option>
             <option value="1" @if($equal_is_active==1) selected @endif>{{ $lang->text_yes }}</option>
             <option value="0" @if($equal_is_active==0) selected @endif>{{ $lang->text_no }}</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">角色</label>
+          <select id="input-filter_role_ids" name="filter_role_ids[]" class="form-control" multiple="multiple">
+            @foreach($roles as $role)
+            <option value="{{ $role->id }}">{{ $role->title ?: $role->name }}</option>
+            @endforeach
           </select>
         </div>
 
@@ -98,11 +109,20 @@ $('#button-filter').on('click', function() {
   if (equal_is_active) {
     url += '&equal_is_active=' + encodeURIComponent(equal_is_active);
   }
-  
+
+  var filter_role_ids = $('#input-filter_role_ids').val();
+  if (filter_role_ids && filter_role_ids.length > 0) {
+    url += '&filter_role_ids=' + encodeURIComponent(filter_role_ids);
+  }
 
   url = "{{ $list_url }}?" + url;
 
   $('#user').load(url);
+});
+
+$('#input-filter_role_ids').select2({
+  width: '100%',
+  placeholder: '選擇角色'
 });
 //--></script>
 @endsection

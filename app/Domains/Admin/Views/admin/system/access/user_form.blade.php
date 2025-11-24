@@ -38,7 +38,7 @@
                   <fieldset>
                     <legend>{{ $lang->trans('text_user_details') }}</legend>
 
-                    <div class="row mb-3 required">
+                    <div class="row mb-3">
                       <label for="input-username" class="col-sm-2 col-form-label">{{ $lang->column_username }}</label>
                       <div class="col-sm-10">
                         <input type="text" id="input-username" name="username" value="{{ $user->username }}" class="form-control"/>
@@ -79,14 +79,29 @@
                     </div>
                     {{-- DEPRECATED: is_admin 改由帳號中心的 user_systems 管理 --}}
 
+                    @if($user->code)
                     <div class="row mb-3">
-                      <label for="input-employee_code" class="col-sm-2 col-form-label">員工編號</label>
+                      <label for="input-code" class="col-sm-2 col-form-label">會員編號</label>
                       <div class="col-sm-10">
-                        <input type="text" name="employee_code" value="{{ $user->employee_code ?? '' }}" id="input-employee_code" class="form-control"/>
-                        <div id="error-employee_code" class="invalid-feedback"></div>
+                        <input type="text" value="{{ $user->code }}" id="input-code" class="form-control" disabled/>
                       </div>
                     </div>
-                    
+                    @endif
+
+                    <div class="row mb-3">
+                      <label class="col-sm-2 col-form-label">角色</label>
+                      <div class="col-sm-10">
+                        <div style="max-height: 150px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px; padding: 8px;">
+                        @foreach($roles as $role)
+                          <div class="form-check">
+                            <input type="checkbox" name="user_role[]" value="{{ $role->id }}" id="role-{{ $role->id }}" class="form-check-input" {{ in_array($role->id, $user_role_ids) ? 'checked' : '' }}/>
+                            <label for="role-{{ $role->id }}" class="form-check-label">{{ $role->title ?: $role->name }}</label>
+                          </div>
+                        @endforeach
+                        </div>
+                      </div>
+                    </div>
+
                     <legend>密碼</legend>
                     <div class="row mb-3">
                       <label for="input-payment_company" class="col-sm-2 col-form-label">{{ $lang->column_password }}</label>

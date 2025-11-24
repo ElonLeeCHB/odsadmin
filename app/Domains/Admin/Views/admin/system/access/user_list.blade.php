@@ -18,18 +18,18 @@
       <tbody>
         @foreach($users as $row)
         <tr>
-          <td class="text-center"><input type="checkbox" name="selected[]" value="{{ $row->id }}" class="form-check-input"/></td>
-          <td class="text-end">{{ $row->id }}</td>
-          <td class="text-start">{{ $row->username }}</td>
-          <td class="text-start">{{ $row->name }}</td>
-          <td class="text-start">{{ $row->email }}</td>
-          <td class="text-start d-none d-lg-table-cell">{{ $row->created_ymd }}</td>
-          <td class="text-start">@if($row->is_active)
+          <td class="text-center"><input type="checkbox" name="selected[]" value="{{ $row->user_id }}" class="form-check-input"/></td>
+          <td class="text-end">{{ $row->user_id }}</td>
+          <td class="text-start">{{ $row->user->username }}</td>
+          <td class="text-start">{{ $row->user->name }}</td>
+          <td class="text-start">{{ $row->user->email }}</td>
+          <td class="text-start d-none d-lg-table-cell">{{ $row->user->created_at?->format('Y-m-d') }}</td>
+          <td class="text-start">@if($row->user->is_active)
                                       {{ $lang->text_yes }}
                                     @else
                                       {{ $lang->text_no }}
                                     @endif</td>
-          <td class="text-end"><a href="{{ $row->edit_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_edit }}" class="btn btn-primary"><i class="fas fa-pencil-alt"></i></a></td>
+          <td class="text-end"><a href="{{ $row->user->edit_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_edit }}" class="btn btn-primary"><i class="fas fa-pencil-alt"></i></a></td>
         </tr>
         @endforeach
       </tbody>

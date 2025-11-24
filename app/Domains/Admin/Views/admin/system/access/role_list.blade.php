@@ -22,7 +22,7 @@
           <td class="text-center"><input type="checkbox" name="selected[]" value="{{ $row->id }}" class="form-check-input"/></td>
           <td class="text-start">{{ $row->id }}</td>
           <td class="text-start">{{ $row->name }}</td>
-          <td class="text-start">{{ $row->display_name ?? '' }}</td>
+          <td class="text-start">{{ $row->title ?? '' }}</td>
           <td class="text-start">{{ $row->description ?? '' }}</td>
           <td class="text-start">{{ $row->guard_name }}</td>
           <td class="text-start">{{ $row->permissions_count ?? 0 }}</td>

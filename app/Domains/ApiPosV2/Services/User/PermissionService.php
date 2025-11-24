@@ -6,7 +6,7 @@ use App\Services\Service;
 
 class PermissionService extends Service
 {
-    public $modelName = "\App\Models\User\Permission";
+    public $modelName = "\App\Models\Access\Permission";
 
     public function getList($params)
     {

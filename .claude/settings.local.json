@@ -20,7 +20,8 @@
       "Bash(./php.bat artisan report:update-monthly 202503)",
       "Bash(./php.bat artisan:*)",
       "Bash(mkdir:*)",
-      "Bash(./composer.bat dump-autoload:*)"
+      "Bash(./composer.bat dump-autoload:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

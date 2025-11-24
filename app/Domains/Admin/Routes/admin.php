@@ -402,6 +402,7 @@ Route::group([
             Route::get('users/list', 'System\Access\UserController@list')->name('users.list');
             Route::post('users/save/{user_id?}', 'System\Access\UserController@save')->name('users.save');
             Route::post('users/destroy', 'System\Access\UserController@destroy')->name('users.destroy');
+            Route::post('users/fetch-from-accounts', 'System\Access\UserController@fetchFromAccountCenter')->name('users.fetchFromAccounts');
 
             // 權限管理
             Route::get('permissions', 'System\Access\PermissionController@index')->name('permissions.index');

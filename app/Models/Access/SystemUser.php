@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Access;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Permission\Traits\HasRoles;
 
 class SystemUser extends Model
 {
-    use HasFactory;
+    use HasFactory, HasRoles;
 
     /**
      * 對應的資料表
@@ -50,5 +51,27 @@ class SystemUser extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(\App\Models\User\User::class, 'user_id');
+    }
+
+    /**
+     * 取得使用者在特定系統的所有權限（合併所有角色）
+     */
+    public function getPermissionsForSystem(string $system)
+    {
+        return $this->roles
+            ->flatMap->permissions
+            ->unique('id')
+            ->filter(fn($p) => str_starts_with($p->name, $system . '.'));
+    }
+
+    /**
+     * 取得使用者的所有權限名稱（合併所有角色）
+     */
+    public function getAllPermissionNames()
+    {
+        return $this->roles
+            ->flatMap->permissions
+            ->pluck('name')
+            ->unique();
     }
 }

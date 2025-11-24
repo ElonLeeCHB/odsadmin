@@ -10,7 +10,7 @@ use App\Models\User\UserMeta;
 
 class PermissionService extends Service
 {
-    protected $modelName = "\App\Models\User\Permission";
+    protected $modelName = "\App\Models\Access\Permission";
 
     public function getPermissions($data, $debug=0)
     {

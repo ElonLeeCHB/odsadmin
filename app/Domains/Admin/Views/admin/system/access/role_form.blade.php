@@ -64,13 +64,13 @@
 
                 {{-- 顯示名稱 --}}
                 <div class="row mb-3">
-                  <label for="input-display_name" class="col-sm-2 col-form-label">顯示名稱</label>
+                  <label for="input-title" class="col-sm-2 col-form-label">顯示名稱</label>
                   <div class="col-sm-10">
                     <div class="input-group">
-                      <input type="text" id="input-display_name" name="display_name" value="{{ $role->display_name ?? '' }}" class="form-control" placeholder="例如：管理員、編輯者"/>
+                      <input type="text" id="input-title" name="title" value="{{ $role->title ?? '' }}" class="form-control" placeholder="例如：管理員、編輯者"/>
                     </div>
                     <div class="form-text">使用者介面顯示的名稱</div>
-                    <div id="error-display_name" class="invalid-feedback"></div>
+                    <div id="error-title" class="invalid-feedback"></div>
                   </div>
                 </div>
 

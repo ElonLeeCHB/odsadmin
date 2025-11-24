@@ -91,7 +91,7 @@ class RoleController extends BackendController
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                OrmHelper::filterOrEqualColumn($q, 'filter_display_name', $search);
+                OrmHelper::filterOrEqualColumn($q, 'filter_title', $search);
                 $q->orWhere(function ($subQ) use ($search) {
                     OrmHelper::filterOrEqualColumn($subQ, 'filter_description', $search);
                 });
@@ -187,7 +187,7 @@ class RoleController extends BackendController
         // Create or Update
         $data = [
             'name' => $input['name'],
-            'display_name' => $input['display_name'] ?? $input['name'],
+            'title' => $input['title'] ?? $input['name'],
             'description' => $input['description'] ?? null,
             'guard_name' => $input['guard_name'] ?? 'web',
         ];
@@ -224,15 +224,40 @@ class RoleController extends BackendController
             return response()->json(['error' => '請選擇要刪除的項目'], 400);
         }
 
-        foreach ($ids as $id) {
-            $role = $this->roleRepo->query()->find($id);
-            if ($role) {
-                $role->syncPermissions([]);
-                $role->delete();
-            }
-        }
+        $this->roleRepo->query()->whereIn('id', $ids)->each(function ($role) {
+            $role->permissions()->detach();
+        });
+        $this->roleRepo->query()->whereIn('id', $ids)->delete();
 
         return response()->json(['success' => '刪除成功']);
+    }
+
+    /**
+     * Autocomplete for role selection
+     */
+    public function autocomplete()
+    {
+        $query = $this->roleRepo->query();
+
+        if ($this->request->filled('filter_name')) {
+            $query->where(function ($q) {
+                $search = $this->request->filter_name;
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('title', 'like', '%' . $search . '%');
+            });
+        }
+
+        $roles = $query->orderBy('name', 'asc')->limit(20)->get();
+
+        $json = [];
+        foreach ($roles as $row) {
+            $json[] = [
+                'role_id' => $row->id,
+                'name' => $row->title ?: $row->name,
+            ];
+        }
+
+        return response()->json($json);
     }
 
     /**
@@ -241,7 +266,7 @@ class RoleController extends BackendController
     protected function buildUrlParams(Request $request): string
     {
         $params = [];
-        $allowedFields = ['name', 'display_name', 'description', 'is_active'];
+        $allowedFields = ['name', 'title', 'description', 'is_active'];
         $prefixes = ['filter_', 'equal_'];
 
         foreach ($allowedFields as $field) {
