@@ -55,7 +55,6 @@ class RoleController extends BackendController
     {
         $data['lang'] = $this->lang;
 
-        // Breadcrumb
         $data['breadcumbs'] = (object)$this->breadcumbs;
 
         $data['list'] = $this->getList($this->request);

@@ -261,7 +261,8 @@ class OrderService extends Service
             //
 
 
-            // 更新 option_id, option_value_id, map_product_id 為了避免前端錯誤，後端另外處理
+            // 更新 option_id, option_value_id, map_product_id, price, subtotal
+            // 為了避免前端錯誤，後端另外處理
             if (!empty($order->id)) {
                 $sql = "
                         UPDATE order_product_options AS opo
@@ -270,7 +271,20 @@ class OrderService extends Service
                         SET
                             opo.option_id = pov.option_id,
                             opo.option_value_id = pov.option_value_id,
-                            opo.map_product_id = IFNULL(ov.product_id, opo.map_product_id)
+                            opo.map_product_id = IFNULL(ov.product_id, opo.map_product_id),
+                            opo.price = CASE
+                                WHEN pov.price_prefix = '+' THEN pov.price
+                                WHEN pov.price_prefix = '-' THEN -pov.price
+                                ELSE 0
+                            END,
+                            opo.subtotal = ROUND(
+                                CASE
+                                    WHEN pov.price_prefix = '+' THEN pov.price
+                                    WHEN pov.price_prefix = '-' THEN -pov.price
+                                    ELSE 0
+                                END * opo.quantity,
+                                4
+                            )
                         WHERE opo.order_id = " . $order->id;
                 DB::statement($sql);
             }

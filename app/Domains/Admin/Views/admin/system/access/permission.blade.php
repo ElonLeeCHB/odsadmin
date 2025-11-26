@@ -16,7 +16,7 @@
         <a id="button-add" href="{{ $add_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_add ?? '新增' }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i></a>
         <button type="submit" form="form-permission" formaction="{{ $delete_url }}" data-bs-toggle="tooltip" title="{{ $lang->button_delete ?? '刪除' }}" onclick="return confirm('確定要刪除選取的權限嗎？');" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
       </div>
-      <h1>{{ $lang->heading_title ?? '權限管理' }}</h1>
+      <h1>權限管理</h1>
       @include('admin.common.breadcumb')
     </div>
   </div>

@@ -39,13 +39,13 @@ Route::group([
         'prefix' => 'catalog',
         'as' => 'catalog.',
     ], function () {
-        // //商品分類基本資料 廢棄
-        // Route::get('categories', 'Catalog\CategoryController@index')->name('categories.index');
-        // Route::get('categories/list', 'Catalog\CategoryController@list')->name('categories.list');
-        // Route::get('categories/form/{category_id?}', 'Catalog\CategoryController@form')->name('categories.form');
-        // Route::post('categories/save/{category_id?}', 'Catalog\CategoryController@save')->name('categories.save');
-        // Route::get('categories/autocomplete', 'Catalog\CategoryController@autocomplete')->name('categories.autocomplete');
-        // Route::post('categories/destroy', 'Catalog\CategoryController@destroy')->name('categories.destroy');
+        //商品分類基本資料 可能廢棄
+        Route::get('categories', 'Catalog\CategoryController@index')->name('categories.index');
+        Route::get('categories/list', 'Catalog\CategoryController@list')->name('categories.list');
+        Route::get('categories/form/{category_id?}', 'Catalog\CategoryController@form')->name('categories.form');
+        Route::post('categories/save/{category_id?}', 'Catalog\CategoryController@save')->name('categories.save');
+        Route::get('categories/autocomplete', 'Catalog\CategoryController@autocomplete')->name('categories.autocomplete');
+        Route::post('categories/destroy', 'Catalog\CategoryController@destroy')->name('categories.destroy');
 
         Route::get('syncProductOptions', 'Catalog\SyncProductOptionController@index')->name('syncProductOptions.index');
 
@@ -417,6 +417,16 @@ Route::group([
             Route::get('roles/list', 'System\Access\RoleController@list')->name('roles.list');
             Route::post('roles/save/{role_id?}', 'System\Access\RoleController@save')->name('roles.save');
             Route::post('roles/destroy', 'System\Access\RoleController@destroy')->name('roles.destroy');
+
+            // 選單管理
+            Route::get('menus', 'System\Access\MenuController@index')->name('menus.index');
+            Route::get('menus/tree', 'System\Access\MenuController@tree')->name('menus.tree');
+            Route::get('menus/parents', 'System\Access\MenuController@parents')->name('menus.parents');
+            Route::get('menus/{id}', 'System\Access\MenuController@show')->name('menus.show');
+            Route::post('menus', 'System\Access\MenuController@store')->name('menus.store');
+            Route::put('menus/{id}', 'System\Access\MenuController@update')->name('menus.update');
+            Route::delete('menus/{id}', 'System\Access\MenuController@destroy')->name('menus.destroy');
+            Route::post('menus/move', 'System\Access\MenuController@move')->name('menus.move');
         });
 
         // 門市管理

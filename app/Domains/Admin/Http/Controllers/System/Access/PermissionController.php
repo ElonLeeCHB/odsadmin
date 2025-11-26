@@ -8,11 +8,42 @@ use Illuminate\Http\Request;
 
 class PermissionController extends BackendController
 {
+    private $breadcumbs;
+
     public function __construct(protected Request $request, protected PermissionService $PermissionService)
     {
         parent::__construct();
 
         $this->getLang(['admin/common/common','admin/setting/permission']);
+
+        $this->setBreadcumbs();
+    }
+
+    protected function setBreadcumbs()
+    {
+        $this->breadcumbs = [];
+
+        $this->breadcumbs[] = (object)[
+            'text' => '首頁',
+            'href' => route('lang.admin.dashboard'),
+        ];
+
+        $this->breadcumbs[] = (object)[
+            'text' => '系統管理',
+            'href' => 'javascript:void(0)',
+            'cursor' => 'default',
+        ];
+
+        $this->breadcumbs[] = (object)[
+            'text' => '訪問控制',
+            'href' => 'javascript:void(0)',
+            'cursor' => 'default',
+        ];
+
+        $this->breadcumbs[] = (object)[
+            'text' => '權限管理',
+            'href' => route('lang.admin.system.access.permissions.index'),
+        ];
     }
 
     /**
@@ -24,26 +55,9 @@ class PermissionController extends BackendController
     {
         $data['lang'] = $this->lang;
 
+        $data['breadcumbs'] = (object)$this->breadcumbs;
+
         $query_data  = $this->url_data ?? [];
-
-        // Breadcrumb
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_home ?? '首頁',
-            'href' => route('lang.admin.dashboard'),
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => '系統管理',
-            'href' => 'javascript:void(0)',
-            'cursor' => 'default',
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->heading_title ?? '權限管理',
-            'href' => route('lang.admin.system.access.permissions.index'),
-        ];
-
-        $data['breadcumbs'] = (object)$breadcumbs;
 
         $data['list'] = $this->getList();
 
@@ -123,27 +137,9 @@ class PermissionController extends BackendController
     public function form($permission_id = null)
     {
         $data['lang'] = $this->lang;
+        $data['breadcumbs'] = (object)$this->breadcumbs;
 
         $this->lang->text_form = empty($permission_id) ? '新增' : '編輯';
-
-        // Breadcrumb
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->text_home ?? '首頁',
-            'href' => route('lang.admin.dashboard'),
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => '系統管理',
-            'href' => 'javascript:void(0)',
-            'cursor' => 'default',
-        ];
-
-        $breadcumbs[] = (object)[
-            'text' => $this->lang->heading_title ?? '權限管理',
-            'href' => route('lang.admin.system.access.permissions.index'),
-        ];
-
-        $data['breadcumbs'] = (object)$breadcumbs;
 
         // Prepare link for save, back
         $queries = [];

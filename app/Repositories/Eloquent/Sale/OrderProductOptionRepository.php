@@ -92,6 +92,8 @@ class OrderProductOptionRepository extends Repository
             'option_id' => $data['option_id'] ?? 0,
             'option_value_id' => $data['option_value_id'] ?? 0,
             'map_product_id' => $data['map_product_id'] ?? 0,
+            'price' => 0,  // 初始為 0，後續由 SQL UPDATE 補正
+            'subtotal' => 0,  // 初始為 0，後續由 SQL UPDATE 補正
         ];
 
         return $array;

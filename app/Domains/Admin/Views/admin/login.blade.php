@@ -20,10 +20,10 @@
                 @endif
 
                 <div class="row mb-3">
-                  <label for="input-email" class="form-label">{{ $lang->entry_email }}</label>
+                  <label for="input-account" class="form-label">{{ $lang->entry_account ?? $lang->entry_email }}</label>
                   <div class="input-group">
                     <div class="input-group-text"><i class="fas fa-user"></i></div>
-                    <input type="text" name="email" value="" placeholder="{{ $lang->entry_email }}" id="input-email" class="form-control"/>
+                    <input type="text" name="account" value="" placeholder="{{ $lang->entry_account ?? $lang->entry_email }}" id="input-account" class="form-control"/>
                   </div>
                 </div>
                 <div class="row mb-3">

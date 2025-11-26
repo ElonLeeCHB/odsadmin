@@ -21,6 +21,8 @@ class OrderProductOption extends Model
     protected $guarded = [];
     //public $timestamps = false;
     protected $casts = [
+        'price' => 'decimal:4',      // ✅ 新增
+        'subtotal' => 'decimal:4',   // ✅ 新增
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];

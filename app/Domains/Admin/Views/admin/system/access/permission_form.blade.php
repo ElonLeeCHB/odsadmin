@@ -15,7 +15,7 @@
         <button type="submit" form="form-permission" data-bs-toggle="tooltip" title="儲存" class="btn btn-primary"><i class="fa fa-save"></i></button>
         <a href="{{ $back }}" data-bs-toggle="tooltip" title="{{ $lang->button_back ?? '返回' }}" class="btn btn-light"><i class="fas fa-reply"></i></a>
       </div>
-      <h1>{{ $lang->heading_title ?? '權限管理' }}</h1>
+      <h1>權限管理</h1>
       @include('admin.common.breadcumb')
     </div>
   </div>

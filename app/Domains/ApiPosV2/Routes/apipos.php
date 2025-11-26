@@ -162,11 +162,10 @@ Route::group([
 
                 // 發票群組（開票作業）
                 Route::prefix('groups')->name('groups.')->group(function () {
-                    Route::get('/check-order', [InvoiceGroupController::class, 'checkOrder'])->name('check-order');
-                    // Route::get('/', [InvoiceGroupController::class, 'index'])->name('index');
                     Route::post('/', [InvoiceGroupController::class, 'store'])->name('store');
                     Route::put('/', [InvoiceGroupController::class, 'update'])->name('update');
                     Route::get('/edit', [InvoiceGroupController::class, 'edit'])->name('edit');
+                    Route::get('/check-order', [InvoiceGroupController::class, 'checkOrder'])->name('check-order');
                 });
 
                 // 發票開立

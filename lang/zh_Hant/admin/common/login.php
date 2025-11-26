@@ -10,6 +10,7 @@
     'text_forgotten'                        => '忘記密碼',
 
     // Entry
+    'entry_account'                         => '帳號',
     'entry_email'                           => 'Email',
     'entry_username'                        => '管理帳號',
     'entry_password'                        => '管理密碼',

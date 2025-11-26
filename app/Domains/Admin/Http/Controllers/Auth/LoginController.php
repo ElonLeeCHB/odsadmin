@@ -82,11 +82,11 @@ class LoginController extends Controller
      * 判斷邏輯：
      * 1. 純數字 + 09開頭 → mobile（台灣手機號碼格式）
      * 2. 符合 email 格式 → email
-     * 3. 其他 → username（不含純數字、不含特殊符號）
+     * 3. 其他 → username（不含 @ 或純數字）
      */
     protected function username()
     {
-        $input = request()->email; // 表單欄位名稱是 email，但實際可能是各種類型
+        $input = request()->account; // 統一使用 account 欄位
 
         // 判斷 1: 純數字 + 09開頭 → mobile
         if (ctype_digit($input) && str_starts_with($input, '09')) {
@@ -117,14 +117,26 @@ class LoginController extends Controller
             session()->forget('login_error');
 
             throw ValidationException::withMessages([
-                $this->username() => [$errorMessage],
+                'account' => [$errorMessage],
             ]);
         }
 
         // 預設的帳號密碼錯誤訊息
         throw ValidationException::withMessages([
-            $this->username() => [trans('auth.failed')],
+            'account' => [trans('auth.failed')],
             'password' => [trans('auth.failed')],
+        ]);
+    }
+
+    /**
+     * 覆寫驗證登入請求
+     * 使用統一的 account 欄位進行驗證
+     */
+    protected function validateLogin(Request $request)
+    {
+        $request->validate([
+            'account' => 'required|string',
+            'password' => 'required|string',
         ]);
     }
 
@@ -194,13 +206,12 @@ class LoginController extends Controller
             $oauthClient = app(AccountsOAuthClient::class);
 
             $field = $this->username();
-            $account = $request->input('email'); // email 欄位實際上可能是 username 或 email
+            $account = $request->input('account');
             $password = $request->input('password');
 
             Log::info('POS Backend Login - Attempting OAuth login', [
                 'account' => $account,
                 'field' => $field,
-                'system_code' => config('accounts-oauth.system_code'),
                 'client_code' => config('accounts-oauth.client_code'),
             ]);
 

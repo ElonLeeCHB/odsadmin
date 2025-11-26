@@ -582,6 +582,15 @@ class LayoutComposer
             ];
         }
 
+        // menus
+        if (1) {
+            $access[] = [
+                'name'	   => '選單',
+                'href'     => route('lang.admin.system.access.menus.index'),
+                'icon'	   => ' ',
+            ];
+        }
+
         if ($access) {
             $system[] = [
                 'name'	   => '訪問控制',
