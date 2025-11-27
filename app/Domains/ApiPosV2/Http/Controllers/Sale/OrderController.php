@@ -60,9 +60,9 @@ class OrderController extends ApiPosController
     {
         try {
             $post_data = request()->post();
-    
+
             $post_data['order_taker'] = auth()->user()->name;
-    
+
             $order = $this->OrderService->save($this->post_data);
 
             $data = [

@@ -536,7 +536,7 @@ class OrmHelper
             return $table_columns;
         });  
     }
-
+    
     // 綜合判斷 $guarded, $fillable 
     public static function getSavableColumns(Model $row)
     {
@@ -626,7 +626,7 @@ class OrmHelper
             $operatorId = $params['operator_id'];
 
             // 優先順序設定：建立者
-            $creatorFields = ['created_by_id', 'created_by', 'creator_id']; // 取其一
+            $creatorFields = ['created_by', 'created_by_id', 'creator_id']; // 取其一
             foreach ($creatorFields as $field) {
                 if (in_array($field, $table_columns)) {
                     $row->$field = $operatorId;

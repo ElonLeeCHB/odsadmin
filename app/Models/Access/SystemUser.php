@@ -31,6 +31,9 @@ class SystemUser extends Model
      */
     protected $fillable = [
         'user_id',
+        'user_code',
+        'name',
+        'is_active',
         'first_access_at',
         'last_access_at',
         'access_count',
@@ -40,6 +43,7 @@ class SystemUser extends Model
      * 屬性類型轉換
      */
     protected $casts = [
+        'is_active' => 'boolean',
         'first_access_at' => 'datetime',
         'last_access_at' => 'datetime',
         'access_count' => 'integer',

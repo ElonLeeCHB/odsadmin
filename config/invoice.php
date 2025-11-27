@@ -16,14 +16,14 @@ return [
         'api_url' => env('GIVEME_INVOICE_API_URL', 'https://www.giveme.com.tw/invoice.do'),
 
         // 正式環境帳號（從 .env 讀取）
-        'tax_id' => env('GIVEME_INVOICE_PROD_TAX_ID'),
+        'uncode' => env('GIVEME_INVOICE_PROD_UNCODE'),
         'account' => env('GIVEME_INVOICE_PROD_ACCOUNT'),
         'password' => env('GIVEME_INVOICE_PROD_PASSWORD'),
     ],
 
     // 測試環境帳號
     'test' => [
-        'tax_id' => env('GIVEME_INVOICE_TEST_TAX_ID', '53418005'),      // 測試統編
+        'uncode' => env('GIVEME_INVOICE_TEST_UNCODE', '53418005'),      // 測試統編
         'account' => env('GIVEME_INVOICE_TEST_ACCOUNT', 'Giveme09'),    // 測試證號
         'password' => env('GIVEME_INVOICE_TEST_PASSWORD', '9VHGCq'),    // 測試密碼
     ],

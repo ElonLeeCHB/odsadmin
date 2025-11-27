@@ -11,6 +11,7 @@ class Role extends SpatieRole
     // 允許 mass assign
     protected $fillable = [
         'name',
+        'guard_name',
         'title',
         'description',
     ];

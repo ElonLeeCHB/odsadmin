@@ -2,14 +2,11 @@
 
 namespace App\Domains\Admin\Http\Controllers\System\Access;
 
-use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
 use Illuminate\Http\Request;
 use App\Repositories\Access\UserRepository;
 use App\Repositories\Access\RoleRepository;
 use App\Repositories\Access\SystemUserRepository;
-use App\Helpers\Classes\OrmHelper;
-use App\Services\AccountCenterService;
 
 class UserController extends BackendController
 {
@@ -192,6 +189,11 @@ class UserController extends BackendController
         $data['user'] = $user;
         $data['user_id'] = $user_id;
 
+        // 取得 system_user 記錄
+        $data['system_user'] = $user_id
+            ? $this->systemUserRepo->query()->where('user_id', $user_id)->first()
+            : null;
+
         // 載入所有角色
         $data['roles'] = $this->roleRepo->query()->orderBy('name')->get();
         // 用戶已選角色 IDs
@@ -201,114 +203,31 @@ class UserController extends BackendController
     }
 
 
-    public function save(AccountCenterService $accountService)
+    public function save()
     {
         $input = $this->request->all();
         $user_id = $input['user_id'] ?? null;
 
-        // Validation
-        $validationRules = [
-            'password' => 'nullable|confirmed|min:6',
-        ];
-
-        // 新增時，code 為必填，且必須從帳號中心同步
+        // 訪問控制只能編輯現有使用者，不能新增
         if (!$user_id) {
-            $validationRules['code'] = 'required';
+            return response()->json(['error' => '請從使用者列表選擇要編輯的使用者'], 422);
         }
 
-        $this->request->validate($validationRules, [
-            'code.required' => '使用者編號為必填欄位',
-            'password.confirmed' => '密碼不符合',
-            'password.min' => '至少6位數',
-        ]);
+        $user = $this->userRepo->query()->findOrFail($user_id);
 
-        // ===== 新增使用者：只能透過 code 從帳號中心同步 =====
-        if (!$user_id) {
-            try {
-                // 從帳號中心取得使用者資料
-                $accountData = $accountService->fetchUserData($input['code']);
+        // 更新 system_users（只處理 is_active）
+        $this->systemUserRepo->query()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'user_code' => $user->code,
+                'name' => $user->name,
+                'is_active' => $input['is_active'] ?? 1,
+            ]
+        );
 
-                // 檢查本系統是否已存在此 code
-                $existingUser = $this->userRepo->query()->where('code', $accountData['code'])->first();
-                if ($existingUser) {
-                    return response()->json([
-                        'error' => "使用者編號 {$accountData['code']} 已存在於系統中（user_id: {$existingUser->id}）"
-                    ], 422);
-                }
-
-                // 建立新使用者
-                $user = $this->userRepo->getModel();
-                $user->code = $accountData['code'];
-                $user->name = $accountData['name'];
-                $user->email = $accountData['email'];
-                $user->mobile = $accountData['mobile'];
-                $user->telephone = $accountData['telephone'];
-                $user->employee_code = $accountData['employee_code'];
-                $user->is_admin = 1; // 預設為管理員
-
-                // 密碼（可選）
-                if (!empty($input['password'])) {
-                    $user->password = \Illuminate\Support\Facades\Hash::make($input['password']);
-                }
-
-                $user->save();
-
-                // 同步建立 system_users
-                $this->systemUserRepo->getModel()->create([
-                    'user_id' => $user->id,
-                    'user_code' => $user->code,
-                    'name' => $user->name,
-                    'first_access_at' => null,
-                    'last_access_at' => null,
-                    'access_count' => 0,
-                ]);
-
-            } catch (\Exception $e) {
-                return response()->json(['error' => $e->getMessage()], 422);
-            }
-        }
-        // ===== 編輯使用者：可更新部分欄位，但不允許改 code =====
-        else {
-            $user = $this->userRepo->query()->findOrFail($user_id);
-
-            // 更新允許編輯的欄位
-            if (isset($input['name'])) {
-                $user->name = $input['name'];
-            }
-            if (isset($input['email'])) {
-                $user->email = $input['email'];
-            }
-            if (isset($input['mobile'])) {
-                $user->mobile = $input['mobile'];
-            }
-            if (isset($input['telephone'])) {
-                $user->telephone = $input['telephone'];
-            }
-            if (!empty($input['password'])) {
-                $user->password = \Illuminate\Support\Facades\Hash::make($input['password']);
-            }
-
-            if ($user->isDirty()) {
-                $user->save();
-            }
-
-            // 同步更新 system_users
-            $this->systemUserRepo->query()->updateOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'user_code' => $user->code,
-                    'name' => $user->name,
-                ]
-            );
-        }
-
-        // Save metas
-        OrmHelper::saveRowMetaData($user, $input);
-
-        // Sync roles
+        // Sync roles (使用角色 ID 直接操作 pivot table，避免 guard_name 問題)
         $roleIds = $input['user_role'] ?? [];
-        $roles = $this->roleRepo->query()->select('id', 'name', 'guard_name')->whereIn('id', $roleIds)->get();
-        $user->syncRoles($roles);
+        $user->roles()->sync($roleIds);
 
         return response()->json([
             'success' => '儲存成功',

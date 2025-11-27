@@ -6,6 +6,7 @@ use Huabing\AccountsOAuth\AccountsOAuthClient;
 use App\Models\User\User;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -143,6 +144,7 @@ class CheckSanctumOrOAuth
             }
 
             // OAuth 驗證成功，設定用戶
+            Auth::setUser($user);
             $request->setUserResolver(fn() => $user);
             $request->attributes->set('auth_method', 'oauth');
 
@@ -176,6 +178,7 @@ class CheckSanctumOrOAuth
             }
 
             // Sanctum 驗證成功
+            Auth::setUser($user);
             $request->setUserResolver(fn() => $user);
             $request->attributes->set('auth_method', 'sanctum');
 

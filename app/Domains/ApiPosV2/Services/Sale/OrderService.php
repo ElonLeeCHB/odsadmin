@@ -192,19 +192,19 @@ class OrderService extends Service
             //
 
             // order_products
+            if (!empty($data['order_products'])) {
                 // 這一行很重要！後面有用處！對於資料集，使各筆的 sort_order 欄位從 1 遞增，並且讓各筆的索引 =  sort_order
                 $data['order_products'] = DataHelper::resetSortOrder($data['order_products']);
 
                 // 會先刪除再新增。會利用原本的 order_products.id，舊的 id 會沿用, 所以是 upsert()
                 (new OrderProductRepository)->upsertManyByOrderId($data['order_products'], $order->id);
-            // end order_products
 
-            // order_product_options
+                // order_product_options
                 // 重新載入訂單內容
                 $order->load(['orderProducts:id,order_id,sort_order,product_id']);
                 $db_order_products = $order->orderProducts->keyBy('sort_order')->toArray();
 
-                foreach ($data['order_products'] ?? [] as $sort_order => $form_order_product) {
+                foreach ($data['order_products'] as $sort_order => $form_order_product) {
 
                     // 利用 sort_order 結合表單 $form_order_product 與資料庫 $dbOrderProducts
                     $order_product_id = $db_order_products[$sort_order]['id'];
@@ -214,7 +214,7 @@ class OrderService extends Service
                     // 如果產品是固定選項，則指定使用商品的預設選項
                     if ($product->is_product_options_fixed == 1){
                         $form_order_product['order_product_options'] = []; // 不論前端丟什麼過來都清空
-                        
+
                         // $upsert_order_product_options = [];
 
                         $product->load('productOptions.productOptionValues');
@@ -245,7 +245,9 @@ class OrderService extends Service
                     // 一律用新增是因為，選項所依附的 order_products ，在前面的動作包括更新與新增， 是不確定的存在。所以選項一律用新增。
                     (new OrderProductOptionRepository)->createMany($form_order_product['order_product_options'], $order->id, $order_product_id);
                 }
-            // end order_product_options
+                // end order_product_options
+            }
+            // end order_products
 
             // 更新 option_id, option_value_id, map_product_id, price, subtotal
             // 為了避免前端錯誤，後端另外處理

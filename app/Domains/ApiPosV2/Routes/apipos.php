@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceBatchController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceGroupController;
-use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeDataTestController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeDataController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeTestController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderGroupController;
@@ -168,38 +168,46 @@ Route::group([
                     Route::get('/check-order', [InvoiceGroupController::class, 'checkOrder'])->name('check-order');
                 });
 
-                // 發票開立
-                Route::group([
-                    'prefix' => 'issue',
-                    'as' => 'issue.',
-                ], function () {
-                    // API 直接測試（前端傳完整資料）
-                    Route::prefix('giveme/data-test')->name('giveme.data-test.')->group(function () {
-                        Route::get('config', [GivemeDataTestController::class, 'showConfig'])->name('config');
-                        Route::get('signature', [GivemeDataTestController::class, 'testSignature'])->name('signature');
-                        Route::post('b2c', [GivemeDataTestController::class, 'testB2C'])->name('b2c');
-                        Route::post('b2b', [GivemeDataTestController::class, 'testB2B'])->name('b2b');
-                        Route::post('query', [GivemeDataTestController::class, 'testQuery'])->name('query');
-                        Route::post('cancel', [GivemeDataTestController::class, 'testCancel'])->name('cancel');
-                        Route::get('print', [GivemeDataTestController::class, 'testPrint'])->name('print');
-                        Route::post('picture', [GivemeDataTestController::class, 'testPicture'])->name('picture');
+                // 機迷坊發票開立
+                Route::prefix('giveme')->name('giveme.')->group(function () {
+                    // 直接對機迷坊 API 請求（前端傳完整資料）
+                    Route::prefix('data')->name('data.')->group(function () {
+                        // 正式環境（使用 invoice.giveme 憑證）
+                        Route::get('config', [GivemeDataController::class, 'config'])->name('config');
+                        Route::get('signature', [GivemeDataController::class, 'signature'])->name('signature');
+                        Route::post('b2c', [GivemeDataController::class, 'b2c'])->name('b2c');
+                        Route::post('b2b', [GivemeDataController::class, 'b2b'])->name('b2b');
+                        Route::post('query', [GivemeDataController::class, 'query'])->name('query');
+                        Route::post('cancel', [GivemeDataController::class, 'cancel'])->name('cancel');
+                        Route::get('print', [GivemeDataController::class, 'print'])->name('print');
+                        Route::post('picture', [GivemeDataController::class, 'picture'])->name('picture');
+
+                        // 測試環境（使用 invoice.test 憑證）
+                        Route::prefix('test')->name('test.')->group(function () {
+                            Route::get('config', [GivemeDataController::class, 'testConfig'])->name('config');
+                            Route::get('signature', [GivemeDataController::class, 'testSignature'])->name('signature');
+                            Route::post('b2c', [GivemeDataController::class, 'testB2c'])->name('b2c');
+                            Route::post('b2b', [GivemeDataController::class, 'testB2b'])->name('b2b');
+                            Route::post('query', [GivemeDataController::class, 'testQuery'])->name('query');
+                            Route::post('cancel', [GivemeDataController::class, 'testCancel'])->name('cancel');
+                            Route::get('print', [GivemeDataController::class, 'testPrint'])->name('print');
+                            Route::post('picture', [GivemeDataController::class, 'testPicture'])->name('picture');
+                        });
                     });
 
-                    // 完整流程測試（從資料庫讀取）
-                    Route::prefix('giveme/test')->name('giveme.test.')->group(function () {
+                    // 完整流程（從資料庫讀取，使用測試憑證）
+                    Route::prefix('test')->name('test.')->group(function () {
                         Route::post('issue', [GivemeTestController::class, 'issue'])->name('issue');
                         Route::post('query', [GivemeTestController::class, 'query'])->name('query');
                         Route::post('cancel', [GivemeTestController::class, 'cancel'])->name('cancel');
                         Route::get('print-url/{invoice_number}', [GivemeTestController::class, 'printUrl'])->name('printUrl');
                     });
 
-                    // 正式環境
-                    Route::prefix('giveme')->name('giveme.')->group(function () {
-                        Route::post('issue', [GivemeController::class, 'issue'])->name('issue');
-                        Route::post('query', [GivemeController::class, 'query'])->name('query');
-                        Route::post('cancel', [GivemeController::class, 'cancel'])->name('cancel');
-                        Route::get('print-url/{invoice_number}', [GivemeController::class, 'printUrl'])->name('printUrl');
-                    });
+                    // 完整流程（從資料庫讀取，使用正式憑證）
+                    Route::post('issue', [GivemeController::class, 'issue'])->name('issue');
+                    Route::post('query', [GivemeController::class, 'query'])->name('query');
+                    Route::post('cancel', [GivemeController::class, 'cancel'])->name('cancel');
+                    Route::get('print-url/{invoice_number}', [GivemeController::class, 'printUrl'])->name('printUrl');
                 });
             });
 

@@ -228,8 +228,9 @@ class GivemeController extends ApiPosController
                 'request' => $requestData,
             ]);
 
-            // 發送請求
+            // 發送請求（機迷坊 SSL 憑證有問題，需跳過驗證）
             $response = Http::timeout(30)
+                ->withoutVerifying()
                 ->withHeaders(['Content-Type' => 'application/json'])
                 ->post($this->apiUrl . '?action=addB2C', $requestData);
 
@@ -346,8 +347,9 @@ class GivemeController extends ApiPosController
                 'request' => $requestData,
             ]);
 
-            // 發送請求
+            // 發送請求（機迷坊 SSL 憑證有問題，需跳過驗證）
             $response = Http::timeout(30)
+                ->withoutVerifying()
                 ->withHeaders(['Content-Type' => 'application/json'])
                 ->post($this->apiUrl . '?action=addB2B', $requestData);
 
@@ -462,8 +464,9 @@ class GivemeController extends ApiPosController
 
             Log::info('Giveme Production Query Request', ['request' => $requestData]);
 
-            // 發送請求
+            // 發送請求（機迷坊 SSL 憑證有問題，需跳過驗證）
             $response = Http::timeout(30)
+                ->withoutVerifying()
                 ->withHeaders(['Content-Type' => 'application/json'])
                 ->post($this->apiUrl . '?action=query', $requestData);
 
@@ -557,8 +560,9 @@ class GivemeController extends ApiPosController
 
             Log::info('Giveme Production Cancel Request', ['request' => $requestData]);
 
-            // 發送請求
+            // 發送請求（機迷坊 SSL 憑證有問題，需跳過驗證）
             $response = Http::timeout(30)
+                ->withoutVerifying()
                 ->withHeaders(['Content-Type' => 'application/json'])
                 ->post($this->apiUrl . '?action=cancelInvoice', $requestData);
 

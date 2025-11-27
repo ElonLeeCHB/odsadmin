@@ -4,6 +4,7 @@ namespace App\Domains\Admin\Http\Controllers\System\Access;
 
 use App\Domains\Admin\Http\Controllers\BackendController;
 use App\Repositories\Access\RoleRepository;
+use App\Models\Access\Role;
 use App\Helpers\Classes\OrmHelper;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
@@ -191,12 +192,7 @@ class RoleController extends BackendController
             'guard_name' => $input['guard_name'] ?? 'web',
         ];
 
-        if ($role_id) {
-            $role = $this->roleRepo->query()->findOrFail($role_id);
-            $role->update($data);
-        } else {
-            $role = $this->roleRepo->query()->create($data);
-        }
+        $role = OrmHelper::save(Role::class, $data, $role_id);
 
         // Sync permissions
         if (isset($input['permissions'])) {

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->timestamp('first_access_at')->nullable()->comment('首次訪問系統時間');
             $table->timestamp('last_access_at')->nullable()->comment('最後訪問系統時間');
             $table->unsignedInteger('access_count')->default(0)->comment('訪問次數');
+            $table->boolean('is_active')->default('0');
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

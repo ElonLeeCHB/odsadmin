@@ -24,7 +24,7 @@
           <td class="text-start">{{ $row->user->name }}</td>
           <td class="text-start">{{ $row->user->email }}</td>
           <td class="text-start d-none d-lg-table-cell">{{ $row->user->created_at?->format('Y-m-d') }}</td>
-          <td class="text-start">@if($row->user->is_active)
+          <td class="text-start">@if($row->is_active)
                                       {{ $lang->text_yes }}
                                     @else
                                       {{ $lang->text_no }}

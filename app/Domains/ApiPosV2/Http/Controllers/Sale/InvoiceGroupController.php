@@ -158,12 +158,59 @@ class InvoiceGroupController extends ApiPosController
             }
         }
 
-        // 找不到群組
+        // 找不到群組時，視為新增模式（回傳訂單或發票資訊）
         if (empty($invoiceGroup)) {
+            // 準備訂單資料（如果有透過訂單查詢）
+            $orderData = [];
+            if (isset($order) && $order) {
+                $order->load([
+                    'orderProducts' => function ($query) {
+                        $query->select('id', 'order_id', 'name', 'price', 'quantity');
+                    },
+                    'orderTotals'
+                ]);
+                $orderData = [[
+                    'id' => $order->id,
+                    'code' => $order->code,
+                    'payment_total' => $order->payment_total,
+                    'payment_tin' => $order->payment_tin,
+                    'order_products' => $order->orderProducts,
+                    'order_totals' => $order->orderTotals,
+                ]];
+            }
+
+            // 準備發票資料（如果有透過發票查詢）
+            $invoiceData = [];
+            if (isset($invoice) && $invoice) {
+                $invoice->load('invoiceItems');
+                $invoiceData = [[
+                    'id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                    'invoice_type' => $invoice->invoice_type,
+                    'invoice_date' => $invoice->invoice_date,
+                    'buyer_name' => $invoice->buyer_name,
+                    'tax_id_number' => $invoice->tax_id_number,
+                    'total_amount' => $invoice->total_amount,
+                    'tax_amount' => $invoice->tax_amount,
+                    'net_amount' => $invoice->net_amount,
+                    'status' => $invoice->status,
+                    'carrier_type' => $invoice->carrier_type,
+                    'carrier_number' => $invoice->carrier_number,
+                    'created_at' => $invoice->created_at,
+                    'invoice_items' => $invoice->invoiceItems,
+                ]];
+            }
+
             return response()->json([
-                'success' => false,
-                'message' => '找不到群組。可能尚未建立或已作廢',
-            ], 404, [], JSON_UNESCAPED_UNICODE);
+                'success' => true,
+                'data' => [
+                    'used_param' => $usedParam,
+                    'group' => null,
+                    'orders' => $orderData,
+                    'invoices' => $invoiceData,
+                    'invoiceItems' => $invoiceItems,
+                ],
+            ], 200, [], JSON_UNESCAPED_UNICODE);
         }
 
         // 載入相關的訂單和發票資料（發票載入所有狀態，包括作廢）
