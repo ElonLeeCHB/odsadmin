@@ -19,7 +19,8 @@ return new class extends Migration
             $table->id();
             $table->string('group_no', 50)->unique()->comment('群組編號'); // 人工指定的群組編號 暫定 4碼西元年+4碼流水號 共8碼
             $table->enum('invoice_issue_mode', ['standard', 'split', 'merge', 'mixed'])->nullable()->comment('開票方式: standard(標準一對一)/split(拆單)/merge(合併)/mixed(混合)');
-            $table->enum('status', ['active', 'voided'])->default('active')->comment('狀態: active/voided');
+            $table->enum('status', ['active', 'voided'])->default('active')->comment('群組狀態: active/voided');
+            $table->enum('invoice_status', ['pending', 'partial', 'issued'])->default('pending')->comment('開票狀態: pending-待開票/partial-部分開立/issued-全部開立完成');
             $table->text('void_reason')->nullable()->comment('作廢原因');
             $table->unsignedBigInteger('voided_by')->nullable()->comment('作廢人ID');
             $table->timestamp('voided_at')->nullable()->comment('作廢時間');
@@ -67,10 +68,6 @@ return new class extends Migration
             $table->json('api_response_data')->nullable(); // Giveme API 的回應資料
             $table->text('api_error')->nullable(); // API 錯誤訊息
 
-            // 作廢資訊
-            $table->timestamp('canceled_at')->nullable(); // 作廢時間
-            $table->text('cancel_reason')->nullable(); // 作廢原因
-
             $table->string('random_code', 4)->nullable(); // 4位隨機碼（Giveme API 回傳）
             $table->text('content')->nullable(); // 總備註（顯示於發票上）
             $table->string('email')->nullable(); // 客戶 Email
@@ -80,7 +77,15 @@ return new class extends Migration
             $table->string('carrier_number')->nullable(); // 載具號碼/條碼
             $table->string('donation_code', 20)->nullable(); // 捐贈碼
 
-            $table->enum('status', ['pending', 'issued', 'voided'])->default('issued')->comment('狀態: pending-待開立/issued-已開立/voided-已作廢');
+            // 狀態與作廢資訊
+            // status 說明：
+            //   - pending: 草稿/待開立（可編輯、可作廢）
+            //   - issued: 已開立（有 invoice_number，需呼叫 API 才能作廢）
+            //   - voided: 已作廢（不論是資料作廢或發票作廢）
+            // 判斷作廢類型：
+            //   - 若 status='voided' 且 invoice_number 有值 → 發票作廢（已開立後作廢）
+            //   - 若 status='voided' 且 invoice_number 無值 → 資料作廢（未開立就作廢）
+            $table->enum('status', ['pending', 'issued', 'voided'])->default('pending')->comment('狀態: pending-待開立/issued-已開立/voided-已作廢');
             $table->text('void_reason')->nullable()->comment('作廢原因');
             $table->unsignedBigInteger('voided_by')->nullable()->comment('作廢人ID');
             $table->timestamp('voided_at')->nullable()->comment('作廢時間');

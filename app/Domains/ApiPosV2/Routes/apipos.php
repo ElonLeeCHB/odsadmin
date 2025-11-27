@@ -6,7 +6,6 @@ use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceBatchController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceGroupController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeDataController;
-use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeTestController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderGroupController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\PaymentController;
@@ -170,7 +169,8 @@ Route::group([
 
                 // 機迷坊發票開立
                 Route::prefix('giveme')->name('giveme.')->group(function () {
-                    // 直接對機迷坊 API 請求（前端傳完整資料）
+
+                    // 用前端資料對機迷坊 API 請求（前端傳完整資料） (本群組僅用於測試。正式資料應該從我方資料庫讀取訂單與發票內容，然後由 GivemeController 處理)
                     Route::prefix('data')->name('data.')->group(function () {
                         // 正式環境（使用 invoice.giveme 憑證）
                         Route::get('config', [GivemeDataController::class, 'config'])->name('config');
@@ -197,17 +197,23 @@ Route::group([
 
                     // 完整流程（從資料庫讀取，使用測試憑證）
                     Route::prefix('test')->name('test.')->group(function () {
-                        Route::post('issue', [GivemeTestController::class, 'issue'])->name('issue');
-                        Route::post('query', [GivemeTestController::class, 'query'])->name('query');
-                        Route::post('cancel', [GivemeTestController::class, 'cancel'])->name('cancel');
-                        Route::get('print-url/{invoice_number}', [GivemeTestController::class, 'printUrl'])->name('printUrl');
+                        Route::post('issue', [GivemeController::class, 'testIssue'])->name('issue');
+                        Route::post('query', [GivemeController::class, 'testQuery'])->name('query');
+                        Route::post('cancel', [GivemeController::class, 'testCancel'])->name('cancel');
+                        Route::post('picture', [GivemeController::class, 'testPicture'])->name('picture');
+                        Route::get('picture/{invoice_number}', [GivemeController::class, 'testPictureByNumber'])->name('pictureByNumber');
+                        Route::get('print-url/{invoice_number}', [GivemeController::class, 'testPrintUrl'])->name('printUrl');
+                        Route::get('invoicePrint/{invoice_number}', [GivemeController::class, 'testInvoicePrint'])->name('invoicePrint');
                     });
 
                     // 完整流程（從資料庫讀取，使用正式憑證）
                     Route::post('issue', [GivemeController::class, 'issue'])->name('issue');
                     Route::post('query', [GivemeController::class, 'query'])->name('query');
                     Route::post('cancel', [GivemeController::class, 'cancel'])->name('cancel');
+                    Route::post('picture', [GivemeController::class, 'picture'])->name('picture');
+                    Route::get('picture/{invoice_number}', [GivemeController::class, 'pictureByNumber'])->name('pictureByNumber');
                     Route::get('print-url/{invoice_number}', [GivemeController::class, 'printUrl'])->name('printUrl');
+                    Route::get('invoicePrint/{invoice_number}', [GivemeController::class, 'invoicePrint'])->name('invoicePrint');
                 });
             });
 

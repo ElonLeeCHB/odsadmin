@@ -485,22 +485,30 @@ class InvoiceGroupController extends ApiPosController
 
         DB::beginTransaction();
 
-        // 1. 處理或建立群組
-        if (!$invoiceGroup) {
-            // 新增群組
-            $invoiceGroup = $this->createInvoiceGroup($validated);
-        } else {
-            // 更新群組（更新統計欄位）
-            $this->updateInvoiceGroup($invoiceGroup, $validated);
+        try {
+            // 1. 處理或建立群組
+            if (!$invoiceGroup) {
+                // 新增群組
+                $invoiceGroup = $this->createInvoiceGroup($validated);
+            } else {
+                // 更新群組（更新統計欄位）
+                $this->updateInvoiceGroup($invoiceGroup, $validated);
+            }
+
+            // 2. 同步訂單關聯
+            $this->syncOrders($invoiceGroup, $validated['order_ids']);
+
+            // 3. 同步發票和明細
+            $this->syncInvoices($invoiceGroup, $validated['invoices']);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400, [], JSON_UNESCAPED_UNICODE);
         }
-
-        // 2. 同步訂單關聯
-        $this->syncOrders($invoiceGroup, $validated['order_ids']);
-
-        // 3. 同步發票和明細
-        $this->syncInvoices($invoiceGroup, $validated['invoices']);
-
-        DB::commit();
 
         // 重新載入資料
         $invoiceGroup->load(['orders', 'invoices.invoiceItems']);
@@ -707,11 +715,33 @@ class InvoiceGroupController extends ApiPosController
             $invoicesData = array_slice($invoicesData, 0, 1);
         }
 
-        // 刪除舊的發票關聯和發票
+        // 取得現有發票並檢查狀態
         $oldInvoiceIds = InvoiceGroupInvoice::where('group_id', $invoiceGroup->id)
             ->pluck('invoice_id')
             ->toArray();
 
+        // 檢查發票狀態限制
+        if (!empty($oldInvoiceIds)) {
+            $existingInvoices = Invoice::whereIn('id', $oldInvoiceIds)->get();
+
+            foreach ($existingInvoices as $existingInvoice) {
+                // voided 狀態：完全禁止任何變動
+                if ($existingInvoice->status->value === 'voided') {
+                    throw new \Exception(
+                        "發票 {$existingInvoice->invoice_number} 已作廢，無法進行任何變動"
+                    );
+                }
+
+                // issued 狀態：禁止修改，只允許作廢操作
+                if ($existingInvoice->status->value === 'issued') {
+                    throw new \Exception(
+                        "發票 {$existingInvoice->invoice_number} 已開立，無法修改。如需變更請先作廢該發票"
+                    );
+                }
+            }
+        }
+
+        // 刪除舊的發票關聯和發票（僅 pending 狀態才會到達這裡）
         InvoiceGroupInvoice::where('group_id', $invoiceGroup->id)->delete();
         Invoice::whereIn('id', $oldInvoiceIds)->delete(); // 這會連帶刪除 invoice_items
 

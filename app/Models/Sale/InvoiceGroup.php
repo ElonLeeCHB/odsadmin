@@ -5,6 +5,7 @@ namespace App\Models\Sale;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\DB;
 
 class InvoiceGroup extends Model
 {
@@ -12,6 +13,7 @@ class InvoiceGroup extends Model
         'group_no',
         'invoice_issue_mode',
         'status',
+        'invoice_status',
         'void_reason',
         'voided_by',
         'voided_at',
@@ -93,6 +95,107 @@ class InvoiceGroup extends Model
     }
 
     /**
+     * 只查詢發票待開立的群組 (invoice_status = pending)
+     */
+    public function scopeInvoicePending($query)
+    {
+        return $query->where('invoice_status', 'pending');
+    }
+
+    /**
+     * 只查詢發票部分開立的群組 (invoice_status = partial)
+     */
+    public function scopeInvoicePartial($query)
+    {
+        return $query->where('invoice_status', 'partial');
+    }
+
+    /**
+     * 只查詢發票全部開立完成的群組 (invoice_status = issued)
+     */
+    public function scopeInvoiceIssued($query)
+    {
+        return $query->where('invoice_status', 'issued');
+    }
+
+    /**
+     * 計算群組內訂單金額總和
+     * 使用 orders.payment_total
+     *
+     * @return float
+     */
+    public function calculateOrdersTotal(): float
+    {
+        return (float) $this->orders()->sum('orders.payment_total');
+    }
+
+    /**
+     * 計算群組內發票金額總和
+     * 使用 invoices.total_amount
+     *
+     * @return float
+     */
+    public function calculateInvoicesTotal(): float
+    {
+        return (float) $this->invoices()->sum('invoices.total_amount');
+    }
+
+    /**
+     * 檢查群組金額是否平衡（訂單總額 = 發票總額）
+     *
+     * @return bool
+     */
+    public function isAmountBalanced(): bool
+    {
+        $ordersTotal = $this->calculateOrdersTotal();
+        $invoicesTotal = $this->calculateInvoicesTotal();
+
+        // 使用 bccomp 避免浮點數精度問題，精確到小數點後 2 位
+        return bccomp((string) $ordersTotal, (string) $invoicesTotal, 2) === 0;
+    }
+
+    /**
+     * 更新群組的開票狀態（invoice_status）
+     * 根據群組內發票的狀態自動判斷
+     *
+     * @return string 更新後的狀態
+     * @throws \Exception 當要標記為 issued 但金額不平衡時
+     */
+    public function refreshInvoiceStatus(): string
+    {
+        $invoices = $this->invoices()->get();
+
+        if ($invoices->isEmpty()) {
+            $this->invoice_status = 'pending';
+            $this->save();
+            return 'pending';
+        }
+
+        $allIssued = $invoices->every(fn($invoice) => $invoice->status === 'issued');
+        $anyIssued = $invoices->contains(fn($invoice) => $invoice->status === 'issued');
+
+        if ($allIssued) {
+            // 要標記為 issued 前，必須檢查金額平衡
+            if (!$this->isAmountBalanced()) {
+                $ordersTotal = $this->calculateOrdersTotal();
+                $invoicesTotal = $this->calculateInvoicesTotal();
+                throw new \Exception(
+                    "群組 {$this->group_no} 金額不平衡，無法標記為全部開立完成。" .
+                    "訂單總額: {$ordersTotal}, 發票總額: {$invoicesTotal}"
+                );
+            }
+            $this->invoice_status = 'issued';
+        } elseif ($anyIssued) {
+            $this->invoice_status = 'partial';
+        } else {
+            $this->invoice_status = 'pending';
+        }
+
+        $this->save();
+        return $this->invoice_status;
+    }
+
+    /**
      * 作廢群組
      *
      * @param string $reason 作廢原因
@@ -107,7 +210,7 @@ class InvoiceGroup extends Model
         }
 
         // 開始交易
-        return \DB::transaction(function () use ($reason, $voidedBy) {
+        return DB::transaction(function () use ($reason, $voidedBy) {
             // 1. 更新群組狀態
             $this->update([
                 'status' => 'voided',

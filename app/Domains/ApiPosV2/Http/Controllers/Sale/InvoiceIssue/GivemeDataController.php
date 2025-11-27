@@ -236,6 +236,7 @@ class GivemeDataController extends ApiPosController
     // ========================================
 
     /**
+     * 1.1.1 B2C 發票新增介面 
      * 處理 B2C 發票開立
      */
     protected function processB2C(Request $request, array $credentials, string $env)

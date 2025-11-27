@@ -8,59 +8,82 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
 use App\Models\Sale\Invoice;
+use App\Models\Sale\InvoiceGroup;
 
 /**
- * Giveme 電子發票正式環境控制器
+ * Giveme 電子發票控制器
  *
- * 用途：正式環境的發票開立流程（從資料庫讀取）
- * 環境：僅限 production 環境使用
- * 特點：使用正式帳號，僅在正式環境執行
+ * 用途：發票開立流程（從資料庫讀取）
+ * 特點：同時支援正式環境與測試環境
  *
- * ⚠️ 重要：此控制器僅能在 APP_ENV=production 時執行
- * 非 production 環境請使用 GivemeTestController
+ * 正式環境端點：
+ *   - POST /issue, /query, /cancel, /picture
+ *   - GET /print-url/{invoice_number}
+ *
+ * 測試環境端點（使用測試憑證）：
+ *   - POST /test/issue, /test/query, /test/cancel, /test/picture
+ *   - GET /test/print-url/{invoice_number}
  */
 
 /*
-  ✅ Giveme 電子發票正式環境路徑
+  ✅ Giveme 電子發票路徑
 
   基礎路徑
 
-  http://your-domain.com/api/posv2/sales/invoice-issue/giveme
+  http://your-domain.com/api/posv2/sales/invoices/giveme
 
-  可用端點
+  可用端點（正式環境）
 
   | 方法   | 路徑                          | 說明                                     |
   |------|------------------------------|----------------------------------------|
-  | POST | /issue                       | 開立發票（需提供 invoice_id, order_id, order_code） |
-  | POST | /cancel                      | 作廢發票（需提供 invoice_id, reason）             |
+  | POST | /issue                       | 開立發票（需提供 invoice_id, group_no）         |
   | POST | /query                       | 查詢發票（需提供 invoice_id）                    |
-  | GET  | /print-url/{invoice_number}  | 取得發票列印 URL（需提供 invoice_number）         |
+  | POST | /cancel                      | 作廢發票（需提供 invoice_id, reason）            |
+  | POST | /picture                     | 取得發票圖片（需提供 invoice_id, group_no）       |
+  | GET  | /print-url/{invoice_number}  | 取得發票列印 URL                              |
+
+  可用端點（測試環境，使用測試憑證）
+
+  | 方法   | 路徑                               | 說明                                  |
+  |------|----------------------------------|-------------------------------------|
+  | POST | /test/issue                      | 開立發票（測試）                           |
+  | POST | /test/query                      | 查詢發票（測試）                           |
+  | POST | /test/cancel                     | 作廢發票（測試）                           |
+  | POST | /test/picture                    | 取得發票圖片（測試）                         |
+  | GET  | /test/print-url/{invoice_number} | 取得發票列印 URL（測試）                     |
 
   完整 URL 範例
 
   # 1. 開立發票
-  POST http://your-domain.com/api/posv2/sales/invoice-issue/giveme/issue
+  POST http://your-domain.com/api/posv2/sales/invoices/giveme/issue
   Body: {
     "invoice_id": 123,
-    "order_id": 456,
-    "order_code": "ORD20250101001"
+    "group_no": 20250001
   }
 
-  # 2. 作廢發票
-  POST http://your-domain.com/api/posv2/sales/invoice-issue/giveme/cancel
+  # 2. 查詢發票
+  POST http://your-domain.com/api/posv2/sales/invoices/giveme/query
+  Body: {
+    "invoice_id": 123
+  }
+
+  # 3. 作廢發票
+  POST http://your-domain.com/api/posv2/sales/invoices/giveme/cancel
   Body: {
     "invoice_id": 123,
     "reason": "客戶要求作廢"
   }
 
-  # 3. 查詢發票
-  POST http://your-domain.com/api/posv2/sales/invoice-issue/giveme/query
+  # 4. 取得發票圖片
+  POST http://your-domain.com/api/posv2/sales/invoices/giveme/picture
   Body: {
-    "invoice_id": 123
+    "invoice_id": 123,
+    "group_no": 20250001,
+    "type": 1  // 1=發票證明聯+交易明細, 2=發票證明聯, 3=交易明細
   }
 
-  # 4. 取得發票列印 URL
-  GET http://your-domain.com/api/posv2/sales/invoice-issue/giveme/print-url/JN80000776
+  # 5. 取得發票列印 URL
+  GET http://your-domain.com/api/posv2/sales/invoices/giveme/print-url/JN80000776
 */
 
 class GivemeController extends ApiPosController
@@ -68,54 +91,263 @@ class GivemeController extends ApiPosController
     /**
      * API 基礎 URL
      */
-    protected string $apiUrl;
+    protected ?string $apiUrl = null;
 
     /**
-     * 正式環境參數
+     * 當前使用的憑證
      */
-    protected string $taxId;
-    protected string $account;
-    protected string $password;
+    protected array $credentials = [];
+
+    // ========================================
+    // 憑證取得方法
+    // ========================================
 
     /**
-     * 建構子 - 檢查環境並初始化設定
+     * 初始化 API URL
      */
-    public function __construct()
+    protected function initApiUrl(): void
     {
-        parent::__construct();
-
-        // 環境檢查：僅允許 production 環境使用
-        // if (config('app.env') !== 'production') {
-        //     abort(403, '此 API 僅限正式環境使用，請使用 GivemeTestController 進行測試');
-        // }
-
-        $this->apiUrl = config('invoice.giveme.api_url');
-        $this->taxId = config('invoice.giveme.tax_id');
-        $this->account = config('invoice.giveme.account');
-        $this->password = config('invoice.giveme.password');
+        if ($this->apiUrl === null) {
+            $this->apiUrl = config('invoice.giveme.api_url');
+        }
     }
 
     /**
-     * 開立發票（從資料庫讀取）
+     * 取得正式環境憑證
+     */
+    protected function getProductionCredentials(): array
+    {
+        return [
+            'uncode' => config('invoice.giveme.uncode'),
+            'account' => config('invoice.giveme.account'),
+            'password' => config('invoice.giveme.password'),
+        ];
+    }
+
+    /**
+     * 取得測試環境憑證
+     */
+    protected function getTestCredentials(): array
+    {
+        return [
+            'uncode' => config('invoice.test.uncode'),
+            'account' => config('invoice.test.account'),
+            'password' => config('invoice.test.password'),
+        ];
+    }
+
+    /**
+     * 產生簽章
+     */
+    protected function generateSignature(string $timeStamp, array $credentials): string
+    {
+        return strtoupper(md5($timeStamp . $credentials['account'] . $credentials['password']));
+    }
+
+    // ========================================
+    // 正式環境端點
+    // ========================================
+
+    /**
+     * 開立發票（正式環境）
      *
-     * POST /api/posv2/sales/invoice-issue/giveme/issue
+     * POST /api/posv2/sales/invoices/giveme/issue
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function issue(Request $request)
     {
+        return $this->processIssue($request, $this->getProductionCredentials(), 'production');
+    }
+
+    /**
+     * 查詢發票（正式環境）
+     *
+     * POST /api/posv2/sales/invoices/giveme/query
+     */
+    public function query(Request $request)
+    {
+        return $this->processQuery($request, $this->getProductionCredentials(), 'production');
+    }
+
+    /**
+     * 作廢發票（正式環境）
+     *
+     * POST /api/posv2/sales/invoices/giveme/cancel
+     */
+    public function cancel(Request $request)
+    {
+        return $this->processCancel($request, $this->getProductionCredentials(), 'production');
+    }
+
+    /**
+     * 發票圖片列印（正式環境）
+     *
+     * POST /api/posv2/sales/invoices/giveme/picture
+     */
+    public function picture(Request $request)
+    {
+        return $this->processPicture($request, $this->getProductionCredentials(), 'production');
+    }
+
+    /**
+     * 取得發票列印 URL（正式環境）- 已棄用，建議使用 invoicePrint
+     *
+     * GET /api/posv2/sales/invoices/giveme/print-url/{invoice_number}
+     *
+     * @deprecated 請改用 invoicePrint，直接返回 HTML 頁面
+     */
+    public function printUrl($invoiceNumber)
+    {
+        return $this->processPrintUrl($invoiceNumber, $this->getProductionCredentials(), 'production');
+    }
+
+    /**
+     * 發票列印（正式環境）- Giveme 文件 1.1.4
+     *
+     * GET /api/posv2/sales/invoices/giveme/invoicePrint/{invoice_number}
+     *
+     * 直接返回 Giveme 的發票列印 HTML 頁面
+     */
+    public function invoicePrint($invoiceNumber)
+    {
+        return $this->processInvoicePrint($invoiceNumber, $this->getProductionCredentials(), 'production');
+    }
+
+    /**
+     * 取得發票圖片（正式環境）- GET 版本
+     *
+     * GET /api/posv2/sales/invoices/giveme/picture/{invoice_number}
+     *
+     * 直接用 invoice_number 取得發票圖片（預設 type=1）
+     */
+    public function pictureByNumber($invoiceNumber)
+    {
+        return $this->processPictureByNumber($invoiceNumber, $this->getProductionCredentials(), 'production');
+    }
+
+    // ========================================
+    // 測試環境端點
+    // ========================================
+
+    /**
+     * 開立發票（測試環境）
+     *
+     * POST /api/posv2/sales/invoices/giveme/test/issue
+     */
+    public function testIssue(Request $request)
+    {
+        return $this->processIssue($request, $this->getTestCredentials(), 'test');
+    }
+
+    /**
+     * 查詢發票（測試環境）
+     *
+     * POST /api/posv2/sales/invoices/giveme/test/query
+     */
+    public function testQuery(Request $request)
+    {
+        return $this->processQuery($request, $this->getTestCredentials(), 'test');
+    }
+
+    /**
+     * 作廢發票（測試環境）
+     *
+     * POST /api/posv2/sales/invoices/giveme/test/cancel
+     */
+    public function testCancel(Request $request)
+    {
+        return $this->processCancel($request, $this->getTestCredentials(), 'test');
+    }
+
+    /**
+     * 發票圖片列印（測試環境）
+     *
+     * POST /api/posv2/sales/invoices/giveme/test/picture
+     */
+    public function testPicture(Request $request)
+    {
+        return $this->processPicture($request, $this->getTestCredentials(), 'test');
+    }
+
+    /**
+     * 取得發票列印 URL（測試環境）- 已棄用，建議使用 testInvoicePrint
+     *
+     * GET /api/posv2/sales/invoices/giveme/test/print-url/{invoice_number}
+     *
+     * @deprecated 請改用 testInvoicePrint，直接返回 HTML 頁面
+     */
+    public function testPrintUrl($invoiceNumber)
+    {
+        return $this->processPrintUrl($invoiceNumber, $this->getTestCredentials(), 'test');
+    }
+
+    /**
+     * 發票列印（測試環境）- Giveme 文件 1.1.4
+     *
+     * GET /api/posv2/sales/invoices/giveme/test/invoicePrint/{invoice_number}
+     *
+     * 直接返回 Giveme 的發票列印 HTML 頁面
+     */
+    public function testInvoicePrint($invoiceNumber)
+    {
+        return $this->processInvoicePrint($invoiceNumber, $this->getTestCredentials(), 'test');
+    }
+
+    /**
+     * 取得發票圖片（測試環境）- GET 版本
+     *
+     * GET /api/posv2/sales/invoices/giveme/test/picture/{invoice_number}
+     *
+     * 直接用 invoice_number 取得發票圖片（預設 type=1）
+     */
+    public function testPictureByNumber($invoiceNumber)
+    {
+        return $this->processPictureByNumber($invoiceNumber, $this->getTestCredentials(), 'test');
+    }
+
+    // ========================================
+    // 核心處理方法
+    // ========================================
+
+    /**
+     * 處理開立發票
+     *
+     * @param Request $request
+     * @param array $credentials
+     * @param string $env
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function processIssue(Request $request, array $credentials, string $env)
+    {
+        $this->initApiUrl();
+        $this->credentials = $credentials;
+
         try {
             // 驗證輸入
             $request->validate([
                 'invoice_id' => 'required|integer',
+                'group_no' => 'required|integer',
                 'order_id' => 'nullable|integer',
                 'order_code' => 'nullable|string',
             ]);
 
             $invoiceId = $request->input('invoice_id');
+            $groupNo = $request->input('group_no');
             $orderId = $request->input('order_id');
             $orderCode = $request->input('order_code');
+
+            // 檢查發票群組是否存在
+            $invoiceGroup = InvoiceGroup::where('group_no', $groupNo)->first();
+
+            if (!$invoiceGroup) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '找不到發票群組',
+                    'group_no' => $groupNo,
+                ], 404, [], JSON_UNESCAPED_UNICODE);
+            }
 
             // 從資料庫讀取發票
             $invoice = Invoice::with('invoiceItems')->find($invoiceId);
@@ -128,6 +360,20 @@ class GivemeController extends ApiPosController
                 ], 404, [], JSON_UNESCAPED_UNICODE);
             }
 
+            // 檢查發票是否屬於該群組
+            $invoiceBelongsToGroup = $invoiceGroup->invoices()
+                ->where('invoices.id', $invoiceId)
+                ->exists();
+
+            if (!$invoiceBelongsToGroup) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '發票不屬於此群組',
+                    'invoice_id' => $invoiceId,
+                    'group_no' => $groupNo,
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
+
             // 檢查發票是否已開立（允許 PENDING 或 PENDING_* 開頭的臨時號碼）
             if (!empty($invoice->invoice_number)
                 && $invoice->invoice_number !== 'PENDING'
@@ -135,12 +381,15 @@ class GivemeController extends ApiPosController
                 return response()->json([
                     'success' => false,
                     'message' => '發票已存在',
-                    'invoice_number' => $invoice->invoice_number,
+                    'data' => [
+                        'invoice_id' => $invoice->id,
+                        'invoice_number' => $invoice->invoice_number,
+                    ],
                 ], 400, [], JSON_UNESCAPED_UNICODE);
             }
 
             // 判斷是 B2C 還是 B2B
-            $isB2B = !empty($invoice->tax_id_number);
+            $isB2B = !empty($invoice->uncode_number);
 
             // 組裝機迷坊 API 請求資料
             if ($isB2B) {
@@ -173,6 +422,7 @@ class GivemeController extends ApiPosController
 
     /**
      * 開立 B2C 發票
+     * Giveme 文件 1.1.1 B2C 發票新增介面
      *
      * @param Invoice $invoice
      * @param int|null $orderId
@@ -185,7 +435,7 @@ class GivemeController extends ApiPosController
 
         try {
             $timeStamp = round(microtime(true) * 1000);
-            $sign = strtoupper(md5($timeStamp . $this->account . $this->password));
+            $sign = $this->generateSignature((string)$timeStamp, $this->credentials);
 
             // 組裝商品明細
             $items = [];
@@ -198,18 +448,19 @@ class GivemeController extends ApiPosController
                 ];
             }
 
-            // 組裝請求資料
+            // 組裝請求資料（格式需與 GivemeDataController 一致）
             $requestData = [
                 'timeStamp' => (string)$timeStamp,
-                'uncode' => $this->taxId,
-                'idno' => $this->account,
+                'uncode' => $this->credentials['uncode'],
+                'idno' => $this->credentials['account'],
                 'sign' => $sign,
                 'customerName' => $invoice->buyer_name ?? '',
+                'phone' => '',
                 'datetime' => \Carbon\Carbon::parse($invoice->invoice_date)->format('Y-m-d'),
                 'email' => $invoice->email ?? '',
                 'state' => $invoice->carrier_type === 'donation' ? '1' : '0',
                 'taxType' => $this->mapTaxType($invoice->tax_type),
-                'totalFee' => (string)$invoice->total_amount,
+                'totalFee' => (float)$invoice->total_amount,
                 'content' => $invoice->content ?? '商品銷售',
                 'items' => $items,
             ];
@@ -228,27 +479,112 @@ class GivemeController extends ApiPosController
                 'request' => $requestData,
             ]);
 
+            // echo "<pre>", print_r($requestData, true), "</pre>"; exit;
+
+            /*
+            得到結果：
+                <pre>Array
+                (
+                    [timeStamp] => 1764219862968
+                    [uncode] => 95463108
+                    [idno] => elonlee
+                    [sign] => 52F41685C5074C1983E8BACB3997A131
+                    [customerName] => 台湾科技股份有限公司
+                    [datetime] => 2025-11-27
+                    [email] => accounting@company.com
+                    [state] => 0
+                    [taxType] => 0
+                    [totalFee] => 9000.00
+                    [content] => 合并开立发票
+                    [items] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [name] => 冰粽礼盒A（大宗采购）
+                                    [money] => 476
+                                    [number] => 10
+                                    [remark] => 未税单价
+                                )
+
+                            [1] => Array
+                                (
+                                    [name] => 冰粽礼盒B（大宗采购）
+                                    [money] => 761
+                                    [number] => 5
+                                    [remark] => 未税单价
+                                )
+
+                        )
+
+                )
+                </pre>
+
+            */
+
             // 發送請求（機迷坊 SSL 憑證有問題，需跳過驗證）
-            $response = Http::timeout(30)
-                ->withoutVerifying()
-                ->withHeaders(['Content-Type' => 'application/json'])
-                ->post($this->apiUrl . '?action=addB2C', $requestData);
+            $fullUrl = $this->apiUrl . '?action=addB2C';
+
+            Log::info('Giveme Production B2C Request URL', [
+                'apiUrl' => $this->apiUrl,
+                'fullUrl' => $fullUrl,
+            ]);
+
+            try {
+                $response = Http::timeout(30)
+                    ->withoutVerifying()
+                    ->withHeaders(['Content-Type' => 'application/json'])
+                    ->post($fullUrl, $requestData);
+            } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                Log::error('Giveme Production B2C Connection Error', [
+                    'error' => $e->getMessage(),
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'B2C 發票開立失敗 - 連線錯誤',
+                    'invoice_id' => $invoice->id,
+                    'error' => $e->getMessage(),
+                    'api_url' => $fullUrl,
+                ], 500, [], JSON_UNESCAPED_UNICODE);
+            }
 
             $responseData = $response->json();
+            $httpStatus = $response->status();
+            $responseBody = $response->body();
 
             Log::info('Giveme Production B2C Response', [
                 'invoice_id' => $invoice->id,
-                'status' => $response->status(),
-                'response' => $responseData,
+                'http_status' => $httpStatus,
+                'response_body' => $responseBody,
+                'response_json' => $responseData,
             ]);
+
+            // 檢查 HTTP 請求是否失敗
+            if ($response->failed() || $responseData === null) {
+                $invoice->api_request_data = $requestData;
+                $invoice->api_response_data = ['raw_body' => $responseBody];
+                $invoice->api_error = "HTTP {$httpStatus}: " . ($responseBody ?: '無回應');
+                $invoice->save();
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'B2C 發票開立失敗 - HTTP 請求錯誤',
+                    'invoice_id' => $invoice->id,
+                    'http_status' => $httpStatus,
+                    'error' => $responseBody ?: '無回應',
+                    'api_url' => $this->apiUrl . '?action=addB2C',
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
 
             // 更新資料庫
             if (isset($responseData['success']) && $responseData['success'] === 'true') {
                 $invoice->invoice_number = $responseData['code'];
                 $invoice->random_code = $responseData['randomCode'] ?? null;
-                $invoice->api_request_data = json_encode($requestData);
-                $invoice->api_response_data = json_encode($responseData);
-                $invoice->giveme_status = '0';
+                $invoice->api_request_data = $requestData;
+                $invoice->api_response_data = $responseData;
+                $invoice->status = 'issued';
                 $invoice->save();
 
                 DB::commit();
@@ -262,8 +598,8 @@ class GivemeController extends ApiPosController
                 ], 200, [], JSON_UNESCAPED_UNICODE);
             } else {
                 // API 回應失敗
-                $invoice->api_request_data = json_encode($requestData);
-                $invoice->api_response_data = json_encode($responseData);
+                $invoice->api_request_data = $requestData;
+                $invoice->api_response_data = $responseData;
                 $invoice->api_error = $responseData['msg'] ?? 'API 回應失敗';
                 $invoice->save();
 
@@ -298,6 +634,7 @@ class GivemeController extends ApiPosController
 
     /**
      * 開立 B2B 發票
+     * Giveme 文件 1.1.2 B2B 發票新增介面 
      *
      * @param Invoice $invoice
      * @param int|null $orderId
@@ -310,7 +647,7 @@ class GivemeController extends ApiPosController
 
         try {
             $timeStamp = round(microtime(true) * 1000);
-            $sign = strtoupper(md5($timeStamp . $this->account . $this->password));
+            $sign = $this->generateSignature((string)$timeStamp, $this->credentials);
 
             // 組裝商品明細
             $items = [];
@@ -326,11 +663,11 @@ class GivemeController extends ApiPosController
             // 組裝請求資料
             $requestData = [
                 'timeStamp' => (string)$timeStamp,
-                'uncode' => $this->taxId,
-                'idno' => $this->account,
+                'uncode' => $this->credentials['uncode'],
+                'idno' => $this->credentials['account'],
                 'sign' => $sign,
                 'customerName' => $invoice->buyer_name ?? '',
-                'phone' => $invoice->tax_id_number,  // B2B 的 phone 是買方統編
+                'phone' => $invoice->uncode_number,  // B2B 的 phone 是買方統編
                 'datetime' => \Carbon\Carbon::parse($invoice->invoice_date)->format('Y-m-d'),
                 'email' => $invoice->email ?? '',
                 'taxState' => (string)($invoice->tax_state ?? 0),
@@ -364,9 +701,9 @@ class GivemeController extends ApiPosController
             // 更新資料庫
             if (isset($responseData['success']) && $responseData['success'] === 'true') {
                 $invoice->invoice_number = $responseData['code'];
-                $invoice->api_request_data = json_encode($requestData);
-                $invoice->api_response_data = json_encode($responseData);
-                $invoice->giveme_status = '0';
+                $invoice->api_request_data = $requestData;
+                $invoice->api_response_data = $responseData;
+                $invoice->status = 'issued';
                 $invoice->save();
 
                 DB::commit();
@@ -380,8 +717,8 @@ class GivemeController extends ApiPosController
                 ], 200, [], JSON_UNESCAPED_UNICODE);
             } else {
                 // API 回應失敗
-                $invoice->api_request_data = json_encode($requestData);
-                $invoice->api_response_data = json_encode($responseData);
+                $invoice->api_request_data = $requestData;
+                $invoice->api_response_data = $responseData;
                 $invoice->api_error = $responseData['msg'] ?? 'API 回應失敗';
                 $invoice->save();
 
@@ -415,15 +752,18 @@ class GivemeController extends ApiPosController
     }
 
     /**
-     * 查詢發票
-     *
-     * POST /api/posv2/sales/invoice-issue/giveme/query
+     * 處理查詢發票
      *
      * @param Request $request
+     * @param array $credentials
+     * @param string $env
      * @return \Illuminate\Http\JsonResponse
      */
-    public function query(Request $request)
+    protected function processQuery(Request $request, array $credentials, string $env)
     {
+        $this->initApiUrl();
+        $this->credentials = $credentials;
+
         try {
             $request->validate([
                 'invoice_id' => 'required|integer',
@@ -451,13 +791,13 @@ class GivemeController extends ApiPosController
             }
 
             $timeStamp = round(microtime(true) * 1000);
-            $sign = strtoupper(md5($timeStamp . $this->account . $this->password));
+            $sign = $this->generateSignature((string)$timeStamp, $this->credentials);
 
             // 組裝請求資料
             $requestData = [
                 'timeStamp' => (string)$timeStamp,
-                'uncode' => $this->taxId,
-                'idno' => $this->account,
+                'uncode' => $this->credentials['uncode'],
+                'idno' => $this->credentials['account'],
                 'sign' => $sign,
                 'code' => $invoice->invoice_number,
             ];
@@ -498,25 +838,43 @@ class GivemeController extends ApiPosController
     }
 
     /**
-     * 作廢發票
-     *
-     * POST /api/posv2/sales/invoice-issue/giveme/cancel
+     * 處理作廢發票
      *
      * @param Request $request
+     * @param array $credentials
+     * @param string $env
      * @return \Illuminate\Http\JsonResponse
      */
-    public function cancel(Request $request)
+    protected function processCancel(Request $request, array $credentials, string $env)
     {
+        $this->initApiUrl();
+        $this->credentials = $credentials;
+
         DB::beginTransaction();
 
         try {
             $request->validate([
                 'invoice_id' => 'required|integer',
-                'reason' => 'required|string',
+                'group_no' => 'required|integer',
+                'void_reason' => 'required|string',
             ]);
 
             $invoiceId = $request->input('invoice_id');
-            $reason = $request->input('reason');
+            $groupNo = $request->input('group_no');
+            $voidReason = $request->input('void_reason');
+
+            // 檢查發票群組是否存在
+            $invoiceGroup = InvoiceGroup::where('group_no', $groupNo)->first();
+
+            if (!$invoiceGroup) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '找不到發票群組',
+                    'data' => [
+                        'group_no' => $groupNo,
+                    ],
+                ], 404, [], JSON_UNESCAPED_UNICODE);
+            }
 
             // 從資料庫讀取發票
             $invoice = Invoice::find($invoiceId);
@@ -525,40 +883,62 @@ class GivemeController extends ApiPosController
                 return response()->json([
                     'success' => false,
                     'message' => '找不到發票',
-                    'invoice_id' => $invoiceId,
+                    'data' => [
+                        'invoice_id' => $invoiceId,
+                    ],
                 ], 404, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // 檢查發票是否屬於該群組
+            $invoiceBelongsToGroup = $invoiceGroup->invoices()
+                ->where('invoices.id', $invoiceId)
+                ->exists();
+
+            if (!$invoiceBelongsToGroup) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '發票不屬於此群組',
+                    'data' => [
+                        'invoice_id' => $invoiceId,
+                        'group_no' => $groupNo,
+                    ],
+                ], 400, [], JSON_UNESCAPED_UNICODE);
             }
 
             if (empty($invoice->invoice_number) || $invoice->invoice_number === 'PENDING') {
                 return response()->json([
                     'success' => false,
                     'message' => '發票尚未開立，無法作廢',
-                    'invoice_id' => $invoiceId,
+                    'data' => [
+                        'invoice_id' => $invoiceId,
+                    ],
                 ], 400, [], JSON_UNESCAPED_UNICODE);
             }
 
-            if ($invoice->giveme_status === '1') {
+            if ($invoice->status === 'voided' || $invoice->status?->value === 'voided') {
                 return response()->json([
                     'success' => false,
                     'message' => '發票已作廢',
-                    'invoice_id' => $invoiceId,
+                    'data' => [
+                        'invoice_id' => $invoiceId,
+                    ],
                 ], 400, [], JSON_UNESCAPED_UNICODE);
             }
 
             $timeStamp = round(microtime(true) * 1000);
-            $sign = strtoupper(md5($timeStamp . $this->account . $this->password));
+            $sign = $this->generateSignature((string)$timeStamp, $this->credentials);
 
             // 組裝請求資料
             $requestData = [
                 'timeStamp' => (string)$timeStamp,
-                'uncode' => $this->taxId,
-                'idno' => $this->account,
+                'uncode' => $this->credentials['uncode'],
+                'idno' => $this->credentials['account'],
                 'sign' => $sign,
                 'code' => $invoice->invoice_number,
-                'remark' => $reason,
+                'remark' => $voidReason,
             ];
 
-            Log::info('Giveme Production Cancel Request', ['request' => $requestData]);
+            Log::info("Giveme {$env} Cancel Request", ['request' => $requestData]);
 
             // 發送請求（機迷坊 SSL 憑證有問題，需跳過驗證）
             $response = Http::timeout(30)
@@ -568,17 +948,16 @@ class GivemeController extends ApiPosController
 
             $responseData = $response->json();
 
-            Log::info('Giveme Production Cancel Response', [
+            Log::info("Giveme {$env} Cancel Response", [
                 'status' => $response->status(),
                 'response' => $responseData,
             ]);
 
             // 更新資料庫
             if (isset($responseData['success']) && $responseData['success'] === 'true') {
-                $invoice->giveme_status = '1';
-                $invoice->canceled_at = now();
-                $invoice->cancel_reason = $reason;
-                $invoice->status = 'canceled';
+                $invoice->voided_at = now();
+                $invoice->void_reason = $voidReason;
+                $invoice->status = 'voided';
                 $invoice->save();
 
                 DB::commit();
@@ -586,19 +965,24 @@ class GivemeController extends ApiPosController
                 return response()->json([
                     'success' => true,
                     'message' => '發票作廢成功',
-                    'invoice_id' => $invoice->id,
-                    'invoice_number' => $invoice->invoice_number,
-                    'response' => $responseData,
+                    'data' => [
+                        'invoice_id' => $invoice->id,
+                        'invoice_number' => $invoice->invoice_number,
+                    ],
                 ], 200, [], JSON_UNESCAPED_UNICODE);
             } else {
                 DB::rollBack();
 
                 return response()->json([
                     'success' => false,
-                    'message' => '發票作廢失敗',
-                    'invoice_id' => $invoice->id,
-                    'error' => $responseData['msg'] ?? 'API 回應失敗',
-                    'response' => $responseData,
+                    'message' => $responseData['msg'] ?? '發票作廢失敗',
+                    'data' => [
+                        'invoice_id' => $invoice->id,
+                        'invoice_number' => $invoice->invoice_number,
+                    ],
+                    'error_data' => [
+                        'response' => $responseData,
+                    ],
                 ], 400, [], JSON_UNESCAPED_UNICODE);
             }
 
@@ -618,15 +1002,18 @@ class GivemeController extends ApiPosController
     }
 
     /**
-     * 取得發票列印 URL
-     *
-     * GET /api/posv2/sales/invoice-issue/giveme/print-url/{invoice_number}
+     * 處理取得發票列印 URL
      *
      * @param string $invoiceNumber
+     * @param array $credentials
+     * @param string $env
      * @return \Illuminate\Http\JsonResponse
      */
-    public function printUrl($invoiceNumber)
+    protected function processPrintUrl($invoiceNumber, array $credentials, string $env)
     {
+        $this->initApiUrl();
+        $this->credentials = $credentials;
+
         try {
             if (empty($invoiceNumber)) {
                 return response()->json([
@@ -635,10 +1022,10 @@ class GivemeController extends ApiPosController
                 ], 400, [], JSON_UNESCAPED_UNICODE);
             }
 
-            // 組裝列印 URL（使用正式環境統編）
-            $printUrl = $this->apiUrl . '?action=invoicePrint&code=' . $invoiceNumber . '&uncode=' . $this->taxId;
+            // 組裝列印 URL
+            $printUrl = $this->apiUrl . '?action=invoicePrint&code=' . $invoiceNumber . '&uncode=' . $this->credentials['uncode'];
 
-            Log::info('Giveme Production Print URL', [
+            Log::info("Giveme {$env} Print URL", [
                 'invoice_number' => $invoiceNumber,
                 'print_url' => $printUrl,
             ]);
@@ -652,7 +1039,368 @@ class GivemeController extends ApiPosController
             ], 200, [], JSON_UNESCAPED_UNICODE);
 
         } catch (\Throwable $th) {
-            Log::error('Giveme Production Print URL Error', [
+            Log::error("Giveme {$env} Print URL Error", [
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString(),
+            ]);
+
+            return $this->sendJsonErrorResponse(
+                data: ['error' => $th->getMessage()],
+                status_code: 500
+            );
+        }
+    }
+
+    /**
+     * 處理發票列印（Giveme 文件 1.1.4）
+     *
+     * 直接呼叫 Giveme API 取得發票列印 HTML 頁面並返回
+     *
+     * @param string $invoiceNumber
+     * @param array $credentials
+     * @param string $env
+     * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
+     */
+    protected function processInvoicePrint($invoiceNumber, array $credentials, string $env)
+    {
+        $this->initApiUrl();
+        $this->credentials = $credentials;
+
+        try {
+            if (empty($invoiceNumber)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '請提供發票號碼',
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // 組裝列印 URL
+            $printUrl = $this->apiUrl . '?action=invoicePrint&code=' . urlencode($invoiceNumber) . '&uncode=' . urlencode($this->credentials['uncode']);
+
+            Log::info("Giveme {$env} Invoice Print", [
+                'invoice_number' => $invoiceNumber,
+                'print_url' => $printUrl,
+            ]);
+
+            // 呼叫 Giveme API 取得 HTML 頁面
+            $response = Http::timeout(30)
+                ->withoutVerifying()
+                ->get($printUrl);
+
+            $contentType = $response->header('Content-Type');
+            $httpStatus = $response->status();
+
+            Log::info("Giveme {$env} Invoice Print Response", [
+                'invoice_number' => $invoiceNumber,
+                'http_status' => $httpStatus,
+                'content_type' => $contentType,
+            ]);
+
+            // 檢查是否為 JSON 錯誤回應
+            if (str_contains($contentType ?? '', 'application/json')) {
+                $responseData = $response->json();
+                return response()->json([
+                    'success' => false,
+                    'message' => $responseData['msg'] ?? '發票列印失敗',
+                    'data' => [
+                        'invoice_number' => $invoiceNumber,
+                    ],
+                    'error_data' => [
+                        'response' => $responseData,
+                    ],
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // 檢查 HTTP 請求是否失敗
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '發票列印失敗',
+                    'data' => [
+                        'invoice_number' => $invoiceNumber,
+                        'http_status' => $httpStatus,
+                    ],
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // 成功：直接返回 HTML 頁面
+            return response($response->body(), 200)
+                ->header('Content-Type', $contentType ?? 'text/html; charset=utf-8');
+
+        } catch (\Throwable $th) {
+            Log::error("Giveme {$env} Invoice Print Error", [
+                'invoice_number' => $invoiceNumber,
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString(),
+            ]);
+
+            return $this->sendJsonErrorResponse(
+                data: ['error' => $th->getMessage()],
+                status_code: 500
+            );
+        }
+    }
+
+    /**
+     * 處理發票圖片（GET 版本，直接用 invoice_number）
+     *
+     * 根據 Giveme 文件 1.1.5，取得發票圖片
+     * 預設 type=1（發票證明聯+交易明細）
+     *
+     * @param string $invoiceNumber
+     * @param array $credentials
+     * @param string $env
+     * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
+     */
+    protected function processPictureByNumber($invoiceNumber, array $credentials, string $env)
+    {
+        $this->initApiUrl();
+        $this->credentials = $credentials;
+
+        try {
+            if (empty($invoiceNumber)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '請提供發票號碼',
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            $timeStamp = round(microtime(true) * 1000);
+            $sign = $this->generateSignature((string)$timeStamp, $this->credentials);
+
+            // 組裝請求資料
+            $requestData = [
+                'timeStamp' => (string)$timeStamp,
+                'uncode' => $this->credentials['uncode'],
+                'idno' => $this->credentials['account'],
+                'sign' => $sign,
+                'code' => $invoiceNumber,
+                'type' => '1',  // 預設 1=發票證明聯+交易明細
+            ];
+
+            Log::info("Giveme {$env} Picture By Number Request", [
+                'invoice_number' => $invoiceNumber,
+                'request' => $requestData,
+            ]);
+
+            // 發送請求取得圖片
+            $response = Http::timeout(30)
+                ->withoutVerifying()
+                ->withHeaders(['Content-Type' => 'application/json'])
+                ->post($this->apiUrl . '?action=picture', $requestData);
+
+            $contentType = $response->header('Content-Type');
+            $httpStatus = $response->status();
+
+            Log::info("Giveme {$env} Picture By Number Response", [
+                'invoice_number' => $invoiceNumber,
+                'http_status' => $httpStatus,
+                'content_type' => $contentType,
+            ]);
+
+            // 檢查是否為 JSON 錯誤回應
+            if (str_contains($contentType ?? '', 'application/json')) {
+                $responseData = $response->json();
+                return response()->json([
+                    'success' => false,
+                    'message' => $responseData['msg'] ?? '取得發票圖片失敗',
+                    'data' => [
+                        'invoice_number' => $invoiceNumber,
+                    ],
+                    'error_data' => [
+                        'response' => $responseData,
+                    ],
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // 檢查 HTTP 請求是否失敗
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '取得發票圖片失敗',
+                    'data' => [
+                        'invoice_number' => $invoiceNumber,
+                        'http_status' => $httpStatus,
+                    ],
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // 成功：返回圖片串流
+            return response($response->body(), 200)
+                ->header('Content-Type', 'image/png')
+                ->header('Content-Disposition', 'inline; filename="invoice_' . $invoiceNumber . '.png"');
+
+        } catch (\Throwable $th) {
+            Log::error("Giveme {$env} Picture By Number Error", [
+                'invoice_number' => $invoiceNumber,
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString(),
+            ]);
+
+            return $this->sendJsonErrorResponse(
+                data: ['error' => $th->getMessage()],
+                status_code: 500
+            );
+        }
+    }
+
+    /**
+     * 處理發票圖片列印（POST 版本，需 invoice_id + group_no）
+     *
+     * 根據 Giveme 文件 1.1.5，取得發票圖片
+     * type: 1=發票證明聯+交易明細, 2=發票證明聯, 3=交易明細
+     *
+     * @param Request $request
+     * @param array $credentials
+     * @param string $env
+     * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
+     */
+    protected function processPicture(Request $request, array $credentials, string $env)
+    {
+        $this->initApiUrl();
+        $this->credentials = $credentials;
+
+        try {
+            // 驗證輸入
+            $request->validate([
+                'invoice_id' => 'required|integer',
+                'group_no' => 'required|integer',
+                'type' => 'nullable|in:1,2,3',
+            ]);
+
+            $invoiceId = $request->input('invoice_id');
+            $groupNo = $request->input('group_no');
+            $type = $request->input('type', '1');  // 預設 1=發票證明聯+交易明細
+
+            // 檢查發票群組是否存在
+            $invoiceGroup = InvoiceGroup::where('group_no', $groupNo)->first();
+
+            if (!$invoiceGroup) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '找不到發票群組',
+                    'data' => [
+                        'group_no' => $groupNo,
+                    ],
+                ], 404, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // 從資料庫讀取發票
+            $invoice = Invoice::find($invoiceId);
+
+            if (!$invoice) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '找不到發票',
+                    'data' => [
+                        'invoice_id' => $invoiceId,
+                    ],
+                ], 404, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // 檢查發票是否屬於該群組
+            $invoiceBelongsToGroup = $invoiceGroup->invoices()
+                ->where('invoices.id', $invoiceId)
+                ->exists();
+
+            if (!$invoiceBelongsToGroup) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '發票不屬於此群組',
+                    'data' => [
+                        'invoice_id' => $invoiceId,
+                        'group_no' => $groupNo,
+                    ],
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // 檢查發票是否已開立
+            if (empty($invoice->invoice_number)
+                || $invoice->invoice_number === 'PENDING'
+                || str_starts_with($invoice->invoice_number, 'PENDING_')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '發票尚未開立',
+                    'data' => [
+                        'invoice_id' => $invoiceId,
+                    ],
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            $timeStamp = round(microtime(true) * 1000);
+            $sign = $this->generateSignature((string)$timeStamp, $this->credentials);
+
+            // 組裝請求資料
+            $requestData = [
+                'timeStamp' => (string)$timeStamp,
+                'uncode' => $this->credentials['uncode'],
+                'idno' => $this->credentials['account'],
+                'sign' => $sign,
+                'code' => $invoice->invoice_number,
+                'type' => (string)$type,
+            ];
+
+            Log::info("Giveme {$env} Picture Request", [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+                'request' => $requestData,
+            ]);
+
+            // 發送請求取得圖片
+            $response = Http::timeout(30)
+                ->withoutVerifying()
+                ->withHeaders(['Content-Type' => 'application/json'])
+                ->post($this->apiUrl . '?action=picture', $requestData);
+
+            $contentType = $response->header('Content-Type');
+
+            Log::info("Giveme {$env} Picture Response", [
+                'invoice_id' => $invoice->id,
+                'status' => $response->status(),
+                'content_type' => $contentType,
+            ]);
+
+            // 檢查是否為 JSON 錯誤回應
+            if (str_contains($contentType ?? '', 'application/json')) {
+                $responseData = $response->json();
+                return response()->json([
+                    'success' => false,
+                    'message' => '取得發票圖片失敗',
+                    'data' => [
+                        'invoice_id' => $invoice->id,
+                        'invoice_number' => $invoice->invoice_number,
+                        'error' => $responseData['msg'] ?? 'API 回應失敗',
+                    ],
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // 檢查 HTTP 請求是否失敗
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '取得發票圖片失敗',
+                    'data' => [
+                        'invoice_id' => $invoice->id,
+                        'invoice_number' => $invoice->invoice_number,
+                        'http_status' => $response->status(),
+                    ],
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // 成功：返回圖片串流
+            return response($response->body(), 200)
+                ->header('Content-Type', 'image/png')
+                ->header('Content-Disposition', 'inline; filename="invoice_' . $invoice->invoice_number . '.png"');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => '參數驗證失敗',
+                'errors' => $e->errors(),
+            ], 422, [], JSON_UNESCAPED_UNICODE);
+
+        } catch (\Throwable $th) {
+            Log::error("Giveme {$env} Picture Error", [
                 'error' => $th->getMessage(),
                 'trace' => $th->getTraceAsString(),
             ]);
