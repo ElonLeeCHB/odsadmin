@@ -430,10 +430,10 @@ class GivemeDataController extends ApiPosController
     protected function processCancel(Request $request, array $credentials, string $env)
     {
         try {
-            $invoiceNumber = $request->input('invoice_number', '');
+            $code = $request->input('code', '');
             $reason = $request->input('reason', '作廢');
 
-            if (empty($invoiceNumber)) {
+            if (empty($code)) {
                 return response()->json([
                     'success' => false,
                     'message' => '請提供發票號碼',
@@ -448,7 +448,7 @@ class GivemeDataController extends ApiPosController
                 'uncode' => $credentials['uncode'],
                 'idno' => $credentials['account'],
                 'sign' => $sign,
-                'code' => $invoiceNumber,
+                'code' => $code,
                 'remark' => $reason,
             ];
 
@@ -460,6 +460,10 @@ class GivemeDataController extends ApiPosController
                 ->post($this->apiUrl . '?action=cancelInvoice', $requestData);
 
             $responseData = $response->json();
+
+            // echo "<pre>requestData = ", print_r($requestData, true), "</pre>";
+            // echo "<pre>responseData = ", print_r($responseData, true), "</pre>";
+            // exit;
 
             Log::info("Giveme Cancel Response [{$env}]", [
                 'status' => $response->status(),

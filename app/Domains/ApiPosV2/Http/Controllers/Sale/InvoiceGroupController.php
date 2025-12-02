@@ -578,7 +578,7 @@ class InvoiceGroupController extends ApiPosController
             'invoices.*.invoice_items' => 'required|array|min:1',
             'invoices.*.invoice_items.*.name' => 'required|string|max:255',
             'invoices.*.invoice_items.*.quantity' => 'required|numeric|min:0.001',
-            'invoices.*.invoice_items.*.price' => 'required|numeric|min:0',
+            'invoices.*.invoice_items.*.price' => 'required|numeric',
             'invoices.*.invoice_items.*.is_tax_included' => 'required|boolean',
             'invoices.*.invoice_items.*.remark' => 'nullable|string|max:255',
             'invoices.*.invoice_items.*.item_tax_type' => 'nullable|integer|in:0,1,2',

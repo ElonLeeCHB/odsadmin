@@ -160,7 +160,7 @@ class Controller extends BaseController
         $user = request()->user();
 
         // 預設錯誤訊息
-        $general_error = $data['general_error'] ?? 'System error occurred. Please contact system administrator.';
+        $general_error = $data['general_error'] ?? 'System error occurred. Please contact system administrator. (controller)';
         $sys_error = $data['sys_error'] ?? $general_error;
 
         // debug 模式, 或系統管理員，給詳細錯誤

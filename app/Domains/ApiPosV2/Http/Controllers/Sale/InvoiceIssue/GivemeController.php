@@ -413,10 +413,7 @@ class GivemeController extends ApiPosController
                 'trace' => $th->getTraceAsString(),
             ]);
 
-            return $this->sendJsonErrorResponse(
-                data: ['error' => $th->getMessage()],
-                status_code: 500
-            );
+            throw $th;
         }
     }
 
@@ -830,10 +827,7 @@ class GivemeController extends ApiPosController
                 'trace' => $th->getTraceAsString(),
             ]);
 
-            return $this->sendJsonErrorResponse(
-                data: ['error' => $th->getMessage()],
-                status_code: 500
-            );
+            throw $th;
         }
     }
 
@@ -850,18 +844,21 @@ class GivemeController extends ApiPosController
         $this->initApiUrl();
         $this->credentials = $credentials;
 
+        //先將 request 的 reason 指定為 '客戶要求作廢'
+        $request->merge(['reason' => '客戶要求作廢']);
+
         DB::beginTransaction();
 
         try {
             $request->validate([
                 'invoice_id' => 'required|integer',
                 'group_no' => 'required|integer',
-                'void_reason' => 'required|string',
+                'reason' => 'required|string',
             ]);
 
             $invoiceId = $request->input('invoice_id');
             $groupNo = $request->input('group_no');
-            $voidReason = $request->input('void_reason');
+            $voidReason = $request->input('reason');
 
             // 檢查發票群組是否存在
             $invoiceGroup = InvoiceGroup::where('group_no', $groupNo)->first();
@@ -937,7 +934,7 @@ class GivemeController extends ApiPosController
                 'code' => $invoice->invoice_number,
                 'remark' => $voidReason,
             ];
-
+            // echo "<pre>requestData = ", print_r($requestData, true), "</pre>";exit;
             Log::info("Giveme {$env} Cancel Request", ['request' => $requestData]);
 
             // 發送請求（機迷坊 SSL 憑證有問題，需跳過驗證）
@@ -955,10 +952,23 @@ class GivemeController extends ApiPosController
 
             // 更新資料庫
             if (isset($responseData['success']) && $responseData['success'] === 'true') {
+                // 1. 更新發票狀態
                 $invoice->voided_at = now();
                 $invoice->void_reason = $voidReason;
                 $invoice->status = 'voided';
                 $invoice->save();
+
+                // 2. 移除所有關聯，讓 InvoiceGroup 可重新開立發票
+                // 取得關聯的 InvoiceGroup IDs（在 detach 前）
+                $groupIds = $invoice->invoiceGroups()->pluck('invoice_groups.id')->toArray();
+
+                // 移除 invoice_group_invoices 關聯
+                // $invoice->invoiceGroups()->detach();
+
+                // 3. 更新關聯的 InvoiceGroup 狀態為 pending
+                if (!empty($groupIds)) {
+                    InvoiceGroup::whereIn('id', $groupIds)->update(['invoice_status' => 'pending']);
+                }
 
                 DB::commit();
 
@@ -968,6 +978,7 @@ class GivemeController extends ApiPosController
                     'data' => [
                         'invoice_id' => $invoice->id,
                         'invoice_number' => $invoice->invoice_number,
+                        'removed_group_ids' => $groupIds,
                     ],
                 ], 200, [], JSON_UNESCAPED_UNICODE);
             } else {
@@ -994,10 +1005,7 @@ class GivemeController extends ApiPosController
                 'trace' => $th->getTraceAsString(),
             ]);
 
-            return $this->sendJsonErrorResponse(
-                data: ['error' => $th->getMessage()],
-                status_code: 500
-            );
+            throw $th;
         }
     }
 
@@ -1044,10 +1052,7 @@ class GivemeController extends ApiPosController
                 'trace' => $th->getTraceAsString(),
             ]);
 
-            return $this->sendJsonErrorResponse(
-                data: ['error' => $th->getMessage()],
-                status_code: 500
-            );
+            throw $th;
         }
     }
 
@@ -1134,10 +1139,7 @@ class GivemeController extends ApiPosController
                 'trace' => $th->getTraceAsString(),
             ]);
 
-            return $this->sendJsonErrorResponse(
-                data: ['error' => $th->getMessage()],
-                status_code: 500
-            );
+            throw $th;
         }
     }
 
@@ -1237,10 +1239,7 @@ class GivemeController extends ApiPosController
                 'trace' => $th->getTraceAsString(),
             ]);
 
-            return $this->sendJsonErrorResponse(
-                data: ['error' => $th->getMessage()],
-                status_code: 500
-            );
+            throw $th;
         }
     }
 
@@ -1405,10 +1404,7 @@ class GivemeController extends ApiPosController
                 'trace' => $th->getTraceAsString(),
             ]);
 
-            return $this->sendJsonErrorResponse(
-                data: ['error' => $th->getMessage()],
-                status_code: 500
-            );
+            throw $th;
         }
     }
 

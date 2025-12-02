@@ -75,7 +75,14 @@ class Handler extends ExceptionHandler
                     'message' => $exception->getMessage(),
                 ], $exception->getStatusCode());
             }
-            // 3. 其他錯誤
+            // 3. CustomException（自訂錯誤訊息）
+            elseif ($exception instanceof CustomException) {
+                $response = $this->sendJsonErrorResponse([
+                    'general_error' => $exception->getGeneralError(),
+                    'sys_error'     => $exception->getSysError(),
+                ], $exception->getStatusCode(), $exception);
+            }
+            // 4. 其他錯誤
             else {
                 $response = $this->sendJsonErrorResponse([
                     'general_error' => '系統發生錯誤，請聯絡管理員。',
@@ -105,12 +112,17 @@ class Handler extends ExceptionHandler
         $user = request()->user();
 
         $general_error = $data['general_error'] ?? 'System error occurred. Please contact system administrator.';
-        $sys_error = $data['sys_error'] ?? $general_error;
 
+        // debug 或 sys_admin 時，優先順序：sys_error > $th->getMessage() > general_error
         if (config('app.debug') || ($user && $user->hasRole('sys_admin'))) {
+            
+            $message = $data['sys_error']
+                ?? ($th ? $th->getMessage() : null)
+                ?? $general_error;
+
             return response()->json([
                 'success' => false,
-                'message' => $sys_error,
+                'message' => $message,
             ], $status_code);
         }
 
