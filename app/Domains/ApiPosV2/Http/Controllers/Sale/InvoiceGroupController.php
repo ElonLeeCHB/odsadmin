@@ -970,7 +970,8 @@ class InvoiceGroupController extends ApiPosController
         $items = [];
 
         // 需要處理的項目類型
-        $includeCodes = ['shipping', 'discount', 'coupon'];
+        // 注意：運費的 code 可能是 'shipping' 或 'shipping_fee'
+        $includeCodes = ['shipping', 'shipping_fee', 'discount', 'coupon'];
 
         foreach ($orderTotals as $total) {
             // 只處理指定類型
@@ -1016,6 +1017,7 @@ class InvoiceGroupController extends ApiPosController
     {
         $remarks = [
             'shipping' => '運費',
+            'shipping_fee' => '運費',
             'discount' => '折扣優惠',
             'coupon' => '優惠券折抵',
         ];

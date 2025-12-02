@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e9c3d9b37ef2e664f513ea0e85804ef3",
+    "content-hash": "45bad3e326b77ffed0d58a7206ee4b31",
     "packages": [
         {
             "name": "brick/math",
@@ -1326,29 +1326,29 @@
             "time": "2025-08-22T14:27:06+00:00"
         },
         {
-            "name": "huabing/accounts-oauth",
-            "version": "v1.1.0",
+            "name": "huabingtw/accounts-oauth",
+            "version": "v1.1.1",
             "source": {
                 "type": "git",
                 "url": "git@github.com:huabingtw/accounts-oauth.git",
-                "reference": "63b97559a030949fc68724e3e667dddbee5dccd7"
+                "reference": "8ac4e1436a89557361fd90425cbaba92461e1d2c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/huabingtw/accounts-oauth/zipball/63b97559a030949fc68724e3e667dddbee5dccd7",
-                "reference": "63b97559a030949fc68724e3e667dddbee5dccd7",
+                "url": "https://api.github.com/repos/huabingtw/accounts-oauth/zipball/8ac4e1436a89557361fd90425cbaba92461e1d2c",
+                "reference": "8ac4e1436a89557361fd90425cbaba92461e1d2c",
                 "shasum": ""
             },
             "require": {
                 "guzzlehttp/guzzle": "^7.0",
-                "illuminate/database": "^9.0|^10.0|^11.0",
-                "illuminate/http": "^9.0|^10.0|^11.0",
-                "illuminate/support": "^9.0|^10.0|^11.0",
-                "php": "^8.0|^8.1|^8.2"
+                "illuminate/database": "^9.0|^10.0|^11.0|^12.0",
+                "illuminate/http": "^9.0|^10.0|^11.0|^12.0",
+                "illuminate/support": "^9.0|^10.0|^11.0|^12.0",
+                "php": "^8.0|^8.1|^8.2|^8.3|^8.4"
             },
             "require-dev": {
-                "orchestra/testbench": "^7.0|^8.0|^9.0",
-                "phpunit/phpunit": "^9.0|^10.0"
+                "orchestra/testbench": "^7.0|^8.0|^9.0|^10.0",
+                "phpunit/phpunit": "^9.0|^10.0|^11.0"
             },
             "type": "library",
             "extra": {
@@ -1390,10 +1390,10 @@
                 "sso"
             ],
             "support": {
-                "source": "https://github.com/huabingtw/accounts-oauth/tree/v1.1.0",
+                "source": "https://github.com/huabingtw/accounts-oauth/tree/v1.1.1",
                 "issues": "https://github.com/huabingtw/accounts-oauth/issues"
             },
-            "time": "2025-11-24T13:59:03+00:00"
+            "time": "2025-12-01T05:05:29+00:00"
         },
         {
             "name": "laravel/framework",

@@ -44,6 +44,9 @@
           <form id="form-product" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
             @csrf
             @method('POST')
+            
+            <input type="hidden" name="product_id" value="{{ $product_id }}" id="input-product_id"/>
+            <input type="hidden" name="is_salable" value="1"/>
 
             <div class="tab-content">
               <div id="tab-trans" class="tab-pane active" >
@@ -257,7 +260,6 @@
                   </div>
                 </div>
                  --}}
-                <input type="hidden" name="is_salable" value="{{ $product->is_salable ?? 0 }}"/>
 
                 <div class="row mb-3">
                   <label class="col-sm-2 col-form-label">官網銷售</label>
@@ -306,6 +308,14 @@
                   <div class="col-sm-10">
                     <input type="text" name="quantity" value="{{ $product->quantity }}" placeholder="{{ $lang->column_quantity }}" id="input-quantity" class="form-control"/>
                     <div id="error-quantity" class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <label for="input-quantity_of_flavor" class="col-sm-2 col-form-label">口味數量</label>
+                  <div class="col-sm-10">
+                    <input type="text" name="quantity_of_flavor" value="{{ $product->quantity_of_flavor }}" placeholder="口味數量" id="input-quantity_of_flavor" class="form-control"/>
+                    <div id="error-quantity_of_flavor" class="invalid-feedback"></div>
                   </div>
                 </div>
 
@@ -525,7 +535,6 @@
                   </div>
                 </fieldset>
               </div>
-              <input type="hidden" name="product_id" value="{{ $product_id }}" id="input-product_id"/>
             </div>
           </form>
           </div>

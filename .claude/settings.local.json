@@ -21,7 +21,8 @@
       "Bash(./php.bat artisan:*)",
       "Bash(mkdir:*)",
       "Bash(./composer.bat dump-autoload:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []

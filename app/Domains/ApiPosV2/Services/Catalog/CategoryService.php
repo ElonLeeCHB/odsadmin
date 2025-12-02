@@ -62,7 +62,7 @@ class CategoryService extends Service
         ];
 
         // products
-            $products = Product::select(['id', 'price']) 
+            $products = Product::select(['id', 'price', 'is_on_www']) 
                 ->with([
                     'terms' => function ($qry) {
                         $qry->select(['id', 'taxonomy_code', 'sort_order', 'is_active', 'parent_id']);
@@ -72,8 +72,11 @@ class CategoryService extends Service
                         $qry->select(['product_id', 'name', 'web_name']);
                     },
                 ])
+                ->where('is_active', 1)
                 ->where('is_salable', 1)
+                // ->where('is_on_www', 1) // 不過濾上下架，讓前端決定
                 ->get();
+        
         //
 
         // 所有分類（樹狀結構）
@@ -95,7 +98,9 @@ class CategoryService extends Service
                 'name' => $product->translation->name,
                 'web_name' => $product->translation->web_name ?? '',
                 'price' => $product->price,
+                'is_on_www' => $product->is_on_www,
                 'categories' => [],
+                
             ];
 
             // 將商品 ID 加入對應分類

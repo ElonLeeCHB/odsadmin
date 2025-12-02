@@ -56,6 +56,9 @@ class CategoryService extends Service
                     'name' => $product->translation->name,
                     'web_name' => $product->translation->web_name ?? '',
                     'price' => $product->price,
+                    'is_active' => $product->is_active,
+                    'is_salable' => $product->is_salable,
+                    'is_on_www' => $product->is_on_www,
                     // 'categories' => [],
                 ];
 
@@ -65,6 +68,9 @@ class CategoryService extends Service
                     $this->addProductToCategory($categories, $term->id, $product->id);
                 }
             }
+
+            echo "<pre>", print_r($arr_products, true), "</pre>";
+            exit;
 
             return ['categories' => $categories, 'products' => $arr_products ?? []];
         });

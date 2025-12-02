@@ -14,7 +14,7 @@
         "php": "^8.2",
         "elibyy/tcpdf-laravel": "^10.0",
         "guzzlehttp/guzzle": "^7.2",
-        "huabing/accounts-oauth": "^1.0",
+        "huabingtw/accounts-oauth": "^1.1.1",
         "laravel/framework": "^10.8",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
