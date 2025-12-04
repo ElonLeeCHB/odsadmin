@@ -5,9 +5,10 @@ namespace App\Domains\Admin\Imports;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToArray;
 use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\WithCalculatedFormulas;
 use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
 
-class Common implements ToCollection,ToArray
+class Common implements ToCollection, ToArray, WithCalculatedFormulas
 {
     public function collection(Collection $collection)
     {
@@ -18,16 +19,5 @@ class Common implements ToCollection,ToArray
     {
         return $rows;
     }
-
-
-    // public function evaluateFormula($formula)
-    // {
-    //     try {
-    //         $calculatedValue = Calculation::getInstance()->calculateCellValue($formula);
-    //         return $calculatedValue;
-    //     } catch (\Exception $e) {
-    //         return $formula;
-    //     }
-    // }
 }
 ?>

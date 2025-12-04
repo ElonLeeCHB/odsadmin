@@ -389,7 +389,7 @@ class GivemeController extends ApiPosController
             }
 
             // 判斷是 B2C 還是 B2B
-            $isB2B = !empty($invoice->uncode_number);
+            $isB2B = !empty($invoice->tax_id_number);
 
             // 組裝機迷坊 API 請求資料
             if ($isB2B) {

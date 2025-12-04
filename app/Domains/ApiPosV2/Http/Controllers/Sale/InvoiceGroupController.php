@@ -373,10 +373,11 @@ class InvoiceGroupController extends ApiPosController
             }])
             ->first();
 
+        // 建議的發票項目（拆解加價購）
+        $suggestItems = $this->splitOrderInvoiceItems($order);
+
         // 訂單未在群組中，可用
         if (!$groupOrder || !$groupOrder->invoiceGroup) {
-            // 建議的發票項目（拆解加價購）
-            $suggestItems = $this->splitOrderInvoiceItems($order);
 
             return response()->json([
                 'success' => true,
@@ -415,6 +416,7 @@ class InvoiceGroupController extends ApiPosController
                     'total_amount' => $group->total_amount,
                     'created_at' => $group->created_at,
                 ],
+                'suggest_items' => $suggestItems,
             ],
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }

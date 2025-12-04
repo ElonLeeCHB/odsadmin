@@ -13,7 +13,7 @@ use App\Models\Catalog\ProductUnit;
  */
 class UnitConverter
 {
-    protected $fromQty;
+    protected float $fromQty = 0;
     protected $fromUnit;
     protected $toUnit;
 
@@ -44,7 +44,7 @@ class UnitConverter
 
     public function qty($fromQty)
     {
-        $this->fromQty = $fromQty;
+        $this->fromQty = (float) $fromQty;
         return $this;
     }
 
@@ -94,7 +94,7 @@ class UnitConverter
                 return ['error' => '單位的基準單位必須相同！來源單位：' . $this->fromUnit . ', 基準單位：' . $from->base_unit_code . ', 目的單位：' . $this->toUnit . ', 基準單位：' . $to->base_unit_code];
             }
 
-            $toQty = $this->fromQty * $from->factor / $to->factor;
+            $toQty = (float) $this->fromQty * (float) $from->factor / (float) $to->factor;
 
         }
         // 來源或目的其中一個是非公制單位。依附於產品的單位換算
@@ -128,7 +128,11 @@ class UnitConverter
             }
 
             if (!empty($productUnit)) {
-                $toQty = $this->fromQty * $productUnit->factor;
+                // echo '<pre>$productUnit->factor = ', print_r($productUnit->factor, true), "</pre>";
+                // echo gettype($productUnit->factor);
+                // echo gettype($this->fromQty);
+
+                $toQty = (float) $this->fromQty * (float) $productUnit->factor;
             }
         }
 
