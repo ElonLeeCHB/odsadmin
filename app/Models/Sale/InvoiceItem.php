@@ -14,7 +14,6 @@ class InvoiceItem extends Model
         'invoice_id',
         'sort_order',
         'name',
-        'is_tax_included',
         'quantity',
         'price',
         'subtotal',
@@ -23,7 +22,6 @@ class InvoiceItem extends Model
     ];
 
     protected $casts = [
-        'is_tax_included' => 'boolean',
         'quantity' => 'decimal:3',
         'price' => 'decimal:3',
         'subtotal' => 'decimal:3',

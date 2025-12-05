@@ -571,7 +571,7 @@ class InvoiceGroupController extends ApiPosController
             'invoices.*.tax_id_number' => 'nullable|string|max:20',
             'invoices.*.customer_id' => 'nullable|integer',
             'invoices.*.tax_type' => 'required|in:taxable,exempt,zero_rate,mixed,special',
-            'invoices.*.tax_state' => 'required|integer|in:0,1',
+            'invoices.*.tax_included' => 'nullable|integer|in:0,1',
             'invoices.*.email' => 'nullable|email',
             'invoices.*.content' => 'nullable|string',
             'invoices.*.carrier_type' => 'required|in:none,phone_barcode,citizen_cert,member_card,credit_card,icash,easycard,ipass,email,donation',
@@ -581,7 +581,6 @@ class InvoiceGroupController extends ApiPosController
             'invoices.*.invoice_items.*.name' => 'required|string|max:255',
             'invoices.*.invoice_items.*.quantity' => 'required|numeric|min:0.001',
             'invoices.*.invoice_items.*.price' => 'required|numeric',
-            'invoices.*.invoice_items.*.is_tax_included' => 'required|boolean',
             'invoices.*.invoice_items.*.remark' => 'nullable|string|max:255',
             'invoices.*.invoice_items.*.item_tax_type' => 'nullable|integer|in:0,1,2',
         ];
@@ -755,7 +754,9 @@ class InvoiceGroupController extends ApiPosController
             $items = $invoiceData['invoice_items'];
 
             // 計算發票總額和稅額
-            $calculated = $this->calculateInvoiceAmounts($items, $invoiceData['tax_state'] == 0);
+            // tax_included: 1=含稅（不外加稅額），0=未稅（需外加稅額），預設為 1
+            $taxIncluded = $invoiceData['tax_included'] ?? 1;
+            $calculated = $this->calculateInvoiceAmounts($items, $taxIncluded == 1);
 
             // 建立發票
             $invoice = Invoice::create([
@@ -768,7 +769,7 @@ class InvoiceGroupController extends ApiPosController
                 'seller_name' => $invoiceData['seller_name'] ?? null,
                 'tax_id_number' => $invoiceData['tax_id_number'] ?? null,
                 'tax_type' => $invoiceData['tax_type'],
-                'tax_state' => $invoiceData['tax_state'],
+                'tax_included' => $taxIncluded,
                 'tax_amount' => $calculated['tax_amount'],
                 'net_amount' => $calculated['net_amount'],
                 'total_amount' => $calculated['total_amount'],
@@ -790,7 +791,6 @@ class InvoiceGroupController extends ApiPosController
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                     'subtotal' => $item['price'] * $item['quantity'],
-                    'is_tax_included' => $item['is_tax_included'],
                     'remark' => $item['remark'] ?? null,
                     'item_tax_type' => $item['item_tax_type'] ?? null,
                 ]);
@@ -882,7 +882,6 @@ class InvoiceGroupController extends ApiPosController
                 'quantity' => $orderProduct->quantity,
                 'price' => $orderProduct->price,
                 'subtotal' => $orderProduct->price * $orderProduct->quantity,
-                'is_tax_included' => true,
                 'item_tax_type' => 1,
                 'remark' => null,
             ];
@@ -899,7 +898,6 @@ class InvoiceGroupController extends ApiPosController
                         'quantity' => $option->quantity,
                         'price' => $option->price,
                         'subtotal' => $option->subtotal,
-                        'is_tax_included' => true,
                         'item_tax_type' => 1,
                         'remark' => '加購項目',
                     ];
@@ -1000,7 +998,6 @@ class InvoiceGroupController extends ApiPosController
                 'quantity' => 1,
                 'price' => $value,
                 'subtotal' => $value,
-                'is_tax_included' => true,
                 'item_tax_type' => 1,
                 'remark' => $this->getRemarkForOrderTotal($total->code),
             ];

@@ -215,6 +215,18 @@ class UserController extends BackendController
 
         $user = $this->userRepo->query()->findOrFail($user_id);
 
+        // 處理密碼更新
+        if (!empty($input['password'])) {
+            if ($input['password'] !== ($input['password_confirmation'] ?? '')) {
+                return response()->json(['error' => '密碼與確認密碼不一致'], 422);
+            }
+            if (strlen($input['password']) < 6) {
+                return response()->json(['error' => '密碼長度至少需要 6 個字元'], 422);
+            }
+            $user->password = bcrypt($input['password']);
+            $user->save();
+        }
+
         // 更新 system_users（只處理 is_active）
         $this->systemUserRepo->query()->updateOrCreate(
             ['user_id' => $user->id],

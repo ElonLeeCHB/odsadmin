@@ -124,7 +124,6 @@ class InvoiceController extends ApiPosController
                 $invoice->invoiceItems()->create([
                     'sort_order'       => $index + 1,
                     'name'             => $item['name'],
-                    'is_tax_included'  => empty($invoice->tax_id_number),
                     'quantity'         => $item['quantity'],
                     'price'            => $item['price'],
                     'subtotal'         => $item['subtotal'],

@@ -28,7 +28,7 @@
             @method('POST')
 
             <fieldset>
-              <legend>使用者資料 <small class="text-muted fw-normal">帳號基本資料及密碼請到帳號中心修改。本頁面主要在處理權限。</small></legend>
+              <legend>使用者資料 <small class="text-muted fw-normal">(串接帳號中心時，基本資料及密碼請到帳號中心修改。)</small></legend>
 
               <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">{{ $lang->column_username }}</label>
@@ -66,6 +66,24 @@
                 </div>
               </div>
               @endif
+            </fieldset>
+
+            <fieldset>
+              <legend>修改密碼 <small class="text-muted fw-normal">(留空則不修改密碼)</small></legend>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">新密碼</label>
+                <div class="col-sm-10">
+                  <input type="password" name="password" id="input-password" placeholder="輸入新密碼" class="form-control" autocomplete="new-password"/>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">確認密碼</label>
+                <div class="col-sm-10">
+                  <input type="password" name="password_confirmation" id="input-password-confirmation" placeholder="再次輸入新密碼" class="form-control" autocomplete="new-password"/>
+                </div>
+              </div>
             </fieldset>
 
             <fieldset>

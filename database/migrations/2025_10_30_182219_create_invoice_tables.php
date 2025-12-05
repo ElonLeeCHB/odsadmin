@@ -52,7 +52,7 @@ return new class extends Migration
 
             // 稅與金額
             $table->enum('tax_type', ['taxable', 'exempt', 'zero_rate', 'mixed', 'special'])->default('taxable')->nullable()->comment('taxable:應稅; exempt:免稅; zero_rate:零稅率; mixed:混合稅 ; special:特種稅'); // 課稅類別
-            $table->tinyInteger('tax_state')->default(0)->comment('單價是否含稅（0-含稅, 1-未稅）');
+            $table->tinyInteger('tax_included')->default(0)->comment('單價是否含稅（1-含稅, 0-未稅）');
             $table->decimal('tax_amount', 10, 2)->comment('稅額');
             $table->decimal('net_amount', 10, 2)->nullable(); // 未稅金額（淨額），公式：tax_amount + net_amount = total_amount
             $table->decimal('total_amount', 10, 2)->comment('發票總額（含稅）');
@@ -107,7 +107,7 @@ return new class extends Migration
             $table->unsignedBigInteger('invoice_id');
             $table->unsignedInteger('sort_order')->default(0);
             $table->string('name');
-            $table->boolean('is_tax_included')->default(true); // 此項目是否為含稅價，方便稅額推算
+            // $table->boolean('is_tax_included')->default(true); // 此項目是否為含稅價，方便稅額推算
             $table->decimal('quantity', 12, 3)->default(1);
             $table->decimal('price', 12, 3); // 單價：小數三位，若含稅，price 為含稅價；若未稅，為未稅價
             $table->decimal('subtotal', 12, 3); // 小計：price * quantity，小數三位。欄位名稱 subtotal 已調研過，比 amount 更符合會計用語，並且不加底線。

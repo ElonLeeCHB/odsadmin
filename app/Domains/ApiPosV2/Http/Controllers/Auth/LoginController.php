@@ -58,14 +58,23 @@ class LoginController extends ApiPosController
 
                 Session::put('device_id', $device_id);
 
-                if (Hash::check($user->username, $user->password) || $user->password_reset_required) {
+                if (Hash::check($user->username, $user->password)) {
+                    $json = [
+                        'token' => $plainTextToken,
+                        'permissions' => [],
+                        'password_reset_required' => 1,
+                        'message' => 'username 跟密碼不能一樣',
+                    ];
+                }
+                elseif ($user->password_reset_required) {
                     $json = [
                         'token' => $plainTextToken,
                         'permissions' => [],
                         'password_reset_required' => 1,
                         'message' => '請重新設定帳號密碼',
                     ];
-                }else{
+                }
+                else{
                     $json = [
                         'token' => $plainTextToken,
                         'permissions' => $permissions,

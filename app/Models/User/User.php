@@ -172,7 +172,7 @@ class User extends Authenticatable
     protected function mobile(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => $this->parsePhone($value),
+            // get: fn ($value) => $this->parsePhone($value),
             set: fn ($value) => preg_replace('/\D/', '', $value),
         );
     }
