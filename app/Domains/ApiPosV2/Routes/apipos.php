@@ -161,10 +161,15 @@ Route::group([
 
                 // 發票群組（開票作業）
                 Route::prefix('groups')->name('groups.')->group(function () {
-                    Route::post('/', [InvoiceGroupController::class, 'store'])->name('store');
-                    Route::put('/', [InvoiceGroupController::class, 'update'])->name('update');
-                    Route::get('/edit', [InvoiceGroupController::class, 'edit'])->name('edit');
+                    // 統一入口：解析開票上下文
+                    Route::get('/resolve', [InvoiceGroupController::class, 'resolve'])->name('resolve');
+                    // 訂單檢查
                     Route::get('/check-order', [InvoiceGroupController::class, 'checkOrder'])->name('check-order');
+
+                    // RESTful CRUD
+                    Route::post('/', [InvoiceGroupController::class, 'store'])->name('store');
+                    Route::get('/{id}', [InvoiceGroupController::class, 'show'])->name('show');
+                    Route::put('/{id}', [InvoiceGroupController::class, 'update'])->name('update');
                 });
 
                 // 機迷坊發票開立

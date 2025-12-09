@@ -664,7 +664,7 @@ class GivemeController extends ApiPosController
                 'idno' => $this->credentials['account'],
                 'sign' => $sign,
                 'customerName' => $invoice->buyer_name ?? '',
-                'phone' => $invoice->uncode_number,  // B2B 的 phone 是買方統編
+                'phone' => $invoice->tax_id_number,  // B2B 的 phone 是買方統編
                 'datetime' => \Carbon\Carbon::parse($invoice->invoice_date)->format('Y-m-d'),
                 'email' => $invoice->email ?? '',
                 'taxState' => (string)($invoice->tax_state ?? 0),

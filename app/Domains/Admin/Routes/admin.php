@@ -19,7 +19,7 @@ Route::group([
     'middleware' => ['auth', 'trackSystemAccess'],
 ], function () {
     Route::post('logout', 'Auth\LoginController@logout')->name('logout');
-    
+
     Route::get('', 'Common\DashboardController@index')->name('dashboard');
 
     Route::group([
@@ -49,7 +49,7 @@ Route::group([
 
         Route::get('syncProductOptions', 'Catalog\SyncProductOptionController@index')->name('syncProductOptions.index');
 
-        
+
         //官網商品分類
         Route::get('wwwcategories/autocomplete', 'Catalog\WwwCategoryController@autocomplete')->name('wwwcategories.autocomplete');
 
@@ -249,7 +249,7 @@ Route::group([
         Route::get('countings/form/{id?}', 'Inventory\CountingController@form')->name('countings.form');
         Route::get('countings/list', 'Inventory\CountingController@list')->name('countings.list');
         Route::post('countings/save/{id?}', 'Inventory\CountingController@save')->name('countings.save');
-        Route::post('countings/delete', 'Inventory\CountingController@delete')->name('countings.delete');
+        Route::post('countings/batch-delete', 'Inventory\CountingController@batchDelete')->name('countings.batch-delete');
         // settings
         Route::get('countings/product-settings', 'Inventory\CountingController@productSettings')->name('countings.productSettings');
         Route::post('countings/product-settings', 'Inventory\CountingController@saveProductSettings')->name('countings.productSettings.submit');

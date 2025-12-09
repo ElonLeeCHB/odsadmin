@@ -16,13 +16,18 @@ use App\Models\Sale\InvoiceItem;
 class InvoiceGroupController extends ApiPosController
 {
     /**
-     * 查詢群組資料（RESTful edit - 單一資源詳情）
-     * 參數優先順序：group_no > order_code > invoice_number
-     * 如果提供 group_no，則忽略其他參數
+     * 解析開票上下文（統一入口）
+     *
+     * 根據提供的參數（order_id、invoice_id、group_id 等）判斷：
+     * - 是否已有群組（edit 模式）
+     * - 是否需要新建群組（create 模式）
+     *
+     * 參數優先順序：group_id > group_no > order_id > order_code > invoice_id > invoice_number
      *
      * 使用模式：
-     * - 不帶參數：返回空資料結構，用於新增模式
-     * - 帶參數：查詢並返回現有群組資料
+     * - 不帶參數：返回空資料結構，用於新增模式（mode: create）
+     * - 帶參數且找到群組：返回現有群組資料（mode: edit）
+     * - 帶參數但找不到群組：返回訂單/發票資料（mode: create）
      *
      * 返回規則：
      * - 群組：只返回 status='active' 的群組
@@ -33,7 +38,7 @@ class InvoiceGroupController extends ApiPosController
      * @param Request $request
      * @return JsonResponse
      */
-    public function edit(Request $request): JsonResponse
+    public function resolve(Request $request): JsonResponse
     {
         // 預先定義訂單欄位
         $orderColumns = [
@@ -63,15 +68,16 @@ class InvoiceGroupController extends ApiPosController
         $invoiceItems = (new \App\Caches\Custom\Sales\DefaultInvoiceItems())->getData();
 
         // 如果沒有提供任何參數，視為新增模式
-        if (empty($groupId) && empty($orderCode) && empty($invoiceNumber) && empty($invoiceId)) {
+        if (empty($groupId) && empty($groupNo) && empty($orderId) && empty($orderCode) && empty($invoiceId) && empty($invoiceNumber)) {
             return response()->json([
                 'success' => true,
                 'data' => [
+                    'mode' => 'create',
                     'used_param' => null,
                     'group' => null,
                     'orders' => [],
                     'invoices' => [],
-                    'invoiceItems' => $invoiceItems,
+                    'invoice_defaults' => $this->getInvoiceDefaults(null),
                 ],
             ], 200, [], JSON_UNESCAPED_UNICODE);
         }
@@ -204,11 +210,12 @@ class InvoiceGroupController extends ApiPosController
             return response()->json([
                 'success' => true,
                 'data' => [
+                    'mode' => 'create',
                     'used_param' => $usedParam,
                     'group' => null,
                     'orders' => $orderData,
                     'invoices' => $invoiceData,
-                    'invoiceItems' => $invoiceItems,
+                    'invoice_defaults' => $this->getInvoiceDefaults($order ?? null),
                 ],
             ], 200, [], JSON_UNESCAPED_UNICODE);
         }
@@ -251,6 +258,7 @@ class InvoiceGroupController extends ApiPosController
         // 組織回傳資料
         $data = [];
 
+        $data['mode'] = 'edit'; // 找到群組，為編輯模式
         $data['used_param'] = $usedParam; // 標示實際使用的參數
 
         $data['group'] = $invoiceGroup ? [
@@ -268,13 +276,81 @@ class InvoiceGroupController extends ApiPosController
 
         $data['orders'] = $invoiceGroup ? $invoiceGroup->orders : (isset($order) ? [$order] : []);
         $data['invoices'] = $invoiceGroup ? $invoiceGroup->invoices : [];
-        
-        // 發票預設項目
-        $data['invoiceItems'] = $invoiceItems;
+
+        // 編輯模式不需要 invoice_defaults
+        $data['invoice_defaults'] = null;
 
         return response()->json([
             'success' => true,
             'data' => $data,
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * 取得群組詳情（RESTful show）
+     *
+     * @param int $id 群組 ID
+     * @return JsonResponse
+     */
+    public function show(int $id): JsonResponse
+    {
+        $invoiceGroup = InvoiceGroup::find($id);
+
+        if (!$invoiceGroup) {
+            return response()->json([
+                'success' => false,
+                'message' => '找不到指定的群組',
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        // 載入相關的訂單和發票資料
+        $invoiceGroup->load([
+            'orders' => function ($query) {
+                $query->select('orders.id', 'orders.code', 'orders.payment_total', 'orders.payment_tin')
+                    ->with([
+                        'orderProducts' => function ($query) {
+                            $query->select('id', 'order_id', 'name', 'price', 'quantity');
+                        },
+                        'orderTotals'
+                    ]);
+            },
+            'invoices' => function ($query) {
+                $query->select([
+                    'invoices.id',
+                    'invoices.invoice_number',
+                    'invoices.invoice_type',
+                    'invoices.invoice_date',
+                    'invoices.buyer_name',
+                    'invoices.tax_id_number',
+                    'invoices.total_amount',
+                    'invoices.tax_amount',
+                    'invoices.net_amount',
+                    'invoices.status',
+                    'invoices.carrier_type',
+                    'invoices.carrier_number',
+                    'invoices.created_at'
+                ])->with('invoiceItems');
+            },
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'group' => [
+                    'id' => $invoiceGroup->id,
+                    'group_no' => $invoiceGroup->group_no,
+                    'invoice_issue_mode' => $invoiceGroup->invoice_issue_mode,
+                    'status' => $invoiceGroup->status,
+                    'order_count' => $invoiceGroup->order_count,
+                    'invoice_count' => $invoiceGroup->invoice_count,
+                    'total_amount' => $invoiceGroup->total_amount,
+                    'void_reason' => $invoiceGroup->void_reason,
+                    'voided_at' => $invoiceGroup->voided_at,
+                    'created_at' => $invoiceGroup->created_at,
+                ],
+                'orders' => $invoiceGroup->orders,
+                'invoices' => $invoiceGroup->invoices,
+            ],
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
@@ -446,7 +522,7 @@ class InvoiceGroupController extends ApiPosController
      * @param Request $request
      * @return JsonResponse
      */
-    public function update(Request $request): JsonResponse
+    public function update(Request $request, $group_id): JsonResponse
     {
         // 驗證：修改時必須有 group_no
         if (!$request->has('group_no')) {
@@ -459,8 +535,9 @@ class InvoiceGroupController extends ApiPosController
         $groupNo = $request->input('group_no');
 
         // 查找現有群組
-        $invoiceGroup = InvoiceGroup::where('group_no', $groupNo)
-            ->where('status', 'active')
+        $invoiceGroup = InvoiceGroup::where('id', $group_id)
+            // ->where('group_no', $groupNo)
+            // ->where('status', 'active')
             ->first();
 
         if (!$invoiceGroup) {
@@ -1022,5 +1099,58 @@ class InvoiceGroupController extends ApiPosController
         ];
 
         return $remarks[$code] ?? null;
+    }
+
+    /**
+     * 取得發票預設值（create 模式使用）
+     *
+     * @param Order|null $order 如果有訂單，自動帶入商品明細
+     * @return array
+     */
+    private function getInvoiceDefaults(?Order $order): array
+    {
+        // 發票預設項目
+        $invoiceItems = (new \App\Caches\Custom\Sales\DefaultInvoiceItems())->getData();
+
+        $defaults = [
+            'invoice_type' => 'single',        // 單聯式
+            'invoice_format' => 'thermal',     // 小張熱感紙
+            'invoice_date' => now()->format('Y-m-d'),
+            'carrier_type' => 'none',          // 無載具（紙本）
+            'tax_type' => 'taxable',           // 應稅
+            'tax_included' => 1,               // 含稅
+            'invoice_items' => $invoiceItems,  // 預設發票項目
+        ];
+
+        // 如果有訂單，自動帶入商品明細（建議項目）
+        if ($order) {
+            // 確保訂單已載入相關資料
+            if (!$order->relationLoaded('orderProducts')) {
+                $order->load([
+                    'orderProducts' => function ($query) {
+                        $query->select('id', 'order_id', 'name', 'price', 'quantity')
+                            ->with(['orderProductOptions' => function ($query) {
+                                $query->select('id', 'order_product_id', 'name', 'value', 'quantity', 'price', 'subtotal');
+                            }]);
+                    },
+                    'orderTotals'
+                ]);
+            }
+
+            $defaults['suggest_items'] = $this->splitOrderInvoiceItems($order);
+
+            // 如果訂單有統編，帶入
+            if (!empty($order->payment_tin)) {
+                $defaults['tax_id_number'] = $order->payment_tin;
+                $defaults['invoice_type'] = 'triplicate'; // 有統編改為三聯式
+            }
+
+            // 如果訂單有買受人名稱
+            if (!empty($order->personal_name)) {
+                $defaults['buyer_name'] = $order->personal_name;
+            }
+        }
+
+        return $defaults;
     }
 }

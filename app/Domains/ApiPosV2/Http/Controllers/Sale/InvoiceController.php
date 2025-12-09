@@ -21,7 +21,7 @@ class InvoiceController extends ApiPosController
     /**
      * 發票列表
      * @return \Illuminate\Http\JsonResponse
-     * 編輯連結使用發票群組查詢參數 /api/posv2/sales/invoices/groups/edit?invoice_id=123
+     * 編輯連結使用發票群組查詢參數 /api/posv2/sales/invoices/groups/resolve?invoice_id=123
      */
     public function index()
     {
@@ -33,9 +33,9 @@ class InvoiceController extends ApiPosController
 
             $invoices = OrmHelper::getResult($query, $filter_data);
 
-            // 編輯連結使用發票群組查詢參數 /api/posv2/sales/invoices/groups/edit?invoice_number=AB12345678
+            // 編輯連結使用發票群組查詢參數 /api/posv2/sales/invoices/groups/resolve?invoice_id=123
             foreach ($invoices as $invoice) {
-                $invoice->edit_url = route('api.posv2.sales.invoices.groups.edit', ['invoice_id' => $invoice->id]);
+                $invoice->edit_url = route('api.posv2.sales.invoices.groups.resolve', ['invoice_id' => $invoice->id]);
             }
 
             return response()->json(['success' => true, 'data' => $invoices], 200, [], JSON_UNESCAPED_UNICODE);

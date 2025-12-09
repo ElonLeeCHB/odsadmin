@@ -9,12 +9,16 @@ use App\Repositories\Eloquent\Setting\SettingRepository;
 use App\Repositories\Eloquent\Catalog\ProductRepository;
 use App\Models\Setting\Setting;
 use App\Models\Catalog\ProductMeta;
+use App\Models\Inventory\Counting;
+use App\Models\Inventory\CountingProduct;
+use App\Models\Catalog\Product;
+use App\Repositories\Eloquent\Inventory\UnitRepository;
 
 class CountingService extends Service
 {
     protected $modelName = "\App\Models\Inventory\Counting";
 
-    public function __construct(private CountingRepository $CountingRepository)
+    public function __construct(private CountingRepository $CountingRepository, private UnitRepository $UnitRepository)
     {
         $this->repository = $CountingRepository;
     }
@@ -142,6 +146,122 @@ class CountingService extends Service
             return ['error' => $th->getMessage()];
         }
 
+    }
+
+    public function batchDelete($ids)
+    {
+        try {
+            DB::beginTransaction();
+
+            CountingProduct::whereIn('counting_id', $ids)->delete();
+            Counting::whereIn('id', $ids)->delete();
+
+            DB::commit();
+
+            return true;
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
+
+    }
+
+    public function saveCounting($data)
+    {
+        try {
+
+            $result = $this->findIdOrFailOrNew($data['counting_id']);
+
+            if (!empty($result['data'])) {
+                $counting = $result['data'];
+            } else if ($result['error']) {
+                throw new \Exception($result['error']);
+            }
+            unset($result);
+
+            $counting->location_id = $data['location_id'] ?? 0;
+            //$counting->code = (Observer)
+            $counting->form_date = $data['form_date'];
+            $counting->stocktaker = $data['stocktaker'] ?? '';
+            $counting->status_code = !empty($data['status_code']) ? $data['status_code'] : 'P';
+            $counting->comment = $data['comment'];
+            $counting->total = $data['total'];
+            $counting->created_user_id = auth()->user()->id;
+            $counting->modified_user_id = auth()->user()->id;
+
+            DB::transaction(function () use ($counting) {
+                $counting->save();
+            });
+
+            DB::transaction(function () use ($data, $counting) {
+
+                if (!empty($data['products'])) {
+                    $local_units = $this->UnitRepository->getLocaleKeyedActiveUnits(toArray: true);
+
+                    CountingProduct::where('counting_id', $counting->id)->delete();
+
+                    $unitRepository = new UnitRepository;
+
+                    foreach ($data['products'] as $key => $product) {
+
+                        if (empty($product['id']) || empty($product['quantity'])){
+                            continue;
+                        }
+
+                        $counting_quantity = str_replace(',', '', $product['quantity']);
+
+                        // $counting_unit_name = $product['unit_name'];
+                        // $counting_unit_code = $product['unit_code'] ?? '';
+                        // if(empty($counting_unit_code) && (!empty($counting_unit_name) && !empty($local_units[$counting_unit_name]))){
+                        //     $counting_unit_code = $local_units[$counting_unit_name]['code'];
+                        // }
+
+                        $counting_unit_code = $product['unit_code'] ?? '';
+
+                        $stock_unit_name = $product['stock_unit_name'];
+                        $stock_unit_code = $product['stock_unit_code'] ?? '';
+                        if (empty($stock_unit_code) && (!empty($stock_unit_name) && !empty($local_units[$stock_unit_name]))) {
+                            $stock_unit_code = $local_units[$stock_unit_name]['code'];
+                        }
+
+                        // CountingProduct
+                        $upsert_data1[$key] = [
+                            'counting_id' => $counting->id,
+                            'product_id' => $product['id'],
+                            //'product_name' => $product['name'],
+                            //'product_specification' => $product['specification'],
+                            'unit_code' => $counting_unit_code,
+                            'price' => $product['price'],
+                            'quantity' => $counting_quantity,
+                            'amount' => $product['amount'],
+                            'stock_unit_code' => $stock_unit_code,
+                            'stock_quantity' => $product['stock_quantity'],
+                        ];
+
+                        // Product
+                        $upsert_data2[$key] = [
+                            'id' => $product['id'],
+                            'quantity' => $product['stock_quantity'],
+                            //'from_quantity' => $counting_quantity,
+                        ];
+                    }
+
+                    if (!empty($upsert_data1)) {
+                        CountingProduct::upsert($upsert_data1, ['id']);
+                    }
+
+                    if (!empty($upsert_data2)) {
+                        Product::upsert($upsert_data2, ['id']);
+                    }
+                }
+            });
+
+            return ['id' => $counting->id, 'code' => $counting->code];
+        } catch (\Exception $ex) {
+            DB::rollback();
+            throw $ex;
+        }
     }
 
 

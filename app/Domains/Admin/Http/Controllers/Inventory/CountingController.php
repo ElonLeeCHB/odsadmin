@@ -57,7 +57,7 @@ class CountingController extends BackendController
 
         $data['list_url'] = route('lang.admin.inventory.countings.list'); //本參數在 getList() 也必須存在。
         $data['add_url'] = route('lang.admin.inventory.countings.form');
-        $data['delete_url'] = route('lang.admin.inventory.countings.delete');
+        $data['batch_delete_url'] = route('lang.admin.inventory.countings.batch-delete');
         $data['export_counting_product_list'] = route('lang.admin.inventory.countings.export_counting_product_list');
         
         return view('admin.inventory.counting', $data);
@@ -262,20 +262,25 @@ class CountingController extends BackendController
 
         // 檢查欄位
 
-        // 狀態碼
-        $params = [
-            'equal_id' => $post_data['counting_id'],
-            'select' => ['id', 'status_code'],
-        ];
-        $row = $this->CountingService->getRow($params);
-        if(!empty($row->status_code ) && $row->status_code != 'P'){
-            $json['error']['status_code'] = '單據未確認才可修改。現在是 ' . $row->status_name;
-            $json['error']['warning'] = '單據未確認才可修改。現在是 ' . $row->status_name;
+
+        // 判斷狀態碼
+        if (!empty($post_data['counting_id'])) {
+            $filters = [
+                'equal_id' => $post_data['counting_id'],
+                'select' => ['id', 'status_code'],
+            ];
+            $row = $this->CountingService->getRow($filters);
+
+            if (!($row->status_code == null || $row->status_code == 'P')) {
+                $json['error']['status_code'] = '單據未確認才可修改。現在是 ' . $row->status_name;
+                $json['error']['warning'] = '單據未確認才可修改。現在是 ' . $row->status_name;
+            }
         }
 
         if(isset($json['error']) && !isset($json['error']['warning'])) {
             $json['error']['warning'] = $this->lang->error_warning;
         }
+
         if(!$json) {
             $result = $this->CountingService->saveCounting($post_data);
 
@@ -343,6 +348,47 @@ class CountingController extends BackendController
         }
 
         return response(json_encode($json))->header('Content-Type','application/json');
+    }
+
+    public function batchDelete()
+    {
+        try {
+            $post_data = $this->request->post();
+
+            $json = [];
+
+            // Permission
+            if (0) {
+                $json['error'] = $this->lang->error_permission;
+            }
+
+            // Selected
+            if (isset($post_data['selected'])) {
+                $selected = $post_data['selected'];
+            } else {
+                $selected = [];
+            }
+
+            if (!$json) {
+                $result = $this->CountingService->batchDelete($selected);
+
+                if (!empty($result['error'])) {
+                    if (config('app.debug')) {
+                        $json['error'] = $result['error'];
+                    } else {
+                        $json['error'] = $this->lang->text_fail;
+                    }
+                }
+            }
+
+            if (empty($json['error'])) {
+                $json['success'] = $this->lang->text_success;
+            }
+
+            return response(json_encode($json))->header('Content-Type', 'application/json');
+        } catch (\Throwable $th) {
+            throw $th;
+        }
     }
 
     public function imports($counting_id = null)

@@ -1,8 +1,9 @@
 <form id="form-counting" method="post" data-oc-toggle="ajax" data-oc-load="{{ $list_url }}" data-oc-target="#counting">
 	<div class="table-responsive">
-		<table class="table table-bordered table-hover">
-			<thead>
+    <table class="table table-bordered table-hover">
+      <thead>
         <tr>
+          <td class="text-center" style="width: 1px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></td>
           <td class="text-start"><a href="{{ $sort_id }}" @if($sort=='id') class="{{ $order }}" @endif>{{ $lang->column_id }}</a></td>
           <td class="text-start"><a href="{{ $sort_form_date }}" @if($sort=='task_date') class="{{ $order }}" @endif>{{ $lang->column_form_date }}</a></td>
           <td class="text-start">{{ $lang->column_status }}</td>
@@ -13,6 +14,7 @@
       <tbody>
         @foreach($countings as $row)
 				<tr>
+          <td class="text-center"><input type="checkbox" name="selected[]" value="{{ $row->id }}" class="form-check-input"/></td>
           <td class="text-start">{{ $row->id }}</td>
           <td class="text-start">{{ $row->form_date_ymd }}</td>
           <td class="text-start">{{ $row->status_name }}</td>
