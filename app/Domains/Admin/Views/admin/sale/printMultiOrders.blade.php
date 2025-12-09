@@ -187,7 +187,7 @@
             @endif
             
             @foreach($order['statistics']['drinks'] ?? [] as $drink)
-            {{ $drink['value'] }}:{{ $drink['quantity'] }}, 
+            {{ $drink['value'] }}*{{ $drink['quantity'] }}@if(!empty($drink['detail']))({{ $drink['detail'] }})@endif,
             @endforeach
         </td>
         </tr>

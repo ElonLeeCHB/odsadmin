@@ -1,3 +1,5 @@
+{{-- $max_columns 不包含飲料欄位 --}}
+
 <!-- 油飯盒系列 -->
   @if(!empty($order['categories']['oilRiceBox']))
     @php $max_columns=18; @endphp
@@ -850,10 +852,10 @@
 
 
 @if(!empty($order['categories']['soloDrinkLumpiaGuabao']))
-@php $max_columns=18; @endphp
+@php $max_columns=19; @endphp
 @php $column_used_num = 0; @endphp
-<!-- 單點飲料 -->
-<table id="guabaoBento" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
+<!-- 單點潤餅、刈包、飲料、豆花 -->
+<table id="soloDrinkLumpiaGuabao" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
       <thead>
         <tr>
           <td style="width:230px;" class="fw-bold">{{ $order['categories']['soloDrinkLumpiaGuabao']['name'] }}</td>
@@ -867,9 +869,9 @@
             @php $column_used_num++; @endphp
           @endforeach
 
-          @foreach($order['categories']['soloDrinkLumpiaGuabao']['Columns']['SecondaryMainMeal'] ?? [] as $option_value_id => $name)
+          @foreach($columns['Douhua'] ?? [] as $item)
             <td style="width:24px; @if ($loop->last) border-right:3px solid black @endif" class="fw-bold">
-              {{ $name }}
+              {{ $item->short_name }}
             </td>
             @php $column_used_num++; @endphp
           @endforeach
@@ -905,11 +907,13 @@
             @php $column_used_num++; @endphp
           @endforeach
 
-          @foreach($order['categories']['soloDrinkLumpiaGuabao']['Columns']['SecondaryMainMeal'] ?? [] as $option_value_id => $name)
+          @foreach($columns['Douhua'] ?? [] as $item)
             <td style="@if ($loop->last) border-right:3px solid black @endif">
-              @if(!empty($product['product_options']['SecondaryMainMeal'][$option_value_id]['quantity']))
-                {{ $product['product_options']['SecondaryMainMeal'][$option_value_id]['quantity'] }}
-              @endif
+              @foreach($item->option_value_ids as $option_value_id)
+                @if(!empty($product['product_options']['Douhua'][$option_value_id]['quantity']))
+                  {{ $product['product_options']['Douhua'][$option_value_id]['quantity'] }}
+                @endif
+              @endforeach
             </td>
             @php $column_used_num++; @endphp
           @endforeach
@@ -940,7 +944,7 @@
     <td style="width:100px;" class="fw-bold">單點(A)</td>
     <td>
       @foreach($order['categories']['otherCategory']['items'] ?? [] as $product_id => $row)
-        {{ $row['name'] }}(${{ $row['price'] }})*{{ $row['quantity'] }}, 
+        {{ $row['display_name'] }},
       @endforeach
     </td>
     </tr>

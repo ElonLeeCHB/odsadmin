@@ -161,4 +161,23 @@ class InvoiceController extends ApiPosController
 
         return $base . str_pad($nextSerial, 4, '0', STR_PAD_LEFT);
     }
+
+    /**
+     * 取得發票預設項目
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function defaultItems()
+    {
+        try {
+            $items = (new \App\Caches\Custom\Sales\DefaultInvoiceItems())->getData();
+
+            return response()->json([
+                'success' => true,
+                'data' => $items
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        } catch (\Throwable $th) {
+            return $this->sendJsonErrorResponse(data: ['sys_error' => $th->getMessage()], status_code: 500);
+        }
+    }
 }

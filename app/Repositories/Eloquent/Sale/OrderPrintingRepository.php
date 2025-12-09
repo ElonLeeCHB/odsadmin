@@ -224,7 +224,7 @@ class OrderPrintingRepository extends Repository
             $builder->with([
                 'orderProducts' => function ($query) {
                     $query->with([
-                        'orderProductOptions',
+                        'orderProductOptions.mapProduct:id,name',
                         'product:id,printing_category_id',
                         'productTags.translation',
                         'productPosCategories.translation',
@@ -367,7 +367,7 @@ class OrderPrintingRepository extends Repository
                             $orderProduct->identifier = 'customLunchbox';
                             $printingRowsByCategory[$orderProduct->identifier]['name'] = '客製盒餐';
                         }
-                        else if ($printing_category_id == 1515) { // 單點潤餅或飲料
+                        else if ($printing_category_id == 1515) { // 單點潤餅或飲料、豆花
                             $orderProduct->identifier = 'soloDrinkLumpiaGuabao';
                             $printingRowsByCategory[$orderProduct->identifier]['name'] = '單點潤餅刈包飲料';
                         }
@@ -423,17 +423,21 @@ class OrderPrintingRepository extends Repository
 
                         $identifier = $orderProduct->identifier;
                         
-                        foreach ($orderProduct->order_product_options as $orderProduct_option) {
-                            $option_id = $orderProduct_option->option_id;
-                            $option_value_id = $orderProduct_option->option_value_id;
+                        foreach ($orderProduct->orderProductOptions as $orderProductOption) {
+                            $option_id = $orderProductOption->option_id;
+                            $option_value_id = $orderProductOption->option_value_id;
     
-                            if($option_id == 1003){ //主餐 1003
+                            // 單點豆花(1891)優先判斷，option_id 可能是 1031 或 1003
+                            if($orderProduct->product_id == 1891 && in_array($option_id, [1031, 1003])){
+                                $tmp_option_type = 'Douhua';
+                            }
+                            else if($option_id == 1003){ //主餐 1003
                                 $tmp_option_type = 'MainMeal';
                             }
                             else if($option_id == 1007){ //副主餐
                                 $tmp_option_type = 'SecondaryMainMeal';
                             }
-                            else if($option_id == 1005){ // 配菜1005                                    
+                            else if($option_id == 1005){ // 配菜1005
                                 $tmp_option_type = 'SideDish';
                             }
                             else if($option_id == 1004){ //飲料湯品 1004
@@ -441,6 +445,9 @@ class OrderPrintingRepository extends Repository
                             }
                             else if($option_id == 1009){ // 6吋潤餅
                                 $tmp_option_type = 'Lumpia6inch';
+                            }
+                            else if($option_id == 1031){ // 豆花
+                                $tmp_option_type = 'Douhua';
                             }
                             else{
                                 $tmp_option_type = 'Other';
@@ -451,23 +458,57 @@ class OrderPrintingRepository extends Repository
                                 $printingRowsByCategory[$identifier]['Columns'][$tmp_option_type] = [];
                             }
     
-                            if(empty($printingRowsByCategory[$identifier]['Columns'][$tmp_option_type][$option_value_id]) && !empty($orderProduct_option->optionValue->translation->short_name)){
-                                $printingRowsByCategory[$identifier]['Columns'][$tmp_option_type][$option_value_id] = $orderProduct_option->optionValue->translation->short_name;
+                            if(empty($printingRowsByCategory[$identifier]['Columns'][$tmp_option_type][$option_value_id]) && !empty($orderProductOption->optionValue->translation->short_name)){
+                                $printingRowsByCategory[$identifier]['Columns'][$tmp_option_type][$option_value_id] = $orderProductOption->optionValue->translation->short_name;
     
                             }
     
                             //設定各筆商品
                             if(!isset($printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id])){
-                                
-                                $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['parent_product_option_value_id'] = $orderProduct_option->parent_product_option_value_id;
-                                $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['map_product_id'] = $orderProduct_option->map_product_id;
-                                $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['value'] = $orderProduct_option->value;
+
+                                $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['parent_product_option_value_id'] = $orderProductOption->parent_product_option_value_id;
+                                $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['map_product_id'] = $orderProductOption->map_product_id;
+                                $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['value'] = $orderProductOption->value;
                                 $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['quantity'] = 0;
                             }
-    
-                            $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['quantity'] += $orderProduct_option->quantity;
+
+                            $printingRowsByCategory[$identifier]['items'][$product_id]['product_options'][$tmp_option_type][$option_value_id]['quantity'] += $orderProductOption->quantity;
+
+                            // 處理 options_with_qty 類型：收集選項值（otherCategory 和 soloDrinkLumpiaGuabao）
+                            if(in_array($identifier, ['otherCategory', 'soloDrinkLumpiaGuabao']) && $orderProductOption->type == 'options_with_qty'){
+                                $mapProductName = $orderProductOption->mapProduct->name ?? $orderProductOption->value;
+                                $mapProductId = $orderProductOption->map_product_id;
+
+                                $printingRowsByCategory[$identifier]['items'][$product_id]['options_with_qty'][] = [
+                                    'name' => $orderProductOption->name,
+                                    'value' => $orderProductOption->value,
+                                    'map_product_id' => $mapProductId,
+                                    'map_product_name' => $mapProductName,
+                                    'quantity' => $orderProductOption->quantity,
+                                ];
+                            }
                         }
                     }
+
+                // 組合 otherCategory 的 display_name
+                if(!empty($printingRowsByCategory['otherCategory']['items'])){
+                    foreach($printingRowsByCategory['otherCategory']['items'] as $product_id => &$item){
+                        // 基本格式：商品名稱($價格)
+                        $display_name = $item['name'] . '($' . $item['price'] . ')';
+
+                        // 如果有 options_with_qty，組合選項字串
+                        if(!empty($item['options_with_qty'])){
+                            $optionParts = [];
+                            foreach($item['options_with_qty'] as $opt){
+                                $optionParts[] = $opt['value'] . '*' . $opt['quantity'];
+                            }
+                            $display_name .= '(' . implode(',', $optionParts) . ')';
+                        }
+
+                        $item['display_name'] = $display_name;
+                    }
+                    unset($item); // 解除引用
+                }
             //             
 
                 //再次處理全部選項，但只抓盒餐飲料
@@ -647,10 +688,6 @@ class OrderPrintingRepository extends Repository
                         foreach ($product['product_options']['Drink'] ?? [] as $drink) {
                             $map_product_id = $drink['map_product_id'];
     
-                            if($drink['value'] == '季節甜品'){
-                                $drink['value'] = '甜湯';
-                            }
-    
                             if(!isset($tmpRows[$map_product_id]['quantity'])){
                                 $tmpRows[$map_product_id]['value'] = $drink['value'];
                                 $tmpRows[$map_product_id]['quantity'] = 0; 
@@ -661,13 +698,56 @@ class OrderPrintingRepository extends Repository
                     }
                 }
 
-                foreach ($all_drinks ?? [] as $option_value_id => $drink) {
-                    if($option_value_id == 1185){
-                        continue;
+                // 湯飲統計：主餐飲料選項 + 單點飲料(1884) + 單點豆花(1891)，全部加總
+                // 使用 map_product_id 作為 key 避免同商品不同名稱重複計算（如「微糖豆漿」和「微豆」是同一商品）
+                $drinkStats = [];
+
+                // 1. 便當、盒餐、油飯盒的飲料選項（排除 otherCategory 和 soloDrinkLumpiaGuabao）
+                foreach ($printingRowsByCategory as $identifier => $category) {
+                    if(in_array($identifier, ['otherCategory', 'soloDrinkLumpiaGuabao'])) continue;
+                    foreach ($category['items'] ?? [] as $product) {
+                        foreach ($product['product_options']['Drink'] ?? [] as $drink) {
+                            $mapProductId = $drink['map_product_id'] ?? null;
+                            $drinkValue = $drink['value'];
+                            // 使用 map_product_id 作為 key，若無則用 value
+                            $key = $mapProductId ?: $drinkValue;
+
+                            if(!isset($drinkStats[$key])) {
+                                $drinkStats[$key] = ['name' => $drinkValue, 'quantity' => 0];
+                            }
+                            $drinkStats[$key]['quantity'] += $drink['quantity'];
+                        }
                     }
-                    if(!empty($tmpRows[$drink->product_id])){
-                        $statistics['drinks'][] = $tmpRows[$drink->product_id];
+                }
+
+                // 2. 單點飲料(1884) + 單點豆花(1891) 的選項（從 soloDrinkLumpiaGuabao 取得）
+                foreach($printingRowsByCategory['soloDrinkLumpiaGuabao']['items'] ?? [] as $productId => $item){
+                    if(!in_array($productId, [1884, '1884', 1891, '1891'])) continue;
+                    foreach($item['options_with_qty'] ?? [] as $opt){
+                        $mapProductId = $opt['map_product_id'] ?? null;
+                        $optName = $opt['map_product_name'] ?? $opt['value'];
+                        // 使用 map_product_id 作為 key，若無則用名稱
+                        $key = $mapProductId ?: $optName;
+
+                        if(!isset($drinkStats[$key])) {
+                            $drinkStats[$key] = ['name' => $optName, 'quantity' => 0];
+                        }
+                        $drinkStats[$key]['quantity'] += $opt['quantity'];
                     }
+                }
+
+                // 組合湯飲統計
+                if(!empty($drinkStats)){
+                    $drinkTotal = array_sum(array_column($drinkStats, 'quantity'));
+                    $drinkDetails = [];
+                    foreach($drinkStats as $stat){
+                        $drinkDetails[] = $stat['name'] . '*' . $stat['quantity'];
+                    }
+                    $statistics['drinks'][] = [
+                        'value' => '湯飲',
+                        'quantity' => $drinkTotal,
+                        'detail' => implode(',', $drinkDetails),
+                    ];
                 }
             // end statistics
 

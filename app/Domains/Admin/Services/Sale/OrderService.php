@@ -14,6 +14,7 @@ use App\Repositories\Eloquent\Catalog\OptionValueRepository;
 use App\Models\Sale\OrderProductOption;
 use App\Models\Sale\OrderTag;
 use App\Models\Catalog\ProductTranslation;
+use App\Models\Catalog\OptionValue;
 
 class OrderService extends Service
 {
@@ -450,4 +451,5 @@ class OrderService extends Service
 
         return $rows;
     }
+    
 }

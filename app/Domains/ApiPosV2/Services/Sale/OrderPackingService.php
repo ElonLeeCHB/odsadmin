@@ -26,6 +26,23 @@ class OrderPackingService extends Service
                     ->whereDate('delivery_date', $delivery_date)
                     ->whereIn('status_code', ['Confirmed', 'CCP'])
                     ->get()
+                    ->map(function ($order) {
+                        // 設定排序用的時間：優先使用 order_packing.ready_time，否則取 delivery_time_range 開頭
+                        $sortTime = $order->orderPacking?->ready_time;
+                        if (empty($sortTime) && !empty($order->delivery_time_range)) {
+                            // 取 delivery_time_range 的開頭（例如 "09:00 - 10:00" → "09:00"）
+                            $sortTime = trim(explode('-', $order->delivery_time_range)[0] ?? '');
+                        }
+
+                        // 統一轉為 HH:MM 格式（處理 "0900" → "09:00"）
+                        if ($sortTime && strlen($sortTime) === 4 && ctype_digit($sortTime)) {
+                            $sortTime = substr($sortTime, 0, 2) . ':' . substr($sortTime, 2, 2);
+                        }
+
+                        $order->setAttribute('sort_time', $sortTime);
+                        return $order;
+                    })
+                    ->sortBy('sort_time')
                     ->keyBy('code');
 
         return $orders->toArray();

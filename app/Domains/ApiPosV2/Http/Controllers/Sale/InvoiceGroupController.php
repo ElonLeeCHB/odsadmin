@@ -455,6 +455,11 @@ class InvoiceGroupController extends ApiPosController
         // 訂單未在群組中，可用
         if (!$groupOrder || !$groupOrder->invoiceGroup) {
 
+            // 取得發票預設值，移除不需要的欄位
+            $invoiceDefaults = $this->getInvoiceDefaults($order);
+            unset($invoiceDefaults['suggest_items']);
+            unset($invoiceDefaults['invoice_items']);
+
             return response()->json([
                 'success' => true,
                 'available' => true,
@@ -467,6 +472,7 @@ class InvoiceGroupController extends ApiPosController
                     'order_totals' => $order->orderTotals,
                     'order_products' => $order->orderProducts,
                     'suggest_items' => $suggestItems,
+                    'invoice_defaults' => $invoiceDefaults,
                 ],
             ], 200, [], JSON_UNESCAPED_UNICODE);
         }

@@ -149,6 +149,7 @@ Route::group([
 
                 // 發票 CRUD
                 Route::get('/', [InvoiceController::class, 'index'])->name('index');
+                Route::get('/default-items', [InvoiceController::class, 'defaultItems'])->name('default-items');
                 // Route::post('/', [InvoiceController::class, 'store'])->name('store');
                 // Route::get('/{invoice}', [InvoiceController::class, 'show'])->name('show');
                 // Route::put('/{invoice}', [InvoiceController::class, 'update'])->name('update');
