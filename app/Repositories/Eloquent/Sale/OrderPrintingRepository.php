@@ -49,6 +49,18 @@ use Mpdf\Mpdf;
  * getOrderPringtingData(Order $order)
  */
 
+/*
+
+2025-12-09
+* 選項=飲料；選項值：紅茶、奶茶、微糖豆漿、無糖豆漿、濃湯、甜湯(豆花)
+* 單點飲料(product_id=1884)：選項值同上。
+* 單點豆花(product_id=1891)：選項值是 紅豆豆花、綠豆豆花、花生豆花
+所以，紅茶、奶茶、微豆、無豆、濃湯、豆花這6種，不論是做為主餐的飲料選項，或是單點飲料的選項，都可以合併做分組加總。
+而單點豆花，則使用自己的種類做分組加總，例如：紅豆豆花12杯、花生豆花13杯。
+例如：飲料*24(微豆*2,豆花*21,紅豆豆花*1)
+
+ */
+
 class OrderPrintingRepository extends Repository
 {    
     public $modelName = "\App\Models\Sale\Order";
@@ -744,7 +756,7 @@ class OrderPrintingRepository extends Repository
                         $drinkDetails[] = $stat['name'] . '*' . $stat['quantity'];
                     }
                     $statistics['drinks'][] = [
-                        'value' => '湯飲',
+                        'value' => '飲料',
                         'quantity' => $drinkTotal,
                         'detail' => implode(',', $drinkDetails),
                     ];

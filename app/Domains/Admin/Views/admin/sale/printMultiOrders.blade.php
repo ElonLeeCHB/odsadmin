@@ -147,13 +147,13 @@
         <tbody>
           <tr style="height: 60px;">
             <td class="align-top"   colspan="10">
-            <p style="white-space: pre-wrap;margin:0">餐點備註：{{ $order['header']->extra_comment }} @if($order['header']->status_code != 'Confirmed' && $order['header']->status_code != 'CCP') {{ $order['header']->status_name }} @endif</p>
-            
+              <p style="white-space: pre-wrap;margin:0">餐點備註：{{ $order['header']->extra_comment }} @if($order['header']->status_code != 'Confirmed' && $order['header']->status_code != 'CCP') {{ $order['header']->status_name }} @endif</p>
               <div style="text-align: right;">
-                <input type="checkbox"> {{"小卡"}}
+                <input type="checkbox"> {{"飲料"}}&nbsp;
+                <input type="checkbox"> {{"小卡"}}&nbsp;
                 外送五步驟：清檢放統備 &nbsp;&nbsp;簽名：_______________
-            </div>
-          </td>
+             </div>
+            </td>
           </tr>
         </tbody>
       </table>

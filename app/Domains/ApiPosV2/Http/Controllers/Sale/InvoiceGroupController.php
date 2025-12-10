@@ -761,19 +761,37 @@ class InvoiceGroupController extends ApiPosController
             throw new \Exception('以下訂單已經在其他群組中，不可重複加入：' . implode('、', $duplicates));
         }
 
-        // 將舊的關聯標記為失效（保留歷史記錄）
-        InvoiceGroupOrder::where('group_id', $invoiceGroup->id)
-            ->update(['is_active' => null]);
+        // 取得目前群組中的訂單 ID
+        $currentOrderIds = InvoiceGroupOrder::where('group_id', $invoiceGroup->id)
+            ->where('is_active', 1)
+            ->pluck('order_id')
+            ->toArray();
 
-        // 建立新的關聯
+        $newOrderIds = $orders->pluck('id')->toArray();
+
+        // 找出需要移除的訂單（在舊的但不在新的）
+        $toRemoveIds = array_diff($currentOrderIds, $newOrderIds);
+
+        // 將移除的訂單標記為失效
+        if (!empty($toRemoveIds)) {
+            InvoiceGroupOrder::where('group_id', $invoiceGroup->id)
+                ->whereIn('order_id', $toRemoveIds)
+                ->update(['is_active' => null]);
+        }
+
+        // 使用 updateOrCreate 處理訂單關聯（新增或更新）
         $totalOrderAmount = 0;
         foreach ($orders as $order) {
-            InvoiceGroupOrder::create([
-                'group_id' => $invoiceGroup->id,
-                'order_id' => $order->id,
-                'order_amount' => $order->payment_total,
-                'is_active' => 1, // 新關聯標記為活動中
-            ]);
+            InvoiceGroupOrder::updateOrCreate(
+                [
+                    'group_id' => $invoiceGroup->id,
+                    'order_id' => $order->id,
+                ],
+                [
+                    'order_amount' => $order->payment_total,
+                    'is_active' => 1,
+                ]
+            );
             $totalOrderAmount += $order->payment_total;
         }
 
