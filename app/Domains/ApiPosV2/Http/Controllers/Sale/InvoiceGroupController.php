@@ -822,16 +822,16 @@ class InvoiceGroupController extends ApiPosController
             ->pluck('invoice_id')
             ->toArray();
 
-        // 檢查發票狀態限制
+        // 檢查發票狀態限制，並收集需要保留的發票 ID（voided 狀態）
+        $voidedInvoiceIds = [];
         if (!empty($oldInvoiceIds)) {
             $existingInvoices = Invoice::whereIn('id', $oldInvoiceIds)->get();
 
             foreach ($existingInvoices as $existingInvoice) {
-                // voided 狀態：完全禁止任何變動
+                // voided 狀態：保留關聯，不刪除
                 if ($existingInvoice->status->value === 'voided') {
-                    throw new \Exception(
-                        "發票 {$existingInvoice->invoice_number} 已作廢，無法進行任何變動"
-                    );
+                    $voidedInvoiceIds[] = $existingInvoice->id;
+                    continue; // 作廢的發票不影響其他發票的修改
                 }
 
                 // issued 狀態：禁止修改，只允許作廢操作
@@ -843,9 +843,16 @@ class InvoiceGroupController extends ApiPosController
             }
         }
 
-        // 刪除舊的發票關聯和發票（僅 pending 狀態才會到達這裡）
-        InvoiceGroupInvoice::where('group_id', $invoiceGroup->id)->delete();
-        Invoice::whereIn('id', $oldInvoiceIds)->delete(); // 這會連帶刪除 invoice_items
+        // 計算需要刪除的發票 ID（排除已作廢的發票）
+        $invoiceIdsToDelete = array_diff($oldInvoiceIds, $voidedInvoiceIds);
+
+        // 刪除舊的發票關聯和發票（保留已作廢的發票關聯）
+        if (!empty($invoiceIdsToDelete)) {
+            InvoiceGroupInvoice::where('group_id', $invoiceGroup->id)
+                ->whereIn('invoice_id', $invoiceIdsToDelete)
+                ->delete();
+            Invoice::whereIn('id', $invoiceIdsToDelete)->delete(); // 這會連帶刪除 invoice_items
+        }
 
         // 建立新的發票
         $totalInvoiceAmount = 0;

@@ -10,6 +10,7 @@ use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderGroupController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\PaymentController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderMetadataController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\SalesSummaryController;
 
 Route::group([
     'namespace' => 'App\Domains\ApiPosV2\Http\Controllers',
@@ -285,6 +286,9 @@ Route::group([
                 // Route::put('{payment_id}', [PaymentController::class, 'update']);       // PUT /payments/{payment_id}
                 Route::delete('{payment_id}', [PaymentController::class, 'destroy']);      // DELETE /payments/{payment_id}
             });
+
+            // 營收統計 API
+            Route::get('daily-summary', [SalesSummaryController::class, 'dailySummary'])->name('daily-summary');
         });
     
         

@@ -434,6 +434,25 @@ class GivemeController extends ApiPosController
             $timeStamp = round(microtime(true) * 1000);
             $sign = $this->generateSignature((string)$timeStamp, $this->credentials);
 
+            // 根據 tax_included 計算正確的金額
+            // tax_included = 1: invoice_items.price 是含稅價，加總即為含稅總金額
+            // tax_included = 0: invoice_items.price 是未稅價，需另外計算稅額
+            $taxIncluded = (int)($invoice->tax_included ?? 0);
+
+            // 從 invoice_items 計算項目加總
+            $itemsTotal = $invoice->invoiceItems->sum(function ($item) {
+                return (float)$item->price * (float)$item->quantity;
+            });
+
+            // 根據 tax_included 計算 totalFee（含稅總金額）
+            if ($taxIncluded === 1) {
+                // 含稅價：items 加總就是含稅總金額
+                $totalFee = round($itemsTotal);
+            } else {
+                // 未稅價：items 加總是未稅金額，需加上稅額
+                $totalFee = round($itemsTotal * 1.05);
+            }
+
             // 組裝商品明細
             $items = [];
             foreach ($invoice->invoiceItems as $item) {
@@ -458,7 +477,7 @@ class GivemeController extends ApiPosController
                 'email' => $invoice->email ?? '',
                 'state' => $invoice->carrier_type === 'donation' ? '1' : '0',
                 'taxType' => $this->mapTaxType($invoice->tax_type),
-                'totalFee' => (int)round($invoice->total_amount),
+                'totalFee' => (int)$totalFee,
                 'content' => $invoice->content ?? '商品銷售',
                 'items' => $items,
             ];
@@ -632,7 +651,7 @@ class GivemeController extends ApiPosController
 
     /**
      * 開立 B2B 發票
-     * Giveme 文件 1.1.2 B2B 發票新增介面 
+     * Giveme 文件 1.1.2 B2B 發票新增介面
      *
      * @param Invoice $invoice
      * @param int|null $orderId
@@ -646,6 +665,29 @@ class GivemeController extends ApiPosController
         try {
             $timeStamp = round(microtime(true) * 1000);
             $sign = $this->generateSignature((string)$timeStamp, $this->credentials);
+
+            // 根據 tax_included 計算正確的金額
+            // tax_included = 1: invoice_items.price 是含稅價，加總即為含稅總金額
+            // tax_included = 0: invoice_items.price 是未稅價，需另外計算稅額
+            $taxIncluded = (int)($invoice->tax_included ?? 0);
+
+            // 從 invoice_items 計算項目加總
+            $itemsTotal = $invoice->invoiceItems->sum(function ($item) {
+                return (float)$item->price * (float)$item->quantity;
+            });
+
+            // 根據 tax_included 計算 totalFee, amount(稅額), sales(未稅金額)
+            if ($taxIncluded === 1) {
+                // 含稅價：items 加總就是含稅總金額
+                $totalFee = round($itemsTotal);
+                $sales = round($itemsTotal / 1.05);  // 未稅金額 = 含稅 / 1.05
+                $amount = $totalFee - $sales;        // 稅額 = 含稅 - 未稅
+            } else {
+                // 未稅價：items 加總是未稅金額
+                $sales = round($itemsTotal);
+                $amount = round($itemsTotal * 0.05); // 稅額 = 未稅 * 5%
+                $totalFee = $sales + $amount;        // 含稅總金額 = 未稅 + 稅額
+            }
 
             // 組裝商品明細
             $items = [];
@@ -670,9 +712,9 @@ class GivemeController extends ApiPosController
                 'datetime' => \Carbon\Carbon::parse($invoice->invoice_date)->format('Y-m-d'),
                 'email' => $invoice->email ?? '',
                 'taxState' => (string)($invoice->tax_state ?? 0),
-                'totalFee' => (int)round($invoice->total_amount),
-                'amount' => (int)round($invoice->tax_amount),
-                'sales' => (int)round($invoice->net_amount ?? ($invoice->total_amount - $invoice->tax_amount)),
+                'totalFee' => (int)$totalFee,
+                'amount' => (int)$amount,
+                'sales' => (int)$sales,
                 'taxType' => $this->mapTaxType($invoice->tax_type),
                 'content' => $invoice->content ?? '商品銷售',
                 'items' => $items,
