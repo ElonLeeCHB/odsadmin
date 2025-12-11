@@ -236,7 +236,7 @@ class GivemeDataController extends ApiPosController
     // ========================================
 
     /**
-     * 1.1.1 B2C 發票新增介面 
+     * 1.1.1 B2C 發票新增介面
      * 處理 B2C 發票開立
      */
     protected function processB2C(Request $request, array $credentials, string $env)
@@ -276,14 +276,25 @@ class GivemeDataController extends ApiPosController
                 'response' => $responseData,
             ]);
 
+            // 判斷機迷坊 API 回應是否成功
+            $apiSuccess = isset($responseData['success']) && $responseData['success'] === 'true';
+            $apiMessage = $responseData['msg'] ?? ($apiSuccess ? '開立成功' : 'API 回應失敗');
+
+            // 處理 HTTP 非 200 回應
+            if ($response->status() !== 200) {
+                $apiSuccess = false;
+                $apiMessage = "HTTP {$response->status()}: API 請求失敗";
+            }
+
             return response()->json([
-                'success' => true,
-                'message' => "B2C 發票開立 [{$env}]",
+                'success' => $apiSuccess,
+                'message' => $apiMessage,
                 'env' => $env,
+                'invoice_number' => $apiSuccess ? ($responseData['code'] ?? null) : null,
                 'request' => $requestData,
                 'response' => $responseData,
                 'http_status' => $response->status(),
-            ], 200, [], JSON_UNESCAPED_UNICODE);
+            ], $apiSuccess ? 200 : 400, [], JSON_UNESCAPED_UNICODE);
 
         } catch (\Throwable $th) {
             Log::error("Giveme B2C Error [{$env}]", [
@@ -299,6 +310,7 @@ class GivemeDataController extends ApiPosController
     }
 
     /**
+     * 1.1.2 B2B 發票新增介面
      * 處理 B2B 發票開立
      */
     protected function processB2B(Request $request, array $credentials, string $env)
@@ -340,14 +352,25 @@ class GivemeDataController extends ApiPosController
                 'response' => $responseData,
             ]);
 
+            // 判斷機迷坊 API 回應是否成功
+            $apiSuccess = isset($responseData['success']) && $responseData['success'] === 'true';
+            $apiMessage = $responseData['msg'] ?? ($apiSuccess ? '開立成功' : 'API 回應失敗');
+
+            // 處理 HTTP 404 等非正常回應
+            if ($response->status() !== 200) {
+                $apiSuccess = false;
+                $apiMessage = "HTTP {$response->status()}: API 請求失敗";
+            }
+
             return response()->json([
-                'success' => true,
-                'message' => "B2B 發票開立 [{$env}]",
+                'success' => $apiSuccess,
+                'message' => $apiMessage,
                 'env' => $env,
+                'invoice_number' => $apiSuccess ? ($responseData['code'] ?? null) : null,
                 'request' => $requestData,
                 'response' => $responseData,
                 'http_status' => $response->status(),
-            ], 200, [], JSON_UNESCAPED_UNICODE);
+            ], $apiSuccess ? 200 : 400, [], JSON_UNESCAPED_UNICODE);
 
         } catch (\Throwable $th) {
             Log::error("Giveme B2B Error [{$env}]", [
@@ -363,6 +386,7 @@ class GivemeDataController extends ApiPosController
     }
 
     /**
+     * 1.1.3 發票查詢介面
      * 處理發票查詢
      */
     protected function processQuery(Request $request, array $credentials, string $env)
@@ -402,14 +426,23 @@ class GivemeDataController extends ApiPosController
                 'response' => $responseData,
             ]);
 
+            // 判斷機迷坊 API 回應是否成功
+            $apiSuccess = isset($responseData['success']) && $responseData['success'] === 'true';
+            $apiMessage = $responseData['msg'] ?? ($apiSuccess ? '查詢成功' : 'API 回應失敗');
+
+            if ($response->status() !== 200) {
+                $apiSuccess = false;
+                $apiMessage = "HTTP {$response->status()}: API 請求失敗";
+            }
+
             return response()->json([
-                'success' => true,
-                'message' => "發票查詢 [{$env}]",
+                'success' => $apiSuccess,
+                'message' => $apiMessage,
                 'env' => $env,
                 'request' => $requestData,
                 'response' => $responseData,
                 'http_status' => $response->status(),
-            ], 200, [], JSON_UNESCAPED_UNICODE);
+            ], $apiSuccess ? 200 : 400, [], JSON_UNESCAPED_UNICODE);
 
         } catch (\Throwable $th) {
             Log::error("Giveme Query Error [{$env}]", [
@@ -425,6 +458,7 @@ class GivemeDataController extends ApiPosController
     }
 
     /**
+     * 1.1.6 發票作廢介面
      * 處理發票作廢
      */
     protected function processCancel(Request $request, array $credentials, string $env)
@@ -461,23 +495,28 @@ class GivemeDataController extends ApiPosController
 
             $responseData = $response->json();
 
-            // echo "<pre>requestData = ", print_r($requestData, true), "</pre>";
-            // echo "<pre>responseData = ", print_r($responseData, true), "</pre>";
-            // exit;
-
             Log::info("Giveme Cancel Response [{$env}]", [
                 'status' => $response->status(),
                 'response' => $responseData,
             ]);
 
+            // 判斷機迷坊 API 回應是否成功
+            $apiSuccess = isset($responseData['success']) && $responseData['success'] === 'true';
+            $apiMessage = $responseData['msg'] ?? ($apiSuccess ? '作廢成功' : 'API 回應失敗');
+
+            if ($response->status() !== 200) {
+                $apiSuccess = false;
+                $apiMessage = "HTTP {$response->status()}: API 請求失敗";
+            }
+
             return response()->json([
-                'success' => true,
-                'message' => "發票作廢 [{$env}]",
+                'success' => $apiSuccess,
+                'message' => $apiMessage,
                 'env' => $env,
                 'request' => $requestData,
                 'response' => $responseData,
                 'http_status' => $response->status(),
-            ], 200, [], JSON_UNESCAPED_UNICODE);
+            ], $apiSuccess ? 200 : 400, [], JSON_UNESCAPED_UNICODE);
 
         } catch (\Throwable $th) {
             Log::error("Giveme Cancel Error [{$env}]", [

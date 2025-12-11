@@ -439,13 +439,14 @@ class GivemeController extends ApiPosController
             foreach ($invoice->invoiceItems as $item) {
                 $items[] = [
                     'name' => $item->name,
-                    'money' => (int)$item->price,
+                    'money' => (int)round($item->price),  // 轉整數，機迷坊不接受帶小數的字串
                     'number' => (int)$item->quantity,
                     'remark' => $item->remark ?? '',
                 ];
             }
 
             // 組裝請求資料（格式需與 GivemeDataController 一致）
+            // 注意：金額欄位必須是不帶小數點的數值，機迷坊不接受 "5471.00" 這種格式
             $requestData = [
                 'timeStamp' => (string)$timeStamp,
                 'uncode' => $this->credentials['uncode'],
@@ -457,7 +458,7 @@ class GivemeController extends ApiPosController
                 'email' => $invoice->email ?? '',
                 'state' => $invoice->carrier_type === 'donation' ? '1' : '0',
                 'taxType' => $this->mapTaxType($invoice->tax_type),
-                'totalFee' => (float)$invoice->total_amount,
+                'totalFee' => (int)round($invoice->total_amount),
                 'content' => $invoice->content ?? '商品銷售',
                 'items' => $items,
             ];
@@ -651,13 +652,14 @@ class GivemeController extends ApiPosController
             foreach ($invoice->invoiceItems as $item) {
                 $items[] = [
                     'name' => $item->name,
-                    'money' => (float)$item->price,
+                    'money' => (int)round($item->price),  // 轉整數，機迷坊不接受帶小數的字串
                     'number' => (int)$item->quantity,
                     'remark' => $item->remark ?? '',
                 ];
             }
 
             // 組裝請求資料
+            // 注意：金額欄位必須是不帶小數點的字串，機迷坊不接受 "5471.00" 這種格式
             $requestData = [
                 'timeStamp' => (string)$timeStamp,
                 'uncode' => $this->credentials['uncode'],
@@ -668,32 +670,73 @@ class GivemeController extends ApiPosController
                 'datetime' => \Carbon\Carbon::parse($invoice->invoice_date)->format('Y-m-d'),
                 'email' => $invoice->email ?? '',
                 'taxState' => (string)($invoice->tax_state ?? 0),
-                'totalFee' => (string)$invoice->total_amount,
-                'amount' => (string)$invoice->tax_amount,
-                'sales' => (string)($invoice->net_amount ?? ($invoice->total_amount - $invoice->tax_amount)),
+                'totalFee' => (int)round($invoice->total_amount),
+                'amount' => (int)round($invoice->tax_amount),
+                'sales' => (int)round($invoice->net_amount ?? ($invoice->total_amount - $invoice->tax_amount)),
                 'taxType' => $this->mapTaxType($invoice->tax_type),
                 'content' => $invoice->content ?? '商品銷售',
                 'items' => $items,
             ];
 
+            $fullUrl = $this->apiUrl . '?action=addB2B';
+
             Log::info('Giveme Production B2B Request', [
                 'invoice_id' => $invoice->id,
+                'apiUrl' => $this->apiUrl,
+                'fullUrl' => $fullUrl,
                 'request' => $requestData,
             ]);
 
             // 發送請求（機迷坊 SSL 憑證有問題，需跳過驗證）
-            $response = Http::timeout(30)
-                ->withoutVerifying()
-                ->withHeaders(['Content-Type' => 'application/json'])
-                ->post($this->apiUrl . '?action=addB2B', $requestData);
+            try {
+                $response = Http::timeout(30)
+                    ->withoutVerifying()
+                    ->withHeaders(['Content-Type' => 'application/json'])
+                    ->post($fullUrl, $requestData);
+            } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                Log::error('Giveme Production B2B Connection Error', [
+                    'invoice_id' => $invoice->id,
+                    'error' => $e->getMessage(),
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'B2B 發票開立失敗 - 連線錯誤',
+                    'invoice_id' => $invoice->id,
+                    'error' => $e->getMessage(),
+                    'api_url' => $fullUrl,
+                ], 500, [], JSON_UNESCAPED_UNICODE);
+            }
 
             $responseData = $response->json();
+            $httpStatus = $response->status();
+            $responseBody = $response->body();
 
             Log::info('Giveme Production B2B Response', [
                 'invoice_id' => $invoice->id,
-                'status' => $response->status(),
-                'response' => $responseData,
+                'http_status' => $httpStatus,
+                'response_body' => $responseBody,
+                'response_json' => $responseData,
             ]);
+
+            // 檢查 HTTP 請求是否失敗
+            if ($response->failed() || $responseData === null) {
+                $invoice->api_request_data = $requestData;
+                $invoice->api_response_data = ['raw_body' => $responseBody];
+                $invoice->api_error = "HTTP {$httpStatus}: " . ($responseBody ?: '無回應');
+                $invoice->save();
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'B2B 發票開立失敗',
+                    'invoice_id' => $invoice->id,
+                    'error' => "HTTP {$httpStatus}: " . ($responseData['msg'] ?? $responseBody ?: '無回應'),
+                    'response' => $responseData,
+                    'api_url' => $fullUrl,
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
 
             // 更新資料庫
             if (isset($responseData['success']) && $responseData['success'] === 'true') {
