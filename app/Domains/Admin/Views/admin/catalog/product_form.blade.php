@@ -39,7 +39,7 @@
             <li class="nav-item"><a href="#tab-trans" data-bs-toggle="tab" class="nav-link active">{{ $lang->tab_trans }}</a></li>
             <li class="nav-item"><a href="#tab-data" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_data }}</a></li>
             <li class="nav-item"><a href="#tab-option" data-bs-toggle="tab" class="nav-link">{{ $lang->tab_option }}</a></li>
-
+            <li class="nav-item"><a href="#tab-channel-price" data-bs-toggle="tab" class="nav-link">通路售價</a></li>
           </ul>
           <form id="form-product" action="{{ $save_url }}" method="post" data-oc-toggle="ajax">
             @csrf
@@ -535,6 +535,67 @@
                   </div>
                 </fieldset>
               </div>
+
+              <div id="tab-channel-price" class="tab-pane">
+                <div class="table-responsive">
+                  <table id="channel-price" class="table table-bordered table-hover">
+                    <thead>
+                      <tr>
+                        <th>通路</th>
+                        <th class="text-end">售價</th>
+                        <th>生效日期</th>
+                        <th>結束日期</th>
+                        <th>啟用</th>
+                        <th class="text-end"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @php $channel_price_row = 0; @endphp
+                      @foreach($channelPrices ?? [] as $channelPrice)
+                      <tr id="channel-price-row-{{ $channel_price_row }}">
+                        <td>
+                          <select name="channel_prices[{{ $channel_price_row }}][channel_code]" class="form-select">
+                            <option value="">-- 請選擇 --</option>
+                            @foreach($salesChannels ?? [] as $channel)
+                            <option value="{{ $channel->code }}" @if($channel->code == $channelPrice->channel_code) selected @endif>{{ $channel->name }}</option>
+                            @endforeach
+                          </select>
+                          <input type="hidden" name="channel_prices[{{ $channel_price_row }}][id]" value="{{ $channelPrice->id }}"/>
+                        </td>
+                        <td class="text-end">
+                          <input type="text" name="channel_prices[{{ $channel_price_row }}][price]" value="{{ $channelPrice->price }}" placeholder="售價" class="form-control"/>
+                        </td>
+                        <td>
+                          <input type="date" name="channel_prices[{{ $channel_price_row }}][start_date]" value="{{ $channelPrice->start_date?->format('Y-m-d') }}" class="form-control"/>
+                        </td>
+                        <td>
+                          <input type="date" name="channel_prices[{{ $channel_price_row }}][end_date]" value="{{ $channelPrice->end_date?->format('Y-m-d') }}" class="form-control"/>
+                        </td>
+                        <td>
+                          <div class="form-check form-switch form-switch-lg">
+                            <input type="hidden" name="channel_prices[{{ $channel_price_row }}][is_active]" value="0"/>
+                            <input type="checkbox" name="channel_prices[{{ $channel_price_row }}][is_active]" value="1" class="form-check-input" @if($channelPrice->is_active) checked @endif/>
+                          </div>
+                        </td>
+                        <td class="text-end">
+                          <button type="button" onclick="$('#channel-price-row-{{ $channel_price_row }}').remove();" data-bs-toggle="tooltip" title="移除" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button>
+                        </td>
+                      </tr>
+                      @php $channel_price_row++; @endphp
+                      @endforeach
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td colspan="5"></td>
+                        <td class="text-end">
+                          <button type="button" id="button-channel-price" data-bs-toggle="tooltip" title="新增通路售價" class="btn btn-primary"><i class="fa-solid fa-plus-circle"></i></button>
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+
             </div>
           </form>
           </div>
@@ -940,7 +1001,35 @@ $('#product-pos_category').on('click', '.btn-danger', function () {
     $(this).parent().parent().remove();
 });
 
+// Channel Price
+var channel_price_row = {{ $channel_price_row ?? 0 }};
 
+$('#button-channel-price').on('click', function() {
+    var html = '<tr id="channel-price-row-' + channel_price_row + '">';
+    html += '  <td>';
+    html += '    <select name="channel_prices[' + channel_price_row + '][channel_code]" class="form-select">';
+    html += '      <option value="">-- 請選擇 --</option>';
+    @foreach($salesChannels ?? [] as $channel)
+    html += '      <option value="{{ $channel->code }}">{{ $channel->name }}</option>';
+    @endforeach
+    html += '    </select>';
+    html += '    <input type="hidden" name="channel_prices[' + channel_price_row + '][id]" value=""/>';
+    html += '  </td>';
+    html += '  <td class="text-end"><input type="text" name="channel_prices[' + channel_price_row + '][price]" value="" placeholder="售價" class="form-control"/></td>';
+    html += '  <td><input type="date" name="channel_prices[' + channel_price_row + '][start_date]" value="" class="form-control"/></td>';
+    html += '  <td><input type="date" name="channel_prices[' + channel_price_row + '][end_date]" value="" class="form-control"/></td>';
+    html += '  <td>';
+    html += '    <div class="form-check form-switch form-switch-lg">';
+    html += '      <input type="hidden" name="channel_prices[' + channel_price_row + '][is_active]" value="0"/>';
+    html += '      <input type="checkbox" name="channel_prices[' + channel_price_row + '][is_active]" value="1" class="form-check-input" checked/>';
+    html += '    </div>';
+    html += '  </td>';
+    html += '  <td class="text-end"><button type="button" onclick="$(\'#channel-price-row-' + channel_price_row + '\').remove();" data-bs-toggle="tooltip" title="移除" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button></td>';
+    html += '</tr>';
+
+    $('#channel-price tbody').append(html);
+    channel_price_row++;
+});
 
 </script>
 @endsection

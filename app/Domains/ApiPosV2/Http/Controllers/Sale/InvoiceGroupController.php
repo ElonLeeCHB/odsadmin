@@ -355,6 +355,87 @@ class InvoiceGroupController extends ApiPosController
     }
 
     /**
+     * 刪除發票群組及相關資料（僅限非 production 環境）
+     *
+     * 刪除順序：
+     * 1. invoice_items（發票明細）
+     * 2. invoice_group_invoices（群組-發票關聯）
+     * 3. invoices（發票）
+     * 4. invoice_group_orders（群組-訂單關聯）
+     * 5. invoice_groups（群組）
+     *
+     * @param int $id 群組 ID
+     * @return JsonResponse
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        // 檢查環境：僅限非 production
+        if (app()->environment('production')) {
+            return response()->json([
+                'success' => false,
+                'message' => '正式環境禁止刪除發票群組'
+            ], 403, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        // 查找群組
+        $invoiceGroup = InvoiceGroup::find($id);
+
+        if (!$invoiceGroup) {
+            return response()->json([
+                'success' => false,
+                'message' => '找不到指定的發票群組'
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // 取得該群組的所有發票 ID
+            $invoiceIds = InvoiceGroupInvoice::where('group_id', $id)
+                ->pluck('invoice_id')
+                ->toArray();
+
+            // 1. 刪除發票明細 (invoice_items)
+            if (!empty($invoiceIds)) {
+                InvoiceItem::whereIn('invoice_id', $invoiceIds)->delete();
+            }
+
+            // 2. 刪除群組-發票關聯 (invoice_group_invoices)
+            InvoiceGroupInvoice::where('group_id', $id)->delete();
+
+            // 3. 刪除發票 (invoices)
+            if (!empty($invoiceIds)) {
+                Invoice::whereIn('id', $invoiceIds)->delete();
+            }
+
+            // 4. 刪除群組-訂單關聯 (invoice_group_orders)
+            InvoiceGroupOrder::where('group_id', $id)->delete();
+
+            // 5. 刪除群組 (invoice_groups)
+            $invoiceGroup->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => '發票群組已刪除',
+                'data' => [
+                    'group_id' => $id,
+                    'group_no' => $invoiceGroup->group_no,
+                    'deleted_invoices' => count($invoiceIds),
+                ]
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => '刪除失敗：' . $e->getMessage()
+            ], 500, [], JSON_UNESCAPED_UNICODE);
+        }
+    }
+
+    /**
      * 檢查訂單是否可加入發票群組
      *
      * 單筆檢查：?order_id=123 或 ?order_code=ORD20250001
@@ -540,17 +621,30 @@ class InvoiceGroupController extends ApiPosController
 
         $groupNo = $request->input('group_no');
 
+        // 驗證：如果 JSON 裡有 group_id，必須與 URL 的 group_id 一致
+        if ($request->has('group_id') && $request->input('group_id') != $group_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'JSON 中的 group_id 與 URL 的 group_id 不一致'
+            ], 400, [], JSON_UNESCAPED_UNICODE);
+        }
+
         // 查找現有群組
-        $invoiceGroup = InvoiceGroup::where('id', $group_id)
-            // ->where('group_no', $groupNo)
-            // ->where('status', 'active')
-            ->first();
+        $invoiceGroup = InvoiceGroup::where('id', $group_id)->first();
 
         if (!$invoiceGroup) {
             return response()->json([
                 'success' => false,
-                'message' => '找不到指定的發票群組或群組已作廢'
+                'message' => '找不到指定的發票群組'
             ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        // 驗證：group_no 必須與查到的群組一致
+        if ($invoiceGroup->group_no !== $groupNo) {
+            return response()->json([
+                'success' => false,
+                'message' => "group_no 不一致：URL 指向群組 {$invoiceGroup->group_no}，但 JSON 提供 {$groupNo}"
+            ], 400, [], JSON_UNESCAPED_UNICODE);
         }
 
         return $this->save($request, $invoiceGroup);
@@ -598,20 +692,38 @@ class InvoiceGroupController extends ApiPosController
         // 重新載入資料
         $invoiceGroup->load(['orders', 'invoices.invoiceItems']);
 
-        // 組織回傳的發票和明細資料
+        // 組織回傳的發票和明細資料（包含所有欄位，方便直接用於 PUT 更新）
         $invoicesData = $invoiceGroup->invoices->map(function ($invoice) {
             return [
                 'id' => $invoice->id,
                 'invoice_number' => $invoice->invoice_number,
-                'status' => $invoice->status,
-                'total_amount' => $invoice->total_amount,
+                'invoice_type' => $invoice->invoice_type,
+                'invoice_format' => $invoice->invoice_format,
+                'invoice_date' => $invoice->invoice_date?->format('Y-m-d'),
+                'customer_id' => $invoice->customer_id,
+                'buyer_name' => $invoice->buyer_name,
+                'seller_name' => $invoice->seller_name,
+                'tax_id_number' => $invoice->tax_id_number,
+                'tax_type' => $invoice->tax_type?->value ?? $invoice->tax_type,
+                'tax_included' => $invoice->tax_included,
+                'tax_amount' => (int) $invoice->tax_amount,
+                'net_amount' => (int) $invoice->net_amount,
+                'total_amount' => (int) $invoice->total_amount,
+                'email' => $invoice->email,
+                'content' => $invoice->content,
+                'carrier_type' => $invoice->carrier_type,
+                'carrier_number' => $invoice->carrier_number,
+                'donation_code' => $invoice->donation_code,
+                'status' => $invoice->status?->value ?? $invoice->status,
                 'invoice_items' => $invoice->invoiceItems->map(function ($item) {
                     return [
                         'id' => $item->id,
                         'name' => $item->name,
-                        'quantity' => $item->quantity,
-                        'price' => $item->price,
-                        'subtotal' => $item->subtotal,
+                        'quantity' => (int) $item->quantity,
+                        'price' => (int) $item->price,
+                        'subtotal' => (int) $item->subtotal,
+                        'remark' => $item->remark,
+                        'item_tax_type' => $item->item_tax_type,
                     ];
                 })->toArray(),
             ];
@@ -627,7 +739,7 @@ class InvoiceGroupController extends ApiPosController
                 'order_count' => $invoiceGroup->order_count,
                 'order_ids' => $invoiceGroup->orders->pluck('id')->toArray(),
                 'invoice_count' => $invoiceGroup->invoice_count,
-                'total_amount' => $invoiceGroup->total_amount,
+                'total_amount' => (int) $invoiceGroup->total_amount,
                 'invoices' => $invoicesData,
             ]
         ], 200, [], JSON_UNESCAPED_UNICODE);
@@ -643,21 +755,21 @@ class InvoiceGroupController extends ApiPosController
     private function validateRequest(Request $request, bool $isUpdate = false): array
     {
         $rules = [
-            'order_ids' => 'required|string',
+            'order_ids' => 'required', // 接受字串或陣列
             'invoice_issue_mode' => 'required|in:standard,split,merge,mixed',
             'invoices' => 'required|array|min:1',
             'invoices.*.invoice_type' => 'nullable|in:single,duplicate,triplicate',
             'invoices.*.invoice_format' => 'nullable|in:thermal,a5',
-            'invoices.*.invoice_date' => 'required|date',
+            'invoices.*.invoice_date' => 'nullable|date', // 改為可選，預設今天
             'invoices.*.buyer_name' => 'nullable|string|max:255',
             'invoices.*.seller_name' => 'nullable|string|max:255',
             'invoices.*.tax_id_number' => 'nullable|string|max:20',
             'invoices.*.customer_id' => 'nullable|integer',
-            'invoices.*.tax_type' => 'required|in:taxable,exempt,zero_rate,mixed,special',
+            'invoices.*.tax_type' => 'nullable|in:taxable,exempt,zero_rate,mixed,special', // 改為可選，預設 taxable
             'invoices.*.tax_included' => 'nullable|integer|in:0,1',
             'invoices.*.email' => 'nullable|email',
             'invoices.*.content' => 'nullable|string',
-            'invoices.*.carrier_type' => 'required|in:none,phone_barcode,citizen_cert,member_card,credit_card,icash,easycard,ipass,email,donation',
+            'invoices.*.carrier_type' => 'nullable|in:none,phone_barcode,citizen_cert,member_card,credit_card,icash,easycard,ipass,email,donation', // 改為可選，預設 none
             'invoices.*.carrier_number' => 'nullable|string|max:255',
             'invoices.*.donation_code' => 'nullable|string|max:20',
             'invoices.*.invoice_items' => 'required|array|min:1',
@@ -672,7 +784,22 @@ class InvoiceGroupController extends ApiPosController
             $rules['group_no'] = 'required|string';
         }
 
-        return $request->validate($rules);
+        $validated = $request->validate($rules);
+
+        // order_ids 可以是字串或陣列，統一轉為字串
+        if (is_array($validated['order_ids'])) {
+            $validated['order_ids'] = implode(',', $validated['order_ids']);
+        }
+
+        // 為 invoices 補上預設值
+        foreach ($validated['invoices'] as &$invoice) {
+            $invoice['invoice_date'] = $invoice['invoice_date'] ?? now()->format('Y-m-d');
+            $invoice['tax_type'] = $invoice['tax_type'] ?? 'taxable';
+            $invoice['carrier_type'] = $invoice['carrier_type'] ?? 'none';
+        }
+        unset($invoice);
+
+        return $validated;
     }
 
     /**

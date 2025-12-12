@@ -169,11 +169,11 @@
 
 <!-- 潤餅便當系列 -->
   @if(!empty($order['categories']['lumpiaBento']))
-    @php $max_columns=18; @endphp
+    @php $max_columns=19; @endphp
   <table id="lumpiaBento" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
     <thead>
       <tr>
-        <td style="width:230px;" class="fw-bold">{{ $order['categories']['lumpiaBento']['name'] }}</td>
+        <td style="width:230px;" class="fw-bold"><img src="{{ asset('assets2/image/bento.png') }}" style="height:20px; vertical-align:middle;"> {{ $order['categories']['lumpiaBento']['name'] }}</td>
         <td style="width:24px;" class="fw-bold">小計</td>
         @php $column_used_num = 2; @endphp
 
@@ -252,11 +252,11 @@
 
 <!-- 刈包便當系列 -->
   @if(!empty($order['categories']['guabaoBento']))
-    @php $max_columns=18; @endphp
+    @php $max_columns=19; @endphp
     <table id="guabaoBento" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
       <thead>
         <tr>
-          <td style="width:230px;" class="fw-bold">{{ $order['categories']['guabaoBento']['name'] }}</td>
+          <td style="width:230px;" class="fw-bold"><img src="{{ asset('assets2/image/bento.png') }}" style="height:20px; vertical-align:middle;">  {{ $order['categories']['guabaoBento']['name'] }}</td>
           <td style="width:24px;" class="fw-bold">小計</td>
           @php $column_used_num = 2; @endphp
 
@@ -439,7 +439,7 @@
   <table id="lumpiaLunchBox" class=" table-bordered border border-dark tr-border-top " style="margin-top:3px;margin-bottom:0px;">
     <thead>
       <tr>
-        <td style="width:230px;" class="fw-bold">{{ $order['categories']['lumpiaLunchBox']['name'] }}</td>
+        <td style="width:230px;" class="fw-bold"><img src="{{ asset('assets2/image/lunchbox.png') }}" style="height:20px; vertical-align:middle;"> {{ $order['categories']['lumpiaLunchBox']['name'] }}</td>
         <td style="width:24px;" class="fw-bold">小計</td>
         @php $column_used_num = 2; @endphp
 

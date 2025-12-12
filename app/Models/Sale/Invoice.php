@@ -20,6 +20,7 @@ class Invoice extends Model
         'buyer_name',
         'seller_name',
         'tax_type',
+        'tax_included',
         'tax_state',
         'tax_amount',
         'net_amount',

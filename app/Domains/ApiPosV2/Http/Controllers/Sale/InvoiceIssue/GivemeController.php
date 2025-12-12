@@ -666,28 +666,13 @@ class GivemeController extends ApiPosController
             $timeStamp = round(microtime(true) * 1000);
             $sign = $this->generateSignature((string)$timeStamp, $this->credentials);
 
-            // 根據 tax_included 計算正確的金額
-            // tax_included = 1: invoice_items.price 是含稅價，加總即為含稅總金額
-            // tax_included = 0: invoice_items.price 是未稅價，需另外計算稅額
-            $taxIncluded = (int)($invoice->tax_included ?? 0);
-
-            // 從 invoice_items 計算項目加總
-            $itemsTotal = $invoice->invoiceItems->sum(function ($item) {
-                return (float)$item->price * (float)$item->quantity;
-            });
-
-            // 根據 tax_included 計算 totalFee, amount(稅額), sales(未稅金額)
-            if ($taxIncluded === 1) {
-                // 含稅價：items 加總就是含稅總金額
-                $totalFee = round($itemsTotal);
-                $sales = round($itemsTotal / 1.05);  // 未稅金額 = 含稅 / 1.05
-                $amount = $totalFee - $sales;        // 稅額 = 含稅 - 未稅
-            } else {
-                // 未稅價：items 加總是未稅金額
-                $sales = round($itemsTotal);
-                $amount = round($itemsTotal * 0.05); // 稅額 = 未稅 * 5%
-                $totalFee = $sales + $amount;        // 含稅總金額 = 未稅 + 稅額
-            }
+            // B2B 發票直接使用發票記錄的金額欄位
+            // total_amount: 含稅總金額
+            // net_amount: 未稅金額 (sales)
+            // tax_amount: 稅額 (amount)
+            $totalFee = (int)round((float)$invoice->total_amount);
+            $sales = (int)round((float)$invoice->net_amount);
+            $amount = (int)round((float)$invoice->tax_amount);
 
             // 組裝商品明細
             $items = [];

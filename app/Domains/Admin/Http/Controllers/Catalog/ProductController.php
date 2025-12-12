@@ -331,6 +331,10 @@ class ProductController extends BackendController
         // ProductPosCategory
         $data['ProductPosCategories'] = $this->ProductService->getPosCategories($product_id);
 
+        // Channel Prices
+        $data['channelPrices'] = $product->channelPrices ?? collect();
+        $data['salesChannels'] = $this->ProductService->getSalesChannels();
+
         return view('admin.catalog.product_form', $data);
     }
 

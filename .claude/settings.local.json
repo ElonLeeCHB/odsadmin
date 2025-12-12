@@ -8,7 +8,9 @@
       "Bash(./php.bat artisan tinker:*)",
       "Bash(findstr:*)",
       "Bash(Get-Content storagelogslaravel.log -Tail 100)",
-      "Bash(Select-String -Pattern \"B2B\")"
+      "Bash(Select-String -Pattern \"B2B\")",
+      "Bash(echo:*)",
+      "Bash(./php.bat)"
     ],
     "deny": [],
     "ask": []

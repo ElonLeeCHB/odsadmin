@@ -172,6 +172,7 @@ Route::group([
                     Route::post('/', [InvoiceGroupController::class, 'store'])->name('store');
                     Route::get('/{id}', [InvoiceGroupController::class, 'show'])->name('show');
                     Route::put('/{id}', [InvoiceGroupController::class, 'update'])->name('update');
+                    Route::delete('/{id}', [InvoiceGroupController::class, 'destroy'])->name('destroy'); // 僅限非 production 環境
                 });
 
                 // 機迷坊發票開立
@@ -288,7 +289,7 @@ Route::group([
             });
 
             // 營收統計 API
-            Route::get('daily-summary', [SalesSummaryController::class, 'dailySummary'])->name('daily-summary');
+            Route::get('daily-summary/{date}', [SalesSummaryController::class, 'dailySummary'])->name('daily-summary');
         });
     
         

@@ -14,6 +14,7 @@ use App\Models\Catalog\ProductMeta;
 use App\Models\Catalog\ProductOption;
 use App\Models\Catalog\ProductOptionValue;
 use App\Models\Catalog\ProductTerm;
+use App\Models\Catalog\ProductChannelPrice;
 use App\Models\Common\Term;
 use App\Helpers\Classes\OrmHelper;
 use App\Caches\FileCustomCacheManager;
@@ -226,6 +227,44 @@ class ProductService extends Service
 
                     if (!empty($insert_data)) {
                         ProductTerm::insert($insert_data);
+                    }
+                }
+            //
+
+            // Channel Prices (通路售價)
+                if (isset($data['channel_prices'])) {
+                    // 取得表單中的 id 列表
+                    $formIds = collect($data['channel_prices'])
+                        ->pluck('id')
+                        ->filter()
+                        ->toArray();
+
+                    // 刪除不在表單中的資料
+                    ProductChannelPrice::where('product_id', $product->id)
+                        ->whereNotIn('id', $formIds)
+                        ->delete();
+
+                    // 新增或更新
+                    foreach ($data['channel_prices'] as $channelPriceData) {
+                        if (empty($channelPriceData['channel_code'])) {
+                            continue;
+                        }
+
+                        $channelPriceArr = [
+                            'product_id' => $product->id,
+                            'channel_code' => $channelPriceData['channel_code'],
+                            'price' => $channelPriceData['price'] ?? 0,
+                            'start_date' => $channelPriceData['start_date'] ?: null,
+                            'end_date' => $channelPriceData['end_date'] ?: null,
+                            'is_active' => $channelPriceData['is_active'] ?? 0,
+                        ];
+
+                        if (!empty($channelPriceData['id'])) {
+                            ProductChannelPrice::where('id', $channelPriceData['id'])
+                                ->update($channelPriceArr);
+                        } else {
+                            ProductChannelPrice::create($channelPriceArr);
+                        }
                     }
                 }
             //
@@ -468,15 +507,27 @@ class ProductService extends Service
                 //刪除快取
                 FileCustomCacheManager::clearByUniqueKey("id-{$product->id}", ['entity', 'product']);
             }
-            
+
             DB::commit();
 
             return true;
-            
+
         } catch (\Throwable $th) {
             DB::rollBack();
             throw $th;
         }
     }
-    
+
+    /**
+     * 取得銷售通路列表
+     * @return \Illuminate\Support\Collection
+     */
+    public function getSalesChannels()
+    {
+        return Term::where('taxonomy_code', 'sales_channel')
+            ->where('is_active', 1)
+            ->orderBy('sort_order')
+            ->get();
+    }
+
 }

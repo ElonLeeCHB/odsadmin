@@ -176,9 +176,9 @@ class Product extends Model
 
     /**
      * 取得特定通路的有效售價
-     * @param string $channelCode 通路代碼 (1=UberEats, 2=Foodpanda, ...)
+     * @param int $channelCode 通路代碼 (1=UberEats, 2=Foodpanda, ...)
      */
-    public function getChannelPrice(string $channelCode): ?float
+    public function getChannelPrice(int $channelCode): ?float
     {
         $channelPrice = $this->channelPrices()
             ->forChannel($channelCode)
@@ -191,9 +191,9 @@ class Product extends Model
 
     /**
      * 取得售價（支援通路）
-     * @param string|null $channelCode 通路代碼，NULL 則回傳門市原價
+     * @param int|null $channelCode 通路代碼，NULL 則回傳門市原價
      */
-    public function getPriceForChannel(?string $channelCode = null): float
+    public function getPriceForChannel(?int $channelCode = null): float
     {
         if ($channelCode) {
             $channelPrice = $this->getChannelPrice($channelCode);

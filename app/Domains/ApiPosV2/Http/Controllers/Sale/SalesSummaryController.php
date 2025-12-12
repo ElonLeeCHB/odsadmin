@@ -5,6 +5,8 @@ namespace App\Domains\ApiPosV2\Http\Controllers\Sale;
 use Illuminate\Http\Request;
 use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
 use App\Models\Sale\Order;
+use App\Models\Sale\Invoice;
+use App\Enums\Sales\InvoiceStatus;
 use Illuminate\Support\Facades\DB;
 
 class SalesSummaryController extends ApiPosController
@@ -19,21 +21,15 @@ class SalesSummaryController extends ApiPosController
     /**
      * 單日營收統計
      *
-     * @param Request $request
+     * @param string $date 日期 (Y-m-d 格式)
      * @return \Illuminate\Http\JsonResponse
      *
-     * @queryParam date string required 日期 (Y-m-d 格式). Example: 2025-12-10
+     * @urlParam date string required 日期 (Y-m-d 格式). Example: 2025-12-10
      */
-    public function dailySummary()
+    public function dailySummary(string $date)
     {
         try {
-            $date = $this->request->query('date');
-
             // 驗證日期格式
-            if (empty($date)) {
-                return $this->sendJsonResponse(['error' => '請提供日期參數 (date)'], 400);
-            }
-
             if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
                 return $this->sendJsonResponse(['error' => '日期格式錯誤，請使用 Y-m-d 格式'], 400);
             }
@@ -55,12 +51,18 @@ class SalesSummaryController extends ApiPosController
             // 驗算：paid + unpaid 應該等於 total
             $isBalanced = ($paidAmount + $unpaidAmount) === $totalAmount;
 
+            // 今日開立發票總金額（不含作廢）
+            $invoiceAmountIssued = (int) Invoice::whereDate('invoice_date', $date)
+                ->where('status', InvoiceStatus::Issued)
+                ->sum('total_amount');
+
             $data = [
                 'date' => $date,
                 'order_count' => (int) ($summary->order_count ?? 0),
                 'total_amount' => $totalAmount,
                 'paid_amount' => $paidAmount,
                 'unpaid_amount' => $unpaidAmount,
+                'invoice_amount_issued' => $invoiceAmountIssued,
                 'is_balanced' => $isBalanced,
             ];
 
