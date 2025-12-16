@@ -24,7 +24,7 @@
 
 ## 功能概述
 
-在 `InvoiceGroupController` 的 `checkOrder` API 中，新增 `suggest_items` 欄位，自動拆解訂單為建議的發票項目，正確處理加價購邏輯，並整合相同項目。
+在 `InvoiceGroupController` 的 `checkOrder` API 中，新增 `suggested_invoice_items` 欄位，自動拆解訂單為建議的發票項目，正確處理加價購邏輯，並整合相同項目。
 
 **實作方案：**`name` + `price` 相同即合併
 
@@ -359,7 +359,7 @@
 }
 ```
 
-**拆解後的 suggest_items：**
+**拆解後的 suggested_invoice_items：**
 ```json
 [
   {
@@ -393,7 +393,7 @@
 - 10個便當（100元/個）
 - 10個免費口味選擇（雞腿）
 
-**拆解後的 suggest_items：**
+**拆解後的 suggested_invoice_items：**
 ```json
 [
   {
@@ -562,7 +562,7 @@
     "order_code": "ORD20250001",
     "order_id": 123,
     "payment_total": 320.00,
-    "suggest_items": [
+    "suggested_invoice_items": [
       {
         "name": "便當",
         "quantity": 3,
@@ -602,11 +602,11 @@ const response = await fetch('/api/pos/v2/invoice-groups/check-order?order_code=
 const result = await response.json();
 
 if (result.success && result.available) {
-  const suggestItems = result.data.suggest_items;
+  const suggestedInvoiceItems = result.data.suggested_invoice_items;
 
-  // suggest_items 已整合，可直接使用
-  console.log('發票項目數：', suggestItems.length);
-  console.log('發票總金額：', suggestItems.reduce((sum, item) => sum + item.subtotal, 0));
+  // suggested_invoice_items 已整合，可直接使用
+  console.log('發票項目數：', suggestedInvoiceItems.length);
+  console.log('發票總金額：', suggestedInvoiceItems.reduce((sum, item) => sum + item.subtotal, 0));
 }
 ```
 
@@ -617,8 +617,8 @@ if (result.success && result.available) {
 ### 1. 發票總額驗證
 
 ```php
-// 驗證：suggest_items 總額 = order.payment_total
-$suggestTotal = array_sum(array_column($suggestItems, 'subtotal'));
+// 驗證：suggested_invoice_items 總額 = order.payment_total
+$suggestTotal = array_sum(array_column($suggestedInvoiceItems, 'subtotal'));
 assert($suggestTotal == $order->payment_total);
 ```
 
@@ -662,11 +662,11 @@ GROUP BY opo.name, opo.value, opo.price;
 ### 2. 拆解邏輯驗證
 - ✅ 主商品：price = order_products.price
 - ✅ 加價購：price = order_product_options.price（price > 0）
-- ✅ 免費選項不出現在 suggest_items
+- ✅ 免費選項不出現在 suggested_invoice_items
 
 ### 3. 金額驗證
 - ✅ 整合前後總金額一致
-- ✅ suggest_items 總額 = payment_total
+- ✅ suggested_invoice_items 總額 = payment_total
 
 ### 4. 邊界測試
 - ✅ 單一商品不整合（保持原樣）
@@ -680,7 +680,7 @@ GROUP BY opo.name, opo.value, opo.price;
 
 ## 後續作業
 
-- ⏳ 前端整合 suggest_items
+- ⏳ 前端整合 suggested_invoice_items
 - ⏳ 驗證發票開立流程
 - ⏳ 測試實際訂單（含運費、折扣、優惠券）
 - ⏳ 確認金額計算正確性

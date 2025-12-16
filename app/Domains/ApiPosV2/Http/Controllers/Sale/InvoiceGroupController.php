@@ -309,7 +309,10 @@ class InvoiceGroupController extends ApiPosController
                 $query->select('orders.id', 'orders.code', 'orders.payment_total', 'orders.payment_tin')
                     ->with([
                         'orderProducts' => function ($query) {
-                            $query->select('id', 'order_id', 'name', 'price', 'quantity');
+                            $query->select('id', 'order_id', 'name', 'price', 'quantity')
+                                ->with(['orderProductOptions' => function ($query) {
+                                    $query->select('id', 'order_product_id', 'name', 'value', 'quantity', 'price', 'subtotal');
+                                }]);
                         },
                         'orderTotals'
                     ]);
@@ -333,6 +336,19 @@ class InvoiceGroupController extends ApiPosController
             },
         ]);
 
+        // 為每筆訂單產生 suggested_invoice_items
+        $ordersData = $invoiceGroup->orders->map(function ($order) {
+            return [
+                'id' => $order->id,
+                'code' => $order->code,
+                'payment_total' => $order->payment_total,
+                'payment_tin' => $order->payment_tin,
+                'order_products' => $order->orderProducts,
+                'order_totals' => $order->orderTotals,
+                'suggested_invoice_items' => $this->splitOrderInvoiceItems($order),
+            ];
+        });
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -348,7 +364,7 @@ class InvoiceGroupController extends ApiPosController
                     'voided_at' => $invoiceGroup->voided_at,
                     'created_at' => $invoiceGroup->created_at,
                 ],
-                'orders' => $invoiceGroup->orders,
+                'orders' => $ordersData,
                 'invoices' => $invoiceGroup->invoices,
             ],
         ], 200, [], JSON_UNESCAPED_UNICODE);
@@ -531,14 +547,14 @@ class InvoiceGroupController extends ApiPosController
             ->first();
 
         // 建議的發票項目（拆解加價購）
-        $suggestItems = $this->splitOrderInvoiceItems($order);
+        $suggestedInvoiceItems = $this->splitOrderInvoiceItems($order);
 
         // 訂單未在群組中，可用
         if (!$groupOrder || !$groupOrder->invoiceGroup) {
 
             // 取得發票預設值，移除不需要的欄位
             $invoiceDefaults = $this->getInvoiceDefaults($order);
-            unset($invoiceDefaults['suggest_items']);
+            unset($invoiceDefaults['suggested_invoice_items']);
             unset($invoiceDefaults['invoice_items']);
 
             return response()->json([
@@ -552,7 +568,7 @@ class InvoiceGroupController extends ApiPosController
                     'payment_tin' => $order->payment_tin,
                     'order_totals' => $order->orderTotals,
                     'order_products' => $order->orderProducts,
-                    'suggest_items' => $suggestItems,
+                    'suggested_invoice_items' => $suggestedInvoiceItems,
                     'invoice_defaults' => $invoiceDefaults,
                 ],
             ], 200, [], JSON_UNESCAPED_UNICODE);
@@ -579,7 +595,7 @@ class InvoiceGroupController extends ApiPosController
                     'total_amount' => $group->total_amount,
                     'created_at' => $group->created_at,
                 ],
-                'suggest_items' => $suggestItems,
+                'suggested_invoice_items' => $suggestedInvoiceItems,
             ],
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
@@ -1295,7 +1311,7 @@ class InvoiceGroupController extends ApiPosController
                 ]);
             }
 
-            $defaults['suggest_items'] = $this->splitOrderInvoiceItems($order);
+            $defaults['suggested_invoice_items'] = $this->splitOrderInvoiceItems($order);
 
             // 如果訂單有統編，帶入
             if (!empty($order->payment_tin)) {

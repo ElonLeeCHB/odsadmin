@@ -5,8 +5,10 @@ namespace App\Domains\ApiPosV2\Http\Controllers\Sale;
 use Illuminate\Http\Request;
 use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
 use App\Models\Sale\Order;
+use App\Models\Sale\OrderPayment;
 use App\Models\Sale\Invoice;
 use App\Enums\Sales\InvoiceStatus;
+use App\Enums\OrderPaymentStatus;
 use Illuminate\Support\Facades\DB;
 
 class SalesSummaryController extends ApiPosController
@@ -56,12 +58,23 @@ class SalesSummaryController extends ApiPosController
                 ->where('status', InvoiceStatus::Issued)
                 ->sum('total_amount');
 
+            // 今日收款統計（依付款方式）
+            $paymentBase = OrderPayment::whereDate('payment_date', $date)
+                ->where('status', OrderPaymentStatus::Complete);
+
+            $cashAmount = (int) (clone $paymentBase)->where('payment_type_code', 'cash')->sum('amount');
+            $wireAmount = (int) (clone $paymentBase)->where('payment_type_code', 'wire')->sum('amount');
+            $uberAmount = (int) (clone $paymentBase)->where('payment_type_code', 'uber')->sum('amount');
+
             $data = [
                 'date' => $date,
                 'order_count' => (int) ($summary->order_count ?? 0),
                 'total_amount' => $totalAmount,
                 'paid_amount' => $paidAmount,
                 'unpaid_amount' => $unpaidAmount,
+                'cash' => $cashAmount,
+                'wire' => $wireAmount,
+                'uber' => $uberAmount,
                 'invoice_amount_issued' => $invoiceAmountIssued,
                 'is_balanced' => $isBalanced,
             ];

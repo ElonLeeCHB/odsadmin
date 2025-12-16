@@ -263,7 +263,7 @@
 
 ```json
 {
-  "suggest_items": [
+  "suggested_invoice_items": [
     // 1. 主商品
     {
       "name": "便當",
@@ -479,8 +479,8 @@ private function getRemarkForOrderTotal(string $code): ?string
 ### 1. 發票總額驗證
 
 ```php
-// 驗證：suggest_items 總額 = order.payment_total
-$suggestTotal = array_sum(array_column($suggestItems, 'subtotal'));
+// 驗證：suggested_invoice_items 總額 = order.payment_total
+$suggestTotal = array_sum(array_column($suggestedInvoiceItems, 'subtotal'));
 assert($suggestTotal == $order->payment_total);
 ```
 
@@ -594,7 +594,7 @@ GET /api/pos/v2/invoice-groups/check-order?order_code=25110282
   "success": true,
   "available": true,
   "data": {
-    "suggest_items": [
+    "suggested_invoice_items": [
       {
         "name": "便當",
         "quantity": 3,
@@ -686,7 +686,7 @@ app/Domains/ApiPosV2/Http/Controllers/Sale/InvoiceGroupController.php
 ✅ **自動整合**：相同商品自動合併（name + price）
 ✅ **完整追蹤**：包含所有費用和折扣項目
 ✅ **正確順序**：主商品 → 加價購 → 運費 → 折扣
-✅ **金額一致**：suggest_items 總額 = payment_total
+✅ **金額一致**：suggested_invoice_items 總額 = payment_total
 ✅ **負數處理**：折扣和優惠券自動轉為負數
 ✅ **彈性備註**：不同類型有對應的備註說明
 
@@ -726,7 +726,7 @@ curl "http://localhost/api/pos/v2/invoice-groups/check-order?order_code=25110282
 ## 後續作業
 
 - ⏳ 測試實際訂單（含運費、折扣、優惠券）
-- ⏳ 前端整合 suggest_items
+- ⏳ 前端整合 suggested_invoice_items
 - ⏳ 驗證發票開立流程
 - ⏳ 確認金額計算正確性
 

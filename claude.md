@@ -37,15 +37,17 @@
 ### PHP 執行
 
 **使用根目錄的 `php.bat`**
+
+> ⚠️ 本地端 PHP 使用多版本方式建置，必須透過 `php.bat` 指明 PHP 版本。
+> 因路徑問題，artisan 必須使用完整路徑。
+
 ```bash
 # 執行 Artisan 命令
-./php.bat artisan migrate
+./php.bat "D:/Codes/PHP/DTSCorp/huabing.tw/pos.huabing.tw/httpdocs/laravel/artisan" migrate
 
 # 執行 PHP 腳本
 ./php.bat -v
 ```
-
-**原因**：專案可能使用特定版本的 PHP 或自訂環境變數，透過 `php.bat` 確保一致性。
 
 ### Composer 執行
 
