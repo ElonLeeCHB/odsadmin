@@ -2,24 +2,47 @@
 
 use Illuminate\Support\Facades\Route;
 
+// Auth Controllers
+use App\Domains\ApiPosV2\Http\Controllers\Auth\LoginController;
+use App\Domains\ApiPosV2\Http\Controllers\Auth\OAuthController;
+use App\Domains\ApiPosV2\Http\Controllers\Auth\ResetPasswordController;
+
+// User Controllers
+use App\Domains\ApiPosV2\Http\Controllers\User\PermissionController;
+
+// Member Controllers
+use App\Domains\ApiPosV2\Http\Controllers\Member\MemberController;
+use App\Domains\ApiPosV2\Http\Controllers\Member\UserCouponController;
+
+// Catalog Controllers
+use App\Domains\ApiPosV2\Http\Controllers\Catalog\CategoryController;
+use App\Domains\ApiPosV2\Http\Controllers\Catalog\ProductController;
+
+// Sale Controllers
+use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderGroupController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderPackingController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderMetadataController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\DriverController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\CouponController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\QuantityControlController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\PaymentController;
+use App\Domains\ApiPosV2\Http\Controllers\Sale\SalesSummaryController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceController;
-use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceBatchController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceGroupController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeDataController;
 use App\Domains\ApiPosV2\Http\Controllers\Sale\InvoiceIssue\GivemeController;
-use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderGroupController;
-use App\Domains\ApiPosV2\Http\Controllers\Sale\PaymentController;
-use App\Domains\ApiPosV2\Http\Controllers\Sale\OrderMetadataController;
-use App\Domains\ApiPosV2\Http\Controllers\Sale\SalesSummaryController;
+
+// Other Controllers
+use App\Domains\ApiPosV2\Http\Controllers\ApiPosController;
 
 Route::group([
-    'namespace' => 'App\Domains\ApiPosV2\Http\Controllers',
     'as' => 'api.posv2.',
     'middleware' => ['checkApiPosV2Authorization']
 ], function ()
 {
 
-    Route::post('login', 'Auth\LoginController@login');
+    Route::post('login', [LoginController::class, 'login']);
 
     // ✨ 根據 AUTH_DRIVER 動態選擇認證方式
     // 注意：切換 AUTH_DRIVER 後需執行 php artisan config:clear
@@ -27,12 +50,12 @@ Route::group([
 
     if ($authDriver === 'accounts-center') {
         // 使用 Accounts 中心認證（預設）
-        Route::post('oauth/login', 'Auth\OAuthController@login');
-        Route::post('oauth/logout', 'Auth\OAuthController@logout');
+        Route::post('oauth/login', [OAuthController::class, 'login']);
+        Route::post('oauth/logout', [OAuthController::class, 'logout']);
     } else {
         // local 模式使用本地認證（備援模式）
-        Route::post('oauth/login', 'Auth\LoginController@login');
-        Route::post('oauth/logout', 'Auth\LoginController@logout');
+        Route::post('oauth/login', [LoginController::class, 'login']);
+        Route::post('oauth/logout', [LoginController::class, 'logout']);
     }
 
     // 測試 Accounts OAuth 套件連線
@@ -58,16 +81,16 @@ Route::group([
     });
 
     //暫時使用。直接更新密碼
-    Route::post('passwordUpdate', 'Auth\ResetPasswordController@tmpPasswordUpdate');
-    
+    Route::post('passwordUpdate', [ResetPasswordController::class, 'tmpPasswordUpdate']);
+
     Route::group([
         'middleware' => ['checkSanctumOrOAuth'], // 支援 Sanctum 或 OAuth（相容模式）
     ], function ()
     {
-        Route::post('logout', 'Auth\LoginController@logout')->name('logout');
+        Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
         //密碼
-        Route::post('passwordReset/{id}', 'Auth\ResetPasswordController@passwordReset')->name('passwordReset');
+        Route::post('passwordReset/{id}', [ResetPasswordController::class, 'passwordReset'])->name('passwordReset');
 
 
         Route::group([
@@ -75,11 +98,8 @@ Route::group([
             'as' => 'user.',
         ], function ()
         {
-            // Route::get('category/list', 'Catalog\CategoryController@list')->name('category.list');
-            // Route::get('category/info/{category_id}', 'Catalog\CategoryController@info')->name('category.info');
-    
-            Route::get('permissions/list', 'User\PermissionController@list')->name('permission.list');
-            Route::get('permissions/info/{id}', 'User\PermissionController@info')->name('permission.info');
+            Route::get('permissions/list', [PermissionController::class, 'list'])->name('permission.list');
+            Route::get('permissions/info/{id}', [PermissionController::class, 'info'])->name('permission.info');
         });
 
 
@@ -88,21 +108,21 @@ Route::group([
             'as' => 'members.',
         ], function ()
         {
-            Route::get('list', 'Member\MemberController@list')->name('members.list');
-            Route::get('info/{id?}', 'Member\MemberController@info')->name('members.info');
-            Route::put('update/{id?}', 'Member\MemberController@update')->name('members.update');
-            Route::post('store', 'Member\MemberController@store')->name('members.store');
+            Route::get('list', [MemberController::class, 'list'])->name('members.list');
+            Route::get('info/{id?}', [MemberController::class, 'info'])->name('members.info');
+            Route::put('update/{id?}', [MemberController::class, 'update'])->name('members.update');
+            Route::post('store', [MemberController::class, 'store'])->name('members.store');
 
             //優惠券
             Route::group([
                 'prefix' => 'userCoupons',
                 'as' => 'userCoupons.',
             ], function () {
-                Route::get('/', 'Member\UserCouponController@index')->name('userCoupons.index');
-                Route::post('/', 'Member\UserCouponController@store')->name('userCoupons.store');
-                Route::post('/storeMany', 'Member\UserCouponController@storeMany')->name('userCoupons.storeMany');
-                Route::patch('/{id}', 'Member\UserCouponController@update')->name('userCoupons.update');
-                Route::delete('/{id}', 'Member\UserCouponController@destroy')->name('userCoupons.destroy');
+                Route::get('/', [UserCouponController::class, 'index'])->name('userCoupons.index');
+                Route::post('/', [UserCouponController::class, 'store'])->name('userCoupons.store');
+                Route::post('/storeMany', [UserCouponController::class, 'storeMany'])->name('userCoupons.storeMany');
+                Route::patch('/{id}', [UserCouponController::class, 'update'])->name('userCoupons.update');
+                Route::delete('/{id}', [UserCouponController::class, 'destroy'])->name('userCoupons.destroy');
             });
         });
     
@@ -111,14 +131,13 @@ Route::group([
             'as' => 'catalog.',
         ], function ()
         {
-            Route::get('categories/menu', 'Catalog\CategoryController@menu')->name('category.menu');
-            // Route::get('category/info/{category_id}', 'Catalog\CategoryController@info')->name('category.info');
-    
-            Route::get('products/list', 'Catalog\ProductController@list')->name('product.list');
-            Route::get('products/info/{product_id}', 'Catalog\ProductController@info')->name('product.info');
+            Route::get('categories/menu', [CategoryController::class, 'menu'])->name('category.menu');
+
+            Route::get('products/list', [ProductController::class, 'list'])->name('product.list');
+            Route::get('products/info/{product_id}', [ProductController::class, 'info'])->name('product.info');
 
             //應該給後台backend使用，暫時放這裡
-            Route::post('products/copyProductOption/{product_id}/{option_id}', 'Catalog\ProductController@copyProductOption')->name('products.copyProductOption');
+            Route::post('products/copyProductOption/{product_id}/{option_id}', [ProductController::class, 'copyProductOption'])->name('products.copyProductOption');
         });
     
         Route::group([
@@ -128,12 +147,12 @@ Route::group([
         {
             Route::get('order-metadata', [OrderMetadataController::class, 'index']);
 
-            Route::get('orders/list', 'Sale\OrderController@list')->name('orders.list');
-            Route::get('orders/info/{id}', 'Sale\OrderController@info')->name('orders.info');
-            Route::get('orders/infoByCode/{code}', 'Sale\OrderController@infoByCode')->name('orders.infoByCode');
-            Route::post('orders/store', 'Sale\OrderController@store')->name('orders.store');
-            Route::post('orders/update/{id}', 'Sale\OrderController@update')->name('orders.update');
-            Route::post('orders/updateHeader/{id}', 'Sale\OrderController@updateHeader')->name('orders.updateHeader');
+            Route::get('orders/list', [OrderController::class, 'list'])->name('orders.list');
+            Route::get('orders/info/{id}', [OrderController::class, 'info'])->name('orders.info');
+            Route::get('orders/infoByCode/{code}', [OrderController::class, 'infoByCode'])->name('orders.infoByCode');
+            Route::post('orders/store', [OrderController::class, 'store'])->name('orders.store');
+            Route::post('orders/update/{id}', [OrderController::class, 'update'])->name('orders.update');
+            Route::post('orders/updateHeader/{id}', [OrderController::class, 'updateHeader'])->name('orders.updateHeader');
 
             // 訂單群組
             Route::apiResource('order-groups', OrderGroupController::class);
@@ -226,26 +245,26 @@ Route::group([
             });
 
             // 訂單標籤基本資料
-            Route::get('order-tags/list', 'Sale\OrderController@orderTagsList')->name('orderTags.list');
+            Route::get('order-tags/list', [OrderController::class, 'orderTagsList'])->name('orderTags.list');
 
             // 包裝記錄
-            Route::get('orderPacking/list/{delivery_data?}', 'Sale\OrderPackingController@list')->name('orderPacking.list');
-            Route::post('orderPacking/update/{id}', 'Sale\OrderPackingController@update')->name('orderPacking.update');
-            Route::get('orderPacking/statuses', 'Sale\OrderPackingController@statuses')->name('orderPacking.statuses');
-            
+            Route::get('orderPacking/list/{delivery_data?}', [OrderPackingController::class, 'list'])->name('orderPacking.list');
+            Route::post('orderPacking/update/{id}', [OrderPackingController::class, 'update'])->name('orderPacking.update');
+            Route::get('orderPacking/statuses', [OrderPackingController::class, 'statuses'])->name('orderPacking.statuses');
+
             // 外送員
-            Route::get('drivers', 'Sale\DriverController@index')->name('drivers.index');
-            Route::post('drivers', 'Sale\DriverController@save')->name('drivers.store');
-            Route::put('drivers/{driver_id}', 'Sale\DriverController@save')->name('drivers.update');
-            Route::delete('drivers/{driver_id}', 'Sale\DriverController@destroy')->name('drivers.destroy');
-            Route::get('drivers/show/{id}', 'Sale\DriverController@show')->name('drivers.show');
+            Route::get('drivers', [DriverController::class, 'index'])->name('drivers.index');
+            Route::post('drivers', [DriverController::class, 'save'])->name('drivers.store');
+            Route::put('drivers/{driver_id}', [DriverController::class, 'save'])->name('drivers.update');
+            Route::delete('drivers/{driver_id}', [DriverController::class, 'destroy'])->name('drivers.destroy');
+            Route::get('drivers/show/{id}', [DriverController::class, 'show'])->name('drivers.show');
 
             //優惠券
             Route::group([
                 'prefix' => 'coupons',
                 'as' => 'coupons.',
             ], function () {
-                Route::get('/', 'Sale\CouponController@index')->name('coupons.index');
+                Route::get('/', [CouponController::class, 'index'])->name('coupons.index');
             });
 
             Route::group([
@@ -253,30 +272,30 @@ Route::group([
                 'as' => 'orderlimit.',
             ], function ()
             {
-                Route::post('updateTimeslots', 'Sale\QuantityControlController@updateTimeslots')->name('updateTimeslots');
-                Route::get('getTimeslots', 'Sale\QuantityControlController@getTimeslots')->name('getTimeslots');
-                Route::get('getOrderDateLimitsByDate/{date}', 'Sale\QuantityControlController@getOrderDateLimitsByDate')->name('getOrderDateLimitsByDate');
+                Route::post('updateTimeslots', [QuantityControlController::class, 'updateTimeslots'])->name('updateTimeslots');
+                Route::get('getTimeslots', [QuantityControlController::class, 'getTimeslots'])->name('getTimeslots');
+                Route::get('getOrderDateLimitsByDate/{date}', [QuantityControlController::class, 'getOrderDateLimitsByDate'])->name('getOrderDateLimitsByDate');
 
                 // // 某日數量資料-更新上限
-                Route::post('updateMaxQuantityByDate/{date}', 'Sale\QuantityControlController@updateMaxQuantityByDate')->name('updateMaxQuantityByDate');
+                Route::post('updateMaxQuantityByDate/{date}', [QuantityControlController::class, 'updateMaxQuantityByDate'])->name('updateMaxQuantityByDate');
 
                 // 某日數量資料-恢復預設上限
-                Route::get('resetDefaultMaxQuantityByDate/{date}', 'Sale\QuantityControlController@resetDefaultMaxQuantityByDate')->name('resetDefaultMaxQuantityByDate');
+                Route::get('resetDefaultMaxQuantityByDate/{date}', [QuantityControlController::class, 'resetDefaultMaxQuantityByDate'])->name('resetDefaultMaxQuantityByDate');
 
                 // 某日數量資料-重算訂單
-                Route::get('refreshOrderedQuantityByDate/{date}', 'Sale\QuantityControlController@refreshOrderedQuantityByDate')->name('refreshOrderedQuantityByDate');
+                Route::get('refreshOrderedQuantityByDate/{date}', [QuantityControlController::class, 'refreshOrderedQuantityByDate'])->name('refreshOrderedQuantityByDate');
 
                 // 取得未來數量
-                Route::get('getFutureDays/{days}', 'Sale\QuantityControlController@getFutureDays')->name('getFutureDays');
+                Route::get('getFutureDays/{days}', [QuantityControlController::class, 'getFutureDays'])->name('getFutureDays');
 
                 // 重算全部未來訂單
-                Route::get('resetFutureOrders', 'Sale\QuantityControlController@resetFutureOrders')->name('resetFutureOrders');
+                Route::get('resetFutureOrders', [QuantityControlController::class, 'resetFutureOrders'])->name('resetFutureOrders');
 
                 // 某日訂單列表
-                Route::get('order-list/{delivery_date}', 'Sale\QuantityControlController@orderList')->name('orderList');
+                Route::get('order-list/{delivery_date}', [QuantityControlController::class, 'orderList'])->name('orderList');
 
                 // 儲存訂單快速編輯
-                Route::post('orders/save', 'Sale\QuantityControlController@quickSaveOrder')->name('quickSaveOrder');
+                Route::post('orders/save', [QuantityControlController::class, 'quickSaveOrder'])->name('quickSaveOrder');
             });
 
             // 付款記錄 API (標準 RESTful)
@@ -306,7 +325,7 @@ Route::group([
     
         // });
     });
-    Route::get('test', 'ApiPosController@test')->name('test');
+    Route::get('test', [ApiPosController::class, 'test'])->name('test');
 
 });
 
