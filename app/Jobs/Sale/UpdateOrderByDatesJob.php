@@ -60,11 +60,11 @@ class UpdateOrderByDatesJob implements ShouldQueue
                     $setting->save();
                 });
 
-                (new \App\Repositories\Eloquent\SysData\LogRepository)->log(['data'=>'','note'=>'UpdateOrderByDatesJob 執行成功']);
+                (new \App\Repositories\LogToDbRepository)->log(['data'=>'','note'=>'UpdateOrderByDatesJob 執行成功']);
 
             } catch (\Throwable $th) {
                 DB::rollBack();
-                (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorAfterRequest(['data' => $th->getMessage(), 'note' => 'App\Jobs\Sale\UpdateOrderByDates->handle()']);
+                (new \App\Repositories\LogToDbRepository)->logErrorAfterRequest(['data' => $th->getMessage(), 'note' => 'App\Jobs\Sale\UpdateOrderByDates->handle()']);
             } finally {
                 $lock->release();
             }

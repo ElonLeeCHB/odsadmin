@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Domains\Admin\Http\Controllers\System\LogController;
+use App\Domains\Admin\Http\Controllers\System\ArchivedLogController;
 
 Route::get('refresh-token', function () {
     return csrf_token();
@@ -436,11 +437,16 @@ Route::group([
         Route::post('stores/save/{store_id?}', 'System\StoreController@save')->name('stores.save');
         Route::post('stores/destroy', 'System\StoreController@destroy')->name('stores.destroy');
 
-        // 系統日誌
+        // 系統日誌（資料庫）
         Route::get('logs', [LogController::class, 'index'])->name('logs.index');
         Route::get('logs/list', [LogController::class, 'list'])->name('logs.list');
         Route::get('logs/form', [LogController::class, 'form'])->name('logs.form');
         Route::get('logs/files', [LogController::class, 'files'])->name('logs.files');
+
+        // 歷史日誌（壓縮檔）
+        Route::get('logs/archived', [ArchivedLogController::class, 'index'])->name('logs.archived.index');
+        Route::get('logs/archived/list', [ArchivedLogController::class, 'list'])->name('logs.archived.list');
+        Route::get('logs/archived/form', [ArchivedLogController::class, 'form'])->name('logs.archived.form');
     });
 
     // 報表系統

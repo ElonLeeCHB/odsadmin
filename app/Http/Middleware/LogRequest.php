@@ -12,10 +12,8 @@ class LogRequest extends Middleware
     public function handle(Request $request, Closure $next)
     {
         if($request->method() != 'GET'){
-            // (new \App\Repositories\Eloquent\SysData\LogRepository)->logRequest();
-
-            // 改用新的 LogFileRepository 記錄到檔案
-            (new \App\Repositories\LogFileRepository)->logRequest();
+            // 記錄到資料庫 sysdata 連線的 logs 資料表
+            (new \App\Repositories\LogToDbRepository)->logRequest();
         }
 
         return $next($request);

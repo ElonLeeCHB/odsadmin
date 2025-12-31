@@ -165,7 +165,7 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $this->validateLogin($request);
-
+        
         // 檢查登入嘗試次數
         if (
             method_exists($this, 'hasTooManyLoginAttempts') &&

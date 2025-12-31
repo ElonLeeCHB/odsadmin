@@ -28,8 +28,8 @@ class Kernel extends ConsoleKernel
         // 定期清除自訂快取所有檔案
         $schedule->command('custom-cache:clear')->monthlyOn(30, '22:00')->withoutOverlapping();
         
-        // 預設刪除 60 天以前的日誌記錄
-        $schedule->command('app:delete-logs', ['60'])->daily();
+        // 每月 1 日凌晨 3:00 歸檔上月日誌並刪除超過 6 個月的記錄
+        $schedule->command('logs:archive')->monthlyOn(1, '03:00');
 
         // job() 會使用佇列
         

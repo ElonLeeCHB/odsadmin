@@ -37,7 +37,7 @@ class UpdateOrderQuantityControlJob implements ShouldQueue
                     (new OrderDateLimitRepository)->updateOrderedQuantityForControlByOrderId($this->order_id);
                 });
 
-                (new \App\Repositories\Eloquent\SysData\LogRepository)->log(['data'=>'','note'=>'UpdateOrderQuantityControlJob 執行成功']);
+                (new \App\Repositories\LogToDbRepository)->log(['data'=>'','note'=>'UpdateOrderQuantityControlJob 執行成功']);
                 
             } catch (\Throwable $th) {
                 DB::rollBack();
@@ -46,7 +46,7 @@ class UpdateOrderQuantityControlJob implements ShouldQueue
                     'note' => get_class($this) . ' handle()',
                     'status' => 'error',
                 ];
-                (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorAfterRequest($logData);
+                (new \App\Repositories\LogToDbRepository)->logErrorAfterRequest($logData);
             } finally {
                 $lock->release();
             }

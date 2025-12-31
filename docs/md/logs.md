@@ -66,8 +66,8 @@ storage/logs/app/
 每行一個 JSON 物件，方便逐行解析和搜尋：
 
 ```json
-{"timestamp":"2025-11-06T10:30:45+08:00","uniqueid":"1730860245-673abc123","area":"production","url":"https://pos.huabing.tw/api/v1/oauth/login","method":"POST","data":{"account":"user001","password":"***FILTERED***"},"status":"","note":"OAuth 登入成功：user_id=123, username=user001, code=EMP001","client_ip":"192.168.1.100","api_ip":"192.168.1.1"}
-{"timestamp":"2025-11-06T10:31:20+08:00","uniqueid":"1730860280-673abc456","area":"production","url":"https://pos.huabing.tw/api/v1/punchday-stats/month/2025-10","method":"GET","data":{},"status":"","note":"Unauthenticated","client_ip":"192.168.1.100","api_ip":"192.168.1.1"}
+{"timestamp":"2025-11-06T10:30:45+08:00","request_trace_id":"1730860245-673abc123","area":"production","url":"https://pos.huabing.tw/api/v1/oauth/login","method":"POST","data":{"account":"user001","password":"***FILTERED***"},"status":"","note":"OAuth 登入成功：user_id=123, username=user001, code=EMP001","client_ip":"192.168.1.100","api_ip":"192.168.1.1"}
+{"timestamp":"2025-11-06T10:31:20+08:00","request_trace_id":"1730860280-673abc456","area":"production","url":"https://pos.huabing.tw/api/v1/punchday-stats/month/2025-10","method":"GET","data":{},"status":"","note":"Unauthenticated","client_ip":"192.168.1.100","api_ip":"192.168.1.1"}
 ```
 
 ### 欄位說明
@@ -75,7 +75,7 @@ storage/logs/app/
 | 欄位 | 類型 | 說明 | 範例 |
 |------|------|------|------|
 | `timestamp` | string | ISO 8601 時間戳記 | `2025-11-06T10:30:45+08:00` |
-| `uniqueid` | string | 唯一請求 ID（用於追蹤） | `1730860245-673abc123` |
+| `request_trace_id` | string | 唯一請求 ID（用於追蹤） | `1730860245-673abc123` |
 | `area` | string | 環境（production/staging/local） | `production` |
 | `url` | string | 完整請求 URL | `https://pos.huabing.tw/api/v1/oauth/login` |
 | `method` | string | HTTP 方法 | `POST`, `GET`, `PUT`, `DELETE` |
@@ -195,7 +195,7 @@ if ($zip->open('storage/logs/app/logs_2025-10.zip') === true) {
 ```json
 {
   "timestamp": "2025-11-06T10:30:45+08:00",
-  "uniqueid": "1730860245-673abc123",
+  "request_trace_id": "1730860245-673abc123",
   "area": "production",
   "url": "https://pos.huabing.tw/api/v1/oauth/login",
   "method": "POST",
@@ -270,7 +270,7 @@ GET /api/admin/logs/{date}?page=1&limit=100&search=user001
     "logs": [
       {
         "timestamp": "2025-11-06T10:30:45+08:00",
-        "uniqueid": "1730860245-673abc123",
+        "request_trace_id": "1730860245-673abc123",
         "method": "POST",
         "url": "/api/v1/oauth/login",
         "note": "OAuth 登入成功：user_id=123",

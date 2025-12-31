@@ -69,9 +69,6 @@ class CategoryService extends Service
                 }
             }
 
-            echo "<pre>", print_r($arr_products, true), "</pre>";
-            exit;
-
             return ['categories' => $categories, 'products' => $arr_products ?? []];
         });
     }

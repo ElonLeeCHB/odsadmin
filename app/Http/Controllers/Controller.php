@@ -120,7 +120,7 @@ class Controller extends BaseController
                 $json['error'] = $error ?? $default_error_message;
             }
 
-            (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorAfterRequest(['data' => $error . '', 'status' => 'error']);
+            (new \App\Repositories\LogToDbRepository)->logErrorAfterRequest(['data' => $error . '', 'status' => 'error']);
         }
 
         // 無任何錯誤

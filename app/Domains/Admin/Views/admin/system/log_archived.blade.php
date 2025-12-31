@@ -12,9 +12,10 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
+        <a href="{{ route('lang.admin.system.logs.index') }}" class="btn btn-light"><i class="fa-solid fa-database"></i> 即時日誌</a>
         <button type="button" data-bs-toggle="tooltip" title="篩選" onclick="$('#filter-log').toggleClass('d-none');" class="btn btn-light d-md-none d-lg-none"><i class="fa-solid fa-filter"></i></button>
       </div>
-      <h1>日誌查看</h1>
+      <h1>歷史日誌</h1>
       @include('admin.common.breadcumb')
     </div>
   </div>
@@ -25,6 +26,11 @@
           <div class="card">
             <div class="card-header"><i class="fa-solid fa-filter"></i> 篩選條件</div>
             <div class="card-body">
+
+              <div class="mb-3">
+                <label class="form-label">月份（YYYY-MM）</label>
+                <input type="month" id="input-month" name="filter_month" value="{{ $filter_month ?? '' }}" class="form-control" placeholder="例如：2025-12"/>
+              </div>
 
               <div class="mb-3">
                 <label class="form-label">日期</label>
@@ -66,11 +72,44 @@
             </div>
           </div>
         </form>
+
+        @if(count($archives) > 0)
+        <div class="card mt-3">
+          <div class="card-header"><i class="fa-solid fa-archive"></i> 壓縮檔清單</div>
+          <div class="card-body p-0">
+            <table class="table table-sm table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>月份</th>
+                  <th class="text-end">大小</th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach($archives as $archive)
+                <tr class="archive-row" data-month="{{ $archive['month'] }}" style="cursor: pointer;">
+                  <td>{{ $archive['month'] }}</td>
+                  <td class="text-end">{{ $archive['size_formatted'] }}</td>
+                </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
+        </div>
+        @endif
       </div>
       <div class="col-lg-9 col-md-12">
         <div class="card">
-          <div class="card-header"><i class="fa-solid fa-list"></i> 日誌列表</div>
-          <div id="log" class="card-body">{!! $list !!}</div>
+          <div class="card-header"><i class="fa-solid fa-list"></i> 歷史日誌列表</div>
+          <div id="log" class="card-body">
+            @if($filter_month)
+              {!! $list !!}
+            @else
+              <div class="text-center text-muted py-5">
+                <i class="fa-solid fa-archive fa-3x mb-3"></i>
+                <p>請選擇月份以載入歷史日誌</p>
+              </div>
+            @endif
+          </div>
         </div>
       </div>
     </div>
@@ -87,7 +126,14 @@ $('#log').on('click', 'thead a, .pagination a', function(e) {
 });
 
 $('#button-filter').on('click', function() {
-	url = '';
+  var month = $('#input-month').val();
+
+  if (!month) {
+    alert('請先選擇月份');
+    return;
+  }
+
+	url = '&filter_month=' + encodeURIComponent(month);
 
   var filter_date = $('#input-date').val();
 
@@ -123,19 +169,23 @@ $('#button-clear').on('click', function() {
 	$('#input-method').val('');
 	$('#input-status').val('');
 	$('#input-keyword').val('');
-	$('#button-filter').click();
+});
+
+// 點擊壓縮檔清單載入該月份
+$('.archive-row').on('click', function() {
+  var month = $(this).data('month');
+  $('#input-month').val(month);
+  $('#button-filter').click();
 });
 
 // 點擊查看詳情
 $('#log').on('click', '.view-detail', function(e) {
 	e.preventDefault();
 
-	var id = $(this).data('id');
+	var archiveId = $(this).data('archive-id');
 
-	// 使用 modal 或新視窗顯示詳情
-	var url = "{{ route('lang.admin.system.logs.form') }}?id=" + id;
+	var url = "{{ route('lang.admin.system.logs.archived.form') }}?archive_id=" + encodeURIComponent(archiveId);
 
-	// 在新分頁開啟
 	window.open(url, '_blank');
 });
 //--></script>

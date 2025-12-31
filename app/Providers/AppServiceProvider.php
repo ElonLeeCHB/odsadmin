@@ -28,8 +28,8 @@ class AppServiceProvider extends ServiceProvider
 
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
 
-        // unique_id
-        app()->singleton('unique_id', function () {
+        // request_trace_id
+        app()->singleton('request_trace_id', function () {
             return time() . '-' . uniqid();
         });
 

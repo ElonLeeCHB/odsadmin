@@ -370,6 +370,7 @@ trait ModelTrait
     {
         // 禁止修改的欄位
         unset($data['created_at']);
+        unset($data['updated_at']);
         unset($data['creator_id']);
 
         foreach ($data as $key => $value) {

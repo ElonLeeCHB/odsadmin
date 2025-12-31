@@ -7,13 +7,15 @@ use Illuminate\Support\Facades\File;
 use ZipArchive;
 
 /**
- * 檔案日誌存儲庫
+ * 檔案日誌存儲庫（備用）
  *
  * 功能：
  * - 將日誌寫入檔案系統（storage/logs/logs_yyyy-mm-dd.txt）
  * - 每日一個檔案，方便管理和查詢
  * - 提供壓縮舊月份日誌的功能（logs_yyyy-mm.zip）
  * - JSON Lines 格式，每行一個 JSON，方便解析和搜尋
+ *
+ * 注意：目前系統使用 LogToDbRepository，此檔案保留備用
  */
 class LogFileRepository
 {
@@ -47,7 +49,7 @@ class LogFileRepository
     {
         $logData = [
             'timestamp' => Carbon::now()->toIso8601String(),
-            'uniqueid' => $params['uniqueid'] ?? app('unique_id') ?? '',
+            'request_trace_id' => $params['request_trace_id'] ?? app('request_trace_id') ?? '',
             'area' => config('app.env'),
             'url' => $params['url'] ?? '',
             'method' => $params['method'] ?? '',
@@ -82,7 +84,7 @@ class LogFileRepository
 
         $logData = [
             'timestamp' => Carbon::now()->toIso8601String(),
-            'uniqueid' => app('unique_id') ?? time() . '-' . uniqid(),
+            'request_trace_id' => app('request_trace_id') ?? time() . '-' . uniqid(),
             'area' => config('app.env'),
             'url' => request()->fullUrl() ?? '',
             'method' => request()->method() ?? '',
@@ -106,7 +108,7 @@ class LogFileRepository
     {
         $logData = [
             'timestamp' => Carbon::now()->toIso8601String(),
-            'uniqueid' => app('unique_id') ?? time() . '-' . uniqid(),
+            'request_trace_id' => app('request_trace_id') ?? time() . '-' . uniqid(),
             'area' => config('app.env'),
             'url' => '',
             'method' => '',
@@ -331,6 +333,7 @@ class LogFileRepository
 
     /**
      * 讀取指定日期的日誌
+     * 依序嘗試：.txt → .zip → .7z
      *
      * @param string $date 格式：Y-m-d
      * @param int $limit 限制行數（0 = 不限制）
@@ -338,44 +341,338 @@ class LogFileRepository
      */
     public function readLogsByDate(string $date, int $limit = 0): array
     {
-        $filename = "logs_{$date}.txt";
-        $filepath = $this->logDir . '/' . $filename;
-
-        if (!File::exists($filepath)) {
-            return [
-                'success' => false,
-                'message' => "找不到 {$date} 的日誌檔案",
-                'logs' => [],
-            ];
+        // 1. 優先讀取 .txt 檔案
+        $txtPath = $this->logDir . "/logs_{$date}.txt";
+        if (File::exists($txtPath)) {
+            return $this->readFromTxt($txtPath, $date, $limit);
         }
 
+        // 2. 嘗試從 .zip 讀取
+        $month = substr($date, 0, 7);
+        $zipPath = $this->logDir . "/logs_{$month}.zip";
+        if (File::exists($zipPath)) {
+            return $this->readFromZip($zipPath, $date, $limit);
+        }
+
+        // 3. 嘗試從 .7z 讀取
+        $szPath = $this->logDir . "/logs_{$month}.7z";
+        if (File::exists($szPath)) {
+            return $this->readFrom7z($szPath, $date, $limit);
+        }
+
+        return [
+            'success' => false,
+            'message' => "找不到 {$date} 的日誌檔案（已檢查 .txt, .zip, .7z）",
+            'logs' => [],
+        ];
+    }
+
+    /**
+     * 從 .txt 檔案讀取日誌
+     *
+     * @param string $filepath
+     * @param string $date
+     * @param int $limit
+     * @return array
+     */
+    protected function readFromTxt(string $filepath, string $date, int $limit = 0): array
+    {
         try {
-            $lines = file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-            $logs = [];
-
-            foreach ($lines as $line) {
-                $log = json_decode($line, true);
-                if ($log) {
-                    $logs[] = $log;
-                }
-
-                if ($limit > 0 && count($logs) >= $limit) {
-                    break;
-                }
-            }
+            $content = File::get($filepath);
+            $result = $this->parseJsonLines($content, $limit);
 
             return [
                 'success' => true,
-                'message' => "成功讀取 {$date} 的日誌",
-                'logs' => $logs,
-                'total' => count($logs),
+                'message' => "成功讀取 {$date} 的日誌（來源：txt）",
+                'logs' => $result['logs'],
+                'total' => $result['total'],
+                'source' => 'txt',
             ];
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'message' => '讀取日誌失敗：' . $e->getMessage(),
+                'message' => '讀取 txt 日誌失敗：' . $e->getMessage(),
                 'logs' => [],
             ];
         }
+    }
+
+    /**
+     * 從 .zip 壓縮檔讀取日誌（純 PHP，跨平台）
+     *
+     * @param string $zipPath
+     * @param string $date
+     * @param int $limit
+     * @return array
+     */
+    protected function readFromZip(string $zipPath, string $date, int $limit = 0): array
+    {
+        try {
+            $zip = new ZipArchive();
+            if ($zip->open($zipPath) !== true) {
+                return [
+                    'success' => false,
+                    'message' => '無法開啟 zip 壓縮檔',
+                    'logs' => [],
+                ];
+            }
+
+            $filename = "logs_{$date}.txt";
+            $content = $zip->getFromName($filename);
+            $zip->close();
+
+            if ($content === false) {
+                return [
+                    'success' => false,
+                    'message' => "在 zip 壓縮檔中找不到 {$date} 的日誌",
+                    'logs' => [],
+                ];
+            }
+
+            $result = $this->parseJsonLines($content, $limit);
+
+            return [
+                'success' => true,
+                'message' => "成功讀取 {$date} 的日誌（來源：zip）",
+                'logs' => $result['logs'],
+                'total' => $result['total'],
+                'source' => 'zip',
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => '讀取 zip 日誌失敗：' . $e->getMessage(),
+                'logs' => [],
+            ];
+        }
+    }
+
+    /**
+     * 從 .7z 壓縮檔讀取日誌（需要系統安裝 7z 命令）
+     *
+     * @param string $szPath
+     * @param string $date
+     * @param int $limit
+     * @return array
+     */
+    protected function readFrom7z(string $szPath, string $date, int $limit = 0): array
+    {
+        try {
+            $filename = "logs_{$date}.txt";
+
+            // 使用 7z 命令解壓到 stdout（跨平台）
+            // Windows: 需要 7z.exe 在 PATH 中
+            // Ubuntu: sudo apt install p7zip-full
+            $command = sprintf(
+                '7z e -so %s %s 2>%s',
+                escapeshellarg($szPath),
+                escapeshellarg($filename),
+                PHP_OS_FAMILY === 'Windows' ? 'nul' : '/dev/null'
+            );
+
+            $content = shell_exec($command);
+
+            if (empty($content)) {
+                return [
+                    'success' => false,
+                    'message' => "在 7z 壓縮檔中找不到 {$date} 的日誌（或 7z 命令不可用）",
+                    'logs' => [],
+                ];
+            }
+
+            $result = $this->parseJsonLines($content, $limit);
+
+            return [
+                'success' => true,
+                'message' => "成功讀取 {$date} 的日誌（來源：7z）",
+                'logs' => $result['logs'],
+                'total' => $result['total'],
+                'source' => '7z',
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => '讀取 7z 日誌失敗：' . $e->getMessage(),
+                'logs' => [],
+            ];
+        }
+    }
+
+    /**
+     * 解析 JSON Lines 格式內容（含行號作為 ID）
+     *
+     * @param string $content
+     * @param int $limit
+     * @return array
+     */
+    protected function parseJsonLines(string $content, int $limit = 0): array
+    {
+        $lines = explode("\n", trim($content));
+        $logs = [];
+        $lineNumber = 0;
+
+        foreach ($lines as $line) {
+            $lineNumber++;
+            $line = trim($line);
+            if ($line && ($log = json_decode($line, true))) {
+                $log['id'] = $lineNumber; // 使用行號作為 ID
+                $logs[] = $log;
+                if ($limit > 0 && count($logs) >= $limit) {
+                    break;
+                }
+            }
+        }
+
+        return [
+            'logs' => $logs,
+            'total' => count($logs),
+        ];
+    }
+
+    /**
+     * 取得日誌列表（用於後台顯示）
+     *
+     * @param array $filters 篩選條件
+     * @return array
+     */
+    public function getList(array $filters): array
+    {
+        $date = $filters['date'] ?? Carbon::today()->format('Y-m-d');
+        $method = $filters['method'] ?? '';
+        $status = $filters['status'] ?? '';
+        $keyword = $filters['keyword'] ?? '';
+        $page = (int)($filters['page'] ?? 1);
+        $limit = (int)($filters['limit'] ?? 50);
+        $sort = $filters['sort'] ?? 'time';
+        $order = $filters['order'] ?? 'desc';
+
+        // 讀取日誌
+        $result = $this->readLogsByDate($date, 0);
+
+        $logs = [];
+        $total = 0;
+
+        if ($result['success']) {
+            $allLogs = $result['logs'];
+
+            // 篩選
+            if ($method || $status || $keyword) {
+                $allLogs = array_filter($allLogs, function($log) use ($method, $status, $keyword) {
+                    // Method 篩選
+                    $matchMethod = !$method || ($log['method'] ?? '') === $method;
+
+                    // 狀態篩選
+                    $matchStatus = true;
+                    if ($status) {
+                        $logStatus = $log['status'] ?? '';
+                        if ($status === 'empty') {
+                            $matchStatus = empty($logStatus);
+                        } else {
+                            $matchStatus = $logStatus === $status;
+                        }
+                    }
+
+                    // 關鍵字篩選
+                    $matchKeyword = !$keyword || (
+                        stripos(json_encode($log, JSON_UNESCAPED_UNICODE), $keyword) !== false
+                    );
+
+                    return $matchMethod && $matchStatus && $matchKeyword;
+                });
+                $allLogs = array_values($allLogs); // 重新索引
+            }
+
+            // 排序
+            if ($sort === 'time') {
+                usort($allLogs, function($a, $b) use ($order) {
+                    $timeA = $a['timestamp'] ?? '';
+                    $timeB = $b['timestamp'] ?? '';
+                    $result = strcmp($timeA, $timeB);
+                    return $order === 'desc' ? -$result : $result;
+                });
+            }
+
+            $total = count($allLogs);
+
+            // 分頁
+            $offset = ($page - 1) * $limit;
+            $logs = array_slice($allLogs, $offset, $limit);
+        }
+
+        // 格式化日誌顯示
+        $formattedLogs = [];
+        foreach ($logs as $log) {
+            $formattedLogs[] = $this->formatLog($log);
+        }
+
+        return [
+            'logs' => $formattedLogs,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'total_pages' => $limit > 0 ? ceil($total / $limit) : 0,
+            'sort' => $sort,
+            'order' => $order,
+        ];
+    }
+
+    /**
+     * 根據 ID（行號）取得單筆日誌
+     *
+     * @param int|string $id 行號
+     * @param string|null $date 日期（檔案存儲需要）
+     * @return array|null
+     */
+    public function find($id, ?string $date = null): ?array
+    {
+        if (!$date) {
+            return null;
+        }
+
+        $result = $this->readLogsByDate($date, 0);
+
+        if (!$result['success']) {
+            return null;
+        }
+
+        foreach ($result['logs'] as $log) {
+            if (($log['id'] ?? null) == $id) {
+                return $this->formatLog($log);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 格式化單筆日誌
+     *
+     * @param array $log
+     * @return array
+     */
+    protected function formatLog(array $log): array
+    {
+        // 格式化時間
+        if (isset($log['timestamp'])) {
+            try {
+                $log['formatted_time'] = Carbon::parse($log['timestamp'])->format('Y-m-d H:i:s');
+            } catch (\Exception $e) {
+                $log['formatted_time'] = '';
+            }
+        } else {
+            $log['formatted_time'] = '';
+        }
+
+        // 簡短顯示 URL
+        $log['short_url'] = mb_strlen($log['url'] ?? '') > 60
+            ? mb_substr($log['url'], 0, 60) . '...'
+            : ($log['url'] ?? '');
+
+        // 簡短顯示 note
+        $log['short_note'] = mb_strlen($log['note'] ?? '') > 100
+            ? mb_substr($log['note'], 0, 100) . '...'
+            : ($log['note'] ?? '');
+
+        return $log;
     }
 }

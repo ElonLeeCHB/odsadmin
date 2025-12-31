@@ -601,11 +601,24 @@ class LayoutComposer
 
         // 系統日誌
         if (1) {
+            $logs = [];
+
+            $logs[] = [
+                'name'     => '資料庫',
+                'href'     => route('lang.admin.system.logs.index'),
+                'icon'     => ' ',
+            ];
+
+            $logs[] = [
+                'name'     => '歷史壓縮檔',
+                'href'     => route('lang.admin.system.logs.archived.index'),
+                'icon'     => ' ',
+            ];
+
             $system[] = [
                 'name'     => '系統日誌',
                 'icon'     => '',
-                'href'     => route('lang.admin.system.logs.index'),
-                'children' => []
+                'children' => $logs
             ];
         }
 

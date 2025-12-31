@@ -2,14 +2,15 @@
   <table class="table table-bordered table-hover">
     <thead>
       <tr>
-        <td class="text-start" style="width: 80px;">
+        <td class="text-start" style="width: 160px;">
           @php
             $currentSort = $sort ?? 'time';
             $currentOrder = $order ?? 'desc';
             $newOrder = ($currentSort === 'time' && $currentOrder === 'desc') ? 'asc' : 'desc';
 
-            $sortUrl = route('lang.admin.system.logs.list', [
-              'filter_date' => request('filter_date', \Carbon\Carbon::today()->format('Y-m-d')),
+            $sortUrl = route('lang.admin.system.logs.archived.list', [
+              'filter_month' => request('filter_month', ''),
+              'filter_date' => request('filter_date', ''),
               'filter_method' => request('filter_method', ''),
               'filter_keyword' => request('filter_keyword', ''),
               'sort' => 'time',
@@ -84,7 +85,7 @@
             <button
               type="button"
               class="btn btn-sm btn-primary view-detail"
-              data-id="{{ $log['id'] ?? '' }}"
+              data-archive-id="{{ $log['archive_id'] ?? '' }}"
               data-bs-toggle="tooltip"
               title="查看詳情">
               <i class="fa-solid fa-eye"></i>

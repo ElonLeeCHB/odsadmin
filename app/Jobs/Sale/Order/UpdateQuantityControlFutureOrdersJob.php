@@ -27,11 +27,11 @@ class UpdateQuantityControlFutureOrdersJob implements ShouldQueue
                     (new \App\Repositories\Eloquent\Sale\OrderDateLimitRepository)->resetFutureOrders();
                 });
                 
-                (new \App\Repositories\Eloquent\SysData\LogRepository)->log(['data'=>'','note'=>'UpdateQuantityControlFutureOrdersJob 執行成功']);
+                (new \App\Repositories\LogToDbRepository)->log(['data'=>'','note'=>'UpdateQuantityControlFutureOrdersJob 執行成功']);
 
             } catch (\Throwable $th) {
                 DB::rollBack();
-                (new \App\Repositories\Eloquent\SysData\LogRepository)->logErrorAfterRequest(['data' => $th->getMessage(), 'note' => 'UpdateQuantityControlFutureOrdersJob']);
+                (new \App\Repositories\LogToDbRepository)->logErrorAfterRequest(['data' => $th->getMessage(), 'note' => 'UpdateQuantityControlFutureOrdersJob']);
             } finally {
                 $lock->release();
             }

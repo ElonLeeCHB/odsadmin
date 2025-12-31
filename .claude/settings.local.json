@@ -10,7 +10,8 @@
       "Bash(Get-Content storagelogslaravel.log -Tail 100)",
       "Bash(Select-String -Pattern \"B2B\")",
       "Bash(echo:*)",
-      "Bash(./php.bat)"
+      "Bash(./php.bat)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

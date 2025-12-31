@@ -27,7 +27,7 @@
       <div class="float-end">
         <button type="button" onclick="window.close();" class="btn btn-light"><i class="fa-solid fa-times"></i> 關閉</button>
       </div>
-      <h1>日誌詳情</h1>
+      <h1>歷史日誌詳情</h1>
       @include('admin.common.breadcumb')
     </div>
   </div>
@@ -39,11 +39,15 @@
         <table class="table table-bordered info-table">
           <tbody>
             <tr>
+              <th>Archive ID</th>
+              <td><code>{{ $log['archive_id'] ?? '' }}</code></td>
+            </tr>
+            <tr>
               <th>時間戳記</th>
               <td>{{ $log['timestamp'] ?? '' }}</td>
             </tr>
             <tr>
-              <th>唯一 ID</th>
+              <th>Request Trace ID</th>
               <td><code>{{ $log['request_trace_id'] ?? '' }}</code></td>
             </tr>
             <tr>

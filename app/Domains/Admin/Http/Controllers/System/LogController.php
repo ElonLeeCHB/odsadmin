@@ -3,16 +3,15 @@
 namespace App\Domains\Admin\Http\Controllers\System;
 
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use App\Domains\Admin\Http\Controllers\BackendController;
-use App\Repositories\LogFileRepository;
+use App\Repositories\LogToDbRepository;
 use Carbon\Carbon;
 
 class LogController extends BackendController
 {
     public function __construct(
         private Request $request,
-        private LogFileRepository $logFileRepository
+        private LogToDbRepository $logRepository,
     ) {
         parent::__construct();
 
@@ -46,7 +45,7 @@ class LogController extends BackendController
         $data['breadcumbs'] = (object)$breadcumbs;
 
         // 初始化篩選參數
-        $data['filter_date'] = $this->request->get('filter_date', Carbon::today()->format('Y-m-d'));
+        $data['filter_date'] = $this->request->get('filter_date', '');
         $data['filter_method'] = $this->request->get('filter_method', '');
         $data['filter_status'] = $this->request->get('filter_status', '');
         $data['filter_keyword'] = $this->request->get('filter_keyword', '');
@@ -74,112 +73,37 @@ class LogController extends BackendController
         $data['lang'] = $this->lang;
 
         // 取得篩選參數
-        $date = $this->request->get('filter_date', Carbon::today()->format('Y-m-d'));
-        $method = $this->request->get('filter_method', '');
-        $status = $this->request->get('filter_status', '');
-        $keyword = $this->request->get('filter_keyword', '');
-        $page = (int)$this->request->get('page', 1);
-        $limit = (int)$this->request->get('limit', 50);
-        $sort = $this->request->get('sort', 'time'); // 排序欄位
-        $order = $this->request->get('order', 'desc'); // 排序方向，預設降序（由新到舊）
+        $filters = [
+            'date' => $this->request->get('filter_date', ''),
+            'method' => $this->request->get('filter_method', ''),
+            'status' => $this->request->get('filter_status', ''),
+            'keyword' => $this->request->get('filter_keyword', ''),
+            'page' => (int)$this->request->get('page', 1),
+            'limit' => (int)$this->request->get('limit', 10),
+            'sort' => $this->request->get('sort', 'time'),
+            'order' => $this->request->get('order', 'desc'),
+        ];
 
-        // 讀取日誌
-        $result = $this->logFileRepository->readLogsByDate($date, 0);
+        // 從 Repository 取得資料（已格式化）
+        $result = $this->logRepository->getList($filters);
 
-        $logs = [];
-        $total = 0;
-
-        if ($result['success']) {
-            $allLogs = $result['logs'];
-
-            // 篩選
-            if ($method || $status || $keyword) {
-                $allLogs = array_filter($allLogs, function($log) use ($method, $status, $keyword) {
-                    // Method 篩選
-                    $matchMethod = !$method || ($log['method'] ?? '') === $method;
-
-                    // 狀態篩選
-                    $matchStatus = true;
-                    if ($status) {
-                        $logStatus = $log['status'] ?? '';
-                        if ($status === 'empty') {
-                            $matchStatus = empty($logStatus);
-                        } else {
-                            $matchStatus = $logStatus === $status;
-                        }
-                    }
-
-                    // 關鍵字篩選
-                    $matchKeyword = !$keyword || (
-                        stripos(json_encode($log, JSON_UNESCAPED_UNICODE), $keyword) !== false
-                    );
-
-                    return $matchMethod && $matchStatus && $matchKeyword;
-                });
-            }
-
-            // 排序
-            if ($sort === 'time') {
-                usort($allLogs, function($a, $b) use ($order) {
-                    $timeA = $a['timestamp'] ?? '';
-                    $timeB = $b['timestamp'] ?? '';
-
-                    $result = strcmp($timeA, $timeB);
-
-                    return $order === 'desc' ? -$result : $result;
-                });
-            }
-
-            $total = count($allLogs);
-
-            // 分頁
-            $offset = ($page - 1) * $limit;
-            $logs = array_slice($allLogs, $offset, $limit);
-        }
-
-        // 格式化日誌顯示
-        foreach ($logs as &$log) {
-            // 格式化時間
-            if (isset($log['timestamp'])) {
-                try {
-                    $log['formatted_time'] = Carbon::parse($log['timestamp'])->format('H:i:s');
-                } catch (\Exception $e) {
-                    $log['formatted_time'] = '';
-                }
-            }
-
-            // 簡短顯示 URL
-            if (isset($log['url'])) {
-                $log['short_url'] = mb_strlen($log['url']) > 60
-                    ? mb_substr($log['url'], 0, 60) . '...'
-                    : $log['url'];
-            }
-
-            // 簡短顯示 note
-            if (isset($log['note'])) {
-                $log['short_note'] = mb_strlen($log['note']) > 100
-                    ? mb_substr($log['note'], 0, 100) . '...'
-                    : $log['note'];
-            }
-        }
-
-        $data['logs'] = $logs;
-        $data['total'] = $total;
-        $data['page'] = $page;
-        $data['limit'] = $limit;
-        $data['total_pages'] = $limit > 0 ? ceil($total / $limit) : 0;
-        $data['sort'] = $sort;
-        $data['order'] = $order;
+        $data['logs'] = $result['logs'];
+        $data['total'] = $result['total'];
+        $data['page'] = $result['page'];
+        $data['limit'] = $result['limit'];
+        $data['total_pages'] = $result['total_pages'];
+        $data['sort'] = $result['sort'];
+        $data['order'] = $result['order'];
 
         // 分頁 URL
         $query_data = [
-            'filter_date' => $date,
-            'filter_method' => $method,
-            'filter_status' => $status,
-            'filter_keyword' => $keyword,
-            'limit' => $limit,
-            'sort' => $sort,
-            'order' => $order,
+            'filter_date' => $filters['date'],
+            'filter_method' => $filters['method'],
+            'filter_status' => $filters['status'],
+            'filter_keyword' => $filters['keyword'],
+            'limit' => $filters['limit'],
+            'sort' => $filters['sort'],
+            'order' => $filters['order'],
         ];
 
         $data['pagination_url'] = route('lang.admin.system.logs.list') . '?' . http_build_query($query_data);
@@ -220,25 +144,11 @@ class LogController extends BackendController
 
         $data['breadcumbs'] = (object)$breadcumbs;
 
-        $date = $this->request->get('date');
-        $uniqueid = $this->request->get('uniqueid');
+        // 取得參數
+        $id = $this->request->get('id');
 
-        if (!$date || !$uniqueid) {
-            return response()->json(['error' => '參數錯誤'], 400);
-        }
-
-        // 讀取日誌
-        $result = $this->logFileRepository->readLogsByDate($date, 0);
-
-        $log = null;
-        if ($result['success']) {
-            foreach ($result['logs'] as $item) {
-                if (($item['uniqueid'] ?? '') === $uniqueid) {
-                    $log = $item;
-                    break;
-                }
-            }
-        }
+        // 從 Repository 取得單筆日誌
+        $log = $this->logRepository->find($id);
 
         if (!$log) {
             return response()->json(['error' => '找不到日誌'], 404);
@@ -248,18 +158,5 @@ class LogController extends BackendController
         $data['log_json'] = json_encode($log, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
         return view('admin.system.log_form', $data);
-    }
-
-    /**
-     * 取得可用的日誌檔案列表
-     */
-    public function files()
-    {
-        $files = $this->logFileRepository->listLogFiles();
-
-        return response()->json([
-            'success' => true,
-            'files' => $files,
-        ]);
     }
 }
