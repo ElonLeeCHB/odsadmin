@@ -559,7 +559,7 @@ class LayoutComposer
         if (1) {
             $access[] = [
                 'name'	   => '使用者',
-                'href'     => route('lang.admin.system.access.users.index', ['equal_is_admin' => 1, 'equal_is_active' => 1]),
+                'href'     => route('lang.admin.system.access.users.index', ['equal_is_active' => 1]),
                 'icon'	   => ' ',
             ];
         }

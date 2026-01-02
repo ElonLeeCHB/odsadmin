@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Repositories\Access\UserRepository;
 use App\Repositories\Access\RoleRepository;
 use App\Repositories\Access\SystemUserRepository;
+use App\Helpers\Classes\OrmHelper;
 
 class UserController extends BackendController
 {
@@ -99,6 +100,9 @@ class UserController extends BackendController
         // ===== Query 與網址參數 =====
         $query = $this->systemUserRepo->query()->with(['user.metas']);
         $filter_data = $this->request->all();
+
+        // ===== OrmHelper 自動處理過濾參數 =====
+        OrmHelper::prepare($query, $filter_data);
 
         // ===== search 關鍵字查詢 =====
         if ($this->request->filled('filter_keyname')) {

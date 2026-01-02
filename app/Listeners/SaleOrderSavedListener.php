@@ -40,7 +40,7 @@ class SaleOrderSavedListener
             $store_id = session('store_id', 1);
             $setting_key = 'sale_order_queued_delivery_dates';
             $setting = Setting::where('store_id', $store_id)->where('group', 'sale')->where('setting_key', $setting_key)->first();
-            $updated_dates = $setting->setting_value ?? [];
+            $updated_dates = $setting?->setting_value ?: [];
 
             if (!empty($event->old_order->delivery_date ?? null)) {
                 $updated_dates[] = Carbon::parse($event->old_order->delivery_date)->format('Y-m-d');

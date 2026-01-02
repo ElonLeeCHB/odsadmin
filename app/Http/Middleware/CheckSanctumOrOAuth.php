@@ -102,7 +102,7 @@ class CheckSanctumOrOAuth
         return match($reason) {
             'user_disabled' => $this->errorResponse(__('auth.error_codes.USER_DISABLED'), 'USER_DISABLED', 403, $extra),
             'user_not_found' => $this->errorResponse(__('auth.error_codes.USER_NOT_FOUND'), 'USER_NOT_FOUND', 404, $extra),
-            default => $this->errorResponse(__('auth.error_codes.TOKEN_INVALID'), 'TOKEN_INVALID', 401, $extra),
+            default => $this->errorResponse(__('auth.error_codes.TOKEN_INVALID'.'...'), 'TOKEN_INVALID', 401, $extra),
         };
     }
 

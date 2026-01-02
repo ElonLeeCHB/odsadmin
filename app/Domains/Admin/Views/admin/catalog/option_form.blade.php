@@ -154,6 +154,7 @@
                     <select id="input-is_active" name="option_values[{{ $option_value_row }}][is_active]">
                       <option value="1" @if($option_value->is_active == 1 ) selected @endif>是</option>
                       <option value="0" @if($option_value->is_active != 1 ) selected @endif>否</option>
+                    </select>
                   </td>
                   <td class="text-end"><button type="button" onclick="$('#option-value-row-{{ $option_value_row }}').remove();" data-bs-toggle="tooltip" title="{{ $lang->button_remove }}" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button></td>
                   

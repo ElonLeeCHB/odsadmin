@@ -92,10 +92,13 @@
               <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">{{ $lang->column_is_active }}</label>
                 <div class="col-sm-10">
-                  <select name="is_active" id="input-is_active" class="form-select">
-                    <option value="1" {{ ($system_user->is_active ?? true) ? 'selected' : '' }}>{{ $lang->text_yes }}</option>
-                    <option value="0" {{ !($system_user->is_active ?? true) ? 'selected' : '' }}>{{ $lang->text_no }}</option>
-                  </select>
+                  <div class="input-group">
+                    <div id="input-is_active" class="form-check form-switch form-switch-lg">
+                      <input type="hidden" name="is_active" value="0"/>
+                      <input type="checkbox" name="is_active" value="1" class="form-check-input" @if($system_user && $system_user->is_active) checked @endif/>
+                    </div>
+                  </div>
+                  <div class="form-text">(注意，這裡的"是否啟用"處理的是後台使用者表 system_users.is_active，不是全域的使用者 users.is_active)</div>
                 </div>
               </div>
 
